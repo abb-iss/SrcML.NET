@@ -5,7 +5,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML", "ABB.SrcML\ABB.
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D4CB6CC1-0630-4FCA-BD07-C7E3DEF24AD6}"
 	ProjectSection(SolutionItems) = preProject
+		epl-v10.html = epl-v10.html
 		Local.testsettings = Local.testsettings
+		notice.html = notice.html
 		SolutionInfo.cs = SolutionInfo.cs
 		SrcML.NET.vsmdi = SrcML.NET.vsmdi
 		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
