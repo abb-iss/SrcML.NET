@@ -1,0 +1,441 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML><HEAD><TITLE>Man page of src2srcml</TITLE>
+</HEAD><BODY>
+<H1>src2srcml</H1>
+Section:  (1)<BR>Updated: Fri May 18 15:23:38 EDT 2012<BR><A HREF="#index">Index</A>
+<A HREF="/cgi-bin/man/man2html">Return to Main Contents</A><HR>
+
+<A NAME="lbAB">&nbsp;</A>
+<H2>NAME</H2>
+
+src2srcml - translates source code into the XML source-code representation srcML
+<A NAME="lbAC">&nbsp;</A>
+<H2>SYNOPSIS</H2>
+
+
+
+
+<B>src2srcml</B> 
+
+
+[<B>-hVnizcgv</B>] [<B>-l </B><I>language</I><B></B>] [<B>-d </B><I>directory</I><B></B>] [<B>-f </B><I>filename</I><B></B>] [<B>-s </B><I>version</I><B></B>] [<B>-x </B><I>encoding</I><B></B>] [<B>-t </B><I>encoding</I><B></B>] [<I>input-source-code-file</I>]... [<B>-o </B><I>output-srcML-file</I><B></B>]
+
+
+
+<A NAME="lbAD">&nbsp;</A>
+<H2>DESCRIPTION</H2>
+
+The program <B>src2srcml</B> translates source-code
+files into the XML source-code representation srcML. The srcML
+format allows the use of XML for addressing, querying, and
+transformation of source code. All text from the original
+source-code file is preserved including white-space, comments, and
+preprocessor statements. No preprocessing of the source code is
+done. In addition, the tool can be applied to individual source-code
+files, or code fragments.
+<P>
+
+The translation is fast and uses a stream-parsing approach with
+top-down parsing and elements issued as soon as they are detected.
+<P>
+
+The program <B>src2srcml</B> is typically used with
+<B>srcml2src</B> which converts from the srcML format
+back to source code. Conversion of a source-code file through
+<B>src2srcml</B> and then through
+<B>srcml2src</B> produces the original source-code
+file. The program <B>srcml2src</B> also provides a
+set of utilities for working with srcML files, including
+efficient querying and transformation of source code.
+<P>
+
+Using the character - in the place of an input source-code file
+filename uses standard input, and in place of an output srcML file
+uses standard output.
+<A NAME="lbAE">&nbsp;</A>
+<H2>OPTIONS</H2>
+
+<DL COMPACT>
+<DT><B>-h, --help</B><DD>
+Output the help and exit.
+<DT><B>-V, --version</B><DD>
+Output the version of src2srcml then exit.
+<DT><B>-e, --expression</B><DD>
+Translates a single, standalone expression.
+<DT><B>-n, --archive</B><DD>
+Stores all input source files into one compound srcML
+document. Default with more then one input file, a directory, or the <B>--files-from</B> option.
+<DT><B>--files-from</B><DD>
+Treats the input file as a list of source files. Each file
+is separately translated and collectively stored into a
+single compound srcML document. The list has a single
+filename on each line starting at the beginning of the line.
+Blank lines and lines that begin with the character '#' are ignored.
+As with input and output files, using the character - in
+place of a file name takes the input list from standard input.
+<DT><B>-t, --src-encoding=</B><I>encoding</I><DD>
+Sets the input encoding of the source-code file to
+<I>encoding</I>. The default is
+--ISO-8859-1. Used for any necessary source-code
+text translation to the encoding used in the srcML file.
+Possible encodings can be obtained by using the command
+<B>iconv -l</B>.
+<DT><B>-x, --encoding=</B><I>encoding</I><DD>
+Sets the xml encoding of the output srcML file to
+<I>encoding</I>. The
+default is UTF-8. Possible encodings can be obtained by
+using the command <B>iconv -l</B>.
+<DT><B>--no-xml-declaration</B><DD>
+No output of the default XML declaration. Useful when the
+output is to be placed inside another XML document.
+<DT><B>--no-namespace-decl</B><DD>
+No output of namespace declarations. Useful when the output
+is to be placed inside another XML document.
+<DT><B>-z, --compress</B><DD>
+Output is in compressed gzip format. This format can be directly,
+and automatically, read by <B>srcml2src</B>.
+<DT><B>-c, --interactive</B><DD>
+Default is to use buffered output for speed. For
+interactive applications output is issued as soon as parsed.
+<P>
+For input from terminal, interactive is default.
+<DT><B>-g, --debug</B><DD>
+When translation errors occur src2srcml preserves all text,
+but may issue incorrect markup. In debug mode the text with
+the translation error is marked with a special set of tags
+with the prefix err from the namespace
+<A HREF="http://www.sdml.info/srcML/srcerr.">http://www.sdml.info/srcML/srcerr.</A> Debug mode can also be indicated by defining
+a prefix for this namespace URL, e.g., 
+<B>--xmlns:err=&quot;<A HREF="http://www.sdml.info/srcML/srcerr">http://www.sdml.info/srcML/srcerr</A>&quot;</B>.
+<DT><B>-v, --verbose</B><DD>
+Conversion and status information to stderr, including
+encodings used. Especially useful with for monitoring
+progress of the the <B>--files-from</B> option.
+The signal SIGUSR1 can be used to toggle this option.
+</DL>
+<A NAME="lbAF">&nbsp;</A>
+<H2>METADATA OPTIONS</H2>
+
+This set of options allows control over various metadata stored in the srcML document.
+<DL COMPACT>
+<DT><B>-l, --language=</B><I>language</I><DD>
+The programming language of the source-code file. Allowable
+values are C, C++, Java, or AspectJ. The language affects
+parsing, the allowed markup, and what is considered a
+keyword. The value is also stored as an attribute of the
+root element unit.
+<P>
+If not specified, the programming language is based on the
+file extension. If the file extension is not available or
+not in the standard list, the default is C++.
+</DL>
+<P>
+
+The rest of the metadata options are for optional
+attributes. For compound srcML documents this option sets
+the attribute on the root element.
+<DL COMPACT>
+<DT><B>-d, --directory=</B><I>directory</I><DD>
+The value of the directory attribute is typically obtained
+from the path of the input filename. This option allows you
+to specify a different directory for standard input or where
+the directory is not contained in the input path.
+<DT><B>-f, --filename=</B><I>filename</I><DD>
+The value of the filename attribute is typically obtained
+from the input filename. This option allows you to specify
+a different filename for standard input or where the filename
+is not contained in the input path.
+<DT><B>-s, --src-version=</B><I>version</I><DD>
+Sets the value of the attribute version to
+<I>version</I>. This is a
+purely-descriptive attribute, where the value has no
+interpretation by src2srcml.
+</DL>
+<A NAME="lbAG">&nbsp;</A>
+<H2>MARKUP EXTENSIONS</H2>
+
+Each extensions to the srcML markup has its own namespace. These
+are indicated in the srcML document by the declaration of the
+specific extension namespace. These flags make it easier to declare.
+<DL COMPACT>
+<DT><B>--literal</B><DD>
+Additional markup of literal values using the element
+literal with the prefix
+&quot;lit&quot; in the namespace
+&quot;<A HREF="http://www.sdml.info/srcML/literal">http://www.sdml.info/srcML/literal</A>&quot;.
+<P>
+Can also be specified by declaring a prefix for literal
+namespace using the <B>--xmlns</B> option,
+e.g.,
+<B>--xmlns:lit=&quot;<A HREF="http://www.sdml.info/srcML/literal">http://www.sdml.info/srcML/literal</A>&quot;</B>
+<DT><B>--operator</B><DD>
+Additional markup of operators values using the element
+operator with the prefix
+&quot;op&quot; in the namespace
+&quot;<A HREF="http://www.sdml.info/srcML/operator">http://www.sdml.info/srcML/operator</A>&quot;.
+<P>
+Can also be specified by declaring a prefix for operator
+namespace using the <B>--xmlns</B> option,
+e.g.,
+<B>--xmlns:op=&quot;<A HREF="http://www.sdml.info/srcML/operator">http://www.sdml.info/srcML/operator</A>&quot;</B>
+<DT><B>--modifier</B><DD>
+Additional markup of type modifiers using the element
+modifier with the prefix
+&quot;type&quot; in the namespace
+&quot;<A HREF="http://www.sdml.info/srcML/modifier">http://www.sdml.info/srcML/modifier</A>&quot;.
+<P>
+Can also be specified by declaring a prefix for the modifier
+namespace using the <B>--xmlns</B> option,
+e.g.,
+<B>--xmlns:type=&quot;<A HREF="http://www.sdml.info/srcML/modifier">http://www.sdml.info/srcML/modifier</A>&quot;</B>
+</DL>
+<A NAME="lbAH">&nbsp;</A>
+<H2>LINE/COLUMN POSITION</H2>
+
+Optional line and column attributes are used to indicate
+the position of an element in the original source code document.
+Both the line and column start at 1. The column position is based
+on the tab settings with a default tab size of 8. Other tab sizes
+can be set using the --tabs.
+<DL COMPACT>
+<DT><B>--position</B><DD>
+Insert line and column attributes into each start element.
+These attributes have a default prefix of
+&quot;pos&quot; in the namespace
+&quot;<A HREF="http://www.sdml.info/srcML/position">http://www.sdml.info/srcML/position</A>&quot;.
+<DT><B>--tabs</B><DD>
+Set the tab size. Default is 8. Use of this option
+automatically turns on the position attributes.
+</DL>
+<A NAME="lbAI">&nbsp;</A>
+<H2>URI AND PREFIX</H2>
+
+There is a set of standard URIs for the elements in srcML, each
+with a predefined prefix. The predefined URIs and prefixes for
+them include (given in xmlns notation):
+<TABLE>
+<TR VALIGN=top><TD>
+PREFIX
+</TD><TD>
+URI
+<BR></TD></TR>
+<TR VALIGN=top><TD>
+</TD><TD>
+<A HREF="http://www.sdml.info/srcML/src">http://www.sdml.info/srcML/src</A>
+<BR></TD></TR>
+<TR VALIGN=top><TD>
+cpp
+</TD><TD>
+<A HREF="http://www.sdml.info/srcML/cpp">http://www.sdml.info/srcML/cpp</A>
+<BR></TD></TR>
+<TR VALIGN=top><TD>
+err
+</TD><TD>
+<A HREF="http://www.sdml.info/srcML/srcerr">http://www.sdml.info/srcML/srcerr</A>
+<BR></TD></TR>
+<TR VALIGN=top><TD>
+lit
+</TD><TD>
+<A HREF="http://www.sdml.info/srcML/literal">http://www.sdml.info/srcML/literal</A>
+<BR></TD></TR>
+<TR VALIGN=top><TD>
+op
+</TD><TD>
+<A HREF="http://www.sdml.info/srcML/operator">http://www.sdml.info/srcML/operator</A>
+<BR></TD></TR>
+<TR VALIGN=top><TD>
+type
+</TD><TD>
+<A HREF="http://www.sdml.info/srcML/modifier">http://www.sdml.info/srcML/modifier</A>
+<BR></TD></TR>
+<TR VALIGN=top><TD>
+pos
+</TD><TD>
+<A HREF="http://www.sdml.info/srcML/position">http://www.sdml.info/srcML/position</A>
+<BR></TD></TR>
+</TABLE>
+
+<P>
+
+The following options can be used to change the prefixes.
+<DL COMPACT>
+<DT><B>--xmlns=</B><I>URI</I><DD>
+Sets the URI for the default namespace.
+<DT><B>--xmlns:</B><I>PREFIX</I><B>=</B><I>URI</I><DD>
+Sets the namespace prefix PREFIX for the namespace URI.
+</DL>
+<P>
+
+These options are an alternative way to turn on options by
+declaring the URI for an option. See the MARKUP EXTENSIONS for
+examples.
+<A NAME="lbAJ">&nbsp;</A>
+<H2>CPP MARKUP OPTIONS</H2>
+
+This set of options allows control over how preprocessing regions are handled,
+i.e., whether parsing and markup occur. In all cases the text is preserved.
+<DL COMPACT>
+<DT><B>--cpp</B><DD>
+Turns on parsing and markup of preprocessor statements in
+non-C/C++ languages such as Java.
+Can also be enabled by defining a prefix for this cpp
+namespace URL, e.g., 
+<B>--xmlns:cpp=&quot;<A HREF="http://www.sdml.info/srcML/cpp">http://www.sdml.info/srcML/cpp</A>&quot;</B>.
+<DT><B>--cpp-markup-else</B><DD>
+Place markup in #else and #elif regions. Default.
+<DT><B>--cpp-text-else</B><DD>
+Only place text in #else and #elif regions leaving out markup.
+<DT><B>--cpp-markup-if0</B><DD>
+Place markup in #if 0 regions.
+<DT><B>--cpp-text-if0</B><DD>
+Only place text in #else and #elif regions leaving out markup.
+Default.
+</DL>
+<A NAME="lbAK">&nbsp;</A>
+<H2>SIGNAL PROCESSING</H2>
+
+The following signals may be used to control src2srcml:
+<DL COMPACT>
+<DT>SIGUSR1<DD>
+Toggles verbose option. Useful with multiple input files as in the <B>--files-from</B> option.
+<DT>SIGINT<DD>
+Completes current file translation (and output) with multiple input files.
+The input file currently being translated is allowed to complete, the complex document is
+closed, and then the program stops. More than one SIGINT causes default behavior.
+<P>
+This special SIGINT handling only occurs with multiple input files in compound srcML documents.
+</DL>
+<A NAME="lbAL">&nbsp;</A>
+<H2>USAGE</H2>
+
+To translate the C++ source-code file main.cpp into the srcML file
+main.cpp.xml:
+<P>
+
+<B>src2srcml</B> main.cpp -o main.cpp.xml
+<P>
+
+To translate a C source-code file main.c into the srcML file main.c.xml:
+<P>
+
+<B>src2srcml</B> --language=C main.c -o main.c.xml
+<P>
+
+To translate a Java source-code file main.java into the srcML file main.java.xml:
+<P>
+
+<B>src2srcml</B> --language=Java main.java -o main.java.xml
+<P>
+
+To specify the directory, filename, and version for an input file from standard input:
+<P>
+
+<B>src2srcml</B> --directory=src --filename=main.cpp --version=1 - -o main.cpp.xml
+<P>
+
+To translate a source-code file in ISO-8859-1 encoding into a srcML file with UTF-8 encoding:
+<P>
+
+<B>src2srcml</B> --src-encoding=ISO-8859-1 --encoding=UTF-8 main.cpp -o main.cpp.xml
+<A NAME="lbAM">&nbsp;</A>
+<H2>RETURN STATUS</H2>
+
+0: Normal
+<P>
+
+1: Error 
+<P>
+
+2: Problem with input file
+<P>
+
+3: Unknown option
+<P>
+
+4: Unknown encoding
+<P>
+
+6: Invalid language
+<P>
+
+7: Language option specified, but value missing
+<P>
+
+8: Filename option specified, but value missing
+<P>
+
+9: Directory option specified, but value missing
+<P>
+
+10: Version option specified, but value missing
+<P>
+
+11: Text encoding option specified, but value missing
+<P>
+
+12: XML encoding option specified, but value missing
+<P>
+
+15: Invalid combination of options
+<P>
+
+16: Incomplete output due to termination
+<A NAME="lbAN">&nbsp;</A>
+<H2>CAVEATS</H2>
+
+Translation is performed based on local information with no symbol
+table. For non-CFG languages, i.e., C/C++, and with macros this
+may lead to incorrect markup.
+<P>
+
+Line endings are normalized in XML formats including srcML.
+<A NAME="lbAO">&nbsp;</A>
+<H2>BUGS</H2>
+
+Java language mode does not contain all of Java 1.5 language elements.
+<P>
+
+Libxml2 directly supports many encodings beyond UTF-8, UTF-16, and ISO-8859-1 through iconv.
+However, the BOM (Byte Order Mark) immediately before the XML declaration may not be processed
+correctly by <B>srcml2src</B> and by other libxml2-based tools (e.g., xmllint).
+Use the LE or BE version of the encoding, e.g., UTF-32BE, UTF-32LE, instead.
+<A NAME="lbAP">&nbsp;</A>
+<H2>SEE ALSO</H2>
+
+<B><A HREF="/cgi-bin/man/man2html?1+srcml2src">srcml2src</A></B>(1)
+<A NAME="lbAQ">&nbsp;</A>
+<H2>AUTHOR</H2>
+
+Written by 
+Michael L. Collard 
+and
+Huzefa Kagdi
+<P>
+
+<HR>
+<A NAME="index">&nbsp;</A><H2>Index</H2>
+<DL>
+<DT><A HREF="#lbAB">NAME</A><DD>
+<DT><A HREF="#lbAC">SYNOPSIS</A><DD>
+<DT><A HREF="#lbAD">DESCRIPTION</A><DD>
+<DT><A HREF="#lbAE">OPTIONS</A><DD>
+<DT><A HREF="#lbAF">METADATA OPTIONS</A><DD>
+<DT><A HREF="#lbAG">MARKUP EXTENSIONS</A><DD>
+<DT><A HREF="#lbAH">LINE/COLUMN POSITION</A><DD>
+<DT><A HREF="#lbAI">URI AND PREFIX</A><DD>
+<DT><A HREF="#lbAJ">CPP MARKUP OPTIONS</A><DD>
+<DT><A HREF="#lbAK">SIGNAL PROCESSING</A><DD>
+<DT><A HREF="#lbAL">USAGE</A><DD>
+<DT><A HREF="#lbAM">RETURN STATUS</A><DD>
+<DT><A HREF="#lbAN">CAVEATS</A><DD>
+<DT><A HREF="#lbAO">BUGS</A><DD>
+<DT><A HREF="#lbAP">SEE ALSO</A><DD>
+<DT><A HREF="#lbAQ">AUTHOR</A><DD>
+</DL>
+<HR>
+This document was created by
+<A HREF="/cgi-bin/man/man2html">man2html</A>,
+using the manual pages.<BR>
+Time: 19:23:39 GMT, May 18, 2012
+</BODY>
+</HTML>
