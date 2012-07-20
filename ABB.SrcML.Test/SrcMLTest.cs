@@ -138,15 +138,15 @@ printf(""hello world!"");
             Assert.AreEqual(1, doc.FileUnits.Count());
             Assert.AreEqual("srcmltest\\foo.c", doc.FileUnits.First().Attribute("filename").Value);
         }
-        [TestMethod]
+        //[TestMethod]
         // TODO this test depends on my computer. Fix it.
-        public void TestDirectoryParsing()
-        {
-            var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
-            var xmlFileName = Path.GetTempFileName();
-            var document = srcmlObject.GenerateSrcMLFromDirectory(@"C:\Users\USVIAUG\Documents\Source Code\Notepad++", xmlFileName);
-            Assert.AreEqual(283, document.FileUnits.Count());
-        }
+        //public void TestDirectoryParsing()
+        //{
+        //    var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
+        //    var xmlFileName = Path.GetTempFileName();
+        //    var document = srcmlObject.GenerateSrcMLFromDirectory(@"C:\Users\USVIAUG\Documents\Source Code\Notepad++", xmlFileName);
+        //    Assert.AreEqual(283, document.FileUnits.Count());
+        //}
         [TestMethod]
         public void ExclusionFilterTest()
         {
