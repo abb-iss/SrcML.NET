@@ -34,13 +34,13 @@ namespace ABB.SrcML.Data.Test
         {
             var testFileName = NppTests.NppXmlPath;
             
-            using (var db = SrcMLDataContext.CreateDatabaseConnection(SrcMLDataContext.MakeDBName(testFileName), true))
+            using (var db = SrcMLDataContext.CreateDatabaseConnection("createdbtestdb", true))
             {
                 Console.WriteLine("Connected to DB named {0}", db.Connection.Database);
                 db.RaiseProgressEvent += HandleProgressEvent;
                 db.Load(testFileName);
             }
-            SrcMLDataContext.DropDatabase(SrcMLDataContext.MakeDBName(testFileName));
+            SrcMLDataContext.DropDatabase("createdbtestdb");
         }
     }
 }
