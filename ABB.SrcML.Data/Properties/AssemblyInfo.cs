@@ -22,6 +22,11 @@ using System;
 
 [assembly: AssemblyCopyright("Copyright © ABB 2011")]
 
+// Setting ComVisible to false makes the types in this assembly not visible 
+// to COM components.  If you need to access a type in this assembly from 
+// COM, set the ComVisible attribute to true on that type.
+[assembly: ComVisible(false)]
+
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("b8aaff7e-3d15-4378-b523-0b9bfb9f3402")]
 
