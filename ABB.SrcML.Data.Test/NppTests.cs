@@ -20,7 +20,7 @@ namespace ABB.SrcML.Data.Test
     [TestClass]
     public class NppTests
     {
-        public static string NppXmlPath = @"..\..\..\ABB.SrcML.Data.Test\XmlInput\npp-5.9.4.xml";
+        public static string NppXmlPath = @"..\..\..\TestInputs\npp-5.9.4.xml";
 
         [ClassInitialize()]
         public static void Init(TestContext context)

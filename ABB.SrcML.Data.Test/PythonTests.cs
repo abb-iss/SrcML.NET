@@ -20,7 +20,7 @@ namespace ABB.SrcML.Data.Test
     [TestClass]
     public class PythonTests
     {
-        public static string PythonXmlPath = @"..\..\..\ABB.SrcML.Data.Test\XmlInput\python-2.6.5.xml";
+        public static string PythonXmlPath = @"..\..\..\TestInputs\python-2.6.5.xml";
 
         [ClassInitialize()]
         public static void Init(TestContext context)
