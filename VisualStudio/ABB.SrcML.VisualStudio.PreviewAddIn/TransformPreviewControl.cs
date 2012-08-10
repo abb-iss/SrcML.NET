@@ -66,6 +66,8 @@ namespace ABB.SrcML.VisualStudio.PreviewAddIn
                     msg += String.Format("\n{0}", e.InnerException);
             }
 
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+
             projectSrcmlFolder = null;
             sourceDirectories = new BindingList<DirectoryInfo>();
             srcmlDict = new Dictionary<DirectoryInfo, string>(new DirectoryInfoComparer());
@@ -99,6 +101,29 @@ namespace ABB.SrcML.VisualStudio.PreviewAddIn
             EventHandler<OpenFileEventArgs> handler = OpenFileEvent;
             if (handler != null)
                 handler(this, e);
+        }
+
+        /// <summary>
+        /// This conducts assembly resolution for the processBuiltDlls function by checking the current domain
+        /// for assembly. It is most likely used to resolve ABB.SrcML.dll which should be in the current domain
+        /// in order for the TransformPreviewControl to load in the first place.
+        /// 
+        /// This problem was solved based on code from here:
+        /// http://stackoverflow.com/a/2658326/6171
+        /// </summary>
+        /// <param name="sender">the sender</param>
+        /// <param name="args">resolve event arguments</param>
+        /// <returns>the requested assembly if it has been loaded in the current domain. null otherwise.</returns>
+        private Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            var domain = (AppDomain)sender;
+
+            foreach (var assembly in domain.GetAssemblies())
+            {
+                if (assembly.FullName == args.Name)
+                    return assembly;
+            }
+            return null;
         }
 
         /// <summary> 
