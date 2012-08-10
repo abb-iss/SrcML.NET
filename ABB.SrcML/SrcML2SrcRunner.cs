@@ -35,7 +35,7 @@ namespace ABB.SrcML
         /// Initializes a new instance of the <see cref="SrcML2SrcRunner"/> class.
         /// </summary>
         public SrcML2SrcRunner()
-            : this(Directory.GetCurrentDirectory())
+            : this(SrcMLHelper.GetSrcMLDefaultDirectory())
         {
 
         }

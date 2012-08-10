@@ -47,7 +47,7 @@ namespace ABB.SrcML.Tools.Src2SrcMLPreview
             binDirIsValid = true;
             directorySelector = new System.Windows.Forms.FolderBrowserDialog();
             directorySelector.ShowNewFolderButton = false;
-            directorySelector.SelectedPath = Environment.CurrentDirectory;
+            directorySelector.SelectedPath = SrcMLHelper.GetSrcMLDefaultDirectory();
 
             _srcmlObject = new Src2SrcMLRunner(directorySelector.SelectedPath, new Collection<string>() { LIT.ArgumentLabel, OP.ArgumentLabel, TYPE.ArgumentLabel });
             _language = ABB.SrcML.Language.CPlusPlus;

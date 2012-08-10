@@ -75,29 +75,12 @@ namespace ABB.SrcML.Tools.Converter
 			{
 				try
 				{
-					runner = GetRunnerWithDirectory(Directory.GetCurrentDirectory());
+                    // check all of the usual suspects
+                    runner = new Src2SrcMLRunner();
 				}
 				catch(IOException)
 				{
 					runner = null;
-				}
-				if (null == runner)
-				{
-					try
-					{
-						var programFiles = Environment.GetEnvironmentVariable("ProgramFiles(x86)");
-						if (null == programFiles)
-							programFiles = Environment.GetEnvironmentVariable("ProgramFiles");
-						var binDir = Path.Combine(programFiles, Path.Combine("SrcML", "bin"));
-						
-						runner = GetRunnerWithDirectory(binDir);
-					}
-					catch (IOException e)
-					{
-						Console.Error.WriteLine("{0} does not exist", Path.Combine(Directory.GetCurrentDirectory(), Src2SrcMLRunner.Src2SrcMLExecutableName));
-						Console.Error.WriteLine(e.Message);
-						Environment.Exit(-1);
-					}
 				}
 			}
 

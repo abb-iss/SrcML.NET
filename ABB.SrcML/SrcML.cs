@@ -87,10 +87,14 @@ namespace ABB.SrcML
 
 
         /// <summary>
-        /// Creates a new SrcML object rooted in the Program Files SrcML Directory.
+        /// Creates a new SrcML object rooted in a default directory. If the SRCMLBINDIR environment variable is set, that is used.
+        /// If not, then c:\Program Files (x86)\SrcML\bin is used.
+        /// If that doesn't exist, c:\Program Files\SrcML\bin is used.
+        /// 
+        /// If none of these directories is sued, the current directory is used.
         /// <seealso cref="SrcML(string)"/>
         /// </summary>
-        public SrcML() : this(GetSrcMLDefaultDirectory())
+        public SrcML() : this(SrcMLHelper.GetSrcMLDefaultDirectory())
         {
         }
 
@@ -129,22 +133,6 @@ namespace ABB.SrcML
         }
 
 #region Internal Code
-        private static string GetSrcMLDefaultDirectory()
-        {
-            //if (File.Exists(Path.Combine(Directory.GetCurrentDirectory(), Src2SrcMLExecutableName)) &&
-            //    File.Exists(Path.Combine(Directory.GetCurrentDirectory(), SrcML2SrcExecutableName)))
-            //    return Directory.GetCurrentDirectory();
-
-            var programFilesDir = Environment.GetEnvironmentVariable("ProgramFiles(x86)");
-            if (null == programFilesDir)
-                programFilesDir = Environment.GetEnvironmentVariable("ProgramFiles");
-            var srcmlDir = Path.Combine(programFilesDir, Path.Combine("SrcML", "bin"));
-
-            if (!Directory.Exists(srcmlDir))
-                return Directory.GetCurrentDirectory();
-            return srcmlDir;
-        }
-        
         [SecurityCritical]
         private void generateSrcMLDoc(string rootDirectory, string xmlFileName, IEnumerable<string> fileNames)
         {
