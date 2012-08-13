@@ -1,4 +1,4 @@
-﻿# SrcML.NET
+# SrcML.NET
 
 This framework and associated tools are used within [ABB Corporate Research](http://www.abb.com/softwareresearch) to do both program transformation and code analysis.
 
@@ -11,6 +11,27 @@ In order to build and run the library and tools you need to install [Visual Stud
 You also need to set the environment variable `SRCMLBINDIR` to `[Solution Path]\External\bin\srcml`. This way, all of the tools will be able to find the srcML executables included with the code.
 
 All of the build artifacts are stored in `[Solution Path]\Build` in either the `Debug` or `Release` subdirectories depending upon the selected configuration.
+
+### Building with MSBuild
+
+There is also an MSBuild project file located in the root of the Solution (located at `[Solution Path]\SrcML.NET.proj`). This can be used to build the entire project from the command line.
+
+To build both the release and debug builds with MSBuild, do the following in a Visual Studio 2010 command prompt:
+
+    cd [Solution Path]
+    msbuild SrcML.NET.proj
+
+If you would like to modify the version number of the resultin binaries to include a build number (as if you're using a continuous integration server like Jenkins), you can do this:
+
+    msbuild SrcML.NET.proj /p:BUILD_NUMBER=42
+
+If you want to build the solution and also copy the srcML binaries to the build directory so that you have all of the required artifacts in one place, do this:
+
+    msbuild SrcML.NET.proj /t:Build;CopyExternals
+
+Finally, in order to remove the build artifacts, do this:
+
+    msbuild SrcML.NET.proj /t:Clean
 
 ## Tools
 
