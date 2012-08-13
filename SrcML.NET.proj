@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <SolutionToBuild Include="SrcML.NET.sln" />
+    <Configuration Include="Debug;Release" />
+    <ExternalFiles Include="External\**\*.*" Exclude="External\MSBuild\**\*.*" />
+  </ItemGroup>
+  <PropertyGroup>
+    <Configuration Condition="'$(Configuration)'==''">Debug</Configuration>
+    <OutDir>Build</OutDir>
+    <Major>2</Major>
+    <Minor>0</Minor>
+    <Revision>0</Revision>
+    <Build>$(BUILD_NUMBER)</Build>
+  </PropertyGroup>
+
+  <Target Name="Build" Inputs="@(Configuration)" Outputs="$(OutDir)\%(Configuration.Identity)" DependsOnTargets="BeforeBuild">
+    <MSBuild Projects="@(SolutionToBuild)" Properties="Configuration=%(Configuration.Identity);Platform=Any CPU" />
+  </Target>
+
+  <Target Name="CopyExternals">
+    <MakeDir Directories="$(OutDir)\External" />
+    <Copy SourceFiles="@(ExternalFiles)"
+          Destinationfiles="@(ExternalFiles->'$(OutDir)\External\%(RecursiveDir)%(Filename)%(Extension)')" />
+  </Target>
+  <Import Project="External\MSBuild\MSBuildCommunityTasks\MSBuild.Community.Tasks.Targets"
+          Condition="Exists('External\MSBuild\MSBuildCommunityTasks\MSBuild.Community.Tasks.Targets')" />
+  <Target Name="BeforeBuild" Condition="Exists('External\MSBuild\MSBuildCommunityTasks\MSBuild.Community.Tasks.Targets')">
+    <Message Text="$(Configuration) Build: $(Major).$(Minor).$(Build).$(Revision)" />
+    <AssemblyInfo CodeLanguage="CS" OutputFile="SolutionInfo.cs"
+                  AssemblyCompany="ABB"
+                  AssemblyConfiguration="$(Configuration)"
+                  AssemblyVersion="$(Major).$(Minor).$(Build).$(Revision)"
+                  AssemblyFileVersion="$(Major).$(Minor).$(Build).$(Revision)"
+                  NeutralResourcesLanguage="en-US"
+                  Condition="$(BUILD_NUMBER) != '' " />
+  </Target>
+  <Target Name="Clean">
+    <RemoveDir Directories="$(OutDir)\Release;$(OutDir)\Debug;$(OutDir)\External;$(OutDir)" />
+  </Target>
+</Project>
