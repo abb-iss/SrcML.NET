@@ -16,21 +16,34 @@ using System.Text;
 
 namespace ABB.SrcML.Data
 {
+    /// <summary>
+    /// Definition of the progress event arguments
+    /// </summary>
     public class ProgressEventArgs : EventArgs
     {
+        /// <summary>
+        /// the progress event message
+        /// </summary>
         public string Message
         {
             get;
             set;
         }
 
-
+        /// <summary>
+        /// The srcML file name being processed.
+        /// </summary>
         public string FileName
         {
             get;
             set;
         }
         
+        /// <summary>
+        /// Constructor for ProgressEventArgs
+        /// </summary>
+        /// <param name="fileName">the srcML file being processed.</param>
+        /// <param name="message">message indicating what has been done.</param>
         public ProgressEventArgs(string fileName, string message)
         {
             this.FileName = fileName;
