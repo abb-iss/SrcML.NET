@@ -18,10 +18,10 @@
     <OutputPath>.\Build\Documentation\</OutputPath>
     <HtmlHelpName>Documentation</HtmlHelpName>
     <Language>en-US</Language>
-    <PresentationStyle>Prototype</PresentationStyle>
+    <PresentationStyle>hana</PresentationStyle>
     <HelpTitle>SrcML.NET Documentation</HelpTitle>
     <DocumentationSources>
-      <DocumentationSource sourceFile="SrcML.NET.sln" xmlns="" />
+      <DocumentationSource sourceFile="SrcML.NET.sln" configuration="Release" platform="Any CPU" />
     </DocumentationSources>
     <HelpFileFormat>Website</HelpFileFormat>
     <BuildAssemblerVerbosity>OnlyWarningsAndErrors</BuildAssemblerVerbosity>
@@ -29,9 +29,10 @@
     <RootNamespaceContainer>True</RootNamespaceContainer>
     <NamespaceSummaries>
       <NamespaceSummaryItem name="ABB.SrcML.Data.Test" isDocumented="False" xmlns="" />
-<NamespaceSummaryItem name="ABB.SrcML.Test" isDocumented="False" xmlns="" />
-<NamespaceSummaryItem name="ABB.SrcML.VisualStudio.TransformTemplate" isDocumented="False" xmlns="" />
-<NamespaceSummaryItem name="SDML.SrcMLVSAddin.SyntaticCategory.Test" isDocumented="False" xmlns="" /></NamespaceSummaries>
+      <NamespaceSummaryItem name="ABB.SrcML.Test" isDocumented="False" xmlns="" />
+      <NamespaceSummaryItem name="ABB.SrcML.VisualStudio.TransformTemplate" isDocumented="False" xmlns="" />
+      <NamespaceSummaryItem name="SDML.SrcMLVSAddin.SyntaticCategory.Test" isDocumented="False" xmlns="" />
+    </NamespaceSummaries>
   </PropertyGroup>
   <!-- There are no properties for these groups.  AnyCPU needs to appear in
        order for Visual Studio to perform the build.  The others are optional

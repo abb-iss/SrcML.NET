@@ -38,7 +38,7 @@
   </Target>
   
   <Target Name="Docs" Condition="Exists('$(SHFBROOT)\SandcastleHelpFileBuilder.targets')">
-    <MSBuild Projects="@(DocumentationProject)" Properties="Configuration=Release;Platform=Any CPU"/>
+    <MSBuild Projects="@(DocumentationProject)" />
   </Target>
   
   <Target Name="Clean">
