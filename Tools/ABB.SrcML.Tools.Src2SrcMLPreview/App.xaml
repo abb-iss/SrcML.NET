@@ -8,7 +8,7 @@
  * Contributors:
  *    Vinay Augustine (ABB Group) - initial API, implementation, & documentation
  ***************************************************************************-->
-<Application x:Class="ABB.SrcML.Src2SrcMLPreview.App"
+<Application x:Class="ABB.SrcML.Tools.Src2SrcMLPreview.App"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     StartupUri="Src2SrcMLPreviewWindow.xaml">

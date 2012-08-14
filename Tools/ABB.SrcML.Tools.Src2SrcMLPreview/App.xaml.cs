@@ -11,12 +11,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
 using System.Linq;
 using System.Windows;
 
-namespace ABB.SrcML.Src2SrcMLPreview
+namespace ABB.SrcML.Tools.Src2SrcMLPreview
 {
     /// <summary>
     /// Interaction logic for App.xaml
