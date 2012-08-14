@@ -8,6 +8,8 @@ It is based on the [srcML project](http://www.sdml.info/projects/srcml/) from [K
 
 In order to build and run the library and tools you need to install [Visual Studio 2010](http://www.microsoft.com/visualstudio/en-us/products/2010-editions) and the [Visual Studio 2010 SP1 SDK](http://www.microsoft.com/en-us/download/details.aspx?id=21835).
 
+The framework also uses [Sandcastle](http://sandcastlestyles.codeplex.com/) to generate HTML documentation. You must have both [Sandcastle](http://sandcastlestyles.codeplex.com/releases/view/86091) (at least version 2.7.0.0) and the [Sandcastle Help File Builder](http://sandcastlestyles.codeplex.com/releases/view/86091) installed if you wish to build the documentation.
+
 You also need to set the environment variable `SRCMLBINDIR` to `[Solution Path]\External\bin\srcml`. This way, all of the tools will be able to find the srcML executables included with the code.
 
 All of the build artifacts are stored in `[Solution Path]\Build` in either the `Debug` or `Release` subdirectories depending upon the selected configuration.
@@ -25,6 +27,12 @@ If you would like to modify the version number of the resultin binaries to inclu
 
     msbuild SrcML.NET.proj /p:BUILD_NUMBER=42
 
+To generate the documentation you can run:
+
+    msbuild SrcML.NET proj /t:docs
+
+This will place all of the documentation in `[Solution Path]\Build\Documentation`.
+
 If you want to build the solution and also copy the srcML binaries to the build directory so that you have all of the required artifacts in one place, do this:
 
     msbuild SrcML.NET.proj /t:Build;CopyExternals
@@ -32,6 +40,10 @@ If you want to build the solution and also copy the srcML binaries to the build 
 Finally, in order to remove the build artifacts, do this:
 
     msbuild SrcML.NET.proj /t:Clean
+
+The complete set of build artifacts can be created via the following command:
+
+    msbuild SrcML.NET.proj /t:Clean;Build;Docs;CopyExternals
 
 ## Tools
 

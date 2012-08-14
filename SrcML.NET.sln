@@ -10,6 +10,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		notice.html = notice.html
 		SolutionInfo.cs = SolutionInfo.cs
 		SrcML.NET.proj = SrcML.NET.proj
+		SrcML.NET.shfbproj = SrcML.NET.shfbproj
 		SrcML.NET.vsmdi = SrcML.NET.vsmdi
 		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
 	EndProjectSection

@@ -2,6 +2,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <SolutionToBuild Include="SrcML.NET.sln" />
+    <DocumentationProject Include="SrcML.NET.shfbproj" />
     <Configuration Include="Debug;Release" />
     <ExternalFiles Include="External\**\*.*" Exclude="External\MSBuild\**\*.*" />
   </ItemGroup>
@@ -35,7 +36,12 @@
                   NeutralResourcesLanguage="en-US"
                   Condition="$(BUILD_NUMBER) != '' " />
   </Target>
+  
+  <Target Name="Docs" Condition="Exists('$(SHFBROOT)\SandcastleHelpFileBuilder.targets')">
+    <MSBuild Projects="@(DocumentationProject)" Properties="Configuration=Release;Platform=Any CPU"/>
+  </Target>
+  
   <Target Name="Clean">
-    <RemoveDir Directories="$(OutDir)\Release;$(OutDir)\Debug;$(OutDir)\External;$(OutDir)" />
+    <RemoveDir Directories="$(OutDir)\Release;$(OutDir)\Debug;$(OutDir)\External;$(OutDir)\Documentation;$(OutDir)" />
   </Target>
 </Project>
