@@ -29,19 +29,9 @@ namespace ABB.SrcML.Test
             Directory.CreateDirectory("srctest");
             Directory.CreateDirectory("srctest_xml");
 
-            File.WriteAllText(@"srctest\foo.c", @"int foo() {
-    printf(""hello world!""); bool x = 5 < 3; printd(""what?"");
-}
+            File.WriteAllText(@"srctest\foo.c", String.Format(@"int foo() {{{0}    printf(""hello world!""); bool x = 5 < 3; printd(""what?"");}}{0}{0}void bar() {{{0}    while(1){0}    {{{0}        printg(""bar"");{0}    }}{0}}}", Environment.NewLine));
 
-void bar() {
-    while(1)
-    {
-        printg(""bar"");
-    }
-}");
-            File.WriteAllText("srctest\\bar.c", @"int bar() {
-printf(""good bye, world"");
-}");
+            File.WriteAllText("srctest\\bar.c", String.Format(@"int bar() {{{0}printf(""good bye, world"");{0}}}", Environment.NewLine));
         }
 
         [ClassCleanup]

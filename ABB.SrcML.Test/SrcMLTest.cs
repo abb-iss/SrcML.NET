@@ -28,13 +28,9 @@ namespace ABB.SrcML.Test
         {
             Directory.CreateDirectory("srcmltest");
             Directory.CreateDirectory("srcml_xml");
-            File.WriteAllText("srcmltest\\foo.c", @"int foo() {
-printf(""hello world!"");
-}");
+            File.WriteAllText("srcmltest\\foo.c", String.Format(@"int foo() {{{0}printf(""hello world!"");{0}}}", Environment.NewLine));
 
-            File.WriteAllText("srcmltest\\bar.c", @"int bar() {
-    printf(""goodbye, world!"");
-}");
+            File.WriteAllText("srcmltest\\bar.c", String.Format(@"int bar() {{{0}    printf(""goodbye, world!"");{0}}}", Environment.NewLine));
 
             File.WriteAllText("srcmltest\\CSHARP.cs", @"using System.Collections.Generic;
 using System.Linq;
@@ -65,9 +61,7 @@ namespace LoggingTransformation
     }
 }
 ");
-            File.WriteAllText("srcmltest\\File with spaces.cpp", @"int foo() {
-    printf(""hello world!"");
-}");
+            File.WriteAllText("srcmltest\\File with spaces.cpp", String.Format(@"int foo() {{{0}    printf(""hello world!"");{0}}}", Environment.NewLine));
         }
 
         [ClassCleanup]

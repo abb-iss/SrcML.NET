@@ -29,54 +29,16 @@ namespace ABB.SrcML.Test
 			Directory.CreateDirectory("external_xml");
 
 			File.WriteAllBytes("external\\fileWithBom.cpp", new byte[3] { 0xEF, 0xBB, 0xBF });
-			File.WriteAllText("external\\ClassWithConstructor.java", @"package external;
 
-class ClassWithConstructor
-{
-	private int hidden = 0;
-	
-	public Test(int value)
-	{
-		hidden = value;
-	}
-	
-	public int foo (char a)
-	{
-		return (int) a;
-	}
-}");
-			File.WriteAllText(@"external\cpp_parsing_error.c", @"int testcase(int x)
-{
-	if(x < 0)
-		printf(""x < 0\n"");
-#if 1
-	else
-		printf(""x >= 0\n"");
-#else
-	else
-		printf(""no really, x >= 0\n"");
-#endif
-	return x;
-}
-");
-			File.WriteAllText("external\\MacroWithoutSemicolon.cpp", @"if (exists) {
-	Py_BEGIN_ALLOW_THREADS
-	fp = fopen(filename, ""r"" PY_STDIOTEXTMODE);
-	Py_END_ALLOW_THREADS
+            File.WriteAllText("external\\ClassWithConstructor.java", String.Format(@"package external;{0}{0}class ClassWithConstructor{0}{{{0}	private int hidden = 0;{0}{0}	public Test(int value){0}	{{{0}		hidden = value;{0}	}}{0}{0}	public int foo (char a){0}	{{{0}		return (int) a;{0}	}}{0}}}", Environment.NewLine));
 
-	if (fp == NULL) {
-		exists = 0;
-	}
-}");
-			File.WriteAllText("external\\DestructorWithIfStatement.cpp", @"~Test()
-{
-	if(0)
-	{
-	}
-}");
-            File.WriteAllText("external\\MethodWithFunctionPointerParameters.cpp", @"void foo(int (*a)(char i), char b)
-{
-}");
+            File.WriteAllText(@"external\cpp_parsing_error.c", String.Format(@"int testcase(int x){0}{{{0}	if(x < 0){0}		printf(""x < 0\n"");{0}#if 1{0}	else{0}		printf(""x >= 0\n"");{0}#else{0}	else{0}		printf(""no really, x >= 0\n"");{0}#endif{0}	return x;{0}}}{0}", Environment.NewLine));
+
+            File.WriteAllText("external\\MacroWithoutSemicolon.cpp", String.Format(@"if (exists) {{{0}	Py_BEGIN_ALLOW_THREADS{0}	fp = fopen(filename, ""r"" PY_STDIOTEXTMODE);{0}	Py_END_ALLOW_THREADS{0}{0}	if (fp == NULL) {{{0}		exists = 0;{0}	}}{0}}}", Environment.NewLine));
+
+            File.WriteAllText("external\\DestructorWithIfStatement.cpp", String.Format(@"~Test(){0}{{{0}	if(0){0}	{{{0}	}}{0}}}", Environment.NewLine));
+
+            File.WriteAllText("external\\MethodWithFunctionPointerParameters.cpp", String.Format(@"void foo(int (*a)(char i), char b){0}{{{0}}}", Environment.NewLine));
 		}
 
 		[ClassCleanup]
