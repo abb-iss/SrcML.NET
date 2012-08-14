@@ -45,7 +45,7 @@ namespace ABB.SrcML
 		/// <summary>
 		/// XML Markup for the source code block:
 		/// 
-		/// <code>&lt;block&gt;{ ...statements... }&lt;block&gt;</code>
+		/// <code lang="XML">&lt;block&gt;{ ...statements... }&lt;block&gt;</code>
 		/// </summary>
 		public static readonly XName Block = NS + "block";
 
@@ -62,17 +62,17 @@ namespace ABB.SrcML
 		/// 
 		/// In C++, the following class:break
 		/// 
-		/// <code>
+		/// <code lang="C++">
 		/// class A
 		/// {
-		///     public:
-		///         int a;
+		/// public:
+		///     int a;
 		/// }
 		/// </code>
 		/// 
 		/// will be marked up as
 		/// 
-		/// <code>
+		/// <code lang="XML">
 		/// &lt;class&gt;class &lt;name&gt;A&lt;/name&gt;
 		/// &lt;block&gt;{&lt;private type="default"&gt;
 		/// &lt;/private&gt;&lt;public&gt;public:
@@ -92,17 +92,17 @@ namespace ABB.SrcML
 		/// 
 		/// In C++, the following class:
 		/// 
-		/// <code>
+		/// <code lang="C++">
 		/// class A
 		/// {
-		///     public:
-		///         int a;
+	    /// public:
+	    ///     int a;
 		/// }
 		/// </code>
 		/// 
 		/// will be marked up as
 		/// 
-		/// <code>
+		/// <code lang="XML">
 		///&lt;class&gt;class &lt;name&gt;A&lt;/name&gt;
 		///&lt;block&gt;{&lt;private type="default"&gt;
 		///&lt;/private&gt;&lt;protected&gt;protected:

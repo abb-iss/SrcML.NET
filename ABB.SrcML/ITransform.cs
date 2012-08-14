@@ -31,7 +31,7 @@ namespace ABB.SrcML
 
         /// <summary>
         /// Transform the given element. Typically, the input for this function should come from <see cref="QueryAttribute"/>.
-        /// <code>
+        /// <code lang="C#">
         /// foreach(var e in transform.QueryAttribute(element))
         ///     e.ReplaceWith(transform.Transform(e);
         /// </code>
