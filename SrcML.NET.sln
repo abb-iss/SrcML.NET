@@ -6,13 +6,11 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D4CB6CC1-0630-4FCA-BD07-C7E3DEF24AD6}"
 	ProjectSection(SolutionItems) = preProject
 		epl-v10.html = epl-v10.html
-		Local.testsettings = Local.testsettings
 		notice.html = notice.html
 		SolutionInfo.cs = SolutionInfo.cs
+		SrcML.NET.nunit = SrcML.NET.nunit
 		SrcML.NET.proj = SrcML.NET.proj
 		SrcML.NET.shfbproj = SrcML.NET.shfbproj
-		SrcML.NET.vsmdi = SrcML.NET.vsmdi
-		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML.Test", "ABB.SrcML.Test\ABB.SrcML.Test.csproj", "{86EFC1F8-3E42-4130-B290-FEBE98C3D784}"
@@ -48,12 +46,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{739014
 		.nuget\NuGet.Config = .nuget\NuGet.Config
 		.nuget\NuGet.exe = .nuget\NuGet.exe
 		.nuget\NuGet.targets = .nuget\NuGet.targets
+		.nuget\packages.config = .nuget\packages.config
 	EndProjectSection
 EndProject
 Global
-	GlobalSection(TestCaseManagementSettings) = postSolution
-		CategoryFile = SrcML.NET.vsmdi
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
