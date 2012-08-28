@@ -13,22 +13,22 @@ using System;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using System.IO;
 using System.Xml.XPath;
 namespace ABB.SrcML.Test
 {
-    [TestClass]
+    [TestFixture]
     public class HelperTests
     {
-        [TestCleanup()]
+        [TearDown]
         public void HelperTestsCleanup()
         {
             if (File.Exists("test.xml"))
                 File.Delete("test.xml");
         }
 
-        [TestMethod]
+        [Test]
         public void GetXPathExtensionTest()
         {
             File.WriteAllText("test.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>

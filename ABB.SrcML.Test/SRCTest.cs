@@ -13,18 +13,18 @@ using System;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using System.IO;
 using ABB.SrcML;
 using System.Xml.Linq;
 
 namespace ABB.SrcML.Test
 {
-    [TestClass]
+    [TestFixture]
     public class SRCTest
     {
-        [ClassInitialize]
-        public static void SRCTestInitialize(TestContext context)
+        [TestFixtureSetUp]
+        public static void SRCTestInitialize()
         {
             Directory.CreateDirectory("srctest");
             Directory.CreateDirectory("srctest_xml");
@@ -34,7 +34,7 @@ namespace ABB.SrcML.Test
             File.WriteAllText("srctest\\bar.c", String.Format(@"int bar() {{{0}printf(""good bye, world"");{0}}}", Environment.NewLine));
         }
 
-        [ClassCleanup]
+        [TestFixtureTearDown]
         public static void SRCTestCleanup()
         {
             foreach (var file in Directory.GetFiles("srctest"))
@@ -49,7 +49,7 @@ namespace ABB.SrcML.Test
             Directory.Delete("srctest_xml");
         }
 
-        [TestMethod]
+        [Test]
         public void CheckPositionNumberWithSingleUnit()
         {
             var srcmlObject = new ABB.SrcML.SrcML(TestConstants.SrcmlPath);
@@ -70,7 +70,7 @@ namespace ABB.SrcML.Test
             Assert.AreEqual(9, firstUnit.Descendants(SRC.Name).First(n => n.Value == "printg").GetSrcLinePosition());
         }
 
-        [TestMethod]
+        [Test]
         public void GetSrcLineNumberWithSingleUnit()
         {
             File.WriteAllText("srctest\\singleunitlinenum.c", @"int foo() {
@@ -87,7 +87,7 @@ printf(""hello world!"");
             Assert.AreEqual(2, unit.Descendants(SRC.Call).First().GetSrcLineNumber());
         }
 
-        [TestMethod]
+        [Test]
         public void GetLineInfoWithString()
         {
             var source = @"int foo() {
@@ -103,7 +103,7 @@ printf(""hello world!"");
             Assert.AreEqual(-1, element.GetSrcLinePosition());
         }
 
-        [TestMethod]
+        [Test]
         public void GetSrcLineNumberWithMultipleUnit()
         {
             var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
@@ -116,7 +116,7 @@ printf(""hello world!"");
             Assert.AreEqual(2, firstUnit.Descendants(SRC.Call).First().GetSrcLineNumber());
         }
 
-        [TestMethod]
+        [Test]
         public void ToSourceTest()
         {
             var text = File.ReadAllText("srctest\\foo.c");
@@ -132,7 +132,7 @@ printf(""hello world!"");
             Assert.AreEqual(text, contentsFromXml);
         }
 
-        [TestMethod]
+        [Test]
         public void ParentStatementTest()
         {
             var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
@@ -158,7 +158,7 @@ printf(""hello world!"");
             Assert.AreEqual(declaration, variableParent);            
         }
 
-        [TestMethod]
+        [Test]
         public void ContainsCallToTest()
         {
             string source = @"int foo() {

@@ -15,7 +15,7 @@ using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using ABB.SrcML;
 using System.Xml.Linq;
 
@@ -24,7 +24,7 @@ namespace ABB.SrcML.Test
     /// <summary>
     /// Tests for ABB.SrcML.SrcMLFile.
     /// </summary>
-    [TestClass]
+    [TestFixture]
     public class SrcMLFileTest
     {
         public SrcMLFileTest()
@@ -34,40 +34,23 @@ namespace ABB.SrcML.Test
             //
         }
 
-        private TestContext testContextInstance;
-
-        /// <summary>
-        ///Gets or sets the test context which provides
-        ///information about and functionality for the current test run.
-        ///</summary>
-        public TestContext TestContext
-        {
-            get
-            {
-                return testContextInstance;
-            }
-            set
-            {
-                testContextInstance = value;
-            }
-        }
-
         #region Additional test attributes
         //
         // You can use the following additional attributes as you write your tests:
         //
         // Use ClassInitialize to run code before running the first test in the class
-        [ClassInitialize()]
-        public static void SrcMLFileTestInitialize(TestContext testContext)
+        [TestFixtureSetUp]
+        public static void SrcMLFileTestInitialize()
         {
             Directory.CreateDirectory("srcmlfiletest");
 
             File.WriteAllText("srcmlfiletest\\foo.c", String.Format(@"int foo() {{{0}printf(""hello world!"");{0}}}", Environment.NewLine));
             File.WriteAllText("srcmlfiletest\\bar.cpp", String.Format(@"int bar() {{{0}printf(""good bye, world"");{0}}}", Environment.NewLine));
         }
+
         //
         // Use ClassCleanup to run code after all tests in a class have run
-        [ClassCleanup()]
+        [TestFixtureTearDown()]
         public static void SrcMLFileTestClassCleanup()
         {
             foreach (var file in Directory.GetFiles("srcmlfiletest"))
@@ -82,7 +65,7 @@ namespace ABB.SrcML.Test
         // public void MyTestInitialize() { }
         //
         // Use TestCleanup to run code after each test has run
-        [TestCleanup()]
+        [TearDown()]
         public void SrcMLFileTestCleanup()
         {
             if (File.Exists("test.xml"))
@@ -91,7 +74,7 @@ namespace ABB.SrcML.Test
         //
         #endregion
 
-        [TestMethod]
+        [Test]
         public void SingleFileTest()
         {
             File.WriteAllText("test.xml", @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>
@@ -103,7 +86,7 @@ namespace ABB.SrcML.Test
             Assert.AreEqual(1, doc.FileUnits.Count(), "A non-compound file should have only a single  file unit");
         }
 
-        [TestMethod]
+        [Test]
         public void CompoundFileTest()
         {
             File.WriteAllText("test.xml", @"<?xml version=""1.0"" encoding=""utf-8""?><unit xmlns=""http://www.sdml.info/srcML/src"">
@@ -117,7 +100,7 @@ namespace ABB.SrcML.Test
             Assert.AreEqual(2, doc.FileUnits.Count(), "This compound file should have 2 units.");
         }
 
-        [TestMethod]
+        [Test]
         public void DisjunctMergedFileTest()
         {
             File.WriteAllText("test.xml", @"<?xml version=""1.0"" encoding=""utf-8""?><unit xmlns=""http://www.sdml.info/srcML/src"">
@@ -131,7 +114,7 @@ namespace ABB.SrcML.Test
             Assert.IsNull(doc.ProjectDirectory, String.Format("The ProjectDirectory property should be null when there is no common path. ({0})", doc.ProjectDirectory));
         }
 
-        [TestMethod]
+        [Test]
         public void WhitespaceInCompoundDocumentTest()
         {
             File.WriteAllText("test.xml", @"<?xml version=""1.0"" encoding=""utf-8""?><unit xmlns=""http://www.sdml.info/srcML/src"">
@@ -153,7 +136,7 @@ namespace ABB.SrcML.Test
             Assert.AreNotEqual(lastComment, nextNode);
         }
 
-        [TestMethod]
+        [Test]
         public void WhitespaceInSingleDocumentTest()
         {
             File.WriteAllText("test.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
@@ -172,7 +155,7 @@ namespace ABB.SrcML.Test
             Assert.AreNotEqual(lastComment, nextNode);
         }
 
-        [TestMethod]
+        [Test]
         public void ExtraNewlinesInMergedDocumentTest()
         {
             var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
@@ -188,7 +171,7 @@ namespace ABB.SrcML.Test
             }
         }
 
-        [TestMethod]
+        [Test]
         [Timeout(5000)]
         public void EmptyElementTest()
         {

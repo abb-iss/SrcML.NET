@@ -14,17 +14,17 @@ using System.IO;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using ABB.SrcML;
 using System.Xml.Linq;
 
 namespace ABB.SrcML.Test
 {
-    [TestClass]
+    [TestFixture]
     public class SrcMLTest
     {
-        [ClassInitialize]
-        public static void SrcMLTestInitialize(TestContext context)
+        [TestFixtureSetUp]
+        public static void SrcMLTestInitialize()
         {
             Directory.CreateDirectory("srcmltest");
             Directory.CreateDirectory("srcml_xml");
@@ -64,7 +64,7 @@ namespace LoggingTransformation
             File.WriteAllText("srcmltest\\File with spaces.cpp", String.Format(@"int foo() {{{0}    printf(""hello world!"");{0}}}", Environment.NewLine));
         }
 
-        [ClassCleanup]
+        [TestFixtureTearDown]
         public static void SrcMLTestCleanup()
         {
             foreach (var file in Directory.GetFiles("srcmltest"))
@@ -79,7 +79,7 @@ namespace LoggingTransformation
             Directory.Delete("srcml_xml");
         }
 
-        [TestMethod]
+        [Test]
         public void DifferentLanguageTest()
         {
             var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
@@ -89,7 +89,7 @@ namespace LoggingTransformation
             Assert.IsNotNull(doc);
         }
 
-        [TestMethod]
+        [Test]
         public void SrcMLFromStringTest()
         {
             string sourceCode = @"int foo() {
@@ -103,7 +103,7 @@ printf(""hello world!"");
             Assert.IsNotNull(element);
         }
 
-        [TestMethod]
+        [Test]
         public void InvalidLanguageTest()
         {
             var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
@@ -121,7 +121,7 @@ printf(""hello world!"");
             Assert.IsNotNull(doc);
         }
 
-        [TestMethod]
+        [Test]
         public void SingleFileTest()
         {
             var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
@@ -132,7 +132,7 @@ printf(""hello world!"");
             Assert.AreEqual(1, doc.FileUnits.Count());
             Assert.AreEqual("srcmltest\\foo.c", doc.FileUnits.First().Attribute("filename").Value);
         }
-        //[TestMethod]
+        //[Test]
         // TODO this test depends on my computer. Fix it.
         //public void TestDirectoryParsing()
         //{
@@ -141,7 +141,7 @@ printf(""hello world!"");
         //    var document = srcmlObject.GenerateSrcMLFromDirectory(@"C:\Users\USVIAUG\Documents\Source Code\Notepad++", xmlFileName);
         //    Assert.AreEqual(283, document.FileUnits.Count());
         //}
-        [TestMethod]
+        [Test]
         public void ExclusionFilterTest()
         {
             var exclusionList = new List<string>();
@@ -162,7 +162,7 @@ printf(""hello world!"");
             Assert.AreEqual(Path.GetFullPath("srcmltest\\foo.c"), firstSourceFile);
         }
 
-        [TestMethod]
+        [Test]
         public void EmptyOutputFileTest()
         {
             var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
@@ -175,7 +175,7 @@ printf(""hello world!"");
             Assert.AreEqual(1, doc.FileUnits.Count());
         }
 
-        [TestMethod]
+        [Test]
         public void InputWithSpacesTest()
         {
             var runner = new Src2SrcMLRunner(TestConstants.SrcmlPath);
@@ -184,7 +184,7 @@ printf(""hello world!"");
             Assert.IsNotNull(doc);
             Assert.AreEqual(1, doc.FileUnits.Count());
         }
-        //[TestMethod]
+        //[Test]
         //public void TestRegularExpression()
         //{
         //    string output;

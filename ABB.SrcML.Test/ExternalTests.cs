@@ -14,16 +14,16 @@ using System.Text;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using System.Xml.Linq;
 using ABB.SrcML;
 namespace ABB.SrcML.Test
 {
-	[TestClass]
+	[TestFixture]
 	public class ExternalTests
 	{
-		[ClassInitialize]
-		public static void ExternalTestInitialize(TestContext context)
+		[TestFixtureSetUp]
+		public static void ExternalTestInitialize()
 		{
 			Directory.CreateDirectory("external");
 			Directory.CreateDirectory("external_xml");
@@ -41,7 +41,7 @@ namespace ABB.SrcML.Test
             File.WriteAllText("external\\MethodWithFunctionPointerParameters.cpp", String.Format(@"void foo(int (*a)(char i), char b){0}{{{0}}}", Environment.NewLine));
 		}
 
-		[ClassCleanup]
+		[TestFixtureTearDown]
 		public static void SRCTestCleanup()
 		{
 			foreach (var file in Directory.GetFiles("external"))
@@ -56,7 +56,7 @@ namespace ABB.SrcML.Test
 			Directory.Delete("external_xml");
 		}
 
-		[TestMethod]
+		[Test]
 		public void FileWithBom()
 		{
 			var srcmlObject = new ABB.SrcML.SrcML(TestConstants.SrcmlPath);
@@ -64,7 +64,7 @@ namespace ABB.SrcML.Test
 			var doc = srcmlObject.GenerateSrcMLFromFile("external\\fileWithBom.cpp", "external_xml\\fileWithBom.xml");
 		}
 
-		[TestMethod]
+		[Test]
 		public void JavaClassWithConstructor()
 		{
 			var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
@@ -77,7 +77,7 @@ namespace ABB.SrcML.Test
 			Assert.AreEqual(1, classBlock.Elements(SRC.Function).Count(), srcmlObject.ApplicationDirectory);
 		}
 
-		[TestMethod]
+		[Test]
 		public void DeclStmtWithTwoDecl()
 		{
 			var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
@@ -93,7 +93,7 @@ namespace ABB.SrcML.Test
             Assert.AreEqual(2, initCount, srcmlObject.ApplicationDirectory);
 		}
 
-		[TestMethod]
+		[Test]
 		public void FunctionWithElseInCpp()
 		{
 			var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
@@ -103,7 +103,7 @@ namespace ABB.SrcML.Test
 			Assert.AreEqual(1, doc.FileUnits.First().Elements().Count(), srcmlObject.ApplicationDirectory);
 		}
 
-		[TestMethod]
+		[Test]
 		public void MacroWithoutSemicolon()
 		{
 			var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
@@ -113,7 +113,7 @@ namespace ABB.SrcML.Test
 			Assert.AreEqual(2, doc.FileUnits.First().Descendants(SRC.If).Count());
 		}
 
-		[TestMethod]
+		[Test]
 		public void DestructorWithIfStatement()
 		{
 			var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
@@ -123,7 +123,7 @@ namespace ABB.SrcML.Test
 			Assert.AreEqual(1, doc.FileUnits.First().Descendants(SRC.Destructor).Count());
 		}
 
-        [TestMethod]
+        [Test]
         public void MethodWithFunctionPointerAsParameter()
         {
             var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
