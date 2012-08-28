@@ -13,7 +13,7 @@ using System;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using System.IO;
 
 namespace ABB.SrcML.Data.Test
@@ -21,7 +21,7 @@ namespace ABB.SrcML.Data.Test
     /// <summary>
     /// Summary description for DbCreationTests
     /// </summary>
-    [TestClass]
+    [TestFixture]
     public class DbCreationTests
     {
         void HandleProgressEvent(object sender, ProgressEventArgs e)
@@ -29,7 +29,7 @@ namespace ABB.SrcML.Data.Test
             Console.WriteLine("{0} Received Event for {1}: {2}", DateTime.Now, e.FileName, e.Message);
         }
 
-        [TestMethod]
+        [Test]
         public void CreateDbTest()
         {
             var testFileName = NppTests.NppXmlPath;

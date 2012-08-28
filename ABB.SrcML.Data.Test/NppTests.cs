@@ -13,57 +13,57 @@ using System;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 
 namespace ABB.SrcML.Data.Test
 {
-    [TestClass]
+    [TestFixture]
     public class NppTests
     {
-        public static string NppXmlPath = @"..\..\..\TestInputs\npp-5.9.4.xml";
+        public static string NppXmlPath = @"..\..\TestInputs\npp-5.9.4.xml";
 
-        [ClassInitialize()]
-        public static void Init(TestContext context)
+        [TestFixtureSetUp]
+        public static void Init()
         {
             DbHelper.AddArchiveToDb(NppXmlPath);
         }
 
-        [TestMethod]
+        [Test]
         public void PrintNppStatsTest()
         {
 
             DbHelper.GetStatsFromDb(NppXmlPath);
         }
 
-        [TestMethod]
+        [Test]
         public void NppTypeTest()
         {
             List<string> testTypeNames = new List<string>() { "sessionInfo", "GRPICONDIRENTRY", "Notepad_plus" };
             TypeTester.TestTypeUse(NppXmlPath, testTypeNames);
         }
 
-        [TestMethod]
+        [Test]
         public void NppGlobalDeclarationTest()
         {
             List<string> useNames = new List<string>() { "TAB_DRAWTOPBAR", "TAB_DRAGNDROP", "USERMSG" };
             DeclarationTester.TestGlobalVariables(NppXmlPath, useNames);
         }
 
-        [TestMethod]
+        [Test]
         public void NppLocalDeclarationTest()
         {
             List<string> useNames = new List<string>() { "nbUserCommand", "hMenu", "_mainEditView" };
             DeclarationTester.TestLocalVariables(NppXmlPath, useNames);
         }
 
-        [TestMethod]
+        [Test]
         public void NppCallTest()
         {
             List<string> testCalls = new List<string>() { "SetSavePoint", "DeleteMarkFromHandle", "DeleteAllMarks", "LineFromHandle", "LineEnd" };
             MethodCallTester.TestMethodCalls(NppXmlPath, testCalls);
         }
 
-        [TestMethod]
+        [Test]
         public void NppCallGraphTest()
         {
             var testData = new List<Tuple<string, string, bool>>() {

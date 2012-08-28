@@ -13,56 +13,56 @@ using System;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 
 namespace ABB.SrcML.Data.Test
 {
-    [TestClass]
+    [TestFixture]
     public class PythonTests
     {
-        public static string PythonXmlPath = @"..\..\..\TestInputs\python-2.6.5.xml";
+        public static string PythonXmlPath = @"..\..\TestInputs\python-2.6.5.xml";
 
-        [ClassInitialize()]
-        public static void Init(TestContext context)
+        [TestFixtureSetUp]
+        public static void Init()
         {
             DbHelper.AddArchiveToDb(PythonXmlPath);
         }
 
-        [TestMethod]
+        [Test]
         public void PrintPythonStatsTest()
         {
             DbHelper.GetStatsFromDb(PythonXmlPath);
         }
 
-        [TestMethod]
+        [Test]
         public void PythonTypeTest()
         {
             List<string> testTypeNames = new List<string>() { "Noddy", "asdl_seq", "PyGetSetDef" };
             TypeTester.TestTypeUse(PythonXmlPath, testTypeNames);
         }
 
-        [TestMethod]
+        [Test]
         public void PythonLocalDeclarationTest()
         {
             List<string> useNames = new List<string>() { "tok", "fp", "len" };
             DeclarationTester.TestLocalVariables(PythonXmlPath, useNames);
         }
 
-        [TestMethod]
+        [Test]
         public void PythonGlobalDeclarationTest()
         {
             List<string> useNames = new List<string>() { "PyFPE_jbuf" };
             DeclarationTester.TestGlobalVariables(PythonXmlPath, useNames);
         }
 
-        [TestMethod]
+        [Test]
         public void PythonCallTest()
         {
             List<string> testCalls = new List<string>() { "PyErr_SetString", "PyObject_GetAttrString", "PyString_FromString" };
             MethodCallTester.TestMethodCalls(PythonXmlPath, testCalls);
         }
 
-        [TestMethod]
+        [Test]
         public void PythonCallGraphTest()
         {
             var testData = new List<Tuple<string, string, bool>>();

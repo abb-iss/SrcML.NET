@@ -15,7 +15,7 @@ using System.Linq;
 using System.Text;
 using System.Diagnostics;
 using System.Xml.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using System.IO;
 
 namespace ABB.SrcML.Data.Test
