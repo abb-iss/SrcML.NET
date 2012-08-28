@@ -15,7 +15,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 using System.Xml.XPath;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using ABB.SrcML;
 using SDML.SrcMLVSAddin.SyntaticCategory;
 
@@ -25,7 +25,7 @@ namespace SDML.SrcMLVSAddin.SyntaticCategory.Test
     /// <summary>
     /// Summary description for SyntacticCategoryTest
     /// </summary>
-    [TestClass]
+    [TestFixture]
     public class SyntacticCategoryTest
     {
         public IEnumerable<XElement> QueryForNew(XElement element)
@@ -36,7 +36,7 @@ namespace SDML.SrcMLVSAddin.SyntaticCategory.Test
             return uses;
         }
 
-        [TestMethod]
+        [Test]
         public void BasicTest()
         {
             var document = new SrcMLFile(Helper.NppXmlPath);
