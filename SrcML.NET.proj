@@ -24,6 +24,11 @@
     <Copy SourceFiles="@(ExternalFiles)"
           Destinationfiles="@(ExternalFiles->'$(OutDir)\External\%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
+
+  <Target Name="Test" DependsOnTargets="Build">
+    <Exec Command=".\packages\NUnit.Runners.2.6.1\tools\nunit-console.exe SrcML.NET.nunit" />
+  </Target>
+  
   <Import Project="External\MSBuild\MSBuildCommunityTasks\MSBuild.Community.Tasks.Targets"
           Condition="Exists('External\MSBuild\MSBuildCommunityTasks\MSBuild.Community.Tasks.Targets')" />
   <Target Name="BeforeBuild" Condition="Exists('External\MSBuild\MSBuildCommunityTasks\MSBuild.Community.Tasks.Targets')">
