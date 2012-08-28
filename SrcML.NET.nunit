@@ -2,6 +2,8 @@
   <Settings activeconfig="Debug" />
   <Config name="Debug" binpathtype="Auto">
     <assembly path="Build\Debug\ABB.SrcML.Test.dll" />
+    <assembly path="Build\Debug\ABB.SrcML.Data.Test.dll" />
+    <assembly path="Build\Debug\SDML.SrcMLVSAddin.SyntaticCategory.Test.dll" />
   </Config>
   <Config name="Release" binpathtype="Auto" />
 </NUnitProject>
