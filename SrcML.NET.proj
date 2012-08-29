@@ -3,6 +3,8 @@
   <ItemGroup>
     <SolutionToBuild Include="SrcML.NET.sln" />
     <DocumentationProject Include="SrcML.NET.shfbproj" />
+	<TestProject Include="SrcML.NET.nunit" />
+	<TestRunner Include="packages\NUnit.Runners.2.6.1\tools\nunit-console.exe" />
     <Configuration Include="Debug;Release" />
     <ExternalFiles Include="External\**\*.*" Exclude="External\MSBuild\**\*.*" />
   </ItemGroup>
@@ -25,16 +27,16 @@
           Destinationfiles="@(ExternalFiles->'$(OutDir)\External\%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
 
-  <Target Name="Test" DependsOnTargets="Build">
-    <Exec Command=".\packages\NUnit.Runners.2.6.1\tools\nunit-console.exe SrcML.NET.nunit /include=Build" />
+  <Target Name="Test" DependsOnTargets="Build" Condition="Exists('@(TestRunner)')">
+    <Exec Command="@(TestRunner) @(TestProject) /include=Build" />
   </Target>
   
-  <Target Name="TestData" DependsOnTargets="Build">
-    <Exec Command=".\packages\NUnit.Runners.2.6.1\tools\nunit-console.exe SrcML.NET.nunit /include=Data" />
+  <Target Name="TestData" DependsOnTargets="Build" Condition="Exists('@(TestRunner)')">
+    <Exec Command="@(TestRunner) @(TestProject) /include=Data" />
   </Target>
   
-  <Target Name="TestAll" DependsOnTargets="Build">
-	<Exec Command=".\packages\NUnit.Runners.2.6.1\tools\nunit-console.exe SrcML.NET.nunit" />
+  <Target Name="TestAll" DependsOnTargets="Build" Condition="Exists('@(TestRunner)')">
+	<Exec Command="@(TestRunner) @(TestProject)" />
   </Target>
   
   <Import Project="External\MSBuild\MSBuildCommunityTasks\MSBuild.Community.Tasks.Targets"
