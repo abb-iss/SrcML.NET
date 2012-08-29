@@ -25,6 +25,7 @@ namespace ABB.SrcML.Test
     /// Tests for ABB.SrcML.SrcMLFile.
     /// </summary>
     [TestFixture]
+    [Category("Build")]
     public class SrcMLFileTest
     {
         public SrcMLFileTest()

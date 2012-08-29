@@ -19,6 +19,7 @@ using System.Reflection;
 namespace ABB.SrcML.Test
 {
     [TestFixture]
+    [Category("Build")]
     public class TransformHarnessTest
     {
         [Test]

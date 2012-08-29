@@ -30,6 +30,7 @@ namespace ABB.SrcML.Data.Test
         }
 
         [Test]
+        [Category("Data")]
         public void CreateDbTest()
         {
             var testFileName = NppTests.NppXmlPath;

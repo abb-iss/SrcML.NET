@@ -21,6 +21,7 @@ using System.Xml.Linq;
 namespace ABB.SrcML.Test
 {
     [TestFixture]
+    [Category("Build")]
     public class SRCTest
     {
         [TestFixtureSetUp]

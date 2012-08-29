@@ -20,6 +20,7 @@ using ABB.SrcML;
 namespace ABB.SrcML.Test
 {
 	[TestFixture]
+    [Category("Build")]
 	public class ExternalTests
 	{
 		[TestFixtureSetUp]

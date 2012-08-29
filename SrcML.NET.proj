@@ -26,7 +26,15 @@
   </Target>
 
   <Target Name="Test" DependsOnTargets="Build">
-    <Exec Command=".\packages\NUnit.Runners.2.6.1\tools\nunit-console.exe SrcML.NET.nunit" />
+    <Exec Command=".\packages\NUnit.Runners.2.6.1\tools\nunit-console.exe SrcML.NET.nunit /include=Build" />
+  </Target>
+  
+  <Target Name="TestData" DependsOnTargets="Build">
+    <Exec Command=".\packages\NUnit.Runners.2.6.1\tools\nunit-console.exe SrcML.NET.nunit /include=Data" />
+  </Target>
+  
+  <Target Name="TestAll" DependsOnTargets="Build">
+	<Exec Command=".\packages\NUnit.Runners.2.6.1\tools\nunit-console.exe SrcML.NET.nunit" />
   </Target>
   
   <Import Project="External\MSBuild\MSBuildCommunityTasks\MSBuild.Community.Tasks.Targets"

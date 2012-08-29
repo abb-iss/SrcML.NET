@@ -18,6 +18,7 @@ using NUnit.Framework;
 namespace ABB.SrcML.Data.Test
 {
     [TestFixture]
+    [Category("Data")]
     public class NppTests
     {
         public static string NppXmlPath = @"..\..\TestInputs\npp-5.9.4.xml";

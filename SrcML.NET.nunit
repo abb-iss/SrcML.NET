@@ -1,6 +1,6 @@
 ﻿<NUnitProject>
-  <Settings activeconfig="Debug" />
-  <Config name="Debug" binpathtype="Auto">
+  <Settings activeconfig="Debug" processModel="Default" domainUsage="Default" />
+  <Config name="Debug" binpathtype="Auto" runtimeFramework="v4.0.21006">
     <assembly path="Build\Debug\ABB.SrcML.Test.dll" />
     <assembly path="Build\Debug\ABB.SrcML.Data.Test.dll" />
     <assembly path="Build\Debug\SDML.SrcMLVSAddin.SyntaticCategory.Test.dll" />

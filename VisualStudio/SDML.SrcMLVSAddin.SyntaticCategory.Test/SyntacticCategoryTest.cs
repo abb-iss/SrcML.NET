@@ -26,6 +26,7 @@ namespace SDML.SrcMLVSAddin.SyntaticCategory.Test
     /// Summary description for SyntacticCategoryTest
     /// </summary>
     [TestFixture]
+    [Category("Build")]
     public class SyntacticCategoryTest
     {
         public IEnumerable<XElement> QueryForNew(XElement element)

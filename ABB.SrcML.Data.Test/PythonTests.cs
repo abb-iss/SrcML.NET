@@ -18,6 +18,7 @@ using NUnit.Framework;
 namespace ABB.SrcML.Data.Test
 {
     [TestFixture]
+    [Category("Data")]
     public class PythonTests
     {
         public static string PythonXmlPath = @"..\..\TestInputs\python-2.6.5.xml";

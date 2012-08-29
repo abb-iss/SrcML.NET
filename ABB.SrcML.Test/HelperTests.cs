@@ -19,6 +19,7 @@ using System.Xml.XPath;
 namespace ABB.SrcML.Test
 {
     [TestFixture]
+    [Category("Build")]
     public class HelperTests
     {
         [TearDown]
