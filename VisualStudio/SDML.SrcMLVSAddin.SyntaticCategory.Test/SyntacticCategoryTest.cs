@@ -53,7 +53,7 @@ namespace SDML.SrcMLVSAddin.SyntaticCategory.Test
                 var occurrence = new SyntaticOccurance(model, element);
             }
 
-            Console.WriteLine("{0} uses of the \"new\" operator in {1} categories", newUses.Count(), model.SyntaticCategories.Keys.Count);
+            //Console.WriteLine("{0} uses of the \"new\" operator in {1} categories", newUses.Count(), model.SyntaticCategories.Keys.Count);
             
             foreach (var category in model.SyntaticCategories.Keys)
             {
@@ -65,7 +65,7 @@ namespace SDML.SrcMLVSAddin.SyntaticCategory.Test
                               where occurrence.CategoryAsXPath == xpath
                               select use;
 
-                Console.WriteLine("{0,3} uses of the new operator in {1}", results.Count(), xpath);
+                //Console.WriteLine("{0,3} uses of the new operator in {1}", results.Count(), xpath);
                 Assert.AreEqual(model.SyntaticCategories[category].Count, results.Count(), category);
             }
         }

@@ -66,7 +66,7 @@ namespace ABB.SrcML.Test
                 {
                     var xpath = element.GetXPath();
                     
-                    Console.WriteLine("{0}: {1}\n", element.ToSource(), xpath);
+                    // Console.WriteLine("{0}: {1}\n", element.ToSource(), xpath);
                     var elementsFromXPath = unit.XPathSelectElements(xpath, SrcML.NamespaceManager);
                     Assert.AreEqual(1, elementsFromXPath.Count());
                     Assert.AreEqual(element, elementsFromXPath.First());
