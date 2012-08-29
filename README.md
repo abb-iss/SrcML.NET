@@ -37,7 +37,13 @@ You can run the unit tests using:
 
 	msbuild SrcML.NET.proj /t:test
 
-Right now this runs all of the tests in the project which can be time consuming. It includes the very time-intensive SrcML.Data tests.
+This runs all of the tests in the "Build" category. If you also want to run the (*very* time-intensive) data tests, you can use:
+
+	msbuild SrcML.NET.proj /t:testdata
+
+Finally, if you want to run all of the tests, you can use:
+
+	msbuild SrcML.NET.proj /t:testall
 
 If you want to build the solution and also copy the srcML binaries to the build directory so that you have all of the required artifacts in one place, do this:
 
