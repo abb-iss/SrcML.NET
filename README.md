@@ -23,15 +23,21 @@ To build both the release and debug builds with MSBuild, do the following in a V
     cd [Solution Path]
     msbuild SrcML.NET.proj
 
-If you would like to modify the version number of the resultin binaries to include a build number (as if you're using a continuous integration server like Jenkins), you can do this:
+If you would like to modify the version number of the resulting binaries to include a build number (as if you're using a continuous integration server like Jenkins), you can do this:
 
     msbuild SrcML.NET.proj /p:BUILD_NUMBER=42
 
 To generate the documentation you can run:
 
-    msbuild SrcML.NET proj /t:docs
+    msbuild SrcML.NET.proj /t:docs
 
 This will place all of the documentation in `[Solution Path]\Build\Documentation`.
+
+You can run the unit tests using:
+
+	msbuild SrcML.NET.proj /t:test
+
+Right now this runs all of the tests in the project which can be time consuming. It includes the very time-intensive SrcML.Data tests.
 
 If you want to build the solution and also copy the srcML binaries to the build directory so that you have all of the required artifacts in one place, do this:
 
@@ -43,7 +49,7 @@ Finally, in order to remove the build artifacts, do this:
 
 The complete set of build artifacts can be created via the following command:
 
-    msbuild SrcML.NET.proj /t:Clean;Build;Docs;CopyExternals
+    msbuild SrcML.NET.proj /t:Clean;Build;Test;Docs;CopyExternals
 
 ## Tools
 
