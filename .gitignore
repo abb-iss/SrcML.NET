@@ -1,6 +1,8 @@
 # srcML.NET comment build folder
 /Build
 
+# nuget packages
+packages/*/
 # Build Folders (you can keep bin if you'd like, to store dlls and pdbs)
 [Bb]in/
 [Oo]bj/
@@ -15,6 +17,7 @@ TestResults
 *.suo
 *.user
 *.sln.docstates
+*.VisualState.xml
 
 # Build results
 [Dd]ebug/
