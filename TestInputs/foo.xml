@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<unit xmlns="http://www.sdml.info/srcML/src" xmlns:cpp="http://www.sdml.info/srcML/cpp" xmlns:lit="http://www.sdml.info/srcML/literal" xmlns:op="http://www.sdml.info/srcML/operator" xmlns:type="http://www.sdml.info/srcML/modifier" xmlns:pos="http://www.sdml.info/srcML/position" language="C" filename="TestFiles\foo.c" pos:tabs="8"><decl_stmt><decl><type><name pos:line="1" pos:column="1">int</name></type> <name pos:line="1" pos:column="5">foo</name> =<init pos:line="1" pos:column="10"> <expr><lit:literal type="number" pos:line="1" pos:column="11">0</lit:literal></expr></init></decl>;</decl_stmt>
+<expr_stmt><expr><call><name pos:line="2" pos:column="1">printf</name><argument_list pos:line="2" pos:column="7">(<argument><expr><lit:literal type="string" pos:line="2" pos:column="8">"hello world %d"</lit:literal></expr></argument>, <argument><expr><name pos:line="2" pos:column="26">foo</name></expr></argument>)</argument_list></call></expr>;</expr_stmt>
+
+<function><type><name pos:line="4" pos:column="1">int</name></type> <name pos:line="4" pos:column="5">main</name><parameter_list pos:line="4" pos:column="9">(<param><decl><type><name pos:line="4" pos:column="10">int</name></type> <name pos:line="4" pos:column="14">argc</name></decl></param>, <param><decl><type><name pos:line="4" pos:column="20">char</name><type:modifier pos:line="4" pos:column="24">*</type:modifier></type> <name><name pos:line="4" pos:column="26">argv</name><index pos:line="4" pos:column="30">[]</index></name></decl></param>)</parameter_list> <block pos:line="4" pos:column="34">{
+    <decl_stmt><decl><type><name pos:line="5" pos:column="5">int</name></type> <name pos:line="5" pos:column="9">foo</name> =<init pos:line="5" pos:column="14"> <expr><lit:literal type="number" pos:line="5" pos:column="15">17</lit:literal></expr></init></decl>;</decl_stmt>
+    
+    <expr_stmt><expr><name pos:line="7" pos:column="5">foo</name> <op:operator pos:line="7" pos:column="9">=</op:operator> <lit:literal type="number" pos:line="7" pos:column="11">42</lit:literal></expr>;</expr_stmt>
+    <return pos:line="8" pos:column="5">return <expr><name pos:line="8" pos:column="12">foo</name></expr>;</return>
+}</block></function>
+</unit>
