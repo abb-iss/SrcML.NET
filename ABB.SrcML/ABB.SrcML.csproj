@@ -48,6 +48,7 @@
     <Compile Include="Extensions.cs" />
     <Compile Include="FileInfoComparer.cs" />
     <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="ISourceFolder.cs" />
     <Compile Include="ITransform.cs" />
     <Compile Include="Language.cs" />
     <Compile Include="LineInfo.cs" />
@@ -64,6 +65,7 @@
     <Compile Include="Src2SrcMLRunner.cs" />
     <Compile Include="SrcML.cs" />
     <Compile Include="SrcML2SrcRunner.cs" />
+    <Compile Include="SrcMLArchive.cs" />
     <Compile Include="SrcMLException.cs" />
     <Compile Include="SrcMLFile.cs" />
     <Compile Include="SrcMLHelper.cs" />
