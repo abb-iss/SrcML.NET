@@ -132,16 +132,24 @@ namespace ABB.SrcML.Tools.Converter
 				if (null != outputFolder)
 					doc.ProjectDirectory = outputFolder;
 
-				Collection<string> errors = doc.ExportSource();
+                try
+                {
+                    doc.ExportSource();
+                }
+                catch (IOException e)
+                {
+                    Console.Error.WriteLine("IO Exception {0}", e.Message);
+                }
+				
 
-				if (1 == errors.Count)
-					Console.Error.WriteLine("Could not write {0}", errors[0]);
-				else if (1 < errors.Count)
-				{
-					Console.Error.WriteLine("Could not write the following {0} files:", errors.Count);
-					foreach (var error in errors)
-						Console.Error.WriteLine("\t{0}", error);
-				}
+                //if (1 == errors.Count)
+                //    Console.Error.WriteLine("Could not write {0}", errors[0]);
+                //else if (1 < errors.Count)
+                //{
+                //    Console.Error.WriteLine("Could not write the following {0} files:", errors.Count);
+                //    foreach (var error in errors)
+                //        Console.Error.WriteLine("\t{0}", error);
+                //}
 
 				if (null != outputFolder)
 					File.Delete(workingFileName);

@@ -44,10 +44,13 @@
     <Compile Include="..\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
+    <Compile Include="AbstractArchive.cs" />
     <Compile Include="AbstractDocument.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="FileInfoComparer.cs" />
+    <Compile Include="FileSystemSourceFolder.cs" />
     <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="IArchive.cs" />
     <Compile Include="ISourceFolder.cs" />
     <Compile Include="ITransform.cs" />
     <Compile Include="Language.cs" />

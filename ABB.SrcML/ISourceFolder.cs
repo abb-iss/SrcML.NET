@@ -24,6 +24,9 @@ namespace ABB.SrcML
             get;
             set;
         }
+
+        void StartWatching();
+        void StopWatching();
     }
 
     public enum SourceEventType

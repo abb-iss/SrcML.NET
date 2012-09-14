@@ -23,7 +23,7 @@ namespace ABB.SrcML
     /// <summary>
     /// This class represents a SrcMLFile. The underlying data is stored in an XML file, and can be accessed in a number of ways.
     /// </summary>
-    public class SrcMLFile : AbstractDocument
+    public class SrcMLFile : AbstractArchive//AbstractDocument
     {
         private string _rootDirectory;   
         private XDocument _document;
@@ -33,7 +33,6 @@ namespace ABB.SrcML
         /// </summary>
         /// <param name="other">The SrcMLFile to copy.</param>
         public SrcMLFile(SrcMLFile other)
-            : base(other)
         {
             if (null == other)
                 throw new ArgumentNullException("other");
@@ -46,16 +45,19 @@ namespace ABB.SrcML
         /// </summary>
         /// <param name="fileName">The file to read from.</param>
         public SrcMLFile(string fileName)
-            : base(fileName)
         {
-
-            if (0 == this.NumberOfNestedFileUnits)
-                this._rootDirectory = Path.GetDirectoryName(GetPathForUnit(this.FileUnits.First()));
-            else
-                this._rootDirectory = getCommonPath();
-            
+            this.ArchivePath = fileName;
+            this.SourceFolderPath = getCommonPath();
+            this.NumberOfNestedFileUnits = XmlHelper.StreamElements(this.ArchivePath, SRC.Unit).Count();
         }
 
+        public string FileName
+        {
+            get
+            {
+                return this.ArchivePath;
+            }
+        }
         /// <summary>
         /// Merges this SrcMLFile with another SrcMLFile. 
         /// </summary>
@@ -125,6 +127,10 @@ namespace ABB.SrcML
             {
                 commonPath = dir.Value;
             }
+            else if (0 == this.NumberOfNestedFileUnits)
+            {
+                commonPath = Path.GetDirectoryName(GetPathForUnit(this.FileUnits.First()));
+            }
             else
             {
                 var folders = from unit in this.FileUnits
@@ -136,32 +142,11 @@ namespace ABB.SrcML
             return commonPath;
         }
 
-        /// <summary>
-        /// Get the full path to the unit as specified by either Path.Combine(dir,filename) or filename (if dir is null)
-        /// </summary>
-        /// <param name="unit">the unit to find the path for</param>
-        /// <returns>the path to the unit</returns>
-        public static string GetPathForUnit(XElement unit)
+        public int NumberOfNestedFileUnits
         {
-            if (null == unit)
-                throw new ArgumentNullException("unit");
-            try
-            {
-                SrcMLHelper.ThrowExceptionOnInvalidName(unit, SRC.Unit);
-            }
-            catch (SrcMLRequiredNameException e)
-            {
-                throw new ArgumentException(e.Message, "unit", e);
-            }
-
-            var fileName = unit.Attribute("filename");
-
-            if (null != fileName)
-                return fileName.Value;
-            
-            return fileName.Value;
+            get;
+            protected set;
         }
-
         /// <summary>
         /// The project rootUnit directory for this SrcMLFile.
         /// </summary>
@@ -195,8 +180,8 @@ namespace ABB.SrcML
                     }
                     xw.WriteEndElement();
                 }
-                File.Delete(this.FileName);
-                File.Move(tempFileName, this.FileName);
+                File.Delete(this.ArchivePath);
+                File.Move(tempFileName, this.ArchivePath);
 
                 _rootDirectory = value;
                 this.RootAttributeDictionary["dir"] = new XAttribute("dir", value);
@@ -233,7 +218,7 @@ namespace ABB.SrcML
         public XDocument GetXDocument()
         {
             if(null == _document)
-                _document = XDocument.Load(this.FileName, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo);
+                _document = XDocument.Load(this.ArchivePath, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo);
             return this._document;
         }
 
@@ -299,7 +284,7 @@ namespace ABB.SrcML
         /// <param name="changedFiles">a list of units with changes. These will be substituted for the original units</param>
         public void Save(IEnumerable<XElement> changedFiles)
         {
-            Save(this.FileName, changedFiles);
+            Save(this.ArchivePath, changedFiles);
         }
 
         /// <summary>
@@ -329,7 +314,7 @@ namespace ABB.SrcML
                 File.Delete(fileName);
             File.Move(tmp, fileName);
 
-            this.FileName = fileName;
+            this.ArchivePath = fileName;
         }
 
         /// <summary>
@@ -338,34 +323,9 @@ namespace ABB.SrcML
         /// </summary>
         public void Write()
         {
-            Write(this.FileName);
+            Write(this.ArchivePath);
         }
         #endregion
-
-        /// <summary>
-        /// Exports all of the source code contained in the SrcML Document back to disk.
-        /// <para>The entire directory structure is recreated and placed in <see cref="ProjectDirectory"/>.</para>
-        /// </summary>
-        /// <returns>A list of file names that could not be written.</returns>
-        public Collection<string> ExportSource()
-        {
-            Collection<string> errors = new Collection<string>();
-
-            foreach (var xml in this.FileUnits)
-            {
-                var fileName = GetPathForUnit(xml);
-                try
-                {
-                    Directory.CreateDirectory(Path.GetDirectoryName(fileName));
-                    File.WriteAllText(fileName, xml.ToSource(), Encoding.UTF8);
-                }
-                catch (UnauthorizedAccessException)
-                {
-                    errors.Add(fileName);
-                }
-            }
-            return errors;
-        }
 
         /// <summary>
         /// Gets the index number of a given filename from the SrcML document.
@@ -379,5 +339,73 @@ namespace ABB.SrcML
                                             select (string)attr;
             return filenames.ToList<string>().IndexOf(Path.GetFileName(fileName));
         }
+
+        #region AbstractArchive
+        public override IEnumerable<XElement> FileUnits
+        {
+            get
+            {
+                if (0 == this.NumberOfNestedFileUnits)
+                {
+                    var shortList = new List<XElement>(1);
+                    shortList.Add(XElement.Load(this.ArchivePath, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo));
+                    return shortList;
+                }
+                IEnumerable<XElement> units = from unit in XmlHelper.StreamElements(this.ArchivePath, SRC.Unit)
+                                              where unit.Attribute("filename") != null
+                                              select unit;
+                return units;
+            }
+        }
+
+        public override void AddUnits(IEnumerable<XElement> units)
+        {
+            var tmpFileName = Path.GetTempFileName();
+            using (XmlWriter xw = XmlWriter.Create(tmpFileName, new XmlWriterSettings() { Indent = false }))
+            {
+                xw.WriteStartElement(SRC.Unit.LocalName, SRC.Unit.NamespaceName);
+                WriteXmlnsAttributes(xw);
+
+                foreach (var unit in this.FileUnits)
+                {
+                    unit.WriteTo(xw);
+                }
+
+                foreach (var unit in units)
+                {
+                    unit.WriteTo(xw);
+                }
+
+                xw.WriteEndElement();
+            }
+            File.Move(tmpFileName, this.ArchivePath);
+        }
+
+        public override void DeleteUnits(IEnumerable<XElement> units)
+        {
+            var tmpFileName = Path.GetTempFileName();
+            using (XmlWriter xw = XmlWriter.Create(tmpFileName, new XmlWriterSettings() { Indent = false}))
+            {
+                xw.WriteStartElement(SRC.Unit.LocalName, SRC.Unit.NamespaceName);
+                WriteXmlnsAttributes(xw);
+
+                var remainingUnits = this.FileUnits;
+                foreach (var unit in remainingUnits)
+                {
+                    unit.WriteTo(xw);
+                }
+                xw.WriteEndElement();
+            }
+        }
+        public override void UpdateUnits(IEnumerable<XElement> units)
+        {
+            this.Save(units);
+        }
+
+        public override XElement GetUnitForPath(string pathToUnit)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
     }
 }
