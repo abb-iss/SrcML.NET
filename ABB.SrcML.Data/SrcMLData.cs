@@ -7,6 +7,7 @@
  *
  * Contributors:
  *    Vinay Augustine (ABB Group) - initial API, implementation, & documentation
+ *    Patrick Francis (ABB Group) - Additional implementation
  *****************************************************************************/
 
 using System.Linq;
@@ -213,6 +214,82 @@ namespace ABB.SrcML.Data
             
             CreateCallGraph(archive);
             OnRaiseProgressEvent(new ProgressEventArgs(archive.Path, "Finished creating call graph."));
+        }
+
+        /// <summary>
+        /// Given the SrcML Name element for a use of a variable, this method returns the corresponding ABB.SrcML.Data.VariableDeclaration.
+        /// </summary>
+        /// <param name="nameElement">The SrcML Name element to define.</param>
+        public VariableDeclaration GetDeclarationForVariableName(XElement nameElement)
+        {
+            if(nameElement == null) { throw new ArgumentNullException("nameElement"); }
+            if(nameElement.Name != SRC.Name)
+            {
+                throw new ArgumentException(string.Format("Expected a name element, recieved {0}", nameElement.Name), "nameElement");
+            }
+
+            VariableDeclaration result = null;
+
+            var childNames = nameElement.Elements(SRC.Name).ToList();
+            if(childNames.Count > 0)
+            {
+                //name element has nested name elements
+                //for example: std::foo, or MyClass::foo, or argv[0]
+                //just grab the rightmost nested name element
+                nameElement = childNames.Last();
+                //TODO: make this search properly within class definitions if necessary, and handle other cases
+                //TODO: names with indexers after them will not match a declaration properly. This needs to be fixed in the database.
+            }
+
+            var name = nameElement.Value;
+            var parent = (from ancestor in nameElement.Ancestors()
+                          where ContainerNames.All.Contains(ancestor.Name)
+                          select ancestor).FirstOrDefault();
+            var parentXPath = parent.GetXPath(false);
+
+            //search for a local declaration for the variable
+            var declarations = from scope in this.ValidScopes
+                               where scope.XPath == parentXPath
+                               let declaration = (VariableDeclaration)scope.Definition
+                               where declaration.DeclarationName == name
+                               select declaration;
+
+            if(declarations != null)
+            {
+                result = declarations.FirstOrDefault();
+                if(result == null)
+                {
+                    //no local declarations found, search for a global declaration
+                    var globalDeclarations = from declaration in this.Definitions.OfType<VariableDeclaration>()
+                                             where declaration.IsGlobal ?? false
+                                             where declaration.DeclarationName == name
+                                             select declaration;
+                    result = globalDeclarations.FirstOrDefault();
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Returns the MethodDefinition associated with a given method call srcML element.
+        /// </summary>
+        /// <param name="callElement">The Call element to find the method definition for.</param>
+        public MethodDefinition GetDefinitionForMethodCall(XElement callElement)
+        {
+            if(callElement == null) { throw new ArgumentNullException("callElement"); }
+            if(callElement.Name != SRC.Call) { throw new ArgumentException("Passed element not a Call.", "callElement"); }
+
+            var callees = from call in this.MethodCalls
+                          where call.XPath == callElement.GetXPath(false)
+                          select call.CalleeDefinition;
+            MethodDefinition methodDef = null;
+            if(callees != null)
+            {
+                //found the definition for the method call
+                methodDef = callees.OfType<MethodDefinition>().FirstOrDefault();
+            }
+            return methodDef;
         }
 
         private static Tuple<string,string,int> MakeKey(string className, string methodName, Nullable<int> numberOfParameters)
