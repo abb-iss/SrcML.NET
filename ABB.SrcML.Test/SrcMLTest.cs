@@ -133,6 +133,48 @@ printf(""hello world!"");
             Assert.AreEqual(1, doc.FileUnits.Count());
             Assert.AreEqual("srcmltest\\foo.c", doc.FileUnits.First().Attribute("filename").Value);
         }
+
+        [Test]
+        public void MultipleFilesTest()
+        {
+            var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
+            var doc = srcmlObject.GenerateSrcMLFromFiles(new string[] {"srcmltest\\foo.c", "srcmltest\\bar.c"}, "srcml_xml\\multiplefile.xml");
+
+            Assert.IsNotNull(doc);
+            var files = doc.FileUnits.ToList();
+            Assert.AreEqual(2, files.Count());
+            Assert.AreEqual("srcmltest\\foo.c", files[0].Attribute("filename").Value);
+            Assert.AreEqual("srcmltest\\bar.c", files[1].Attribute("filename").Value);
+        }
+
+        [Test]
+        public void MultipleFilesTest_DifferentDirectories()
+        {
+            var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
+            var doc = srcmlObject.GenerateSrcMLFromFiles(new string[] {"srcmltest\\foo.c", "srcmltest\\bar.c", "..\\..\\TestInputs\\baz.cpp"}, "srcml_xml\\multiplefile.xml");
+
+            Assert.IsNotNull(doc);
+            var files = doc.FileUnits.ToList();
+            Assert.AreEqual(3, files.Count());
+            Assert.AreEqual("srcmltest\\foo.c", files[0].Attribute("filename").Value);
+            Assert.AreEqual("srcmltest\\bar.c", files[1].Attribute("filename").Value);
+            Assert.AreEqual("TestInputs\\baz.cpp", files[2].Attribute("filename").Value);
+        }
+
+        [Test]
+        public void MultipleFilesTest_Language() {
+            var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
+            var doc = srcmlObject.GenerateSrcMLFromFiles(new string[] { "srcmltest\\foo.c", "srcmltest\\bar.c" }, "srcml_xml\\multiplefile.xml", Language.CPlusPlus);
+
+            Assert.IsNotNull(doc);
+            var files = doc.FileUnits.ToList();
+            Assert.AreEqual(2, files.Count());
+            Assert.AreEqual("srcmltest\\foo.c", files[0].Attribute("filename").Value);
+            Assert.AreEqual("C++", files[0].Attribute("language").Value);
+            Assert.AreEqual("srcmltest\\bar.c", files[1].Attribute("filename").Value);
+            Assert.AreEqual("C++", files[1].Attribute("language").Value);
+        }
+
         //[Test]
         // TODO this test depends on my computer. Fix it.
         //public void TestDirectoryParsing()

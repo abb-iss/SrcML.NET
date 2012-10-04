@@ -30,7 +30,6 @@ namespace ABB.SrcML
     /// This is a utility class for generating SrcML files. It has functions that use the original SrcML executables,
     /// and some native C# functions for generating SrcML.
     /// </summary>
-    /// TODO split the SrcML class into src2srcml &amp; srcml2src runner classes
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1724:TypeNamesShouldNotMatchNamespaces")]
     public class SrcML
     {
