@@ -24,7 +24,7 @@ namespace ABB.SrcML
     /// </summary>
     public class TransformObjectHarness : ITransform
     {
-        private Type type;
+        private Type _type;
 
         /// <summary>
         /// Instantiates a new QueryFunctionTestObject for <paramref name="type"/>.
@@ -33,7 +33,7 @@ namespace ABB.SrcML
         public TransformObjectHarness(Type type)
         {
             CheckTypeIsValid(type);
-            this.type = type;
+            this._type = type;
         }
 
         private TransformObjectHarness()
@@ -62,7 +62,7 @@ namespace ABB.SrcML
         /// <returns></returns>
         public override string ToString()
         {
-            return String.Format(CultureInfo.InvariantCulture, "<TransformObjectHarness {0}>", type.FullName);
+            return String.Format(CultureInfo.InvariantCulture, "<TransformObjectHarness {0}>", _type.FullName);
         }
         #region ITransform Members
 
@@ -73,7 +73,7 @@ namespace ABB.SrcML
         /// <returns>an IEnumerable of the results</returns>
         public IEnumerable<XElement> Query(XElement element)
         {
-            ITransform transform = Activator.CreateInstance(this.type) as ITransform;
+            ITransform transform = Activator.CreateInstance(this._type) as ITransform;
             var results = transform.Query(element);
             return results as IEnumerable<XElement>;
         }
@@ -85,7 +85,7 @@ namespace ABB.SrcML
         /// <returns>The transformed version of <paramref name="element"/></returns>
         public XElement Transform(XElement element)
         {
-            ITransform transform = Activator.CreateInstance(this.type) as ITransform;
+            ITransform transform = Activator.CreateInstance(this._type) as ITransform;
             XElement transformedElement = transform.Transform(element);
             return transformedElement;
         }
