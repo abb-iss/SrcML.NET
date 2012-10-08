@@ -37,6 +37,10 @@ namespace ABB.SrcML
             using (XmlReader reader = XmlReader.Create(fileName))
             {
                 IXmlLineInfo xmlLineInfo = reader as IXmlLineInfo;
+
+                if (null == xmlLineInfo)
+                    throw new XmlException("reader could not be cast to an IXmlLineInfo object");
+
                 reader.MoveToContent();
                 XElement node = null;
 
