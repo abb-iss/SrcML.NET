@@ -24,9 +24,9 @@ namespace ABB.SrcML
     /// </summary>
     public class QueryHarness : ITransform
     {
-        private Type type;
-        private MethodInfo method;
-        private ConstructorInfo constructor;
+        private Type _type;
+        private MethodInfo _method;
+        private ConstructorInfo _constructor;
 
         /// <summary>
         /// Instantiates a new QueryFunctionTestObject with <paramref name="type"/> and <paramref name="methodName"/>.
@@ -51,9 +51,9 @@ namespace ABB.SrcML
                 throw new ArgumentNullException("method", "method cannot be null");
 
             CheckArguments(type, method);
-            this.type = type;
-            constructor = type.GetConstructor(Type.EmptyTypes);
-            this.method = method;
+            this._type = type;
+            _constructor = type.GetConstructor(Type.EmptyTypes);
+            this._method = method;
         }
 
         private QueryHarness()
@@ -113,11 +113,11 @@ namespace ABB.SrcML
         /// <returns>The full signature &lt;return type&gt; &lt;type&gt;.&lt;function name&gt;(&lt;parameter list&gt;)</returns>
         public override string ToString()
         {
-            var parameterTypeNames = from param in method.GetParameters()
+            var parameterTypeNames = from param in _method.GetParameters()
                                      select param.ParameterType.Name;
             var parameters = String.Join(",", parameterTypeNames.ToArray<string>());
             
-            return String.Format(CultureInfo.InvariantCulture, "<QueryHarness {0} {1}.{2}({3})>", method.ReturnType.Name, type.FullName, method.Name, parameters);
+            return String.Format(CultureInfo.InvariantCulture, "<QueryHarness {0} {1}.{2}({3})>", _method.ReturnType.Name, _type.FullName, _method.Name, parameters);
         }
         #region ITransform Members
         /// <summary>
@@ -127,8 +127,8 @@ namespace ABB.SrcML
         /// <returns></returns>
         public IEnumerable<XElement> Query(XElement element)
         {
-            var instance = (this.method.IsStatic ? null : this.constructor.Invoke(new object[] { }));
-            var results = this.method.Invoke(instance, new object[] { element });
+            var instance = (this._method.IsStatic ? null : this._constructor.Invoke(new object[] { }));
+            var results = this._method.Invoke(instance, new object[] { element });
             return results as IEnumerable<XElement>;
         }
 

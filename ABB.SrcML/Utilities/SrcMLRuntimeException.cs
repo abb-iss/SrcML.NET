@@ -23,9 +23,9 @@ namespace ABB.SrcML.Utilities
     class SrcMLRuntimeException : SrcMLException
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1823:AvoidUnusedPrivateFields")]
-        private string pathToExecutable;
-        private string argumentString;
-        private ExecutableReturnValue returnValue;
+        private string _pathToExecutable;
+        private string _argumentString;
+        private ExecutableReturnValue _returnValue;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SrcMLRuntimeException"/> class.
@@ -68,9 +68,9 @@ namespace ABB.SrcML.Utilities
         public SrcMLRuntimeException(string pathToExecutable, string arguments, ExecutableReturnValue returnValue)
             : base(FormatMessage(pathToExecutable, arguments, returnValue))
         {
-            this.pathToExecutable = pathToExecutable;
-            this.argumentString = arguments;
-            this.returnValue = returnValue;
+            this._pathToExecutable = pathToExecutable;
+            this._argumentString = arguments;
+            this._returnValue = returnValue;
         }
 
         /// <summary>
@@ -90,7 +90,7 @@ namespace ABB.SrcML.Utilities
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         public ExecutableReturnValue ReturnValue
         {
-            get { return this.returnValue; }
+            get { return this._returnValue; }
         }
 
         /// <summary>
@@ -101,7 +101,7 @@ namespace ABB.SrcML.Utilities
         {
             get
             {
-                return KsuAdapter.GetErrorMessageFromReturnCode(this.returnValue);
+                return KsuAdapter.GetErrorMessageFromReturnCode(this._returnValue);
             }
         }
         /// <summary>
@@ -112,7 +112,7 @@ namespace ABB.SrcML.Utilities
         {
             get
             {
-                return this.argumentString;
+                return this._argumentString;
             }
         }
 

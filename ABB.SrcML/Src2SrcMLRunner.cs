@@ -176,6 +176,37 @@ namespace ABB.SrcML
 
             return new SrcMLFile(xmlFileName);
         }
+
+        /// <summary>
+        /// Generates a SrcML document from a collection of source files. The languages will be inferred from the file extensions.
+        /// </summary>
+        /// <param name="sourceFileNames">The source files to generate SrcML from.</param>
+        /// <param name="xmlFileName">The file name to write the resulting XML to.</param>
+        /// <returns>A SrcMLFile for <paramref name="xmlFileName"/>.</returns>
+        public SrcMLFile GenerateSrcMLFromFiles(IEnumerable<string> sourceFileNames, string xmlFileName)
+        {
+            Run(xmlFileName, new Collection<string>(), new Collection<string>(sourceFileNames.ToList()));
+            return new SrcMLFile(xmlFileName);
+        }
+
+        /// <summary>
+        /// Generates a SrcML document from a collection of source files using the specified language.
+        /// </summary>
+        /// <param name="sourceFileNames">The source files to generate SrcML from.</param>
+        /// <param name="xmlFileName">The file name to write the resulting XML to.</param>
+        /// <param name="language">The language to parse the source files as.</param>
+        /// <returns>A SrcMLFile for <paramref name="xmlFileName"/>.</returns>
+        public SrcMLFile GenerateSrcMLFromFiles(IEnumerable<string> sourceFileNames, string xmlFileName, Language language)
+        {
+            var additionalArguments = new Collection<string>();
+            if(language > Language.Any)
+            {
+                additionalArguments.Add(String.Format(CultureInfo.InvariantCulture, "--language={0}", KsuAdapter.GetLanguage(language)));
+            }
+
+            Run(xmlFileName, additionalArguments, new Collection<string>(sourceFileNames.ToList()));
+            return new SrcMLFile(xmlFileName);
+        }
         #endregion
 
         #region String Conversion
