@@ -159,7 +159,7 @@ namespace ABB.SrcML.Test
         [Test]
         public void ExtraNewlinesInMergedDocumentTest()
         {
-            var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
+            var srcmlObject = new Src2SrcMLRunner();
 
             var doc = srcmlObject.GenerateSrcMLFromDirectory("srcmlfiletest", "test.xml");
 

@@ -83,7 +83,7 @@ namespace LoggingTransformation
         [Test]
         public void DifferentLanguageTest()
         {
-            var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
+            var srcmlObject = new Src2SrcMLRunner();
             
             var doc = srcmlObject.GenerateSrcMLFromFile("srcmltest\\CSHARP.cs", "srcml_xml\\differentlanguage_java.xml", Language.Java);
 
@@ -96,7 +96,7 @@ namespace LoggingTransformation
             string sourceCode = @"int foo() {
 printf(""hello world!"");
 }";
-            var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
+            var srcmlObject = new Src2SrcMLRunner();
             string xml = srcmlObject.GenerateSrcMLFromString(sourceCode, Language.C);
 
             XElement element = XElement.Parse(xml);
@@ -107,7 +107,7 @@ printf(""hello world!"");
         [Test]
         public void InvalidLanguageTest()
         {
-            var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
+            var srcmlObject = new Src2SrcMLRunner();
 
             var doc = srcmlObject.GenerateSrcMLFromFile("srcmltest\\foo.c", "srcml_xml\\invalidlanguage_java.xml", Language.Java);
             Assert.IsNotNull(doc);
@@ -125,7 +125,7 @@ printf(""hello world!"");
         [Test]
         public void SingleFileTest()
         {
-            var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
+            var srcmlObject = new Src2SrcMLRunner();
 
             var doc = srcmlObject.GenerateSrcMLFromFile("srcmltest\\foo.c", "srcml_xml\\singlefile.xml");
             
@@ -137,7 +137,7 @@ printf(""hello world!"");
         [Test]
         public void MultipleFilesTest()
         {
-            var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
+            var srcmlObject = new Src2SrcMLRunner();
             var doc = srcmlObject.GenerateSrcMLFromFiles(new string[] {"srcmltest\\foo.c", "srcmltest\\bar.c"}, "srcml_xml\\multiplefile.xml");
 
             Assert.IsNotNull(doc);
@@ -150,7 +150,7 @@ printf(""hello world!"");
         [Test]
         public void MultipleFilesTest_DifferentDirectories()
         {
-            var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
+            var srcmlObject = new Src2SrcMLRunner();
             var doc = srcmlObject.GenerateSrcMLFromFiles(new string[] {"srcmltest\\foo.c", "srcmltest\\bar.c", "..\\..\\TestInputs\\baz.cpp"}, "srcml_xml\\multiplefile.xml");
 
             Assert.IsNotNull(doc);
@@ -163,7 +163,7 @@ printf(""hello world!"");
 
         [Test]
         public void MultipleFilesTest_Language() {
-            var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
+            var srcmlObject = new Src2SrcMLRunner();
             var doc = srcmlObject.GenerateSrcMLFromFiles(new string[] { "srcmltest\\foo.c", "srcmltest\\bar.c" }, "srcml_xml\\multiplefile.xml", Language.CPlusPlus);
 
             Assert.IsNotNull(doc);
@@ -190,7 +190,7 @@ printf(""hello world!"");
             var exclusionList = new List<string>();
             exclusionList.Add("srcmltest\\bar.c");
 
-            var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
+            var srcmlObject = new Src2SrcMLRunner();
 
             var doc = srcmlObject.GenerateSrcMLFromDirectory("srcmltest", "srcml_xml\\exclusionfilter.xml", exclusionList, Language.C);
 
@@ -208,7 +208,7 @@ printf(""hello world!"");
         [Test]
         public void EmptyOutputFileTest()
         {
-            var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
+            var srcmlObject = new Src2SrcMLRunner();
             File.WriteAllText("srcml_xml\\emptyFile.xml", "");
             Assert.IsTrue(File.Exists("srcml_xml\\emptyFile.xml"));
 
@@ -221,7 +221,7 @@ printf(""hello world!"");
         [Test]
         public void InputWithSpacesTest()
         {
-            var runner = new Src2SrcMLRunner(TestConstants.SrcmlPath);
+            var runner = new Src2SrcMLRunner();
             var doc = runner.GenerateSrcMLFromFile("srcmltest\\File with spaces.cpp", "srcml_xml\\input_with_spaces.xml");
 
             Assert.IsNotNull(doc);
