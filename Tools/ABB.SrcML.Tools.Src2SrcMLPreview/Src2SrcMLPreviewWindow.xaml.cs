@@ -76,9 +76,7 @@ namespace ABB.SrcML.Tools.Src2SrcMLPreview
                     }
                     catch (Win32Exception)
                     {
-                        languageLabel.Content = "Error!";
-                        srcmlBox.Text = "The SrcML directory does not contain a valid copy of src2srcml.exe.\n\nSelect a valid directory from File->Select SrcML Directory...";
-                        srcmlBox.Foreground = Brushes.Red;
+                        PrintErrorInSrcmlBox("The SrcML directory does not contain a valid copy of src2srcml.exe.\n\nSelect a valid directory from File->Select SrcML Directory...");
                         this.binDirIsValid = false;
                     }
                 }
@@ -112,9 +110,9 @@ namespace ABB.SrcML.Tools.Src2SrcMLPreview
                     sourceBox_TextChanged(sender, null);
                 }
             }
-            catch (SrcMLException)
+            catch (SrcMLException error)
             {
-
+                PrintErrorInSrcmlBox(error.Message);
             }
         }
 
@@ -134,6 +132,12 @@ namespace ABB.SrcML.Tools.Src2SrcMLPreview
         private void srcmlBox_TextChanged(object sender, TextChangedEventArgs e)
         {
 
+        }
+        private void PrintErrorInSrcmlBox(string errorMessage)
+        {
+            languageLabel.Content = "Error!";
+            srcmlBox.Text = errorMessage;
+            srcmlBox.Foreground = Brushes.Red;
         }
     }
 }
