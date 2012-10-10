@@ -129,10 +129,6 @@ namespace ABB.SrcML.Tools.Src2SrcMLPreview
             }
         }
 
-        private void srcmlBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-
-        }
         private void PrintErrorInSrcmlBox(string errorMessage)
         {
             languageLabel.Content = "Error!";
