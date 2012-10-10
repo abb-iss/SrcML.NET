@@ -96,7 +96,7 @@ namespace ABB.SrcML.Tools.Src2SrcMLPreview
             {
                 var menuItem = (sender as MenuItem);
 
-                if (menuItem.IsChecked)
+                if (null != menuItem && menuItem.IsChecked)
                 {
                     menuItem.IsCheckable = false;
                     var otherMenuItems = from MenuItem item in MenuItemLanguage.Items.SourceCollection
