@@ -138,7 +138,6 @@ namespace ABB.SrcML
         {
             var directoryName = Path.GetDirectoryName(Path.GetFullPath(eventArgs.SourceFilePath));
             var xmlFullPath = Path.GetFullPath(this.ArchivePath);
-
             
             if (!directoryName.StartsWith(xmlFullPath, StringComparison.InvariantCultureIgnoreCase))
             {
@@ -158,6 +157,147 @@ namespace ABB.SrcML
 
                 }
                 OnSourceFileChanged(eventArgs);
+            }
+        }
+
+        /// <summary>
+        /// Regenerate srcML files only for added/changed/deleted/renamed files under a directory recursively.
+        /// Last modified on 2012.10.11
+        /// </summary>
+        /// <param name="directoryPath"></param>
+        public void GenerateXmlForDirectory(string directoryPath)
+        {
+            // Traverse source directory to generate srcML files when needed (TODO: make sure directoryPath is a full path?)
+            DirectoryInfo rootDir = new DirectoryInfo(directoryPath);
+            WalkSourceDirectoryTree(rootDir);
+
+            // Traverse srcML directory to remove srcML files when needed
+            DirectoryInfo srcMLRootDir = new DirectoryInfo(Path.GetFullPath(this.ArchivePath));
+            WalkSrcMLDirectoryTree(srcMLRootDir);
+        }
+
+        private void WalkSourceDirectoryTree(DirectoryInfo sourceDir)
+        {
+            FileInfo[] sourceFiles = null;
+            DirectoryInfo[] sourceSubDirs = null;
+
+            try
+            {
+                sourceFiles = sourceDir.GetFiles("*.*");
+            }
+            // In case one of the files requires permissions greater than the application provides
+            catch (UnauthorizedAccessException e)
+            {
+                Console.WriteLine(e.Message);
+            }
+            catch (DirectoryNotFoundException e)
+            {
+                Console.WriteLine(e.Message);
+            }
+
+            if (sourceFiles != null)
+            {
+                foreach (FileInfo fi in sourceFiles)
+                {
+                    Console.WriteLine("-> Source File: " + fi.FullName);
+                    string srcMLFilePath = GetXmlPathForSourcePath(fi.FullName);
+                    Console.WriteLine("-> srcML File: " + srcMLFilePath);
+                    try
+                    {
+                        if (!File.Exists(srcMLFilePath))
+                        {
+                            // If there is not a corresponding srcML file, then generate the srcML file [Added]
+                            RespondToFileChangedEvent(null, new SourceEventArgs(fi.FullName, SourceEventType.Added));
+                            Console.WriteLine("Added");
+                        }
+                        else
+                        {
+                            // if source file's timestamp is later than its srcML file's timestamp, 
+                            // then GenerateXmlForSource() [Changed]
+                            DateTime sourceFileTimestamp = fi.LastWriteTime;
+                            DateTime srcLMFileTimestamp = new FileInfo(srcMLFilePath).LastWriteTime;
+                            if (sourceFileTimestamp.CompareTo(srcLMFileTimestamp) > 0)
+                            {
+                                RespondToFileChangedEvent(null, new SourceEventArgs(fi.FullName, SourceEventType.Changed));
+                                Console.WriteLine("Changed");
+                            }
+                            else
+                            {
+                                //Console.WriteLine("!!! NO ACTION !!!");
+                            }
+                        }
+                    }
+                    // In case the file has been deleted since the traversal
+                    catch (FileNotFoundException e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
+                }
+
+                sourceSubDirs = sourceDir.GetDirectories();
+                foreach (DirectoryInfo sourceDirInfo in sourceSubDirs)
+                {
+                    //Console.WriteLine("sourceDirInfo: " + sourceDirInfo.Name);
+                    if (!".srcml".Equals(sourceDirInfo.Name))
+                    {
+                        WalkSourceDirectoryTree(sourceDirInfo);
+                    }
+                }
+            }
+        }
+
+        private void WalkSrcMLDirectoryTree(DirectoryInfo srcMLDir)
+        {
+            FileInfo[] srcMLFiles = null;
+            DirectoryInfo[] srcMLSubDirs = null;
+
+            try
+            {
+                srcMLFiles = srcMLDir.GetFiles("*.*");
+            }
+            // In case one of the files requires permissions greater than the application provides
+            catch (UnauthorizedAccessException e)
+            {
+                Console.WriteLine(e.Message);
+            }
+            catch (DirectoryNotFoundException e)
+            {
+                Console.WriteLine(e.Message);
+            }
+
+            if (srcMLFiles != null)
+            {
+                foreach (FileInfo fi in srcMLFiles)
+                {
+                    Console.WriteLine("<- srcML File: " + fi.FullName);
+                    string sourceFilePath = GetSourcePathForXmlPath(fi.FullName);
+                    Console.WriteLine("<- Source File: " + sourceFilePath);
+                    try
+                    {
+                        if (!File.Exists(sourceFilePath))
+                        {
+                            // If there is not a corresponding source file, then delete the srcML file [Deleted]
+                            RespondToFileChangedEvent(null, new SourceEventArgs(sourceFilePath, SourceEventType.Deleted));
+                            Console.WriteLine("Deleted");
+                        }
+                        else
+                        {
+                            //Console.WriteLine("!!! NO ACTION !!!");
+                        }
+                    }
+                    // In case the file has been deleted since the traversal
+                    catch (FileNotFoundException e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
+                }
+
+                srcMLSubDirs = srcMLDir.GetDirectories();
+                foreach (DirectoryInfo srcMLDirInfo in srcMLSubDirs)
+                {
+                    //Console.WriteLine("srcMLDirInfo: " + srcMLDirInfo.Name);
+                    WalkSrcMLDirectoryTree(srcMLDirInfo);
+                }
             }
         }
 
@@ -216,6 +356,23 @@ namespace ABB.SrcML
             xmlPath = xmlPath + ".xml";
 
             return xmlPath;
+        }
+
+        public string GetSourcePathForXmlPath(string xmlPath)
+        {
+            string fullPath = String.Empty;
+            fullPath = (Path.IsPathRooted(xmlPath)) ? xmlPath : Path.GetFullPath(xmlPath);
+
+            // ?? SourceDirectory and ArchivePath is not treated as the same type? (ISourceFolder sourceDirectory, string xmlDirectory)
+            if (!fullPath.StartsWith(this.ArchivePath, StringComparison.InvariantCultureIgnoreCase))
+            {
+                throw new IOException(String.Format("{0} is not rooted in {1}", xmlPath, this.ArchivePath));
+            }
+
+            string relativePath = xmlPath.Substring(this.ArchivePath.Length, xmlPath.Length - this.ArchivePath.Length - 4);
+            string sourcePath = this.SourceDirectory.FullFolderPath + relativePath;
+
+            return sourcePath;
         }
 
         protected virtual void OnSourceFileChanged(SourceEventArgs e)
