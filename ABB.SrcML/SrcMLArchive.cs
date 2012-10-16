@@ -7,6 +7,7 @@
  *
  * Contributors:
  *    Vinay Augustine (ABB Group) - Initial implementation
+ *    Jiang Zheng (ABB Group) - Initial implementation
  *****************************************************************************/
 
 using System;
@@ -14,6 +15,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Xml.Linq;
+using ABB.SrcML.Utilities;
 
 namespace ABB.SrcML
 {
@@ -172,6 +174,7 @@ namespace ABB.SrcML
             WalkSourceDirectoryTree(rootDir);
 
             // Traverse srcML directory to remove srcML files when needed
+            //// Try to store srcML files with Base32 encoding in ONE folder
             DirectoryInfo srcMLRootDir = new DirectoryInfo(Path.GetFullPath(this.ArchivePath));
             WalkSrcMLDirectoryTree(srcMLRootDir);
         }
@@ -246,6 +249,7 @@ namespace ABB.SrcML
             }
         }
 
+        /*
         private void WalkSrcMLDirectoryTree(DirectoryInfo srcMLDir)
         {
             FileInfo[] srcMLFiles = null;
@@ -300,6 +304,54 @@ namespace ABB.SrcML
                 }
             }
         }
+        */
+
+        private void WalkSrcMLDirectoryTree(DirectoryInfo srcMLDir)
+        {
+            FileInfo[] srcMLFiles = null;
+
+            try
+            {
+                srcMLFiles = srcMLDir.GetFiles("*.*");
+            }
+            // In case one of the files requires permissions greater than the application provides
+            catch (UnauthorizedAccessException e)
+            {
+                Console.WriteLine(e.Message);
+            }
+            catch (DirectoryNotFoundException e)
+            {
+                Console.WriteLine(e.Message);
+            }
+
+            if (srcMLFiles != null)
+            {
+                foreach (FileInfo fi in srcMLFiles)
+                {
+                    Console.WriteLine("<- srcML File: " + fi.FullName);
+                    string sourceFilePath = GetSourcePathForXmlPath(fi.FullName);
+                    Console.WriteLine("<- Source File: " + sourceFilePath);
+                    try
+                    {
+                        if (!File.Exists(sourceFilePath))
+                        {
+                            // If there is not a corresponding source file, then delete the srcML file [Deleted]
+                            RespondToFileChangedEvent(null, new SourceEventArgs(sourceFilePath, SourceEventType.Deleted));
+                            Console.WriteLine("Deleted");
+                        }
+                        else
+                        {
+                            //Console.WriteLine("!!! NO ACTION !!!");
+                        }
+                    }
+                    // In case the file has been deleted since the traversal
+                    catch (FileNotFoundException e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
+                }
+            }
+        }
 
         public void GenerateXmlForSource(string sourcePath)
         {
@@ -329,6 +381,8 @@ namespace ABB.SrcML
             }
         }
 
+        // Version for hierarchy folders storage
+        /*
         public string GetXmlPathForSourcePath(string sourcePath)
         {
             string fullPath = String.Empty;
@@ -357,7 +411,38 @@ namespace ABB.SrcML
 
             return xmlPath;
         }
+        */
 
+        // Version for single folder storage
+        public string GetXmlPathForSourcePath(string sourcePath)
+        {
+            string fullPath = String.Empty;
+            if (Path.IsPathRooted(sourcePath))
+            {
+                fullPath = sourcePath;
+            }
+            else
+            {
+                fullPath = Path.GetFullPath(sourcePath);
+            }
+
+            if (!fullPath.StartsWith(this.SourceDirectory.FullFolderPath, StringComparison.InvariantCultureIgnoreCase))
+            {
+                throw new IOException(String.Format("{0} is not rooted in {1}", sourcePath, this.SourceDirectory));
+            }
+
+            //Console.WriteLine("fullPath = " + fullPath);
+            //string srcMLFileName = encoding(fullPath);
+            string srcMLFileName = Base32.ToBase32String(fullPath);
+            //Console.WriteLine("Encoded srcMLFileName = " + srcMLFileName);
+            string xmlPath = Path.Combine(this.ArchivePath, srcMLFileName);
+            xmlPath = xmlPath + ".xml";
+
+            return xmlPath;
+        }
+
+        // Version for hierarchy folders storage
+        /*
         public string GetSourcePathForXmlPath(string xmlPath)
         {
             string fullPath = String.Empty;
@@ -369,10 +454,49 @@ namespace ABB.SrcML
                 throw new IOException(String.Format("{0} is not rooted in {1}", xmlPath, this.ArchivePath));
             }
 
-            string relativePath = xmlPath.Substring(this.ArchivePath.Length, xmlPath.Length - this.ArchivePath.Length - 4);
+            string relativePath = fullPath.Substring(this.ArchivePath.Length, fullPath.Length - this.ArchivePath.Length - 4);
             string sourcePath = this.SourceDirectory.FullFolderPath + relativePath;
 
             return sourcePath;
+        }
+        */
+
+        // Version for single folder storage
+        public string GetSourcePathForXmlPath(string xmlPath)
+        {
+            string fullPath = String.Empty;
+            fullPath = (Path.IsPathRooted(xmlPath)) ? xmlPath : Path.GetFullPath(xmlPath);
+
+            // ?? SourceDirectory and ArchivePath is not treated as the same type? (ISourceFolder sourceDirectory, string xmlDirectory)
+            if (!fullPath.StartsWith(this.ArchivePath, StringComparison.InvariantCultureIgnoreCase))
+            {
+                throw new IOException(String.Format("{0} is not rooted in {1}", xmlPath, this.ArchivePath));
+            }
+
+            string relativePath = fullPath.Substring(this.ArchivePath.Length + 1, fullPath.Length - this.ArchivePath.Length - 5);
+            //Console.WriteLine("relativePath = " + relativePath);
+            //relativePath = decoding(relativePath);
+            relativePath = Base32.FromBase32String(relativePath);
+            //Console.WriteLine("relativePath decoded = " + relativePath);
+            relativePath = relativePath.Substring(this.SourceDirectory.FullFolderPath.Length + 1);
+            //Console.WriteLine("relativePath decoded = " + relativePath);
+            string sourcePath = Path.Combine(this.SourceDirectory.FullFolderPath, relativePath);
+            
+            return sourcePath;
+        }
+
+        private string encoding(string str)
+        {
+            string encodedStr = str.Replace("\\", "_");
+            encodedStr = encodedStr.Replace(":", "$");
+            return encodedStr;
+        }
+
+        private string decoding(string encodedStr)
+        {
+            string str = encodedStr.Replace("$", ":");
+            str = str.Replace("_", "\\");
+            return str;
         }
 
         protected virtual void OnSourceFileChanged(SourceEventArgs e)

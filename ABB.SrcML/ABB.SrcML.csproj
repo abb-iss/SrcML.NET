@@ -77,6 +77,7 @@
     <Compile Include="Transform.cs" />
     <Compile Include="TransformObjectHarness.cs" />
     <Compile Include="TransformRunner.cs" />
+    <Compile Include="Utilities\Base32.cs" />
     <Compile Include="Utilities\DefaultsDictionary.cs" />
     <Compile Include="Utilities\ExecutableReturnValue.cs" />
     <Compile Include="Utilities\ExecutableRunner.cs" />
