@@ -58,6 +58,7 @@
     <Compile Include="HelperTests.cs" />
     <Compile Include="InvalidQueryFunctions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SrcMLElementTests.cs" />
     <Compile Include="SrcMLFileTest.cs" />
     <Compile Include="SrcMLTest.cs" />
     <Compile Include="SRCTest.cs" />

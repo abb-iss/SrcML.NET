@@ -64,6 +64,7 @@
     <Compile Include="Src2SrcMLRunner.cs" />
     <Compile Include="SrcML.cs" />
     <Compile Include="SrcML2SrcRunner.cs" />
+    <Compile Include="SrcMLElement.cs" />
     <Compile Include="SrcMLException.cs" />
     <Compile Include="SrcMLFile.cs" />
     <Compile Include="SrcMLHelper.cs" />
