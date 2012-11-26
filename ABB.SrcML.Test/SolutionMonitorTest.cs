@@ -22,7 +22,7 @@ using NSubstitute;
 namespace ABB.SrcML.Test
 {
     [TestFixture]
-    class SrcMLArchiveTest
+    class SolutionMonitorTest
     {
         public const string SOURCEDIRECTORY = "testSourceDir";
         private DirectoryInfo srcDirectoryInfo;
@@ -35,133 +35,6 @@ namespace ABB.SrcML.Test
                 Directory.Delete(SOURCEDIRECTORY, true);
             }
             srcDirectoryInfo = Directory.CreateDirectory(SOURCEDIRECTORY);
-        }
-
-        [Test]
-        public void GenerateXmlForDirectoryStressTest()
-        {
-            Console.WriteLine("------- Start -------\n");
-
-            Process thisProcess = null;
-
-            thisProcess = Process.GetCurrentProcess();
-            Console.WriteLine("ID: [" + thisProcess.Id + "\n");
-            Console.WriteLine("NonpagedSystemMemorySize64: [" + thisProcess.NonpagedSystemMemorySize64 + "\n");
-            Console.WriteLine("PagedMemorySize64: [" + thisProcess.PagedMemorySize64 + "\n");
-            Console.WriteLine("PagedSystemMemorySize64: [" + thisProcess.PagedSystemMemorySize64 + "\n");
-            Console.WriteLine("PeakPagedMemorySize64: [" + thisProcess.PeakPagedMemorySize64 + "\n");
-            Console.WriteLine("PeakVirtualMemorySize64: [" + thisProcess.PeakVirtualMemorySize64 + "\n");
-            Console.WriteLine("PeakWorkingSet64: [" + thisProcess.PeakWorkingSet64 + "\n");
-            Console.WriteLine("PrivateMemorySize64: [" + thisProcess.PrivateMemorySize64 + "\n");
-            Console.WriteLine("VirtualMemorySize64: [" + thisProcess.VirtualMemorySize64 + "\n");
-
-            Stopwatch swInit = new Stopwatch();
-            swInit.Start();
-
-            ISourceFolder watchedFolder = Substitute.For<ISourceFolder>();
-            watchedFolder.FullFolderPath = srcDirectoryInfo.FullName;
-
-            var archive = new SrcMLArchive(watchedFolder);
-            archive.XmlGenerator.ApplicationDirectory = TestConstants.SrcmlPath;
-            var xmlDirectory = new DirectoryInfo(archive.ArchivePath);
-
-            for (int i = 0; i < 10; i++)
-            {
-                File.WriteAllText(SOURCEDIRECTORY + "\\foo(" + i + ").c", String.Format(@"int foo() {{{0}printf(""hello world!"");{0}}}", Environment.NewLine));
-                File.WriteAllText(SOURCEDIRECTORY + "\\bar(" + i + ").c", String.Format(@"int bar() {{{0}    printf(""goodbye, world!"");{0}}}", Environment.NewLine));
-                Directory.CreateDirectory(Path.Combine(SOURCEDIRECTORY, "subdir_" + i));
-                for (int j = 0; j < 10; j++)
-                {
-                    File.WriteAllText(SOURCEDIRECTORY + "\\subdir_" + i + "\\foo(" + i + "_" + j + ").c", String.Format(@"int foo1() {{{0}printf(""hello world 1!"");{0}}}", Environment.NewLine));
-                    File.WriteAllText(SOURCEDIRECTORY + "\\subdir_" + i + "\\bar(" + i + "_" + j + ").c", String.Format(@"int bar1() {{{0}    printf(""goodbye, world 1!"");{0}}}", Environment.NewLine));
-                    Directory.CreateDirectory(Path.Combine(SOURCEDIRECTORY, "subdir_" + i + "\\subdir_" + i + "_" + j));
-                    for (int k = 0; k < 10; k++)
-                    {
-                        File.WriteAllText(SOURCEDIRECTORY + "\\subdir_" + i + "\\subdir_" + i + "_" + j + "\\foo(" + i + "_" + j + "_" + k + ").c", String.Format(@"int foo1() {{{0}printf(""hello world 1!"");{0}}}", Environment.NewLine));
-                        File.WriteAllText(SOURCEDIRECTORY + "\\subdir_" + i + "\\subdir_" + i + "_" + j + "\\bar(" + i + "_" + j + "_" + k + ").c", String.Format(@"int bar1() {{{0}    printf(""goodbye, world 1!"");{0}}}", Environment.NewLine));
-                    }
-                }
-            }
-
-            swInit.Stop();
-            Console.WriteLine("\nTotal time elapsed for initialization: {0}", swInit.Elapsed.ToString());
-            Console.WriteLine("ID: [" + thisProcess.Id + "\n");
-            Console.WriteLine("NonpagedSystemMemorySize64: [" + thisProcess.NonpagedSystemMemorySize64 + "\n");
-            Console.WriteLine("PagedMemorySize64: [" + thisProcess.PagedMemorySize64 + "\n");
-            Console.WriteLine("PagedSystemMemorySize64: [" + thisProcess.PagedSystemMemorySize64 + "\n");
-            Console.WriteLine("PeakPagedMemorySize64: [" + thisProcess.PeakPagedMemorySize64 + "\n");
-            Console.WriteLine("PeakVirtualMemorySize64: [" + thisProcess.PeakVirtualMemorySize64 + "\n");
-            Console.WriteLine("PeakWorkingSet64: [" + thisProcess.PeakWorkingSet64 + "\n");
-            Console.WriteLine("PrivateMemorySize64: [" + thisProcess.PrivateMemorySize64 + "\n");
-            Console.WriteLine("VirtualMemorySize64: [" + thisProcess.VirtualMemorySize64 + "\n");
-
-            //System.Threading.Thread.Sleep(1000);
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-            
-            archive.GenerateXmlForDirectory(SOURCEDIRECTORY);
-            
-            sw.Stop();
-            Console.WriteLine("\nTotal time elapsed for srcML files generation: {0}", sw.Elapsed.ToString());
-            Console.WriteLine("ID: [" + thisProcess.Id + "\n");
-            Console.WriteLine("NonpagedSystemMemorySize64: [" + thisProcess.NonpagedSystemMemorySize64 + "\n");
-            Console.WriteLine("PagedMemorySize64: [" + thisProcess.PagedMemorySize64 + "\n");
-            Console.WriteLine("PagedSystemMemorySize64: [" + thisProcess.PagedSystemMemorySize64 + "\n");
-            Console.WriteLine("PeakPagedMemorySize64: [" + thisProcess.PeakPagedMemorySize64 + "\n");
-            Console.WriteLine("PeakVirtualMemorySize64: [" + thisProcess.PeakVirtualMemorySize64 + "\n");
-            Console.WriteLine("PeakWorkingSet64: [" + thisProcess.PeakWorkingSet64 + "\n");
-            Console.WriteLine("PrivateMemorySize64: [" + thisProcess.PrivateMemorySize64 + "\n");
-            Console.WriteLine("VirtualMemorySize64: [" + thisProcess.VirtualMemorySize64 + "\n");
-            Console.WriteLine("\n------- End -------\n");
-
-            /*
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "foo.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "bar.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\foo1.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\bar1.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\foo2.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\bar2.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir11\\foo11.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir11\\bar11.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir12\\foo12.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir12\\bar12.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\subdir21\\foo21.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\subdir21\\bar21.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\subdir22\\foo22.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\subdir22\\bar22.c.xml")));
-            Assert.That(archive.FileUnits.Count(), Is.EqualTo(14));
-            */
-
-            /*
-            File.WriteAllText(SOURCEDIRECTORY + "\\foo.c", String.Format(@"int foo() {{{0}printf(""hello world! changed"");{0}}}", Environment.NewLine));
-            File.WriteAllText(SOURCEDIRECTORY + "\\subdir2\\subdir21\\bar21.c", String.Format(@"int bar21() {{{0}    printf(""goodbye, world 21! changed"");{0}}}", Environment.NewLine));
-            File.Delete("C:\\Users\\USJIZHE\\Documents\\GitHub\\SrcML.NET\\Build\\Debug\\testSourceDir\\subdir1\\subdir12\\bar12.c");
-            File.Move("C:\\Users\\USJIZHE\\Documents\\GitHub\\SrcML.NET\\Build\\Debug\\testSourceDir\\subdir1\\subdir11\\foo11.c",
-                "C:\\Users\\USJIZHE\\Documents\\GitHub\\SrcML.NET\\Build\\Debug\\testSourceDir\\subdir1\\subdir11\\foo1111111.c");
-
-            System.Threading.Thread.Sleep(5000);
-            archive.GenerateXmlForDirectory(SOURCEDIRECTORY);
-            */
-
-            /*
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "foo.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "bar.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\foo1.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\bar1.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\foo2.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\bar2.c.xml")));
-            Assert.That(!File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir11\\foo11.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir11\\foo1111111.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir11\\bar11.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir12\\foo12.c.xml")));
-            Assert.That(!File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir12\\bar12.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\subdir21\\foo21.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\subdir21\\bar21.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\subdir22\\foo22.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\subdir22\\bar22.c.xml")));
-            Assert.That(archive.FileUnits.Count(), Is.EqualTo(13));
-            */
-
         }
 
         // Added on 2012.10.10
@@ -267,7 +140,7 @@ namespace ABB.SrcML.Test
         }
 
         [Test]
-        public void FileCreationTest()
+        public void FileAddDeleteChangeRenameTest()
         {
             int numberOfEventsRaised = 0;
             ISourceFolder watchedFolder = Substitute.For<ISourceFolder>();
@@ -279,32 +152,37 @@ namespace ABB.SrcML.Test
             var xmlDirectory = new DirectoryInfo(archive.ArchivePath);
 
             archive.SourceFileChanged += (o, e) =>
-                {
-                    numberOfEventsRaised++;
-                    Assert.That(e.SourceFilePath, Is.Not.SamePathOrUnder(xmlDirectory.Name));
-                    Console.WriteLine("{0}: {1}", e.EventType, e.SourceFilePath);
-                };
+            {
+                numberOfEventsRaised++;
+                Assert.That(e.SourceFilePath, Is.Not.SamePathOrUnder(xmlDirectory.Name));
+                Console.WriteLine("Event Type '{0}': [{1}]", e.EventType, e.SourceFilePath);
+            };
 
             WriteTextAndRaiseEvent(watchedFolder, "foo.c", @"int foo(int i) {
     return i + 1;
 }");
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "foo.c.xml")));
+            // Base32 encoded filename foo.c.xml
+            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "2BVUHCFVS6KX3VHC6BBBWFADSZ7EY7FRH48CX7GV627VYYGVEC9WXVFCB8UMWXJSVCGESVDEH4MUXBG4WCJWNM9RKZ9CNJGV6M8C3JFRS2GBXJG4X88LX7RR.xml")));
 
             WriteTextAndRaiseEvent(watchedFolder, "bar.c", @"int bar(int i) {
     return i - 1;
 }");
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "bar.c.xml")));
+            // Base32 encoded filename bar.c.xml
+            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "2BVUHCFVS6KX3VHC6BBBWFADSZ7EY7FRH48CX7GV627VYYGVEC9WXVFCB8UMWXJSVCGESVDEH4MUXBG4WCJWNM9RKZ9CNJGV6M8C3JFRS2GBXJG4Z4UW37RR.xml")));
 
             Directory.CreateDirectory(Path.Combine(SOURCEDIRECTORY, "subdir"));
             WriteTextAndRaiseEvent(watchedFolder, Path.Combine("subdir", "component.c"), @"int are_equal(int i, int j) {
     return i == j;
 
 }");
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir", "component.c.xml")));            
+            // Base32 encoded filename subdir\component.c.xml
+            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "2BVUHCFVS6KX3VHC6BBBWFADSZ7EY7FRH48CX7GV627VYYGVEC9WXVFCB8UMWXJSVCGESVDEH4MUXBG4WCJWNM9RKZ9CNJGV6M8C3JFRS2GBXJG4649WXBSFB27XN7HFT88KNBJFY64XX.xml")));
             Assert.That(archive.FileUnits.Count(), Is.EqualTo(3));
             Assert.That(numberOfFunctions(archive), Is.EqualTo(3));
 
             DeleteSourceAndRaiseEvent(watchedFolder, "bar.c");
+            // Base32 encoded filename bar.c.xml
+            Assert.That(!File.Exists(Path.Combine(xmlDirectory.FullName, "2BVUHCFVS6KX3VHC6BBBWFADSZ7EY7FRH48CX7GV627VYYGVEC9WXVFCB8UMWXJSVCGESVDEH4MUXBG4WCJWNM9RKZ9CNJGV6M8C3JFRS2GBXJG4Z4UW37RR.xml")));
             Assert.That(archive.FileUnits.Count(), Is.EqualTo(2));
             Assert.That(numberOfFunctions(archive), Is.EqualTo(2));
 
@@ -312,17 +190,22 @@ namespace ABB.SrcML.Test
     int a;
     char b;
 }");
+            // Base32 encoded filename subdir\component.c.xml
+            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "2BVUHCFVS6KX3VHC6BBBWFADSZ7EY7FRH48CX7GV627VYYGVEC9WXVFCB8UMWXJSVCGESVDEH4MUXBG4WCJWNM9RKZ9CNJGV6M8C3JFRS2GBXJG4649WXBSFB27XN7HFT88KNBJFY64XX.xml")));
             Assert.That(archive.FileUnits.Count(), Is.EqualTo(2));
             Assert.That(numberOfFunctions(archive), Is.EqualTo(1));
 
             RenameSourceFileAndRaiseEvent(watchedFolder, "foo.c", "foo2.c");
-
+            // Base32 encoded filename foo.c.xml
+            Assert.That(!File.Exists(Path.Combine(xmlDirectory.FullName, "2BVUHCFVS6KX3VHC6BBBWFADSZ7EY7FRH48CX7GV627VYYGVEC9WXVFCB8UMWXJSVCGESVDEH4MUXBG4WCJWNM9RKZ9CNJGV6M8C3JFRS2GBXJG4X88LX7RR.xml")));
+            // Base32 encoded filename foo2.c.xml
+            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "2BVUHCFVS6KX3VHC6BBBWFADSZ7EY7FRH48CX7GV627VYYGVEC9WXVFCB8UMWXJSVCGESVDEH4MUXBG4WCJWNM9RKZ9CNJGV6M8C3JFRS2GBXJG4X88LXJUS22.xml")));
             Assert.That(archive.FileUnits.Count(), Is.EqualTo(2));
             Assert.That(numberOfFunctions(archive), Is.EqualTo(1));
 
             Assert.That(numberOfEventsRaised, Is.EqualTo(6));
         }
-        
+
         private int numberOfFunctions(IArchive archive)
         {
             var functions = from unit in archive.FileUnits
@@ -358,7 +241,7 @@ namespace ABB.SrcML.Test
         {
             var oldPath = Path.Combine(this.srcDirectoryInfo.Name, oldFileName);
             var path = Path.Combine(this.srcDirectoryInfo.Name, fileName);
-            
+
             var oldXmlPath = Path.Combine(this.srcDirectoryInfo.Name, ".srcml", oldFileName) + ".xml";
             var xmlPath = Path.Combine(this.srcDirectoryInfo.Name, ".srcml", fileName) + ".xml";
 

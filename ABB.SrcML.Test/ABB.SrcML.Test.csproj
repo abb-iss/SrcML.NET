@@ -56,6 +56,7 @@
     <Compile Include="..\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
+    <Compile Include="SolutionMonitorTest.cs" />
     <Compile Include="EmptyClass.cs" />
     <Compile Include="ExternalTests.cs" />
     <Compile Include="HelperTests.cs" />

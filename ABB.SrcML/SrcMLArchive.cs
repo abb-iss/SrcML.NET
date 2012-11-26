@@ -202,16 +202,16 @@ namespace ABB.SrcML
             {
                 foreach (FileInfo fi in sourceFiles)
                 {
-                    Console.WriteLine("-> Source File: " + fi.FullName);
+                    ////Console.WriteLine("-> Source File: " + fi.FullName);
                     string srcMLFilePath = GetXmlPathForSourcePath(fi.FullName);
-                    Console.WriteLine("-> srcML File: " + srcMLFilePath);
+                    ////Console.WriteLine("-> srcML File: " + srcMLFilePath);
                     try
                     {
                         if (!File.Exists(srcMLFilePath))
                         {
                             // If there is not a corresponding srcML file, then generate the srcML file [Added]
                             RespondToFileChangedEvent(null, new SourceEventArgs(fi.FullName, SourceEventType.Added));
-                            Console.WriteLine("Added");
+                            ////Console.WriteLine("Added");
                         }
                         else
                         {
@@ -328,9 +328,9 @@ namespace ABB.SrcML
             {
                 foreach (FileInfo fi in srcMLFiles)
                 {
-                    Console.WriteLine("<- srcML File: " + fi.FullName);
+                    ////Console.WriteLine("<- srcML File: " + fi.FullName);
                     string sourceFilePath = GetSourcePathForXmlPath(fi.FullName);
-                    Console.WriteLine("<- Source File: " + sourceFilePath);
+                    ////Console.WriteLine("<- Source File: " + sourceFilePath);
                     try
                     {
                         if (!File.Exists(sourceFilePath))
