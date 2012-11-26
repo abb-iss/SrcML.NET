@@ -53,6 +53,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML.Tools.ArchiveUpda
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML.SolutionMonitor", "ABB.SrcML.SolutionMonitor\ABB.SrcML.SolutionMonitor.csproj", "{14ADDDAB-4A71-4093-9CCC-903CC4EC5025}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML.SrcMLSolutionMonitor", "ABB.SrcML.SrcMLSolutionMonitor\ABB.SrcML.SrcMLSolutionMonitor.csproj", "{5827B758-8DA8-4D57-863F-251394741293}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -183,6 +185,16 @@ Global
 		{14ADDDAB-4A71-4093-9CCC-903CC4EC5025}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{14ADDDAB-4A71-4093-9CCC-903CC4EC5025}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{14ADDDAB-4A71-4093-9CCC-903CC4EC5025}.Release|x86.ActiveCfg = Release|Any CPU
+		{5827B758-8DA8-4D57-863F-251394741293}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5827B758-8DA8-4D57-863F-251394741293}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5827B758-8DA8-4D57-863F-251394741293}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{5827B758-8DA8-4D57-863F-251394741293}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{5827B758-8DA8-4D57-863F-251394741293}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5827B758-8DA8-4D57-863F-251394741293}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5827B758-8DA8-4D57-863F-251394741293}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5827B758-8DA8-4D57-863F-251394741293}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{5827B758-8DA8-4D57-863F-251394741293}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{5827B758-8DA8-4D57-863F-251394741293}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

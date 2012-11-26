@@ -12,6 +12,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using ABB.SrcML;
+using ABB.SrcML.SrcMLSolutionMonitor;
 using System.IO;
 namespace ABB.SrcML.Tools.ArchiveUpdater
 {

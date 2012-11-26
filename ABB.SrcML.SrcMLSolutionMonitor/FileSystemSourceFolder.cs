@@ -1,12 +1,10 @@
-﻿/* //// Move to separate ABB.SrcML.SrcMLSolutionMonitor.ISourceFolder.cs
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
 
-namespace ABB.SrcML
+namespace ABB.SrcML.SrcMLSolutionMonitor
 {
     public class FileSystemSourceFolder : ISourceFolder
     {
@@ -114,5 +112,3 @@ namespace ABB.SrcML
         }
     }
 }
-
-*/

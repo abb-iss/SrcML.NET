@@ -9,13 +9,11 @@
  *    Vinay Augustine (ABB Group) - Initial implementation
  *****************************************************************************/
 
-/* //// Move to separate ABB.SrcML.SrcMLSolutionMonitor.ISourceFolder.cs
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ABB.SrcML
+namespace ABB.SrcML.SrcMLSolutionMonitor
 {
     public interface ISourceFolder
     {
@@ -78,5 +76,3 @@ namespace ABB.SrcML
         }
     }
 }
-
-*/

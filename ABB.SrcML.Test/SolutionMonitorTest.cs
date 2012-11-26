@@ -16,6 +16,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using ABB.SrcML;
+using ABB.SrcML.SrcMLSolutionMonitor;
 using NUnit.Framework;
 using NSubstitute;
 

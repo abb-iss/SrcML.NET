@@ -25,6 +25,9 @@
     <OutputPath>bin\Release\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ABB.SrcML.SrcMLSolutionMonitor">
+      <HintPath>..\..\ABB.SrcML.SrcMLSolutionMonitor\bin\Debug\ABB.SrcML.SrcMLSolutionMonitor.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />

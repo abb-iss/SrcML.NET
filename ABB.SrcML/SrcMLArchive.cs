@@ -16,6 +16,7 @@ using System.Linq;
 using System.IO;
 using System.Xml.Linq;
 using ABB.SrcML.Utilities;
+using ABB.SrcML.SrcMLSolutionMonitor;
 
 namespace ABB.SrcML
 {
