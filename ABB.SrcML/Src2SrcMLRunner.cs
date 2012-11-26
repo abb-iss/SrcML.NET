@@ -172,6 +172,8 @@ namespace ABB.SrcML
             
             arguments.Add(String.Format("\"{0}\"", sourceFileName));
 
+            //Console.WriteLine("sourceFileName = [" + sourceFileName + "]");
+            //Console.WriteLine("xmlFileName = [" + xmlFileName + "]");
             Run(xmlFileName, arguments);
 
             return new SrcMLFile(xmlFileName);
