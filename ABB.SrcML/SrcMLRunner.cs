@@ -77,7 +77,10 @@ namespace ABB.SrcML
         {
             get
             {
-                return this._namespaceArguments;
+                var arguments = from arg in this._namespaceArguments
+                                select arg;
+
+                return new Collection<string>(arguments.ToList());
             }
             private set
             {

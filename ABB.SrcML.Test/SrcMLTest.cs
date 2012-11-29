@@ -227,6 +227,14 @@ printf(""hello world!"");
             Assert.IsNotNull(doc);
             Assert.AreEqual(1, doc.FileUnits.Count());
         }
+
+        [Test]
+        public void MyTestMethod()
+        {
+            var runner = new Src2SrcMLRunner();
+            runner.GenerateSrcMLFromDirectory("srcmltest", "srcmltest1.xml");
+            runner.GenerateSrcMLFromFile("srcmltest\\File with spaces.cpp", "testfile.xml");
+        }
         //[Test]
         //public void TestRegularExpression()
         //{
