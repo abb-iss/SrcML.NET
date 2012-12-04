@@ -97,4 +97,4 @@ Once you've done this, you're ready to use the add-in.
 6. Find the "ABB SrcML Transform Project" item under "Visual C#".
 7. Name your project and press `OK`.
 
-You now have a transformation project that you can use to query and transform C++ or Java projects. More documentation on using the add-in and writing transformations is coming.
+You now have a transformation project that you can use to query and transform C++ or Java projects. I've made a [sample transformation](https://github.com/abb-iss/NppTransformExample) available for you to try out. More documentation on using the add-in, writing transformations, and working with the framework is coming.
