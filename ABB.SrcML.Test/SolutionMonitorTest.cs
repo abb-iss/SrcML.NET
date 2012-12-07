@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Xml.Linq;
 using ABB.SrcML;
 using ABB.SrcML.SrcMLSolutionMonitor;
 using NUnit.Framework;
@@ -138,6 +139,56 @@ namespace ABB.SrcML.Test
 
             Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "foo.c.xml")));
             Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "bar.c.xml")));
+        }
+
+        /// <summary>
+        /// Added by JZ on 12/3/2012
+        /// Unit test for SrcMLArchive.public string GenerateXmlAndStringForSource(string sourcePath)
+        /// </summary>
+        [Test]
+        public void GenerateXmlAndStringForSourceTest()
+        {
+            ISourceFolder watchedFolder = Substitute.For<ISourceFolder>();
+            watchedFolder.FullFolderPath = srcDirectoryInfo.FullName;
+
+            var archive = new SrcMLArchive(watchedFolder);
+            archive.XmlGenerator.ApplicationDirectory = TestConstants.SrcmlPath;
+            var xmlDirectory = new DirectoryInfo(archive.ArchivePath);
+
+            File.WriteAllText(SOURCEDIRECTORY + "\\foo.c", String.Format(@"int foo() {{{0}printf(""hello world!"");{0}}}", Environment.NewLine));
+            File.WriteAllText(SOURCEDIRECTORY + "\\bar.c", String.Format(@"int bar() {{{0}    printf(""goodbye, world!"");{0}}}", Environment.NewLine));
+
+            string fooXML = archive.GenerateXmlAndStringForSource(SOURCEDIRECTORY + "\\foo.c");
+            string barXML = archive.GenerateXmlAndStringForSource(SOURCEDIRECTORY + "\\bar.c");
+
+            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "2BVUHCFVS6KX3VHC6BBBWFADSZ7EY7FRH48CX7GV627VYYGVEC9WXVFCB8UMWXJSVCGESVDEH4MUXBG4WCJWNM9RKZ9CNJGV6M8C3JFRS2GBXJG4X88LX7RR.xml")));
+            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "2BVUHCFVS6KX3VHC6BBBWFADSZ7EY7FRH48CX7GV627VYYGVEC9WXVFCB8UMWXJSVCGESVDEH4MUXBG4WCJWNM9RKZ9CNJGV6M8C3JFRS2GBXJG4Z4UW37RR.xml")));
+        }
+
+        /// <summary>
+        /// Added by JZ on 12/4/2012
+        /// Unit test for SrcMLArchive.public string GenerateXmlAndXElementForSource(string sourcePath)
+        /// </summary>
+        [Test]
+        public void GenerateXmlAndXElementForSourceTest()
+        {
+            ISourceFolder watchedFolder = Substitute.For<ISourceFolder>();
+            watchedFolder.FullFolderPath = srcDirectoryInfo.FullName;
+
+            var archive = new SrcMLArchive(watchedFolder);
+            archive.XmlGenerator.ApplicationDirectory = TestConstants.SrcmlPath;
+            var xmlDirectory = new DirectoryInfo(archive.ArchivePath);
+
+            File.WriteAllText(SOURCEDIRECTORY + "\\foo.c", String.Format(@"int foo() {{{0}printf(""hello world!"");{0}}}", Environment.NewLine));
+            File.WriteAllText(SOURCEDIRECTORY + "\\bar.c", String.Format(@"int bar() {{{0}    printf(""goodbye, world!"");{0}}}", Environment.NewLine));
+
+            XElement fooXElement = archive.GenerateXmlAndXElementForSource(SOURCEDIRECTORY + "\\foo.c");
+            XElement barXElement = archive.GenerateXmlAndXElementForSource(SOURCEDIRECTORY + "\\bar.c");
+
+            Assert.IsNotNull(fooXElement);
+            Assert.IsNotNull(barXElement);
+            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "2BVUHCFVS6KX3VHC6BBBWFADSZ7EY7FRH48CX7GV627VYYGVEC9WXVFCB8UMWXJSVCGESVDEH4MUXBG4WCJWNM9RKZ9CNJGV6M8C3JFRS2GBXJG4X88LX7RR.xml")));
+            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "2BVUHCFVS6KX3VHC6BBBWFADSZ7EY7FRH48CX7GV627VYYGVEC9WXVFCB8UMWXJSVCGESVDEH4MUXBG4WCJWNM9RKZ9CNJGV6M8C3JFRS2GBXJG4Z4UW37RR.xml")));
         }
 
         [Test]

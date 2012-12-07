@@ -17,6 +17,7 @@ using ABB.SrcML.Utilities;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Globalization;
+using System.Xml.Linq;
 
 namespace ABB.SrcML
 {
@@ -144,6 +145,41 @@ namespace ABB.SrcML
         #endregion
 
         #region File Conversion
+        /// <summary>
+        /// Added by JZ on 12/4/2012
+        /// Generate both a SrcML XElement and document from a single source file. The language will be inferred from the extension.
+        /// </summary>
+        /// <param name="sourceFileName">path to the source file to convert.</param>
+        /// <param name="xmlFileName">The File name to write the resulting XML to.</param>
+        /// <returns>An XElement representing the source.</returns>
+        public XElement GenerateSrcMLAndXElementFromFile(string sourceFileName, string xmlFileName)
+        {
+            SrcMLFile srcMLFile = GenerateSrcMLFromFile(sourceFileName, xmlFileName);
+            //string srcml = srcMLFile.GetXMLString();
+            return srcMLFile.FileUnits.FirstOrDefault();
+            //if (srcml != String.Empty)
+            //{
+            //    return XElement.Parse(srcml, LoadOptions.PreserveWhitespace);
+            //}
+            //else
+            //{
+            //    return null;
+            //}
+        }
+
+        /// <summary>
+        /// Added by JZ on 12/3/2012
+        /// Generate both a SrcML string and document from a single source file. The language will be inferred from the extension.
+        /// </summary>
+        /// <param name="sourceFileName">path to the source file to convert.</param>
+        /// <param name="xmlFileName">The File name to write the resulting XML to.</param>
+        /// <returns>An XML string representing the source.</returns>
+        public string GenerateSrcMLAndStringFromFile(string sourceFileName, string xmlFileName)
+        {
+            SrcMLFile srcMLFile = GenerateSrcMLFromFile(sourceFileName, xmlFileName);
+            return srcMLFile.GetXMLString();
+        }
+
         /// <summary>
         /// Generate a SrcML document from a single source file. The language will be inferred from the extension.
         /// </summary>

@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{14ADDDAB-4A71-4093-9CCC-903CC4EC5025}</ProjectGuid>
+    <ProjectGuid>{873DD65E-2C15-413D-9441-9850AC9A6B84}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ABB.SrcML.SolutionMonitor</RootNamespace>
-    <AssemblyName>ABB.SrcML.SolutionMonitor</AssemblyName>
+    <RootNamespace>ABB.SrcML.VisualStudio.SolutionMonitor</RootNamespace>
+    <AssemblyName>ABB.SrcML.VisualStudio.SolutionMonitor</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -75,9 +75,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="SolutionKey.cs" />
     <Compile Include="SolutionMonitor.cs" />
     <Compile Include="SolutionMonitorFactory.cs" />
+    <Compile Include="SolutionKey.cs" />
     <Compile Include="ISolution.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

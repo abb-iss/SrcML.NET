@@ -407,5 +407,34 @@ namespace ABB.SrcML
             throw new NotImplementedException();
         }
         #endregion
+
+
+        /// <summary>
+        /// Added by JZ on 12/3/2012
+        /// Read the srcML file and generate a string of the content of this file.
+        /// </summary>
+        /// <returns>The string of the content of this file.</returns>
+        public string GetXMLString()
+        {
+            string xml = "";
+
+            try
+            {
+                using (StreamReader sr = new StreamReader(this.ArchivePath))
+                {
+                    string line;
+                    while ((line = sr.ReadLine()) != null)
+                    {
+                        xml += line;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+
+            return xml;
+        }
     }
 }

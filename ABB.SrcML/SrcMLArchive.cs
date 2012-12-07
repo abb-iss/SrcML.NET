@@ -354,6 +354,42 @@ namespace ABB.SrcML
             }
         }
 
+        /// <summary>
+        /// Added by JZ on 12/3/2012
+        /// Generate both a srcML File and a string of the content of this file for a source code file.
+        /// </summary>
+        /// <param name="sourcePath">The full path of the source code file.</param>
+        /// <returns>The string of the content of the generated srcML file.</returns>
+        public string GenerateXmlAndStringForSource(string sourcePath)
+        {
+            var xmlPath = GetXmlPathForSourcePath(sourcePath);
+            var directory = Path.GetDirectoryName(xmlPath);
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            return this.XmlGenerator.GenerateSrcMLAndStringFromFile(sourcePath, xmlPath);
+        }
+
+        /// <summary>
+        /// Added by JZ on 12/4/2012
+        /// Generate both a srcML File and a XElement of the content of this file for a source code file.
+        /// </summary>
+        /// <param name="sourcePath">The full path of the source code file.</param>
+        /// <returns>The XElement of the content of the generated srcML file.</returns>
+        public XElement GenerateXmlAndXElementForSource(string sourcePath)
+        {
+            var xmlPath = GetXmlPathForSourcePath(sourcePath);
+            var directory = Path.GetDirectoryName(xmlPath);
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            return this.XmlGenerator.GenerateSrcMLAndXElementFromFile(sourcePath, xmlPath);
+        }
+
         public void GenerateXmlForSource(string sourcePath)
         {
             var xmlPath = GetXmlPathForSourcePath(sourcePath);

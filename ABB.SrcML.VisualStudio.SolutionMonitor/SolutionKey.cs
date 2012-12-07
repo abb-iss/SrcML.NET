@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
 
-namespace ABB.SrcML.SolutionMonitor
+namespace ABB.SrcML.VisualStudio.SolutionMonitor
 {
     public class SolutionKey
     {
-        // Add a new constructor without index part
+        // Add a new constructor without index part (or replace index with srcML?)
         public SolutionKey(Guid solutionId, string solutionPath)
         {
             Contract.Requires(solutionId != null, "SolutionKey:Constructor - solution id cannot be null!");
@@ -16,7 +16,7 @@ namespace ABB.SrcML.SolutionMonitor
             this.solutionPath = solutionPath;
         }
 
-        /* //// Remove index part
+        /* //// old implementation
         public SolutionKey(Guid solutionId, string solutionPath, string indexPath)
         {
             Contract.Requires(solutionId != null, "SolutionKey:Constructor - solution id cannot be null!");

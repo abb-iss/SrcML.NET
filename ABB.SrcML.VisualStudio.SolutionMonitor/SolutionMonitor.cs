@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections;
-// Code changed by JZ on 10/29: Added the Delete case
 using System.Collections.Generic;
-// End of code changes
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -12,26 +10,32 @@ using EnvDTE;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-////using Sando.Core;
+////using Sando.Core;   "////" means removing the code about index
 ////using Sando.Core.Extensions;
 ////using Sando.Core.Extensions.Logging;
 ////using Sando.Indexer;
 using Thread = System.Threading.Thread;
 
-namespace ABB.SrcML.SolutionMonitor
+namespace ABB.SrcML.VisualStudio.SolutionMonitor
 {
+    /// <summary>
+    /// IVsRunningDocTableEvents: Implements methods that fire in response to changes to documents in the Running Document Table (RDT).
+    /// TODO: IVsRunningDocTableEvents does not have OnAfterDelete(), only has OnAfterSave() that can handle ADDED/CHANGED cases
+    /// </summary>
     public class SolutionMonitor : IVsRunningDocTableEvents
     {
         ////private const string StartupThreadName = "Sando: Initial Index of Project";
         private readonly SolutionWrapper _openSolution;
         ////private DocumentIndexer _currentIndexer;
-        private IVsRunningDocumentTable _documentTable;
-        private uint _documentTableItemId;
+        private IVsRunningDocumentTable _documentTable; // IVsRunningDocumentTable: Manages the set of currently open documents in the environment
+        private uint _documentTableItemId;              // Used in registering/unregistering events for the Running Document Table
 
         ////private readonly string _currentPath;
         private readonly System.ComponentModel.BackgroundWorker _processFileInBackground;
-        private readonly SolutionKey _solutionKey;
-        public volatile bool ShouldStop = false;
+        private BackgroundWorker startupWorker;
+
+        private readonly SolutionKey _solutionKey;  // Seems to be useless
+        public volatile bool ShouldStop = false;    // Only one reference, seems to be useless
 
         /* //// Remove index part
         public bool PerformingInitialIndexing()
@@ -56,18 +60,35 @@ namespace ABB.SrcML.SolutionMonitor
             _processFileInBackground.DoWork += new DoWorkEventHandler(_processFileInBackground_DoWork);
         }
 
+        /// <summary>
+        /// Run in background for a specific file
+        /// So far only called in OnAfterSave()
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void _processFileInBackground_DoWork(object sender, DoWorkEventArgs e)
         {
-            ProjectItem projectItem = e.Argument as ProjectItem;
+            // Check if the corresponding srcML file need to be ADDED or CHANGED
+            // TODO: Should be ProcessSingleFile(projectItem, null), instead of ProcessItem(projectItem, null)?
+            ProjectItem projectItem = e.Argument as ProjectItem;    // ProjectItem: Represents an item in a project
             ProcessItem(projectItem, null);
             ////UpdateAfterAdditions();
+
+            // TODO: In some way (e.g., checking Running Document Table as the list of monitored source files)
+            //       to see if srcML files need to be DELETED
         }
 
+        /// <summary>
+        /// Run in background when starting up the solution
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="anEvent"></param>
         private void _runStartupInBackground_DoWork(object sender, DoWorkEventArgs anEvent)
         {
             var worker = sender as BackgroundWorker;
             try
             {
+                // Recursively walk through the solution/projects to check if srcML files need to be ADDED or CHANGED
                 var allProjects = _openSolution.getProjects();
                 var enumerator = allProjects.GetEnumerator();
                 while (enumerator.MoveNext())
@@ -98,8 +119,11 @@ namespace ABB.SrcML.SolutionMonitor
                     }
                 }
 
-                // Code changed by JZ on 10/30: To complete the Delete case: walk through all index files
+                // TODO: In some way (e.g., checking Running Document Table as the list of monitored source files)
+                //       to see if srcML files need to be DELETED
+
                 /* //// Remove index part
+                // Code changed by JZ on 10/30: To complete the Delete case: walk through all index files
                 List<string> allIndexedFileNames = _indexUpdateManager.GetAllIndexedFileNames();
                 foreach (string filename in allIndexedFileNames)
                 {
@@ -109,8 +133,8 @@ namespace ABB.SrcML.SolutionMonitor
                         _indexUpdateManager.UpdateFile(filename);
                     }
                 }
-                */
                 // End of code changes
+                */
             }
             catch (Exception e)
             {
@@ -132,21 +156,26 @@ namespace ABB.SrcML.SolutionMonitor
         }
         */
 
-        private BackgroundWorker startupWorker;
-
+        /// <summary>
+        /// Start monitoring the solution.
+        /// </summary>
         public void StartMonitoring()
         {
             startupWorker = new BackgroundWorker();
             startupWorker.WorkerSupportsCancellation = true;
-            startupWorker.DoWork +=
-                    new DoWorkEventHandler(_runStartupInBackground_DoWork);
+            startupWorker.DoWork += new DoWorkEventHandler(_runStartupInBackground_DoWork);
             startupWorker.RunWorkerAsync();
 
-            // Register events for doc table
+            // Register events for the Running Document Table
             _documentTable = (IVsRunningDocumentTable)Package.GetGlobalService(typeof(SVsRunningDocumentTable));
             _documentTable.AdviseRunningDocTableEvents(this, out _documentTableItemId);
         }
 
+        /// <summary>
+        /// Recursively process project items
+        /// </summary>
+        /// <param name="items"></param>
+        /// <param name="worker"></param>
         private void ProcessItems(IEnumerator items, BackgroundWorker worker)
         {
             while (items.MoveNext())
@@ -159,13 +188,23 @@ namespace ABB.SrcML.SolutionMonitor
                 ProcessItem(item, worker);
             }
         }
-        
+
+        /// <summary>
+        /// Process a single project item
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="worker"></param>
         private void ProcessItem(ProjectItem item, BackgroundWorker worker)
         {
             ProcessSingleFile(item, worker);
             ProcessChildren(item, worker);
         }
 
+        /// <summary>
+        /// Process the children items of a project item
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="worker"></param>
         private void ProcessChildren(ProjectItem item, BackgroundWorker worker)
         {
             try
@@ -175,10 +214,16 @@ namespace ABB.SrcML.SolutionMonitor
             }
             catch (COMException dll)
             {
-                //ignore, can't parse these types of files
+                ////ignore, can't parse these types of files
             }
         }
 
+        /// <summary>
+        /// Process a single source file
+        /// (ADDED / CHANGED)
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="worker"></param>
         private void ProcessSingleFile(ProjectItem item, BackgroundWorker worker)
         {
             string path = "";
@@ -197,18 +242,26 @@ namespace ABB.SrcML.SolutionMonitor
                     string fileExtension = Path.GetExtension(path);
                     if (fileExtension != null && !fileExtension.Equals(String.Empty))
                     {
-                        //////if (ExtensionPointsRepository.Instance.GetParserImplementation(fileExtension) != null)
+                        // TODO: about the file extension issue
+                        ////if (ExtensionPointsRepository.Instance.GetParserImplementation(fileExtension) != null)
                         {
                             Debug.WriteLine("Start: " + path);
 
                             ////ProcessFileForTesting(path);
+
+                            // TODO: insert code to link to srcML generation for a single source file (ADDED / CHANGED)
+                            //       similar to RespondToFileChangedEvent but no event needed
+                            //       return XElement of the latest srcML file? or just void (with file generated on disk)?
+                            //       Sando keeps its own index states? Sando/SrcML.NET's ADDED / CHANGED processing are both exactly the same
+                            //       Also consider "DONOTHING" case, to save time
+                            //       The MonitoredSourceFileList: via Running Document Table or srcML?
 
                             Debug.WriteLine("End: " + path);
                         }
                     }
                 }
             }
-            //TODO - don't catch a generic exception
+            ////TODO - don't catch a generic exception
             catch (Exception e)
             {
                 ////FileLogger.DefaultLogger.Error(ExceptionFormatter.CreateMessage(e, "Problem parsing file: " + path));
@@ -223,11 +276,38 @@ namespace ABB.SrcML.SolutionMonitor
         }
         */
 
+
+        /// <summary>
+        /// Get a list of all files being monitored by SrcML.NET
+        /// </summary>
+        /// <returns></returns>
+        public List<string> GetListOfAllMonitoredFiles()
+        {
+            IEnumRunningDocuments documents;
+
+            _documentTable.GetRunningDocumentsEnum(out documents);
+
+
+
+            List<string> list = null;
+
+            return list;
+        }
+
+        /// <summary>
+        /// Stop monitoring the solution
+        /// TODO: killReaders?
+        /// </summary>
+        /// <param name="killReaders"></param>
         public void StopMonitoring(bool killReaders = false)
         {
             Dispose(killReaders);
         }
 
+        /// <summary>
+        /// Dispose this solution monitor
+        /// </summary>
+        /// <param name="killReaders"></param>
         public void Dispose(bool killReaders = false)
         {
             try
@@ -236,12 +316,10 @@ namespace ABB.SrcML.SolutionMonitor
                 {
                     _documentTable.UnadviseRunningDocTableEvents(_documentTableItemId);
                 }
-
                 if (startupWorker != null)
                 {
                     startupWorker.CancelAsync();
                 }
-
             }
             finally
             {
@@ -260,21 +338,13 @@ namespace ABB.SrcML.SolutionMonitor
             }
         }
 
-        //// ??
-        public int OnAfterFirstDocumentLock(uint cookie, uint lockType, uint readLocksLeft, uint editLocksLeft)
-        {
-            //throw new NotImplementedException();
-            return VSConstants.S_OK;
-        }
 
-        //// ??
-        public int OnBeforeLastDocumentUnlock(uint cookie, uint lockType, uint readLocksLeft, uint editLocksLeft)
-        {
-            //throw new NotImplementedException();
-            return VSConstants.S_OK;
-        }
-
-        //// ??
+        /// <summary>
+        /// From IVsRunningDocTableEvents. 
+        /// Called after saving a document in the Running Document Table (RDT).
+        /// </summary>
+        /// <param name="cookie"></param>
+        /// <returns></returns>
         public int OnAfterSave(uint cookie)
         {
             uint readingLocks, edittingLocks, flags; IVsHierarchy hierarchy; IntPtr documentData; string name; uint documentId;
@@ -287,19 +357,68 @@ namespace ABB.SrcML.SolutionMonitor
             return VSConstants.S_OK;
         }
 
-        //// ??
+        /// <summary>
+        /// From IVsRunningDocTableEvents. 
+        /// Called after application of the first lock of the specified type to the specified document in the Running Document Table (RDT).
+        /// </summary>
+        /// <param name="cookie"></param>
+        /// <param name="lockType"></param>
+        /// <param name="readLocksLeft"></param>
+        /// <param name="editLocksLeft"></param>
+        /// <returns></returns>
+        public int OnAfterFirstDocumentLock(uint cookie, uint lockType, uint readLocksLeft, uint editLocksLeft)
+        {
+            //throw new NotImplementedException();
+            return VSConstants.S_OK;
+        }
+
+        /// <summary>
+        /// From IVsRunningDocTableEvents. 
+        /// Called before releasing the last lock of the specified type on the specified document in the Running Document Table (RDT).
+        /// </summary>
+        /// <param name="cookie"></param>
+        /// <param name="lockType"></param>
+        /// <param name="readLocksLeft"></param>
+        /// <param name="editLocksLeft"></param>
+        /// <returns></returns>
+        public int OnBeforeLastDocumentUnlock(uint cookie, uint lockType, uint readLocksLeft, uint editLocksLeft)
+        {
+            //throw new NotImplementedException();
+            return VSConstants.S_OK;
+        }
+
+        /// <summary>
+        /// From IVsRunningDocTableEvents. 
+        /// Called after a change in an attribute of a document in the Running Document Table (RDT).
+        /// </summary>
+        /// <param name="cookie"></param>
+        /// <param name="grfAttribs"></param>
+        /// <returns></returns>
         public int OnAfterAttributeChange(uint cookie, uint grfAttribs)
         {
             return VSConstants.S_OK;
         }
 
-        //// ??
+        /// <summary>
+        /// From IVsRunningDocTableEvents. 
+        /// Called before displaying a document window.
+        /// </summary>
+        /// <param name="cookie"></param>
+        /// <param name="fFirstShow"></param>
+        /// <param name="pFrame"></param>
+        /// <returns></returns>
         public int OnBeforeDocumentWindowShow(uint cookie, int fFirstShow, IVsWindowFrame pFrame)
         {
             return VSConstants.S_OK;
         }
 
-        //// ??
+        /// <summary>
+        /// From IVsRunningDocTableEvents. 
+        /// Called after a document window is placed in the Hide state.
+        /// </summary>
+        /// <param name="docCookie"></param>
+        /// <param name="pFrame"></param>
+        /// <returns></returns>
         public int OnAfterDocumentWindowHide(uint docCookie, IVsWindowFrame pFrame)
         {
             return VSConstants.S_OK;
@@ -312,6 +431,10 @@ namespace ABB.SrcML.SolutionMonitor
         }
         */
 
+        /// <summary>
+        /// Get the solution key
+        /// </summary>
+        /// <returns></returns>
         public SolutionKey GetSolutionKey()
         {
             return _solutionKey;

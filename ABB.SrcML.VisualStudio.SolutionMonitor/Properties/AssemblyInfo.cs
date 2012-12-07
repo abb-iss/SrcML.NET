@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("ABB.SrcML.SolutionMonitor")]
+[assembly: AssemblyTitle("ABB.SrcML.VisualStudio.SolutionMonitor")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Microsoft")]
-[assembly: AssemblyProduct("ABB.SrcML.SolutionMonitor")]
+[assembly: AssemblyProduct("ABB.SrcML.VisualStudio.SolutionMonitor")]
 [assembly: AssemblyCopyright("Copyright © Microsoft 2012")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("98fcdbdd-88df-4b77-a538-a2098c2ebae1")]
+[assembly: Guid("77d7f591-0691-469b-ac52-98282a632eff")]
 
 // Version information for an assembly consists of the following four values:
 //

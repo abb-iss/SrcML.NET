@@ -31,6 +31,12 @@
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>..\Build\Release\ABB.SrcML.XML</DocumentationFile>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>sandoKey.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="ABB.SrcML.SrcMLSolutionMonitor">
       <HintPath>..\ABB.SrcML.SrcMLSolutionMonitor\bin\Debug\ABB.SrcML.SrcMLSolutionMonitor.dll</HintPath>
@@ -89,6 +95,9 @@
     <Compile Include="Utilities\SrcMLRuntimeException.cs" />
     <Compile Include="Utilities\VisualStudioProjectReader.cs" />
     <Compile Include="XmlHelper.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="sandoKey.snk" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
