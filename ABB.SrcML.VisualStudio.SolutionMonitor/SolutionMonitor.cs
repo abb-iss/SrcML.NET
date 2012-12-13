@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using EnvDTE;
@@ -22,13 +23,17 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
     /// IVsRunningDocTableEvents: Implements methods that fire in response to changes to documents in the Running Document Table (RDT).
     /// TODO: IVsRunningDocTableEvents does not have OnAfterDelete(), only has OnAfterSave() that can handle ADDED/CHANGED cases
     /// </summary>
-    public class SolutionMonitor : IVsRunningDocTableEvents
+    public class SolutionMonitor : IVsRunningDocTableEvents, IVsFileChangeEvents
     {
         ////private const string StartupThreadName = "Sando: Initial Index of Project";
         private readonly SolutionWrapper _openSolution;
         ////private DocumentIndexer _currentIndexer;
         private IVsRunningDocumentTable _documentTable; // IVsRunningDocumentTable: Manages the set of currently open documents in the environment
         private uint _documentTableItemId;              // Used in registering/unregistering events for the Running Document Table
+
+        // Try IVsFileChangeEvents
+        private IVsFileChangeEx fileChangeEx;
+        private readonly List<KeyValuePair<string, uint>> listenInfos = new List<KeyValuePair<string, uint>>();
 
         ////private readonly string _currentPath;
         private readonly System.ComponentModel.BackgroundWorker _processFileInBackground;
@@ -145,6 +150,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
             {
                 ////_initialIndexDone = true;
                 ShouldStop = false;
+
             }
         }
 
@@ -161,6 +167,9 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         /// </summary>
         public void StartMonitoring()
         {
+            // Try FileChangeEvents
+            RegisterFileChangeEvents();
+
             startupWorker = new BackgroundWorker();
             startupWorker.WorkerSupportsCancellation = true;
             startupWorker.DoWork += new DoWorkEventHandler(_runStartupInBackground_DoWork);
@@ -170,6 +179,51 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
             _documentTable = (IVsRunningDocumentTable)Package.GetGlobalService(typeof(SVsRunningDocumentTable));
             _documentTable.AdviseRunningDocTableEvents(this, out _documentTableItemId);
         }
+
+        /// <summary>
+        /// Register file change events
+        /// </summary>
+        public void RegisterFileChangeEvents()
+        {
+            //if (listenInfos.Any(i => file.Equals(i.Key, StringComparison.InvariantCultureIgnoreCase)))
+            //    return;
+
+            fileChangeEx = Package.GetGlobalService(typeof(SVsFileChangeEx)) as IVsFileChangeEx;
+            uint dircookie;
+            string solutionFolder = Path.GetDirectoryName(_solutionKey.GetSolutionPath());
+            fileChangeEx.AdviseDirChange(solutionFolder, 1, this, out dircookie);
+
+            // Recursively walk through the solution/projects to check if srcML files need to be ADDED or CHANGED
+            var allProjects = _openSolution.getProjects();
+            var enumerator = allProjects.GetEnumerator();
+            while (enumerator.MoveNext())
+            {
+                var project = (Project)enumerator.Current;
+                if (project != null)
+                {
+                    if (project.ProjectItems != null)
+                    {
+                        try
+                        {
+                            ProcessItems(project.ProjectItems.GetEnumerator(), null);
+                        }
+                        catch (Exception e)
+                        {
+                            //Console.WriteLine("Problem parsing files:" + e.Message);
+                        }
+                        finally
+                        {
+                            ////UpdateAfterAdditions();
+                        }
+                    }
+                }
+            }
+
+            // Print out all monitored files
+            PrintAllMonitoredFiles("D:\\Data\\MonitoredFiles1.txt");
+        }
+
+
 
         /// <summary>
         /// Recursively process project items
@@ -256,6 +310,10 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
                             //       Also consider "DONOTHING" case, to save time
                             //       The MonitoredSourceFileList: via Running Document Table or srcML?
 
+                            //path = Path.GetFullPath(path);
+
+                            StartMonitoringAFile(path);
+
                             Debug.WriteLine("End: " + path);
                         }
                     }
@@ -276,20 +334,80 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         }
         */
 
+        /// <summary>
+        /// Start to monitor a file and add the file into the list of monitored files
+        /// </summary>
+        /// <param name="path"></param>
+        public void StartMonitoringAFile(string path)
+        {
+            uint cookie;
+            fileChangeEx.AdviseFileChange(
+                    path,
+                    (uint)(_VSFILECHANGEFLAGS.VSFILECHG_Time | _VSFILECHANGEFLAGS.VSFILECHG_Del | _VSFILECHANGEFLAGS.VSFILECHG_Add),
+                    this,
+                    out cookie);
+            listenInfos.Add(new KeyValuePair<string, uint>(path, cookie));
+        }
 
         /// <summary>
-        /// Get a list of all files being monitored by SrcML.NET
+        /// For debugging. May be adapted to GetListOfAllMonitoredFiles()
+        /// </summary>
+        /// <param name="outputFile"></param>
+        public void PrintAllMonitoredFiles(string outputFile)
+        {
+            StreamWriter sw = new StreamWriter(outputFile, false, System.Text.Encoding.ASCII);
+            sw.WriteLine("All Monitored Files");
+            if (fileChangeEx != null && listenInfos.Any())
+            {
+                var filenames = listenInfos.Select(i => i.Key).ToArray();
+                foreach (var filename in filenames)
+                {
+                    sw.WriteLine("File: [" + filename + "]");
+                }
+            }
+            sw.Close();
+        }
+
+
+        /// <summary>
+        /// Get a list of all files being monitored by SrcML.NET (RDT version)
         /// </summary>
         /// <returns></returns>
         public List<string> GetListOfAllMonitoredFiles()
         {
+            StreamWriter sw = new StreamWriter("D:\\Data\\SolutionFiles.txt", false, System.Text.Encoding.ASCII);
+            List<string> list = new List<string>();
             IEnumRunningDocuments documents;
 
-            _documentTable.GetRunningDocumentsEnum(out documents);
+            if (_documentTable != null)
+            {
+                _documentTable.GetRunningDocumentsEnum(out documents);
 
+                uint[] docCookie = new uint[1];
+                uint fetched;
 
+                while ((VSConstants.S_OK == documents.Next(1, docCookie, out fetched)) && (1 == fetched))
+                {
+                    uint flags;
+                    uint editLocks;
+                    uint readLocks;
+                    string moniker;
+                    IVsHierarchy docHierarchy;
+                    uint docId;
+                    IntPtr docData = IntPtr.Zero;
 
-            List<string> list = null;
+                    _documentTable.GetDocumentInfo(docCookie[0], out flags, out readLocks, out editLocks, out moniker, out docHierarchy, out docId, out docData);
+
+                    Console.Out.WriteLine("[ " + moniker + "]");
+                    list.Add(moniker);
+                    sw.WriteLine(moniker);
+                }
+            }
+
+            //for (int i = 0; i < list.Count; i++)
+            //{
+            //}
+            sw.Close();
 
             return list;
         }
@@ -312,6 +430,19 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         {
             try
             {
+                // Try FileChangeEvents
+                if (fileChangeEx != null && listenInfos.Any())
+                {
+                    var cookies = listenInfos.Select(i => i.Value).ToArray();
+                    listenInfos.Clear();
+                    foreach (var cookie in cookies)
+                    {
+                        fileChangeEx.UnadviseFileChange(cookie);
+                    }
+                }
+                fileChangeEx = null;
+
+
                 if (_documentTable != null)
                 {
                     _documentTable.UnadviseRunningDocTableEvents(_documentTableItemId);
@@ -338,6 +469,43 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
             }
         }
 
+        #region IVsFileChangeEvents
+        /// <summary>
+        /// From IVsFileChangeEvents.
+        /// Notifies clients of changes made to one or more files.
+        /// </summary>
+        /// <param name="numberOfFilesChanged"></param>
+        /// <param name="filesChanged"></param>
+        /// <param name="rggrfChange"></param>
+        /// <returns></returns>
+        public int FilesChanged(uint numberOfFilesChanged, string[] filesChanged, uint[] rggrfChange)
+        {
+            StreamWriter sw = new StreamWriter("D:\\Data\\ChangedFiles.txt", true, System.Text.Encoding.ASCII);
+            for (int i = 0; i < numberOfFilesChanged; i++)
+            {
+                //FileChanged(filesChanged[i]);
+                sw.WriteLine("File: [" + filesChanged[i] + "]; Flag: [" + rggrfChange[i] + "]");
+            }
+            sw.Close();
+
+            return VSConstants.S_OK;
+        }
+
+        /// <summary>
+        /// From IVsFileChangeEvents.
+        /// Notifies clients of changes made to a directory.
+        /// </summary>
+        /// <param name="pszDirectory"></param>
+        /// <returns></returns>
+        public int DirectoryChanged(string pszDirectory)
+        {
+            StreamWriter sw = new StreamWriter("D:\\Data\\ChangedFiles.txt", true, System.Text.Encoding.ASCII);
+            sw.WriteLine("Folder: [" + pszDirectory + "]");
+            sw.Close();
+
+            return VSConstants.S_OK;
+        }
+        #endregion
 
         /// <summary>
         /// From IVsRunningDocTableEvents. 

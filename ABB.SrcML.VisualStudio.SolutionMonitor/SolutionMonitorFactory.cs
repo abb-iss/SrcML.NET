@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.Shell;
 
 namespace ABB.SrcML.VisualStudio.SolutionMonitor
 {
-    class SolutionMonitorFactory
+    public class SolutionMonitorFactory
     {
         ////private const string Lucene = "\\lucene";
         ////public static string LuceneDirectory { get; set; }
