@@ -20,20 +20,33 @@ using Thread = System.Threading.Thread;
 namespace ABB.SrcML.VisualStudio.SolutionMonitor
 {
     /// <summary>
-    /// IVsRunningDocTableEvents: Implements methods that fire in response to changes to documents in the Running Document Table (RDT).
-    /// TODO: IVsRunningDocTableEvents does not have OnAfterDelete(), only has OnAfterSave() that can handle ADDED/CHANGED cases
+    /// This solution monitor implements two Visual Studio basic IDE interfaces:
+    /// (1) IVsTrackProjectDocumentsEvents2: Notifies clients of changes made to project files or directories.
+    /// Methods of this interface were implemented to handle file creation and deletion events in Visual Studio envinronment.
+    /// (2) IVsRunningDocTableEvents: Implements methods that fire in response to changes to documents in the Running Document Table (RDT).
+    /// Methods of this interface were implemented to handle file change events in Visual Studio envinronment.
+    /// Also tried IVsFileChangeEvents (Notifies clients when selected files have been changed on disk), but it does not meet requirements.
     /// </summary>
-    public class SolutionMonitor : IVsRunningDocTableEvents, IVsFileChangeEvents
+    public class SolutionMonitor : IVsTrackProjectDocumentsEvents2, IVsRunningDocTableEvents
     {
         ////private const string StartupThreadName = "Sando: Initial Index of Project";
         private readonly SolutionWrapper _openSolution;
         ////private DocumentIndexer _currentIndexer;
-        private IVsRunningDocumentTable _documentTable; // IVsRunningDocumentTable: Manages the set of currently open documents in the environment
-        private uint _documentTableItemId;              // Used in registering/unregistering events for the Running Document Table
 
-        // Try IVsFileChangeEvents
-        private IVsFileChangeEx fileChangeEx;
-        private readonly List<KeyValuePair<string, uint>> listenInfos = new List<KeyValuePair<string, uint>>();
+        /// <summary>
+        /// IVsRunningDocumentTable: Manages the set of currently open documents in the environment.
+        /// _documentTableItemId is used in registering/unregistering events.
+        /// </summary>
+        private IVsRunningDocumentTable _documentTable;
+        private uint _documentTableItemId;
+
+        /// <summary>
+        /// IVsTrackProjectDocumentsEvents2: Used by projects to query the environment for 
+        /// permission to add, remove, or rename a file or directory in a solution.
+        /// pdwCookie is used in registering/unregistering events.
+        /// </summary>
+        private IVsTrackProjectDocuments2 _projectDocumentsTracker;
+        private uint _pdwCookie = VSConstants.VSCOOKIE_NIL;
 
         ////private readonly string _currentPath;
         private readonly System.ComponentModel.BackgroundWorker _processFileInBackground;
@@ -52,6 +65,11 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         ////private readonly IndexUpdateManager _indexUpdateManager;
         ////private bool _initialIndexDone = false;
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="openSolution"></param>
+        /// <param name="solutionKey"></param>
         ////public SolutionMonitor(SolutionWrapper openSolution, SolutionKey solutionKey, DocumentIndexer currentIndexer, bool isIndexRecreationRequired)
         public SolutionMonitor(SolutionWrapper openSolution, SolutionKey solutionKey)
         {
@@ -66,8 +84,53 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         }
 
         /// <summary>
-        /// Run in background for a specific file
-        /// So far only called in OnAfterSave()
+        /// Start monitoring the solution.
+        /// </summary>
+        public void StartMonitoring()
+        {
+            startupWorker = new BackgroundWorker();
+            startupWorker.WorkerSupportsCancellation = true;
+            startupWorker.DoWork += new DoWorkEventHandler(_runStartupInBackground_DoWork);
+            startupWorker.RunWorkerAsync();
+
+            // Register TrackProjectDocuments2 events
+            RegisterTrackProjectDocumentsEvents2();
+
+            // Register RunningDocumentTable events
+            RegisterRunningDocumentTableEvents();
+        }
+
+        /// <summary>
+        /// Register TrackProjectDocuments2 events.
+        /// </summary>
+        public void RegisterTrackProjectDocumentsEvents2()
+        {
+            _projectDocumentsTracker = Package.GetGlobalService(typeof(SVsTrackProjectDocuments)) as IVsTrackProjectDocuments2;
+            if (_projectDocumentsTracker != null)
+            {
+                int hr = _projectDocumentsTracker.AdviseTrackProjectDocumentsEvents(this, out _pdwCookie);
+                ErrorHandler.ThrowOnFailure(hr); // do nothing if this fails
+                writeLog("D:\\Data\\log.txt", "IVsTrackProjectDocumentsEvents2.AdviseTrackProjectDocumentsEvents() DONE. [" + hr.ToString() + "]");
+            }
+        }
+
+        /// <summary>
+        /// Register RunningDocumentTable events.
+        /// </summary>
+        public void RegisterRunningDocumentTableEvents()
+        {
+            _documentTable = (IVsRunningDocumentTable)Package.GetGlobalService(typeof(SVsRunningDocumentTable));
+            if (_documentTable != null)
+            {
+                int hr = _documentTable.AdviseRunningDocTableEvents(this, out _documentTableItemId);
+                ErrorHandler.ThrowOnFailure(hr);
+                writeLog("D:\\Data\\log.txt", "IVsRunningDocTableEvents.AdviseRunningDocTableEvents() DONE. [" + hr.ToString() + "]");
+            }
+        }
+
+        /// <summary>
+        /// Run in background for a specific file.
+        /// So far only called in IVsRunningDocTableEvents.OnAfterSave()
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -84,7 +147,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         }
 
         /// <summary>
-        /// Run in background when starting up the solution
+        /// Run in background when starting up the solution.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="anEvent"></param>
@@ -163,70 +226,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         */
 
         /// <summary>
-        /// Start monitoring the solution.
-        /// </summary>
-        public void StartMonitoring()
-        {
-            // Try FileChangeEvents
-            RegisterFileChangeEvents();
-
-            startupWorker = new BackgroundWorker();
-            startupWorker.WorkerSupportsCancellation = true;
-            startupWorker.DoWork += new DoWorkEventHandler(_runStartupInBackground_DoWork);
-            startupWorker.RunWorkerAsync();
-
-            // Register events for the Running Document Table
-            _documentTable = (IVsRunningDocumentTable)Package.GetGlobalService(typeof(SVsRunningDocumentTable));
-            _documentTable.AdviseRunningDocTableEvents(this, out _documentTableItemId);
-        }
-
-        /// <summary>
-        /// Register file change events
-        /// </summary>
-        public void RegisterFileChangeEvents()
-        {
-            //if (listenInfos.Any(i => file.Equals(i.Key, StringComparison.InvariantCultureIgnoreCase)))
-            //    return;
-
-            fileChangeEx = Package.GetGlobalService(typeof(SVsFileChangeEx)) as IVsFileChangeEx;
-            uint dircookie;
-            string solutionFolder = Path.GetDirectoryName(_solutionKey.GetSolutionPath());
-            fileChangeEx.AdviseDirChange(solutionFolder, 1, this, out dircookie);
-
-            // Recursively walk through the solution/projects to check if srcML files need to be ADDED or CHANGED
-            var allProjects = _openSolution.getProjects();
-            var enumerator = allProjects.GetEnumerator();
-            while (enumerator.MoveNext())
-            {
-                var project = (Project)enumerator.Current;
-                if (project != null)
-                {
-                    if (project.ProjectItems != null)
-                    {
-                        try
-                        {
-                            ProcessItems(project.ProjectItems.GetEnumerator(), null);
-                        }
-                        catch (Exception e)
-                        {
-                            //Console.WriteLine("Problem parsing files:" + e.Message);
-                        }
-                        finally
-                        {
-                            ////UpdateAfterAdditions();
-                        }
-                    }
-                }
-            }
-
-            // Print out all monitored files
-            PrintAllMonitoredFiles("D:\\Data\\MonitoredFiles1.txt");
-        }
-
-
-
-        /// <summary>
-        /// Recursively process project items
+        /// Recursively process project items.
         /// </summary>
         /// <param name="items"></param>
         /// <param name="worker"></param>
@@ -244,7 +244,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         }
 
         /// <summary>
-        /// Process a single project item
+        /// Process a single project item.
         /// </summary>
         /// <param name="item"></param>
         /// <param name="worker"></param>
@@ -255,21 +255,23 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         }
 
         /// <summary>
-        /// Process the children items of a project item
+        /// Process the children items of a project item.
         /// </summary>
         /// <param name="item"></param>
         /// <param name="worker"></param>
         private void ProcessChildren(ProjectItem item, BackgroundWorker worker)
         {
-            try
-            {
+            ////try
+            ////{
                 if (item != null && item.ProjectItems != null)
+                {
                     ProcessItems(item.ProjectItems.GetEnumerator(), worker);
-            }
-            catch (COMException dll)
-            {
+                }
+            ////}
+            ////catch (COMException dll)
+            ////{
                 ////ignore, can't parse these types of files
-            }
+            ////}
         }
 
         /// <summary>
@@ -308,11 +310,9 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
                             //       return XElement of the latest srcML file? or just void (with file generated on disk)?
                             //       Sando keeps its own index states? Sando/SrcML.NET's ADDED / CHANGED processing are both exactly the same
                             //       Also consider "DONOTHING" case, to save time
-                            //       The MonitoredSourceFileList: via Running Document Table or srcML?
+                            //       The MonitoredSourceFileList: via srcML?
 
                             //path = Path.GetFullPath(path);
-
-                            StartMonitoringAFile(path);
 
                             Debug.WriteLine("End: " + path);
                         }
@@ -335,24 +335,10 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         */
 
         /// <summary>
-        /// Start to monitor a file and add the file into the list of monitored files
-        /// </summary>
-        /// <param name="path"></param>
-        public void StartMonitoringAFile(string path)
-        {
-            uint cookie;
-            fileChangeEx.AdviseFileChange(
-                    path,
-                    (uint)(_VSFILECHANGEFLAGS.VSFILECHG_Time | _VSFILECHANGEFLAGS.VSFILECHG_Del | _VSFILECHANGEFLAGS.VSFILECHG_Add),
-                    this,
-                    out cookie);
-            listenInfos.Add(new KeyValuePair<string, uint>(path, cookie));
-        }
-
-        /// <summary>
         /// For debugging. May be adapted to GetListOfAllMonitoredFiles()
         /// </summary>
         /// <param name="outputFile"></param>
+        /*
         public void PrintAllMonitoredFiles(string outputFile)
         {
             StreamWriter sw = new StreamWriter(outputFile, false, System.Text.Encoding.ASCII);
@@ -367,25 +353,22 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
             }
             sw.Close();
         }
-
+        */
 
         /// <summary>
-        /// Get a list of all files being monitored by SrcML.NET (RDT version)
+        /// Get a list of all files in the Running Docuement Table.
         /// </summary>
         /// <returns></returns>
-        public List<string> GetListOfAllMonitoredFiles()
+        public List<string> GetRDTFiles()
         {
-            StreamWriter sw = new StreamWriter("D:\\Data\\SolutionFiles.txt", false, System.Text.Encoding.ASCII);
             List<string> list = new List<string>();
             IEnumRunningDocuments documents;
 
             if (_documentTable != null)
             {
                 _documentTable.GetRunningDocumentsEnum(out documents);
-
                 uint[] docCookie = new uint[1];
                 uint fetched;
-
                 while ((VSConstants.S_OK == documents.Next(1, docCookie, out fetched)) && (1 == fetched))
                 {
                     uint flags;
@@ -398,23 +381,49 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
 
                     _documentTable.GetDocumentInfo(docCookie[0], out flags, out readLocks, out editLocks, out moniker, out docHierarchy, out docId, out docData);
 
-                    Console.Out.WriteLine("[ " + moniker + "]");
                     list.Add(moniker);
-                    sw.WriteLine(moniker);
                 }
             }
-
-            //for (int i = 0; i < list.Count; i++)
-            //{
-            //}
-            sw.Close();
 
             return list;
         }
 
         /// <summary>
-        /// Stop monitoring the solution
-        /// TODO: killReaders?
+        /// Save a specific file in the Running Docuement Table.
+        /// </summary>
+        /// <param name="fileName"></param>
+        public void saveRDTFile(string fileName)
+        {
+            IEnumRunningDocuments documents;
+            if (_documentTable != null)
+            {
+                _documentTable.GetRunningDocumentsEnum(out documents);
+                uint[] docCookie = new uint[1];
+                uint fetched;
+                while ((VSConstants.S_OK == documents.Next(1, docCookie, out fetched)) && (1 == fetched))
+                {
+                    uint flags;
+                    uint editLocks;
+                    uint readLocks;
+                    string moniker;
+                    IVsHierarchy docHierarchy;
+                    uint docId;
+                    IntPtr docData = IntPtr.Zero;
+
+                    _documentTable.GetDocumentInfo(docCookie[0], out flags, out readLocks, out editLocks, out moniker, out docHierarchy, out docId, out docData);
+
+                    if (fileName.Equals(moniker))
+                    {
+                        _documentTable.SaveDocuments((uint)__VSRDTSAVEOPTIONS.RDTSAVEOPT_ForceSave, null, 0, docCookie[0]);
+                        writeLog("D:\\Data\\log.txt", "IVsRunningDocumentTable.SaveDocuments() DONE. [" + moniker + "]");
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Stop monitoring the solution.
+        /// TODO: what is killReaders?
         /// </summary>
         /// <param name="killReaders"></param>
         public void StopMonitoring(bool killReaders = false)
@@ -423,29 +432,28 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         }
 
         /// <summary>
-        /// Dispose this solution monitor
+        /// Dispose this solution monitor.
         /// </summary>
         /// <param name="killReaders"></param>
         public void Dispose(bool killReaders = false)
         {
             try
             {
-                // Try FileChangeEvents
-                if (fileChangeEx != null && listenInfos.Any())
+                // Unregister IVsTrackProjectDocumentsEvents2 events
+                if (_pdwCookie != VSConstants.VSCOOKIE_NIL && _projectDocumentsTracker != null)
                 {
-                    var cookies = listenInfos.Select(i => i.Value).ToArray();
-                    listenInfos.Clear();
-                    foreach (var cookie in cookies)
-                    {
-                        fileChangeEx.UnadviseFileChange(cookie);
-                    }
+                    int hr = _projectDocumentsTracker.UnadviseTrackProjectDocumentsEvents(_pdwCookie);
+                    ErrorHandler.Succeeded(hr); // do nothing if this fails
+                    _pdwCookie = VSConstants.VSCOOKIE_NIL;
+                    writeLog("D:\\Data\\log.txt", "IVsTrackProjectDocumentsEvents2.UnadviseTrackProjectDocumentsEvents() DONE. [" + hr.ToString() + "]");
                 }
-                fileChangeEx = null;
 
-
+                // Unregister IVsRunningDocTableEvents events
                 if (_documentTable != null)
                 {
-                    _documentTable.UnadviseRunningDocTableEvents(_documentTableItemId);
+                    int hr = _documentTable.UnadviseRunningDocTableEvents(_documentTableItemId);
+                    ErrorHandler.Succeeded(hr);
+                    writeLog("D:\\Data\\log.txt", "IVsRunningDocTableEvents.UnadviseRunningDocTableEvents() DONE. [" + hr.ToString() + "]");
                 }
                 if (startupWorker != null)
                 {
@@ -468,55 +476,271 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
                 */
             }
         }
-
-        #region IVsFileChangeEvents
+        
+        #region IVsTrackProjectDocumentsEvents2
         /// <summary>
-        /// From IVsFileChangeEvents.
-        /// Notifies clients of changes made to one or more files.
+        /// This method notifies the client after a project has added files.
         /// </summary>
-        /// <param name="numberOfFilesChanged"></param>
-        /// <param name="filesChanged"></param>
-        /// <param name="rggrfChange"></param>
+        /// <param name="cProjects"></param>
+        /// <param name="cFiles"></param>
+        /// <param name="rgpProjects"></param>
+        /// <param name="rgFirstIndices"></param>
+        /// <param name="rgpszMkDocuments"></param>
+        /// <param name="rgFlags"></param>
         /// <returns></returns>
-        public int FilesChanged(uint numberOfFilesChanged, string[] filesChanged, uint[] rggrfChange)
+        int IVsTrackProjectDocumentsEvents2.OnAfterAddFilesEx(int cProjects,
+                                                      int cFiles,
+                                                      IVsProject[] rgpProjects,
+                                                      int[] rgFirstIndices,
+                                                      string[] rgpszMkDocuments,
+                                                      VSADDFILEFLAGS[] rgFlags)
         {
-            StreamWriter sw = new StreamWriter("D:\\Data\\ChangedFiles.txt", true, System.Text.Encoding.ASCII);
-            for (int i = 0; i < numberOfFilesChanged; i++)
+            writeLog("D:\\Data\\log.txt", "==> IVsTrackProjectDocumentsEvents2.OnAfterAddFilesEx()");
+            string logStr = "Added Files: \n";
+            for (int i = 0; i < cFiles; i++)
             {
                 //FileChanged(filesChanged[i]);
-                sw.WriteLine("File: [" + filesChanged[i] + "]; Flag: [" + rggrfChange[i] + "]");
+                logStr += "File: [" + rgpszMkDocuments[i] + "]; Flag: [" + rgFlags[i].ToString() + "]\n";
             }
-            sw.Close();
+            writeLog("D:\\Data\\log.txt", logStr);
+            return VSConstants.S_OK;
+            //return OnNotifyTestFileAddRemove(cProjects, rgpProjects, rgpszMkDocuments, rgFirstIndices, TestFileChangedReason.Added);
+        }
 
+        /// <summary>
+        /// This method notifies the client after files are removed from the project.
+        /// </summary>
+        /// <param name="cProjects"></param>
+        /// <param name="cFiles"></param>
+        /// <param name="rgpProjects"></param>
+        /// <param name="rgFirstIndices"></param>
+        /// <param name="rgpszMkDocuments"></param>
+        /// <param name="rgFlags"></param>
+        /// <returns></returns>
+        int IVsTrackProjectDocumentsEvents2.OnAfterRemoveFiles(int cProjects,
+                                                               int cFiles,
+                                                               IVsProject[] rgpProjects,
+                                                               int[] rgFirstIndices,
+                                                               string[] rgpszMkDocuments,
+                                                               VSREMOVEFILEFLAGS[] rgFlags)
+        {
+            writeLog("D:\\Data\\log.txt", "==> IVsTrackProjectDocumentsEvents2.OnAfterRemoveFiles()");
+            string logStr = "Removed Files: \n";
+            for (int i = 0; i < cFiles; i++)
+            {
+                //FileChanged(filesChanged[i]);
+                logStr += "File: [" + rgpszMkDocuments[i] + "]; Flag: [" + rgFlags[i].ToString() + "]";
+            }
+            writeLog("D:\\Data\\log.txt", logStr);
+            return VSConstants.S_OK;
+            //return OnNotifyTestFileAddRemove(cProjects, rgpProjects, rgpszMkDocuments, rgFirstIndices, TestFileChangedReason.Removed);
+        }
+
+        /// <summary>
+        /// This method notifies the client when files have been renamed in the project.
+        /// </summary>
+        /// <param name="cProjects"></param>
+        /// <param name="cFiles"></param>
+        /// <param name="rgpProjects"></param>
+        /// <param name="rgFirstIndices"></param>
+        /// <param name="rgszMkOldNames"></param>
+        /// <param name="rgszMkNewNames"></param>
+        /// <param name="rgFlags"></param>
+        /// <returns></returns>
+        int IVsTrackProjectDocumentsEvents2.OnAfterRenameFiles(int cProjects,
+                                                               int cFiles,
+                                                               IVsProject[] rgpProjects,
+                                                               int[] rgFirstIndices,
+                                                               string[] rgszMkOldNames,
+                                                               string[] rgszMkNewNames,
+                                                               VSRENAMEFILEFLAGS[] rgFlags)
+        {
+            writeLog("D:\\Data\\log.txt", "==> IVsTrackProjectDocumentsEvents2.OnAfterRenameFiles()");
+            string logStr = "Renamed Files: \n";
+            for (int i = 0; i < cFiles; i++)
+            {
+                //FileChanged(filesChanged[i]);
+                logStr += "File: [" + rgszMkOldNames[i] + "-> " + rgszMkNewNames[i] + "]; Flag: [" + rgFlags[i].ToString() + "]";
+            }
+            writeLog("D:\\Data\\log.txt", logStr);
+            return VSConstants.S_OK;
+            //OnNotifyTestFileAddRemove(cProjects, rgpProjects, rgszMkOldNames, rgFirstIndices, TestFileChangedReason.Removed);
+            //return OnNotifyTestFileAddRemove(cProjects, rgpProjects, rgszMkNewNames, rgFirstIndices, TestFileChangedReason.Added);
+        }
+
+        /// <summary>
+        /// This method notifies the client after directories are added to the project.
+        /// </summary>
+        /// <param name="cProjects"></param>
+        /// <param name="cDirectories"></param>
+        /// <param name="rgpProjects"></param>
+        /// <param name="rgFirstIndices"></param>
+        /// <param name="rgpszMkDocuments"></param>
+        /// <param name="rgFlags"></param>
+        /// <returns></returns>
+        int IVsTrackProjectDocumentsEvents2.OnAfterAddDirectoriesEx(int cProjects, int cDirectories, IVsProject[] rgpProjects, int[] rgFirstIndices, string[] rgpszMkDocuments, VSADDDIRECTORYFLAGS[] rgFlags)
+        {
             return VSConstants.S_OK;
         }
 
         /// <summary>
-        /// From IVsFileChangeEvents.
-        /// Notifies clients of changes made to a directory.
+        /// This method notifies the client when directories have been removed from the project.
         /// </summary>
-        /// <param name="pszDirectory"></param>
+        /// <param name="cProjects"></param>
+        /// <param name="cDirectories"></param>
+        /// <param name="rgpProjects"></param>
+        /// <param name="rgFirstIndices"></param>
+        /// <param name="rgpszMkDocuments"></param>
+        /// <param name="rgFlags"></param>
         /// <returns></returns>
-        public int DirectoryChanged(string pszDirectory)
+        int IVsTrackProjectDocumentsEvents2.OnAfterRemoveDirectories(int cProjects, int cDirectories, IVsProject[] rgpProjects, int[] rgFirstIndices, string[] rgpszMkDocuments, VSREMOVEDIRECTORYFLAGS[] rgFlags)
         {
-            StreamWriter sw = new StreamWriter("D:\\Data\\ChangedFiles.txt", true, System.Text.Encoding.ASCII);
-            sw.WriteLine("Folder: [" + pszDirectory + "]");
-            sw.Close();
+            return VSConstants.S_OK;
+        }
+        
+        /// <summary>
+        /// This method notifies the client when directories have been renamed in the project.
+        /// </summary>
+        /// <param name="cProjects"></param>
+        /// <param name="cDirs"></param>
+        /// <param name="rgpProjects"></param>
+        /// <param name="rgFirstIndices"></param>
+        /// <param name="rgszMkOldNames"></param>
+        /// <param name="rgszMkNewNames"></param>
+        /// <param name="rgFlags"></param>
+        /// <returns></returns>
+        int IVsTrackProjectDocumentsEvents2.OnAfterRenameDirectories(int cProjects, int cDirs, IVsProject[] rgpProjects, int[] rgFirstIndices, string[] rgszMkOldNames, string[] rgszMkNewNames, VSRENAMEDIRECTORYFLAGS[] rgFlags)
+        {
+            return VSConstants.S_OK;
+        }
 
+        /// <summary>
+        /// This method notifies the client when source control status has changed.
+        /// </summary>
+        /// <param name="cProjects"></param>
+        /// <param name="cFiles"></param>
+        /// <param name="rgpProjects"></param>
+        /// <param name="rgFirstIndices"></param>
+        /// <param name="rgpszMkDocuments"></param>
+        /// <param name="rgdwSccStatus"></param>
+        /// <returns></returns>
+        int IVsTrackProjectDocumentsEvents2.OnAfterSccStatusChanged(int cProjects, int cFiles, IVsProject[] rgpProjects, int[] rgFirstIndices, string[] rgpszMkDocuments, uint[] rgdwSccStatus)
+        {
+            return VSConstants.S_OK;
+        }
+
+        /// <summary>
+        /// This method notifies the client when a project has requested to add directories.
+        /// </summary>
+        /// <param name="pProject"></param>
+        /// <param name="cDirectories"></param>
+        /// <param name="rgpszMkDocuments"></param>
+        /// <param name="rgFlags"></param>
+        /// <param name="pSummaryResult"></param>
+        /// <param name="rgResults"></param>
+        /// <returns></returns>
+        int IVsTrackProjectDocumentsEvents2.OnQueryAddDirectories(IVsProject pProject, int cDirectories, string[] rgpszMkDocuments, VSQUERYADDDIRECTORYFLAGS[] rgFlags, VSQUERYADDDIRECTORYRESULTS[] pSummaryResult, VSQUERYADDDIRECTORYRESULTS[] rgResults)
+        {
+            return VSConstants.S_OK;
+        }
+
+        /// <summary>
+        /// This method notifies the client when a project has requested to add files.
+        /// </summary>
+        /// <param name="pProject"></param>
+        /// <param name="cFiles"></param>
+        /// <param name="rgpszMkDocuments"></param>
+        /// <param name="rgFlags"></param>
+        /// <param name="pSummaryResult"></param>
+        /// <param name="rgResults"></param>
+        /// <returns></returns>
+        int IVsTrackProjectDocumentsEvents2.OnQueryAddFiles(IVsProject pProject, int cFiles, string[] rgpszMkDocuments, VSQUERYADDFILEFLAGS[] rgFlags, VSQUERYADDFILERESULTS[] pSummaryResult, VSQUERYADDFILERESULTS[] rgResults)
+        {
+            return VSConstants.S_OK;
+        }
+
+        /// <summary>
+        /// This method notifies the client when a project has requested to remove directories.
+        /// </summary>
+        /// <param name="pProject"></param>
+        /// <param name="cDirectories"></param>
+        /// <param name="rgpszMkDocuments"></param>
+        /// <param name="rgFlags"></param>
+        /// <param name="pSummaryResult"></param>
+        /// <param name="rgResults"></param>
+        /// <returns></returns>
+        int IVsTrackProjectDocumentsEvents2.OnQueryRemoveDirectories(IVsProject pProject, int cDirectories, string[] rgpszMkDocuments, VSQUERYREMOVEDIRECTORYFLAGS[] rgFlags, VSQUERYREMOVEDIRECTORYRESULTS[] pSummaryResult, VSQUERYREMOVEDIRECTORYRESULTS[] rgResults)
+        {
+            return VSConstants.S_OK;
+        }
+
+        /// <summary>
+        /// This method notifies the client when a project has requested to remove files.
+        /// </summary>
+        /// <param name="pProject"></param>
+        /// <param name="cFiles"></param>
+        /// <param name="rgpszMkDocuments"></param>
+        /// <param name="rgFlags"></param>
+        /// <param name="pSummaryResult"></param>
+        /// <param name="rgResults"></param>
+        /// <returns></returns>
+        int IVsTrackProjectDocumentsEvents2.OnQueryRemoveFiles(IVsProject pProject, int cFiles, string[] rgpszMkDocuments, VSQUERYREMOVEFILEFLAGS[] rgFlags, VSQUERYREMOVEFILERESULTS[] pSummaryResult, VSQUERYREMOVEFILERESULTS[] rgResults)
+        {
+            return VSConstants.S_OK;
+        }
+
+        /// <summary>
+        /// This method notifies the client when a project has requested to rename directories.
+        /// </summary>
+        /// <param name="pProject"></param>
+        /// <param name="cDirs"></param>
+        /// <param name="rgszMkOldNames"></param>
+        /// <param name="rgszMkNewNames"></param>
+        /// <param name="rgFlags"></param>
+        /// <param name="pSummaryResult"></param>
+        /// <param name="rgResults"></param>
+        /// <returns></returns>
+        int IVsTrackProjectDocumentsEvents2.OnQueryRenameDirectories(IVsProject pProject,  int cDirs, string[] rgszMkOldNames, string[] rgszMkNewNames, VSQUERYRENAMEDIRECTORYFLAGS[] rgFlags, VSQUERYRENAMEDIRECTORYRESULTS[] pSummaryResult, VSQUERYRENAMEDIRECTORYRESULTS[] rgResults)
+        {
+            return VSConstants.S_OK;
+        }
+
+        /// <summary>
+        /// This method notifies the client when a project has requested to rename files.
+        /// </summary>
+        /// <param name="pProject"></param>
+        /// <param name="cFiles"></param>
+        /// <param name="rgszMkOldNames"></param>
+        /// <param name="rgszMkNewNames"></param>
+        /// <param name="rgFlags"></param>
+        /// <param name="pSummaryResult"></param>
+        /// <param name="rgResults"></param>
+        /// <returns></returns>
+        int IVsTrackProjectDocumentsEvents2.OnQueryRenameFiles(IVsProject pProject, int cFiles, string[] rgszMkOldNames, string[] rgszMkNewNames, VSQUERYRENAMEFILEFLAGS[] rgFlags, VSQUERYRENAMEFILERESULTS[] pSummaryResult, VSQUERYRENAMEFILERESULTS[] rgResults)
+        {
             return VSConstants.S_OK;
         }
         #endregion
 
+        #region IVsRunningDocTableEvents
         /// <summary>
-        /// From IVsRunningDocTableEvents. 
         /// Called after saving a document in the Running Document Table (RDT).
         /// </summary>
         /// <param name="cookie"></param>
         /// <returns></returns>
         public int OnAfterSave(uint cookie)
         {
-            uint readingLocks, edittingLocks, flags; IVsHierarchy hierarchy; IntPtr documentData; string name; uint documentId;
+            writeLog("D:\\Data\\log.txt", "==> IVsRunningDocTableEvents.OnAfterSave()");
+            uint flags;
+            uint readingLocks;
+            uint edittingLocks;
+            string name;
+            IVsHierarchy hierarchy;
+            uint documentId;
+            IntPtr documentData;
+
             _documentTable.GetDocumentInfo(cookie, out flags, out readingLocks, out edittingLocks, out name, out hierarchy, out documentId, out documentData);
+
             var projectItem = _openSolution.FindProjectItem(name);
             if (projectItem != null)
             {
@@ -526,7 +750,6 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         }
 
         /// <summary>
-        /// From IVsRunningDocTableEvents. 
         /// Called after application of the first lock of the specified type to the specified document in the Running Document Table (RDT).
         /// </summary>
         /// <param name="cookie"></param>
@@ -536,12 +759,10 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         /// <returns></returns>
         public int OnAfterFirstDocumentLock(uint cookie, uint lockType, uint readLocksLeft, uint editLocksLeft)
         {
-            //throw new NotImplementedException();
             return VSConstants.S_OK;
         }
 
         /// <summary>
-        /// From IVsRunningDocTableEvents. 
         /// Called before releasing the last lock of the specified type on the specified document in the Running Document Table (RDT).
         /// </summary>
         /// <param name="cookie"></param>
@@ -551,12 +772,10 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         /// <returns></returns>
         public int OnBeforeLastDocumentUnlock(uint cookie, uint lockType, uint readLocksLeft, uint editLocksLeft)
         {
-            //throw new NotImplementedException();
             return VSConstants.S_OK;
         }
 
         /// <summary>
-        /// From IVsRunningDocTableEvents. 
         /// Called after a change in an attribute of a document in the Running Document Table (RDT).
         /// </summary>
         /// <param name="cookie"></param>
@@ -568,7 +787,6 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         }
 
         /// <summary>
-        /// From IVsRunningDocTableEvents. 
         /// Called before displaying a document window.
         /// </summary>
         /// <param name="cookie"></param>
@@ -581,7 +799,6 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         }
 
         /// <summary>
-        /// From IVsRunningDocTableEvents. 
         /// Called after a document window is placed in the Hide state.
         /// </summary>
         /// <param name="docCookie"></param>
@@ -591,6 +808,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         {
             return VSConstants.S_OK;
         }
+        #endregion
 
         /* //// Remove index part
         public string GetCurrentDirectory()
@@ -600,7 +818,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         */
 
         /// <summary>
-        /// Get the solution key
+        /// Get the solution key.
         /// </summary>
         /// <returns></returns>
         public SolutionKey GetSolutionKey()
@@ -622,5 +840,16 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         }
         */
 
+        /// <summary>
+        /// For debugging.
+        /// </summary>
+        /// <param name="logFile"></param>
+        /// <param name="str"></param>
+        private void writeLog(string logFile, string str)
+        {
+            StreamWriter sw = new StreamWriter(logFile, true, System.Text.Encoding.ASCII);
+            sw.WriteLine(str);
+            sw.Close();
+        }
     }
 }
