@@ -75,11 +75,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FileSystemSrcMLFolder.cs" />
+    <Compile Include="ISrcMLFolder.cs" />
     <Compile Include="SolutionMonitor.cs" />
     <Compile Include="SolutionMonitorFactory.cs" />
     <Compile Include="SolutionKey.cs" />
     <Compile Include="ISolution.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ABB.SrcML\ABB.SrcML.csproj">
+      <Project>{D52626E7-A4CA-471A-8A6A-FE0110430FE6}</Project>
+      <Name>ABB.SrcML</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

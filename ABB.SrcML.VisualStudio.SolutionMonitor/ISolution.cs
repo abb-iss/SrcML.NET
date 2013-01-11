@@ -22,6 +22,15 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         {
             return new StandardSolutionWrapper(openSolution);
         }
+
+        /// <summary>
+        /// Get solution's full name.
+        /// </summary>
+        /// <returns></returns>
+        public virtual string GetSolutionFullName()
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class StandardSolutionWrapper : SolutionWrapper
@@ -40,6 +49,15 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         public override Projects getProjects()
         {
             return _mySolution.Projects;
+        }
+
+        /// <summary>
+        /// Get solution's full name.
+        /// </summary>
+        /// <returns></returns>
+        public override string GetSolutionFullName()
+        {
+            return _mySolution.FullName;
         }
     }
 

@@ -1,20 +1,31 @@
-﻿using System;
+﻿/******************************************************************************
+ * Copyright (c) 2011 ABB Group
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    Jiang Zheng (ABB Group) - Initial implementation
+ *****************************************************************************/
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
 
-namespace ABB.SrcML.SrcMLSolutionMonitor
+namespace ABB.SrcML.VisualStudio.SolutionMonitor
 {
-    public class FileSystemSourceFolder : ISourceFolder
+    public class FileSystemSrcMLFolder : ISrcMLFolder
     {
         private DirectoryInfo _folderInfo;
         private FileSystemWatcher _directoryWatcher;
 
-        protected virtual void OnSourceFileChanged(SourceEventArgs e)
+        protected virtual void OnSrcMLFileChanged(SrcMLEventArgs e)
         {
-            writeLog("D:\\Data\\log.txt", "OnSourceFileChanged()");
-            EventHandler<SourceEventArgs> handler = SourceFileChanged;
+            writeLog("D:\\Data\\log.txt", "OnSrcMLFileChanged()");
+
+            EventHandler<SrcMLEventArgs> handler = SrcMLFileChanged;
 
             if (null != handler)
             {
@@ -23,16 +34,16 @@ namespace ABB.SrcML.SrcMLSolutionMonitor
             }
         }
 
-        public FileSystemSourceFolder(string pathToSourceFolder)
+        public FileSystemSrcMLFolder(string pathToSrcMLFolder)
         {
-            writeLog("D:\\Data\\log.txt", "******* FileSystemSourceFolder(): srcMLFolder = [" + pathToSourceFolder + "]");
-            this.FullFolderPath = pathToSourceFolder;
+            writeLog("D:\\Data\\log.txt", "@@@@@@@ FileSystemSrcMLFolder(): srcMLFolder = [" + pathToSrcMLFolder + "]");
+            this.FullFolderPath = pathToSrcMLFolder;
             SetupFileSystemWatcher();
             StartWatching();
         }
-        #region ISourceFolder Members
+        #region ISrcMLFolder Members
 
-        public event EventHandler<SourceEventArgs> SourceFileChanged;
+        public event EventHandler<SrcMLEventArgs> SrcMLFileChanged;
 
         public string FullFolderPath
         {
@@ -78,20 +89,20 @@ namespace ABB.SrcML.SrcMLSolutionMonitor
         void HandleFileChanged(object sender, FileSystemEventArgs e)
         {
             writeLog("D:\\Data\\log.txt", "HandleFileChanged(): e.FullPath = [" + e.FullPath + "]");
-            handleFileEvent(e.FullPath, e.FullPath, SourceEventType.Changed);
+            handleFileEvent(e.FullPath, e.FullPath, SrcMLEventType.Changed);
         }
 
         // When created a file, HandleFileChanged is also triggered
         void HandleFileCreated(object sender, FileSystemEventArgs e)
         {
             writeLog("D:\\Data\\log.txt", "HandleFileCreated(): e.FullPath = [" + e.FullPath + "]");
-            handleFileEvent(e.FullPath, e.FullPath, SourceEventType.Added);
+            handleFileEvent(e.FullPath, e.FullPath, SrcMLEventType.Added);
         }
 
         void HandleFileDeleted(object sender, FileSystemEventArgs e)
         {
             writeLog("D:\\Data\\log.txt", "HandleFileDeleted(): e.FullPath = [" + e.FullPath + "]");
-            handleFileEvent(e.FullPath, e.FullPath, SourceEventType.Deleted);
+            handleFileEvent(e.FullPath, e.FullPath, SrcMLEventType.Deleted);
         }
 
         void HandleFileWatcherError(object sender, ErrorEventArgs e)
@@ -102,16 +113,16 @@ namespace ABB.SrcML.SrcMLSolutionMonitor
         void HandleFileRenamed(object sender, RenamedEventArgs e)
         {
             writeLog("D:\\Data\\log.txt", "HandleFileRenamed(): e.FullPath = [" + e.FullPath + "], e.OldFullPath = [" + e.OldFullPath + "]");
-            handleFileEvent(e.FullPath, e.OldFullPath, SourceEventType.Renamed);
+            handleFileEvent(e.FullPath, e.OldFullPath, SrcMLEventType.Renamed);
         }
 
-        private void handleFileEvent(string pathToFile, string oldPathToFile, SourceEventType eventType)
+        private void handleFileEvent(string pathToFile, string oldPathToFile, SrcMLEventType eventType)
         {
             writeLog("D:\\Data\\log.txt", "handleFileEvent(): pathToFile = [" + pathToFile + "], oldPathToFile = [" + oldPathToFile + "]");
             if (isFile(pathToFile))
             {
                 writeLog("D:\\Data\\log.txt", "isFile(): pathToFile = [" + pathToFile + "], oldPathToFile = [" + oldPathToFile + "]");
-                OnSourceFileChanged(new SourceEventArgs(pathToFile, oldPathToFile, eventType));
+                OnSrcMLFileChanged(new SrcMLEventArgs(pathToFile, oldPathToFile, eventType));
             }
         }
 
