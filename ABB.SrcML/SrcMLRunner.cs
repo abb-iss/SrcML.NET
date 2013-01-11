@@ -17,6 +17,7 @@ using System.Text;
 using ABB.SrcML.Utilities;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.Collections;
 
 namespace ABB.SrcML
 {
@@ -122,7 +123,9 @@ namespace ABB.SrcML
             if (null == additionalArguments)
                 throw new ArgumentNullException("additionalArguments");
 
-            var arguments = new Collection<string>(this.NamespaceArguments);
+            var arguments = new Collection<string>();
+            foreach (var argument in this.NamespaceArguments)
+                arguments.Add(argument);
 
             if (ExtensionMapping.NonDefaultValueCount > 0)
             {

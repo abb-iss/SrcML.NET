@@ -68,6 +68,7 @@ namespace LoggingTransformation
         [TestFixtureTearDown]
         public static void SrcMLTestCleanup()
         {
+            /*
             foreach (var file in Directory.GetFiles("srcmltest"))
             {
                 File.Delete(file);
@@ -78,6 +79,7 @@ namespace LoggingTransformation
             }
             Directory.Delete("srcmltest");
             Directory.Delete("srcml_xml");
+            */
         }
 
         [Test]
@@ -132,6 +134,41 @@ printf(""hello world!"");
             Assert.IsNotNull(doc);
             Assert.AreEqual(1, doc.FileUnits.Count());
             Assert.AreEqual("srcmltest\\foo.c", doc.FileUnits.First().Attribute("filename").Value);
+        }
+
+        /// <summary>
+        /// Added by JZ on 12/3/2012.
+        /// Unit test for Src2SrcMLRunner.GenerateSrcMLAndStringFromFile()
+        /// </summary>
+        [Test]
+        public void SingleFileToFileAndStringTest()
+        {
+            var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
+
+            string xml = srcmlObject.GenerateSrcMLAndStringFromFile("srcmltest\\foo.c", "srcml_xml\\singlefile.xml");
+            Console.WriteLine("xml = " + xml);
+
+            Assert.IsNotNull(xml);
+            //Assert.AreEqual(1, doc.FileUnits.Count());
+            //Assert.AreEqual("srcmltest\\foo.c", doc.FileUnits.First().Attribute("filename").Value);
+            Assert.That(File.Exists("srcml_xml\\singlefile.xml"));
+        }
+
+        /// <summary>
+        /// Added by JZ on 12/4/2012.
+        /// Unit test for Src2SrcMLRunner.GenerateSrcMLAndXElementFromFile()
+        /// </summary>
+        [Test]
+        public void SingleFileToFileAndXElementTest()
+        {
+            var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
+
+            XElement xElement = srcmlObject.GenerateSrcMLAndXElementFromFile("srcmltest\\foo.c", "srcml_xml\\singlefile.xml");
+
+            Assert.IsNotNull(xElement);
+            //Assert.AreEqual(1, doc.FileUnits.Count());
+            //Assert.AreEqual("srcmltest\\foo.c", doc.FileUnits.First().Attribute("filename").Value);
+            Assert.That(File.Exists("srcml_xml\\singlefile.xml"));
         }
 
         [Test]

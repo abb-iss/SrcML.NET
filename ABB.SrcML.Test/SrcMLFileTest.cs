@@ -165,7 +165,7 @@ namespace ABB.SrcML.Test
 
             foreach (var unit in doc.FileUnits)
             {
-                var path = SrcMLFile.GetPathForUnit(unit);
+                var path = doc.GetPathForUnit(unit);
                 var firstElement = unit.Elements().First();
 
                 Assert.AreEqual(1, firstElement.GetSrcLineNumber(), path);

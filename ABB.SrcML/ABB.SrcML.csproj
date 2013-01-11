@@ -31,6 +31,13 @@
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>..\Build\Release\ABB.SrcML.XML</DocumentationFile>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -44,10 +51,14 @@
     <Compile Include="..\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
+    <Compile Include="AbstractArchive.cs" />
     <Compile Include="AbstractDocument.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="FileInfoComparer.cs" />
+    <Compile Include="FileSystemSourceFolder.cs" />
     <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="IArchive.cs" />
+    <Compile Include="ISourceFolder.cs" />
     <Compile Include="ITransform.cs" />
     <Compile Include="Language.cs" />
     <Compile Include="LineInfo.cs" />
@@ -64,6 +75,7 @@
     <Compile Include="Src2SrcMLRunner.cs" />
     <Compile Include="SrcML.cs" />
     <Compile Include="SrcML2SrcRunner.cs" />
+    <Compile Include="SrcMLArchive.cs" />
     <Compile Include="SrcMLElement.cs" />
     <Compile Include="SrcMLException.cs" />
     <Compile Include="SrcMLFile.cs" />
@@ -73,6 +85,7 @@
     <Compile Include="Transform.cs" />
     <Compile Include="TransformObjectHarness.cs" />
     <Compile Include="TransformRunner.cs" />
+    <Compile Include="Utilities\Base32.cs" />
     <Compile Include="Utilities\DefaultsDictionary.cs" />
     <Compile Include="Utilities\ExecutableReturnValue.cs" />
     <Compile Include="Utilities\ExecutableRunner.cs" />
