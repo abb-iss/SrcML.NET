@@ -1,0 +1,74 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML", "ABB.SrcML\ABB.SrcML.csproj", "{D52626E7-A4CA-471A-8A6A-FE0110430FE6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML.Test", "ABB.SrcML.Test\ABB.SrcML.Test.csproj", "{86EFC1F8-3E42-4130-B290-FEBE98C3D784}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML.DataIU", "ABB.SrcML.DataIU\ABB.SrcML.DataIU.csproj", "{73C24E33-465B-424D-B35A-39F1750F705E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{04B0D472-07BF-44C9-844C-749967087377}"
+	ProjectSection(SolutionItems) = preProject
+		epl-v10.html = epl-v10.html
+		notice.html = notice.html
+		SolutionInfo.cs = SolutionInfo.cs
+		SrcML.NET.nunit = SrcML.NET.nunit
+		SrcML.NET.proj = SrcML.NET.proj
+		SrcML.NET.shfbproj = SrcML.NET.shfbproj
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{102149C1-7038-493D-AD6C-C298E054B62E}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\NuGet.Config = .nuget\NuGet.Config
+		.nuget\NuGet.exe = .nuget\NuGet.exe
+		.nuget\NuGet.targets = .nuget\NuGet.targets
+		.nuget\packages.config = .nuget\packages.config
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML.DataIU.Test", "ABB.SrcML.DataIU.Test\ABB.SrcML.DataIU.Test.csproj", "{4B9F1F96-FAAB-4535-9C72-8E2B69A1968A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{53F328D4-F727-41C3-BB6B-A51291341995}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML.Tools.Converter", "Tools\ABB.SrcML.Tools.Converter\ABB.SrcML.Tools.Converter.csproj", "{F5A50144-E874-4B1F-9A3C-C82D918F7A0A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML.Tools.Src2SrcMLPreview", "Tools\ABB.SrcML.Tools.Src2SrcMLPreview\ABB.SrcML.Tools.Src2SrcMLPreview.csproj", "{840DE623-4378-4D9B-96F9-776980986424}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D52626E7-A4CA-471A-8A6A-FE0110430FE6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D52626E7-A4CA-471A-8A6A-FE0110430FE6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D52626E7-A4CA-471A-8A6A-FE0110430FE6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D52626E7-A4CA-471A-8A6A-FE0110430FE6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86EFC1F8-3E42-4130-B290-FEBE98C3D784}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86EFC1F8-3E42-4130-B290-FEBE98C3D784}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86EFC1F8-3E42-4130-B290-FEBE98C3D784}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86EFC1F8-3E42-4130-B290-FEBE98C3D784}.Release|Any CPU.Build.0 = Release|Any CPU
+		{73C24E33-465B-424D-B35A-39F1750F705E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73C24E33-465B-424D-B35A-39F1750F705E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73C24E33-465B-424D-B35A-39F1750F705E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73C24E33-465B-424D-B35A-39F1750F705E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4B9F1F96-FAAB-4535-9C72-8E2B69A1968A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4B9F1F96-FAAB-4535-9C72-8E2B69A1968A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4B9F1F96-FAAB-4535-9C72-8E2B69A1968A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4B9F1F96-FAAB-4535-9C72-8E2B69A1968A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F5A50144-E874-4B1F-9A3C-C82D918F7A0A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5A50144-E874-4B1F-9A3C-C82D918F7A0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F5A50144-E874-4B1F-9A3C-C82D918F7A0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F5A50144-E874-4B1F-9A3C-C82D918F7A0A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{840DE623-4378-4D9B-96F9-776980986424}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{840DE623-4378-4D9B-96F9-776980986424}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{840DE623-4378-4D9B-96F9-776980986424}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{840DE623-4378-4D9B-96F9-776980986424}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F5A50144-E874-4B1F-9A3C-C82D918F7A0A} = {53F328D4-F727-41C3-BB6B-A51291341995}
+		{840DE623-4378-4D9B-96F9-776980986424} = {53F328D4-F727-41C3-BB6B-A51291341995}
+	EndGlobalSection
+EndGlobal
