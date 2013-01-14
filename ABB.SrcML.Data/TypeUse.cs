@@ -8,33 +8,16 @@
  * Contributors:
  *    Vinay Augustine (ABB Group) - initial API, implementation, & documentation
  *****************************************************************************/
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace ABB.SrcML.DataIU {
-    public class DataArchive {
-        public SrcMLArchive Archive {
-            get;
-            set;
-        }
+namespace ABB.SrcML.Data {
+    public class TypeUse {
+        public TypeUse(XElement declarationStatement) {
 
-        public DataArchive(SrcMLArchive archive) {
-            this.Archive = archive;
         }
-
-        public TypeDefinition ResolveType(XElement variableDeclarationElement) {
-            var typeUse = new TypeUse(variableDeclarationElement);
-            return ResolveType(typeUse);
-        }
-
-        public TypeDefinition ResolveType(TypeUse typeUse) {
-            return null;
-        }
-
     }
 }

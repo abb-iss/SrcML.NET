@@ -8,16 +8,22 @@
  * Contributors:
  *    Vinay Augustine (ABB Group) - initial API, implementation, & documentation
  *****************************************************************************/
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 
-namespace ABB.SrcML.DataIU {
-    public class TypeUse {
-        public TypeUse(XElement declarationStatement) {
+namespace ABB.SrcML.Data {
+    public class TypeDefinition {
+        public TypeDefinition Parent {
+            get;
+            set;
+        }
 
+        public XElement GetXElement() {
+            return null;
         }
     }
 }

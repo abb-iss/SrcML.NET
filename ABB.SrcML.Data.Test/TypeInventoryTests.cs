@@ -17,7 +17,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using System.Xml.Linq;
 
-namespace ABB.SrcML.DataIU.Test {
+namespace ABB.SrcML.Data.Test {
     [TestFixture]
     public class TypeInventoryTests {
         [Test]
@@ -52,6 +52,5 @@ namespace ABB.SrcML.DataIU.Test {
             TypeDefinition parentType = typeInfo.Parent;
             XElement parentXml = parentType.GetXElement();
         }
-
     }
 }
