@@ -10,7 +10,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ABB.SrcML.Data.Test</RootNamespace>
-    <AssemblyName>ABB.SrcML.Data.Test</AssemblyName>
+    <AssemblyName>ABB.SrcML.Data-Monolithic.Test</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
@@ -68,9 +68,9 @@
     <Compile Include="TypeTester.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ABB.SrcML.Data\ABB.SrcML.Data.csproj">
-      <Project>{98BD4F02-2CC6-4D29-8829-F5222EFF97E6}</Project>
-      <Name>ABB.SrcML.Data</Name>
+    <ProjectReference Include="..\ABB.SrcML.Data-Monolithic\ABB.SrcML.Data-Monolithic.csproj">
+      <Project>{98bd4f02-2cc6-4d29-8829-f5222eff97e6}</Project>
+      <Name>ABB.SrcML.Data-Monolithic</Name>
     </ProjectReference>
     <ProjectReference Include="..\ABB.SrcML\ABB.SrcML.csproj">
       <Project>{D52626E7-A4CA-471A-8A6A-FE0110430FE6}</Project>

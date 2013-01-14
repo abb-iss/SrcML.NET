@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ABB.SrcML.Data</RootNamespace>
-    <AssemblyName>ABB.SrcML.Data</AssemblyName>
+    <AssemblyName>ABB.SrcML.Data-Monolithic</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -29,7 +29,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>..\Build\Release\ABB.SrcML.Data.XML</DocumentationFile>
+    <DocumentationFile>..\Build\Release\ABB.SrcML.Data-Monolithic.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
