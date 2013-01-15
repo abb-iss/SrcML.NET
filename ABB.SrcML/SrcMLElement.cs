@@ -54,13 +54,20 @@ namespace ABB.SrcML {
         }
 
         /// <summary>
-        /// Gets the language for a file unit element.
+        /// Gets the language for a unit element.
         /// 
-        /// It throws an exception if the element has no language or the language string is invalid.
+        /// It throws an exception if the element is not a unit, has no language, or the language is invalid. <see cref="ABB.SrcML.Language"/>
         /// </summary>
         /// <param name="fileUnit">The file unit to get the language for</param>
         /// <returns>The language</returns>
         public static Language GetLanguageForUnit(XElement fileUnit) {
+            if(fileUnit == null) {
+                throw new ArgumentNullException("fileUnit");
+            }
+            if(fileUnit.Name != SRC.Unit) {
+                throw new ArgumentException("Not a unit element", "fileUnit");
+            }
+
             var languageAttribute = fileUnit.Attribute("language");
 
             if(null == languageAttribute) {

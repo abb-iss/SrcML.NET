@@ -128,5 +128,17 @@ namespace ABB.SrcML.Test {
 
             Assert.Throws<SrcMLException>(() => SrcMLElement.GetLanguageForUnit(fileUnit));
         }
+
+        [Test]
+        public void TestGetLanguageForUnit_InvalidArgument() {
+            string testXml = @"<function><type><name>int</name></type> <name>main</name><parameter_list>()</parameter_list> <block>{ }</block></function>";
+
+            XElement fileUnit = XElement.Parse(testXml);
+
+            Assert.Throws<ArgumentException>(() => SrcMLElement.GetLanguageForUnit(fileUnit));
+
+            fileUnit = null;
+            Assert.Throws<ArgumentNullException>(() => SrcMLElement.GetLanguageForUnit(fileUnit));
+        }
     }
 }
