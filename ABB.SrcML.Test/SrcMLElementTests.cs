@@ -106,5 +106,38 @@ namespace ABB.SrcML.Test
             string expected = "MyClass::MyClass(int bar)";
             Assert.AreEqual(expected, actual);
         }
+
+        [Test]
+        public void TestGetLanguageForUnit_ValidLanguage() {
+            string testXml = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>
+<unit xmlns=""http://www.sdml.info/srcML/src"" language=""C++"" filename=""test.cpp""><expr_stmt><expr></expr></expr_stmt>
+</unit>";
+
+            XElement fileUnit = XElement.Parse(testXml);
+
+            Assert.AreEqual(Language.CPlusPlus, SrcMLElement.GetLanguageForUnit(fileUnit));
+        }
+
+        [Test]
+        public void TestGetLanguageForUnit_NoLanguage() {
+            string testXml = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>
+<unit xmlns=""http://www.sdml.info/srcML/src"" filename=""test.cpp""><expr_stmt><expr></expr></expr_stmt>
+</unit>";
+            
+            XElement fileUnit = XElement.Parse(testXml);
+
+            Assert.Throws<SrcMLException>(() => SrcMLElement.GetLanguageForUnit(fileUnit));
+        }
+
+        [Test]
+        public void TestGetLanguageForUnit_InvalidLanguage() {
+            string testXml = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>
+<unit xmlns=""http://www.sdml.info/srcML/src"" language=""C+"" filename=""test.cpp""><expr_stmt><expr></expr></expr_stmt>
+</unit>";
+
+            XElement fileUnit = XElement.Parse(testXml);
+
+            Assert.Throws<SrcMLException>(() => SrcMLElement.GetLanguageForUnit(fileUnit));
+        }
     }
 }

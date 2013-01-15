@@ -16,6 +16,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
+using ABB.SrcML.Utilities;
 
 namespace ABB.SrcML
 {
@@ -59,6 +60,23 @@ namespace ABB.SrcML
 
             //convert whitespace chars to spaces and condense any consecutive whitespaces.
             return Regex.Replace(sig.ToString().Trim(), @"\s+", " ");
+        }
+
+        /// <summary>
+        /// Gets the language for a file unit element.
+        /// 
+        /// It throws an exception if the element has no language or the language string is invalid.
+        /// </summary>
+        /// <param name="fileUnit">The file unit to get the language for</param>
+        /// <returns>The language</returns>
+        public static Language GetLanguageForUnit(XElement fileUnit) {
+            var languageAttribute = fileUnit.Attribute("language");
+            
+            if(null == languageAttribute) {
+                throw new SrcMLException("unit contains no language attribute");
+            }
+
+            return KsuAdapter.GetLanguageFromString(languageAttribute.Value);;
         }
     }
 }
