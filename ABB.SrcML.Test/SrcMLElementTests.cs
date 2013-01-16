@@ -18,33 +18,25 @@ using System.Xml.Linq;
 using NUnit.Framework;
 using ABB.SrcML;
 
-namespace ABB.SrcML.Test
-{
+namespace ABB.SrcML.Test {
     /// <summary>
     /// Tests for ABB.SrcML.SrcMLElement
     /// </summary>
     [TestFixture]
     [Category("Build")]
-    public class SrcMLElementTests
-    {
+    public class SrcMLElementTests {
         private string srcMLFormat;
 
         [TestFixtureSetUp]
-        public void ClassSetup()
-        {
+        public void ClassSetup() {
             //construct the necessary srcML wrapper unit tags
             XmlNamespaceManager xnm = SrcML.NamespaceManager;
             StringBuilder namespaceDecls = new StringBuilder();
-            foreach(string prefix in xnm)
-            {
-                if(prefix != string.Empty && !prefix.StartsWith("xml", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    if(prefix.Equals("src", StringComparison.InvariantCultureIgnoreCase))
-                    {
+            foreach(string prefix in xnm) {
+                if(prefix != string.Empty && !prefix.StartsWith("xml", StringComparison.InvariantCultureIgnoreCase)) {
+                    if(prefix.Equals("src", StringComparison.InvariantCultureIgnoreCase)) {
                         namespaceDecls.AppendFormat("xmlns=\"{0}\" ", xnm.LookupNamespace(prefix));
-                    }
-                    else
-                    {
+                    } else {
                         namespaceDecls.AppendFormat("xmlns:{0}=\"{1}\" ", prefix, xnm.LookupNamespace(prefix));
                     }
                 }
@@ -53,8 +45,7 @@ namespace ABB.SrcML.Test
         }
 
         [Test]
-        public void TestGetMethodSignature_Normal()
-        {
+        public void TestGetMethodSignature_Normal() {
             string testSrcML = @"<function><type><name>char</name><type:modifier>*</type:modifier></type> <name><name>MyClass</name><op:operator>::</op:operator><name>foo</name></name><parameter_list>(<param><decl><type><name>int</name></type> <name>bar</name></decl></param>)</parameter_list> <block>{
     <if>if<condition>(<expr><name>bar</name> <op:operator>&gt;</op:operator> <call><name>GetNumber</name><argument_list>()</argument_list></call></expr>)</condition><then> <block>{
         <return>return <expr><lit:literal type=""string"">""Hello, world!""</lit:literal></expr>;</return>
@@ -70,8 +61,7 @@ namespace ABB.SrcML.Test
         }
 
         [Test]
-        public void TestGetMethodSignature_Whitespace()
-        {
+        public void TestGetMethodSignature_Whitespace() {
             string testSrcML = @"<function><type><name>char</name><type:modifier>*</type:modifier></type> <name><name>MyClass</name><op:operator>::</op:operator><name>foo</name></name><parameter_list>(
 	<param><decl><type><name>int</name></type> <name>bar</name></decl></param>,
 	<param><decl><type><name>int</name></type> <name>baz</name></decl></param>,
@@ -91,8 +81,7 @@ namespace ABB.SrcML.Test
         }
 
         [Test]
-        public void TestGetMethodSignature_InitializerList()
-        {
+        public void TestGetMethodSignature_InitializerList() {
             string testSrcML = @"<constructor><name><name>MyClass</name><op:operator>::</op:operator><name>MyClass</name></name><parameter_list>(<param><decl><type><name>int</name></type> <name>bar</name></decl></param>)</parameter_list> <member_list>: <call><name>_capacity</name><argument_list>(<argument><expr><lit:literal type=""number"">15</lit:literal></expr></argument>)</argument_list></call>, <call><name>_len</name><argument_list>(<argument><expr><lit:literal type=""number"">0</lit:literal></expr></argument>)</argument_list></call> </member_list><block>{
     <if>if<condition>(<expr><name>bar</name> <op:operator>&gt;</op:operator> <call><name>GetNumber</name><argument_list>()</argument_list></call></expr>)</condition><then> <block>{
         <return>return <expr><lit:literal type=""string"">""Hello, world!""</lit:literal></expr>;</return>
@@ -105,6 +94,51 @@ namespace ABB.SrcML.Test
             string actual = SrcMLElement.GetMethodSignature(xml.Element(SRC.Constructor));
             string expected = "MyClass::MyClass(int bar)";
             Assert.AreEqual(expected, actual);
+        }
+
+        [Test]
+        public void TestGetLanguageForUnit_ValidLanguage() {
+            string testXml = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>
+<unit xmlns=""http://www.sdml.info/srcML/src"" language=""C++"" filename=""test.cpp""><expr_stmt><expr></expr></expr_stmt>
+</unit>";
+
+            XElement fileUnit = XElement.Parse(testXml);
+
+            Assert.AreEqual(Language.CPlusPlus, SrcMLElement.GetLanguageForUnit(fileUnit));
+        }
+
+        [Test]
+        public void TestGetLanguageForUnit_NoLanguage() {
+            string testXml = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>
+<unit xmlns=""http://www.sdml.info/srcML/src"" filename=""test.cpp""><expr_stmt><expr></expr></expr_stmt>
+</unit>";
+
+            XElement fileUnit = XElement.Parse(testXml);
+
+            Assert.Throws<SrcMLException>(() => SrcMLElement.GetLanguageForUnit(fileUnit));
+        }
+
+        [Test]
+        public void TestGetLanguageForUnit_InvalidLanguage() {
+            string testXml = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>
+<unit xmlns=""http://www.sdml.info/srcML/src"" language=""C+"" filename=""test.cpp""><expr_stmt><expr></expr></expr_stmt>
+</unit>";
+
+            XElement fileUnit = XElement.Parse(testXml);
+
+            Assert.Throws<SrcMLException>(() => SrcMLElement.GetLanguageForUnit(fileUnit));
+        }
+
+        [Test]
+        public void TestGetLanguageForUnit_InvalidArgument() {
+            string testXml = @"<function><type><name>int</name></type> <name>main</name><parameter_list>()</parameter_list> <block>{ }</block></function>";
+
+            XElement fileUnit = XElement.Parse(testXml);
+
+            Assert.Throws<ArgumentException>(() => SrcMLElement.GetLanguageForUnit(fileUnit));
+
+            fileUnit = null;
+            Assert.Throws<ArgumentNullException>(() => SrcMLElement.GetLanguageForUnit(fileUnit));
         }
     }
 }
