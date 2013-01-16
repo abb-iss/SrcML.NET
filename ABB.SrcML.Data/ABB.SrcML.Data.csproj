@@ -46,6 +46,7 @@
     </Compile>
     <Compile Include="DataArchive.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="CodeParser.cs" />
     <Compile Include="TypeDefinition.cs" />
     <Compile Include="TypeUse.cs" />
   </ItemGroup>
