@@ -44,10 +44,15 @@
     <Compile Include="..\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
+    <Compile Include="AccessModifier.cs" />
     <Compile Include="DataArchive.cs" />
+    <Compile Include="MethodDefinition.cs" />
+    <Compile Include="NamespaceDefinition.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TypeDefinition.cs" />
+    <Compile Include="TypeKind.cs" />
     <Compile Include="TypeUse.cs" />
+    <Compile Include="VariableDeclaration.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ABB.SrcML\ABB.SrcML.csproj">

@@ -733,6 +733,9 @@
           <enumerationLiteral
             Id="bbbb8bc9-3fce-4329-a763-1a15d8f83d18"
             name="Union" />
+          <enumerationLiteral
+            Id="99da025b-008e-4080-bdf7-42dd894f1ab9"
+            name="Interface" />
         </ownedLiterals>
       </enumeration>
     </packageHasNamedElement>

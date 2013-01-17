@@ -15,26 +15,16 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
-using System.Xml.Linq;
 
 namespace ABB.SrcML.Data {
-    public class TypeDefinition {
-        public string Name { get; set; }
+    public class MethodDefinition {
         public AccessModifier Accessibility { get; set; }
-        public Collection<VariableDeclaration> Fields { get; set; }
-        public Collection<string> Filenames { get; set; }
-        public Collection<TypeDefinition> InnerTypes { get; set; }
-        public bool IsInterface { get; set; }
-        public bool IsPartial { get; set; }
-        public TypeKind Kind { get; set; }
-        public Language Language { get; set; } //TODO: figure out where this should be specified
-        public Collection<MethodDefinition> Methods { get; set; }
-        public NamespaceDefinition Namespace { get; set; } //TODO: do we need this?
-        public Collection<TypeUse> Parents { get; set; }
+        public bool IsConstructor { get; set; }
+        public bool IsDestructor { get; set; }
+        public string Name { get; set; }
         public string XPath { get; set; }
 
-        public XElement GetXElement() {
-            return null;
-        }
+        public Collection<TypeDefinition> InnerTypes;
+        public Collection<VariableDeclaration> Parameters;
     }
 }

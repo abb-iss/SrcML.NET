@@ -49,10 +49,10 @@
         <OperationElementListCompartment Id="adbe0a4c-3ef2-4fcb-9fba-866eb6d3144b" absoluteBounds="0.64, 4.8667968476812042, 2.5949999999999998, 0.20117186754941963" name="OperationsCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
-    <enumerationShape Id="0060b76b-9486-4521-b2ef-95c21f323e70" absoluteBounds="6.875, 0.625, 1.5, 1.1716406026482584" hideQualifiedName="false" increaseHeight="0" customColor="161, 150, 103">
+    <enumerationShape Id="0060b76b-9486-4521-b2ef-95c21f323e70" absoluteBounds="6.875, 0.625, 1.5, 1.3317968476812045" hideQualifiedName="false" increaseHeight="0" customColor="161, 150, 103">
       <enumerationMoniker Id="e747d05c-5058-4538-b090-f65a663d013f" LastKnownName="TypeKind" />
       <nestedChildShapes>
-        <LiteralElementListCompartment Id="44e52a76-ca7e-4212-9f04-0883e797a15b" absoluteBounds="6.89, 1.0150000000000001, 1.4700000000000002, 0.68164060264825821" name="LiteralsCompartment" titleTextColor="Black" itemTextColor="Black" />
+        <LiteralElementListCompartment Id="44e52a76-ca7e-4212-9f04-0883e797a15b" absoluteBounds="6.89, 1.0150000000000001, 1.4700000000000002, 0.84179684768120444" name="LiteralsCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </enumerationShape>
   </nestedChildShapes>

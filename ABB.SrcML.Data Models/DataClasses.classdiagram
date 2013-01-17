@@ -315,6 +315,9 @@
           <enumerationLiteral Id="24a75a50-5234-474e-bf7c-03d76e941eeb" name="Union">
             <elementDefinition Id="bbbb8bc9-3fce-4329-a763-1a15d8f83d18" />
           </enumerationLiteral>
+          <enumerationLiteral Id="2f7f9e42-4d72-4688-8be9-1de0b7eee0cf" name="Interface">
+            <elementDefinition Id="99da025b-008e-4080-bdf7-42dd894f1ab9" />
+          </enumerationLiteral>
         </ownedLiterals>
       </enumeration>
     </logicalClassDesignerModelHasTypes>
