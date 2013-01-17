@@ -146,6 +146,11 @@ namespace ABB.SrcML
 		/// </summary>
 		public static readonly XName Index = NS + "index";
 
+        /// <summary>
+        /// markup for the java package tag
+        /// </summary>
+        public static readonly XName Package = NS + "package";
+
 		// declaration statement
 		/// <summary>
 		/// markup for the decl_stmt tag
@@ -355,6 +360,16 @@ namespace ABB.SrcML
 		/// </summary>
 		public static readonly XName DestructorDeclaration = NS + "destructor_decl";
 
+        /// <summary>
+        /// markup for the super tag
+        /// </summary>
+        public static readonly XName Super = NS + "super";
+
+        /// <summary>
+        /// markup for the implements java tag
+        /// </summary>
+        public static readonly XName Implements = NS + "implements";
+
 		// exception handling elements
 		/// <summary>
 		/// markup for the try tag
@@ -397,7 +412,5 @@ namespace ABB.SrcML
 		/// markup for the macro tag
 		/// </summary>
 		public static readonly XName Macro = NS + "macro"; // macro
-
-		
 	}
 }
