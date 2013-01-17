@@ -30,8 +30,9 @@ namespace ABB.SrcML.Data {
         }
 
         public TypeDefinition ResolveType(XElement variableDeclarationElement) {
-            var typeUse = new TypeUse(variableDeclarationElement);
-            return ResolveType(typeUse);
+            //var typeUse = new TypeUse(variableDeclarationElement);
+            //return ResolveType(typeUse);
+            throw new NotImplementedException();
         }
 
         public TypeDefinition ResolveType(TypeUse typeUse) {
@@ -54,7 +55,6 @@ namespace ABB.SrcML.Data {
                     // TODO remove the file from the data archive
                     // TODO do we need the rename case? or just handle delete + add?
                     throw new NotImplementedException();
-                    break;
             }
         }
 

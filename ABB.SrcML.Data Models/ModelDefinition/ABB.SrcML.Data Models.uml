@@ -102,24 +102,6 @@
             </type_NamedElement>
           </property>
           <property
-            Id="8823467b-9da0-4e8f-9b8e-41e2e166b4cd"
-            name="IsInterface"
-            isLeaf="false"
-            isStatic="false"
-            isReadOnly="false"
-            isUnique="false"
-            isDerived="false"
-            isDerivedUnion="false"
-            aggregation="None"
-            isComposite="false">
-            <type_NamedElement>
-              <primitiveTypeMoniker
-                Id="8943dc84-709e-4f62-b15a-a3273aa6f165"
-                LastKnownName="Boolean"
-                LastKnownLocation="ABB.SrcML.Data Models.uml" />
-            </type_NamedElement>
-          </property>
-          <property
             Id="2ab77335-8d44-4f78-8946-1ad1be2c870a"
             name="IsPartial"
             isLeaf="false"

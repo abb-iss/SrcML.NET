@@ -44,16 +44,20 @@
     <Compile Include="..\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
+    <Compile Include="AbstractCodeParser.cs" />
     <Compile Include="AccessModifier.cs" />
     <Compile Include="DataArchive.cs" />
+    <Compile Include="JavaCodeParser.cs" />
     <Compile Include="MethodDefinition.cs" />
     <Compile Include="NamespaceDefinition.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="CodeParser.cs" />
+    <Compile Include="CPlusPlusCodeParser.cs" />
     <Compile Include="TypeDefinition.cs" />
+    <Compile Include="TypeInventory.cs" />
     <Compile Include="TypeKind.cs" />
     <Compile Include="TypeUse.cs" />
     <Compile Include="VariableDeclaration.cs" />
+    <Compile Include="XNameMaps.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ABB.SrcML\ABB.SrcML.csproj">

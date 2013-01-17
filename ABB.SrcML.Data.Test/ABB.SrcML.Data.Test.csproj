@@ -50,7 +50,9 @@
     <Compile Include="..\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
-    <Compile Include="TypeDefinitionParserTests.cs" />
+    <Compile Include="JavaCodeParserTests.cs" />
+    <Compile Include="SrcMLFileUnitSetup.cs" />
+    <Compile Include="CPlusPlusCodeParserTests.cs" />
     <Compile Include="TypeInventoryTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

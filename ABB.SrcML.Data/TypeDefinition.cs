@@ -24,7 +24,6 @@ namespace ABB.SrcML.Data {
         public Collection<VariableDeclaration> Fields { get; set; }
         public Collection<string> Filenames { get; set; }
         public Collection<TypeDefinition> InnerTypes { get; set; }
-        public bool IsInterface { get; set; }
         public bool IsPartial { get; set; }
         public TypeKind Kind { get; set; }
         public Language Language { get; set; } //TODO: figure out where this should be specified
@@ -35,6 +34,13 @@ namespace ABB.SrcML.Data {
 
         public XElement GetXElement() {
             return null;
+        }
+
+        internal string GetFullName() {
+            if(null == this.Namespace)
+                return this.Name;
+
+            return this.Namespace.Name + "." + this.Name;
         }
     }
 }

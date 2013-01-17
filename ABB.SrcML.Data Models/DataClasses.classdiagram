@@ -26,12 +26,6 @@
               <referencedTypeMoniker Id="b9d60fb7-eb60-4cfd-b6a2-6e133fa3201f" LastKnownName="Collection&lt;VariableDeclaration&gt;" />
             </type_NamedElement>
           </property>
-          <property Id="32beede2-4c07-44be-ae17-7035e0eca1b4" name="IsInterface" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
-            <elementDefinition Id="8823467b-9da0-4e8f-9b8e-41e2e166b4cd" />
-            <type_NamedElement>
-              <referencedTypeMoniker Id="73c0bcf2-6ecd-44e8-a06f-582bd3b0c866" LastKnownName="Boolean" />
-            </type_NamedElement>
-          </property>
           <property Id="4556d516-ef88-47e5-9a04-3c118e96bc03" name="IsPartial" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
             <elementDefinition Id="2ab77335-8d44-4f78-8946-1ad1be2c870a" />
             <type_NamedElement>

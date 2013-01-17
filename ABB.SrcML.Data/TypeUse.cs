@@ -16,8 +16,10 @@ using System.Xml.Linq;
 
 namespace ABB.SrcML.Data {
     public class TypeUse {
-        public TypeUse(XElement declarationStatement) {
+        public string Name { get; set; }
 
+        internal IEnumerable<string> GetPossibleNames() {
+            throw new NotImplementedException();
         }
     }
 }
