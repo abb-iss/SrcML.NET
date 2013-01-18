@@ -54,7 +54,7 @@ namespace ABB.SrcML.Data {
                 throw new ArgumentNullException("typeElement");
             if(null == fileUnit)
                 throw new ArgumentNullException("fileUnit");
-            if(fileUnit.Name == SRC.Unit)
+            if(fileUnit.Name != SRC.Unit)
                 throw new ArgumentException("must be a SRC.unit", "fileUnit");
 
             var typeDefinition = new TypeDefinition() {
@@ -72,6 +72,7 @@ namespace ABB.SrcML.Data {
             if(fileName.Length > 0) {
                 typeDefinition.Filenames.Add(fileName);
             }
+
             return typeDefinition;
         }
 
@@ -96,7 +97,7 @@ namespace ABB.SrcML.Data {
 
             if(null == fileUnit)
                 throw new ArgumentNullException("fileUnit");
-            if(fileUnit.Name == SRC.Unit)
+            if(fileUnit.Name != SRC.Unit)
                 throw new ArgumentException("must be a SRC.unit", "fileUnit");
 
             if(typeNameElement.Elements(SRC.Name).Count() > 0) {
