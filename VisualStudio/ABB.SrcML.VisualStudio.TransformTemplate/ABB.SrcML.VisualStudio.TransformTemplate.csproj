@@ -31,11 +31,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ABB.SrcML, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(VS100COMNTOOLS)..\IDE\ABB.SrcML.dll</HintPath>
-      <HintPath>$(SolutionDir)\Build\$(Configuration)\ABB.SrcML.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -47,6 +42,12 @@
   <ItemGroup>
     <Compile Include="MyTransform.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\ABB.SrcML\ABB.SrcML.csproj">
+      <Project>{D52626E7-A4CA-471A-8A6A-FE0110430FE6}</Project>
+      <Name>ABB.SrcML</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

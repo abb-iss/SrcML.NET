@@ -1,11 +1,30 @@
-﻿using System;
+﻿/******************************************************************************
+ * Copyright (c) 2011 ABB Group
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    Jiang Zheng (ABB Group) - Initial implementation
+ *****************************************************************************/
+using System;
 using System.Diagnostics.Contracts;
 
 namespace ABB.SrcML.VisualStudio.SolutionMonitor
 {
+    /// <summary>
+    /// This class was from Sando.
+    /// Now most likely this class would not be needed any more in SrcML.NET. Sando would maintain its own SolutionKey class.
+    /// </summary>
     public class SolutionKey
     {
-        // Add a new constructor without index part (or replace index with srcML?)
+        /// <summary>
+        /// New constructor.
+        /// Removed the indexPath.
+        /// </summary>
+        /// <param name="solutionId"></param>
+        /// <param name="solutionPath"></param>
         public SolutionKey(Guid solutionId, string solutionPath)
         {
             Contract.Requires(solutionId != null, "SolutionKey:Constructor - solution id cannot be null!");
@@ -16,7 +35,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
             this.solutionPath = solutionPath;
         }
 
-        /* //// old implementation
+        /* //// Original implementation
         public SolutionKey(Guid solutionId, string solutionPath, string indexPath)
         {
             Contract.Requires(solutionId != null, "SolutionKey:Constructor - solution id cannot be null!");
@@ -35,7 +54,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
             return this.solutionId;
         }
 
-        /* //// Remove index part
+        /* //// Remove code about index
         public string GetIndexPath()
         {
             return indexPath;
@@ -49,7 +68,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
 
         private Guid solutionId;
         private string solutionPath;
-        /* //// Remove index part
+        /* //// Remove code about index
         private string indexPath;
         */
     }

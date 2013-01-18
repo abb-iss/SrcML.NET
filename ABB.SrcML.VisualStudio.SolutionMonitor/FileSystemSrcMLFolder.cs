@@ -16,6 +16,10 @@ using System.IO;
 
 namespace ABB.SrcML.VisualStudio.SolutionMonitor
 {
+    /// <summary>
+    /// This class was initially designed for client applications to response to the folder that stores all srcML files.
+    /// Now this class is obsolete.
+    /// </summary>
     public class FileSystemSrcMLFolder : ISrcMLFolder
     {
         private DirectoryInfo _folderInfo;
@@ -23,20 +27,16 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
 
         protected virtual void OnSrcMLFileChanged(SrcMLEventArgs e)
         {
-            writeLog("D:\\Data\\log.txt", "OnSrcMLFileChanged()");
-
             EventHandler<SrcMLEventArgs> handler = SrcMLFileChanged;
-
             if (null != handler)
             {
-                writeLog("D:\\Data\\log.txt", "handler(this, e)");
                 handler(this, e);
             }
         }
 
         public FileSystemSrcMLFolder(string pathToSrcMLFolder)
         {
-            writeLog("D:\\Data\\log.txt", "@@@@@@@ FileSystemSrcMLFolder(): srcMLFolder = [" + pathToSrcMLFolder + "]");
+            writeLog("D:\\Data\\log.txt", " FileSystemSrcMLFolder(): srcMLFolder = [" + pathToSrcMLFolder + "]");
             this.FullFolderPath = pathToSrcMLFolder;
             SetupFileSystemWatcher();
             StartWatching();
@@ -92,7 +92,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
             handleFileEvent(e.FullPath, e.FullPath, SrcMLEventType.Changed);
         }
 
-        // When created a file, HandleFileChanged is also triggered
+        // Note: When creating a file, HandleFileChanged is also triggered
         void HandleFileCreated(object sender, FileSystemEventArgs e)
         {
             writeLog("D:\\Data\\log.txt", "HandleFileCreated(): e.FullPath = [" + e.FullPath + "]");

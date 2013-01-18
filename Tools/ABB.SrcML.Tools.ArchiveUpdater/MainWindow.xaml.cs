@@ -12,8 +12,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using ABB.SrcML;
-using ABB.SrcML.SrcMLSolutionMonitor;
 using System.IO;
+
 namespace ABB.SrcML.Tools.ArchiveUpdater
 {
     /// <summary>
@@ -25,16 +25,19 @@ namespace ABB.SrcML.Tools.ArchiveUpdater
         public MainWindow()
         {
             _archive = new SrcMLArchive(new FileSystemSourceFolder("."));
-            _archive.SourceFileChanged += _archive_SourceFileChanged;
+            ////_archive.SourceFileChanged += _archive_SourceFileChanged;
+            _archive.SrcMLDOTNETEventRaised += _archive_SourceFileChanged;
             InitializeComponent();
         }
 
-        void _archive_SourceFileChanged(object sender, SourceEventArgs e)
+        ////void _archive_SourceFileChanged(object sender, SourceEventArgs e)
+        void _archive_SourceFileChanged(object sender, SrcMLDOTNETEventArgs e)
         {
             textBox1.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal,
                 new Action(() =>
                     {
-                        if (SourceEventType.Renamed == e.EventType)
+                        ////if (SourceEventType.Renamed == e.EventType)
+                        if (SrcMLDOTNETEventType.SourceFileRenamed == e.EventType)
                             textBox1.AppendText(String.Format("{0} {1} to {2}\n", e.EventType, e.OldSourceFilePath, e.SourceFilePath));
                         else
                             textBox1.AppendText(String.Format("{0} {1}\n", e.EventType, e.SourceFilePath));

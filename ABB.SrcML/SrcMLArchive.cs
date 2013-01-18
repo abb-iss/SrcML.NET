@@ -16,25 +16,28 @@ using System.Linq;
 using System.IO;
 using System.Xml.Linq;
 using ABB.SrcML.Utilities;
-using ABB.SrcML.SrcMLSolutionMonitor;
 
 namespace ABB.SrcML
 {
-    public class SrcMLArchive : AbstractArchive, ISourceFolder
+    ////public class SrcMLArchive : AbstractArchive, ISourceFolder
+    public class SrcMLArchive : AbstractArchive, ISrcMLDOTNETEvents
     {
-        public SrcMLArchive(ISourceFolder sourceDirectory)
+        ////public SrcMLArchive(ISourceFolder sourceDirectory)
+        public SrcMLArchive(ISrcMLDOTNETEvents sourceDirectory)
             : this(sourceDirectory, Path.Combine(sourceDirectory.FullFolderPath, ".srcml"), new Src2SrcMLRunner())
         {
 
         }
 
-        public SrcMLArchive(ISourceFolder sourceDirectory, string xmlDirectory)
+        ////public SrcMLArchive(ISourceFolder sourceDirectory, string xmlDirectory)
+        public SrcMLArchive(ISrcMLDOTNETEvents sourceDirectory, string xmlDirectory)
             : this(sourceDirectory, xmlDirectory, new Src2SrcMLRunner())
         {
 
         }
 
-        public SrcMLArchive(ISourceFolder sourceDirectory, string xmlDirectory, Src2SrcMLRunner generator)
+        ////public SrcMLArchive(ISourceFolder sourceDirectory, string xmlDirectory, Src2SrcMLRunner generator)
+        public SrcMLArchive(ISrcMLDOTNETEvents sourceDirectory, string xmlDirectory, Src2SrcMLRunner generator)
         {
             this.SourceDirectory = sourceDirectory;
             this.ArchivePath = xmlDirectory;
@@ -45,10 +48,12 @@ namespace ABB.SrcML
             {
                 Directory.CreateDirectory(this.ArchivePath);
             }
-            this.SourceDirectory.SourceFileChanged += RespondToFileChangedEvent;
+            ////this.SourceDirectory.SourceFileChanged += RespondToFileChangedEvent;
+            this.SourceDirectory.SrcMLDOTNETEventRaised += RespondToFileChangedEvent;
         }
 
-        public ISourceFolder SourceDirectory
+        ////public ISourceFolder SourceDirectory
+        public ISrcMLDOTNETEvents SourceDirectory
         {
             get;
             set;
@@ -60,6 +65,35 @@ namespace ABB.SrcML
             set;
         }
 
+        #region ISrcMLDOTNETEvents Members
+
+        public event EventHandler<SrcMLDOTNETEventArgs> SrcMLDOTNETEventRaised;
+
+        public string FullFolderPath
+        {
+            get
+            {
+                return this.SourceDirectory.FullFolderPath;
+            }
+            set
+            {
+                this.SourceDirectory.FullFolderPath = value;
+            }
+        }
+
+        public void StartWatching()
+        {
+            this.SourceDirectory.StartWatching();
+        }
+
+        public void StopWatching()
+        {
+            this.SourceDirectory.StopWatching();
+        }
+
+        #endregion
+
+        /* //// Original code
         #region ISourceFolder Members
 
         public event EventHandler<SourceEventArgs> SourceFileChanged;
@@ -87,6 +121,7 @@ namespace ABB.SrcML
         }
 
         #endregion
+        */
 
         #region AbstractArchive Members
 
@@ -137,28 +172,42 @@ namespace ABB.SrcML
         }
         #endregion
         
-        public void RespondToFileChangedEvent(object sender, SourceEventArgs eventArgs)
+
+        /// <summary>
+        /// Respond to an event raised from Solution Monitor. Then raise an event to client application (e.g., Sando)
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="eventArgs"></param>
+        ////public void RespondToFileChangedEvent(object sender, SourceEventArgs eventArgs)
+        public void RespondToFileChangedEvent(object sender, SrcMLDOTNETEventArgs eventArgs)
         {
             var directoryName = Path.GetDirectoryName(Path.GetFullPath(eventArgs.SourceFilePath));
             var xmlFullPath = Path.GetFullPath(this.ArchivePath);
             
             if (!directoryName.StartsWith(xmlFullPath, StringComparison.InvariantCultureIgnoreCase))
             {
+                XElement xelement = null;
                 switch (eventArgs.EventType)
                 {
-                    case SourceEventType.Renamed:
+                    case SrcMLDOTNETEventType.SourceFileRenamed:
                         DeleteXmlForSourceFile(eventArgs.OldSourceFilePath);
-                        goto case SourceEventType.Changed;
-                    case SourceEventType.Added:
-                        goto case SourceEventType.Changed;
-                    case SourceEventType.Changed:
-                        GenerateXmlForSource(eventArgs.SourceFilePath);
+                        goto case SrcMLDOTNETEventType.SourceFileChanged;
+                    case SrcMLDOTNETEventType.SourceFileAdded:
+                        goto case SrcMLDOTNETEventType.SourceFileChanged;
+                    case SrcMLDOTNETEventType.SourceFileChanged:
+                        xelement = GenerateXmlAndXElementForSource(eventArgs.SourceFilePath);
                         break;
-                    case SourceEventType.Deleted:
+                    case SrcMLDOTNETEventType.SourceFileDeleted:
                         DeleteXmlForSourceFile(eventArgs.SourceFilePath);
                         break;
-
+                    case SrcMLDOTNETEventType.StartupCompleted:
+                        // Nothing need to do?
+                        break;
+                    case SrcMLDOTNETEventType.MonitoringStopped:
+                        // Nothing need to do?
+                        break;
                 }
+                eventArgs.SrcMLXElement = xelement;
                 OnSourceFileChanged(eventArgs);
             }
         }
@@ -168,6 +217,7 @@ namespace ABB.SrcML
         /// Last modified on 2012.10.11
         /// </summary>
         /// <param name="directoryPath"></param>
+        /* //// This functionality should be within SolutionMonitor.cs now.
         public void GenerateXmlForDirectory(string directoryPath)
         {
             // Traverse source directory to generate srcML files when needed (TODO: make sure directoryPath is a full path?)
@@ -179,7 +229,9 @@ namespace ABB.SrcML
             DirectoryInfo srcMLRootDir = new DirectoryInfo(Path.GetFullPath(this.ArchivePath));
             WalkSrcMLDirectoryTree(srcMLRootDir);
         }
+        */
 
+        /* //// This functionality should be within SolutionMonitor.cs now.
         private void WalkSourceDirectoryTree(DirectoryInfo sourceDir)
         {
             FileInfo[] sourceFiles = null;
@@ -249,6 +301,7 @@ namespace ABB.SrcML
                 }
             }
         }
+        */
 
         /*
         private void WalkSrcMLDirectoryTree(DirectoryInfo srcMLDir)
@@ -307,6 +360,7 @@ namespace ABB.SrcML
         }
         */
 
+        /* //// This functionality should be within SolutionMonitor.cs now.
         private void WalkSrcMLDirectoryTree(DirectoryInfo srcMLDir)
         {
             FileInfo[] srcMLFiles = null;
@@ -353,6 +407,7 @@ namespace ABB.SrcML
                 }
             }
         }
+        */
 
         /// <summary>
         /// Added by JZ on 12/3/2012
@@ -390,6 +445,10 @@ namespace ABB.SrcML
             return this.XmlGenerator.GenerateSrcMLAndXElementFromFile(sourcePath, xmlPath);
         }
 
+        /// <summary>
+        /// Obsolete
+        /// </summary>
+        /// <param name="sourcePath"></param>
         public void GenerateXmlForSource(string sourcePath)
         {
             var xmlPath = GetXmlPathForSourcePath(sourcePath);
@@ -411,11 +470,13 @@ namespace ABB.SrcML
                 File.Delete(xmlPath);
             }
 
+            /*
             if (!Directory.Exists(sourceDirectory))
             {
                 var xmlDirectory = Path.GetDirectoryName(xmlPath);
                 Directory.Delete(xmlDirectory);
             }
+            */
         }
 
         // Version for hierarchy folders storage
@@ -469,7 +530,6 @@ namespace ABB.SrcML
             }
 
             //Console.WriteLine("fullPath = " + fullPath);
-            //string srcMLFileName = encoding(fullPath);
             string srcMLFileName = Base32.ToBase32String(fullPath);
             //Console.WriteLine("Encoded srcMLFileName = " + srcMLFileName);
             string xmlPath = Path.Combine(this.ArchivePath, srcMLFileName);
@@ -512,7 +572,6 @@ namespace ABB.SrcML
 
             string relativePath = fullPath.Substring(this.ArchivePath.Length + 1, fullPath.Length - this.ArchivePath.Length - 5);
             //Console.WriteLine("relativePath = " + relativePath);
-            //relativePath = decoding(relativePath);
             relativePath = Base32.FromBase32String(relativePath);
             //Console.WriteLine("relativePath decoded = " + relativePath);
             relativePath = relativePath.Substring(this.SourceDirectory.FullFolderPath.Length + 1);
@@ -522,23 +581,11 @@ namespace ABB.SrcML
             return sourcePath;
         }
 
-        private string encoding(string str)
+        ////protected virtual void OnSourceFileChanged(SourceEventArgs e)
+        protected virtual void OnSourceFileChanged(SrcMLDOTNETEventArgs e)
         {
-            string encodedStr = str.Replace("\\", "_");
-            encodedStr = encodedStr.Replace(":", "$");
-            return encodedStr;
-        }
-
-        private string decoding(string encodedStr)
-        {
-            string str = encodedStr.Replace("$", ":");
-            str = str.Replace("_", "\\");
-            return str;
-        }
-
-        protected virtual void OnSourceFileChanged(SourceEventArgs e)
-        {
-            EventHandler<SourceEventArgs> handler = SourceFileChanged;
+            ////EventHandler<SourceEventArgs> handler = SourceFileChanged;
+            EventHandler<SrcMLDOTNETEventArgs> handler = SrcMLDOTNETEventRaised;
 
             if (handler != null)
             {

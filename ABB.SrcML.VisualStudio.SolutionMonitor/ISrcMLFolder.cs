@@ -14,6 +14,10 @@ using System.Linq;
 
 namespace ABB.SrcML.VisualStudio.SolutionMonitor
 {
+    /// <summary>
+    /// This interface was initially designed for client applications to response to the folder that stores all srcML files.
+    /// Now this class is obsolete.
+    /// </summary>
     public interface ISrcMLFolder
     {
         event EventHandler<SrcMLEventArgs> SrcMLFileChanged;

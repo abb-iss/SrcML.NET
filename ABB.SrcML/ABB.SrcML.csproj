@@ -38,9 +38,6 @@
     <AssemblyOriginatorKeyFile>sandoKey.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ABB.SrcML.SrcMLSolutionMonitor">
-      <HintPath>..\ABB.SrcML.SrcMLSolutionMonitor\bin\Debug\ABB.SrcML.SrcMLSolutionMonitor.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -61,6 +58,7 @@
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="IArchive.cs" />
     <Compile Include="ISourceFolder.cs" />
+    <Compile Include="ISrcMLDOTNETEvents.cs" />
     <Compile Include="ITransform.cs" />
     <Compile Include="Language.cs" />
     <Compile Include="LineInfo.cs" />
