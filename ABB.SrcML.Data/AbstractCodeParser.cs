@@ -73,6 +73,7 @@ namespace ABB.SrcML.Data {
                 typeDefinition.Filenames.Add(fileName);
             }
 
+            typeDefinition.Namespace.Types.Add(typeDefinition);
             return typeDefinition;
         }
 
@@ -108,6 +109,7 @@ namespace ABB.SrcML.Data {
 
             var typeUse = new TypeUse() {
                 Name = typeName,
+                CurrentNamespace = GetNamespaceDefinition(element, fileUnit),
             };
             return typeUse;
         }

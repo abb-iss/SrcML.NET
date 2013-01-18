@@ -30,16 +30,15 @@ namespace ABB.SrcML.Data {
         public override NamespaceDefinition GetNamespaceDefinition(XElement element, XElement fileUnit) {
             var javaPackage = fileUnit.Descendants(SRC.Package).FirstOrDefault();
 
+            var definition = new NamespaceDefinition();
             if(null != javaPackage) {
                 var namespaceNames = from name in javaPackage.Elements(SRC.Name)
                                      select name.Value;
                 var namespaceName = string.Join(".", namespaceNames);
-                var definition = new NamespaceDefinition() {
-                    Name = namespaceName,
-                };
-                return definition;
+                definition.Name = namespaceName;
+                
             }
-            return null;
+            return definition;
         }
 
         /// <summary>

@@ -36,11 +36,8 @@ namespace ABB.SrcML.Data {
             return null;
         }
 
-        internal string GetFullName() {
-            if(null == this.Namespace)
-                return this.Name;
-
-            return this.Namespace.Name + "." + this.Name;
+        public string GetFullName() {
+            return this.Namespace.MakeQualifiedName(this.Name);
         }
     }
 }

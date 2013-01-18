@@ -18,11 +18,17 @@ using System.Xml.Linq;
 namespace ABB.SrcML.Data {
     public class TypeUse {
         public string Name { get; set; }
-        public string NamespaceName { get; set; }
-        public Collection<string> ImportedNamespaces { get; set; }
+        public NamespaceDefinition CurrentNamespace { get; set; }
 
-        internal IEnumerable<string> GetPossibleNames() {
-            throw new NotImplementedException();
+        /// <summary>
+        /// Returns the possible names for this type use
+        /// </summary>
+        /// <returns>The possible full qualified names for this type use</returns>
+        public IEnumerable<string> GetPossibleNames() {
+            yield return CurrentNamespace.MakeQualifiedName(this.Name);
+
+            if(!CurrentNamespace.IsGlobal)
+                yield return this.Name;
         }
     }
 }

@@ -33,15 +33,11 @@ namespace ABB.SrcML.Data {
                         select name.Value;
 
             var namespaceName = String.Join(".", names.Reverse());
-
+            NamespaceDefinition definition = new NamespaceDefinition();
             if(namespaceName.Length > 0) {
-                NamespaceDefinition definition = new NamespaceDefinition() {
-                    Name = namespaceName
-                };
-
-                return definition;
+                definition.Name = namespaceName;
             }
-            return null;
+            return definition;
         }
 
         /// <summary>
