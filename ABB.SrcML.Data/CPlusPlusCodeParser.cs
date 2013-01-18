@@ -51,10 +51,6 @@ namespace ABB.SrcML.Data {
             return AccessModifier.Public;
         }
 
-        public override TypeUse CreateTypeUse(XElement fileUnit, XElement element) {
-            throw new NotImplementedException();
-        }
-
         public override Collection<TypeUse> GetParentTypeUses(XElement fileUnit, XElement typeDefinition) {
             Collection<TypeUse> parents = new Collection<TypeUse>();
             var superTag = typeDefinition.Element(SRC.Super);

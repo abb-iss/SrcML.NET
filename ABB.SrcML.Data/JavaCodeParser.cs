@@ -48,30 +48,6 @@ namespace ABB.SrcML.Data {
             return modifiers.FirstOrDefault();
         }
 
-        public override TypeUse CreateTypeUse(XElement fileUnit, XElement element) {
-            XElement typeNameElement;
-            string typeName = string.Empty;
-            
-            if(element.Name == SRC.Type) {
-                typeNameElement = element.Element(SRC.Name);
-            } else if(element.Name == SRC.Name) {
-                typeNameElement = element;
-            } else {
-                throw new ArgumentException("element should be of type type or name", "element");
-            }
-
-            if(typeNameElement.Elements(SRC.Name).Count() > 0) {
-                typeName = typeNameElement.Elements(SRC.Name).Last().Value;
-            } else {
-                typeName = typeNameElement.Value;
-            }
-
-            var typeUse = new TypeUse() {
-                Name = typeName,
-            };
-            return typeUse;
-        }
-
         public override Collection<TypeUse> GetParentTypeUses(XElement fileUnit, XElement typeDefinition) {
             Collection<TypeUse> parents = new Collection<TypeUse>();
             var superTag = typeDefinition.Element(SRC.Super);

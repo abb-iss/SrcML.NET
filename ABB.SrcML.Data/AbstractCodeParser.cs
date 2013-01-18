@@ -59,8 +59,29 @@ namespace ABB.SrcML.Data {
         /// <param name="fileUnit"></param>
         /// <param name="fileName"></param>
         /// <returns></returns>
-        public abstract TypeUse CreateTypeUse(XElement fileUnit, XElement element);
+        public virtual TypeUse CreateTypeUse(XElement fileUnit, XElement element) {
+            XElement typeNameElement;
+            string typeName = string.Empty;
 
+            if(element.Name == SRC.Type) {
+                typeNameElement = element.Element(SRC.Name);
+            } else if(element.Name == SRC.Name) {
+                typeNameElement = element;
+            } else {
+                throw new ArgumentException("element should be of type type or name", "element");
+            }
+
+            if(typeNameElement.Elements(SRC.Name).Count() > 0) {
+                typeName = typeNameElement.Elements(SRC.Name).Last().Value;
+            } else {
+                typeName = typeNameElement.Value;
+            }
+
+            var typeUse = new TypeUse() {
+                Name = typeName,
+            };
+            return typeUse;
+        }
         /// <summary>
         /// 
         /// </summary>
