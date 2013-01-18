@@ -10,6 +10,7 @@
  *****************************************************************************/
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
@@ -17,6 +18,8 @@ using System.Xml.Linq;
 namespace ABB.SrcML.Data {
     public class TypeUse {
         public string Name { get; set; }
+        public string NamespaceName { get; set; }
+        public Collection<string> ImportedNamespaces { get; set; }
 
         internal IEnumerable<string> GetPossibleNames() {
             throw new NotImplementedException();
