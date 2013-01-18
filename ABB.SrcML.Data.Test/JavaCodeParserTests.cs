@@ -54,10 +54,18 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = SrcMLFileUnitSetup.GetFileUnitForXmlSnippet(srcMLFormat, xml, Language.Java);
             var typeDefinitions = codeParser.CreateTypeDefinitions(xmlElement);
-            var actual = typeDefinitions.First();
+            var definition = typeDefinitions.First();
 
-            Assert.AreEqual("A", actual.Name);
-            Assert.AreEqual(3, actual.Parents.Count);
+            Assert.AreEqual("A", definition.Name);
+            Assert.AreEqual(3, definition.Parents.Count);
+
+            var parentNames = from parent in definition.Parents
+                              select parent.Name;
+
+            var tests = Enumerable.Zip<string, string, bool>(new[] { "B", "C", "D" }, parentNames, (expected, actual) => expected == actual);
+            foreach(var test in tests) {
+                Assert.That(test);
+            }
         }
 
         [Test]
@@ -87,8 +95,8 @@ namespace ABB.SrcML.Data.Test {
             // }
             string xml = @"<package>package <name>A</name>;</package>
 <class>class <name>B</name> <block>{
-	<class>class <name>B</name> <block>{
-}</block></class>
+	<class>class <name>C</name> <block>{
+	}</block></class>
 }</block></class>";
 
             XElement xmlElement = SrcMLFileUnitSetup.GetFileUnitForXmlSnippet(srcMLFormat, xml, Language.Java);
@@ -108,7 +116,7 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestCreateTypeDefinitions_ClassInFunction_Java() {
+        public void TestCreateTypeDefinitions_ClassInFunction() {
             // class A {
             //     int foo() {
             //         class B {
@@ -124,6 +132,7 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = SrcMLFileUnitSetup.GetFileUnitForXmlSnippet(srcMLFormat, xml, Language.Java);
             var typeDefinitions = codeParser.CreateTypeDefinitions(xmlElement);
+            Assert.Fail("TODO Need to add assertions to verify type in function");
         }
     }
 }

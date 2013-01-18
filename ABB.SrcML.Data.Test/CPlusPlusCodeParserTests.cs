@@ -42,9 +42,18 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = SrcMLFileUnitSetup.GetFileUnitForXmlSnippet(srcMLFormat, xml, Language.CPlusPlus);
             var typeDefinitions = codeParser.CreateTypeDefinitions(xmlElement);
-            var actual = typeDefinitions.First();
-            Assert.AreEqual("A", actual.Name);
-            Assert.AreEqual(3, actual.Parents.Count);
+            var definition = typeDefinitions.First();
+            Assert.AreEqual("A", definition.Name);
+            Assert.AreEqual(3, definition.Parents.Count);
+
+            var parentNames = from parent in definition.Parents
+                              select parent.Name;
+
+            var tests = Enumerable.Zip<string, string, bool>(new[] { "B", "C", "D" }, parentNames, (expected, actual) => expected == actual
+                );
+            foreach(var parentMatchesExpected in tests) {
+                Assert.That(parentMatchesExpected);
+            }
         }
 
         [Test]
@@ -70,7 +79,7 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = SrcMLFileUnitSetup.GetFileUnitForXmlSnippet(srcMLFormat, xml, Language.Java);
             var typeDefinitions = codeParser.CreateTypeDefinitions(xmlElement);
-            Assert.Fail("Need to add assertions to verify type in function");
+            Assert.Fail("TODO Need to add assertions to verify type in function");
         }
 
         [Test]
