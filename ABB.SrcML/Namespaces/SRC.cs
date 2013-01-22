@@ -370,6 +370,11 @@ namespace ABB.SrcML
         /// </summary>
         public static readonly XName Implements = NS + "implements";
 
+        /// <summary>
+        /// markup for the import java tag
+        /// </summary>
+        public static readonly XName Import = NS + "import";
+
 		// exception handling elements
 		/// <summary>
 		/// markup for the try tag
