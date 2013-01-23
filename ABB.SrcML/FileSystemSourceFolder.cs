@@ -1,19 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.IO;
 
 namespace ABB.SrcML
 {
-    public class FileSystemSourceFolder : ISrcMLDOTNETEvents
+    public class FileSystemSourceFolder : ISolutionMonitorEvents
     {
         private DirectoryInfo _folderInfo;
         private FileSystemWatcher _directoryWatcher;
 
-        protected virtual void OnSourceFileChanged(SrcMLDOTNETEventArgs e)
+        protected virtual void OnSourceFileChanged(SolutionMonitorEventArgs e)
         {
-            EventHandler<SrcMLDOTNETEventArgs> handler = SrcMLDOTNETEventRaised;
+            EventHandler<SolutionMonitorEventArgs> handler = SolutionMonitorEventRaised;
 
             if (null != handler)
             {
@@ -29,7 +30,7 @@ namespace ABB.SrcML
         }
         #region ISourceFolder Members
 
-        public event EventHandler<SrcMLDOTNETEventArgs> SrcMLDOTNETEventRaised;
+        public event EventHandler<SolutionMonitorEventArgs> SolutionMonitorEventRaised;
 
         public string FullFolderPath
         {
@@ -53,6 +54,11 @@ namespace ABB.SrcML
             this._directoryWatcher.EnableRaisingEvents = false;
         }
 
+        public List<string> GetAllMonitoredFiles(BackgroundWorker worker)
+        {
+            return null;
+        }
+
         #endregion
 
         private void SetupFileSystemWatcher()
@@ -71,17 +77,17 @@ namespace ABB.SrcML
 
         void HandleFileChanged(object sender, FileSystemEventArgs e)
         {
-            handleFileEvent(e.FullPath, e.FullPath, SrcMLDOTNETEventType.SourceFileChanged);
+            handleFileEvent(e.FullPath, e.FullPath, SolutionMonitorEventType.FileChanged);
         }
 
         void HandleFileCreated(object sender, FileSystemEventArgs e)
         {
-            handleFileEvent(e.FullPath, e.FullPath, SrcMLDOTNETEventType.SourceFileAdded);
+            handleFileEvent(e.FullPath, e.FullPath, SolutionMonitorEventType.FileAdded);
         }
 
         void HandleFileDeleted(object sender, FileSystemEventArgs e)
         {
-            handleFileEvent(e.FullPath, e.FullPath, SrcMLDOTNETEventType.SourceFileDeleted);
+            handleFileEvent(e.FullPath, e.FullPath, SolutionMonitorEventType.FileDeleted);
         }
 
         void HandleFileWatcherError(object sender, ErrorEventArgs e)
@@ -91,14 +97,14 @@ namespace ABB.SrcML
 
         void HandleFileRenamed(object sender, RenamedEventArgs e)
         {
-            handleFileEvent(e.FullPath, e.OldFullPath, SrcMLDOTNETEventType.SourceFileRenamed);
+            handleFileEvent(e.FullPath, e.OldFullPath, SolutionMonitorEventType.FileRenamed);
         }
 
-        private void handleFileEvent(string pathToFile, string oldPathToFile, SrcMLDOTNETEventType eventType)
+        private void handleFileEvent(string pathToFile, string oldPathToFile, SolutionMonitorEventType eventType)
         {
             if (isFile(pathToFile))
             {
-                OnSourceFileChanged(new SrcMLDOTNETEventArgs(pathToFile, oldPathToFile, eventType));
+                OnSourceFileChanged(new SolutionMonitorEventArgs(pathToFile, oldPathToFile, eventType));
             }
         }
 

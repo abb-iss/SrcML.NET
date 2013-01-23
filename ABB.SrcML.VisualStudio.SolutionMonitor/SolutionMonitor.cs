@@ -34,14 +34,19 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
     /// Methods of this interface were implemented to handle file change events in Visual Studio envinronment.
     /// Also tried IVsFileChangeEvents (Notifies clients when selected files have been changed on disk), but it does not meet requirements.
     /// 
-    /// This class also implements ISrcMLDOTNETEvents so that client applications can subscribe events that are raised from SrcML.NET.
+    /// This class also implements ISolutionMonitorEvents so that client applications and SrcMLArchive can subscribe events that are raised from solution monitor.
     /// </summary>
-    public class SolutionMonitor : IVsTrackProjectDocumentsEvents2, IVsRunningDocTableEvents, ISrcMLDOTNETEvents
+    public class SolutionMonitor : IVsTrackProjectDocumentsEvents2, IVsRunningDocTableEvents, ISolutionMonitorEvents
     {
         /// <summary>
         /// _openSolution: The solution to be monitored.
         /// </summary>
         private readonly SolutionWrapper _openSolution;
+
+        /// <summary>
+        /// List of all "monitored" files.
+        /// </summary>
+        private List<string> allMonitoredFiles;
 
         /// <summary>
         /// IVsRunningDocumentTable: Manages the set of currently open documents in the environment.
@@ -61,15 +66,16 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         /// <summary>
         /// Background workers.
         /// </summary>
-        private readonly BackgroundWorker _processFileInBackground;
-        private BackgroundWorker startupWorker;
+        //private readonly BackgroundWorker _processFileInBackground;   // no use so far, will consider this later
+        //private BackgroundWorker startupWorker;   // moved to SrcMLArchive
 
         /// <summary>
         /// The full path for storing srcML files.
         /// TODO: move the string to a Constant file.
         ///       maybe: private readonly string _archivePath;
+        ///       Obsolete
         /// </summary>
-        public string ArchivePath = "D:\\Data\\SrcML.NETDemo\\MySrcMLArchive";
+        //public string ArchivePath = "D:\\Data\\SrcML.NETDemo\\MySrcMLArchive";
 
         //// Note: "////" means code about index, which can be removed when cleaning up this class.
         ////private const string StartupThreadName = "Sando: Initial Index of Project";
@@ -93,8 +99,9 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
             ////_solutionKey = solutionKey;
             ////_indexUpdateManager = new IndexUpdateManager(solutionKey, _currentIndexer, isIndexRecreationRequired);
 
-            _processFileInBackground = new BackgroundWorker();
-            _processFileInBackground.DoWork += new DoWorkEventHandler(_processFileInBackground_DoWork);
+            // no use so far, will consider this later
+            //_processFileInBackground = new BackgroundWorker();
+            //_processFileInBackground.DoWork += new DoWorkEventHandler(_processFileInBackground_DoWork);
         }
 
         /// <summary>
@@ -102,11 +109,12 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         /// </summary>
         public void StartMonitoring()
         {
-            writeLog("D:\\Data\\log.txt", "======= START MONITORING =======");
-            startupWorker = new BackgroundWorker();
-            startupWorker.WorkerSupportsCancellation = true;
-            startupWorker.DoWork += new DoWorkEventHandler(_runStartupInBackground_DoWork);
-            startupWorker.RunWorkerAsync();
+            writeLog("D:\\Data\\log.txt", "======= SolutionMonitor: START MONITORING =======");
+            // moved to SrcMLArchive
+            //startupWorker = new BackgroundWorker();
+            //startupWorker.WorkerSupportsCancellation = true;
+            //startupWorker.DoWork += new DoWorkEventHandler(_runStartupInBackground_DoWork);
+            //startupWorker.RunWorkerAsync();
 
             RegisterTrackProjectDocumentsEvents2();
             RegisterRunningDocumentTableEvents();
@@ -139,6 +147,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         }
 
         /// <summary>
+        /// no use so far, will consider this later
         /// Run in background for processing a specific file.
         /// TODO: Should be ProcessSingleFile(projectItem, null) or ProcessItem(projectItem, null)?
         /// </summary>
@@ -151,6 +160,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
             ////UpdateAfterAdditions();
         }
 
+        /* // moved to SrcMLArchive
         /// <summary>
         /// Run in background when starting up the solution.
         /// </summary>
@@ -182,6 +192,21 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
             stopwatch.Stop();
             writeLog("D:\\Data\\log.txt", "Total time for startup check: " + stopwatch.Elapsed.ToString());
         }
+        */
+
+        /// <summary>
+        /// Get all "monitored" files in this solution.
+        /// </summary>
+        /// <returns></returns>
+        public List<string> GetAllMonitoredFiles(BackgroundWorker worker)
+        {
+            allMonitoredFiles = new List<string>();
+
+            WalkSolutionTree(worker);
+            
+            return allMonitoredFiles;
+        }
+
 
         /// <summary>
         /// Recursively walk through the solution/projects to check if srcML files need to be ADDED or CHANGED.
@@ -221,6 +246,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
             }
         }
 
+        /* // moved to SrcMLArchive
         /// <summary>
         /// Walk srcML directory to see if there are any srcML files to be DELETED.
         /// TODO: may improve performance
@@ -233,6 +259,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
                 ProcessSingleSourceFile(sourceFilePath);
             }
         }
+        */
 
         /* //// Remove index part
         public void UpdateAfterAdditions()
@@ -318,7 +345,10 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
                         ////Debug.WriteLine("Start: " + path);
                         ////ProcessFileForTesting(path);
 
-                        ProcessSingleSourceFile(path);
+                        //ProcessSingleSourceFile(path);    // moved to SrcMLArchive
+                        
+                        //writeLog("D:\\Data\\log.txt", "allMonitoredFiles.Add(" + path + ")");
+                        allMonitoredFiles.Add(path);
 
                         ////Debug.WriteLine("End: " + path);
                     ////}
@@ -332,6 +362,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
             }
         }
 
+        /* // moved to SrcMLArchive
         // Temp method for file extension check
         private bool isValidFileExtension(string filePath)
         {
@@ -345,7 +376,8 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
             }
             return false;
         }
-        
+        */
+
         /* //// Remove index part
         public void ProcessFileForTesting(string path)
         {
@@ -353,6 +385,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         }
         */
 
+        /* moved to SrcMLArchive
         /// <summary>
         /// Process a single source file to add or change the corresponding srcML file, or do nothing.
         /// TODO: GetXmlPathForSourcePath() twice
@@ -396,42 +429,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
                 }
             }
         }
-
-        /// <summary>
-        /// Get all "SrcMLed" files.
-        /// TODO: maybe use KeyValuePairs instead of List for better performance
-        /// </summary>
-        /// <returns></returns>
-        public List<string> GetAllSrcMLedFiles()
-        {
-            List<string> allSrcMLedFiles = new List<string>();
-            DirectoryInfo srcMLDir = new DirectoryInfo(Path.GetFullPath(this.ArchivePath));
-            FileInfo[] srcMLFiles = null;
-            try
-            {
-                srcMLFiles = srcMLDir.GetFiles("*.*");
-            }
-            // In case one of the files requires permissions greater than the application provides
-            catch (UnauthorizedAccessException e)
-            {
-                Console.WriteLine(e.Message);
-            }
-            catch (DirectoryNotFoundException e)
-            {
-                Console.WriteLine(e.Message);
-            }
-
-            if (srcMLFiles != null)
-            {
-                foreach (FileInfo fi in srcMLFiles)
-                {
-                    string sourceFilePath = GetSourcePathForXmlPath(fi.Name);
-                    writeLog("D:\\Data\\log.txt", "GetAllSrcMLedFileNames() " + sourceFilePath);
-                    allSrcMLedFiles.Add(sourceFilePath);
-                }
-            }
-            return allSrcMLedFiles;
-        }
+        */
 
         /// <summary>
         /// For debugging. May be adapted to GetListOfAllMonitoredFiles()
@@ -521,7 +519,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         /// </summary>
         public void StopMonitoring()
         {
-            writeLog("D:\\Data\\log.txt", "======= STOP MONITORING =======");
+            writeLog("D:\\Data\\log.txt", "======= SolutionMonitor: STOP MONITORING =======");
             Dispose();
         }
 
@@ -547,6 +545,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
                     ErrorHandler.Succeeded(hr);
                 }
 
+                /* // moved to SrcMLArchive
                 // Disable the startup background worker
                 if (startupWorker != null)
                 {
@@ -558,11 +557,14 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
                 {
                     //_processFileInBackground.CancelAsync();
                 }
+                */
             }
             finally
             {
+                /* // moved to SrcMLArchive
                 writeLog("D:\\Data\\log.txt", "To raise a MonitoringStopped event.");
                 OnSrcMLDOTNETEventsRaised(new SrcMLDOTNETEventArgs(null, SrcMLDOTNETEventType.MonitoringStopped));
+                */
                 /* //// Remove index part
                 //shut down the current indexer
                 if (_currentIndexer != null)
@@ -576,163 +578,6 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
                 }
                 */
             }
-        }
-
-        /// <summary>
-        /// Handle file creation/deletion cases.
-        /// The way these parameters work is:
-        /// rgFirstIndices contains a list of the starting index into the changeProjectItems array for each project listed in the changedProjects list
-        /// Example: if you get two projects, then rgFirstIndices should have two elements, the first element is probably zero since rgFirstIndices would start at zero.
-        /// Then item two in the rgFirstIndices array is where in the changeProjectItems list that the second project's changed items reside.
-        /// TODO: may process files in parallel
-        /// </summary>
-        /// <param name="cProjects"></param>
-        /// <param name="cFiles"></param>
-        /// <param name="rgpProjects"></param>
-        /// <param name="rgFirstIndices"></param>
-        /// <param name="rgpszMkDocuments"></param>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        private int OnNotifyFileAddRemove(int cProjects,
-                                        int cFiles,
-                                        IVsProject[] rgpProjects,
-                                        int[] rgFirstIndices,
-                                        string[] rgpszMkDocuments,
-                                        SrcMLDOTNETEventType type)
-        {
-            int projItemIndex = 0;
-            for (int changeProjIndex = 0; changeProjIndex < cProjects; changeProjIndex++)
-            {
-                int endProjectIndex = ((changeProjIndex + 1) == cProjects) ? rgpszMkDocuments.Length : rgFirstIndices[changeProjIndex + 1];
-                for (; projItemIndex < endProjectIndex; projItemIndex++)
-                {
-                    if (rgpProjects[changeProjIndex] != null)
-                    {
-                        // TODO: may change to ProcessSingleSourceFile()
-                        if (isValidFileExtension(rgpszMkDocuments[projItemIndex]))
-                        {
-                            RespondToFileChangedEvent(rgpszMkDocuments[projItemIndex], type);
-                        }
-                    }
-                }
-            }
-            return VSConstants.S_OK;
-        }
-
-        /// <summary>
-        /// Respond to events of file creation/change/deletion
-        /// TODO: why need the condition check? (From original SrcML.NET)
-        ///       code may be optimized
-        /// </summary>
-        /// <param name="file"></param>
-        /// <param name="type"></param>
-        public void RespondToFileChangedEvent(string file, SrcMLDOTNETEventType type)
-        {
-            //var directoryName = Path.GetDirectoryName(Path.GetFullPath(eventArgs.SourceFilePath));
-            //var xmlFullPath = Path.GetFullPath(this.ArchivePath);
-
-            //if (!directoryName.StartsWith(xmlFullPath, StringComparison.InvariantCultureIgnoreCase))
-            {
-                writeLog("D:\\Data\\log.txt", "To switch: file = [" + file + "], type = " + type);
-                SrcMLDOTNETEventArgs eventArgs = null;
-                switch (type)
-                {
-                    case SrcMLDOTNETEventType.SourceFileAdded:
-                        writeLog("D:\\Data\\log.txt", "To process the Added case.");
-                        ////eventArgs = new SrcMLDOTNETEventArgs(file, GenerateXmlForSource(file), SrcMLDOTNETEventType.SourceFileAdded);
-                        eventArgs = new SrcMLDOTNETEventArgs(file, SrcMLDOTNETEventType.SourceFileAdded);
-                        break;
-                    case SrcMLDOTNETEventType.SourceFileChanged:
-                        writeLog("D:\\Data\\log.txt", "To process the Changed case.");
-                        ////eventArgs = new SrcMLDOTNETEventArgs(file, GenerateXmlForSource(file), SrcMLDOTNETEventType.SourceFileChanged);
-                        eventArgs = new SrcMLDOTNETEventArgs(file, SrcMLDOTNETEventType.SourceFileChanged);
-                        break;
-                    case SrcMLDOTNETEventType.SourceFileDeleted:
-                        writeLog("D:\\Data\\log.txt", "To process the Deleted case.");
-                        ////DeleteXmlForSource(file);
-                        eventArgs = new SrcMLDOTNETEventArgs(file, SrcMLDOTNETEventType.SourceFileDeleted);
-                        break;
-                    /* // The SrcMLDOTNETEventType.SourceFileRenamed type is never used.
-                    case SrcMLDOTNETEventType.SourceFileRenamed:
-                        writeLog("D:\\Data\\log.txt", "To process the Renamed case.");
-                        //DeleteXmlForSourceFile(eventArgs.OldSourceFilePath);
-                        goto case SrcMLDOTNETEventType.SourceFileChanged;
-                    */
-                }
-                OnSrcMLDOTNETEventsRaised(eventArgs);
-            }
-        }
-
-        /* //// Should be in SrcMLArchive.cs
-        /// <summary>
-        /// Generate the corresponding srcML file for a specific source file.
-        /// </summary>
-        /// <param name="sourcePath"></param>
-        /// <returns></returns>
-        public XElement GenerateXmlForSource(string sourcePath)
-        {
-            var xmlPath = GetXmlPathForSourcePath(sourcePath);
-            var directory = Path.GetDirectoryName(xmlPath);
-            if (!Directory.Exists(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
-            writeLog("D:\\Data\\log.txt", "GenerateXmlForSource(): sourcePath = [" + sourcePath + "], xmlPath = [" + xmlPath + "]");
-            Src2SrcMLRunner srcMLGenerator = new Src2SrcMLRunner();
-            XElement sourceElements = srcMLGenerator.GenerateSrcMLAndXElementFromFile(sourcePath, xmlPath);
-            return sourceElements;
-        }
-        */
-
-        /* //// Should be in SrcMLArchive.cs
-        /// <summary>
-        /// Delete the corresponding srcML file for a specific source file.
-        /// </summary>
-        /// <param name="sourcePath"></param>
-        public void DeleteXmlForSource(string sourcePath)
-        {
-            var xmlPath = GetXmlPathForSourcePath(sourcePath);
-            writeLog("D:\\Data\\log.txt", "DeleteXmlForSource(): sourcePath = [" + sourcePath + "], xmlPath = [" + xmlPath + "]");
-            if (File.Exists(xmlPath))
-            {
-                File.Delete(xmlPath);
-            }
-        }
-        */
-
-        /// <summary>
-        /// Get the corresponding srcML file path for a specific source file.
-        /// For single folder storage algorithm
-        /// </summary>
-        /// <param name="sourcePath"></param>
-        /// <returns></returns>
-        public string GetXmlPathForSourcePath(string sourcePath)
-        {
-            string fullPath = (Path.IsPathRooted(sourcePath)) ? sourcePath : Path.GetFullPath(sourcePath);
-            //if (!fullPath.StartsWith(this.SourceDirectory.FullFolderPath, StringComparison.InvariantCultureIgnoreCase))
-            //{
-            //    throw new IOException(String.Format("{0} is not rooted in {1}", sourcePath, this.SourceDirectory));
-            //}
-            //string srcMLFileName = Base32.ToBase32String(fullPath);               // Base32 encoding
-            string srcMLFileName = fullPath.Replace("\\", "-").Replace(":", "=");   // Simple encoding
-            string xmlPath = Path.Combine(this.ArchivePath, srcMLFileName) + ".xml";
-            //writeLog("D:\\Data\\log.txt", "GetXmlPathForSourcePath(): sourcePath = [" + sourcePath + "], xmlPath = [" + xmlPath + "]");
-            return xmlPath;
-        }
-
-        /// <summary>
-        /// Get the corresponding source file path for a specific srcML file.
-        /// For single folder storage algorithm
-        /// </summary>
-        /// <param name="xmlPath"></param>
-        /// <returns></returns>
-        public string GetSourcePathForXmlPath(string xmlPath)
-        {
-            string sourcePath = xmlPath.Substring(0, xmlPath.Length - 4);
-            //sourcePath = Base32.FromBase32String(sourcePath);                     // Base32 decoding
-            sourcePath = sourcePath.Replace("=", ":").Replace("-", "\\");           // Simple decoding
-            //writeLog("D:\\Data\\log.txt", "GetSourcePathForXmlPath(): xmlPath = [" + xmlPath + "], sourcePath = [" + sourcePath + "]");
-            return sourcePath;
         }
 
         /* //// Remove index part
@@ -770,21 +615,77 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         }
         */
 
+
         /// <summary>
-        /// For debugging.
+        /// Handle file creation/deletion cases.
+        /// The way these parameters work is:
+        /// rgFirstIndices contains a list of the starting index into the changeProjectItems array for each project listed in the changedProjects list
+        /// Example: if you get two projects, then rgFirstIndices should have two elements, the first element is probably zero since rgFirstIndices would start at zero.
+        /// Then item two in the rgFirstIndices array is where in the changeProjectItems list that the second project's changed items reside.
+        /// TODO: may process files in parallel
         /// </summary>
-        /// <param name="logFile"></param>
-        /// <param name="str"></param>
-        private void writeLog(string logFile, string str)
+        /// <param name="cProjects"></param>
+        /// <param name="cFiles"></param>
+        /// <param name="rgpProjects"></param>
+        /// <param name="rgFirstIndices"></param>
+        /// <param name="rgpszMkDocuments"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        private int OnNotifyFileAddRemove(int cProjects,
+                                        int cFiles,
+                                        IVsProject[] rgpProjects,
+                                        int[] rgFirstIndices,
+                                        string[] rgpszMkDocuments,
+                                        SolutionMonitorEventType type)
         {
-            StreamWriter sw = new StreamWriter(logFile, true, System.Text.Encoding.ASCII);
-            sw.WriteLine(str);
-            sw.Close();
+            int projItemIndex = 0;
+            for (int changeProjIndex = 0; changeProjIndex < cProjects; changeProjIndex++)
+            {
+                int endProjectIndex = ((changeProjIndex + 1) == cProjects) ? rgpszMkDocuments.Length : rgFirstIndices[changeProjIndex + 1];
+                for (; projItemIndex < endProjectIndex; projItemIndex++)
+                {
+                    if (rgpProjects[changeProjIndex] != null)
+                    {
+                        RaiseSolutionMonitorEvent(rgpszMkDocuments[projItemIndex], null, type);
+                    }
+                }
+            }
+            return VSConstants.S_OK;
         }
 
+        /// <summary>
+        /// Raise events of file creation/change/deletion in the solution in Visual Studio
+        /// TODO: why need the condition check? (From original SrcML.NET)
+        /// </summary>
+        /// <param name="file"></param>
+        /// <param name="type"></param>
+        public void RaiseSolutionMonitorEvent(string filePath, string oldFilePath, SolutionMonitorEventType type)
+        {
+            //var directoryName = Path.GetDirectoryName(Path.GetFullPath(eventArgs.SourceFilePath));
+            //var xmlFullPath = Path.GetFullPath(this.ArchivePath);
 
-
-
+            //if (!directoryName.StartsWith(xmlFullPath, StringComparison.InvariantCultureIgnoreCase))
+            {
+                SolutionMonitorEventArgs eventArgs = null;
+                switch (type)
+                {
+                    case SolutionMonitorEventType.FileAdded:
+                        eventArgs = new SolutionMonitorEventArgs(filePath, SolutionMonitorEventType.FileAdded);
+                        break;
+                    case SolutionMonitorEventType.FileChanged:
+                        eventArgs = new SolutionMonitorEventArgs(filePath, SolutionMonitorEventType.FileChanged);
+                        break;
+                    case SolutionMonitorEventType.FileDeleted:
+                        eventArgs = new SolutionMonitorEventArgs(filePath, SolutionMonitorEventType.FileDeleted);
+                        break;
+                    case SolutionMonitorEventType.FileRenamed:  // actually not used
+                        eventArgs = new SolutionMonitorEventArgs(filePath, oldFilePath, SolutionMonitorEventType.FileRenamed);
+                        break;
+                }
+                writeLog("D:\\Data\\log.txt", "SolutionMonitor raises a " + type + " event for [" + filePath + ".");
+                OnSolutionMonitorEventsRaised(eventArgs);
+            }
+        }
 
         #region IVsTrackProjectDocumentsEvents2
         /// <summary>
@@ -805,7 +706,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
                                                       VSADDFILEFLAGS[] rgFlags)
         {
             writeLog("D:\\Data\\log.txt", "==> Triggered IVsTrackProjectDocumentsEvents2.OnAfterAddFilesEx()");
-            return OnNotifyFileAddRemove(cProjects, cFiles, rgpProjects, rgFirstIndices, rgpszMkDocuments, SrcMLDOTNETEventType.SourceFileAdded);
+            return OnNotifyFileAddRemove(cProjects, cFiles, rgpProjects, rgFirstIndices, rgpszMkDocuments, SolutionMonitorEventType.FileAdded);
         }
 
         /// <summary>
@@ -826,7 +727,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
                                                                VSREMOVEFILEFLAGS[] rgFlags)
         {
             writeLog("D:\\Data\\log.txt", "==> Triggered IVsTrackProjectDocumentsEvents2.OnAfterRemoveFiles()");
-            return OnNotifyFileAddRemove(cProjects, cFiles, rgpProjects, rgFirstIndices, rgpszMkDocuments, SrcMLDOTNETEventType.SourceFileDeleted);
+            return OnNotifyFileAddRemove(cProjects, cFiles, rgpProjects, rgFirstIndices, rgpszMkDocuments, SolutionMonitorEventType.FileDeleted);
         }
 
         /// <summary>
@@ -849,8 +750,8 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
                                                                VSRENAMEFILEFLAGS[] rgFlags)
         {
             writeLog("D:\\Data\\log.txt", "==> Triggered IVsTrackProjectDocumentsEvents2.OnAfterRenameFiles()");
-            OnNotifyFileAddRemove(cProjects, cFiles, rgpProjects, rgFirstIndices, rgszMkOldNames, SrcMLDOTNETEventType.SourceFileDeleted);
-            return OnNotifyFileAddRemove(cProjects, cFiles, rgpProjects, rgFirstIndices, rgszMkNewNames, SrcMLDOTNETEventType.SourceFileAdded);
+            OnNotifyFileAddRemove(cProjects, cFiles, rgpProjects, rgFirstIndices, rgszMkOldNames, SolutionMonitorEventType.FileDeleted);
+            return OnNotifyFileAddRemove(cProjects, cFiles, rgpProjects, rgFirstIndices, rgszMkNewNames, SolutionMonitorEventType.FileAdded);
         }
 
         /// <summary>
@@ -1026,7 +927,8 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
             IntPtr documentData;
 
             _documentTable.GetDocumentInfo(cookie, out flags, out readingLocks, out edittingLocks, out name, out hierarchy, out documentId, out documentData);
-            ProcessSingleSourceFile(name);
+            RaiseSolutionMonitorEvent(name, null, SolutionMonitorEventType.FileChanged);
+            //ProcessSingleSourceFile(name);
             //if (isValidFileExtension(name))
             //{
             //    RespondToFileChangedEvent(name, SourceEventType.Changed);
@@ -1102,8 +1004,8 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         }
         #endregion
 
-        #region ISrcMLDOTNETEvents
-        public event EventHandler<SrcMLDOTNETEventArgs> SrcMLDOTNETEventRaised;
+        #region ISolutionMonitorEvents
+        public event EventHandler<SolutionMonitorEventArgs> SolutionMonitorEventRaised;
         public string FullFolderPath
         {
             get;
@@ -1111,26 +1013,40 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         }
         public void StartWatching()
         {
-            StartMonitoring();
+            StartMonitoring();  // just register IVsTrackProjectDocumentsEvents2 and IVsRunningDocumentTableEvents
         }
-
         public void StopWatching()
         {
-            StopMonitoring();
+            StopMonitoring();   // just unregister ISsTrackProjectDocumentsEvents2 and IVsRunningDocumentTableEvents
         }
 
         /// <summary>
-        /// Handle SrcMLDOTNETEvents.
+        /// Handle SolutionMonitorEvents.
         /// </summary>
         /// <param name="e"></param>
-        protected virtual void OnSrcMLDOTNETEventsRaised(SrcMLDOTNETEventArgs e)
+        protected virtual void OnSolutionMonitorEventsRaised(SolutionMonitorEventArgs e)
         {
-            EventHandler<SrcMLDOTNETEventArgs> handler = SrcMLDOTNETEventRaised;
+            EventHandler<SolutionMonitorEventArgs> handler = SolutionMonitorEventRaised;
             if (handler != null)
             {
                 handler(this, e);
             }
         }
         #endregion
+
+
+
+
+        /// <summary>
+        /// For debugging.
+        /// </summary>
+        /// <param name="logFile"></param>
+        /// <param name="str"></param>
+        private void writeLog(string logFile, string str)
+        {
+            StreamWriter sw = new StreamWriter(logFile, true, System.Text.Encoding.ASCII);
+            sw.WriteLine(str);
+            sw.Close();
+        }
     }
 }

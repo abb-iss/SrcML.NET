@@ -57,6 +57,7 @@
     <Compile Include="FileSystemSourceFolder.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="IArchive.cs" />
+    <Compile Include="ISolutionMonitorEvents.cs" />
     <Compile Include="ISourceFolder.cs" />
     <Compile Include="ISrcMLDOTNETEvents.cs" />
     <Compile Include="ITransform.cs" />
