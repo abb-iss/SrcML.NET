@@ -28,7 +28,7 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void BasicParentTest() {
+        public void BasicParentTest_Java() {
             // # A.java
             // class A implements B {
             // }
