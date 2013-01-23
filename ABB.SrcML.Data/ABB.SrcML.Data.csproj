@@ -46,6 +46,7 @@
     </Compile>
     <Compile Include="AbstractCodeParser.cs" />
     <Compile Include="AccessModifier.cs" />
+    <Compile Include="Alias.cs" />
     <Compile Include="DataArchive.cs" />
     <Compile Include="JavaCodeParser.cs" />
     <Compile Include="MethodDefinition.cs" />

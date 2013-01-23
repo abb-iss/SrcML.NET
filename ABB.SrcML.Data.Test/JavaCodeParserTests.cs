@@ -28,6 +28,7 @@ namespace ABB.SrcML.Data.Test {
             var typeDefinitions = codeParser.CreateTypeDefinitions(xmlElement);
             var actual = typeDefinitions.First();
             Assert.AreEqual("A", actual.Name);
+            Assert.That(actual.Namespace.IsGlobal);
         }
 
         [Test]
@@ -43,6 +44,7 @@ namespace ABB.SrcML.Data.Test {
 
             Assert.AreEqual("A", actual.Name);
             Assert.AreEqual(TypeKind.Interface, actual.Kind);
+            Assert.That(actual.Namespace.IsGlobal);
         }
 
         [Test]
@@ -58,6 +60,7 @@ namespace ABB.SrcML.Data.Test {
 
             Assert.AreEqual("A", definition.Name);
             Assert.AreEqual(3, definition.Parents.Count);
+            Assert.That(definition.Namespace.IsGlobal);
 
             var parentNames = from parent in definition.Parents
                               select parent.Name;
@@ -109,9 +112,12 @@ namespace ABB.SrcML.Data.Test {
 
             Assert.AreEqual("B", outer.Name);
             Assert.AreEqual("A", outer.Namespace.Name);
+            Assert.IsFalse(outer.Namespace.IsGlobal);
 
             Assert.AreEqual("C", inner.Name);
             Assert.AreEqual("A", inner.Namespace.Name);
+            Assert.IsFalse(inner.Namespace.IsGlobal);
+
             Assert.Fail("TODO add assertions to verify class in class");
         }
 
@@ -133,6 +139,35 @@ namespace ABB.SrcML.Data.Test {
             XElement xmlElement = SrcMLFileUnitSetup.GetFileUnitForXmlSnippet(srcMLFormat, xml, Language.Java);
             var typeDefinitions = codeParser.CreateTypeDefinitions(xmlElement);
             Assert.Fail("TODO Need to add assertions to verify type in function");
+        }
+
+        [Test]
+        public void TestCreateAliasesForFiles_ImportNamespace() {
+            string xml = @"<import>import <name>x</name> . <comment type=""block"">/*test */</comment> <name>y</name> . <name>z</name> . <comment type=""block"">/*test */</comment> * <comment type=""block"">/*test*/</comment>;</import>";
+
+            XElement xmlElement = SrcMLFileUnitSetup.GetFileUnitForXmlSnippet(srcMLFormat, xml, Language.Java);
+            
+            var aliases = codeParser.CreateAliasesForFile(xmlElement);
+
+            var actual = aliases.First();
+
+            Assert.AreEqual("x.y.z", actual.NamespaceName);
+            Assert.That(actual.IsNamespaceAlias);
+        }
+
+        [Test]
+        public void TestCreateAliasesForFiles_ImportClass() {
+            string xml = @"<import>import <name>x</name>.<name>y</name>.<name>z</name>;</import>";
+
+            XElement xmlElement = SrcMLFileUnitSetup.GetFileUnitForXmlSnippet(srcMLFormat, xml, Language.Java);
+
+            var aliases = codeParser.CreateAliasesForFile(xmlElement);
+
+            var actual = aliases.First();
+
+            Assert.AreEqual("x.y", actual.NamespaceName);
+            Assert.AreEqual("z", actual.Name);
+            Assert.IsFalse(actual.IsNamespaceAlias);
         }
     }
 }

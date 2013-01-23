@@ -79,5 +79,50 @@ namespace ABB.SrcML.Data {
             }
             return parents;
         }
+
+        public override IEnumerable<Alias> CreateAliasesForFile(XElement fileUnit) {
+            var aliases = from usingStatement in fileUnit.Descendants(SRC.Using)
+                          select CreateAliasFromUsingStatement(usingStatement);
+            return aliases;
+        }
+
+        public Alias CreateAliasFromUsingStatement(XElement usingStatement) {
+            if(null == usingStatement)
+                throw new ArgumentNullException("usingStatement");
+            if(usingStatement.Name != SRC.Using)
+                throw new ArgumentException("must be an using statement", "usingStatement");
+
+            var alias = new Alias();
+            var nameElement = usingStatement.Element(SRC.Name);
+            var names = GetNameElementsFromName(nameElement);
+
+            var containsNamespaceKeyword = (from textNode in GetTextNodes(usingStatement)
+                                            where textNode.Value.Contains("namespace")
+                                            select textNode).Any();
+            if(containsNamespaceKeyword) {
+                // if the using declaration contains the namespace keyword then this is a namespace import
+                alias.NamespaceName = String.Join(".", from name in names select name.Value);
+            } else {
+                // if the namespace keyword isn't present then the using declaration is importing a specific type or variable
+                var lastName = names.LastOrDefault();
+                var namespaceNames = from name in names
+                                     where name.IsBefore(lastName)
+                                     select name.Value;
+
+                alias.NamespaceName = String.Join(".", namespaceNames);
+                alias.Name = lastName.Value;
+            }
+            return alias;
+        }
+
+        public IEnumerable<XElement> GetNameElementsFromName(XElement nameElement) {
+            if(nameElement.Elements(SRC.Name).Any()) {
+                foreach(var name in nameElement.Elements(SRC.Name)) {
+                    yield return name;
+                }
+            } else {
+                yield return nameElement;
+            }
+        }
     }
 }

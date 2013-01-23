@@ -93,5 +93,45 @@ namespace ABB.SrcML.Data {
             }
             return parents;
         }
+
+        public override IEnumerable<Alias> CreateAliasesForFile(XElement fileUnit) {
+            var aliases = from statement in fileUnit.Descendants(SRC.Import)
+                          select CreateAliasFromImportStatement(statement);
+            return aliases;
+        }
+
+        public Alias CreateAliasFromImportStatement(XElement importStatement) {
+            if(null == importStatement)
+                throw new ArgumentNullException("importStatement");
+            if(importStatement.Name != SRC.Import)
+                throw new ArgumentException("must be an import statement", "importStatement");
+
+            Alias alias = new Alias();
+
+            var lastName = importStatement.Elements(SRC.Name).LastOrDefault();
+            
+            var textContainsAsterisk = (from textNode in GetTextNodes(importStatement)
+                                        where textNode.IsAfter(lastName)
+                                        where textNode.Value.Contains("*")
+                                        select textNode).Any();
+            if(textContainsAsterisk) {
+                // if text contains asterisk, this is a namespace import
+                var names = from name in importStatement.Elements(SRC.Name)
+                            select name.Value;
+
+                alias.NamespaceName = String.Join(".", names);
+            } else {
+                // if the text does not contain an asterisk this is a class import
+                // the last <name> element is the imported class name
+                // and the rest of the 
+                var names = from name in importStatement.Elements(SRC.Name)
+                            where name.IsBefore(lastName)
+                            select name.Value;
+                alias.NamespaceName = String.Join(".", names);
+                alias.Name = lastName.Value;
+            }
+
+            return alias;
+        }
     }
 }

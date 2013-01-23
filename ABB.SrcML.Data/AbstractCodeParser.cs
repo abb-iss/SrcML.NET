@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace ABB.SrcML.Data {
@@ -142,7 +143,14 @@ namespace ABB.SrcML.Data {
         /// <param name="fileUnit">the file unit that contains <paramref name="typeElement"/></param>
         /// <returns>A collection of TypeUses that represent the parent classes of <paramref name="typeElement"/></returns>
         public abstract Collection<TypeUse> GetParentTypeUses(XElement typeElement, XElement fileUnit);
-        
+
+        /// <summary>
+        /// Get type aliases for the given file
+        /// </summary>
+        /// <param name="fileUnit"></param>
+        /// <returns></returns>
+        public abstract IEnumerable<Alias> CreateAliasesForFile(XElement fileUnit);
+
         /// <summary>
         /// Gets the filename for the given file unit.
         /// </summary>
@@ -159,6 +167,19 @@ namespace ABB.SrcML.Data {
             if(null != fileNameAttribute)
                 return fileNameAttribute.Value;
             return String.Empty;
+        }
+
+        /// <summary>
+        /// Gets all of the text nodes that are children of the given element.
+        /// </summary>
+        /// <param name="element">The element</param>
+        /// <returns>An enumerable of the XText elements for <paramref name="element"/></returns>
+        public IEnumerable<XText> GetTextNodes(XElement element) {
+            var textNodes = from node in element.Nodes()
+                where node.NodeType == XmlNodeType.Text
+                let text = node as XText
+                select text;
+            return textNodes;
         }
     }
 }
