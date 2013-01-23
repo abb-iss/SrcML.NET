@@ -111,6 +111,7 @@ namespace ABB.SrcML.Data {
             var typeUse = new TypeUse() {
                 Name = typeName,
                 CurrentNamespace = GetNamespaceDefinition(element, fileUnit),
+                Parser = this,
             };
             return typeUse;
         }
@@ -150,6 +151,13 @@ namespace ABB.SrcML.Data {
         /// <param name="fileUnit"></param>
         /// <returns></returns>
         public abstract IEnumerable<Alias> CreateAliasesForFile(XElement fileUnit);
+
+        /// <summary>
+        /// Generates the possible names for this type use based on the aliases and the use data.
+        /// </summary>
+        /// <param name="typeUse">The type use to create</param>
+        /// <returns>An enumerable of fully</returns>
+        public abstract IEnumerable<string> GeneratePossibleNamesForTypeUse(TypeUse typeUse);
 
         /// <summary>
         /// Gets the filename for the given file unit.
