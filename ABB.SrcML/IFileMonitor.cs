@@ -18,9 +18,9 @@ namespace ABB.SrcML
     /// <summary>
     /// This interface is designed for all events that can be raised from SrcML.NET.
     /// </summary>
-    public interface ISrcMLDOTNETEvents
+    public interface IFileMonitor
     {
-        event EventHandler<SrcMLDOTNETEventArgs> SrcMLDOTNETEventRaised;
+        event EventHandler<FileEventRaisedArgs> FileEventRaised;
 
         string FullFolderPath
         {
@@ -28,53 +28,52 @@ namespace ABB.SrcML
             set;
         }
 
-        void StartWatching();
-        void StopWatching();
+        void StartMonitoring();
+        void StopMonitoring();
+        List<string> GetMonitoredFiles(System.ComponentModel.BackgroundWorker worker);
     }
 
     /// <summary>
     /// Event type enumeration.
     /// </summary>
-    public enum SrcMLDOTNETEventType
+    public enum FileEventType
     {
-        SourceFileAdded,    // Raised when a source file is added into the solution in Visual Studio
-        SourceFileChanged,  // Raised when a source file is changed and saved in the solution in Visual Studio
-        SourceFileDeleted,  // Raised when a source file is deleted from the solution in Visual Studio
-        SourceFileRenamed,  // Raised when a source file is renamed in the solution in Visual Studio
-        MonitoringStopped,  // Raised when the solution is about to be closed in Visual Studio
-        StartupCompleted    // Raised when the starup process for the solution is completed in Visual Studio
+        FileAdded,    // Raised when a source file is added
+        FileChanged,  // Raised when a source file is changed
+        FileDeleted,  // Raised when a source file is deleted
+        FileRenamed,  // Raised when a source file is renamed
     }
 
     /// <summary>
     /// Event data of SrcML.NET events.
     /// </summary>
-    public class SrcMLDOTNETEventArgs : System.EventArgs
+    public class FileEventRaisedArgs : System.EventArgs
     {
-        protected SrcMLDOTNETEventArgs()
+        protected FileEventRaisedArgs()
         {
         }
 
-        public SrcMLDOTNETEventArgs(string SourcePath, SrcMLDOTNETEventType eventType)
+        public FileEventRaisedArgs(string SourcePath, FileEventType eventType)
             : this(SourcePath, SourcePath, null, eventType)
         {
         }
 
-        public SrcMLDOTNETEventArgs(string SourcePath, XElement xelement, SrcMLDOTNETEventType eventType)
+        public FileEventRaisedArgs(string SourcePath, XElement xelement, FileEventType eventType)
             : this(SourcePath, SourcePath, xelement, eventType)
         {
         }
 
-        public SrcMLDOTNETEventArgs(string SourcePath, string oldSourcePath, SrcMLDOTNETEventType eventType)
+        public FileEventRaisedArgs(string SourcePath, string oldSourcePath, FileEventType eventType)
             : this(SourcePath, oldSourcePath, null, null, eventType)
         {
         }
 
-        public SrcMLDOTNETEventArgs(string SourcePath, string oldSourcePath, XElement xelement, SrcMLDOTNETEventType eventType)
+        public FileEventRaisedArgs(string SourcePath, string oldSourcePath, XElement xelement, FileEventType eventType)
             : this(SourcePath, oldSourcePath, xelement, null, eventType)
         {
         }
 
-        public SrcMLDOTNETEventArgs(string SourcePath, string oldSourcePath, XElement xelement, string SrcMLPath, SrcMLDOTNETEventType eventType)
+        public FileEventRaisedArgs(string SourcePath, string oldSourcePath, XElement xelement, string SrcMLPath, FileEventType eventType)
         {
             this.SourceFilePath = SourcePath;
             this.OldSourceFilePath = oldSourcePath;
@@ -83,7 +82,7 @@ namespace ABB.SrcML
             this.EventType = eventType;
         }
 
-        public SrcMLDOTNETEventType EventType
+        public FileEventType EventType
         {
             get;
             set;

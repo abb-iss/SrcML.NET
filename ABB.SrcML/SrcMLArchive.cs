@@ -21,27 +21,17 @@ using ABB.SrcML.Utilities;
 
 namespace ABB.SrcML
 {
-    ////public class SrcMLArchive : AbstractArchive, ISourceFolder
-    public class SrcMLArchive : AbstractArchive, ISrcMLDOTNETEvents
+    public class SrcMLArchive : AbstractArchive
     {
-        ////public SrcMLArchive(ISourceFolder sourceDirectory)
-        public SrcMLArchive(ISolutionMonitorEvents solutionMonitor)
-            : this(solutionMonitor, Path.Combine(solutionMonitor.FullFolderPath, ".srcml"), new Src2SrcMLRunner())
+        public SrcMLArchive(IFileMonitor fileMonitor, string xmlDirectory)
+            : this(fileMonitor, xmlDirectory, new Src2SrcMLRunner())
         {
 
         }
 
-        ////public SrcMLArchive(ISourceFolder sourceDirectory, string xmlDirectory)
-        public SrcMLArchive(ISolutionMonitorEvents solutionMonitor, string xmlDirectory)
-            : this(solutionMonitor, xmlDirectory, new Src2SrcMLRunner())
+        public SrcMLArchive(IFileMonitor fileMonitor, string xmlDirectory, Src2SrcMLRunner generator)
         {
-
-        }
-
-        ////public SrcMLArchive(ISourceFolder sourceDirectory, string xmlDirectory, Src2SrcMLRunner generator)
-        public SrcMLArchive(ISolutionMonitorEvents solutionMonitor, string xmlDirectory, Src2SrcMLRunner generator)
-        {
-            this.SolutionMonitor = solutionMonitor;
+            this.FileMonitor = fileMonitor;
             this.ArchivePath = xmlDirectory;
             this.XmlGenerator = generator;
             
@@ -52,12 +42,11 @@ namespace ABB.SrcML
 
             InitializeValidFileExtensions();
 
-            ////this.SourceDirectory.SourceFileChanged += RespondToFileChangedEvent;
-            this.SolutionMonitor.SolutionMonitorEventRaised += RespondToSolutionMonitorEvent;
+            this.FileMonitor.FileEventRaised += RespondToFileEvent;
         }
 
         ////public ISourceFolder SourceDirectory
-        public ISolutionMonitorEvents SolutionMonitor
+        public IFileMonitor FileMonitor
         {
             get;
             set;
@@ -80,21 +69,10 @@ namespace ABB.SrcML
         /// </summary>
         private HashSet<string> validFileExtensions;
 
-        #region ISrcMLDOTNETEvents Members
+        public event EventHandler<FileEventRaisedArgs> SourceFileChanged;
 
-        public event EventHandler<SrcMLDOTNETEventArgs> SrcMLDOTNETEventRaised;
-
-        public string FullFolderPath
-        {
-            get
-            {
-                return this.SolutionMonitor.FullFolderPath;
-            }
-            set
-            {
-                this.SolutionMonitor.FullFolderPath = value;
-            }
-        }
+        public event EventHandler<EventArgs> StartupCompleted;
+        public event EventHandler<EventArgs> MonitoringStopped;
 
         public void StartWatching()
         {
@@ -105,7 +83,7 @@ namespace ABB.SrcML
             startupWorker.DoWork += new DoWorkEventHandler(_runStartupInBackground_DoWork);
             startupWorker.RunWorkerAsync();
             
-            this.SolutionMonitor.StartWatching();
+            this.FileMonitor.StartMonitoring();
         }
 
         public void StopWatching()
@@ -113,7 +91,7 @@ namespace ABB.SrcML
             writeLog("D:\\Data\\log.txt", "======= SrcMLArchive: STOP WATCHING =======");
             try
             {
-                this.SolutionMonitor.StopWatching();
+                this.FileMonitor.StopMonitoring();
 
                 // Disable the startup background worker
                 if (startupWorker != null)
@@ -131,41 +109,9 @@ namespace ABB.SrcML
             {
                 // maybe not necessary
                 writeLog("D:\\Data\\log.txt", "Raise a MonitoringStopped event.");
-                OnSrcMLDOTNETEventsRaised(new SrcMLDOTNETEventArgs(null, SrcMLDOTNETEventType.MonitoringStopped));
+                OnMonitoringStopped(new EventArgs());
             }
         }
-
-        #endregion
-
-        /* //// Original code
-        #region ISourceFolder Members
-
-        public event EventHandler<SourceEventArgs> SourceFileChanged;
-
-        public string FullFolderPath
-        {
-            get
-            {
-                return this.SourceDirectory.FullFolderPath;
-            }
-            set
-            {
-                this.SourceDirectory.FullFolderPath = value;
-            }
-        }
-
-        public void StartWatching()
-        {
-            this.SourceDirectory.StartWatching();
-        }
-
-        public void StopWatching()
-        {
-            this.SourceDirectory.StopWatching();
-        }
-
-        #endregion
-        */
 
         #region AbstractArchive Members
 
@@ -239,7 +185,7 @@ namespace ABB.SrcML
             try
             {
                 // compare two lists ??
-                List<string> allMonitoredFiles = SolutionMonitor.GetAllMonitoredFiles(worker);
+                List<string> allMonitoredFiles = FileMonitor.GetMonitoredFiles(worker);
                 writeLog("D:\\Data\\log.txt", "@@@ allMonitoredFiles [" + allMonitoredFiles.Count + "]");
                 foreach (string sourceFilePath in allMonitoredFiles)
                 {
@@ -259,7 +205,7 @@ namespace ABB.SrcML
             }
             finally
             {
-                OnSrcMLDOTNETEventsRaised(new SrcMLDOTNETEventArgs(null, SrcMLDOTNETEventType.StartupCompleted));
+                OnStartupCompleted(new EventArgs());
             }
 
             stopwatch.Stop();
@@ -315,7 +261,7 @@ namespace ABB.SrcML
                 {
                     // If there is not such a source file, then delete the corresponding srcML file
                     writeLog("D:\\Data\\log.txt", "--> To DELETE srcML for: " + sourceFilePath);
-                    RespondToSolutionMonitorEvent(null, new SolutionMonitorEventArgs(sourceFilePath, SolutionMonitorEventType.FileDeleted));
+                    RespondToFileEvent(null, new FileEventRaisedArgs(sourceFilePath, FileEventType.FileDeleted));
                 }
                 else
                 {
@@ -325,7 +271,7 @@ namespace ABB.SrcML
                     {
                         // If there is not a corresponding srcML file, then generate the srcML file
                         writeLog("D:\\Data\\log.txt", "--> To ADD: " + srcMLFilePath);
-                        RespondToSolutionMonitorEvent(null, new SolutionMonitorEventArgs(sourceFilePath, SolutionMonitorEventType.FileAdded));
+                        RespondToFileEvent(null, new FileEventRaisedArgs(sourceFilePath, FileEventType.FileAdded));
                     }
                     else
                     {
@@ -335,7 +281,7 @@ namespace ABB.SrcML
                         {
                             // If source file's timestamp is later than its srcML file's timestamp, then generate the srcML file, otherwise do nothing
                             writeLog("D:\\Data\\log.txt", "--> To CHANGE: " + srcMLFilePath);
-                            RespondToSolutionMonitorEvent(null, new SolutionMonitorEventArgs(sourceFilePath, SolutionMonitorEventType.FileChanged));
+                            RespondToFileEvent(null, new FileEventRaisedArgs(sourceFilePath, FileEventType.FileChanged));
                         }
                         else
                         {
@@ -371,7 +317,7 @@ namespace ABB.SrcML
         /// <param name="sender"></param>
         /// <param name="eventArgs"></param>
         ////public void RespondToFileChangedEvent(object sender, SourceEventArgs eventArgs)
-        public void RespondToSolutionMonitorEvent(object sender, SolutionMonitorEventArgs eventArgs)
+        public void RespondToFileEvent(object sender, FileEventRaisedArgs eventArgs)
         {
             string sourceFilePath = eventArgs.SourceFilePath;
             string oldSourceFilePath = eventArgs.OldSourceFilePath;
@@ -379,232 +325,29 @@ namespace ABB.SrcML
             var directoryName = Path.GetDirectoryName(Path.GetFullPath(sourceFilePath));
             var xmlFullPath = Path.GetFullPath(this.ArchivePath);
             
-            if (!directoryName.StartsWith(xmlFullPath, StringComparison.InvariantCultureIgnoreCase))
+            if (!directoryName.StartsWith(xmlFullPath, StringComparison.InvariantCultureIgnoreCase) && isValidFileExtension(sourceFilePath))
             {
-                XElement xelement = null;
-                SrcMLDOTNETEventArgs srcMLDOTNETEventArgs = null;
                 switch (eventArgs.EventType)
                 {
-                    case SolutionMonitorEventType.FileAdded:
-                        xelement = GenerateXmlAndXElementForSource(sourceFilePath);
-                        srcMLDOTNETEventArgs = new SrcMLDOTNETEventArgs(sourceFilePath, xelement, SrcMLDOTNETEventType.SourceFileAdded);
+                    case FileEventType.FileAdded:
+                        GenerateXmlForSource(sourceFilePath);
                         break;
-                    case SolutionMonitorEventType.FileChanged:
-                        xelement = GenerateXmlAndXElementForSource(sourceFilePath);
-                        srcMLDOTNETEventArgs = new SrcMLDOTNETEventArgs(sourceFilePath, xelement, SrcMLDOTNETEventType.SourceFileChanged);
+                    case FileEventType.FileChanged:
+                        GenerateXmlForSource(sourceFilePath);
                         break;
-                    case SolutionMonitorEventType.FileDeleted:
+                    case FileEventType.FileDeleted:
                         DeleteXmlForSourceFile(sourceFilePath);
-                        srcMLDOTNETEventArgs = new SrcMLDOTNETEventArgs(sourceFilePath, xelement, SrcMLDOTNETEventType.SourceFileDeleted);
                         break;
-                    case SolutionMonitorEventType.FileRenamed:
+                    case FileEventType.FileRenamed:
                         DeleteXmlForSourceFile(oldSourceFilePath);
-                        xelement = GenerateXmlAndXElementForSource(sourceFilePath);
-                        srcMLDOTNETEventArgs = new SrcMLDOTNETEventArgs(sourceFilePath, oldSourceFilePath, xelement, SrcMLDOTNETEventType.SourceFileRenamed);
+                        GenerateXmlForSource(sourceFilePath);
                         break;
                 }
 
                 writeLog("D:\\Data\\log.txt", "SrcMLArchive raises an event for [" + sourceFilePath + ".");
-                OnSourceFileChanged(srcMLDOTNETEventArgs);
+                OnSourceFileChanged(eventArgs);
             }
         }
-
-        /// <summary>
-        /// Regenerate srcML files only for added/changed/deleted/renamed files under a directory recursively.
-        /// Last modified on 2012.10.11
-        /// </summary>
-        /// <param name="directoryPath"></param>
-        /*
-        public void GenerateXmlForDirectory(string directoryPath)
-        {
-            // Traverse source directory to generate srcML files when needed (TODO: make sure directoryPath is a full path?)
-            DirectoryInfo rootDir = new DirectoryInfo(directoryPath);
-            WalkSourceDirectoryTree(rootDir);
-
-            // Traverse srcML directory to remove srcML files when needed
-            //// Try to store srcML files with Base32 encoding in ONE folder
-            DirectoryInfo srcMLRootDir = new DirectoryInfo(Path.GetFullPath(this.ArchivePath));
-            WalkSrcMLDirectoryTree(srcMLRootDir);
-        }
-        */
-
-        /* //// This functionality should be within SolutionMonitor.cs now.
-        private void WalkSourceDirectoryTree(DirectoryInfo sourceDir)
-        {
-            FileInfo[] sourceFiles = null;
-            DirectoryInfo[] sourceSubDirs = null;
-
-            try
-            {
-                sourceFiles = sourceDir.GetFiles("*.*");
-            }
-            // In case one of the files requires permissions greater than the application provides
-            catch (UnauthorizedAccessException e)
-            {
-                Console.WriteLine(e.Message);
-            }
-            catch (DirectoryNotFoundException e)
-            {
-                Console.WriteLine(e.Message);
-            }
-
-            if (sourceFiles != null)
-            {
-                foreach (FileInfo fi in sourceFiles)
-                {
-                    ////Console.WriteLine("-> Source File: " + fi.FullName);
-                    string srcMLFilePath = GetXmlPathForSourcePath(fi.FullName);
-                    ////Console.WriteLine("-> srcML File: " + srcMLFilePath);
-                    try
-                    {
-                        if (!File.Exists(srcMLFilePath))
-                        {
-                            // If there is not a corresponding srcML file, then generate the srcML file [Added]
-                            RespondToFileChangedEvent(null, new SourceEventArgs(fi.FullName, SourceEventType.Added));
-                            ////Console.WriteLine("Added");
-                        }
-                        else
-                        {
-                            // if source file's timestamp is later than its srcML file's timestamp, 
-                            // then GenerateXmlForSource() [Changed]
-                            DateTime sourceFileTimestamp = fi.LastWriteTime;
-                            DateTime srcLMFileTimestamp = new FileInfo(srcMLFilePath).LastWriteTime;
-                            if (sourceFileTimestamp.CompareTo(srcLMFileTimestamp) > 0)
-                            {
-                                RespondToFileChangedEvent(null, new SourceEventArgs(fi.FullName, SourceEventType.Changed));
-                                Console.WriteLine("Changed");
-                            }
-                            else
-                            {
-                                //Console.WriteLine("!!! NO ACTION !!!");
-                            }
-                        }
-                    }
-                    // In case the file has been deleted since the traversal
-                    catch (FileNotFoundException e)
-                    {
-                        Console.WriteLine(e.Message);
-                    }
-                }
-
-                sourceSubDirs = sourceDir.GetDirectories();
-                foreach (DirectoryInfo sourceDirInfo in sourceSubDirs)
-                {
-                    //Console.WriteLine("sourceDirInfo: " + sourceDirInfo.Name);
-                    if (!".srcml".Equals(sourceDirInfo.Name))
-                    {
-                        WalkSourceDirectoryTree(sourceDirInfo);
-                    }
-                }
-            }
-        }
-        */
-
-        /*
-        private void WalkSrcMLDirectoryTree(DirectoryInfo srcMLDir)
-        {
-            FileInfo[] srcMLFiles = null;
-            DirectoryInfo[] srcMLSubDirs = null;
-
-            try
-            {
-                srcMLFiles = srcMLDir.GetFiles("*.*");
-            }
-            // In case one of the files requires permissions greater than the application provides
-            catch (UnauthorizedAccessException e)
-            {
-                Console.WriteLine(e.Message);
-            }
-            catch (DirectoryNotFoundException e)
-            {
-                Console.WriteLine(e.Message);
-            }
-
-            if (srcMLFiles != null)
-            {
-                foreach (FileInfo fi in srcMLFiles)
-                {
-                    Console.WriteLine("<- srcML File: " + fi.FullName);
-                    string sourceFilePath = GetSourcePathForXmlPath(fi.FullName);
-                    Console.WriteLine("<- Source File: " + sourceFilePath);
-                    try
-                    {
-                        if (!File.Exists(sourceFilePath))
-                        {
-                            // If there is not a corresponding source file, then delete the srcML file [Deleted]
-                            RespondToFileChangedEvent(null, new SourceEventArgs(sourceFilePath, SourceEventType.Deleted));
-                            Console.WriteLine("Deleted");
-                        }
-                        else
-                        {
-                            //Console.WriteLine("!!! NO ACTION !!!");
-                        }
-                    }
-                    // In case the file has been deleted since the traversal
-                    catch (FileNotFoundException e)
-                    {
-                        Console.WriteLine(e.Message);
-                    }
-                }
-
-                srcMLSubDirs = srcMLDir.GetDirectories();
-                foreach (DirectoryInfo srcMLDirInfo in srcMLSubDirs)
-                {
-                    //Console.WriteLine("srcMLDirInfo: " + srcMLDirInfo.Name);
-                    WalkSrcMLDirectoryTree(srcMLDirInfo);
-                }
-            }
-        }
-        */
-
-        /* //// This functionality should be within SolutionMonitor.cs now.
-        private void WalkSrcMLDirectoryTree(DirectoryInfo srcMLDir)
-        {
-            FileInfo[] srcMLFiles = null;
-
-            try
-            {
-                srcMLFiles = srcMLDir.GetFiles("*.*");
-            }
-            // In case one of the files requires permissions greater than the application provides
-            catch (UnauthorizedAccessException e)
-            {
-                Console.WriteLine(e.Message);
-            }
-            catch (DirectoryNotFoundException e)
-            {
-                Console.WriteLine(e.Message);
-            }
-
-            if (srcMLFiles != null)
-            {
-                foreach (FileInfo fi in srcMLFiles)
-                {
-                    ////Console.WriteLine("<- srcML File: " + fi.FullName);
-                    string sourceFilePath = GetSourcePathForXmlPath(fi.FullName);
-                    ////Console.WriteLine("<- Source File: " + sourceFilePath);
-                    try
-                    {
-                        if (!File.Exists(sourceFilePath))
-                        {
-                            // If there is not a corresponding source file, then delete the srcML file [Deleted]
-                            RespondToFileChangedEvent(null, new SourceEventArgs(sourceFilePath, SourceEventType.Deleted));
-                            Console.WriteLine("Deleted");
-                        }
-                        else
-                        {
-                            //Console.WriteLine("!!! NO ACTION !!!");
-                        }
-                    }
-                    // In case the file has been deleted since the traversal
-                    catch (FileNotFoundException e)
-                    {
-                        Console.WriteLine(e.Message);
-                    }
-                }
-            }
-        }
-        */
 
         /// <summary>
         /// Generate both a srcML File and a XElement of the content of this file for a source code file.
@@ -770,29 +513,28 @@ namespace ABB.SrcML
         /// </summary>
         /// <param name="e"></param>
         ////protected virtual void OnSourceFileChanged(SourceEventArgs e)
-        protected virtual void OnSourceFileChanged(SrcMLDOTNETEventArgs e)
+        protected virtual void OnSourceFileChanged(FileEventRaisedArgs e)
         {
-            ////EventHandler<SourceEventArgs> handler = SourceFileChanged;
-            EventHandler<SrcMLDOTNETEventArgs> handler = SrcMLDOTNETEventRaised;
+            EventHandler<FileEventRaisedArgs> handler = SourceFileChanged;
             if (handler != null)
             {
                 handler(this, e);
             }
         }
 
-        /// <summary>
-        /// Raise a SrcML.NET event (StartupCompleted, MonitoringStopped, etc.)
-        /// </summary>
-        /// <param name="e"></param>
-        protected virtual void OnSrcMLDOTNETEventsRaised(SrcMLDOTNETEventArgs e)
-        {
-            EventHandler<SrcMLDOTNETEventArgs> handler = SrcMLDOTNETEventRaised;
-            if (handler != null)
-            {
+        protected virtual void OnStartupCompleted(EventArgs e) {
+            EventHandler<EventArgs> handler = StartupCompleted;
+            if(handler != null) {
                 handler(this, e);
             }
         }
 
+        protected virtual void OnMonitoringStopped(EventArgs e) {
+            EventHandler<EventArgs> handler = MonitoringStopped;
+            if(handler != null) {
+                handler(this, e);
+            }
+        }
 
         /// <summary>
         /// For debugging.
