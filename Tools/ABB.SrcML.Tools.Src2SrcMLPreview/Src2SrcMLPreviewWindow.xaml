@@ -35,7 +35,7 @@
             <ColumnDefinition Width="402*" />
         </Grid.ColumnDefinitions>
         <TextBox Name="sourceBox" TextChanged="sourceBox_TextChanged" Margin="6" AcceptsReturn="True" AcceptsTab="True" TextWrapping="WrapWithOverflow" VerticalAlignment="Stretch" Grid.ColumnSpan="3" Grid.Row="2" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" />
-        <TextBox Name="srcmlBox" TextDecorations="None" IsReadOnly="True" TextWrapping="Wrap" Margin="6" Grid.ColumnSpan="3" TextChanged="srcmlBox_TextChanged" Grid.Row="4" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" />
+        <TextBox Name="srcmlBox" TextDecorations="None" IsReadOnly="True" TextWrapping="Wrap" Margin="6" Grid.ColumnSpan="3" Grid.Row="4" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" />
         <TreeView Margin="6" Name="xmlTree" ItemsSource="{Binding Path=Root.Elements}"
                   ItemTemplate="{StaticResource TreeViewTemplate}" Grid.ColumnSpan="3" VerticalAlignment="Stretch" Grid.Row="6" VerticalContentAlignment="Top">
         </TreeView>

@@ -100,7 +100,7 @@ namespace ABB.SrcML
             }
             catch (InvalidOperationException)
             {
-
+                shortest = null;
             }
 
             while (!shortestFound)

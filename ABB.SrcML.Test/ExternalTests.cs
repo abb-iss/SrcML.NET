@@ -19,17 +19,17 @@ using System.Xml.Linq;
 using ABB.SrcML;
 namespace ABB.SrcML.Test
 {
-	[TestFixture]
+    [TestFixture]
     [Category("Build")]
-	public class ExternalTests
-	{
-		[TestFixtureSetUp]
-		public static void ExternalTestInitialize()
-		{
-			Directory.CreateDirectory("external");
-			Directory.CreateDirectory("external_xml");
+    public class ExternalTests
+    {
+        [TestFixtureSetUp]
+        public static void ExternalTestInitialize()
+        {
+            Directory.CreateDirectory("external");
+            Directory.CreateDirectory("external_xml");
 
-			File.WriteAllBytes("external\\fileWithBom.cpp", new byte[3] { 0xEF, 0xBB, 0xBF });
+            File.WriteAllBytes("external\\fileWithBom.cpp", new byte[3] { 0xEF, 0xBB, 0xBF });
 
             File.WriteAllText("external\\ClassWithConstructor.java", String.Format(@"package external;{0}{0}class ClassWithConstructor{0}{{{0}	private int hidden = 0;{0}{0}	public Test(int value){0}	{{{0}		hidden = value;{0}	}}{0}{0}	public int foo (char a){0}	{{{0}		return (int) a;{0}	}}{0}}}", Environment.NewLine));
 
@@ -40,98 +40,98 @@ namespace ABB.SrcML.Test
             File.WriteAllText("external\\DestructorWithIfStatement.cpp", String.Format(@"~Test(){0}{{{0}	if(0){0}	{{{0}	}}{0}}}", Environment.NewLine));
 
             File.WriteAllText("external\\MethodWithFunctionPointerParameters.cpp", String.Format(@"void foo(int (*a)(char i), char b){0}{{{0}}}", Environment.NewLine));
-		}
+        }
 
-		[TestFixtureTearDown]
-		public static void SRCTestCleanup()
-		{
-			foreach (var file in Directory.GetFiles("external"))
-			{
-				File.Delete(file);
-			}
-			foreach (var file in Directory.GetFiles("external_xml"))
-			{
-				File.Delete(file);
-			}
-			Directory.Delete("external");
-			Directory.Delete("external_xml");
-		}
+        [TestFixtureTearDown]
+        public static void SRCTestCleanup()
+        {
+            foreach (var file in Directory.GetFiles("external"))
+            {
+                File.Delete(file);
+            }
+            foreach (var file in Directory.GetFiles("external_xml"))
+            {
+                File.Delete(file);
+            }
+            Directory.Delete("external");
+            Directory.Delete("external_xml");
+        }
 
-		[Test]
-		public void FileWithBom()
-		{
-			var srcmlObject = new ABB.SrcML.SrcML(TestConstants.SrcmlPath);
+        [Test]
+        public void FileWithBom()
+        {
+            var srcmlObject = new ABB.SrcML.SrcML();
 
-			var doc = srcmlObject.GenerateSrcMLFromFile("external\\fileWithBom.cpp", "external_xml\\fileWithBom.xml");
-		}
+            var doc = srcmlObject.GenerateSrcMLFromFile("external\\fileWithBom.cpp", "external_xml\\fileWithBom.xml");
+        }
 
-		[Test]
-		public void JavaClassWithConstructor()
-		{
-			var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
+        [Test]
+        public void JavaClassWithConstructor()
+        {
+            var srcmlObject = new Src2SrcMLRunner();
 
-			var doc = srcmlObject.GenerateSrcMLFromFile("external\\ClassWithConstructor.java", "external_xml\\ClassWithConstructor.java.xml");
-			XElement classBlock = null;
+            var doc = srcmlObject.GenerateSrcMLFromFile("external\\ClassWithConstructor.java", "external_xml\\ClassWithConstructor.java.xml");
+            XElement classBlock = null;
 
-			classBlock = doc.FileUnits.First().Element(SRC.Class).Element(SRC.Block);
+            classBlock = doc.FileUnits.First().Element(SRC.Class).Element(SRC.Block);
 
-			Assert.AreEqual(1, classBlock.Elements(SRC.Function).Count(), srcmlObject.ApplicationDirectory);
-		}
+            Assert.AreEqual(1, classBlock.Elements(SRC.Function).Count(), srcmlObject.ApplicationDirectory);
+        }
 
-		[Test]
-		public void DeclStmtWithTwoDecl()
-		{
-			var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
-			var source = "int x = 0, y = 2;";
+        [Test]
+        public void DeclStmtWithTwoDecl()
+        {
+            var srcmlObject = new Src2SrcMLRunner();
+            var source = "int x = 0, y = 2;";
 
-			var xml = srcmlObject.GenerateSrcMLFromString(source);
-			var element = XElement.Parse(xml);
+            var xml = srcmlObject.GenerateSrcMLFromString(source);
+            var element = XElement.Parse(xml);
 
             var decl = element.Element(SRC.DeclarationStatement).Element(SRC.Declaration);
             var nameCount = decl.Elements(SRC.Name).Count();
             var initCount = decl.Elements(SRC.Init).Count();
-			Assert.AreEqual(2, nameCount, srcmlObject.ApplicationDirectory);
+            Assert.AreEqual(2, nameCount, srcmlObject.ApplicationDirectory);
             Assert.AreEqual(2, initCount, srcmlObject.ApplicationDirectory);
-		}
+        }
 
-		[Test]
-		public void FunctionWithElseInCpp()
-		{
-			var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
+        [Test]
+        public void FunctionWithElseInCpp()
+        {
+            var srcmlObject = new Src2SrcMLRunner();
 
-			var doc = srcmlObject.GenerateSrcMLFromFile("external\\cpp_parsing_error.c", "external_xml\\cpp_parsing_error.c.xml");
+            var doc = srcmlObject.GenerateSrcMLFromFile("external\\cpp_parsing_error.c", "external_xml\\cpp_parsing_error.c.xml");
 
-			Assert.AreEqual(1, doc.FileUnits.First().Elements().Count(), srcmlObject.ApplicationDirectory);
-		}
+            Assert.AreEqual(1, doc.FileUnits.First().Elements().Count(), srcmlObject.ApplicationDirectory);
+        }
 
-		[Test]
-		public void MacroWithoutSemicolon()
-		{
-			var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
+        [Test]
+        public void MacroWithoutSemicolon()
+        {
+            var srcmlObject = new Src2SrcMLRunner();
 
-			var doc = srcmlObject.GenerateSrcMLFromFile("external\\MacroWithoutSemicolon.cpp", "external_xml\\MacroWithoutSemicolon.cpp.xml");
+            var doc = srcmlObject.GenerateSrcMLFromFile("external\\MacroWithoutSemicolon.cpp", "external_xml\\MacroWithoutSemicolon.cpp.xml");
 
-			Assert.AreEqual(2, doc.FileUnits.First().Descendants(SRC.If).Count());
-		}
+            Assert.AreEqual(2, doc.FileUnits.First().Descendants(SRC.If).Count());
+        }
 
-		[Test]
-		public void DestructorWithIfStatement()
-		{
-			var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
+        [Test]
+        public void DestructorWithIfStatement()
+        {
+            var srcmlObject = new Src2SrcMLRunner();
 
-			var doc = srcmlObject.GenerateSrcMLFromFile("external\\DestructorWithIfStatement.cpp", "external_xml\\DestructorWithIfStatement.cpp.xml");
+            var doc = srcmlObject.GenerateSrcMLFromFile("external\\DestructorWithIfStatement.cpp", "external_xml\\DestructorWithIfStatement.cpp.xml");
 
-			Assert.AreEqual(1, doc.FileUnits.First().Descendants(SRC.Destructor).Count());
-		}
+            Assert.AreEqual(1, doc.FileUnits.First().Descendants(SRC.Destructor).Count());
+        }
 
         [Test]
         public void MethodWithFunctionPointerAsParameter()
         {
-            var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
+            var srcmlObject = new Src2SrcMLRunner();
 
             var doc = srcmlObject.GenerateSrcMLFromFile("external\\MethodWithFunctionPointerParameters.cpp", "external_xml\\MethodWithFunctionPointerParameters.cpp.xml");
 
             Assert.AreEqual(2, doc.FileUnits.First().Element(SRC.Function).Element(SRC.ParameterList).Elements(SRC.Parameter).Count());
         }
-	}
+    }
 }
