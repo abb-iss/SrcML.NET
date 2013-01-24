@@ -640,7 +640,7 @@ namespace ABB.SrcML
         }
 
         /// <summary>
-        /// Obsolete
+        /// Generate a srcML File for a source code file. Now use this method instead of GenerateXmlAndXElementForSource()
         /// </summary>
         /// <param name="sourcePath"></param>
         public void GenerateXmlForSource(string sourcePath)
@@ -764,6 +764,18 @@ namespace ABB.SrcML
             return sourcePath;
         }
         */
+
+        /// <summary>
+        /// Get the XElement for a specified source file.
+        /// </summary>
+        /// <param name="sourceFilePath"></param>
+        /// <returns></returns>
+        public XElement GetXElementForSourceFile(string sourceFilePath)
+        {
+            SrcMLFile srcMLFile = new SrcMLFile(sourceFilePath);
+            XElement xElements = srcMLFile.FileUnits.FirstOrDefault();
+            return xElements;
+        }
 
         /// <summary>
         /// Raise a SrcML.NET event (SourceFileAdded, SourceFileChanged, SourceFileDeleted, SourceFileRenamed)
