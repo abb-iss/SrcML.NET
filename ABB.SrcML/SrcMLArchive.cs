@@ -77,7 +77,7 @@ namespace ABB.SrcML
         public void StartWatching()
         {
             // run background thread for startup
-            writeLog("D:\\Data\\log.txt", "======= SrcMLArchive: START WATCHING =======");
+            //writeLog("D:\\Data\\log.txt", "======= SrcMLArchive: START WATCHING =======");
             startupWorker = new BackgroundWorker();
             startupWorker.WorkerSupportsCancellation = true;
             startupWorker.DoWork += new DoWorkEventHandler(_runStartupInBackground_DoWork);
@@ -88,7 +88,7 @@ namespace ABB.SrcML
 
         public void StopWatching()
         {
-            writeLog("D:\\Data\\log.txt", "======= SrcMLArchive: STOP WATCHING =======");
+            //writeLog("D:\\Data\\log.txt", "======= SrcMLArchive: STOP WATCHING =======");
             try
             {
                 this.FileMonitor.StopMonitoring();
@@ -108,7 +108,7 @@ namespace ABB.SrcML
             finally
             {
                 // maybe not necessary
-                writeLog("D:\\Data\\log.txt", "Raise a MonitoringStopped event.");
+                //writeLog("D:\\Data\\log.txt", "Raise a MonitoringStopped event.");
                 OnMonitoringStopped(new EventArgs());
             }
         }
@@ -186,14 +186,14 @@ namespace ABB.SrcML
             {
                 // compare two lists ??
                 List<string> allMonitoredFiles = FileMonitor.GetMonitoredFiles(worker);
-                writeLog("D:\\Data\\log.txt", "@@@ allMonitoredFiles [" + allMonitoredFiles.Count + "]");
+                //writeLog("D:\\Data\\log.txt", "@@@ allMonitoredFiles [" + allMonitoredFiles.Count + "]");
                 foreach (string sourceFilePath in allMonitoredFiles)
                 {
                     ProcessSingleSourceFile(sourceFilePath);
                 }
 
                 List<string> allSrcMLedFiles = GetAllSrcMLedFiles();
-                writeLog("D:\\Data\\log.txt", "@@@ allSrcMLedFiles [" + allSrcMLedFiles.Count + "]");
+                //writeLog("D:\\Data\\log.txt", "@@@ allSrcMLedFiles [" + allSrcMLedFiles.Count + "]");
                 foreach (string sourceFilePath in allSrcMLedFiles)
                 {
                     ProcessSingleSourceFile(sourceFilePath);
@@ -201,7 +201,7 @@ namespace ABB.SrcML
             }
             catch (Exception e)
             {
-                writeLog("D:\\Data\\log.txt", "Startup exception: " + e.Message);
+                //writeLog("D:\\Data\\log.txt", "Startup exception: " + e.Message);
             }
             finally
             {
@@ -209,7 +209,7 @@ namespace ABB.SrcML
             }
 
             stopwatch.Stop();
-            writeLog("D:\\Data\\log.txt", "Total time for startup check: " + stopwatch.Elapsed.ToString());
+            //writeLog("D:\\Data\\log.txt", "Total time for startup check: " + stopwatch.Elapsed.ToString());
         }
 
         /// <summary>
@@ -241,7 +241,7 @@ namespace ABB.SrcML
                 foreach (FileInfo fi in srcMLFiles)
                 {
                     string sourceFilePath = GetSourcePathForXmlPath(fi.Name);
-                    writeLog("D:\\Data\\log.txt", "GetAllSrcMLedFileNames() " + sourceFilePath);
+                    //writeLog("D:\\Data\\log.txt", "GetAllSrcMLedFileNames() " + sourceFilePath);
                     allSrcMLedFiles.Add(sourceFilePath);
                 }
             }
@@ -260,17 +260,17 @@ namespace ABB.SrcML
                 if (!File.Exists(sourceFilePath))
                 {
                     // If there is not such a source file, then delete the corresponding srcML file
-                    writeLog("D:\\Data\\log.txt", "--> To DELETE srcML for: " + sourceFilePath);
+                    //writeLog("D:\\Data\\log.txt", "--> To DELETE srcML for: " + sourceFilePath);
                     RespondToFileEvent(null, new FileEventRaisedArgs(sourceFilePath, FileEventType.FileDeleted));
                 }
                 else
                 {
                     string srcMLFilePath = GetXmlPathForSourcePath(sourceFilePath);
-                    writeLog("D:\\Data\\log.txt", "ProcessSingleSourceFile(): src = [" + sourceFilePath + "], srcML = [" + srcMLFilePath + "]");
+                    //writeLog("D:\\Data\\log.txt", "ProcessSingleSourceFile(): src = [" + sourceFilePath + "], srcML = [" + srcMLFilePath + "]");
                     if (!File.Exists(srcMLFilePath))
                     {
                         // If there is not a corresponding srcML file, then generate the srcML file
-                        writeLog("D:\\Data\\log.txt", "--> To ADD: " + srcMLFilePath);
+                        //writeLog("D:\\Data\\log.txt", "--> To ADD: " + srcMLFilePath);
                         RespondToFileEvent(null, new FileEventRaisedArgs(sourceFilePath, FileEventType.FileAdded));
                     }
                     else
@@ -280,12 +280,12 @@ namespace ABB.SrcML
                         if (sourceFileTimestamp.CompareTo(srcLMFileTimestamp) > 0)
                         {
                             // If source file's timestamp is later than its srcML file's timestamp, then generate the srcML file, otherwise do nothing
-                            writeLog("D:\\Data\\log.txt", "--> To CHANGE: " + srcMLFilePath);
+                            //writeLog("D:\\Data\\log.txt", "--> To CHANGE: " + srcMLFilePath);
                             RespondToFileEvent(null, new FileEventRaisedArgs(sourceFilePath, FileEventType.FileChanged));
                         }
                         else
                         {
-                            writeLog("D:\\Data\\log.txt", "--> NO ACTION: " + sourceFilePath);
+                            //writeLog("D:\\Data\\log.txt", "--> NO ACTION: " + sourceFilePath);
                         }
                     }
                 }
@@ -300,7 +300,7 @@ namespace ABB.SrcML
         private bool isValidFileExtension(string filePath)
         {
             string fileExtension = Path.GetExtension(filePath);
-            writeLog("D:\\Data\\log.txt", "fileExtension: [" + fileExtension + "]");
+            //writeLog("D:\\Data\\log.txt", "fileExtension: [" + fileExtension + "]");
             if (fileExtension != null && !fileExtension.Equals(String.Empty))
             {
                 if (validFileExtensions.Contains(fileExtension))
@@ -344,7 +344,7 @@ namespace ABB.SrcML
                         break;
                 }
 
-                writeLog("D:\\Data\\log.txt", "SrcMLArchive raises an event for [" + sourceFilePath + ".");
+                //writeLog("D:\\Data\\log.txt", "SrcMLArchive raises an event for [" + sourceFilePath + ".");
                 OnSourceFileChanged(eventArgs);
             }
         }
@@ -362,7 +362,7 @@ namespace ABB.SrcML
             {
                 Directory.CreateDirectory(directory);
             }
-            writeLog("D:\\Data\\log.txt", "GenerateXmlAndXElementForSource(): sourcePath = [" + sourcePath + "], xmlPath = [" + xmlPath + "]");
+            //writeLog("D:\\Data\\log.txt", "GenerateXmlAndXElementForSource(): sourcePath = [" + sourcePath + "], xmlPath = [" + xmlPath + "]");
             return this.XmlGenerator.GenerateSrcMLAndXElementFromFile(sourcePath, xmlPath);
         }
 
@@ -404,7 +404,7 @@ namespace ABB.SrcML
         public void DeleteXmlForSourceFile(string sourcePath)
         {
             var xmlPath = GetXmlPathForSourcePath(sourcePath);
-            writeLog("D:\\Data\\log.txt", "DeleteXmlForSource(): sourcePath = [" + sourcePath + "], xmlPath = [" + xmlPath + "]");
+            //writeLog("D:\\Data\\log.txt", "DeleteXmlForSource(): sourcePath = [" + sourcePath + "], xmlPath = [" + xmlPath + "]");
             var sourceDirectory = Path.GetDirectoryName(sourcePath);
 
             if (File.Exists(xmlPath))

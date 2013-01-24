@@ -22,12 +22,6 @@ namespace ABB.SrcML
     {
         event EventHandler<FileEventRaisedArgs> FileEventRaised;
 
-        string FullFolderPath
-        {
-            get;
-            set;
-        }
-
         void StartMonitoring();
         void StopMonitoring();
         List<string> GetMonitoredFiles(System.ComponentModel.BackgroundWorker worker);
@@ -38,10 +32,10 @@ namespace ABB.SrcML
     /// </summary>
     public enum FileEventType
     {
-        FileAdded,    // Raised when a source file is added
-        FileChanged,  // Raised when a source file is changed
-        FileDeleted,  // Raised when a source file is deleted
-        FileRenamed,  // Raised when a source file is renamed
+        FileAdded,    // Raised when a file is added
+        FileChanged,  // Raised when a file is changed
+        FileDeleted,  // Raised when a file is deleted
+        FileRenamed,  // Raised when a file is renamed
     }
 
     /// <summary>

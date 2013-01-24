@@ -17,7 +17,6 @@ using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using ABB.SrcML;
-using ABB.SrcML.VisualStudio.SolutionMonitor;
 using NUnit.Framework;
 using NSubstitute;
 
@@ -43,9 +42,7 @@ namespace ABB.SrcML.Test
         [Test]
         public void GenerateXmlForDirectoryTest()
         {
-            ////ISourceFolder watchedFolder = Substitute.For<ISourceFolder>();
             IFileMonitor watchedFolder = Substitute.For<IFileMonitor>();
-            watchedFolder.FullFolderPath = srcDirectoryInfo.FullName;
 
             var archive = new SrcMLArchive(watchedFolder, ".srcml");
             archive.XmlGenerator.ApplicationDirectory = TestConstants.SrcmlPath;
@@ -125,9 +122,7 @@ namespace ABB.SrcML.Test
         [Test]
         public void GenerateXmlForSourceTest()
         {
-            ////ISourceFolder watchedFolder = Substitute.For<ISourceFolder>();
             IFileMonitor watchedFolder = Substitute.For<IFileMonitor>();
-            watchedFolder.FullFolderPath = srcDirectoryInfo.FullName;
 
             var archive = new SrcMLArchive(watchedFolder, ".srcml");
             archive.XmlGenerator.ApplicationDirectory = TestConstants.SrcmlPath;
@@ -150,9 +145,7 @@ namespace ABB.SrcML.Test
         [Test]
         public void GenerateXmlAndStringForSourceTest()
         {
-            ////ISourceFolder watchedFolder = Substitute.For<ISourceFolder>();
             IFileMonitor watchedFolder = Substitute.For<IFileMonitor>();
-            watchedFolder.FullFolderPath = srcDirectoryInfo.FullName;
 
             var archive = new SrcMLArchive(watchedFolder, ".srcml");
             archive.XmlGenerator.ApplicationDirectory = TestConstants.SrcmlPath;
@@ -175,9 +168,7 @@ namespace ABB.SrcML.Test
         [Test]
         public void GenerateXmlAndXElementForSourceTest()
         {
-            ////ISourceFolder watchedFolder = Substitute.For<ISourceFolder>();
             IFileMonitor watchedFolder = Substitute.For<IFileMonitor>();
-            watchedFolder.FullFolderPath = srcDirectoryInfo.FullName;
 
             var archive = new SrcMLArchive(watchedFolder, ".srcml");
             archive.XmlGenerator.ApplicationDirectory = TestConstants.SrcmlPath;
@@ -199,10 +190,7 @@ namespace ABB.SrcML.Test
         public void FileAddDeleteChangeRenameTest()
         {
             int numberOfEventsRaised = 0;
-            ////ISourceFolder watchedFolder = Substitute.For<ISourceFolder>();
             IFileMonitor watchedFolder = Substitute.For<IFileMonitor>();
-
-            watchedFolder.FullFolderPath = srcDirectoryInfo.FullName;
 
             var archive = new SrcMLArchive(watchedFolder, ".srcml");
             archive.XmlGenerator.ApplicationDirectory = TestConstants.SrcmlPath;

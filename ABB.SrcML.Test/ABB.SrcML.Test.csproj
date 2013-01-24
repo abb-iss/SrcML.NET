@@ -72,10 +72,6 @@
     <Compile Include="TransformWithPrivateConstructor.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ABB.SrcML.VisualStudio.SolutionMonitor\ABB.SrcML.VisualStudio.SolutionMonitor.csproj">
-      <Project>{873DD65E-2C15-413D-9441-9850AC9A6B84}</Project>
-      <Name>ABB.SrcML.VisualStudio.SolutionMonitor</Name>
-    </ProjectReference>
     <ProjectReference Include="..\ABB.SrcML\ABB.SrcML.csproj">
       <Project>{D52626E7-A4CA-471A-8A6A-FE0110430FE6}</Project>
       <Name>ABB.SrcML</Name>
