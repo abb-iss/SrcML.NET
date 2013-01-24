@@ -36,8 +36,13 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
     /// 
     /// This class also implements ISolutionMonitorEvents so that client applications and SrcMLArchive can subscribe events that are raised from solution monitor.
     /// </summary>
-    public class SolutionMonitor : IVsTrackProjectDocumentsEvents2, IVsRunningDocTableEvents, ISolutionMonitorEvents
+    public class SolutionMonitor : IVsTrackProjectDocumentsEvents2, IVsRunningDocTableEvents, IFileMonitor
     {
+        public string FullFolderPath {
+            get;
+            set;
+        }
+
         /// <summary>
         /// _openSolution: The solution to be monitored.
         /// </summary>
@@ -102,22 +107,6 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
             // no use so far, will consider this later
             //_processFileInBackground = new BackgroundWorker();
             //_processFileInBackground.DoWork += new DoWorkEventHandler(_processFileInBackground_DoWork);
-        }
-
-        /// <summary>
-        /// Start monitoring the solution.
-        /// </summary>
-        public void StartMonitoring()
-        {
-            writeLog("D:\\Data\\log.txt", "======= SolutionMonitor: START MONITORING =======");
-            // moved to SrcMLArchive
-            //startupWorker = new BackgroundWorker();
-            //startupWorker.WorkerSupportsCancellation = true;
-            //startupWorker.DoWork += new DoWorkEventHandler(_runStartupInBackground_DoWork);
-            //startupWorker.RunWorkerAsync();
-
-            RegisterTrackProjectDocumentsEvents2();
-            RegisterRunningDocumentTableEvents();
         }
 
         /// <summary>
@@ -198,7 +187,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         /// Get all "monitored" files in this solution.
         /// </summary>
         /// <returns></returns>
-        public List<string> GetAllMonitoredFiles(BackgroundWorker worker)
+        public List<string> GetMonitoredFiles(BackgroundWorker worker)
         {
             allMonitoredFiles = new List<string>();
 
@@ -515,15 +504,6 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         }
 
         /// <summary>
-        /// Stop monitoring the solution.
-        /// </summary>
-        public void StopMonitoring()
-        {
-            writeLog("D:\\Data\\log.txt", "======= SolutionMonitor: STOP MONITORING =======");
-            Dispose();
-        }
-
-        /// <summary>
         /// Dispose this solution monitor.
         /// </summary>
         public void Dispose()
@@ -636,7 +616,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
                                         IVsProject[] rgpProjects,
                                         int[] rgFirstIndices,
                                         string[] rgpszMkDocuments,
-                                        SolutionMonitorEventType type)
+                                        FileEventType type)
         {
             int projItemIndex = 0;
             for (int changeProjIndex = 0; changeProjIndex < cProjects; changeProjIndex++)
@@ -659,31 +639,31 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         /// </summary>
         /// <param name="file"></param>
         /// <param name="type"></param>
-        public void RaiseSolutionMonitorEvent(string filePath, string oldFilePath, SolutionMonitorEventType type)
+        public void RaiseSolutionMonitorEvent(string filePath, string oldFilePath, FileEventType type)
         {
             //var directoryName = Path.GetDirectoryName(Path.GetFullPath(eventArgs.SourceFilePath));
             //var xmlFullPath = Path.GetFullPath(this.ArchivePath);
 
             //if (!directoryName.StartsWith(xmlFullPath, StringComparison.InvariantCultureIgnoreCase))
             {
-                SolutionMonitorEventArgs eventArgs = null;
+                FileEventRaisedArgs eventArgs = null;
                 switch (type)
                 {
-                    case SolutionMonitorEventType.FileAdded:
-                        eventArgs = new SolutionMonitorEventArgs(filePath, SolutionMonitorEventType.FileAdded);
+                    case FileEventType.FileAdded:
+                        eventArgs = new FileEventRaisedArgs(filePath, FileEventType.FileAdded);
                         break;
-                    case SolutionMonitorEventType.FileChanged:
-                        eventArgs = new SolutionMonitorEventArgs(filePath, SolutionMonitorEventType.FileChanged);
+                    case FileEventType.FileChanged:
+                        eventArgs = new FileEventRaisedArgs(filePath, FileEventType.FileChanged);
                         break;
-                    case SolutionMonitorEventType.FileDeleted:
-                        eventArgs = new SolutionMonitorEventArgs(filePath, SolutionMonitorEventType.FileDeleted);
+                    case FileEventType.FileDeleted:
+                        eventArgs = new FileEventRaisedArgs(filePath, FileEventType.FileDeleted);
                         break;
-                    case SolutionMonitorEventType.FileRenamed:  // actually not used
-                        eventArgs = new SolutionMonitorEventArgs(filePath, oldFilePath, SolutionMonitorEventType.FileRenamed);
+                    case FileEventType.FileRenamed:  // actually not used
+                        eventArgs = new FileEventRaisedArgs(filePath, oldFilePath, FileEventType.FileRenamed);
                         break;
                 }
                 writeLog("D:\\Data\\log.txt", "SolutionMonitor raises a " + type + " event for [" + filePath + ".");
-                OnSolutionMonitorEventsRaised(eventArgs);
+                OnFileEventRaised(eventArgs);
             }
         }
 
@@ -706,7 +686,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
                                                       VSADDFILEFLAGS[] rgFlags)
         {
             writeLog("D:\\Data\\log.txt", "==> Triggered IVsTrackProjectDocumentsEvents2.OnAfterAddFilesEx()");
-            return OnNotifyFileAddRemove(cProjects, cFiles, rgpProjects, rgFirstIndices, rgpszMkDocuments, SolutionMonitorEventType.FileAdded);
+            return OnNotifyFileAddRemove(cProjects, cFiles, rgpProjects, rgFirstIndices, rgpszMkDocuments, FileEventType.FileAdded);
         }
 
         /// <summary>
@@ -727,7 +707,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
                                                                VSREMOVEFILEFLAGS[] rgFlags)
         {
             writeLog("D:\\Data\\log.txt", "==> Triggered IVsTrackProjectDocumentsEvents2.OnAfterRemoveFiles()");
-            return OnNotifyFileAddRemove(cProjects, cFiles, rgpProjects, rgFirstIndices, rgpszMkDocuments, SolutionMonitorEventType.FileDeleted);
+            return OnNotifyFileAddRemove(cProjects, cFiles, rgpProjects, rgFirstIndices, rgpszMkDocuments, FileEventType.FileDeleted);
         }
 
         /// <summary>
@@ -750,8 +730,8 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
                                                                VSRENAMEFILEFLAGS[] rgFlags)
         {
             writeLog("D:\\Data\\log.txt", "==> Triggered IVsTrackProjectDocumentsEvents2.OnAfterRenameFiles()");
-            OnNotifyFileAddRemove(cProjects, cFiles, rgpProjects, rgFirstIndices, rgszMkOldNames, SolutionMonitorEventType.FileDeleted);
-            return OnNotifyFileAddRemove(cProjects, cFiles, rgpProjects, rgFirstIndices, rgszMkNewNames, SolutionMonitorEventType.FileAdded);
+            OnNotifyFileAddRemove(cProjects, cFiles, rgpProjects, rgFirstIndices, rgszMkOldNames, FileEventType.FileDeleted);
+            return OnNotifyFileAddRemove(cProjects, cFiles, rgpProjects, rgFirstIndices, rgszMkNewNames, FileEventType.FileAdded);
         }
 
         /// <summary>
@@ -927,7 +907,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
             IntPtr documentData;
 
             _documentTable.GetDocumentInfo(cookie, out flags, out readingLocks, out edittingLocks, out name, out hierarchy, out documentId, out documentData);
-            RaiseSolutionMonitorEvent(name, null, SolutionMonitorEventType.FileChanged);
+            RaiseSolutionMonitorEvent(name, null, FileEventType.FileChanged);
             //ProcessSingleSourceFile(name);
             //if (isValidFileExtension(name))
             //{
@@ -1004,38 +984,43 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         }
         #endregion
 
-        #region ISolutionMonitorEvents
-        public event EventHandler<SolutionMonitorEventArgs> SolutionMonitorEventRaised;
-        public string FullFolderPath
-        {
-            get;
-            set;
+        #region IFileMonitor
+        public event EventHandler<FileEventRaisedArgs> FileEventRaised;
+
+        /// <summary>
+        /// Start monitoring the solution.
+        /// </summary>
+        public void StartMonitoring() {
+            writeLog("D:\\Data\\log.txt", "======= SolutionMonitor: START MONITORING =======");
+            // moved to SrcMLArchive
+            //startupWorker = new BackgroundWorker();
+            //startupWorker.WorkerSupportsCancellation = true;
+            //startupWorker.DoWork += new DoWorkEventHandler(_runStartupInBackground_DoWork);
+            //startupWorker.RunWorkerAsync();
+
+            RegisterTrackProjectDocumentsEvents2();
+            RegisterRunningDocumentTableEvents();
         }
-        public void StartWatching()
-        {
-            StartMonitoring();  // just register IVsTrackProjectDocumentsEvents2 and IVsRunningDocumentTableEvents
-        }
-        public void StopWatching()
-        {
-            StopMonitoring();   // just unregister ISsTrackProjectDocumentsEvents2 and IVsRunningDocumentTableEvents
+
+        /// <summary>
+        /// Stop monitoring the solution.
+        /// </summary>
+        public void StopMonitoring() {
+            writeLog("D:\\Data\\log.txt", "======= SolutionMonitor: STOP MONITORING =======");
+            Dispose();
         }
 
         /// <summary>
         /// Handle SolutionMonitorEvents.
         /// </summary>
         /// <param name="e"></param>
-        protected virtual void OnSolutionMonitorEventsRaised(SolutionMonitorEventArgs e)
-        {
-            EventHandler<SolutionMonitorEventArgs> handler = SolutionMonitorEventRaised;
-            if (handler != null)
-            {
+        protected virtual void OnFileEventRaised(FileEventRaisedArgs e) {
+            EventHandler<FileEventRaisedArgs> handler = FileEventRaised;
+            if(handler != null) {
                 handler(this, e);
             }
         }
         #endregion
-
-
-
 
         /// <summary>
         /// For debugging.

@@ -16,7 +16,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using ABB.SrcML;
-using ABB.SrcML.VisualStudio.SolutionMonitor;
 using NUnit.Framework;
 using NSubstitute;
 
@@ -59,11 +58,9 @@ namespace ABB.SrcML.Test
             Stopwatch swInit = new Stopwatch();
             swInit.Start();
 
-            ////ISourceFolder watchedFolder = Substitute.For<ISourceFolder>();
-            ISolutionMonitorEvents watchedFolder = Substitute.For<ISolutionMonitorEvents>();
-            watchedFolder.FullFolderPath = srcDirectoryInfo.FullName;
+            IFileMonitor watchedFolder = Substitute.For<IFileMonitor>();
 
-            var archive = new SrcMLArchive(watchedFolder);
+            var archive = new SrcMLArchive(watchedFolder, Path.Combine(srcDirectoryInfo.FullName, ".srcml"));
             archive.XmlGenerator.ApplicationDirectory = TestConstants.SrcmlPath;
             var xmlDirectory = new DirectoryInfo(archive.ArchivePath);
 
@@ -170,12 +167,9 @@ namespace ABB.SrcML.Test
         [Test]
         public void GenerateXmlForDirectoryTest()
         {
-            ////ISourceFolder watchedFolder = Substitute.For<ISourceFolder>();
-            ISolutionMonitorEvents watchedFolder = Substitute.For<ISolutionMonitorEvents>();
+            IFileMonitor watchedFolder = Substitute.For<IFileMonitor>();
 
-            watchedFolder.FullFolderPath = srcDirectoryInfo.FullName;
-
-            var archive = new SrcMLArchive(watchedFolder);
+            var archive = new SrcMLArchive(watchedFolder, Path.Combine(srcDirectoryInfo.FullName, ".srcml"));
             archive.XmlGenerator.ApplicationDirectory = TestConstants.SrcmlPath;
             var xmlDirectory = new DirectoryInfo(archive.ArchivePath);
 
@@ -222,9 +216,8 @@ namespace ABB.SrcML.Test
 
             File.WriteAllText(SOURCEDIRECTORY + "\\foo.c", String.Format(@"int foo() {{{0}printf(""hello world! changed"");{0}}}", Environment.NewLine));
             File.WriteAllText(SOURCEDIRECTORY + "\\subdir2\\subdir21\\bar21.c", String.Format(@"int bar21() {{{0}    printf(""goodbye, world 21! changed"");{0}}}", Environment.NewLine));
-            File.Delete("C:\\Users\\USJIZHE\\Documents\\GitHub\\SrcML.NET\\Build\\Debug\\testSourceDir\\subdir1\\subdir12\\bar12.c");
-            File.Move("C:\\Users\\USJIZHE\\Documents\\GitHub\\SrcML.NET\\Build\\Debug\\testSourceDir\\subdir1\\subdir11\\foo11.c",
-                "C:\\Users\\USJIZHE\\Documents\\GitHub\\SrcML.NET\\Build\\Debug\\testSourceDir\\subdir1\\subdir11\\foo1111111.c");
+            File.Delete(SOURCEDIRECTORY + "\\subdir1\\subdir12\\bar12.c");
+            File.Move(SOURCEDIRECTORY + "\\subdir1\\subdir11\\foo11.c", SOURCEDIRECTORY + "\\subdir1\\subdir11\\foo1111111.c");
 
             System.Threading.Thread.Sleep(5000);
             ////archive.GenerateXmlForDirectory(SOURCEDIRECTORY);
@@ -253,12 +246,9 @@ namespace ABB.SrcML.Test
         [Test]
         public void GenerateXmlForSourceTest()
         {
-            ////ISourceFolder watchedFolder = Substitute.For<ISourceFolder>();
-            ISolutionMonitorEvents watchedFolder = Substitute.For<ISolutionMonitorEvents>();
+            IFileMonitor watchedFolder = Substitute.For<IFileMonitor>();
 
-            watchedFolder.FullFolderPath = srcDirectoryInfo.FullName;
-
-            var archive = new SrcMLArchive(watchedFolder);
+            var archive = new SrcMLArchive(watchedFolder, Path.Combine(srcDirectoryInfo.FullName, ".srcml"));
             archive.XmlGenerator.ApplicationDirectory = TestConstants.SrcmlPath;
             var xmlDirectory = new DirectoryInfo(archive.ArchivePath);
 
@@ -268,25 +258,22 @@ namespace ABB.SrcML.Test
             archive.GenerateXmlForSource(SOURCEDIRECTORY + "\\foo.c");
             archive.GenerateXmlForSource(SOURCEDIRECTORY + "\\bar.c");
 
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "foo.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "bar.c.xml")));
+            Assert.That(File.Exists(archive.GetXmlPathForSourcePath(Path.Combine(SOURCEDIRECTORY, "foo.c"))));
+            Assert.That(File.Exists(archive.GetXmlPathForSourcePath(Path.Combine(SOURCEDIRECTORY, "bar.c"))));
         }
 
         [Test]
         public void FileCreationTest()
         {
             int numberOfEventsRaised = 0;
-            ////ISourceFolder watchedFolder = Substitute.For<ISourceFolder>();
-            ISolutionMonitorEvents watchedFolder = Substitute.For<ISolutionMonitorEvents>();
+            IFileMonitor watchedFolder = Substitute.For<IFileMonitor>();
 
-            watchedFolder.FullFolderPath = srcDirectoryInfo.FullName;
-
-            var archive = new SrcMLArchive(watchedFolder);
+            var archive = new SrcMLArchive(watchedFolder, Path.Combine(srcDirectoryInfo.FullName, ".srcml"));
             archive.XmlGenerator.ApplicationDirectory = TestConstants.SrcmlPath;
             var xmlDirectory = new DirectoryInfo(archive.ArchivePath);
 
             ////archive.SourceFileChanged += (o, e) =>
-            archive.SrcMLDOTNETEventRaised += (o, e) =>
+            archive.SourceFileChanged += (o, e) =>
                 {
                     numberOfEventsRaised++;
                     Assert.That(e.SourceFilePath, Is.Not.SamePathOrUnder(xmlDirectory.Name));
@@ -296,19 +283,19 @@ namespace ABB.SrcML.Test
             WriteTextAndRaiseEvent(watchedFolder, "foo.c", @"int foo(int i) {
     return i + 1;
 }");
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "foo.c.xml")));
+            Assert.That(File.Exists(archive.GetXmlPathForSourcePath(Path.Combine(SOURCEDIRECTORY, "foo.c"))));
 
             WriteTextAndRaiseEvent(watchedFolder, "bar.c", @"int bar(int i) {
     return i - 1;
 }");
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "bar.c.xml")));
+            Assert.That(File.Exists(archive.GetXmlPathForSourcePath(Path.Combine(SOURCEDIRECTORY, "bar.c"))));
 
             Directory.CreateDirectory(Path.Combine(SOURCEDIRECTORY, "subdir"));
             WriteTextAndRaiseEvent(watchedFolder, Path.Combine("subdir", "component.c"), @"int are_equal(int i, int j) {
     return i == j;
 
 }");
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir", "component.c.xml")));            
+            Assert.That(File.Exists(archive.GetXmlPathForSourcePath(Path.Combine(SOURCEDIRECTORY, "subdir", "component.c"))));
             Assert.That(archive.FileUnits.Count(), Is.EqualTo(3));
             Assert.That(numberOfFunctions(archive), Is.EqualTo(3));
 
@@ -339,38 +326,32 @@ namespace ABB.SrcML.Test
             return functions.Count();
         }
 
-        ////private void WriteTextAndRaiseEvent(ISourceFolder watchedFolder, string fileName, string source)
-        private void WriteTextAndRaiseEvent(ISolutionMonitorEvents watchedFolder, string fileName, string source)
+        private void WriteTextAndRaiseEvent(IFileMonitor watchedFolder, string fileName, string source)
         {
             var path = Path.Combine(this.srcDirectoryInfo.Name, fileName);
             var xmlPath = Path.Combine(this.srcDirectoryInfo.Name, ".srcml", fileName) + ".xml";
-            ////var eventType = (File.Exists(path) ? SourceEventType.Changed : SourceEventType.Added);
-            var eventType = (File.Exists(path) ? SolutionMonitorEventType.FileChanged : SolutionMonitorEventType.FileAdded);
+            
+            var eventType = (File.Exists(path) ? FileEventType.FileChanged : FileEventType.FileAdded);
 
             File.WriteAllText(path, source);
 
-            ////watchedFolder.SourceFileChanged += Raise.EventWith(new SourceEventArgs(path, eventType));
-            ////watchedFolder.SourceFileChanged += Raise.EventWith(new SourceEventArgs(xmlPath, eventType));
-            watchedFolder.SolutionMonitorEventRaised += Raise.EventWith(new SolutionMonitorEventArgs(path, eventType));
-            watchedFolder.SolutionMonitorEventRaised += Raise.EventWith(new SolutionMonitorEventArgs(xmlPath, eventType));
+            watchedFolder.FileEventRaised += Raise.EventWith(new FileEventRaisedArgs(path, eventType));
+            watchedFolder.FileEventRaised += Raise.EventWith(new FileEventRaisedArgs(xmlPath, eventType));
         }
 
-        ////private void DeleteSourceAndRaiseEvent(ISourceFolder watchedFolder, string fileName)
-        private void DeleteSourceAndRaiseEvent(ISolutionMonitorEvents watchedFolder, string fileName)
+        private void DeleteSourceAndRaiseEvent(IFileMonitor watchedFolder, string fileName)
         {
             var path = Path.Combine(this.srcDirectoryInfo.Name, fileName);
             var xmlPath = Path.Combine(this.srcDirectoryInfo.Name, ".srcml", fileName);
             xmlPath += ".xml";
 
             File.Delete(path);
-            //watchedFolder.SourceFileChanged += Raise.EventWith(new SourceEventArgs(path, SourceEventType.Deleted));
-            //watchedFolder.SourceFileChanged += Raise.EventWith(new SourceEventArgs(xmlPath, SourceEventType.Deleted));
-            watchedFolder.SolutionMonitorEventRaised += Raise.EventWith(new SolutionMonitorEventArgs(path, SolutionMonitorEventType.FileDeleted));
-            watchedFolder.SolutionMonitorEventRaised += Raise.EventWith(new SolutionMonitorEventArgs(xmlPath, SolutionMonitorEventType.FileDeleted));
-        }
 
-        ////private void RenameSourceFileAndRaiseEvent(ISourceFolder watchedFolder, string oldFileName, string fileName)
-        private void RenameSourceFileAndRaiseEvent(ISolutionMonitorEvents watchedFolder, string oldFileName, string fileName)
+            watchedFolder.FileEventRaised += Raise.EventWith(new FileEventRaisedArgs(path, FileEventType.FileDeleted));
+            watchedFolder.FileEventRaised += Raise.EventWith(new FileEventRaisedArgs(xmlPath, FileEventType.FileDeleted));
+        }
+        
+        private void RenameSourceFileAndRaiseEvent(IFileMonitor watchedFolder, string oldFileName, string fileName)
         {
             var oldPath = Path.Combine(this.srcDirectoryInfo.Name, oldFileName);
             var path = Path.Combine(this.srcDirectoryInfo.Name, fileName);
@@ -379,12 +360,10 @@ namespace ABB.SrcML.Test
             var xmlPath = Path.Combine(this.srcDirectoryInfo.Name, ".srcml", fileName) + ".xml";
 
             File.Move(oldPath, path);
-            ////watchedFolder.SourceFileChanged += Raise.EventWith(new SourceEventArgs(path, oldPath, SourceEventType.Renamed));
-            ////watchedFolder.SourceFileChanged += Raise.EventWith(new SourceEventArgs(oldXmlPath, SourceEventType.Deleted));
-            ////watchedFolder.SourceFileChanged += Raise.EventWith(new SourceEventArgs(xmlPath, SourceEventType.Added));
-            watchedFolder.SolutionMonitorEventRaised += Raise.EventWith(new SolutionMonitorEventArgs(path, oldPath, SolutionMonitorEventType.FileRenamed));
-            watchedFolder.SolutionMonitorEventRaised += Raise.EventWith(new SolutionMonitorEventArgs(oldXmlPath, SolutionMonitorEventType.FileDeleted));
-            watchedFolder.SolutionMonitorEventRaised += Raise.EventWith(new SolutionMonitorEventArgs(xmlPath, SolutionMonitorEventType.FileAdded));
+
+            watchedFolder.FileEventRaised += Raise.EventWith(new FileEventRaisedArgs(path, oldPath, FileEventType.FileRenamed));
+            watchedFolder.FileEventRaised += Raise.EventWith(new FileEventRaisedArgs(oldXmlPath, FileEventType.FileDeleted));
+            watchedFolder.FileEventRaised += Raise.EventWith(new FileEventRaisedArgs(xmlPath, FileEventType.FileAdded));
         }
     }
 }

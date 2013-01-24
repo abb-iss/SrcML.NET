@@ -24,20 +24,20 @@ namespace ABB.SrcML.Tools.ArchiveUpdater
         private SrcMLArchive _archive;
         public MainWindow()
         {
-            _archive = new SrcMLArchive(new FileSystemSourceFolder("."));
+            _archive = new SrcMLArchive(new FileSystemSourceFolder("."), ".srcml");
             ////_archive.SourceFileChanged += _archive_SourceFileChanged;
-            _archive.SrcMLDOTNETEventRaised += _archive_SourceFileChanged;
+            _archive.SourceFileChanged += _archive_SourceFileChanged;
             InitializeComponent();
         }
 
         ////void _archive_SourceFileChanged(object sender, SourceEventArgs e)
-        void _archive_SourceFileChanged(object sender, SrcMLDOTNETEventArgs e)
+        void _archive_SourceFileChanged(object sender, FileEventRaisedArgs e)
         {
             textBox1.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal,
                 new Action(() =>
                     {
                         ////if (SourceEventType.Renamed == e.EventType)
-                        if (SrcMLDOTNETEventType.SourceFileRenamed == e.EventType)
+                        if (FileEventType.FileRenamed== e.EventType)
                             textBox1.AppendText(String.Format("{0} {1} to {2}\n", e.EventType, e.OldSourceFilePath, e.SourceFilePath));
                         else
                             textBox1.AppendText(String.Format("{0} {1}\n", e.EventType, e.SourceFilePath));
