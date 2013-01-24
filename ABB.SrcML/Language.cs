@@ -21,7 +21,7 @@ namespace ABB.SrcML
     /// </summary>
     public enum Language
     {
-        /// <summary>Indicates that srcML should choose the language based on extension.</summary>
+        /// <summary>Indicates that srcML should choose the language based on file extension.</summary>
         Any = 0,
         /// <summary>Indicates that srcML should use the C++ language.</summary>
         CPlusPlus,
@@ -30,6 +30,8 @@ namespace ABB.SrcML
         /// <summary>Indicates that srcML should use the Java language.</summary>
         Java,
         /// <summary>Indicates that srcML should use the Aspect-J language.</summary>
-        AspectJ
+        AspectJ,
+        /// <summary>Indicates that srcML should use the C# language.</summary>
+        CSharp
     }
 }

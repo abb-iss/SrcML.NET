@@ -64,7 +64,8 @@
     <Compile Include="SrcMLArchiveTest.cs" />
     <Compile Include="SrcMLElementTests.cs" />
     <Compile Include="SrcMLFileTest.cs" />
-    <Compile Include="SrcMLTest.cs" />
+    <Compile Include="SrcMLGeneratorTests.cs" />
+    <Compile Include="Src2SrcMLRunnerTests.cs" />
     <Compile Include="SRCTest.cs" />
     <Compile Include="StaticVsNonStaticQueryFunctions.cs" />
     <Compile Include="TestConstants.cs" />

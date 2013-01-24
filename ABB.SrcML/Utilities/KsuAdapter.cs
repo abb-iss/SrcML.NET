@@ -56,6 +56,8 @@ namespace ABB.SrcML.Utilities
                     return "Java";
                 case Language.AspectJ:
                     return "AspectJ";
+                case Language.CSharp:
+                    return "C#";
                 default:
                     throw new SrcMLException(String.Format(CultureInfo.CurrentCulture, "This value needs to be added to the set of languages"));
             }
@@ -78,6 +80,9 @@ namespace ABB.SrcML.Utilities
                 return Language.Java;
             else if ("AspectJ" == language)
                 return Language.AspectJ;
+            else if("C#" == language) {
+                return Language.CSharp;
+            }
             throw new SrcMLException(String.Format(CultureInfo.CurrentCulture, "{0} is not a valid language.", language));
         }
 

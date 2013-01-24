@@ -95,10 +95,9 @@ namespace ABB.SrcML
         /// <param name="applicationDirectory">The application directory.</param>
         /// <param name="executableName">Name of the executable.</param>
         /// <param name="namespaceArguments">The namespace arguments.</param>
-        public SrcMLRunner(string applicationDirectory, string executableName, Collection<string> namespaceArguments)
-            : base(applicationDirectory, executableName)
-        {
-            this.NamespaceArguments = namespaceArguments;
+        public SrcMLRunner(string applicationDirectory, string executableName, IEnumerable<string> namespaceArguments)
+            : base(applicationDirectory, executableName) {
+            this.NamespaceArguments = new Collection<string>(namespaceArguments.ToList());
         }
 
         /// <summary>
@@ -107,7 +106,7 @@ namespace ABB.SrcML
         /// <param name="applicationDirectory">The application directory.</param>
         /// <param name="executableName">Name of the executable.</param>
         public SrcMLRunner(string applicationDirectory, string executableName)
-            : this(applicationDirectory, executableName, new Collection<string>() { LIT.ArgumentLabel, OP.ArgumentLabel, TYPE.ArgumentLabel })
+            : this(applicationDirectory, executableName, new[] { LIT.ArgumentLabel, OP.ArgumentLabel, TYPE.ArgumentLabel })
         {
 
         }

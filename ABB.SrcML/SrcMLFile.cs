@@ -67,8 +67,8 @@ namespace ABB.SrcML
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1011:ConsiderPassingBaseTypesAsParameters")]
         public SrcMLFile Merge(SrcMLFile other, string outputFileName)
         {
-            if (null == other)
-                throw new ArgumentNullException("other");
+            //if (null == other)
+            //    throw new ArgumentNullException("other");
 
             using (XmlWriter xw = XmlWriter.Create(outputFileName, new XmlWriterSettings() { Indent = false }))
             {
@@ -79,10 +79,11 @@ namespace ABB.SrcML
                 {
                     unit.WriteTo(xw);
                 }
-                
-                foreach (var unit in other.FileUnits)
-                {
-                    unit.WriteTo(xw);
+
+                if(other != null) {
+                    foreach(var unit in other.FileUnits) {
+                        unit.WriteTo(xw);
+                    }
                 }
 
                 xw.WriteEndElement();
