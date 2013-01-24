@@ -201,7 +201,7 @@ namespace ABB.SrcML
             }
             catch (Exception e)
             {
-                //writeLog("D:\\Data\\log.txt", "Startup exception: " + e.Message);
+                writeLog("D:\\Data\\log.txt", "Startup exception: " + e.Message + "\n" + e.StackTrace);
             }
             finally
             {
@@ -327,24 +327,26 @@ namespace ABB.SrcML
             
             if (!directoryName.StartsWith(xmlFullPath, StringComparison.InvariantCultureIgnoreCase) && isValidFileExtension(sourceFilePath))
             {
+                XElement xElement = null;
                 switch (eventArgs.EventType)
                 {
                     case FileEventType.FileAdded:
-                        GenerateXmlForSource(sourceFilePath);
+                        xElement = GenerateXmlAndXElementForSource(sourceFilePath);
                         break;
                     case FileEventType.FileChanged:
-                        GenerateXmlForSource(sourceFilePath);
+                        xElement = GenerateXmlAndXElementForSource(sourceFilePath);
                         break;
                     case FileEventType.FileDeleted:
                         DeleteXmlForSourceFile(sourceFilePath);
                         break;
                     case FileEventType.FileRenamed:
                         DeleteXmlForSourceFile(oldSourceFilePath);
-                        GenerateXmlForSource(sourceFilePath);
+                        xElement = GenerateXmlAndXElementForSource(sourceFilePath);
                         break;
                 }
 
                 //writeLog("D:\\Data\\log.txt", "SrcMLArchive raises an event for [" + sourceFilePath + ".");
+                eventArgs.SrcMLXElement = xElement;
                 OnSourceFileChanged(eventArgs);
             }
         }
