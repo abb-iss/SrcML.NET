@@ -202,7 +202,7 @@ namespace ABB.SrcML
             }
             catch (Exception e)
             {
-                writeLog("D:\\Data\\log.txt", "Startup exception: " + e.Message + "\n" + e.StackTrace);
+                //writeLog("D:\\Data\\log.txt", "Startup exception: " + e.Message + "\n" + e.StackTrace);
             }
             finally
             {
@@ -368,7 +368,7 @@ namespace ABB.SrcML
                         break;
                 }
 
-                writeLog("D:\\Data\\log.txt", "SrcMLArchive raises a " + eventArgs.EventType + " event for [" + sourceFilePath + "]");
+                //writeLog("D:\\Data\\log.txt", "SrcMLArchive raises a " + eventArgs.EventType + " event for [" + sourceFilePath + "]");
                 eventArgs.SrcMLXElement = xElement;
                 OnSourceFileChanged(eventArgs);
             }
@@ -573,6 +573,7 @@ namespace ABB.SrcML
             }
         }
 
+        /*
         /// <summary>
         /// For debugging.
         /// </summary>
@@ -584,6 +585,6 @@ namespace ABB.SrcML
             sw.WriteLine(str);
             sw.Close();
         }
-
+        */
     }
 }

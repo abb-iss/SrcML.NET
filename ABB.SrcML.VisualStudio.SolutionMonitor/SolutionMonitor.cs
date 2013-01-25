@@ -665,7 +665,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
                         eventArgs = new FileEventRaisedArgs(filePath, oldFilePath, FileEventType.FileRenamed);
                         break;
                 }
-                writeLog("D:\\Data\\log.txt", "SolutionMonitor raises a " + type + " event for [" + filePath + "]");
+                //writeLog("D:\\Data\\log.txt", "SolutionMonitor raises a " + type + " event for [" + filePath + "]");
                 OnFileEventRaised(eventArgs);
             }
         }
@@ -688,7 +688,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
                                                       string[] rgpszMkDocuments,
                                                       VSADDFILEFLAGS[] rgFlags)
         {
-            writeLog("D:\\Data\\log.txt", "==> Triggered IVsTrackProjectDocumentsEvents2.OnAfterAddFilesEx()");
+            //writeLog("D:\\Data\\log.txt", "==> Triggered IVsTrackProjectDocumentsEvents2.OnAfterAddFilesEx()");
             return OnNotifyFileAddRemove(cProjects, cFiles, rgpProjects, rgFirstIndices, rgpszMkDocuments, FileEventType.FileAdded);
         }
 
@@ -709,7 +709,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
                                                                string[] rgpszMkDocuments,
                                                                VSREMOVEFILEFLAGS[] rgFlags)
         {
-            writeLog("D:\\Data\\log.txt", "==> Triggered IVsTrackProjectDocumentsEvents2.OnAfterRemoveFiles()");
+            //writeLog("D:\\Data\\log.txt", "==> Triggered IVsTrackProjectDocumentsEvents2.OnAfterRemoveFiles()");
             return OnNotifyFileAddRemove(cProjects, cFiles, rgpProjects, rgFirstIndices, rgpszMkDocuments, FileEventType.FileDeleted);
         }
 
@@ -732,7 +732,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
                                                                string[] rgszMkNewNames,
                                                                VSRENAMEFILEFLAGS[] rgFlags)
         {
-            writeLog("D:\\Data\\log.txt", "==> Triggered IVsTrackProjectDocumentsEvents2.OnAfterRenameFiles()");
+            //writeLog("D:\\Data\\log.txt", "==> Triggered IVsTrackProjectDocumentsEvents2.OnAfterRenameFiles()");
             OnNotifyFileAddRemove(cProjects, cFiles, rgpProjects, rgFirstIndices, rgszMkOldNames, FileEventType.FileDeleted);
             return OnNotifyFileAddRemove(cProjects, cFiles, rgpProjects, rgFirstIndices, rgszMkNewNames, FileEventType.FileAdded);
         }
@@ -900,7 +900,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         /// <returns></returns>
         public int OnAfterSave(uint cookie)
         {
-            writeLog("D:\\Data\\log.txt", "==> Triggered IVsRunningDocTableEvents.OnAfterSave()");
+            //writeLog("D:\\Data\\log.txt", "==> Triggered IVsRunningDocTableEvents.OnAfterSave()");
             uint flags;
             uint readingLocks;
             uint edittingLocks;
@@ -989,7 +989,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         /// Start monitoring the solution.
         /// </summary>
         public void StartMonitoring() {
-            writeLog("D:\\Data\\log.txt", "======= SolutionMonitor: START MONITORING =======");
+            //writeLog("D:\\Data\\log.txt", "======= SolutionMonitor: START MONITORING =======");
             // moved to SrcMLArchive
             //startupWorker = new BackgroundWorker();
             //startupWorker.WorkerSupportsCancellation = true;
@@ -1004,7 +1004,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         /// Stop monitoring the solution.
         /// </summary>
         public void StopMonitoring() {
-            writeLog("D:\\Data\\log.txt", "======= SolutionMonitor: STOP MONITORING =======");
+            //writeLog("D:\\Data\\log.txt", "======= SolutionMonitor: STOP MONITORING =======");
             Dispose();
         }
 
@@ -1020,6 +1020,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         }
         #endregion
 
+        /*
         /// <summary>
         /// For debugging.
         /// </summary>
@@ -1031,5 +1032,6 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
             sw.WriteLine(str);
             sw.Close();
         }
+        */
     }
 }
