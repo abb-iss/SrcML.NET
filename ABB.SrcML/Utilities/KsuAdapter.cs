@@ -56,6 +56,8 @@ namespace ABB.SrcML.Utilities
                     return "Java";
                 case Language.AspectJ:
                     return "AspectJ";
+                case Language.CSharp:
+                    return "C#";
                 default:
                     throw new SrcMLException(String.Format(CultureInfo.CurrentCulture, "This value needs to be added to the set of languages"));
             }
@@ -78,23 +80,26 @@ namespace ABB.SrcML.Utilities
                 return Language.Java;
             else if ("AspectJ" == language)
                 return Language.AspectJ;
+            else if("C#" == language) {
+                return Language.CSharp;
+            }
             throw new SrcMLException(String.Format(CultureInfo.CurrentCulture, "{0} is not a valid language.", language));
         }
 
         /// <summary>
         /// Converts an extension mapping dictionary to a string that can be passed to src2srcml.exe.
+        /// If the extensions begin with a dot, these are stripped to conform with src2srcml.exe's input format.
         /// </summary>
         /// <param name="extensionMapping">An extension mapping dictionary</param>
-        /// <returns>a comma separated list of mappings of the form ("EXT=LANG")</returns>
-        public static string ConvertMappingToString(IDictionary<string, Language> extensionMapping)
-        {
+        /// <returns>A comma separated list of mappings of the form ("EXT=LANG").</returns>
+        public static string ConvertMappingToString(IDictionary<string, Language> extensionMapping) {
             var mapping = from kvp in extensionMapping
-                          select String.Format(CultureInfo.InvariantCulture, "{0}={1}", kvp.Key, KsuAdapter.GetLanguage(kvp.Value));
+                          select String.Format(CultureInfo.InvariantCulture, "{0}={1}", kvp.Key.TrimStart(new[] {'.'}), KsuAdapter.GetLanguage(kvp.Value));
             var result = String.Join(",", mapping.ToArray());
             return result;
         }
 
-        internal static string GetExtension(string filePath)
+        internal static string GetKsuExtension(string filePath)
         {
             var extension = Path.GetExtension(filePath);
 
@@ -103,7 +108,7 @@ namespace ABB.SrcML.Utilities
             return extension.Substring(1);
         }
 
-        internal static string GetExtension(FileInfo fileInfo)
+        internal static string GetKsuExtension(FileInfo fileInfo)
         {
             var extension = fileInfo.Extension;
 

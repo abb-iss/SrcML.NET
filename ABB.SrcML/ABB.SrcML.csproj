@@ -59,6 +59,7 @@
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="IArchive.cs" />
     <Compile Include="ISourceFolder.cs" />
+    <Compile Include="SrcMLGenerator.cs" />
     <Compile Include="ITransform.cs" />
     <Compile Include="Language.cs" />
     <Compile Include="LineInfo.cs" />
