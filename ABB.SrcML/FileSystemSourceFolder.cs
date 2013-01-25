@@ -5,25 +5,20 @@ using System.Linq;
 using System.Text;
 using System.IO;
 
-namespace ABB.SrcML
-{
-    public class FileSystemSourceFolder : IFileMonitor
-    {
+namespace ABB.SrcML {
+    public class FileSystemSourceFolder : IFileMonitor {
         private DirectoryInfo _folderInfo;
         private FileSystemWatcher _directoryWatcher;
 
-        protected virtual void OnFileEventRaised(FileEventRaisedArgs e)
-        {
+        protected virtual void OnFileEventRaised(FileEventRaisedArgs e) {
             EventHandler<FileEventRaisedArgs> handler = FileEventRaised;
 
-            if (null != handler)
-            {
+            if(null != handler) {
                 handler(this, e);
             }
         }
 
-        public FileSystemSourceFolder(string pathToSourceFolder)
-        {
+        public FileSystemSourceFolder(string pathToSourceFolder) {
             this.FullFolderPath = pathToSourceFolder;
             SetupFileSystemWatcher();
             StartMonitoring();
@@ -31,42 +26,34 @@ namespace ABB.SrcML
         #region ISourceFolder Members
 
 
-        public string FullFolderPath
-        {
-            get
-            {
+        public string FullFolderPath {
+            get {
                 return this._folderInfo.FullName;
             }
-            set
-            {
+            set {
                 this._folderInfo = new DirectoryInfo(value);
             }
         }
 
-        public void StartMonitoring()
-        {
+        public void StartMonitoring() {
             this._directoryWatcher.EnableRaisingEvents = true;
         }
 
-        public void StopMonitoring()
-        {
+        public void StopMonitoring() {
             this._directoryWatcher.EnableRaisingEvents = false;
         }
 
-        public List<string> GetMonitoredFiles(BackgroundWorker worker)
-        {
+        public List<string> GetMonitoredFiles(BackgroundWorker worker) {
             return null;
         }
 
         //temp approach
-        public void RaiseSolutionMonitorEvent(string filePath, string oldFilePath, FileEventType type)
-        {
+        public void RaiseSolutionMonitorEvent(string filePath, string oldFilePath, FileEventType type) {
         }
 
         #endregion
 
-        private void SetupFileSystemWatcher()
-        {
+        private void SetupFileSystemWatcher() {
             this._directoryWatcher = new FileSystemWatcher(this.FullFolderPath);
 
             this._directoryWatcher.NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.Attributes;
@@ -79,42 +66,34 @@ namespace ABB.SrcML
             this._directoryWatcher.Renamed += HandleFileRenamed;
         }
 
-        void HandleFileChanged(object sender, FileSystemEventArgs e)
-        {
+        void HandleFileChanged(object sender, FileSystemEventArgs e) {
             handleFileEvent(e.FullPath, e.FullPath, FileEventType.FileChanged);
         }
 
-        void HandleFileCreated(object sender, FileSystemEventArgs e)
-        {
+        void HandleFileCreated(object sender, FileSystemEventArgs e) {
             handleFileEvent(e.FullPath, e.FullPath, FileEventType.FileAdded);
         }
 
-        void HandleFileDeleted(object sender, FileSystemEventArgs e)
-        {
+        void HandleFileDeleted(object sender, FileSystemEventArgs e) {
             handleFileEvent(e.FullPath, e.FullPath, FileEventType.FileDeleted);
         }
 
-        void HandleFileWatcherError(object sender, ErrorEventArgs e)
-        {
+        void HandleFileWatcherError(object sender, ErrorEventArgs e) {
             throw new NotImplementedException();
         }
 
-        void HandleFileRenamed(object sender, RenamedEventArgs e)
-        {
+        void HandleFileRenamed(object sender, RenamedEventArgs e) {
             handleFileEvent(e.FullPath, e.OldFullPath, FileEventType.FileRenamed);
         }
 
-        private void handleFileEvent(string pathToFile, string oldPathToFile, FileEventType eventType)
-        {
-            if (isFile(pathToFile))
-            {
+        private void handleFileEvent(string pathToFile, string oldPathToFile, FileEventType eventType) {
+            if(isFile(pathToFile)) {
                 OnFileEventRaised(new FileEventRaisedArgs(pathToFile, oldPathToFile, eventType));
             }
         }
 
-        private static bool isFile(string fullPath)
-        {
-            if (!File.Exists(fullPath))
+        private static bool isFile(string fullPath) {
+            if(!File.Exists(fullPath))
                 return false;
 
             var pathAttributes = File.GetAttributes(fullPath);

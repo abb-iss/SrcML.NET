@@ -18,23 +18,21 @@ using System.Xml.Linq;
 using System.Xml;
 using System.Collections.ObjectModel;
 
-namespace ABB.SrcML
-{
+namespace ABB.SrcML {
     /// <summary>
     /// This class represents a SrcMLFile. The underlying data is stored in an XML file, and can be accessed in a number of ways.
     /// </summary>
     public class SrcMLFile : AbstractArchive//AbstractDocument
     {
-        private string _rootDirectory;   
+        private string _rootDirectory;
         private XDocument _document;
 
         /// <summary>
         /// Instantiates a new SrcMLFile with the characteristics of another SrcMLFile.
         /// </summary>
         /// <param name="other">The SrcMLFile to copy.</param>
-        public SrcMLFile(SrcMLFile other)
-        {
-            if (null == other)
+        public SrcMLFile(SrcMLFile other) {
+            if(null == other)
                 throw new ArgumentNullException("other");
 
             this._rootDirectory = other._rootDirectory;
@@ -44,17 +42,14 @@ namespace ABB.SrcML
         /// Instantiates new SrcML file based on the given file.
         /// </summary>
         /// <param name="fileName">The file to read from.</param>
-        public SrcMLFile(string fileName)
-        {
+        public SrcMLFile(string fileName) {
             this.ArchivePath = fileName;
             this.NumberOfNestedFileUnits = XmlHelper.StreamElements(this.ArchivePath, SRC.Unit).Count();
             this._rootDirectory = getCommonPath();
         }
 
-        public string FileName
-        {
-            get
-            {
+        public string FileName {
+            get {
                 return this.ArchivePath;
             }
         }
@@ -65,18 +60,15 @@ namespace ABB.SrcML
         /// <param name="outputFileName">The path to write the resulting SrcMLFile to.</param>
         /// <returns>The newly merged SrcMLFile.</returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1011:ConsiderPassingBaseTypesAsParameters")]
-        public SrcMLFile Merge(SrcMLFile other, string outputFileName)
-        {
+        public SrcMLFile Merge(SrcMLFile other, string outputFileName) {
             //if (null == other)
             //    throw new ArgumentNullException("other");
 
-            using (XmlWriter xw = XmlWriter.Create(outputFileName, new XmlWriterSettings() { Indent = false }))
-            {
+            using(XmlWriter xw = XmlWriter.Create(outputFileName, new XmlWriterSettings() { Indent = false })) {
                 xw.WriteStartElement(SRC.Unit.LocalName, SRC.Unit.NamespaceName);
                 WriteXmlnsAttributes(xw);
 
-                foreach (var unit in this.FileUnits)
-                {
+                foreach(var unit in this.FileUnits) {
                     unit.WriteTo(xw);
                 }
 
@@ -91,60 +83,45 @@ namespace ABB.SrcML
             return new SrcMLFile(outputFileName);
         }
 
-        private static string getCommonPath(IEnumerable<string> filePaths)
-        {
+        private static string getCommonPath(IEnumerable<string> filePaths) {
             bool shortestFound = false;
             string shortest = null;
-            try
-            {
+            try {
                 shortest = filePaths.First();
-            }
-            catch (InvalidOperationException)
-            {
+            } catch(InvalidOperationException) {
                 shortest = null;
             }
 
-            while (!shortestFound)
-            {
-                if (filePaths.All(f => f.StartsWith(shortest, StringComparison.Ordinal)))
-                {
+            while(!shortestFound) {
+                if(filePaths.All(f => f.StartsWith(shortest, StringComparison.Ordinal))) {
                     shortestFound = true;
-                }
-                else
-                {
+                } else {
                     shortest = Path.GetDirectoryName(shortest);
                 }
-                if (null == shortest)
+                if(null == shortest)
                     break;
             }
             return shortest;
         }
 
-        private string getCommonPath()
-        {
+        private string getCommonPath() {
             XAttribute dir;
             string commonPath;
-            if (RootAttributeDictionary.TryGetValue("dir", out dir))
-            {
+            if(RootAttributeDictionary.TryGetValue("dir", out dir)) {
                 commonPath = dir.Value;
-            }
-            else if (0 == this.NumberOfNestedFileUnits)
-            {
+            } else if(0 == this.NumberOfNestedFileUnits) {
                 commonPath = Path.GetDirectoryName(GetPathForUnit(this.FileUnits.First()));
-            }
-            else
-            {
+            } else {
                 var folders = from unit in this.FileUnits
                               let path = Path.GetDirectoryName(GetPathForUnit(unit))
                               select path;
                 commonPath = getCommonPath(folders);
             }
-            
+
             return commonPath;
         }
 
-        public int NumberOfNestedFileUnits
-        {
+        public int NumberOfNestedFileUnits {
             get;
             protected set;
         }
@@ -152,27 +129,22 @@ namespace ABB.SrcML
         /// The project rootUnit directory for this SrcMLFile.
         /// </summary>
         /// <value>The ProjectDirectory property gets &amp; sets the rootUnit directory for this SrcMLFile.</value>
-        public string ProjectDirectory
-        {
+        public string ProjectDirectory {
             get { return _rootDirectory; }
-            set
-            {
+            set {
                 var units = from unit in this.FileUnits
-                              where unit.Attribute("filename") != null
-                              select unit;
-                
+                            where unit.Attribute("filename") != null
+                            select unit;
+
                 var tempFileName = Path.GetTempFileName();
-                using (XmlWriter xw = XmlWriter.Create(tempFileName, new XmlWriterSettings() { Indent = false }))
-                {
+                using(XmlWriter xw = XmlWriter.Create(tempFileName, new XmlWriterSettings() { Indent = false })) {
                     xw.WriteStartElement(SRC.Unit.LocalName, SRC.Unit.NamespaceName);
                     WriteXmlnsAttributes(xw);
-                    foreach (var kvp in this.RootAttributeDictionary)
-                    {
+                    foreach(var kvp in this.RootAttributeDictionary) {
                         xw.WriteAttributeString(kvp.Value.Name.LocalName, kvp.Value.Name.NamespaceName, ("dir" == kvp.Key ? value : kvp.Value.Value));
                     }
 
-                    foreach (var unit in units)
-                    {
+                    foreach(var unit in units) {
                         var fileName = unit.Attribute("filename").Value;
                         fileName = fileName.Replace(_rootDirectory, value);
                         unit.SetAttributeValue("filename", fileName);
@@ -188,22 +160,21 @@ namespace ABB.SrcML
                 this.RootAttributeDictionary["dir"] = new XAttribute("dir", value);
             }
         }
-        
+
         /// <summary>
         /// Get the file path relative to <see cref="ProjectDirectory"/> for the unit containing the given node.
         /// </summary>
         /// <param name="node">The node.</param>
         /// <returns>The relative file path to that node.</returns>
-        public string RelativePath(XNode node)
-        {
-            if (null == node)
+        public string RelativePath(XNode node) {
+            if(null == node)
                 throw new ArgumentNullException("node");
 
             var unit = node.Ancestors(SRC.Unit).First();
             var path = GetPathForUnit(unit);
 
             int start = this.ProjectDirectory.Length;
-            if (this.ProjectDirectory[start - 1] != Path.DirectorySeparatorChar)
+            if(this.ProjectDirectory[start - 1] != Path.DirectorySeparatorChar)
                 start++;
             path = path.Substring(start);
 
@@ -216,8 +187,7 @@ namespace ABB.SrcML
         /// </summary>
         /// <returns></returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1024:UsePropertiesWhereAppropriate")]
-        public XDocument GetXDocument()
-        {
+        public XDocument GetXDocument() {
             if(null == _document)
                 _document = XDocument.Load(this.ArchivePath, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo);
             return this._document;
@@ -228,11 +198,9 @@ namespace ABB.SrcML
         /// </summary>
         /// <param name="transform">The transform object with the <see cref="ITransform.Query"/></param>
         /// <returns>yields each node that matches the query in <paramref name="transform"/></returns>
-        public IEnumerable<XElement> QueryEachUnit(ITransform transform)
-        {
-            foreach (var unit in this.FileUnits)
-            {
-                foreach (var result in transform.Query(unit))
+        public IEnumerable<XElement> QueryEachUnit(ITransform transform) {
+            foreach(var unit in this.FileUnits) {
+                foreach(var result in transform.Query(unit))
                     yield return result;
             }
         }
@@ -244,27 +212,23 @@ namespace ABB.SrcML
         /// </summary>
         /// <param name="fileName">The file to write to. If it exists it will be deleted and replaced.</param>
         /// <param name="changedFiles">A list of units with changes. These will be substituted for the original units.</param>
-        public void Save(string fileName, IEnumerable<XElement> changedFiles)
-        {
-            if (null == changedFiles)
+        public void Save(string fileName, IEnumerable<XElement> changedFiles) {
+            if(null == changedFiles)
                 throw new ArgumentNullException("changedFiles");
 
             var tempFileName = Path.GetTempFileName();
             Dictionary<string, XElement> changedDict = new Dictionary<string, XElement>();
 
-            foreach (var change in changedFiles)
-            {
+            foreach(var change in changedFiles) {
                 var path = GetPathForUnit(change);
                 changedDict[path] = change;
             }
 
-            using (XmlWriter xw = XmlWriter.Create(tempFileName, new XmlWriterSettings() { Indent = false }))
-            {
+            using(XmlWriter xw = XmlWriter.Create(tempFileName, new XmlWriterSettings() { Indent = false })) {
                 xw.WriteStartElement(SRC.Unit.LocalName, SRC.Unit.NamespaceName);
                 WriteXmlnsAttributes(xw);
 
-                foreach (var unit in this.FileUnits)
-                {
+                foreach(var unit in this.FileUnits) {
                     string path = GetPathForUnit(unit);
 
                     (changedDict.ContainsKey(path) ? changedDict[path] : unit).WriteTo(xw);
@@ -272,7 +236,7 @@ namespace ABB.SrcML
                 xw.WriteEndElement();
             }
 
-            if (File.Exists(fileName))
+            if(File.Exists(fileName))
                 File.Delete(fileName);
 
             File.Move(tempFileName, fileName);
@@ -283,8 +247,7 @@ namespace ABB.SrcML
         /// <seealso cref="Save(string, IEnumerable&lt;XElement&gt;)"/>
         /// </summary>
         /// <param name="changedFiles">a list of units with changes. These will be substituted for the original units</param>
-        public void Save(IEnumerable<XElement> changedFiles)
-        {
+        public void Save(IEnumerable<XElement> changedFiles) {
             Save(this.ArchivePath, changedFiles);
         }
 
@@ -294,8 +257,7 @@ namespace ABB.SrcML
         /// <seealso cref="Enumerable.Empty&lt;XElement&gt;" />
         /// </summary>
         /// <param name="fileName">the file to write to. If it exists it will be deleted and replaced.</param>
-        public void Save(string fileName)
-        {
+        public void Save(string fileName) {
             Save(fileName, Enumerable.Empty<XElement>());
         }
 
@@ -304,14 +266,13 @@ namespace ABB.SrcML
         /// <seealso cref="XDocument.Save(string)"/>
         /// </summary>
         /// <param name="fileName">The filename to write to.</param>
-        public void Write(string fileName)
-        {
+        public void Write(string fileName) {
             var doc = GetXDocument();
             var tmp = Path.GetTempFileName();
 
             doc.Save(tmp);
 
-            if (File.Exists(fileName))
+            if(File.Exists(fileName))
                 File.Delete(fileName);
             File.Move(tmp, fileName);
 
@@ -322,8 +283,7 @@ namespace ABB.SrcML
         /// Writes the document back to the current file <see cref="AbstractDocument.FileName"/>.
         /// <seealso cref="Write(string)"/>
         /// </summary>
-        public void Write()
-        {
+        public void Write() {
             Write(this.ArchivePath);
         }
         #endregion
@@ -334,20 +294,16 @@ namespace ABB.SrcML
         /// </summary>
         /// <param name="fileName">The filename to get an index for.</param>
         /// <returns>the index of the file. -1 if not found.</returns>
-        public int IndexOfUnit(string fileName)
-        {
+        public int IndexOfUnit(string fileName) {
             IEnumerable<string> filenames = from attr in this.FileUnits.Attributes("filename")
                                             select (string)attr;
             return filenames.ToList<string>().IndexOf(Path.GetFileName(fileName));
         }
 
         #region AbstractArchive
-        public override IEnumerable<XElement> FileUnits
-        {
-            get
-            {
-                if (0 == this.NumberOfNestedFileUnits)
-                {
+        public override IEnumerable<XElement> FileUnits {
+            get {
+                if(0 == this.NumberOfNestedFileUnits) {
                     var shortList = new List<XElement>(1);
                     shortList.Add(XElement.Load(this.ArchivePath, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo));
                     return shortList;
@@ -359,21 +315,17 @@ namespace ABB.SrcML
             }
         }
 
-        public override void AddUnits(IEnumerable<XElement> units)
-        {
+        public override void AddUnits(IEnumerable<XElement> units) {
             var tmpFileName = Path.GetTempFileName();
-            using (XmlWriter xw = XmlWriter.Create(tmpFileName, new XmlWriterSettings() { Indent = false }))
-            {
+            using(XmlWriter xw = XmlWriter.Create(tmpFileName, new XmlWriterSettings() { Indent = false })) {
                 xw.WriteStartElement(SRC.Unit.LocalName, SRC.Unit.NamespaceName);
                 WriteXmlnsAttributes(xw);
 
-                foreach (var unit in this.FileUnits)
-                {
+                foreach(var unit in this.FileUnits) {
                     unit.WriteTo(xw);
                 }
 
-                foreach (var unit in units)
-                {
+                foreach(var unit in units) {
                     unit.WriteTo(xw);
                 }
 
@@ -382,29 +334,24 @@ namespace ABB.SrcML
             File.Move(tmpFileName, this.ArchivePath);
         }
 
-        public override void DeleteUnits(IEnumerable<XElement> units)
-        {
+        public override void DeleteUnits(IEnumerable<XElement> units) {
             var tmpFileName = Path.GetTempFileName();
-            using (XmlWriter xw = XmlWriter.Create(tmpFileName, new XmlWriterSettings() { Indent = false}))
-            {
+            using(XmlWriter xw = XmlWriter.Create(tmpFileName, new XmlWriterSettings() { Indent = false })) {
                 xw.WriteStartElement(SRC.Unit.LocalName, SRC.Unit.NamespaceName);
                 WriteXmlnsAttributes(xw);
 
                 var remainingUnits = this.FileUnits;
-                foreach (var unit in remainingUnits)
-                {
+                foreach(var unit in remainingUnits) {
                     unit.WriteTo(xw);
                 }
                 xw.WriteEndElement();
             }
         }
-        public override void UpdateUnits(IEnumerable<XElement> units)
-        {
+        public override void UpdateUnits(IEnumerable<XElement> units) {
             this.Save(units);
         }
 
-        public override XElement GetUnitForPath(string pathToUnit)
-        {
+        public override XElement GetUnitForPath(string pathToUnit) {
             throw new NotImplementedException();
         }
         #endregion
@@ -415,23 +362,17 @@ namespace ABB.SrcML
         /// Read the srcML file and generate a string of the content of this file.
         /// </summary>
         /// <returns>The string of the content of this file.</returns>
-        public string GetXMLString()
-        {
+        public string GetXMLString() {
             string xml = "";
 
-            try
-            {
-                using (StreamReader sr = new StreamReader(this.ArchivePath))
-                {
+            try {
+                using(StreamReader sr = new StreamReader(this.ArchivePath)) {
                     string line;
-                    while ((line = sr.ReadLine()) != null)
-                    {
+                    while((line = sr.ReadLine()) != null) {
                         xml += line;
                     }
                 }
-            }
-            catch (Exception e)
-            {
+            } catch(Exception e) {
                 Console.WriteLine(e.Message);
             }
 

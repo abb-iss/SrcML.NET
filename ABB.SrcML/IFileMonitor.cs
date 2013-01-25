@@ -7,19 +7,18 @@
  *
  * Contributors:
  *    Jiang Zheng (ABB Group) - Initial implementation
+ *    Vinay Augustine (ABB Group) - Renamed API to be more clear
  *****************************************************************************/
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace ABB.SrcML
-{
+namespace ABB.SrcML {
     /// <summary>
     /// This interface is designed for all events that can be raised from SrcML.NET.
     /// </summary>
-    public interface IFileMonitor
-    {
+    public interface IFileMonitor {
         event EventHandler<FileEventRaisedArgs> FileEventRaised;
 
         void StartMonitoring();
@@ -32,8 +31,7 @@ namespace ABB.SrcML
     /// <summary>
     /// Event type enumeration.
     /// </summary>
-    public enum FileEventType
-    {
+    public enum FileEventType {
         FileAdded,    // Raised when a file is added
         FileChanged,  // Raised when a file is changed
         FileDeleted,  // Raised when a file is deleted
@@ -43,34 +41,27 @@ namespace ABB.SrcML
     /// <summary>
     /// Event data of SrcML.NET events.
     /// </summary>
-    public class FileEventRaisedArgs : System.EventArgs
-    {
-        protected FileEventRaisedArgs()
-        {
+    public class FileEventRaisedArgs : System.EventArgs {
+        protected FileEventRaisedArgs() {
         }
 
         public FileEventRaisedArgs(string SourcePath, FileEventType eventType)
-            : this(SourcePath, SourcePath, null, eventType)
-        {
+            : this(SourcePath, SourcePath, null, eventType) {
         }
 
         public FileEventRaisedArgs(string SourcePath, XElement xelement, FileEventType eventType)
-            : this(SourcePath, SourcePath, xelement, eventType)
-        {
+            : this(SourcePath, SourcePath, xelement, eventType) {
         }
 
         public FileEventRaisedArgs(string SourcePath, string oldSourcePath, FileEventType eventType)
-            : this(SourcePath, oldSourcePath, null, null, eventType)
-        {
+            : this(SourcePath, oldSourcePath, null, null, eventType) {
         }
 
         public FileEventRaisedArgs(string SourcePath, string oldSourcePath, XElement xelement, FileEventType eventType)
-            : this(SourcePath, oldSourcePath, xelement, null, eventType)
-        {
+            : this(SourcePath, oldSourcePath, xelement, null, eventType) {
         }
 
-        public FileEventRaisedArgs(string SourcePath, string oldSourcePath, XElement xelement, string SrcMLPath, FileEventType eventType)
-        {
+        public FileEventRaisedArgs(string SourcePath, string oldSourcePath, XElement xelement, string SrcMLPath, FileEventType eventType) {
             this.SourceFilePath = SourcePath;
             this.OldSourceFilePath = oldSourcePath;
             this.SrcMLXElement = xelement;
@@ -78,32 +69,27 @@ namespace ABB.SrcML
             this.EventType = eventType;
         }
 
-        public FileEventType EventType
-        {
+        public FileEventType EventType {
             get;
             set;
         }
 
-        public string OldSourceFilePath
-        {
+        public string OldSourceFilePath {
             get;
             set;
         }
 
-        public string SourceFilePath
-        {
+        public string SourceFilePath {
             get;
             set;
         }
 
-        public XElement SrcMLXElement
-        {
+        public XElement SrcMLXElement {
             get;
             set;
         }
 
-        public string SrcMLFilePath
-        {
+        public string SrcMLFilePath {
             get;
             set;
         }
