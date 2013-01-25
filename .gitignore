@@ -18,7 +18,7 @@ TestResults
 *.user
 *.sln.docstates
 *.VisualState.xml
-
+*.shfbproj_*
 # Build results
 [Dd]ebug/
 [Rr]elease/
@@ -94,6 +94,7 @@ ClientBin
 ~$*
 *.dbmdl
 *.dat
+*.bak
 Generated_Code #added for RIA/Silverlight projects
 
 # Backup & report files from converting an old project file to a newer
@@ -104,3 +105,4 @@ UpgradeLog*.XML
 
 # Klocwork analysis files
 .klocwork/
+
