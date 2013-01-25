@@ -18,28 +18,24 @@ using System.Xml.Linq;
 namespace ABB.SrcML.Data {
     public class TypeUse {
         public string Name { get; set; }
+        public Collection<string> Prefix { get; set; }
         public AbstractCodeParser Parser { get; set; }
         public NamespaceDefinition CurrentNamespace { get; set; }
         public Collection<Alias> Aliases { get; set; }
+
+        public TypeUse() {
+            this.Name = String.Empty;
+            this.Prefix = new Collection<string>();
+            this.CurrentNamespace = new NamespaceDefinition();
+            this.Aliases = new Collection<Alias>();
+        }
+
         /// <summary>
         /// Returns the possible names for this type use
         /// </summary>
         /// <returns>The possible full qualified names for this type use</returns>
         public IEnumerable<string> GetPossibleNames() {
             return this.Parser.GeneratePossibleNamesForTypeUse(this);
-
-            yield return CurrentNamespace.MakeQualifiedName(this.Name);
-
-            var aliases = from alias in this.Aliases
-                          where alias.IsAliasFor(this)
-                          select alias.MakeQualifiedName(this);
-            
-            foreach(var alias in aliases) {
-                yield return alias;
-            }
-
-            if(!CurrentNamespace.IsGlobal)
-                yield return this.Name;
         }
     }
 }

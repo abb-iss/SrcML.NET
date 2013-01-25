@@ -133,5 +133,20 @@ namespace ABB.SrcML.Data {
 
             return alias;
         }
+
+        public override IEnumerable<string> GeneratePossibleNamesForTypeUse(TypeUse typeUse) {
+            // a single name 
+            yield return typeUse.CurrentNamespace.MakeQualifiedName(typeUse.Name);
+
+            var aliases = from alias in typeUse.Aliases
+                          where alias.IsAliasFor(typeUse)
+                          select alias.MakeQualifiedName(typeUse);
+
+            foreach(var alias in aliases) {
+                yield return alias;
+            }
+            if(!typeUse.CurrentNamespace.IsGlobal)
+                yield return typeUse.Name;
+        }
     }
 }

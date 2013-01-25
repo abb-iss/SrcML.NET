@@ -115,14 +115,8 @@ namespace ABB.SrcML.Data {
             return alias;
         }
 
-        public IEnumerable<XElement> GetNameElementsFromName(XElement nameElement) {
-            if(nameElement.Elements(SRC.Name).Any()) {
-                foreach(var name in nameElement.Elements(SRC.Name)) {
-                    yield return name;
-                }
-            } else {
-                yield return nameElement;
-            }
+        public override IEnumerable<string> GeneratePossibleNamesForTypeUse(TypeUse typeUse) {
+            throw new NotImplementedException();
         }
     }
 }

@@ -59,6 +59,30 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
+        public void TestCreateTypeDefinitions_ClassWithQualifiedParent() {
+            // class D : A::B::C {
+            // }
+            string xml = @"<class>class <name>D</name> <super>: <name><name>A</name><op:operator>::</op:operator><name>B</name><op:operator>::</op:operator><name>C</name></name></super> <block>{<private type=""default"">
+</private>}</block>;</class>";
+
+            XElement xmlElement = SrcMLFileUnitSetup.GetFileUnitForXmlSnippet(srcMLFormat, xml, Language.Java);
+            var typeDefinitions = codeParser.CreateTypeDefinitions(xmlElement);
+            var definition = typeDefinitions.First();
+
+            Assert.AreEqual("D", definition.Name);
+            Assert.AreEqual(1, definition.Parents.Count);
+            Assert.That(definition.Namespace.IsGlobal);
+
+            var parent = definition.Parents.First();
+
+            Assert.AreEqual("C", parent.Name);
+            var prefix_tests = Enumerable.Zip<string, string, bool>(new[] { "A", "B", "C" }, parent.Prefix, (expected, actual) => expected == actual);
+            foreach(var prefixMatches in prefix_tests) {
+                Assert.That(prefixMatches);
+            }
+        }
+
+        [Test]
         public void TestCreateTypeDefinitions_ClassWithInnerClass() {
             // class A {
             //     class B {

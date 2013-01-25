@@ -86,9 +86,15 @@ namespace ABB.SrcML.Data {
         /// <returns>A new TypeUse object</returns>
         public virtual TypeUse CreateTypeUse(XElement element, XElement fileUnit) {
             XElement typeNameElement;
-            string typeName = string.Empty;
 
-            // validate the type use element (must be a SRC.Name or SRC.Type)
+            if(element == null)
+                throw new ArgumentNullException("element");
+            if(null == fileUnit)
+                throw new ArgumentNullException("fileUnit");
+            if(fileUnit.Name != SRC.Unit)
+                throw new ArgumentException("must be a SRC.unit", "fileUnit");
+
+            // validate the type use element (must be a SRC.Name or SRC.Type            
             if(element.Name == SRC.Type) {
                 typeNameElement = element.Element(SRC.Name);
             } else if(element.Name == SRC.Name) {
@@ -97,22 +103,23 @@ namespace ABB.SrcML.Data {
                 throw new ArgumentException("element should be of type type or name", "element");
             }
 
-            if(null == fileUnit)
-                throw new ArgumentNullException("fileUnit");
-            if(fileUnit.Name != SRC.Unit)
-                throw new ArgumentException("must be a SRC.unit", "fileUnit");
+            var fileAliases = CreateAliasesForFile(fileUnit);
+            var nameElements = GetNameElementsFromName(typeNameElement);
 
-            if(typeNameElement.Elements(SRC.Name).Count() > 0) {
-                typeName = typeNameElement.Elements(SRC.Name).Last().Value;
-            } else {
-                typeName = typeNameElement.Value;
-            }
+            var lastName = nameElements.Last();
+            var prefixes = from name in nameElements.TakeWhile(e => e.IsBefore(lastName))
+                           select name.Value;
 
             var typeUse = new TypeUse() {
-                Name = typeName,
+                Name = lastName.Value,
+                Prefix = new Collection<string>(prefixes.ToList()),
                 CurrentNamespace = GetNamespaceDefinition(element, fileUnit),
                 Parser = this,
+                Aliases = new Collection<Alias>(fileAliases.ToList<Alias>()),
             };
+
+            
+            
             return typeUse;
         }
         /// <summary>
@@ -188,6 +195,16 @@ namespace ABB.SrcML.Data {
                 let text = node as XText
                 select text;
             return textNodes;
+        }
+
+        public IEnumerable<XElement> GetNameElementsFromName(XElement nameElement) {
+            if(nameElement.Elements(SRC.Name).Any()) {
+                foreach(var name in nameElement.Elements(SRC.Name)) {
+                    yield return name;
+                }
+            } else {
+                yield return nameElement;
+            }
         }
     }
 }
