@@ -25,6 +25,8 @@ namespace ABB.SrcML
         void StartMonitoring();
         void StopMonitoring();
         List<string> GetMonitoredFiles(System.ComponentModel.BackgroundWorker worker);
+        // temp approach
+        void RaiseSolutionMonitorEvent(string filePath, string oldFilePath, FileEventType type);
     }
 
     /// <summary>

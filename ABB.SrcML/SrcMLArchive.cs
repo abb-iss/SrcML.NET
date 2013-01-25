@@ -184,11 +184,11 @@ namespace ABB.SrcML
             var worker = sender as BackgroundWorker;
             try
             {
-                // compare two lists ??
                 List<string> allMonitoredFiles = FileMonitor.GetMonitoredFiles(worker);
                 //writeLog("D:\\Data\\log.txt", "@@@ allMonitoredFiles [" + allMonitoredFiles.Count + "]");
                 foreach (string sourceFilePath in allMonitoredFiles)
                 {
+                    // PROBLEM: cannot generate index in Sando for .txt, .xml etc files
                     ProcessSingleSourceFile(sourceFilePath);
                 }
 
@@ -196,6 +196,7 @@ namespace ABB.SrcML
                 //writeLog("D:\\Data\\log.txt", "@@@ allSrcMLedFiles [" + allSrcMLedFiles.Count + "]");
                 foreach (string sourceFilePath in allSrcMLedFiles)
                 {
+                    // PROBLEM: cannot generate index in Sando for .txt, .xml etc files
                     ProcessSingleSourceFile(sourceFilePath);
                 }
             }
@@ -251,17 +252,25 @@ namespace ABB.SrcML
         /// <summary>
         /// Process a single source file to add or change the corresponding srcML file, or do nothing.
         /// TODO: GetXmlPathForSourcePath() twice
+        /// PROBLEM: cannot generate index in Sando for .txt, .xml etc files.  Have to raise solution monitor events too.
         /// </summary>
         /// <param name="sourceFilePath"></param>
         public void ProcessSingleSourceFile(string sourceFilePath)
         {
-            if (isValidFileExtension(sourceFilePath))
-            {
+            //if (isValidFileExtension(sourceFilePath))
+            //{
                 if (!File.Exists(sourceFilePath))
                 {
                     // If there is not such a source file, then delete the corresponding srcML file
-                    //writeLog("D:\\Data\\log.txt", "--> To DELETE srcML for: " + sourceFilePath);
-                    RespondToFileEvent(null, new FileEventRaisedArgs(sourceFilePath, FileEventType.FileDeleted));
+                    if (isValidFileExtension(sourceFilePath))
+                    {
+                        //writeLog("D:\\Data\\log.txt", "--> To DELETE srcML for: " + sourceFilePath);
+                        RespondToFileEvent(null, new FileEventRaisedArgs(sourceFilePath, FileEventType.FileDeleted));
+                    }
+                    else
+                    {
+                        this.FileMonitor.RaiseSolutionMonitorEvent(sourceFilePath, null, FileEventType.FileDeleted);
+                    }
                 }
                 else
                 {
@@ -270,8 +279,15 @@ namespace ABB.SrcML
                     if (!File.Exists(srcMLFilePath))
                     {
                         // If there is not a corresponding srcML file, then generate the srcML file
-                        //writeLog("D:\\Data\\log.txt", "--> To ADD: " + srcMLFilePath);
-                        RespondToFileEvent(null, new FileEventRaisedArgs(sourceFilePath, FileEventType.FileAdded));
+                        if (isValidFileExtension(sourceFilePath))
+                        {
+                            //writeLog("D:\\Data\\log.txt", "--> To ADD: " + srcMLFilePath);
+                            RespondToFileEvent(null, new FileEventRaisedArgs(sourceFilePath, FileEventType.FileAdded));
+                        }
+                        else
+                        {
+                            this.FileMonitor.RaiseSolutionMonitorEvent(sourceFilePath, null, FileEventType.FileAdded);
+                        }
                     }
                     else
                     {
@@ -280,8 +296,15 @@ namespace ABB.SrcML
                         if (sourceFileTimestamp.CompareTo(srcLMFileTimestamp) > 0)
                         {
                             // If source file's timestamp is later than its srcML file's timestamp, then generate the srcML file, otherwise do nothing
-                            //writeLog("D:\\Data\\log.txt", "--> To CHANGE: " + srcMLFilePath);
-                            RespondToFileEvent(null, new FileEventRaisedArgs(sourceFilePath, FileEventType.FileChanged));
+                            if (isValidFileExtension(sourceFilePath))
+                            {
+                                //writeLog("D:\\Data\\log.txt", "--> To CHANGE: " + srcMLFilePath);
+                                RespondToFileEvent(null, new FileEventRaisedArgs(sourceFilePath, FileEventType.FileChanged));
+                            }
+                            else
+                            {
+                                this.FileMonitor.RaiseSolutionMonitorEvent(sourceFilePath, null, FileEventType.FileChanged);
+                            }
                         }
                         else
                         {
@@ -289,7 +312,7 @@ namespace ABB.SrcML
                         }
                     }
                 }
-            }
+            //}
         }
 
         /// <summary>
@@ -297,7 +320,7 @@ namespace ABB.SrcML
         /// </summary>
         /// <param name="filePath"></param>
         /// <returns></returns>
-        private bool isValidFileExtension(string filePath)
+        public bool isValidFileExtension(string filePath)
         {
             string fileExtension = Path.GetExtension(filePath);
             //writeLog("D:\\Data\\log.txt", "fileExtension: [" + fileExtension + "]");
@@ -345,7 +368,7 @@ namespace ABB.SrcML
                         break;
                 }
 
-                //writeLog("D:\\Data\\log.txt", "SrcMLArchive raises an event for [" + sourceFilePath + ".");
+                writeLog("D:\\Data\\log.txt", "SrcMLArchive raises a " + eventArgs.EventType + " event for [" + sourceFilePath + "]");
                 eventArgs.SrcMLXElement = xElement;
                 OnSourceFileChanged(eventArgs);
             }

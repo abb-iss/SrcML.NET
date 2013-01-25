@@ -185,6 +185,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
 
         /// <summary>
         /// Get all "monitored" files in this solution.
+        /// TODO: exclude directories.
         /// </summary>
         /// <returns></returns>
         public List<string> GetMonitoredFiles(BackgroundWorker worker)
@@ -337,6 +338,8 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
                         //ProcessSingleSourceFile(path);    // moved to SrcMLArchive
                         
                         //writeLog("D:\\Data\\log.txt", "allMonitoredFiles.Add(" + path + ")");
+                        
+                        // TODO: exclude directories
                         allMonitoredFiles.Add(path);
 
                         ////Debug.WriteLine("End: " + path);
@@ -497,7 +500,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
                     if (fileName.Equals(moniker))
                     {
                         _documentTable.SaveDocuments((uint)__VSRDTSAVEOPTIONS.RDTSAVEOPT_ForceSave, null, 0, docCookie[0]);
-                        writeLog("D:\\Data\\log.txt", "IVsRunningDocumentTable.SaveDocuments() DONE. [" + moniker + "]");
+                        //writeLog("D:\\Data\\log.txt", "IVsRunningDocumentTable.SaveDocuments() DONE. [" + moniker + "]");
                     }
                 }
             }
@@ -662,7 +665,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
                         eventArgs = new FileEventRaisedArgs(filePath, oldFilePath, FileEventType.FileRenamed);
                         break;
                 }
-                writeLog("D:\\Data\\log.txt", "SolutionMonitor raises a " + type + " event for [" + filePath + ".");
+                writeLog("D:\\Data\\log.txt", "SolutionMonitor raises a " + type + " event for [" + filePath + "]");
                 OnFileEventRaised(eventArgs);
             }
         }
@@ -908,11 +911,6 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
 
             _documentTable.GetDocumentInfo(cookie, out flags, out readingLocks, out edittingLocks, out name, out hierarchy, out documentId, out documentData);
             RaiseSolutionMonitorEvent(name, null, FileEventType.FileChanged);
-            //ProcessSingleSourceFile(name);
-            //if (isValidFileExtension(name))
-            //{
-            //    RespondToFileChangedEvent(name, SourceEventType.Changed);
-            //}
             /* ////
             var projectItem = _openSolution.FindProjectItem(name);
             if (projectItem != null)
