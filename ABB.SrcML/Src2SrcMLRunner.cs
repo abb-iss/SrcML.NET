@@ -110,7 +110,7 @@ namespace ABB.SrcML {
                                        select new FileInfo(f);
 
             var files = (from filePath in dir.GetFiles("*", SearchOption.AllDirectories)
-                         where ExtensionMapping.ContainsKey(KsuAdapter.GetExtension(filePath))
+                         where ExtensionMapping.ContainsKey(filePath.Extension)
                          select filePath).Except(fileObjectsToExclude, new FileInfoComparer());
 
             IEnumerable<string> reducedFileList;
@@ -120,7 +120,7 @@ namespace ABB.SrcML {
             } else {
                 additionalArguments.Add(String.Format(CultureInfo.InvariantCulture, "--language={0}", KsuAdapter.GetLanguage(languageFilter)));
                 reducedFileList = from f in files
-                                  where languageFilter == ExtensionMapping[KsuAdapter.GetExtension(f)]
+                                  where languageFilter == ExtensionMapping[f.Extension]
                                   select f.FullName;
             }
 

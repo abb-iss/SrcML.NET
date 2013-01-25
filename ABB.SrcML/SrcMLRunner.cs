@@ -27,10 +27,10 @@ namespace ABB.SrcML
     public class SrcMLRunner : ExecutableRunner
     {
         private readonly DefaultsDictionary<string, Language> _extensionMapping = new DefaultsDictionary<string, Language>(new Dictionary<string, Language>(StringComparer.CurrentCultureIgnoreCase) {
-                    { "c" , Language.C },
-                    { "h", Language.C },
-                    { "cpp", Language.CPlusPlus },
-                    { "java", Language.Java }
+                    { ".c" , Language.C },
+                    { ".h", Language.C },
+                    { ".cpp", Language.CPlusPlus },
+                    { ".java", Language.Java }
         });
 
         private Collection<string> _namespaceArguments;
@@ -56,15 +56,15 @@ namespace ABB.SrcML
         {
             get
             {
-                return ExtensionMapping["h"] == Language.CPlusPlus;
+                return ExtensionMapping[".h"] == Language.CPlusPlus;
             }
 
             set
             {
                 if (value)
-                    ExtensionMapping["h"] = Language.CPlusPlus;
+                    ExtensionMapping[".h"] = Language.CPlusPlus;
                 else
-                    ExtensionMapping["h"] = Language.C;
+                    ExtensionMapping[".h"] = Language.C;
             }
         }
 
