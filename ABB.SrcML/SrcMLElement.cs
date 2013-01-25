@@ -16,41 +16,33 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
+using ABB.SrcML.Utilities;
 
-namespace ABB.SrcML
-{
+namespace ABB.SrcML {
     /// <summary>
     /// Contains static utility methods that act upon srcML XElements.
     /// </summary>
-    public static class SrcMLElement
-    {
+    public static class SrcMLElement {
         /// <summary>
         /// Gets the method signature from the method definition srcML element.
         /// </summary>
         /// <param name="methodElement">The srcML method element to extract the signature from.</param>
         /// <returns>The method signature</returns>
-        public static string GetMethodSignature(XElement methodElement)
-        {
-            if(methodElement == null)
-            {
+        public static string GetMethodSignature(XElement methodElement) {
+            if(methodElement == null) {
                 throw new ArgumentNullException("methodElement");
             }
-            if(!(new[] {SRC.Function, SRC.Constructor, SRC.Destructor}).Contains(methodElement.Name))
-            {
+            if(!(new[] { SRC.Function, SRC.Constructor, SRC.Destructor }).Contains(methodElement.Name)) {
                 throw new ArgumentException(string.Format("Not a valid method element: {0}", methodElement.Name), "methodElement");
             }
 
             var sig = new StringBuilder();
             var paramListElement = methodElement.Element(SRC.ParameterList);
             //add all the text and whitespace prior to the parameter list
-            foreach(var n in paramListElement.NodesBeforeSelf())
-            {
-                if(n.NodeType == XmlNodeType.Element)
-                {
+            foreach(var n in paramListElement.NodesBeforeSelf()) {
+                if(n.NodeType == XmlNodeType.Element) {
                     sig.Append(((XElement)n).Value);
-                }
-                else if(n.NodeType == XmlNodeType.Text || n.NodeType == XmlNodeType.Whitespace || n.NodeType == XmlNodeType.SignificantWhitespace)
-                {
+                } else if(n.NodeType == XmlNodeType.Text || n.NodeType == XmlNodeType.Whitespace || n.NodeType == XmlNodeType.SignificantWhitespace) {
                     sig.Append(((XText)n).Value);
                 }
             }
@@ -59,6 +51,30 @@ namespace ABB.SrcML
 
             //convert whitespace chars to spaces and condense any consecutive whitespaces.
             return Regex.Replace(sig.ToString().Trim(), @"\s+", " ");
+        }
+
+        /// <summary>
+        /// Gets the language for a unit element.
+        /// 
+        /// It throws an exception if the element is not a unit, has no language, or the language is invalid. <see cref="ABB.SrcML.Language"/>
+        /// </summary>
+        /// <param name="fileUnit">The file unit to get the language for</param>
+        /// <returns>The language</returns>
+        public static Language GetLanguageForUnit(XElement fileUnit) {
+            if(fileUnit == null) {
+                throw new ArgumentNullException("fileUnit");
+            }
+            if(fileUnit.Name != SRC.Unit) {
+                throw new ArgumentException("Not a unit element", "fileUnit");
+            }
+
+            var languageAttribute = fileUnit.Attribute("language");
+
+            if(null == languageAttribute) {
+                throw new SrcMLException("unit contains no language attribute");
+            }
+
+            return KsuAdapter.GetLanguageFromString(languageAttribute.Value); ;
         }
     }
 }

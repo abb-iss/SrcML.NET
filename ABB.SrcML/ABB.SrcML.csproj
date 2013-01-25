@@ -35,7 +35,8 @@
     <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>sandoKey.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -58,6 +59,7 @@
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="IArchive.cs" />
     <Compile Include="IFileMonitor.cs" />
+    <Compile Include="SrcMLGenerator.cs" />
     <Compile Include="ITransform.cs" />
     <Compile Include="Language.cs" />
     <Compile Include="LineInfo.cs" />
@@ -75,6 +77,7 @@
     <Compile Include="SrcML.cs" />
     <Compile Include="SrcML2SrcRunner.cs" />
     <Compile Include="SrcMLArchive.cs" />
+    <Compile Include="SrcMLElement.cs" />
     <Compile Include="SrcMLException.cs" />
     <Compile Include="SrcMLFile.cs" />
     <Compile Include="SrcMLHelper.cs" />
@@ -92,9 +95,6 @@
     <Compile Include="Utilities\SrcMLRuntimeException.cs" />
     <Compile Include="Utilities\VisualStudioProjectReader.cs" />
     <Compile Include="XmlHelper.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="sandoKey.snk" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

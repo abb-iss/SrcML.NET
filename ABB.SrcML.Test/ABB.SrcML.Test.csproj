@@ -56,15 +56,16 @@
     <Compile Include="..\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
-    <Compile Include="SolutionMonitorTest.cs" />
     <Compile Include="EmptyClass.cs" />
     <Compile Include="ExternalTests.cs" />
     <Compile Include="HelperTests.cs" />
     <Compile Include="InvalidQueryFunctions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SrcMLArchiveTest.cs" />
+    <Compile Include="SrcMLElementTests.cs" />
     <Compile Include="SrcMLFileTest.cs" />
-    <Compile Include="SrcMLTest.cs" />
+    <Compile Include="SrcMLGeneratorTests.cs" />
+    <Compile Include="Src2SrcMLRunnerTests.cs" />
     <Compile Include="SRCTest.cs" />
     <Compile Include="StaticVsNonStaticQueryFunctions.cs" />
     <Compile Include="TestConstants.cs" />

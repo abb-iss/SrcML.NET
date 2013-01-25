@@ -1,17 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{98BD4F02-2CC6-4D29-8829-F5222EFF97E6}</ProjectGuid>
+    <ProjectGuid>{73C24E33-465B-424D-B35A-39F1750F705E}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ABB.SrcML.Data</RootNamespace>
     <AssemblyName>ABB.SrcML.Data</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -29,13 +29,11 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>..\Build\Release\ABB.SrcML.Data.XML</DocumentationFile>
+    <DocumentationFile>..\Build\Release\ABB.SrcML.Data.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Data.Entity" />
-    <Reference Include="System.Data.Linq" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -46,45 +44,25 @@
     <Compile Include="..\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
-    <Compile Include="Archive.cs" />
-    <Compile Include="CallGraph.cs" />
-    <Compile Include="ContainerNames.cs" />
-    <Compile Include="Declaration.cs" />
-    <Compile Include="Definition.cs" />
-    <Compile Include="EntityDataReader.cs" />
-    <Compile Include="GlobalSuppressions.cs" />
-    <Compile Include="ProgressEventArgs.cs" />
+    <Compile Include="AbstractCodeParser.cs" />
+    <Compile Include="AccessModifier.cs" />
+    <Compile Include="Alias.cs" />
+    <Compile Include="DataArchive.cs" />
+    <Compile Include="JavaCodeParser.cs" />
+    <Compile Include="MethodDefinition.cs" />
+    <Compile Include="NamespaceDefinition.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ScopeDefinition.cs" />
-    <Compile Include="SrcMLData.cs">
-      <DependentUpon>SrcMLData.dbml</DependentUpon>
-    </Compile>
-    <Compile Include="SrcMLData.designer.cs">
-      <DependentUpon>SrcMLData.dbml</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
-    <Compile Include="SrcMLDataException.cs" />
-    <Compile Include="ValidScope.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="SrcMLData.dbml">
-      <Generator>MSLinqToSQLGenerator</Generator>
-      <LastGenOutput>SrcMLData.designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="SrcMLData.dbml.layout">
-      <DependentUpon>SrcMLData.dbml</DependentUpon>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Service Include="{3259AA49-8AA1-44D3-9025-A0B520596A8C}" />
+    <Compile Include="CPlusPlusCodeParser.cs" />
+    <Compile Include="TypeDefinition.cs" />
+    <Compile Include="TypeInventory.cs" />
+    <Compile Include="TypeKind.cs" />
+    <Compile Include="TypeUse.cs" />
+    <Compile Include="VariableDeclaration.cs" />
+    <Compile Include="XNameMaps.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ABB.SrcML\ABB.SrcML.csproj">
-      <Project>{D52626E7-A4CA-471A-8A6A-FE0110430FE6}</Project>
+      <Project>{d52626e7-a4ca-471a-8a6a-fe0110430fe6}</Project>
       <Name>ABB.SrcML</Name>
     </ProjectReference>
   </ItemGroup>
