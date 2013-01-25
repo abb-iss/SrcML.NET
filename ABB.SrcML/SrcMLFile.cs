@@ -47,8 +47,8 @@ namespace ABB.SrcML
         public SrcMLFile(string fileName)
         {
             this.ArchivePath = fileName;
-            this.SourceFolderPath = getCommonPath();
             this.NumberOfNestedFileUnits = XmlHelper.StreamElements(this.ArchivePath, SRC.Unit).Count();
+            this._rootDirectory = getCommonPath();
         }
 
         public string FileName
