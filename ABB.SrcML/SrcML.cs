@@ -35,10 +35,10 @@ namespace ABB.SrcML
     {
         private readonly static XmlNamespaceManager nsManager = new XmlNamespaceManager(new NameTable());
         private readonly DefaultsDictionary<string, Language> _extensionMapping = new DefaultsDictionary<string, Language>(new Dictionary<string, Language>(StringComparer.CurrentCultureIgnoreCase) {
-                    { "c" , Language.C },
-                    { "h", Language.C },
-                    { "cpp", Language.CPlusPlus },
-                    { "java", Language.Java }
+                    { ".c" , Language.C },
+                    { ".h", Language.C },
+                    { ".cpp", Language.CPlusPlus },
+                    { ".java", Language.Java }
         });
 
         private readonly string src2srcml_exe;
@@ -305,7 +305,8 @@ namespace ABB.SrcML
             string[] srcfiles = VisualStudioProjectReader.ReadProjectFile(project);
 
             var sourceFiles = from sourceFile in srcfiles
-                              where ExtensionMapping[KsuAdapter.GetExtension(sourceFile)] == language
+                              let ext = Path.GetExtension(sourceFile)
+                              where ext != null && ExtensionMapping[ext] == language
                               select sourceFile;
 
             var directory = Path.GetDirectoryName(project);
@@ -371,7 +372,7 @@ namespace ABB.SrcML
                                        select new FileInfo(f);
 
             var files = (from filePath in dir.GetFiles("*", SearchOption.AllDirectories)
-                         where ExtensionMapping.ContainsKey(KsuAdapter.GetExtension(filePath))
+                         where ExtensionMapping.ContainsKey(filePath.Extension)
                          select filePath).Except(fileObjectsToExclude, new FileInfoComparer());
 
             IEnumerable<string> reducedFileList;
@@ -382,7 +383,7 @@ namespace ABB.SrcML
             else
             {
                 reducedFileList = from f in files
-                                  where languageFilter == ExtensionMapping[KsuAdapter.GetExtension(f)]
+                                  where languageFilter == ExtensionMapping[f.Extension]
                                   select f.FullName;
             }
 
