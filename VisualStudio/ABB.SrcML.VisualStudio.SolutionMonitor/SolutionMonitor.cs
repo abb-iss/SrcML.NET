@@ -356,7 +356,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
 
         /* // moved to SrcMLArchive
         // Temp method for file extension check
-        private bool isValidFileExtension(string filePath)
+        private bool IsValidFileExtension(string filePath)
         {
             string fileExtension = Path.GetExtension(filePath);
             if (fileExtension != null && !fileExtension.Equals(String.Empty))
@@ -393,7 +393,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
             }
             else
             {
-                if (isValidFileExtension(sourceFilePath))
+                if (IsValidFileExtension(sourceFilePath))
                 {
                     string srcMLFilePath = GetXmlPathForSourcePath(sourceFilePath);
                     writeLog("D:\\Data\\log.txt", "ProcessSingleSourceFile(): src = [" + sourceFilePath + "], srcML = [" + srcMLFilePath + "]");

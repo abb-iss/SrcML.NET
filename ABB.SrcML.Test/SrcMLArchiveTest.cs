@@ -60,8 +60,7 @@ namespace ABB.SrcML.Test
 
             IFileMonitor watchedFolder = Substitute.For<IFileMonitor>();
 
-            var archive = new SrcMLArchive(watchedFolder, Path.Combine(srcDirectoryInfo.FullName, ".srcml"));
-            archive.XmlGenerator.ApplicationDirectory = TestConstants.SrcmlPath;
+            var archive = new SrcMLArchive(watchedFolder, Path.Combine(srcDirectoryInfo.FullName, ".srcml"), new SrcMLGenerator(TestConstants.SrcmlPath));
             var xmlDirectory = new DirectoryInfo(archive.ArchivePath);
 
             for (int i = 0; i < 10; i++)
@@ -169,8 +168,7 @@ namespace ABB.SrcML.Test
         {
             IFileMonitor watchedFolder = Substitute.For<IFileMonitor>();
 
-            var archive = new SrcMLArchive(watchedFolder, Path.Combine(srcDirectoryInfo.FullName, ".srcml"));
-            archive.XmlGenerator.ApplicationDirectory = TestConstants.SrcmlPath;
+            var archive = new SrcMLArchive(watchedFolder, Path.Combine(srcDirectoryInfo.FullName, ".srcml"), new SrcMLGenerator(TestConstants.SrcmlPath));
             var xmlDirectory = new DirectoryInfo(archive.ArchivePath);
 
             File.WriteAllText(SOURCEDIRECTORY + "\\foo.c", String.Format(@"int foo() {{{0}printf(""hello world!"");{0}}}", Environment.NewLine));
@@ -248,8 +246,7 @@ namespace ABB.SrcML.Test
         {
             IFileMonitor watchedFolder = Substitute.For<IFileMonitor>();
 
-            var archive = new SrcMLArchive(watchedFolder, Path.Combine(srcDirectoryInfo.FullName, ".srcml"));
-            archive.XmlGenerator.ApplicationDirectory = TestConstants.SrcmlPath;
+            var archive = new SrcMLArchive(watchedFolder, Path.Combine(srcDirectoryInfo.FullName, ".srcml"), new SrcMLGenerator(TestConstants.SrcmlPath));
             var xmlDirectory = new DirectoryInfo(archive.ArchivePath);
 
             File.WriteAllText(SOURCEDIRECTORY + "\\foo.c", String.Format(@"int foo() {{{0}printf(""hello world!"");{0}}}", Environment.NewLine));
@@ -268,8 +265,7 @@ namespace ABB.SrcML.Test
             int numberOfEventsRaised = 0;
             IFileMonitor watchedFolder = Substitute.For<IFileMonitor>();
 
-            var archive = new SrcMLArchive(watchedFolder, Path.Combine(srcDirectoryInfo.FullName, ".srcml"));
-            archive.XmlGenerator.ApplicationDirectory = TestConstants.SrcmlPath;
+            var archive = new SrcMLArchive(watchedFolder, Path.Combine(srcDirectoryInfo.FullName, ".srcml"), new SrcMLGenerator(TestConstants.SrcmlPath));
             var xmlDirectory = new DirectoryInfo(archive.ArchivePath);
 
             ////archive.SourceFileChanged += (o, e) =>
