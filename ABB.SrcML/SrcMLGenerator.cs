@@ -1,4 +1,15 @@
-﻿using System;
+﻿/******************************************************************************
+ * Copyright (c) 2013 ABB Group
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    Patrick Francis (ABB Group) - initial API, implementation, & documentation
+ *****************************************************************************/
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -28,11 +39,26 @@ namespace ABB.SrcML {
         }
 
         /// <summary>
+        /// Maps Languages to the Src2SrcMLRunner that will parse it, if different from the default.
+        /// </summary>
+        public Dictionary<Language, Src2SrcMLRunner> NonDefaultExecutables {
+            get { return nonDefaultExecutables; }
+        }
+
+        /// <summary>
+        /// The languages that can be parsed by this SrcMLGenerator.
+        /// </summary>
+        public IEnumerable<Language> SupportedLanguages {
+            get { return defaultLanguages.Union(nonDefaultExecutables.Keys); }
+        } 
+
+        /// <summary>
         /// Creates a new SrcMLGenerator.
         /// </summary>
         public SrcMLGenerator() {
             defaultExecutable = new Src2SrcMLRunner();
             nonDefaultExecutables = new Dictionary<Language, Src2SrcMLRunner>();
+            DetectNonDefaultExecutables();
         }
 
         /// <summary>
@@ -42,6 +68,7 @@ namespace ABB.SrcML {
         public SrcMLGenerator(string defaultExecutableDirectory) {
             defaultExecutable = new Src2SrcMLRunner(defaultExecutableDirectory);
             nonDefaultExecutables = new Dictionary<Language, Src2SrcMLRunner>();
+            DetectNonDefaultExecutables();
         }
 
         /// <summary>
@@ -52,6 +79,7 @@ namespace ABB.SrcML {
         public SrcMLGenerator(string defaultExecutableDirectory, IEnumerable<string> namespaceArguments) {
             defaultExecutable = new Src2SrcMLRunner(defaultExecutableDirectory, namespaceArguments);
             nonDefaultExecutables = new Dictionary<Language, Src2SrcMLRunner>();
+            DetectNonDefaultExecutables();
         }
 
         /// <summary>
@@ -60,14 +88,7 @@ namespace ABB.SrcML {
         /// <param name="executableDirectory">The directory containing the src2srcml executable to use.</param>
         /// <param name="languages">A collection of the Languages that should be parsed by this executable.</param>
         public void RegisterExecutable(string executableDirectory, IEnumerable<Language> languages) {
-            if(nonDefaultExecutables == null) {
-                nonDefaultExecutables = new Dictionary<Language, Src2SrcMLRunner>();
-            }
-            
-            var runner = new Src2SrcMLRunner(executableDirectory);
-            foreach(var lang in languages) {
-                nonDefaultExecutables[lang] = runner;
-            }
+            RegisterExecutable(executableDirectory, languages, null);
         }
 
         /// <summary>
@@ -81,9 +102,32 @@ namespace ABB.SrcML {
                 nonDefaultExecutables = new Dictionary<Language, Src2SrcMLRunner>();
             }
 
-            var runner = new Src2SrcMLRunner(executableDirectory, namespaceArguments);
+            var langList = languages.ToList();
+            var dupLanguages = langList.Intersect(nonDefaultExecutables.Keys);
+            if(dupLanguages.Any()) {
+                var oldExec = nonDefaultExecutables[dupLanguages.First()];
+                throw new InvalidOperationException(string.Format("Executable already registered for language {0}: {1}", dupLanguages.First(), oldExec.ExecutablePath));
+            }
+
+            var runner = namespaceArguments != null ? new Src2SrcMLRunner(executableDirectory, namespaceArguments) : new Src2SrcMLRunner(executableDirectory);
             foreach(var lang in languages) {
                 nonDefaultExecutables[lang] = runner;
+            }
+        }
+
+        /// <summary>
+        /// Scans the directory containing the default src2srcml executable and looks for subdirectories corresponding to defined languages.
+        /// Each of these is registered for the given language.
+        /// </summary>
+        protected void DetectNonDefaultExecutables() {
+            var defaultDir = new DirectoryInfo(defaultExecutable.ApplicationDirectory);
+            foreach(var dir in defaultDir.GetDirectories()) {
+                Language dirlanguage;
+                if(Enum.TryParse<Language>(dir.Name, true, out dirlanguage)) {
+                    if(File.Exists(Path.Combine(dir.FullName, Src2SrcMLRunner.Src2SrcMLExecutableName))) {
+                        RegisterExecutable(dir.FullName, new[] {dirlanguage});
+                    }
+                }
             }
         }
 
@@ -112,6 +156,32 @@ namespace ABB.SrcML {
             Src2SrcMLRunner runner = nonDefaultExecutables.ContainsKey(language) ? nonDefaultExecutables[language] : defaultExecutable;
             SetExtensionMappingOnRunner(runner);
             return runner.GenerateSrcMLFromFile(sourceFileName, xmlFileName, language);
+        }
+
+        //TODO: should this method be here? Can we get rid of it altogether?
+        /// <summary>
+        /// Generate a SrcML document from a single source file, and return an XElement for it. 
+        /// The source language will be inferred from the file extension.
+        /// </summary>
+        /// <param name="sourceFileName">The path of the source file to convert.</param>
+        /// <param name="xmlFileName">The file name to write the resulting XML to.</param>
+        /// <returns>The root XElement for <paramref name="xmlFileName"/>.</returns>
+        public XElement GenerateSrcMLAndXElementFromFile(string sourceFileName, string xmlFileName) {
+            SrcMLFile file = GenerateSrcMLFromFile(sourceFileName, xmlFileName);
+            return file.FileUnits.FirstOrDefault();
+        }
+
+        //TODO: should this method be here? Can we get rid of it altogether?
+        /// <summary>
+        /// Generate a SrcML document from a single source file, and return the xml as a string.
+        /// The source language will be inferred from the file extension.
+        /// </summary>
+        /// <param name="sourceFileName">The path of the source file to convert.</param>
+        /// <param name="xmlFileName">The file name to write the resulting XML to.</param>
+        /// <returns>A string containing the xml for the file.</returns>
+        public string GenerateSrcMLAndStringFromFile(string sourceFileName, string xmlFileName) {
+            SrcMLFile file = GenerateSrcMLFromFile(sourceFileName, xmlFileName);
+            return file.GetXMLString();
         }
 
         /// <summary>
@@ -275,13 +345,7 @@ namespace ABB.SrcML {
             return runner.GenerateSrcMLFromString(source, language);
         }
 
-        //TODO: should these be here? Can we get rid of them altogether?
-        public XElement GenerateSrcMLAndXElementFromFile(string sourceFileName, string xmlFileName) {
-            throw new NotImplementedException();
-        }
-        public string GenerateSrcMLAndStringFromFile(string sourceFileName, string xmlFileName) {
-            throw new NotImplementedException();
-        }
+        
 
 
         private void SetExtensionMappingOnRunner(Src2SrcMLRunner runner) {
