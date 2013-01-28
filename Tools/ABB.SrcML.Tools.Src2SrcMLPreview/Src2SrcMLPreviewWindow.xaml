@@ -52,6 +52,7 @@
             <MenuItem Header="_Language" Name="MenuItemLanguage">
                 <MenuItem Name="MenuItemCpp" Header="C++" IsChecked="True" IsCheckable="False" Click="MenuItemLanguage_Click" />
                 <MenuItem Name="MenuItemC" Header="C" IsCheckable="True" Click="MenuItemLanguage_Click" />
+                <MenuItem Name="MenuItemCSharp" Header="C#" IsCheckable="True" Click="MenuItemLanguage_Click" />
                 <MenuItem Name="MenuItemJava" Header="Java" IsCheckable="True" Click="MenuItemLanguage_Click" />
                 <MenuItem Name="MenuItemAspectJ" Header="AspectJ" IsCheckable="True" Click="MenuItemLanguage_Click" />
             </MenuItem>
