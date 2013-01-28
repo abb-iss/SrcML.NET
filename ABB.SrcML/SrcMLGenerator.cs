@@ -1,4 +1,15 @@
-﻿using System;
+﻿/******************************************************************************
+ * Copyright (c) 2013 ABB Group
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    Patrick Francis (ABB Group) - initial API, implementation, & documentation
+ *****************************************************************************/
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -28,11 +39,19 @@ namespace ABB.SrcML {
         }
 
         /// <summary>
+        /// Maps Languages to the Src2SrcMLRunner that will parse it, if different from the default.
+        /// </summary>
+        public Dictionary<Language, Src2SrcMLRunner> NonDefaultExecutables {
+            get { return nonDefaultExecutables; }
+        }
+
+        /// <summary>
         /// Creates a new SrcMLGenerator.
         /// </summary>
         public SrcMLGenerator() {
             defaultExecutable = new Src2SrcMLRunner();
             nonDefaultExecutables = new Dictionary<Language, Src2SrcMLRunner>();
+            DetectNonDefaultExecutables();
         }
 
         /// <summary>
@@ -42,6 +61,7 @@ namespace ABB.SrcML {
         public SrcMLGenerator(string defaultExecutableDirectory) {
             defaultExecutable = new Src2SrcMLRunner(defaultExecutableDirectory);
             nonDefaultExecutables = new Dictionary<Language, Src2SrcMLRunner>();
+            DetectNonDefaultExecutables();
         }
 
         /// <summary>
@@ -52,6 +72,7 @@ namespace ABB.SrcML {
         public SrcMLGenerator(string defaultExecutableDirectory, IEnumerable<string> namespaceArguments) {
             defaultExecutable = new Src2SrcMLRunner(defaultExecutableDirectory, namespaceArguments);
             nonDefaultExecutables = new Dictionary<Language, Src2SrcMLRunner>();
+            DetectNonDefaultExecutables();
         }
 
         /// <summary>
@@ -60,14 +81,7 @@ namespace ABB.SrcML {
         /// <param name="executableDirectory">The directory containing the src2srcml executable to use.</param>
         /// <param name="languages">A collection of the Languages that should be parsed by this executable.</param>
         public void RegisterExecutable(string executableDirectory, IEnumerable<Language> languages) {
-            if(nonDefaultExecutables == null) {
-                nonDefaultExecutables = new Dictionary<Language, Src2SrcMLRunner>();
-            }
-            
-            var runner = new Src2SrcMLRunner(executableDirectory);
-            foreach(var lang in languages) {
-                nonDefaultExecutables[lang] = runner;
-            }
+            RegisterExecutable(executableDirectory, languages, null);
         }
 
         /// <summary>
@@ -81,9 +95,32 @@ namespace ABB.SrcML {
                 nonDefaultExecutables = new Dictionary<Language, Src2SrcMLRunner>();
             }
 
-            var runner = new Src2SrcMLRunner(executableDirectory, namespaceArguments);
+            var langList = languages.ToList();
+            var dupLanguages = langList.Intersect(nonDefaultExecutables.Keys);
+            if(dupLanguages.Any()) {
+                var oldExec = nonDefaultExecutables[dupLanguages.First()];
+                throw new InvalidOperationException(string.Format("Executable already registered for language {0}: {1}", dupLanguages.First(), oldExec.ExecutablePath));
+            }
+
+            var runner = namespaceArguments != null ? new Src2SrcMLRunner(executableDirectory, namespaceArguments) : new Src2SrcMLRunner(executableDirectory);
             foreach(var lang in languages) {
                 nonDefaultExecutables[lang] = runner;
+            }
+        }
+
+        /// <summary>
+        /// Scans the directory containing the default src2srcml executable and looks for subdirectories corresponding to defined languages.
+        /// Each of these is registered for the given language.
+        /// </summary>
+        protected void DetectNonDefaultExecutables() {
+            var defaultDir = new DirectoryInfo(defaultExecutable.ApplicationDirectory);
+            foreach(var dir in defaultDir.GetDirectories()) {
+                Language dirlanguage;
+                if(Enum.TryParse<Language>(dir.Name, true, out dirlanguage)) {
+                    if(File.Exists(Path.Combine(dir.FullName, Src2SrcMLRunner.Src2SrcMLExecutableName))) {
+                        RegisterExecutable(dir.FullName, new[] {dirlanguage});
+                    }
+                }
             }
         }
 
