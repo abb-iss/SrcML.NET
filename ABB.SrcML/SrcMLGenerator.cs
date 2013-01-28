@@ -125,7 +125,7 @@ namespace ABB.SrcML {
                 Language dirlanguage;
                 if(Enum.TryParse<Language>(dir.Name, true, out dirlanguage)) {
                     if(File.Exists(Path.Combine(dir.FullName, Src2SrcMLRunner.Src2SrcMLExecutableName))) {
-                        RegisterExecutable(dir.FullName, new[] {dirlanguage});
+                        RegisterExecutable(dir.FullName, new[] {dirlanguage}, defaultExecutable.NamespaceArguments);
                     }
                 }
             }
