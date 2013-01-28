@@ -257,5 +257,20 @@ printf(""hello world!"");
         public void TestRegisterExecutable_Duplicate() {
             generator.RegisterExecutable(Path.Combine(TestConstants.SrcmlPath, "csharp"), new[] {Language.CSharp});
         }
+
+        [Test]
+        public void TestSupportedLanguages() {
+            var langs = generator.SupportedLanguages.ToList();
+            Assert.AreEqual(4, langs.Count);
+            Assert.IsTrue(langs.Contains(Language.C));
+            Assert.IsTrue(langs.Contains(Language.CPlusPlus));
+            Assert.IsTrue(langs.Contains(Language.CSharp));
+            Assert.IsTrue(langs.Contains(Language.Java));
+
+            generator.NonDefaultExecutables.Clear();
+            langs = generator.SupportedLanguages.ToList();
+            Assert.AreEqual(3, langs.Count);
+            Assert.IsFalse(langs.Contains(Language.CSharp));
+        }
     }
 }

@@ -46,6 +46,13 @@ namespace ABB.SrcML {
         }
 
         /// <summary>
+        /// The languages that can be parsed by this SrcMLGenerator.
+        /// </summary>
+        public IEnumerable<Language> SupportedLanguages {
+            get { return defaultLanguages.Union(nonDefaultExecutables.Keys); }
+        } 
+
+        /// <summary>
         /// Creates a new SrcMLGenerator.
         /// </summary>
         public SrcMLGenerator() {
