@@ -44,6 +44,13 @@ namespace ABB.SrcML.Tools.Src2SrcMLPreview
         private Forms.FolderBrowserDialog directorySelector;
         private static Collection<string> _namespaceArguments = new Collection<string>() { LIT.ArgumentLabel, OP.ArgumentLabel, TYPE.ArgumentLabel };
 
+        public SrcMLGenerator XmlGenerator {
+            get { return this._xmlGenerator;  }
+            set {
+                this._xmlGenerator = value;
+                UpdateSupportedLanguages();
+            }
+        }
         public Src2SrcMLPreviewWindow()
         {
             binDirIsValid = true;
@@ -51,9 +58,9 @@ namespace ABB.SrcML.Tools.Src2SrcMLPreview
             directorySelector.ShowNewFolderButton = false;
             directorySelector.SelectedPath = SrcMLHelper.GetSrcMLDefaultDirectory();
             
-            _xmlGenerator = new SrcMLGenerator(directorySelector.SelectedPath, _namespaceArguments);
             _language = ABB.SrcML.Language.CPlusPlus;
             InitializeComponent();
+            XmlGenerator = new SrcMLGenerator(directorySelector.SelectedPath, _namespaceArguments);
         }
 
         private void sourceBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -66,7 +73,7 @@ namespace ABB.SrcML.Tools.Src2SrcMLPreview
                 {
                     try
                     {
-                        _xml = _xmlGenerator.GenerateSrcMLFromString(sourceBox.Text, this._language);
+                        _xml = XmlGenerator.GenerateSrcMLFromString(sourceBox.Text, this._language);
 
                         languageLabel.Content = String.Format("(Code parsed as {0})", KsuAdapter.GetLanguage(this._language));
                         var doc = XDocument.Parse(_xml, LoadOptions.PreserveWhitespace);
@@ -127,8 +134,18 @@ namespace ABB.SrcML.Tools.Src2SrcMLPreview
                 this._xmlGenerator = new SrcMLGenerator(directorySelector.SelectedPath, _namespaceArguments);
                 binDirIsValid = true;
                 srcmlBox.Foreground = Brushes.Black;
+                UpdateSupportedLanguages();
                 if (sourceBox.Text.Length > 0)
                     sourceBox_TextChanged(sender, null);
+            }
+        }
+
+        private void UpdateSupportedLanguages() {
+            HashSet<Language> supportedLanguages = new HashSet<Language>(this.XmlGenerator.SupportedLanguages);
+            foreach(var item in this.MenuItemLanguage.Items) {
+                var menuItem = item as MenuItem;
+                var language = KsuAdapter.GetLanguageFromString(menuItem.Header.ToString());
+                menuItem.IsEnabled = supportedLanguages.Contains(language);
             }
         }
 
