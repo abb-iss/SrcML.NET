@@ -58,6 +58,7 @@
     <Compile Include="TypeKind.cs" />
     <Compile Include="TypeUse.cs" />
     <Compile Include="VariableDeclaration.cs" />
+    <Compile Include="VariableScope.cs" />
     <Compile Include="XNameMaps.cs" />
   </ItemGroup>
   <ItemGroup>

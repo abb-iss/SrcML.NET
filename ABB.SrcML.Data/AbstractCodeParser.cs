@@ -13,6 +13,7 @@ namespace ABB.SrcML.Data {
     /// </summary>
     public abstract class AbstractCodeParser {
         protected AbstractCodeParser() {
+            VariableDeclarationElementNames = new HashSet<XName>(new XName[] { SRC.Declaration, SRC.DeclarationStatement, SRC.Parameter });
         }
 
         /// <summary>
@@ -24,6 +25,11 @@ namespace ABB.SrcML.Data {
         /// Returns the XNames that represent types for this language
         /// </summary>
         public HashSet<XName> TypeElementNames { get; protected set; }
+
+        /// <summary>
+        /// Returns the XNames that represent variable declarations for this language
+        /// </summary>
+        public HashSet<XName> VariableDeclarationElementNames { get; protected set; }
 
         /// <summary>
         /// Creates all of the type definitions from a file unit.
@@ -175,6 +181,66 @@ namespace ABB.SrcML.Data {
         /// <returns>An enumerable of fully</returns>
         public abstract IEnumerable<string> GeneratePossibleNamesForTypeUse(TypeUse typeUse);
 
+        /// <summary>
+        /// Generates variable declarations for each of the declarations
+        /// </summary>
+        /// <param name="declarations">The declaration XElements. They must be of type <see cref="ABB.SrcML.SRC.Declaration"/>, <see cref="ABB.SrcML.SRC.DeclarationStatement"/>, or <see cref="ABB.SrcML.SRC.Parameter"/></param>
+        /// <param name="fileUnit">The parent file unit for all of the <paramref name="declarations"/></param>
+        /// <returns>an enumerable of variable declaration objects</returns>
+        public IEnumerable<VariableDeclaration> CreateVariableDeclarations(IEnumerable<XElement> declarations, XElement fileUnit) {
+            if(declarations == null)
+                throw new ArgumentNullException("declarations");
+            if(fileUnit == null)
+                throw new ArgumentNullException("fileUnit");
+            if(fileUnit.Name != SRC.Unit)
+                throw new ArgumentException("must be of type SRC.Unit", "fileUnit");
+
+            var variableDeclarations = from declaration in declarations
+                                       select CreateVariableDeclaration(declaration, fileUnit);
+            return variableDeclarations;
+        }
+        /// <summary>
+        /// Generates a variable declaration for the given declaration
+        /// </summary>
+        /// <param name="declaration">The declaration XElement. Can be of type <see cref="ABB.SrcML.SRC.Declaration"/>, <see cref="ABB.SrcML.SRC.DeclarationStatement"/>, or <see cref="ABB.SrcML.SRC.Parameter"/></param>
+        /// <returns>A variable declaration object</returns>
+        public virtual VariableDeclaration CreateVariableDeclaration(XElement declaration, XElement fileUnit) {
+            if(declaration == null)
+                throw new ArgumentNullException("declaration");
+            if(fileUnit == null)
+                throw new ArgumentNullException("fileUnit");
+            if(!VariableDeclarationElementNames.Contains(declaration.Name))
+                throw new ArgumentException("XElement.Name must be in VariableDeclarationElementNames");
+            if(fileUnit.Name != SRC.Unit)
+                throw new ArgumentException("must be of type SRC.Unit", "fileUnit");
+
+            XElement declElement;
+            if(declaration.Name == SRC.Declaration) {
+                declElement = declaration;
+            } else {
+                declElement = declaration.Element(SRC.Declaration);
+            }
+
+            var scope = CreateScopeForElement(declElement);
+            var variableDeclaration = new VariableDeclaration() {
+                VariableType = CreateTypeUse(declElement.Element(SRC.Type), fileUnit),
+                Name = declElement.Element(SRC.Name).Value,
+                Scope = scope,
+            };
+            scope.DeclaredVariables.Add(variableDeclaration);
+            return variableDeclaration;
+        }
+
+        public virtual VariableScope CreateScopeForElement(XElement element) {
+            var containers = from ancestor in element.Ancestors()
+                             where VariableScope.Containers.Contains(ancestor.Name)
+                             select ancestor;
+            var immediateContainer = containers.First();
+            var scope = new VariableScope() {
+                XPath = immediateContainer.GetXPath(false),
+            };
+            return scope;
+        }
         /// <summary>
         /// Gets the filename for the given file unit.
         /// </summary>

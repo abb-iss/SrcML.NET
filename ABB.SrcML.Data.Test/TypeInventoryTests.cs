@@ -20,11 +20,11 @@ using System.Xml.Linq;
 namespace ABB.SrcML.Data.Test {
     [TestFixture]
     public class TypeInventoryTests {
-        private string srcMLFormat;
+        private SrcMLFileUnitSetup fileSetup;
 
         [TestFixtureSetUp]
         public void ClassSetup() {
-            srcMLFormat = SrcMLFileUnitSetup.CreateFileUnitTemplate();
+            fileSetup = new SrcMLFileUnitSetup(Language.Java);
         }
 
         [Test]
@@ -48,9 +48,9 @@ namespace ABB.SrcML.Data.Test {
 	<decl_stmt><decl><type><name>A</name></type> <name>a</name></decl>;</decl_stmt>
 }</block></class>";
 
-            var fileUnitA = SrcMLFileUnitSetup.GetFileUnitForXmlSnippet(srcMLFormat, a_xml, Language.Java);
-            var fileUnitB = SrcMLFileUnitSetup.GetFileUnitForXmlSnippet(srcMLFormat, b_xml, Language.Java);
-            var fileUnitC = SrcMLFileUnitSetup.GetFileUnitForXmlSnippet(srcMLFormat, c_xml, Language.Java);
+            var fileUnitA = fileSetup.GetFileUnitForXmlSnippet(a_xml, "A.java");
+            var fileUnitB = fileSetup.GetFileUnitForXmlSnippet(b_xml, "B.java");
+            var fileUnitC = fileSetup.GetFileUnitForXmlSnippet(c_xml, "C.java");
 
             AbstractCodeParser parser = new JavaCodeParser();
             TypeInventory inventory = new TypeInventory();

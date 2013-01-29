@@ -20,5 +20,6 @@ namespace ABB.SrcML.Data {
         public string Name { get; set; }
         public TypeUse VariableType { get; set; }
         public AccessModifier Accessibility { get; set; }
+        public VariableScope Scope { get; set; }
     }
 }

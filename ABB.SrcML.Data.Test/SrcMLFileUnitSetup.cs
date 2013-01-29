@@ -7,7 +7,15 @@ using System.Xml;
 using System.Xml.Linq;
 
 namespace ABB.SrcML.Data.Test {
-    static class SrcMLFileUnitSetup {
+    public class SrcMLFileUnitSetup {
+        string FileTemplate { get; set; }
+        Language SourceLanguage { get; set; }
+
+        public SrcMLFileUnitSetup(Language sourceLanguage) {
+            FileTemplate = CreateFileUnitTemplate();
+            SourceLanguage = sourceLanguage;
+        }
+
         public static string CreateFileUnitTemplate() {
             //construct the necessary srcML wrapper unit tags
             XmlNamespaceManager xnm = SrcML.NamespaceManager;
@@ -21,11 +29,11 @@ namespace ABB.SrcML.Data.Test {
                     }
                 }
             }
-            return string.Format("<unit {0} language=\"{{1}}\">{{0}}</unit>", namespaceDecls.ToString());
+            return string.Format("<unit {0} filename=\"{{2}}\" language=\"{{1}}\">{{0}}</unit>", namespaceDecls.ToString());
         }
 
-        public static XElement GetFileUnitForXmlSnippet(string fileFormat, string xmlSnippet, Language language) {
-            var xml = String.Format(fileFormat, xmlSnippet, KsuAdapter.GetLanguage(language));
+        public XElement GetFileUnitForXmlSnippet(string xmlSnippet, string fileName) {
+            var xml = string.Format(FileTemplate, xmlSnippet, KsuAdapter.GetLanguage(SourceLanguage), fileName);
             var fileUnit = XElement.Parse(xml);
             return fileUnit;
         }

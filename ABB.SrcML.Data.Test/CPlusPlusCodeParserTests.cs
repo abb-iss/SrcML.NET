@@ -12,11 +12,13 @@ namespace ABB.SrcML.Data.Test {
     class CPlusPlusCodeParserTests {
         private string srcMLFormat;
         private AbstractCodeParser codeParser;
+        private SrcMLFileUnitSetup fileSetup;
 
         [TestFixtureSetUp]
         public void ClassSetup() {
             srcMLFormat = SrcMLFileUnitSetup.CreateFileUnitTemplate();
             codeParser = new CPlusPlusCodeParser();
+            fileSetup = new SrcMLFileUnitSetup(Language.CPlusPlus);
         }
 
         [Test]
@@ -26,7 +28,8 @@ namespace ABB.SrcML.Data.Test {
             string xml = @"<class>class <name>A</name> <block>{<private type=""default"">
 </private>}</block>;</class>";
 
-            XElement xmlElement = SrcMLFileUnitSetup.GetFileUnitForXmlSnippet(srcMLFormat, xml, Language.CPlusPlus);
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
+            
             var typeDefinitions = codeParser.CreateTypeDefinitions(xmlElement);
             var actual = typeDefinitions.First();
             Assert.AreEqual("A", actual.Name);
@@ -41,7 +44,7 @@ namespace ABB.SrcML.Data.Test {
             string xml = @"<class>class <name>A</name> <super>: <name>B</name>,<name>C</name>,<name>D</name></super> <block>{<private type=""default"">
 </private>}</block>;</class>";
 
-            XElement xmlElement = SrcMLFileUnitSetup.GetFileUnitForXmlSnippet(srcMLFormat, xml, Language.CPlusPlus);
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
             var typeDefinitions = codeParser.CreateTypeDefinitions(xmlElement);
             var definition = typeDefinitions.First();
             Assert.AreEqual("A", definition.Name);
@@ -65,7 +68,7 @@ namespace ABB.SrcML.Data.Test {
             string xml = @"<class>class <name>D</name> <super>: <name><name>A</name><op:operator>::</op:operator><name>B</name><op:operator>::</op:operator><name>C</name></name></super> <block>{<private type=""default"">
 </private>}</block>;</class>";
 
-            XElement xmlElement = SrcMLFileUnitSetup.GetFileUnitForXmlSnippet(srcMLFormat, xml, Language.Java);
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "D.h");
             var typeDefinitions = codeParser.CreateTypeDefinitions(xmlElement);
             var definition = typeDefinitions.First();
 
@@ -93,7 +96,7 @@ namespace ABB.SrcML.Data.Test {
 	</private>}</block>;</class>
 </private>}</block>;</class>";
 
-            XElement xmlElement = SrcMLFileUnitSetup.GetFileUnitForXmlSnippet(srcMLFormat, xml, Language.CPlusPlus);
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
             var typeDefinitions = codeParser.CreateTypeDefinitions(xmlElement);
             Assert.AreEqual(2, typeDefinitions.Count());
             Assert.Fail("TODO add assertions to verify class in class");
@@ -103,7 +106,7 @@ namespace ABB.SrcML.Data.Test {
         public void TestCreateTypeDefinitions_ClassInFunction() {
             string xml = @"";
 
-            XElement xmlElement = SrcMLFileUnitSetup.GetFileUnitForXmlSnippet(srcMLFormat, xml, Language.Java);
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
             var typeDefinitions = codeParser.CreateTypeDefinitions(xmlElement);
             Assert.Fail("TODO Need to add assertions to verify type in function");
         }
@@ -115,7 +118,7 @@ namespace ABB.SrcML.Data.Test {
             string xml = @"<struct>struct <name>A</name> <block>{<public type=""default"">
 </public>}</block>;</struct>";
 
-            XElement xmlElement = SrcMLFileUnitSetup.GetFileUnitForXmlSnippet(srcMLFormat, xml, Language.CPlusPlus);
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
             var typeDefinitions = codeParser.CreateTypeDefinitions(xmlElement);
             var actual = typeDefinitions.First();
             Assert.AreEqual("A", actual.Name);
@@ -134,7 +137,7 @@ namespace ABB.SrcML.Data.Test {
 	<decl_stmt><decl><type><name>char</name></type> <name>b</name></decl>;</decl_stmt>
 </public>}</block>;</union>";
 
-            XElement xmlElement = SrcMLFileUnitSetup.GetFileUnitForXmlSnippet(srcMLFormat, xml, Language.CPlusPlus);
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
             var typeDefinitions = codeParser.CreateTypeDefinitions(xmlElement);
             var actual = typeDefinitions.First();
             Assert.AreEqual(TypeKind.Union, actual.Kind);
@@ -156,7 +159,7 @@ namespace ABB.SrcML.Data.Test {
 	</private>}</block>;</class>
 }</block></namespace>";
 
-            XElement xmlElement = SrcMLFileUnitSetup.GetFileUnitForXmlSnippet(srcMLFormat, xml, Language.CPlusPlus);
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
             var typeDefinitions = codeParser.CreateTypeDefinitions(xmlElement);
 
             Assert.AreEqual(2, typeDefinitions.Count());
@@ -179,7 +182,7 @@ namespace ABB.SrcML.Data.Test {
             // using A::Foo;
             string xml = @"<using>using <name><name>A</name><op:operator>::</op:operator><name>Foo</name></name>;</using>";
 
-            XElement xmlElement = SrcMLFileUnitSetup.GetFileUnitForXmlSnippet(srcMLFormat, xml, Language.CPlusPlus);
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
 
             var aliases = codeParser.CreateAliasesForFile(xmlElement);
 
@@ -194,7 +197,7 @@ namespace ABB.SrcML.Data.Test {
             // using namespace x::y::z;
             string xml = @"<using>using namespace <name><name>x</name><op:operator>::</op:operator><name>y</name><op:operator>::</op:operator><name>z</name></name>;</using>";
 
-            XElement xmlElement = SrcMLFileUnitSetup.GetFileUnitForXmlSnippet(srcMLFormat, xml, Language.CPlusPlus);
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
 
             var aliases = codeParser.CreateAliasesForFile(xmlElement);
 
