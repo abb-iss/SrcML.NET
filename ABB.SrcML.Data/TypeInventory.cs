@@ -26,13 +26,10 @@ namespace ABB.SrcML.Data {
             if(null == typeUse)
                 throw new ArgumentNullException("typeUse");
 
-            foreach(string fullName in typeUse.GetPossibleNames()) {
-                Collection<TypeDefinition> results;
-                if(this.typeMap.TryGetValue(fullName, out results)) {
-                    foreach(var result in results) {
-                        yield return result;
-                    }
-                }
+            Collection<TypeDefinition> results;
+            if(this.typeMap.TryGetValue(typeUse.Name, out results)) {
+                foreach(var result in results)
+                    yield return result;
             }
         }
 
@@ -64,9 +61,9 @@ namespace ABB.SrcML.Data {
                 namespaceMap[typeDefinition.Namespace.Name] = typeDefinition.Namespace;
             }
             
-            if(!this.typeMap.TryGetValue(typeDefinition.GetFullName(), out bucket)) {
+            if(!this.typeMap.TryGetValue(typeDefinition.Name, out bucket)) {
                 bucket = new Collection<TypeDefinition>();
-                this.typeMap[typeDefinition.GetFullName()] = bucket;
+                this.typeMap[typeDefinition.Name] = bucket;
             }
             bucket.Add(typeDefinition);
         }
