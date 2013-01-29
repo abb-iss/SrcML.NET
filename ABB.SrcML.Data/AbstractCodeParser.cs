@@ -83,8 +83,9 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="element">An element naming the type. Must be a <see cref="ABB.SrcML.SRC.Type"/>or <see cref="ABB.SrcML.SRC.Name"/>.</param>
         /// <param name="fileUnit">The file unit that contains the typeElement</param>
+        /// <param name="aliases">The aliases that apply to this type element (usually created from <paramref name="fileUnit"/>)</param>
         /// <returns>A new TypeUse object</returns>
-        public virtual TypeUse CreateTypeUse(XElement element, XElement fileUnit) {
+        public virtual TypeUse CreateTypeUse(XElement element, XElement fileUnit, IEnumerable<Alias> aliases) {
             XElement typeNameElement;
 
             if(element == null)
@@ -103,7 +104,6 @@ namespace ABB.SrcML.Data {
                 throw new ArgumentException("element should be of type type or name", "element");
             }
 
-            var fileAliases = CreateAliasesForFile(fileUnit);
             var nameElements = GetNameElementsFromName(typeNameElement);
 
             var lastName = nameElements.Last();
@@ -115,13 +115,22 @@ namespace ABB.SrcML.Data {
                 Prefix = new Collection<string>(prefixes.ToList()),
                 CurrentNamespace = GetNamespaceDefinition(element, fileUnit),
                 Parser = this,
-                Aliases = new Collection<Alias>(fileAliases.ToList<Alias>()),
+                Aliases = new Collection<Alias>(aliases.ToList<Alias>()),
             };
 
-            
-            
             return typeUse;
         }
+        /// <summary>
+        /// Parses the type use and returns a TypeUse object
+        /// </summary>
+        /// <param name="element">An element naming the type. Must be a <see cref="ABB.SrcML.SRC.Type"/>or <see cref="ABB.SrcML.SRC.Name"/>.</param>
+        /// <param name="fileUnit">The file unit that contains the typeElement</param>
+        /// <returns>A new TypeUse object</returns>
+        public virtual TypeUse CreateTypeUse(XElement element, XElement fileUnit) {
+            var aliases = CreateAliasesForFile(fileUnit);
+            return CreateTypeUse(element, fileUnit, aliases);
+        }
+
         /// <summary>
         /// Creates a NamespaceDefinition object for the given element. This function looks for the namespace that contains <paramref name="element"/> and creates a definition based on that.
         /// </summary>
@@ -141,7 +150,7 @@ namespace ABB.SrcML.Data {
         /// Gets the access modifier for the given type
         /// </summary>
         /// <param name="typeElement">The type element</param>
-        /// <returns>The access modifier for the tyep.</returns>
+        /// <returns>The access modifier for the type.</returns>
         public abstract AccessModifier GetAccessModifierForType(XElement typeElement);
 
         /// <summary>

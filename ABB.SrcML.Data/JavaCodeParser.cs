@@ -84,9 +84,10 @@ namespace ABB.SrcML.Data {
             if(null != superTag) {
                 var implementsTag = superTag.Element(SRC.Implements);
                 if(null != implementsTag) {
+                    var aliases = CreateAliasesForFile(fileUnit);
                     var parentElements = implementsTag.Elements(SRC.Name);
                     foreach(var parentElement in parentElements) {
-                        parents.Add(CreateTypeUse(parentElement, fileUnit));
+                        parents.Add(CreateTypeUse(parentElement, fileUnit, aliases));
                     }
                 }
                 

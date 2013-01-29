@@ -73,8 +73,9 @@ namespace ABB.SrcML.Data {
 
             if(null != superTag) {
                 var parentElements = superTag.Elements(SRC.Name);
+                var aliases = CreateAliasesForFile(fileUnit);
                 foreach(var parentElement in parentElements) {
-                    parents.Add(CreateTypeUse(parentElement, fileUnit));
+                    parents.Add(CreateTypeUse(parentElement, fileUnit, aliases));
                 }
             }
             return parents;
