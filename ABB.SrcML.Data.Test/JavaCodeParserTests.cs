@@ -218,8 +218,14 @@ namespace ABB.SrcML.Data.Test {
 
             var declarationElement = xmlElement.Descendants(SRC.DeclarationStatement).First();
 
-            var declaration = codeParser.CreateVariableDeclaration(declarationElement, xmlElement);
+            var scope = codeParser.CreateScopeFromContainer(xmlElement, xmlElement);
+            
             var useOfX = xmlElement.Descendants(SRC.Return).First().Descendants(SRC.Name).First();
+
+            Assert.AreEqual(4, scope.GetScopesForPath(useOfX.GetXPath(false)).Count());
+
+            var matchingDeclarations = scope.GetDeclarationsForVariableName("X", useOfX.GetXPath(false));
+            var declaration = matchingDeclarations.First();
 
             Assert.AreEqual("int", declaration.VariableType.Name);
             Assert.AreEqual("X", declaration.Name);

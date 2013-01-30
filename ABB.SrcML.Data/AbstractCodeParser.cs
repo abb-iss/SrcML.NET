@@ -182,66 +182,6 @@ namespace ABB.SrcML.Data {
         public abstract IEnumerable<string> GeneratePossibleNamesForTypeUse(TypeUse typeUse);
 
         /// <summary>
-        /// Generates variable declarations for each of the declarations
-        /// </summary>
-        /// <param name="declarations">The declaration XElements. They must be of type <see cref="ABB.SrcML.SRC.Declaration"/>, <see cref="ABB.SrcML.SRC.DeclarationStatement"/>, or <see cref="ABB.SrcML.SRC.Parameter"/></param>
-        /// <param name="fileUnit">The parent file unit for all of the <paramref name="declarations"/></param>
-        /// <returns>an enumerable of variable declaration objects</returns>
-        public IEnumerable<VariableDeclaration> CreateVariableDeclarations(IEnumerable<XElement> declarations, XElement fileUnit) {
-            if(declarations == null)
-                throw new ArgumentNullException("declarations");
-            if(fileUnit == null)
-                throw new ArgumentNullException("fileUnit");
-            if(fileUnit.Name != SRC.Unit)
-                throw new ArgumentException("must be of type SRC.Unit", "fileUnit");
-
-            var variableDeclarations = from declaration in declarations
-                                       select CreateVariableDeclaration(declaration, fileUnit);
-            return variableDeclarations;
-        }
-        /// <summary>
-        /// Generates a variable declaration for the given declaration
-        /// </summary>
-        /// <param name="declaration">The declaration XElement. Can be of type <see cref="ABB.SrcML.SRC.Declaration"/>, <see cref="ABB.SrcML.SRC.DeclarationStatement"/>, or <see cref="ABB.SrcML.SRC.Parameter"/></param>
-        /// <returns>A variable declaration object</returns>
-        public virtual VariableDeclaration CreateVariableDeclaration(XElement declaration, XElement fileUnit) {
-            if(declaration == null)
-                throw new ArgumentNullException("declaration");
-            if(fileUnit == null)
-                throw new ArgumentNullException("fileUnit");
-            if(!VariableDeclarationElementNames.Contains(declaration.Name))
-                throw new ArgumentException("XElement.Name must be in VariableDeclarationElementNames");
-            if(fileUnit.Name != SRC.Unit)
-                throw new ArgumentException("must be of type SRC.Unit", "fileUnit");
-
-            XElement declElement;
-            if(declaration.Name == SRC.Declaration) {
-                declElement = declaration;
-            } else {
-                declElement = declaration.Element(SRC.Declaration);
-            }
-
-            var scope = CreateScopeForElement(declElement);
-            var variableDeclaration = new VariableDeclaration() {
-                VariableType = CreateTypeUse(declElement.Element(SRC.Type), fileUnit),
-                Name = declElement.Element(SRC.Name).Value,
-                Scope = scope,
-            };
-            scope.DeclaredVariables.Add(variableDeclaration);
-            return variableDeclaration;
-        }
-
-        public virtual VariableScope CreateScopeForElement(XElement element) {
-            var containers = from ancestor in element.Ancestors()
-                             where VariableScope.Containers.Contains(ancestor.Name)
-                             select ancestor;
-            var immediateContainer = containers.First();
-            var scope = new VariableScope() {
-                XPath = immediateContainer.GetXPath(false),
-            };
-            return scope;
-        }
-        /// <summary>
         /// Gets the filename for the given file unit.
         /// </summary>
         /// <param name="fileUnit">The file unit. <c>fileUnit.Name</c> must be <c>SRC.Unit</c></param>
@@ -281,5 +221,162 @@ namespace ABB.SrcML.Data {
                 yield return nameElement;
             }
         }
+
+        #region scope definition
+
+        public virtual VariableScope CreateScopeFromContainer(XElement container, XElement fileUnit) {
+            var currentScope = new VariableScope();
+            currentScope.XPath = container.GetXPath(false);
+
+            // get the variables declared at this scope
+            var declaredVariables = GetVariableDeclarationsFromContainer(container, fileUnit);
+            foreach(var declaration in declaredVariables) {
+                currentScope.AddDeclaredVariable(declaration);
+            }
+            
+
+            // create the child scopes and connect them to the parent scope
+            foreach(var child in GetChildContainers(container)) {
+                var childScope = CreateScopeFromContainer(child, fileUnit);
+                currentScope.AddChildScope(childScope);
+            }
+
+            return currentScope;
+        }
+
+        public virtual IEnumerable<XElement> GetChildContainers(XElement container) {
+            IEnumerable<XElement> children;
+
+            if(VariableScope.TypeContainers.Contains(container.Name)) {
+                children = GetChildContainersFromType(container);
+            } else {
+                children = from child in container.Elements()
+                           where VariableScope.Containers.Contains(child.Name)
+                           select child;
+            }
+            return children;
+        }
+
+        public virtual IEnumerable<XElement> GetChildContainersFromType(XElement container) {
+            var block = container.Element(SRC.Block);
+
+            foreach(var child in GetChildContainers(block)) {
+                yield return child;
+            }
+
+            var specifierBlocks = from child in block.Elements()
+                                  where VariableScope.SpecifierContainers.Contains(child.Name)
+                                  select child;
+
+            foreach(var specifierBlock in specifierBlocks) {
+                foreach(var child in GetChildContainers(specifierBlock)) {
+                    yield return child;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Generates a variable declaration for the given declaration
+        /// </summary>
+        /// <param name="declaration">The declaration XElement. Can be of type <see cref="ABB.SrcML.SRC.Declaration"/>, <see cref="ABB.SrcML.SRC.DeclarationStatement"/>, or <see cref="ABB.SrcML.SRC.Parameter"/></param>
+        /// <returns>A variable declaration object</returns>
+        public virtual VariableDeclaration CreateVariableDeclaration(XElement declaration, XElement fileUnit) {
+            if(declaration == null)
+                throw new ArgumentNullException("declaration");
+            if(fileUnit == null)
+                throw new ArgumentNullException("fileUnit");
+            if(!VariableDeclarationElementNames.Contains(declaration.Name))
+                throw new ArgumentException("XElement.Name must be in VariableDeclarationElementNames");
+            if(fileUnit.Name != SRC.Unit)
+                throw new ArgumentException("must be of type SRC.Unit", "fileUnit");
+
+            XElement declElement;
+            if(declaration.Name == SRC.Declaration) {
+                declElement = declaration;
+            } else {
+                declElement = declaration.Element(SRC.Declaration);
+            }
+
+            var variableDeclaration = new VariableDeclaration() {
+                VariableType = CreateTypeUse(declElement.Element(SRC.Type), fileUnit),
+                Name = declElement.Element(SRC.Name).Value,
+            };
+            return variableDeclaration;
+        }
+
+        public virtual IEnumerable<VariableDeclaration> GetVariableDeclarationsFromContainer(XElement container, XElement fileUnit) {
+            var containersLikeBlocks = new HashSet<XName>() {
+                SRC.Block, SRC.Private, SRC.Protected, SRC.Public
+            };
+
+            var containersLikeFunctions = new HashSet<XName>() {
+                SRC.Function, SRC.Constructor, SRC.Destructor
+            };
+
+            IEnumerable<XElement> declarationElements;
+            if(SRC.Catch == container.Name) {
+                declarationElements = GetDeclarationsFromCatch(container);
+            } else if(SRC.For == container.Name) {
+                declarationElements = GetDeclarationsFromFor(container);
+            } else if(containersLikeBlocks.Contains(container.Name)) {
+                declarationElements = GetDeclarationsFromBlock(container);
+            } else if(containersLikeFunctions.Contains(container.Name)) {
+                declarationElements = GetDeclarationsFromMethod(container);
+            } else if(VariableScope.TypeContainers.Contains(container.Name)) {
+                declarationElements = GetDeclarationsFromType(container);
+            }else {
+                declarationElements = Enumerable.Empty<XElement>();
+            }
+
+            var declarations = from decl in declarationElements
+                               select CreateVariableDeclaration(decl, fileUnit);
+            return declarations;
+        }
+
+        public virtual IEnumerable<XElement> GetDeclarationsFromCatch(XElement container) {
+            var declarations = from parameter in container.Elements(SRC.Parameter)
+                               let declElement = parameter.Element(SRC.Declaration)
+                               select declElement;
+            return declarations;
+        }
+
+        public virtual IEnumerable<XElement> GetDeclarationsFromBlock(XElement container) {
+            var declarations = from stmtElement in container.Elements(SRC.DeclarationStatement)
+                               let declElement = stmtElement.Element(SRC.Declaration)
+                               select declElement;
+            return declarations;
+        }
+
+        public virtual IEnumerable<XElement> GetDeclarationsFromFor(XElement container) {
+            var declarations = from declElement in container.Element(SRC.Init).Elements(SRC.Declaration)
+                               select declElement;
+            return declarations;
+        }
+
+        public virtual IEnumerable<XElement> GetDeclarationsFromMethod(XElement container) {
+            var declarations = from parameter in container.Element(SRC.ParameterList).Elements(SRC.Parameter)
+                               let declElement = parameter.Element(SRC.Declaration)
+                               select declElement;
+            return declarations;
+        }
+
+        public virtual IEnumerable<XElement> GetDeclarationsFromType(XElement container) {
+            var block = container.Element(SRC.Block);
+            foreach(var declElement in GetDeclarationsFromBlock(block)) {
+                yield return declElement;
+            }
+
+            var specifierElements = from child in container.Elements()
+                                    where VariableScope.SpecifierContainers.Contains(child.Name)
+                                    select child;
+
+            foreach(var specifierElement in specifierElements) {
+                foreach(var declElement in GetDeclarationsFromBlock(specifierElement)) {
+                    yield return declElement;
+                }
+            }
+        }
+
+        #endregion scope definition
     }
 }

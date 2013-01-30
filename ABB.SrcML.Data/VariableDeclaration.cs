@@ -21,5 +21,6 @@ namespace ABB.SrcML.Data {
         public TypeUse VariableType { get; set; }
         public AccessModifier Accessibility { get; set; }
         public VariableScope Scope { get; set; }
+        public string XPath { get; set; }
     }
 }
