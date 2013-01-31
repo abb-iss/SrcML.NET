@@ -261,15 +261,16 @@ printf(""hello world!"");
         [Test]
         public void TestSupportedLanguages() {
             var langs = generator.SupportedLanguages.ToList();
-            Assert.AreEqual(4, langs.Count);
+            Assert.AreEqual(5, langs.Count);
             Assert.IsTrue(langs.Contains(Language.C));
             Assert.IsTrue(langs.Contains(Language.CPlusPlus));
             Assert.IsTrue(langs.Contains(Language.CSharp));
             Assert.IsTrue(langs.Contains(Language.Java));
+            Assert.IsTrue(langs.Contains(Language.AspectJ));
 
             generator.NonDefaultExecutables.Clear();
             langs = generator.SupportedLanguages.ToList();
-            Assert.AreEqual(3, langs.Count);
+            Assert.AreEqual(4, langs.Count);
             Assert.IsFalse(langs.Contains(Language.CSharp));
         }
     }
