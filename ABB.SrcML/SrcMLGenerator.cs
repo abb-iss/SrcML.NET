@@ -19,7 +19,7 @@ using System.Xml.Linq;
 namespace ABB.SrcML {
     public class SrcMLGenerator {
         private readonly Src2SrcMLRunner defaultExecutable;
-        private readonly Language[] defaultLanguages = new[] {Language.C, Language.CPlusPlus, Language.Java};
+        private readonly Language[] defaultLanguages = new[] {Language.C, Language.CPlusPlus, Language.Java, Language.AspectJ};
         private Dictionary<Language, Src2SrcMLRunner> nonDefaultExecutables;
 
         private readonly Dictionary<string, Language> extensionMapping = new Dictionary<string, Language>(StringComparer.InvariantCultureIgnoreCase)
