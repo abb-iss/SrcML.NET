@@ -1,4 +1,15 @@
-﻿using System;
+﻿/******************************************************************************
+ * Copyright (c) 2013 ABB Group
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    Vinay Augustine (ABB Group) - initial API, implementation, & documentation
+ *****************************************************************************/
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -54,15 +65,16 @@ namespace ABB.SrcML.Data {
         public HashSet<XName> VariableDeclarationElementNames { get; protected set; }
 
         /// <summary>
-        /// 
+        /// Creates a MethodDefinition object for the given element.
         /// </summary>
-        /// <param name="element"></param>
-        /// <param name="FileUnit"></param>
-        /// <returns></returns>
+        /// <param name="element">The method element. <c>methodElement.Name</c> must belong to <c>Parser.MethodElementNames</c></param>
+        /// <param name="fileUnit">The file unit that contains <paramref name="methodElement"/>. It must be a <see cref="ABB.SrcML.SRC.Unit"/></param>
+        /// <returns>A method definition that represents <paramref name="element"/></returns>
         public virtual MethodDefinition CreateMethodDefinition(XElement methodElement, XElement fileUnit) {
             if(null == methodElement) throw new ArgumentNullException("methodElement");
             if(null == fileUnit) throw new ArgumentNullException("fileUnit");
             if(fileUnit.Name != SRC.Unit) throw new ArgumentException("must be a SRC.unit", "fileUnit");
+            if(!MethodElementNames.Contains(methodElement.Name)) throw new ArgumentException("must be a method element", "fileUnit");
 
             var parameters = from paramElement in GetParametersFromMethod(methodElement)
                              select CreateVariableDeclaration(paramElement, fileUnit);
@@ -86,6 +98,12 @@ namespace ABB.SrcML.Data {
         /// <returns>a new NamespaceDefinition object</returns>
         public abstract NamespaceDefinition CreateNamespaceDefinition(XElement element, XElement fileUnit);
 
+        /// <summary>
+        /// Creates a variable scope object for the given container. It adds all of the variables declared at this scope.
+        /// </summary>
+        /// <param name="container">The variable scope</param>
+        /// <param name="fileUnit">the file unit that contains this <paramref name="container"/></param>
+        /// <returns>A variable scope that represents <paramref name="container"/></returns>
         public virtual VariableScope CreateScopeFromContainer(XElement container, XElement fileUnit) {
             var currentScope = new VariableScope();
 
@@ -99,10 +117,10 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Creates a variable scope for the given file unit. The function can vary depending on 
+        /// Creates a variable scope for the given file unit.
         /// </summary>
-        /// <param name="fileUnit"></param>
-        /// <returns></returns>
+        /// <param name="fileUnit">The file unit</param>
+        /// <returns>A variable scope that represents the file.</returns>
         public abstract VariableScope CreateScopeFromFile(XElement fileUnit);
 
         /// <summary>
@@ -275,6 +293,12 @@ namespace ABB.SrcML.Data {
             return textNodes;
         }
 
+        /// <summary>
+        /// This helper function returns all of the names from a name element. If a name element has no children, it just yields the name element back.
+        /// However, if the name element has child elements, it yields all of the child name elements.
+        /// </summary>
+        /// <param name="nameElement">The name element</param>
+        /// <returns>An enumerable of either all the child names, or the root if there are none.</returns>
         public IEnumerable<XElement> GetNameElementsFromName(XElement nameElement) {
             if(nameElement.Elements(SRC.Name).Any()) {
                 foreach(var name in nameElement.Elements(SRC.Name)) {

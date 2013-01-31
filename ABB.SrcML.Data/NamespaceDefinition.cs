@@ -28,8 +28,17 @@ namespace ABB.SrcML.Data {
         public Collection<MethodDefinition> Methods { get; set; }
         public Collection<VariableDeclaration> Variables { get; set; }
 
+        /// <summary>
+        /// <para>Returns true if this namespace represents the global namespace</para>
+        /// <para>A namespace is global if the <see cref="NamedVariableScope.Name"/> is <c>String.Empty</c></para>
+        /// </summary>
         public bool IsGlobal { get { return this.Name.Length == 0; } }
 
+        /// <summary>
+        /// Returns the fully qualified name for the given type
+        /// </summary>
+        /// <param name="name">A name</param>
+        /// <returns>the fully qualified name (made from this namespace definition and the given name)</returns>
         public string MakeQualifiedName(string name) {
             if(this.Name.Length == 0)
                 return name;

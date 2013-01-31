@@ -1,4 +1,15 @@
-﻿using System;
+﻿/******************************************************************************
+ * Copyright (c) 2013 ABB Group
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    Vinay Augustine (ABB Group) - initial API, implementation, & documentation
+ *****************************************************************************/
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -22,6 +33,9 @@ namespace ABB.SrcML.Data {
             get { return Language.CPlusPlus; }
         }
 
+        /// <summary>
+        /// Returns the list of specifier containers (<see cref="ABB.SrcML.SRC.Private"/>, <see cref="ABB.SrcML.SRC.Protected"/>, and <see cref="ABB.SrcML.SRC.Public"/>
+        /// </summary>
         public HashSet<XName> SpecifierContainerNames { get; set; }
 
         /// <summary>
@@ -43,11 +57,22 @@ namespace ABB.SrcML.Data {
             return definition;
         }
 
+        /// <summary>
+        /// Creates a scope from the file. For C++, this means returning a global namespace object
+        /// </summary>
+        /// <param name="fileUnit">The file unit</param>
+        /// <returns>a global namespace object.</returns>
         public override VariableScope CreateScopeFromFile(XElement fileUnit) {
             var namespaceForFile = new NamespaceDefinition();
+
             return namespaceForFile;
         }
 
+        /// <summary>
+        /// Gets the name for a method. This is the unqualified name, not any class names that might be prepended to it.
+        /// </summary>
+        /// <param name="methodElement">The method element</param>
+        /// <returns>a string with the method name</returns>
         public override string GetNameForMethod(XElement methodElement) {
             var nameElement = methodElement.Element(SRC.Name);
 
@@ -57,6 +82,7 @@ namespace ABB.SrcML.Data {
             var names = GetNameElementsFromName(nameElement);
             return names.Last().Value;
         }
+
         /// <summary>
         /// Gets the access modifier for this type. In C++, all types are public, so this always returns "public"
         /// </summary>
@@ -86,12 +112,22 @@ namespace ABB.SrcML.Data {
             return parents;
         }
 
+        /// <summary>
+        /// Creates aliases for the files. For C++, this means interpreting using statements (both <c>using A::B;</c> and <c>using namespace std;</c>).
+        /// </summary>
+        /// <param name="fileUnit">The file unit to find aliases in</param>
+        /// <returns>The aliases for this file</returns>
         public override IEnumerable<Alias> CreateAliasesForFile(XElement fileUnit) {
             var aliases = from usingStatement in fileUnit.Descendants(SRC.Using)
                           select CreateAliasFromUsingStatement(usingStatement);
             return aliases;
         }
 
+        /// <summary>
+        /// Creates an alias for a C++ using statement
+        /// </summary>
+        /// <param name="usingStatement">The using statement (<c>usingStatement.Name</c> must be <see cref="ABB.SrcML.SRC.Using"/></param>
+        /// <returns>An alias for this using statement</returns>
         public Alias CreateAliasFromUsingStatement(XElement usingStatement) {
             if(null == usingStatement)
                 throw new ArgumentNullException("usingStatement");
@@ -125,6 +161,11 @@ namespace ABB.SrcML.Data {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Gets the child containers for a C++ type element. This iterates over the public, private, and protected blocks that appear in C++ classes in srcML.
+        /// </summary>
+        /// <param name="container">the type element</param>
+        /// <returns>the child elements of this C++ type</returns>
         public override IEnumerable<XElement> GetChildContainersFromType(XElement container) {
             foreach(var child in base.GetChildContainersFromType(container)) {
                 yield return child;
@@ -142,6 +183,11 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        /// <summary>
+        /// Gets the variables declared in this C++ type element. This iterates over the public, private, and protected blocks that appear in C++ classes in srcML.
+        /// </summary>
+        /// <param name="container">the type element</param>
+        /// <returns>The decl elements for this type element</returns>
         public override IEnumerable<XElement> GetDeclarationsFromType(XElement container) {
             foreach(var decl in base.GetDeclarationsFromType(container)) {
                 yield return decl;

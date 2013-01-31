@@ -17,6 +17,9 @@ using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML.Data {
+    /// <summary>
+    /// A method definition object.
+    /// </summary>
     public class MethodDefinition : NamedVariableScope {
         private Collection<VariableDeclaration> _parameters;
 
@@ -28,6 +31,10 @@ namespace ABB.SrcML.Data {
         public bool IsDestructor { get; set; }
 
         public Collection<TypeDefinition> InnerTypes;
+        /// <summary>
+        /// The parameters for this method. Replacing this collection causes the <see cref="VariableScope.DelcaredVariables"/> to be updated.
+        /// </summary>
+        /// TODO make the updating of the parameters collection more robust (you can't add an element to it and have DeclaredVariables updated.
         public Collection<VariableDeclaration> Parameters {
             get { return this._parameters; }
             set {

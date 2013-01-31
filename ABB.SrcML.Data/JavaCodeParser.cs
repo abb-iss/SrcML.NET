@@ -1,4 +1,15 @@
-﻿using System;
+﻿/******************************************************************************
+ * Copyright (c) 2013 ABB Group
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    Vinay Augustine (ABB Group) - initial API, implementation, & documentation
+ *****************************************************************************/
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -42,6 +53,12 @@ namespace ABB.SrcML.Data {
             return definition;
         }
 
+        /// <summary>
+        /// Creates a scope object from a file unit element. For java, it checks for a <see cref="ABB.SrcML.SRC.Package"/> tag at the top of the file.
+        /// If it finds one, it returns a namespace definition for that package. Otherwise, it just returns a global namespace object.
+        /// </summary>
+        /// <param name="fileUnit"></param>
+        /// <returns></returns>
         public override VariableScope CreateScopeFromFile(XElement fileUnit) {
             var namespaceForFile = CreateNamespaceDefinition(fileUnit, fileUnit);
             return namespaceForFile;
@@ -89,12 +106,22 @@ namespace ABB.SrcML.Data {
             return parents;
         }
 
+        /// <summary>
+        /// Creates a list of aliases for the <paramref name="fileUnit"/>. For java, this parses the import statements (marked up by the <see cref="ABB.SrcML.SRC.Import"/>).
+        /// </summary>
+        /// <param name="fileUnit">The file unit</param>
+        /// <returns>an enumerable of alias objects</returns>
         public override IEnumerable<Alias> CreateAliasesForFile(XElement fileUnit) {
             var aliases = from statement in fileUnit.Descendants(SRC.Import)
                           select CreateAliasFromImportStatement(statement);
             return aliases;
         }
 
+        /// <summary>
+        /// Creates an alias for the given import XElement.
+        /// </summary>
+        /// <param name="importStatement">an import element (<c>importStatement.Name</c> must be <see cref="ABB.SrcML.SRC.Import"/></param>
+        /// <returns>An alias representing the import statement</returns>
         public Alias CreateAliasFromImportStatement(XElement importStatement) {
             if(null == importStatement)
                 throw new ArgumentNullException("importStatement");
@@ -129,6 +156,11 @@ namespace ABB.SrcML.Data {
             return alias;
         }
 
+        /// <summary>
+        /// Generates a list of possible names for a type use
+        /// </summary>
+        /// <param name="typeUse">The type use</param>
+        /// <returns>An enumerable of all the valid combinations of aliases with the name of the type use</returns>
         public override IEnumerable<string> GeneratePossibleNamesForTypeUse(TypeUse typeUse) {
             // a single name 
             yield return typeUse.CurrentNamespace.MakeQualifiedName(typeUse.Name);
