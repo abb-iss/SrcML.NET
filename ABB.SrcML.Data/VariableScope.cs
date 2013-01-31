@@ -10,12 +10,20 @@ namespace ABB.SrcML.Data {
         protected Collection<VariableScope> ChildScopeCollection;
         protected Dictionary<string, VariableDeclaration> DeclaredVariablesDictionary;
 
-
         public VariableScope ParentScope { get; set; }
         public IEnumerable<VariableScope> ChildScopes { get { return this.ChildScopeCollection.AsEnumerable(); } }
         public IEnumerable<VariableDeclaration> DeclaredVariables { get { return this.DeclaredVariablesDictionary.Values.AsEnumerable(); } }
-        
-        
+
+        public IEnumerable<VariableScope> ParentScopes {
+            get {
+                var current = this.ParentScope;
+                while(null != current) {
+                    yield return current;
+                    current = current.ParentScope;
+                }
+            }
+        }
+
         public string XPath { get; set; }
 
         public VariableScope() {
@@ -37,7 +45,7 @@ namespace ABB.SrcML.Data {
             return IsScopeFor(element.GetXPath(false));
         }
 
-        public bool IsScopeFor(string xpath) {
+        public virtual bool IsScopeFor(string xpath) {
             return xpath.StartsWith(this.XPath);
         }
 
@@ -61,24 +69,5 @@ namespace ABB.SrcML.Data {
                 }
             }
         }
-
-        private static HashSet<XName> _containerNames = new HashSet<XName>(new XName[] {
-            SRC.Block, SRC.Catch, SRC.Class, SRC.Constructor, SRC.Destructor,
-            SRC.Do, SRC.Else, SRC.Enum, SRC.Extern, SRC.For, SRC.Function, SRC.If,
-            SRC.Namespace, SRC.Struct, SRC.Switch, SRC.Template, SRC.Then, SRC.Try,
-            SRC.Typedef, SRC.Union, SRC.Unit, SRC.While
-        });
-
-        private static HashSet<XName> _typeContainerNames = new HashSet<XName>(new XName[] {
-            SRC.Class, SRC.Enum, SRC.Struct, SRC.Union
-        });
-
-        private static HashSet<XName> _specifierContainerNames = new HashSet<XName>(new XName[] {
-            SRC.Private, SRC.Protected, SRC.Public
-        });
-
-        public static HashSet<XName> Containers { get { return _containerNames; } }
-        public static HashSet<XName> TypeContainers { get { return _typeContainerNames; } }
-        public static HashSet<XName> SpecifierContainers { get { return _specifierContainerNames; } }
     }
 }

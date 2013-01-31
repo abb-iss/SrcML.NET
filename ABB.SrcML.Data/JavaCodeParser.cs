@@ -11,7 +11,8 @@ namespace ABB.SrcML.Data {
     /// </summary>
     public class JavaCodeParser : AbstractCodeParser {
         public JavaCodeParser() {
-            this.TypeElementNames = new HashSet<XName>(new XName[] { SRC.Class });
+            this.TypeElementNames = new HashSet<XName>(new XName[] { SRC.Class, SRC.Enum });
+            this.NamespaceElementNames = new HashSet<XName>();
         }
 
         /// <summary>
@@ -27,7 +28,7 @@ namespace ABB.SrcML.Data {
         /// <param name="element">The element to find the namespace for</param>
         /// <param name="fileUnit">The file unit that contains <paramref name="element"/></param>
         /// <returns>The namespace definition for the given element.</returns>
-        public override NamespaceDefinition GetNamespaceDefinition(XElement element, XElement fileUnit) {
+        public override NamespaceDefinition CreateNamespaceDefinition(XElement element, XElement fileUnit) {
             var javaPackage = fileUnit.Descendants(SRC.Package).FirstOrDefault();
 
             var definition = new NamespaceDefinition();
@@ -41,16 +42,9 @@ namespace ABB.SrcML.Data {
             return definition;
         }
 
-        /// <summary>
-        /// Gets the type name for the given type element.
-        /// </summary>
-        /// <param name="typeElement">The type element</param>
-        /// <returns>The name of the type</returns>
-        public override string GetNameForType(XElement typeElement) {
-            var name = typeElement.Element(SRC.Name);
-            if(null == name)
-                return string.Empty;
-            return name.Value;
+        public override VariableScope CreateScopeFromFile(XElement fileUnit) {
+            var namespaceForFile = CreateNamespaceDefinition(fileUnit, fileUnit);
+            return namespaceForFile;
         }
 
         /// <summary>

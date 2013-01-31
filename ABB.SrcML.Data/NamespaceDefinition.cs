@@ -17,14 +17,13 @@ using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML.Data {
-    public class NamespaceDefinition {
-        public NamespaceDefinition() {
-            this.Name = string.Empty;
+    public class NamespaceDefinition : NamedVariableScope {
+        public NamespaceDefinition() : base() {
             this.Types = new Collection<TypeDefinition>();
             this.Methods = new Collection<MethodDefinition>();
             this.Variables = new Collection<VariableDeclaration>();
         }
-        public string Name { get; set; }
+
         public Collection<TypeDefinition> Types { get; set; }
         public Collection<MethodDefinition> Methods { get; set; }
         public Collection<VariableDeclaration> Variables { get; set; }

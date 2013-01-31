@@ -28,9 +28,8 @@ namespace ABB.SrcML.Data.Test {
 }</block></class>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
-
-            var typeDefinitions = codeParser.CreateTypeDefinitions(xmlElement);
-            var actual = typeDefinitions.First();
+            
+            var actual = (new ScopeVisitor(codeParser, xmlElement)).Visit(xmlElement).First() as TypeDefinition;
             Assert.AreEqual("A", actual.Name);
             Assert.That(actual.Namespace.IsGlobal);
         }
@@ -44,8 +43,7 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
 
-            var typeDefinitions = codeParser.CreateTypeDefinitions(xmlElement);
-            var actual = typeDefinitions.First();
+            var actual = (new ScopeVisitor(codeParser, xmlElement)).Visit(xmlElement).First() as TypeDefinition;
 
             Assert.AreEqual("A", actual.Name);
             Assert.AreEqual(TypeKind.Interface, actual.Kind);
@@ -61,17 +59,16 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
 
-            var typeDefinitions = codeParser.CreateTypeDefinitions(xmlElement);
-            var definition = typeDefinitions.First();
+            var actual = (new ScopeVisitor(codeParser, xmlElement)).Visit(xmlElement).First() as TypeDefinition;
 
-            Assert.AreEqual("A", definition.Name);
-            Assert.AreEqual(3, definition.Parents.Count);
-            Assert.That(definition.Namespace.IsGlobal);
+            Assert.AreEqual("A", actual.Name);
+            Assert.AreEqual(3, actual.Parents.Count);
+            Assert.That(actual.Namespace.IsGlobal);
 
-            var parentNames = from parent in definition.Parents
+            var parentNames = from parent in actual.Parents
                               select parent.Name;
 
-            var tests = Enumerable.Zip<string, string, bool>(new[] { "B", "C", "D" }, parentNames, (expected, actual) => expected == actual);
+            var tests = Enumerable.Zip<string, string, bool>(new[] { "B", "C", "D" }, parentNames, (e, a) => e == a);
             foreach(var test in tests) {
                 Assert.That(test);
             }
@@ -86,17 +83,16 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "D.java");
 
-            var typeDefinitions = codeParser.CreateTypeDefinitions(xmlElement);
-            var definition = typeDefinitions.First();
+            var actual = (new ScopeVisitor(codeParser, xmlElement)).Visit(xmlElement).First() as TypeDefinition;
 
-            Assert.AreEqual("D", definition.Name);
-            Assert.AreEqual(1, definition.Parents.Count);
-            Assert.That(definition.Namespace.IsGlobal);
+            Assert.AreEqual("D", actual.Name);
+            Assert.AreEqual(1, actual.Parents.Count);
+            Assert.That(actual.Namespace.IsGlobal);
 
-            var parent = definition.Parents.First();
+            var parent = actual.Parents.First();
 
             Assert.AreEqual("C", parent.Name);
-            var prefix_tests = Enumerable.Zip<string, string, bool>(new[] { "A", "B", "C" }, parent.Prefix, (expected, actual) => expected == actual);
+            var prefix_tests = Enumerable.Zip<string, string, bool>(new[] { "A", "B", "C" }, parent.Prefix, (e, a) => e == a);
             foreach(var prefixMatches in prefix_tests) {
                 Assert.That(prefixMatches);
             }
@@ -115,9 +111,9 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
 
-            var typeDefinitions = codeParser.CreateTypeDefinitions(xmlElement);
+            var scopes = (new ScopeVisitor(codeParser, xmlElement)).Visit(xmlElement);
 
-            Assert.AreEqual(2, typeDefinitions.Count());
+            Assert.AreEqual(3, scopes.Count());
             Assert.Fail("TODO add assertions to verify class in class");
         }
 
@@ -135,12 +131,16 @@ namespace ABB.SrcML.Data.Test {
 }</block></class>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "B.java");
-            var typeDefinitions = codeParser.CreateTypeDefinitions(xmlElement);
+            var scopes = (new ScopeVisitor(codeParser, xmlElement)).Visit(xmlElement);
+            var typeDefinitions = from scope in scopes
+                                  let definition = (scope as TypeDefinition)
+                                  where definition != null
+                                  select definition;
 
             Assert.AreEqual(2, typeDefinitions.Count());
 
-            var outer = typeDefinitions.First();
-            var inner = typeDefinitions.Last();
+            var outer = typeDefinitions.Last() as TypeDefinition;
+            var inner = typeDefinitions.First() as TypeDefinition;
 
             Assert.AreEqual("B", outer.Name);
             Assert.AreEqual("A", outer.Namespace.Name);
@@ -170,7 +170,7 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
 
-            var typeDefinitions = codeParser.CreateTypeDefinitions(xmlElement);
+            var typeDefinitions = (new ScopeVisitor(codeParser, xmlElement)).Visit(xmlElement);
             Assert.Fail("TODO Need to add assertions to verify type in function");
         }
 
@@ -218,11 +218,12 @@ namespace ABB.SrcML.Data.Test {
 
             var declarationElement = xmlElement.Descendants(SRC.DeclarationStatement).First();
 
-            var scope = codeParser.CreateScopeFromContainer(xmlElement, xmlElement);
-            
+            var visitor = new ScopeVisitor(codeParser, xmlElement);
+            var scopes = visitor.Visit(xmlElement);
+            var scope = scopes.Last();            
             var useOfX = xmlElement.Descendants(SRC.Return).First().Descendants(SRC.Name).First();
 
-            Assert.AreEqual(4, scope.GetScopesForPath(useOfX.GetXPath(false)).Count());
+            Assert.AreEqual(3, scope.GetScopesForPath(useOfX.GetXPath(false)).Count());
 
             var matchingDeclarations = scope.GetDeclarationsForVariableName("X", useOfX.GetXPath(false));
             var declaration = matchingDeclarations.First();

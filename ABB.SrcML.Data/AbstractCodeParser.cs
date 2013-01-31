@@ -13,6 +13,13 @@ namespace ABB.SrcML.Data {
     /// </summary>
     public abstract class AbstractCodeParser {
         protected AbstractCodeParser() {
+            ContainerElementNames = new HashSet<XName>(new XName[] {
+                SRC.Block, SRC.Catch, SRC.Class, SRC.Constructor, SRC.Destructor, SRC.Do, SRC.Else, SRC.Enum, SRC.Extern, SRC.For,
+                SRC.Function, SRC.If, SRC.Namespace, SRC.Struct, SRC.Switch, SRC.Template, SRC.Then, SRC.Try, SRC.Typedef, SRC.Union,
+                SRC.Unit, SRC.While
+            });
+            MethodElementNames = new HashSet<XName>(new XName[] { SRC.Function, SRC.Constructor, SRC.Destructor });
+            NamespaceElementNames = new HashSet<XName>(new XName[] { SRC.Namespace });
             VariableDeclarationElementNames = new HashSet<XName>(new XName[] { SRC.Declaration, SRC.DeclarationStatement, SRC.Parameter });
         }
 
@@ -20,6 +27,21 @@ namespace ABB.SrcML.Data {
         /// Returns the Language that this parser supports
         /// </summary>
         public abstract Language ParserLanguage { get; }
+
+        /// <summary>
+        /// Returns the XNames that represent containers for this language
+        /// </summary>
+        public HashSet<XName> ContainerElementNames { get; protected set; }
+
+        /// <summary>
+        /// Returns the XNames that represent types for this language
+        /// </summary>
+        public HashSet<XName> MethodElementNames { get; protected set; }
+
+        /// <summary>
+        /// Returns the XNames that represent namespaces for this language
+        /// </summary>
+        public HashSet<XName> NamespaceElementNames { get; protected set; }
 
         /// <summary>
         /// Returns the XNames that represent types for this language
@@ -32,24 +54,56 @@ namespace ABB.SrcML.Data {
         public HashSet<XName> VariableDeclarationElementNames { get; protected set; }
 
         /// <summary>
-        /// Creates all of the type definitions from a file unit.
+        /// 
         /// </summary>
-        /// <param name="fileUnit">The file unit to search. <c>XElement.Name</c> must be SRC.Unit</param>
-        /// <returns>An enumerable of TypeDefinition objects (one per type)</returns>
-        public virtual IEnumerable<TypeDefinition> CreateTypeDefinitions(XElement fileUnit) {
-            if(fileUnit == null)
-                throw new ArgumentNullException("fileUnit");
-            if(fileUnit.Name != SRC.Unit)
-                throw new ArgumentException("must be a a <unit> element", "fileUnit");
+        /// <param name="element"></param>
+        /// <param name="FileUnit"></param>
+        /// <returns></returns>
+        public virtual MethodDefinition CreateMethodDefinition(XElement methodElement, XElement fileUnit) {
+            if(null == methodElement) throw new ArgumentNullException("methodElement");
+            if(null == fileUnit) throw new ArgumentNullException("fileUnit");
+            if(fileUnit.Name != SRC.Unit) throw new ArgumentException("must be a SRC.unit", "fileUnit");
 
-            Language language = SrcMLElement.GetLanguageForUnit(fileUnit);
-            var fileName = GetFileNameForUnit(fileUnit);
+            var parameters = from paramElement in GetParametersFromMethod(methodElement)
+                             select CreateVariableDeclaration(paramElement, fileUnit);
 
-            var typeElements = from typeElement in fileUnit.Descendants()
-                               where TypeElementNames.Contains(typeElement.Name)
-                               select CreateTypeDefinition(typeElement, fileUnit);
-            return typeElements;
+            var methodDefinition = new MethodDefinition() {
+                Name = GetNameForMethod(methodElement),
+                IsConstructor = (methodElement.Name == SRC.Constructor),
+                IsDestructor = (methodElement.Name == SRC.Destructor),
+                Parameters = new Collection<VariableDeclaration>(parameters.ToList()),
+                XPath = methodElement.GetXPath(false),
+            };
+            
+            return methodDefinition;
         }
+
+        /// <summary>
+        /// Creates a NamespaceDefinition object for the given element. This function looks for the namespace that contains <paramref name="element"/> and creates a definition based on that.
+        /// </summary>
+        /// <param name="element">the element</param>
+        /// <param name="fileUnit">The file unit</param>
+        /// <returns>a new NamespaceDefinition object</returns>
+        public abstract NamespaceDefinition CreateNamespaceDefinition(XElement element, XElement fileUnit);
+
+        public virtual VariableScope CreateScopeFromContainer(XElement container, XElement fileUnit) {
+            var currentScope = new VariableScope();
+
+            // get the variables declared at this scope
+            var declaredVariables = GetVariableDeclarationsFromContainer(container, fileUnit);
+            foreach(var declaration in declaredVariables) {
+                currentScope.AddDeclaredVariable(declaration);
+            }
+
+            return currentScope;
+        }
+
+        /// <summary>
+        /// Creates a variable scope for the given file unit. The function can vary depending on 
+        /// </summary>
+        /// <param name="fileUnit"></param>
+        /// <returns></returns>
+        public abstract VariableScope CreateScopeFromFile(XElement fileUnit);
 
         /// <summary>
         /// Parses the given typeElement and returns a TypeDefinition object.
@@ -70,7 +124,7 @@ namespace ABB.SrcML.Data {
                Kind = XNameMaps.GetKindForXElement(typeElement),
                Language = this.ParserLanguage,
                Name = GetNameForType(typeElement),
-               Namespace = GetNamespaceDefinition(typeElement, fileUnit),
+               Namespace = CreateNamespaceDefinition(typeElement, fileUnit),
                Parents = GetParentTypeUses(typeElement, fileUnit),
                XPath = typeElement.GetXPath(false),
             };
@@ -119,7 +173,7 @@ namespace ABB.SrcML.Data {
             var typeUse = new TypeUse() {
                 Name = lastName.Value,
                 Prefix = new Collection<string>(prefixes.ToList()),
-                CurrentNamespace = GetNamespaceDefinition(element, fileUnit),
+                CurrentNamespace = CreateNamespaceDefinition(element, fileUnit),
                 Parser = this,
                 Aliases = new Collection<Alias>(aliases.ToList<Alias>()),
             };
@@ -138,19 +192,28 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Creates a NamespaceDefinition object for the given element. This function looks for the namespace that contains <paramref name="element"/> and creates a definition based on that.
-        /// </summary>
-        /// <param name="element">the element</param>
-        /// <param name="fileUnit">The file unit</param>
-        /// <returns>a new NamespaceDefinition object</returns>
-        public abstract NamespaceDefinition GetNamespaceDefinition(XElement element, XElement fileUnit);
-
-        /// <summary>
         /// Gets the name for the type element
         /// </summary>
         /// <param name="typeElement">The type element to get the name for</param>
         /// <returns>The name of the type</returns>
-        public abstract string GetNameForType(XElement typeElement);
+        public virtual string GetNameForType(XElement typeElement) {
+            var name = typeElement.Element(SRC.Name);
+            if(null == name)
+                return string.Empty;
+            return name.Value;
+        }
+
+        /// <summary>
+        /// Gets the name for the method element
+        /// </summary>
+        /// <param name="methodElement">the method element to get the name for</param>
+        /// <returns>The name of the method</returns>
+        public virtual string GetNameForMethod(XElement methodElement) {
+            var name = methodElement.Element(SRC.Name);
+            if(null == name)
+                return string.Empty;
+            return name.Value;
+        }
 
         /// <summary>
         /// Gets the access modifier for the given type
@@ -223,58 +286,39 @@ namespace ABB.SrcML.Data {
         }
 
         #region scope definition
-
-        public virtual VariableScope CreateScopeFromContainer(XElement container, XElement fileUnit) {
-            var currentScope = new VariableScope();
-            currentScope.XPath = container.GetXPath(false);
-
-            // get the variables declared at this scope
-            var declaredVariables = GetVariableDeclarationsFromContainer(container, fileUnit);
-            foreach(var declaration in declaredVariables) {
-                currentScope.AddDeclaredVariable(declaration);
-            }
-            
-
-            // create the child scopes and connect them to the parent scope
-            foreach(var child in GetChildContainers(container)) {
-                var childScope = CreateScopeFromContainer(child, fileUnit);
-                currentScope.AddChildScope(childScope);
-            }
-
-            return currentScope;
-        }
-
         public virtual IEnumerable<XElement> GetChildContainers(XElement container) {
             IEnumerable<XElement> children;
 
-            if(VariableScope.TypeContainers.Contains(container.Name)) {
+            if(TypeElementNames.Contains(container.Name)) {
                 children = GetChildContainersFromType(container);
+            } else if(MethodElementNames.Contains(container.Name)) {
+                children = GetChildContainersFromMethod(container);
+            } else if(NamespaceElementNames.Contains(container.Name)) {
+                children = GetChildContainersFromNamespace(container);
             } else {
                 children = from child in container.Elements()
-                           where VariableScope.Containers.Contains(child.Name)
+                           where ContainerElementNames.Contains(child.Name)
                            select child;
             }
             return children;
         }
 
-        public virtual IEnumerable<XElement> GetChildContainersFromType(XElement container) {
+        public virtual IEnumerable<XElement> GetChildContainersFromNamespace(XElement container) {
             var block = container.Element(SRC.Block);
-
-            foreach(var child in GetChildContainers(block)) {
-                yield return child;
-            }
-
-            var specifierBlocks = from child in block.Elements()
-                                  where VariableScope.SpecifierContainers.Contains(child.Name)
-                                  select child;
-
-            foreach(var specifierBlock in specifierBlocks) {
-                foreach(var child in GetChildContainers(specifierBlock)) {
-                    yield return child;
-                }
-            }
+            return GetChildContainers(block);
+        }
+        public virtual IEnumerable<XElement> GetChildContainersFromMethod(XElement container) {
+            var block = container.Element(SRC.Block);
+            return GetChildContainers(block);
         }
 
+        public virtual IEnumerable<XElement> GetChildContainersFromType(XElement container) {
+            var block = container.Element(SRC.Block);
+            return GetChildContainers(block);
+        }
+
+        #endregion get child containers
+        #region create variable declarations
         /// <summary>
         /// Generates a variable declaration for the given declaration
         /// </summary>
@@ -305,24 +349,17 @@ namespace ABB.SrcML.Data {
         }
 
         public virtual IEnumerable<VariableDeclaration> GetVariableDeclarationsFromContainer(XElement container, XElement fileUnit) {
-            var containersLikeBlocks = new HashSet<XName>() {
-                SRC.Block, SRC.Private, SRC.Protected, SRC.Public
-            };
-
-            var containersLikeFunctions = new HashSet<XName>() {
-                SRC.Function, SRC.Constructor, SRC.Destructor
-            };
-
             IEnumerable<XElement> declarationElements;
-            if(SRC.Catch == container.Name) {
+            if(SRC.Block == container.Name) {
+                declarationElements = GetDeclarationsFromBlock(container);
+            } else if(SRC.Catch == container.Name) {
                 declarationElements = GetDeclarationsFromCatch(container);
             } else if(SRC.For == container.Name) {
                 declarationElements = GetDeclarationsFromFor(container);
-            } else if(containersLikeBlocks.Contains(container.Name)) {
-                declarationElements = GetDeclarationsFromBlock(container);
-            } else if(containersLikeFunctions.Contains(container.Name)) {
-                declarationElements = GetDeclarationsFromMethod(container);
-            } else if(VariableScope.TypeContainers.Contains(container.Name)) {
+            } else if(MethodElementNames.Contains(container.Name)) {
+                declarationElements = GetParametersFromMethod(container);
+                declarationElements = declarationElements.Concat(GetDeclarationsFromMethod(container));
+            } else if(TypeElementNames.Contains(container.Name)) {
                 declarationElements = GetDeclarationsFromType(container);
             }else {
                 declarationElements = Enumerable.Empty<XElement>();
@@ -353,11 +390,16 @@ namespace ABB.SrcML.Data {
             return declarations;
         }
 
+        public virtual IEnumerable<XElement> GetParametersFromMethod(XElement method) {
+            var parameters = from parameter in method.Element(SRC.ParameterList).Elements(SRC.Parameter)
+                             let declElement = parameter.Element(SRC.Declaration)
+                             select declElement;
+            return parameters;
+        }
+
         public virtual IEnumerable<XElement> GetDeclarationsFromMethod(XElement container) {
-            var declarations = from parameter in container.Element(SRC.ParameterList).Elements(SRC.Parameter)
-                               let declElement = parameter.Element(SRC.Declaration)
-                               select declElement;
-            return declarations;
+            var block = container.Element(SRC.Block);
+            return GetDeclarationsFromBlock(block);
         }
 
         public virtual IEnumerable<XElement> GetDeclarationsFromType(XElement container) {
@@ -365,18 +407,8 @@ namespace ABB.SrcML.Data {
             foreach(var declElement in GetDeclarationsFromBlock(block)) {
                 yield return declElement;
             }
-
-            var specifierElements = from child in container.Elements()
-                                    where VariableScope.SpecifierContainers.Contains(child.Name)
-                                    select child;
-
-            foreach(var specifierElement in specifierElements) {
-                foreach(var declElement in GetDeclarationsFromBlock(specifierElement)) {
-                    yield return declElement;
-                }
-            }
         }
 
-        #endregion scope definition
+        #endregion create variable declarations
     }
 }

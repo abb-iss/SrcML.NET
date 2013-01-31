@@ -30,8 +30,7 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
             
-            var typeDefinitions = codeParser.CreateTypeDefinitions(xmlElement);
-            var actual = typeDefinitions.First();
+            var actual = (new ScopeVisitor(codeParser, xmlElement)).Visit(xmlElement).First() as TypeDefinition;
             Assert.AreEqual("A", actual.Name);
             Assert.AreEqual(TypeKind.Class, actual.Kind);
             Assert.That(actual.Namespace.IsGlobal);
@@ -45,16 +44,16 @@ namespace ABB.SrcML.Data.Test {
 </private>}</block>;</class>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
-            var typeDefinitions = codeParser.CreateTypeDefinitions(xmlElement);
-            var definition = typeDefinitions.First();
-            Assert.AreEqual("A", definition.Name);
-            Assert.AreEqual(3, definition.Parents.Count);
-            Assert.That(definition.Namespace.IsGlobal);
+            var actual = (new ScopeVisitor(codeParser, xmlElement)).Visit(xmlElement).First() as TypeDefinition;
+            
+            Assert.AreEqual("A", actual.Name);
+            Assert.AreEqual(3, actual.Parents.Count);
+            Assert.That(actual.Namespace.IsGlobal);
 
-            var parentNames = from parent in definition.Parents
+            var parentNames = from parent in actual.Parents
                               select parent.Name;
 
-            var tests = Enumerable.Zip<string, string, bool>(new[] { "B", "C", "D" }, parentNames, (expected, actual) => expected == actual
+            var tests = Enumerable.Zip<string, string, bool>(new[] { "B", "C", "D" }, parentNames, (e, a) => e == a
                 );
             foreach(var parentMatchesExpected in tests) {
                 Assert.That(parentMatchesExpected);
@@ -69,17 +68,16 @@ namespace ABB.SrcML.Data.Test {
 </private>}</block>;</class>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "D.h");
-            var typeDefinitions = codeParser.CreateTypeDefinitions(xmlElement);
-            var definition = typeDefinitions.First();
+            var actual = (new ScopeVisitor(codeParser, xmlElement)).Visit(xmlElement).First() as TypeDefinition;
 
-            Assert.AreEqual("D", definition.Name);
-            Assert.AreEqual(1, definition.Parents.Count);
-            Assert.That(definition.Namespace.IsGlobal);
+            Assert.AreEqual("D", actual.Name);
+            Assert.AreEqual(1, actual.Parents.Count);
+            Assert.That(actual.Namespace.IsGlobal);
 
-            var parent = definition.Parents.First();
+            var parent = actual.Parents.First();
 
             Assert.AreEqual("C", parent.Name);
-            var prefix_tests = Enumerable.Zip<string, string, bool>(new[] { "A", "B", "C" }, parent.Prefix, (expected, actual) => expected == actual);
+            var prefix_tests = Enumerable.Zip<string, string, bool>(new[] { "A", "B", "C" }, parent.Prefix, (e, a) => e == a);
             foreach(var prefixMatches in prefix_tests) {
                 Assert.That(prefixMatches);
             }
@@ -97,8 +95,8 @@ namespace ABB.SrcML.Data.Test {
 </private>}</block>;</class>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
-            var typeDefinitions = codeParser.CreateTypeDefinitions(xmlElement);
-            Assert.AreEqual(2, typeDefinitions.Count());
+            var scopes = (new ScopeVisitor(codeParser, xmlElement)).Visit(xmlElement);
+            Assert.AreEqual(3, scopes.Count());
             Assert.Fail("TODO add assertions to verify class in class");
         }
 
@@ -107,7 +105,7 @@ namespace ABB.SrcML.Data.Test {
             string xml = @"";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
-            var typeDefinitions = codeParser.CreateTypeDefinitions(xmlElement);
+            var typeDefinitions = (new ScopeVisitor(codeParser, xmlElement)).Visit(xmlElement);
             Assert.Fail("TODO Need to add assertions to verify type in function");
         }
 
@@ -119,8 +117,7 @@ namespace ABB.SrcML.Data.Test {
 </public>}</block>;</struct>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
-            var typeDefinitions = codeParser.CreateTypeDefinitions(xmlElement);
-            var actual = typeDefinitions.First();
+            var actual = (new ScopeVisitor(codeParser, xmlElement)).Visit(xmlElement).First() as TypeDefinition;
             Assert.AreEqual("A", actual.Name);
             Assert.AreEqual(TypeKind.Struct, actual.Kind);
             Assert.That(actual.Namespace.IsGlobal);
@@ -138,8 +135,7 @@ namespace ABB.SrcML.Data.Test {
 </public>}</block>;</union>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
-            var typeDefinitions = codeParser.CreateTypeDefinitions(xmlElement);
-            var actual = typeDefinitions.First();
+            var actual = (new ScopeVisitor(codeParser, xmlElement)).Visit(xmlElement).First() as TypeDefinition;
             Assert.AreEqual(TypeKind.Union, actual.Kind);
             Assert.That(actual.Namespace.IsGlobal);
         }
@@ -160,12 +156,17 @@ namespace ABB.SrcML.Data.Test {
 }</block></namespace>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
-            var typeDefinitions = codeParser.CreateTypeDefinitions(xmlElement);
+            var scopes = (new ScopeVisitor(codeParser, xmlElement)).Visit(xmlElement);
 
-            Assert.AreEqual(2, typeDefinitions.Count());
+            Assert.AreEqual(4, scopes.Count());
 
-            var outer = typeDefinitions.First();
-            var inner = typeDefinitions.Last();
+            var typeDefinitions = from scope in scopes
+                                  let definition = scope as TypeDefinition
+                                  where definition != null
+                                  select definition;
+
+            var outer = typeDefinitions.Last() as TypeDefinition;
+            var inner = typeDefinitions.First() as TypeDefinition;
 
             Assert.AreEqual("B", outer.Name);
             Assert.AreEqual("A", outer.Namespace.Name);

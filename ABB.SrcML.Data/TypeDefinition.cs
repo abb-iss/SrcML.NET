@@ -18,8 +18,15 @@ using System.Text;
 using System.Xml.Linq;
 
 namespace ABB.SrcML.Data {
-    public class TypeDefinition {
-        public string Name { get; set; }
+    public class TypeDefinition : NamedVariableScope {
+        public TypeDefinition() : base() {
+            this.InnerTypes = new Collection<TypeDefinition>();
+            this.Methods = new Collection<MethodDefinition>();
+            this.Parents = new Collection<TypeUse>();
+            this.Namespace = new NamespaceDefinition();
+            this.IsPartial = false;
+        }
+
         public AccessModifier Accessibility { get; set; }
         public Collection<VariableDeclaration> Fields { get; set; }
         public Collection<string> Filenames { get; set; }
@@ -30,10 +37,9 @@ namespace ABB.SrcML.Data {
         public Collection<MethodDefinition> Methods { get; set; }
         public NamespaceDefinition Namespace { get; set; } //TODO: do we need this?
         public Collection<TypeUse> Parents { get; set; }
-        public string XPath { get; set; }
 
-        public XElement GetXElement() {
-            return null;
+        public override bool IsScopeFor(string xpath) {
+            return base.IsScopeFor(xpath);
         }
 
         public string GetFullName() {

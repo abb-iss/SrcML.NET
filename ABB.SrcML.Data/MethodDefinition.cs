@@ -17,14 +17,33 @@ using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML.Data {
-    public class MethodDefinition {
+    public class MethodDefinition : NamedVariableScope {
+        private Collection<VariableDeclaration> _parameters;
+
+        public MethodDefinition() : base() {
+            this._parameters = new Collection<VariableDeclaration>();
+        }
         public AccessModifier Accessibility { get; set; }
         public bool IsConstructor { get; set; }
         public bool IsDestructor { get; set; }
-        public string Name { get; set; }
-        public string XPath { get; set; }
 
         public Collection<TypeDefinition> InnerTypes;
-        public Collection<VariableDeclaration> Parameters;
+        public Collection<VariableDeclaration> Parameters {
+            get { return this._parameters; }
+            set {
+                var oldParameters = this._parameters;
+                this._parameters = value;
+                
+                foreach(var parameter in oldParameters) {
+                    this.DeclaredVariablesDictionary.Remove(parameter.Name);
+                }
+                
+                foreach(var parameter in this._parameters) {
+                    this.AddDeclaredVariable(parameter);
+                }
+            }
+        }
+
+        
     }
 }

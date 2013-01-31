@@ -12,7 +12,8 @@ namespace ABB.SrcML.Data {
     /// </summary>
     public class CPlusPlusCodeParser : AbstractCodeParser {
         public CPlusPlusCodeParser() {
-            this.TypeElementNames = new HashSet<XName>(new XName[] { SRC.Class, SRC.Struct, SRC.Union });
+            this.SpecifierContainerNames = new HashSet<XName>(new XName[] { SRC.Private, SRC.Protected, SRC.Public });
+            this.TypeElementNames = new HashSet<XName>(new XName[] { SRC.Class, SRC.Enum, SRC.Struct, SRC.Union });
         }
         /// <summary>
         /// Returns <c>Language.CPlusPlus</c>
@@ -21,13 +22,15 @@ namespace ABB.SrcML.Data {
             get { return Language.CPlusPlus; }
         }
 
+        public HashSet<XName> SpecifierContainerNames { get; set; }
+
         /// <summary>
         /// Finds all of the namespace blocks that wrap this <paramref name="element"/>. It then creates the namespace name.
         /// </summary>
         /// <param name="element">The element to find the namespace for</param>
         /// <param name="fileUnit">The file unit that contains <paramref name="element"/></param>
         /// <returns>The namespace definition for the given element.</returns>
-        public override NamespaceDefinition GetNamespaceDefinition(XElement element, XElement fileUnit) {
+        public override NamespaceDefinition CreateNamespaceDefinition(XElement element, XElement fileUnit) {
             var names = from namespaceElement in element.Ancestors(SRC.Namespace)
                         let name = namespaceElement.Element(SRC.Name)
                         select name.Value;
@@ -40,18 +43,20 @@ namespace ABB.SrcML.Data {
             return definition;
         }
 
-        /// <summary>
-        /// Gets the type name for the given type element.
-        /// </summary>
-        /// <param name="typeElement">The type element</param>
-        /// <returns>The name of the type</returns>
-        public override string GetNameForType(XElement typeElement) {
-            var name = typeElement.Element(SRC.Name);
-            if(null == name)
-                return string.Empty;
-            return name.Value;
+        public override VariableScope CreateScopeFromFile(XElement fileUnit) {
+            var namespaceForFile = new NamespaceDefinition();
+            return namespaceForFile;
         }
 
+        public override string GetNameForMethod(XElement methodElement) {
+            var nameElement = methodElement.Element(SRC.Name);
+
+            if(null == nameElement)
+                return string.Empty;
+
+            var names = GetNameElementsFromName(nameElement);
+            return names.Last().Value;
+        }
         /// <summary>
         /// Gets the access modifier for this type. In C++, all types are public, so this always returns "public"
         /// </summary>
@@ -118,6 +123,40 @@ namespace ABB.SrcML.Data {
 
         public override IEnumerable<string> GeneratePossibleNamesForTypeUse(TypeUse typeUse) {
             throw new NotImplementedException();
+        }
+
+        public override IEnumerable<XElement> GetChildContainersFromType(XElement container) {
+            foreach(var child in base.GetChildContainersFromType(container)) {
+                yield return child;
+            }
+
+            var block = container.Element(SRC.Block);
+            var specifierBlocks = from child in block.Elements()
+                                  where SpecifierContainerNames.Contains(child.Name)
+                                  select child;
+
+            foreach(var specifierBlock in specifierBlocks) {
+                foreach(var child in GetChildContainers(specifierBlock)) {
+                    yield return child;
+                }
+            }
+        }
+
+        public override IEnumerable<XElement> GetDeclarationsFromType(XElement container) {
+            foreach(var decl in base.GetDeclarationsFromType(container)) {
+                yield return decl;
+            }
+
+            var block = container.Element(SRC.Block);
+            var specifierElements = from child in container.Elements()
+                                    where SpecifierContainerNames.Contains(child.Name)
+                                    select child;
+
+            foreach(var specifierElement in specifierElements) {
+                foreach(var declElement in GetDeclarationsFromBlock(specifierElement)) {
+                    yield return declElement;
+                }
+            }
         }
     }
 }
