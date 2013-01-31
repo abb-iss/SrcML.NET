@@ -55,14 +55,14 @@ namespace ABB.SrcML.Data.Test {
             AbstractCodeParser parser = new JavaCodeParser();
             TypeInventory inventory = new TypeInventory();
 
-            var scopes = from scope in (new ScopeVisitor(parser, fileUnitA)).Visit(fileUnitA)
+            var scopes = from scope in (new ScopeVisitor(parser)).Visit(fileUnitA)
                          let typeDefinition = (scope as TypeDefinition)
                          where typeDefinition != null
                          select typeDefinition;
 
             inventory.AddNewDefinitions(scopes);
 
-            scopes = from scope in (new ScopeVisitor(parser, fileUnitB)).Visit(fileUnitB)
+            scopes = from scope in (new ScopeVisitor(parser)).Visit(fileUnitB)
                      let typeDefinition = (scope as TypeDefinition)
                      where typeDefinition != null
                      select typeDefinition;

@@ -29,7 +29,7 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
             
-            var actual = (new ScopeVisitor(codeParser, xmlElement)).Visit(xmlElement).First() as TypeDefinition;
+            var actual = (new ScopeVisitor(codeParser)).Visit(xmlElement).First() as TypeDefinition;
             Assert.AreEqual("A", actual.Name);
             Assert.That(actual.Namespace.IsGlobal);
         }
@@ -43,7 +43,7 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
 
-            var actual = (new ScopeVisitor(codeParser, xmlElement)).Visit(xmlElement).First() as TypeDefinition;
+            var actual = (new ScopeVisitor(codeParser)).Visit(xmlElement).First() as TypeDefinition;
 
             Assert.AreEqual("A", actual.Name);
             Assert.AreEqual(TypeKind.Interface, actual.Kind);
@@ -59,7 +59,7 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
 
-            var actual = (new ScopeVisitor(codeParser, xmlElement)).Visit(xmlElement).First() as TypeDefinition;
+            var actual = (new ScopeVisitor(codeParser)).Visit(xmlElement).First() as TypeDefinition;
 
             Assert.AreEqual("A", actual.Name);
             Assert.AreEqual(3, actual.Parents.Count);
@@ -83,7 +83,7 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "D.java");
 
-            var actual = (new ScopeVisitor(codeParser, xmlElement)).Visit(xmlElement).First() as TypeDefinition;
+            var actual = (new ScopeVisitor(codeParser)).Visit(xmlElement).First() as TypeDefinition;
 
             Assert.AreEqual("D", actual.Name);
             Assert.AreEqual(1, actual.Parents.Count);
@@ -111,7 +111,7 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
 
-            var scopes = (new ScopeVisitor(codeParser, xmlElement)).Visit(xmlElement);
+            var scopes = (new ScopeVisitor(codeParser)).Visit(xmlElement);
 
             Assert.AreEqual(3, scopes.Count());
             Assert.Fail("TODO add assertions to verify class in class");
@@ -131,7 +131,7 @@ namespace ABB.SrcML.Data.Test {
 }</block></class>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "B.java");
-            var scopes = (new ScopeVisitor(codeParser, xmlElement)).Visit(xmlElement);
+            var scopes = (new ScopeVisitor(codeParser)).Visit(xmlElement);
             var typeDefinitions = from scope in scopes
                                   let definition = (scope as TypeDefinition)
                                   where definition != null
@@ -170,7 +170,7 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
 
-            var typeDefinitions = (new ScopeVisitor(codeParser, xmlElement)).Visit(xmlElement);
+            var typeDefinitions = (new ScopeVisitor(codeParser)).Visit(xmlElement);
             Assert.Fail("TODO Need to add assertions to verify type in function");
         }
 
@@ -218,7 +218,7 @@ namespace ABB.SrcML.Data.Test {
 
             var declarationElement = xmlElement.Descendants(SRC.DeclarationStatement).First();
 
-            var visitor = new ScopeVisitor(codeParser, xmlElement);
+            var visitor = new ScopeVisitor(codeParser);
             var scopes = visitor.Visit(xmlElement);
             var scope = scopes.Last();            
             var useOfX = xmlElement.Descendants(SRC.Return).First().Descendants(SRC.Name).First();
