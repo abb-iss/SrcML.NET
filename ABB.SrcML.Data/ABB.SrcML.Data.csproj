@@ -48,7 +48,7 @@
     <Compile Include="AccessModifier.cs" />
     <Compile Include="Alias.cs" />
     <Compile Include="NamedVariableScope.cs" />
-    <Compile Include="ScopeVisitor.cs" />
+    <Compile Include="SrcMLElementVisitor.cs" />
     <Compile Include="DataArchive.cs" />
     <Compile Include="JavaCodeParser.cs" />
     <Compile Include="MethodDefinition.cs" />
@@ -61,6 +61,7 @@
     <Compile Include="TypeUse.cs" />
     <Compile Include="VariableDeclaration.cs" />
     <Compile Include="VariableScope.cs" />
+    <Compile Include="VariableScopeIterator.cs" />
     <Compile Include="VariableUse.cs" />
     <Compile Include="XNameMaps.cs" />
   </ItemGroup>

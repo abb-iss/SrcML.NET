@@ -29,8 +29,8 @@ namespace ABB.SrcML.Data.Test {
 </private>}</block>;</class>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
-            
-            var actual = (new ScopeVisitor(codeParser)).Visit(xmlElement).First() as TypeDefinition;
+
+            var actual = SrcMLElementVisitor.Visit(xmlElement, codeParser).ChildScopes.First() as TypeDefinition;
             Assert.AreEqual("A", actual.Name);
             Assert.AreEqual(TypeKind.Class, actual.Kind);
             Assert.That(actual.Namespace.IsGlobal);
@@ -44,7 +44,7 @@ namespace ABB.SrcML.Data.Test {
 </private>}</block>;</class>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
-            var actual = (new ScopeVisitor(codeParser)).Visit(xmlElement).First() as TypeDefinition;
+            var actual = SrcMLElementVisitor.Visit(xmlElement, codeParser).ChildScopes.First() as TypeDefinition;
             
             Assert.AreEqual("A", actual.Name);
             Assert.AreEqual(3, actual.Parents.Count);
@@ -68,7 +68,7 @@ namespace ABB.SrcML.Data.Test {
 </private>}</block>;</class>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "D.h");
-            var actual = (new ScopeVisitor(codeParser)).Visit(xmlElement).First() as TypeDefinition;
+            var actual = SrcMLElementVisitor.Visit(xmlElement, codeParser).ChildScopes.First() as TypeDefinition;
 
             Assert.AreEqual("D", actual.Name);
             Assert.AreEqual(1, actual.Parents.Count);
@@ -95,7 +95,7 @@ namespace ABB.SrcML.Data.Test {
 </private>}</block>;</class>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
-            var scopes = (new ScopeVisitor(codeParser)).Visit(xmlElement);
+            var scopes = VariableScopeIterator.Visit(SrcMLElementVisitor.Visit(xmlElement, codeParser));
             Assert.AreEqual(3, scopes.Count());
             Assert.Fail("TODO add assertions to verify class in class");
         }
@@ -105,7 +105,7 @@ namespace ABB.SrcML.Data.Test {
             string xml = @"";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
-            var typeDefinitions = (new ScopeVisitor(codeParser)).Visit(xmlElement);
+            var typeDefinitions = SrcMLElementVisitor.Visit(xmlElement, codeParser);
             Assert.Fail("TODO Need to add assertions to verify type in function");
         }
 
@@ -117,7 +117,7 @@ namespace ABB.SrcML.Data.Test {
 </public>}</block>;</struct>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
-            var actual = (new ScopeVisitor(codeParser)).Visit(xmlElement).First() as TypeDefinition;
+            var actual = SrcMLElementVisitor.Visit(xmlElement, codeParser).ChildScopes.First() as TypeDefinition;
             Assert.AreEqual("A", actual.Name);
             Assert.AreEqual(TypeKind.Struct, actual.Kind);
             Assert.That(actual.Namespace.IsGlobal);
@@ -135,7 +135,7 @@ namespace ABB.SrcML.Data.Test {
 </public>}</block>;</union>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
-            var actual = (new ScopeVisitor(codeParser)).Visit(xmlElement).First() as TypeDefinition;
+            var actual = SrcMLElementVisitor.Visit(xmlElement, codeParser).ChildScopes.First() as TypeDefinition;
             Assert.AreEqual(TypeKind.Union, actual.Kind);
             Assert.That(actual.Namespace.IsGlobal);
         }
@@ -156,7 +156,7 @@ namespace ABB.SrcML.Data.Test {
 }</block></namespace>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
-            var scopes = (new ScopeVisitor(codeParser)).Visit(xmlElement);
+            var scopes = VariableScopeIterator.Visit(SrcMLElementVisitor.Visit(xmlElement, codeParser));
 
             Assert.AreEqual(4, scopes.Count());
 
@@ -165,8 +165,8 @@ namespace ABB.SrcML.Data.Test {
                                   where definition != null
                                   select definition;
 
-            var outer = typeDefinitions.Last() as TypeDefinition;
-            var inner = typeDefinitions.First() as TypeDefinition;
+            var outer = typeDefinitions.First() as TypeDefinition;
+            var inner = typeDefinitions.Last() as TypeDefinition;
 
             Assert.AreEqual("B", outer.Name);
             Assert.AreEqual("A", outer.Namespace.Name);
