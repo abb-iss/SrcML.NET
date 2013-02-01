@@ -326,6 +326,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
                     }
                     catch (Exception e)
                     {
+                        Console.WriteLine("Exception when getting file names: " + path + "; " + e.Message);
                         path = item.FileNames[1];
                     }
                     ////string fileExtension = Path.GetExtension(path);

@@ -47,10 +47,6 @@ namespace ABB.SrcML {
             return null;
         }
 
-        //temp approach
-        public void RaiseSolutionMonitorEvent(string filePath, string oldFilePath, FileEventType type) {
-        }
-
         #endregion
 
         private void SetupFileSystemWatcher() {

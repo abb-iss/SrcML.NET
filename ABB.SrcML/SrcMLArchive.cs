@@ -182,7 +182,7 @@ namespace ABB.SrcML {
                 if(IsValidFileExtension(sourceFilePath)) {
                     RespondToFileEvent(null, new FileEventRaisedArgs(sourceFilePath, FileEventType.FileDeleted));
                 } else {
-                    this.FileMonitor.RaiseSolutionMonitorEvent(sourceFilePath, null, FileEventType.FileDeleted);
+                    ////this.FileMonitor.RaiseSolutionMonitorEvent(sourceFilePath, null, FileEventType.FileDeleted);
                 }
             } else {
                 string srcMLFilePath = GetXmlPathForSourcePath(sourceFilePath);
@@ -191,7 +191,7 @@ namespace ABB.SrcML {
                     if(IsValidFileExtension(sourceFilePath)) {
                         RespondToFileEvent(null, new FileEventRaisedArgs(sourceFilePath, FileEventType.FileAdded));
                     } else {
-                        this.FileMonitor.RaiseSolutionMonitorEvent(sourceFilePath, null, FileEventType.FileAdded);
+                        ////this.FileMonitor.RaiseSolutionMonitorEvent(sourceFilePath, null, FileEventType.FileAdded);
                     }
                 } else {
                     DateTime sourceFileTimestamp = new FileInfo(sourceFilePath).LastWriteTime;
@@ -201,7 +201,7 @@ namespace ABB.SrcML {
                         if(IsValidFileExtension(sourceFilePath)) {
                             RespondToFileEvent(null, new FileEventRaisedArgs(sourceFilePath, FileEventType.FileChanged));
                         } else {
-                            this.FileMonitor.RaiseSolutionMonitorEvent(sourceFilePath, null, FileEventType.FileChanged);
+                            ////this.FileMonitor.RaiseSolutionMonitorEvent(sourceFilePath, null, FileEventType.FileChanged);
                         }
                     }
                 }
