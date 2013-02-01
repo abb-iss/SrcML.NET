@@ -288,13 +288,13 @@ namespace ABB.SrcML {
         /// Generate a srcML File for a source code file. Now use this method instead of GenerateXmlAndXElementForSource()
         /// </summary>
         /// <param name="sourcePath"></param>
-        public void GenerateXmlForSource(string sourcePath) {
+        public SrcMLFile GenerateXmlForSource(string sourcePath) {
             var xmlPath = GetXmlPathForSourcePath(sourcePath);
             var directory = Path.GetDirectoryName(xmlPath);
             if(!Directory.Exists(directory)) {
                 Directory.CreateDirectory(directory);
             }
-            this.XmlGenerator.GenerateSrcMLFromFile(sourcePath, xmlPath);
+            return this.XmlGenerator.GenerateSrcMLFromFile(sourcePath, xmlPath);
         }
 
         /// <summary>
@@ -350,16 +350,18 @@ namespace ABB.SrcML {
         }
 
         /// <summary>
-        /// Gets the XElement for the specified source file.
+        /// Gets the XElement for the specified source file. If the SrcML does not already exist in the archive, it will be created.
         /// </summary>
         /// <param name="sourceFilePath">The source file to get the root XElement for.</param>
-        /// <returns>The root XElement of the source file, or null if the file does not exist in the archive.</returns>
+        /// <returns>The root XElement of the source file.</returns>
         public XElement GetXElementForSourceFile(string sourceFilePath) {
             string xmlPath = GetXmlPathForSourcePath(sourceFilePath);
-            if(!File.Exists(xmlPath)) {
-                return null;
+            SrcMLFile srcMLFile;
+            if(File.Exists(xmlPath)) {
+                srcMLFile = new SrcMLFile(xmlPath);
+            } else {
+                srcMLFile = GenerateXmlForSource(sourceFilePath);
             }
-            var srcMLFile = new SrcMLFile(sourceFilePath);
             return srcMLFile.FileUnits.FirstOrDefault();
         }
 
