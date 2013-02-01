@@ -350,14 +350,17 @@ namespace ABB.SrcML {
         }
 
         /// <summary>
-        /// Get the XElement for a specified source file.
+        /// Gets the XElement for the specified source file.
         /// </summary>
-        /// <param name="sourceFilePath"></param>
-        /// <returns></returns>
+        /// <param name="sourceFilePath">The source file to get the root XElement for.</param>
+        /// <returns>The root XElement of the source file, or null if the file does not exist in the archive.</returns>
         public XElement GetXElementForSourceFile(string sourceFilePath) {
-            SrcMLFile srcMLFile = new SrcMLFile(sourceFilePath);
-            XElement xElements = srcMLFile.FileUnits.FirstOrDefault();
-            return xElements;
+            string xmlPath = GetXmlPathForSourcePath(sourceFilePath);
+            if(!File.Exists(xmlPath)) {
+                return null;
+            }
+            var srcMLFile = new SrcMLFile(sourceFilePath);
+            return srcMLFile.FileUnits.FirstOrDefault();
         }
 
         /// <summary>

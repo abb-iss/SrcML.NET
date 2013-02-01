@@ -234,13 +234,12 @@ printf(""hello world!"");
         [ExpectedException(typeof(SrcMLException))]
         public void TestGenerateSrcMLFromFile_UnRegisteredExtension() {
             //The default src2srcml can't parse c#, so this should fail
+            generator.NonDefaultExecutables.Clear();
             generator.GenerateSrcMLFromFile(@"srcmltest\CSHARP.cs", @"srcml_xml\CSHARP.xml");
         }
 
         [Test]
         public void TestGenerateSrcMLFromFile_NonDefaultExtension() {
-            generator.RegisterExecutable(TestConstants.SrcmlPath + @"\csharp", new[] {Language.CSharp});
-            
             var doc = generator.GenerateSrcMLFromFile(@"srcmltest\CSHARP.cs", @"srcml_xml\CSHARP.xml");
             Assert.IsNotNull(doc);
             Assert.AreEqual(1, doc.FileUnits.Count());
@@ -248,11 +247,31 @@ printf(""hello world!"");
 
         [Test]
         public void TestGenerateSrcMLFromFiles_NonDefaultExtension() {
-            generator.RegisterExecutable(TestConstants.SrcmlPath + @"\csharp", new[] { Language.CSharp });
-
             var doc = generator.GenerateSrcMLFromFiles(new[] {@"srcmltest\File with spaces.cpp", @"srcmltest\CSHARP.cs", @"srcmltest\foo.c"}, @"srcml_xml\multiple_files_csharp.xml");
             Assert.IsNotNull(doc);
             Assert.AreEqual(3, doc.FileUnits.Count());
+        }
+
+        [Test]
+        [ExpectedException(typeof(InvalidOperationException))]
+        public void TestRegisterExecutable_Duplicate() {
+            generator.RegisterExecutable(Path.Combine(TestConstants.SrcmlPath, "csharp"), new[] {Language.CSharp});
+        }
+
+        [Test]
+        public void TestSupportedLanguages() {
+            var langs = generator.SupportedLanguages.ToList();
+            Assert.AreEqual(5, langs.Count);
+            Assert.IsTrue(langs.Contains(Language.C));
+            Assert.IsTrue(langs.Contains(Language.CPlusPlus));
+            Assert.IsTrue(langs.Contains(Language.CSharp));
+            Assert.IsTrue(langs.Contains(Language.Java));
+            Assert.IsTrue(langs.Contains(Language.AspectJ));
+
+            generator.NonDefaultExecutables.Clear();
+            langs = generator.SupportedLanguages.ToList();
+            Assert.AreEqual(4, langs.Count);
+            Assert.IsFalse(langs.Contains(Language.CSharp));
         }
     }
 }

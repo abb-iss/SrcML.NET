@@ -7,6 +7,7 @@
  *
  * Contributors:
  *    Vinay Augustine (ABB Group) - initial API, implementation, & documentation
+ *    Vinay Augustine (ABB Group) - Added support for SrcMLGenerator.
  *****************************************************************************/
 
 using System;
@@ -37,10 +38,11 @@ namespace ABB.SrcML.Tools.Src2SrcMLPreview
     public partial class Src2SrcMLPreviewWindow : Window
     {
         private bool binDirIsValid;
-        private Src2SrcMLRunner _srcmlObject;
+        private SrcMLGenerator _xmlGenerator;
         private string _xml;
         private Language _language;
         private Forms.FolderBrowserDialog directorySelector;
+        private static Collection<string> _namespaceArguments = new Collection<string>() { LIT.ArgumentLabel, OP.ArgumentLabel, TYPE.ArgumentLabel };
 
         public Src2SrcMLPreviewWindow()
         {
@@ -48,8 +50,8 @@ namespace ABB.SrcML.Tools.Src2SrcMLPreview
             directorySelector = new System.Windows.Forms.FolderBrowserDialog();
             directorySelector.ShowNewFolderButton = false;
             directorySelector.SelectedPath = SrcMLHelper.GetSrcMLDefaultDirectory();
-
-            _srcmlObject = new Src2SrcMLRunner(directorySelector.SelectedPath, new Collection<string>() { LIT.ArgumentLabel, OP.ArgumentLabel, TYPE.ArgumentLabel });
+            
+            _xmlGenerator = new SrcMLGenerator(directorySelector.SelectedPath, _namespaceArguments);
             _language = ABB.SrcML.Language.CPlusPlus;
             InitializeComponent();
         }
@@ -64,7 +66,7 @@ namespace ABB.SrcML.Tools.Src2SrcMLPreview
                 {
                     try
                     {
-                        _xml = _srcmlObject.GenerateSrcMLFromString(sourceBox.Text, this._language);
+                        _xml = _xmlGenerator.GenerateSrcMLFromString(sourceBox.Text, this._language);
 
                         languageLabel.Content = String.Format("(Code parsed as {0})", KsuAdapter.GetLanguage(this._language));
                         var doc = XDocument.Parse(_xml, LoadOptions.PreserveWhitespace);
@@ -118,10 +120,11 @@ namespace ABB.SrcML.Tools.Src2SrcMLPreview
 
         private void MenuItemSrcMLSelect_Click(object sender, RoutedEventArgs e)
         {
-            directorySelector.Description = String.Format("Select a directory that contains src2srcml.exe\nThe current directory is {0}", this._srcmlObject.ApplicationDirectory);
+            var currentDirectory = this.directorySelector.SelectedPath;
+            directorySelector.Description = String.Format("Select a directory that contains src2srcml.exe\nThe current directory is {0}", currentDirectory);
             if (directorySelector.ShowDialog() == Forms.DialogResult.OK)
             {
-                this._srcmlObject.ApplicationDirectory = directorySelector.SelectedPath;
+                this._xmlGenerator = new SrcMLGenerator(directorySelector.SelectedPath, _namespaceArguments);
                 binDirIsValid = true;
                 srcmlBox.Foreground = Brushes.Black;
                 if (sourceBox.Text.Length > 0)
