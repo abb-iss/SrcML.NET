@@ -23,16 +23,52 @@ namespace ABB.SrcML {
     public class SrcMLArchive : AbstractArchive {
         private BackgroundWorker startupWorker;
         
+        /// <summary>
+        /// Creates a new SrcMLArchive.
+        /// </summary>
+        /// <param name="fileMonitor">An IFileMonitor to indicate which files to convert to SrcML.</param>
+        /// <param name="xmlDirectory">The directory to store the SrcML files in.</param>
         public SrcMLArchive(IFileMonitor fileMonitor, string xmlDirectory)
-            : this(fileMonitor, xmlDirectory, new SrcMLGenerator()) {}
+            : this(fileMonitor, xmlDirectory, true) {}
 
-        public SrcMLArchive(IFileMonitor fileMonitor, string xmlDirectory, SrcMLGenerator generator) {
+        /// <summary>
+        /// Creates a new SrcMLArchive.
+        /// </summary>
+        /// <param name="fileMonitor">An IFileMonitor to indicate which files to convert to SrcML.</param>
+        /// <param name="xmlDirectory">The directory to store the SrcML files in.</param>
+        /// <param name="useExistingSrcML">If True, any existing SrcML files in <paramref name="xmlDirectory"/> will be used. If False, these files will be deleted and potentially recreated.</param>
+        public SrcMLArchive(IFileMonitor fileMonitor, string xmlDirectory, bool useExistingSrcML)
+            : this(fileMonitor, xmlDirectory, useExistingSrcML, new SrcMLGenerator()) {}
+
+        /// <summary>
+        /// Creates a new SrcMLArchive.
+        /// </summary>
+        /// <param name="fileMonitor">An IFileMonitor to indicate which files to convert to SrcML.</param>
+        /// <param name="xmlDirectory">The directory to store the SrcML files in.</param>
+        /// <param name="generator">The SrcMLGenerator to use to convert source files to SrcML.</param>
+        public SrcMLArchive(IFileMonitor fileMonitor, string xmlDirectory, SrcMLGenerator generator)
+            : this(fileMonitor, xmlDirectory, true, generator) {}
+
+        /// <summary>
+        /// Creates a new SrcMLArchive.
+        /// </summary>
+        /// <param name="fileMonitor">An IFileMonitor to indicate which files to convert to SrcML.</param>
+        /// <param name="xmlDirectory">The directory to store the SrcML files in.</param>
+        /// <param name="useExistingSrcML">If True, any existing SrcML files in <paramref name="xmlDirectory"/> will be used. If False, these files will be deleted and potentially recreated.</param>
+        /// <param name="generator">The SrcMLGenerator to use to convert source files to SrcML.</param>
+        public SrcMLArchive(IFileMonitor fileMonitor, string xmlDirectory, bool useExistingSrcML, SrcMLGenerator generator) {
             this.FileMonitor = fileMonitor;
             this.ArchivePath = xmlDirectory;
             this.XmlGenerator = generator;
 
             if(!Directory.Exists(this.ArchivePath)) {
                 Directory.CreateDirectory(this.ArchivePath);
+            } else {
+                if(!useExistingSrcML) {
+                    foreach(var file in Directory.GetFiles(ArchivePath, "*.xml")) {
+                        File.Delete(file);
+                    }
+                }
             }
 
             this.FileMonitor.FileEventRaised += RespondToFileEvent;

@@ -12,6 +12,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -26,6 +27,7 @@ namespace ABB.SrcML.Test
     {
         public const string SOURCEDIRECTORY = "testSourceDir";
         private DirectoryInfo srcDirectoryInfo;
+        private bool startupCompleted = false;
 
         [TestFixtureSetUp]
         public void Setup()
@@ -257,6 +259,46 @@ namespace ABB.SrcML.Test
 
             Assert.That(File.Exists(archive.GetXmlPathForSourcePath(Path.Combine(SOURCEDIRECTORY, "foo.c"))));
             Assert.That(File.Exists(archive.GetXmlPathForSourcePath(Path.Combine(SOURCEDIRECTORY, "bar.c"))));
+        }
+
+        [Test]
+        public void TestDontUseExistingSrcML() {
+            var xmlDirectory = Path.Combine(srcDirectoryInfo.FullName, ".srcml");
+            var testFiles = new List<string>() {@"..\..\TestInputs\foo.c", @"..\..\TestInputs\baz.cpp", @"..\..\TestInputs\function_def.cpp"};
+            IFileMonitor watchedFiles = Substitute.For<IFileMonitor>();
+            watchedFiles.GetMonitoredFiles(Arg.Any<BackgroundWorker>()).Returns(testFiles);
+
+            //convert the test files and place in the xml directory
+            var archive = new SrcMLArchive(watchedFiles, xmlDirectory, new SrcMLGenerator(TestConstants.SrcmlPath));
+            this.startupCompleted = false;
+            archive.StartupCompleted += (o, e) => { startupCompleted = true; };
+            archive.StartWatching();
+
+            //make sure the srcml files exist
+            while(!startupCompleted) {
+                System.Threading.Thread.Sleep(200);
+            }            
+            Assert.That(File.Exists(archive.GetXmlPathForSourcePath(@"..\..\TestInputs\foo.c")));
+            Assert.That(File.Exists(archive.GetXmlPathForSourcePath(@"..\..\TestInputs\baz.cpp")));
+            Assert.That(File.Exists(archive.GetXmlPathForSourcePath(@"..\..\TestInputs\function_def.cpp")));
+
+            //make new archive, and ignore existing srcml files in xml directory
+            archive = new SrcMLArchive(watchedFiles, xmlDirectory, false, new SrcMLGenerator(TestConstants.SrcmlPath));
+            Assert.That(!File.Exists(archive.GetXmlPathForSourcePath(@"..\..\TestInputs\foo.c")));
+            Assert.That(!File.Exists(archive.GetXmlPathForSourcePath(@"..\..\TestInputs\baz.cpp")));
+            Assert.That(!File.Exists(archive.GetXmlPathForSourcePath(@"..\..\TestInputs\function_def.cpp")));
+
+            startupCompleted = false;
+            archive.StartupCompleted += (o, e) => { startupCompleted = true; };
+            archive.StartWatching();
+
+            //make sure the srcml files now exist again
+            while(!startupCompleted) {
+                System.Threading.Thread.Sleep(200);
+            }
+            Assert.That(File.Exists(archive.GetXmlPathForSourcePath(@"..\..\TestInputs\foo.c")));
+            Assert.That(File.Exists(archive.GetXmlPathForSourcePath(@"..\..\TestInputs\baz.cpp")));
+            Assert.That(File.Exists(archive.GetXmlPathForSourcePath(@"..\..\TestInputs\function_def.cpp")));
         }
 
         [Test]
