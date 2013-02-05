@@ -25,11 +25,12 @@ namespace ABB.SrcML.Data {
     public abstract class AbstractCodeParser {
         protected AbstractCodeParser() {
             ContainerElementNames = new HashSet<XName>(new XName[] {
-                SRC.Block, SRC.Catch, SRC.Class, SRC.Constructor, SRC.Destructor, SRC.Do, SRC.Else, SRC.Enum, SRC.Extern, SRC.For,
-                SRC.Function, SRC.If, SRC.Namespace, SRC.Struct, SRC.Switch, SRC.Template, SRC.Then, SRC.Try, SRC.Typedef, SRC.Union,
-                SRC.Unit, SRC.While
+                SRC.Block, SRC.Catch, SRC.Class, SRC.Constructor, SRC.ConstructorDeclaration, SRC.Destructor,  SRC.DestructorDeclaration, SRC.Do,
+                SRC.Else, SRC.Enum, SRC.Extern, SRC.For, SRC.Function, SRC.FunctionDeclaration, SRC.If, SRC.Namespace, SRC.Struct, SRC.Switch,
+                SRC.Template, SRC.Then, SRC.Try, SRC.Typedef, SRC.Union, SRC.Unit, SRC.While,
             });
-            MethodElementNames = new HashSet<XName>(new XName[] { SRC.Function, SRC.Constructor, SRC.Destructor });
+            MethodElementNames = new HashSet<XName>(new XName[] { SRC.Function, SRC.Constructor, SRC.Destructor,
+                                                                  SRC.FunctionDeclaration, SRC.ConstructorDeclaration, SRC.DestructorDeclaration });
             NamespaceElementNames = new HashSet<XName>(new XName[] { SRC.Namespace });
             VariableDeclarationElementNames = new HashSet<XName>(new XName[] { SRC.Declaration, SRC.DeclarationStatement, SRC.Parameter });
         }
@@ -81,8 +82,8 @@ namespace ABB.SrcML.Data {
 
             var methodDefinition = new MethodDefinition() {
                 Name = GetNameForMethod(methodElement),
-                IsConstructor = (methodElement.Name == SRC.Constructor),
-                IsDestructor = (methodElement.Name == SRC.Destructor),
+                IsConstructor = (methodElement.Name == SRC.Constructor || methodElement.Name == SRC.ConstructorDeclaration),
+                IsDestructor = (methodElement.Name == SRC.Destructor || methodElement.Name == SRC.DestructorDeclaration),
                 Parameters = new Collection<VariableDeclaration>(parameters.ToList()),
                 XPath = methodElement.GetXPath(false),
             };
@@ -142,7 +143,6 @@ namespace ABB.SrcML.Data {
                Kind = XNameMaps.GetKindForXElement(typeElement),
                Language = this.ParserLanguage,
                Name = GetNameForType(typeElement),
-               Namespace = CreateNamespaceDefinition(typeElement, fileUnit),
                Parents = GetParentTypeUses(typeElement, fileUnit),
                XPath = typeElement.GetXPath(false),
             };
@@ -152,7 +152,6 @@ namespace ABB.SrcML.Data {
                 typeDefinition.Filenames.Add(fileName);
             }
 
-            typeDefinition.Namespace.Types.Add(typeDefinition);
             return typeDefinition;
         }
 
@@ -311,6 +310,7 @@ namespace ABB.SrcML.Data {
 
         #region scope definition
         public virtual IEnumerable<XElement> GetChildContainers(XElement container) {
+            if(null == container) return Enumerable.Empty<XElement>();
             IEnumerable<XElement> children;
 
             if(TypeElementNames.Contains(container.Name)) {
@@ -332,6 +332,7 @@ namespace ABB.SrcML.Data {
             return GetChildContainers(block);
         }
         public virtual IEnumerable<XElement> GetChildContainersFromMethod(XElement container) {
+
             var block = container.Element(SRC.Block);
             return GetChildContainers(block);
         }
@@ -373,6 +374,8 @@ namespace ABB.SrcML.Data {
         }
 
         public virtual IEnumerable<VariableDeclaration> GetVariableDeclarationsFromContainer(XElement container, XElement fileUnit) {
+            if(null == container) return Enumerable.Empty<VariableDeclaration>();
+
             IEnumerable<XElement> declarationElements;
             if(SRC.Block == container.Name) {
                 declarationElements = GetDeclarationsFromBlock(container);
@@ -402,6 +405,7 @@ namespace ABB.SrcML.Data {
         }
 
         public virtual IEnumerable<XElement> GetDeclarationsFromBlock(XElement container) {
+            if(null == container) return Enumerable.Empty<XElement>();
             var declarations = from stmtElement in container.Elements(SRC.DeclarationStatement)
                                let declElement = stmtElement.Element(SRC.Declaration)
                                select declElement;

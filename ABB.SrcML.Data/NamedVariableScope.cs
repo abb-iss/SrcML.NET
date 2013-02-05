@@ -18,11 +18,33 @@ using System.Text;
 namespace ABB.SrcML.Data {
     public class NamedVariableScope : VariableScope {
         public string Name { get; set; }
-        public Collection<NamedVariableScope> UnresolvedParentScopes { get; set; }
+        public NamedVariableScope UnresolvedParentScope { get; set; }
 
         public NamedVariableScope() : base() {
             Name = String.Empty;
-            UnresolvedParentScopes = new Collection<NamedVariableScope>();
+            UnresolvedParentScope = null;
+        }
+
+        public string GetFullName() {
+            var scopes = from p in this.ParentScopes
+                         let namedScope = p as NamedVariableScope
+                         where namedScope != null && namedScope.Name.Length > 0
+                         select namedScope.Name;
+            StringBuilder sb = new StringBuilder();
+            foreach(var scope in scopes.Reverse()) {
+                sb.Append(scope);
+                sb.Append(".");
+            }
+            sb.Append(this.Name);
+            return sb.ToString();
+        }
+
+        public override bool IsSameAs(VariableScope otherScope) {
+            return this.IsSameAs(otherScope as NamedVariableScope);
+        }
+
+        public virtual bool IsSameAs(NamedVariableScope otherScope) {
+            return (null != otherScope && this.Name == otherScope.Name);
         }
     }
 }

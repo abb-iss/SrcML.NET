@@ -55,7 +55,7 @@ namespace ABB.SrcML.Data.Test {
             AbstractCodeParser parser = new JavaCodeParser();
             TypeInventory inventory = new TypeInventory();
 
-            var scopes = VariableScopeIterator.Visit((new SrcMLElementVisitor(parser)).Visit(fileUnitA));
+            var scopes = VariableScopeIterator.Visit(SrcMLElementVisitor.Visit(fileUnitA,parser));
             var typeDefinitions = from scope in scopes
                                   let typeDefinition = (scope as TypeDefinition)
                                   where typeDefinition != null
@@ -63,7 +63,7 @@ namespace ABB.SrcML.Data.Test {
 
             inventory.AddNewDefinitions(typeDefinitions);
 
-            typeDefinitions = from scope in VariableScopeIterator.Visit((new SrcMLElementVisitor(parser)).Visit(fileUnitB))
+            typeDefinitions = from scope in VariableScopeIterator.Visit(SrcMLElementVisitor.Visit(fileUnitB, parser))
                               let typeDefinition = (scope as TypeDefinition)
                               where typeDefinition != null
                               select typeDefinition;

@@ -42,9 +42,11 @@ namespace ABB.SrcML.Data.Test {
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
 
             var actual = SrcMLElementVisitor.Visit(xmlElement, codeParser).ChildScopes.First() as TypeDefinition;
+            var globalNamespace = actual.ParentScope as NamespaceDefinition;
+
             Assert.AreEqual("A", actual.Name);
             Assert.AreEqual(TypeKind.Class, actual.Kind);
-            Assert.That(actual.Namespace.IsGlobal);
+            Assert.That(globalNamespace.IsGlobal);
         }
 
         [Test]
@@ -56,10 +58,11 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
             var actual = SrcMLElementVisitor.Visit(xmlElement, codeParser).ChildScopes.First() as TypeDefinition;
-            
+            var globalNamespace = actual.ParentScope as NamespaceDefinition;
+
             Assert.AreEqual("A", actual.Name);
             Assert.AreEqual(3, actual.Parents.Count);
-            Assert.That(actual.Namespace.IsGlobal);
+            Assert.That(globalNamespace.IsGlobal);
 
             var parentNames = from parent in actual.Parents
                               select parent.Name;
@@ -80,10 +83,11 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "D.h");
             var actual = SrcMLElementVisitor.Visit(xmlElement, codeParser).ChildScopes.First() as TypeDefinition;
+            var globalNamespace = actual.ParentScope as NamespaceDefinition;
 
             Assert.AreEqual("D", actual.Name);
             Assert.AreEqual(1, actual.Parents.Count);
-            Assert.That(actual.Namespace.IsGlobal);
+            Assert.That(globalNamespace.IsGlobal);
 
             var parent = actual.Parents.First();
 
@@ -92,6 +96,29 @@ namespace ABB.SrcML.Data.Test {
             foreach(var prefixMatches in prefix_tests) {
                 Assert.That(prefixMatches);
             }
+        }
+
+        [Test]
+        public void TestCreateTypeDefinition_ClassInNamespace() {
+            // namespace A {
+            //     class B {
+            //     };
+            // }
+            string xml = @"<namespace>namespace <name>A</name> <block>{
+    <class>class <name>B</name> <block>{<private type=""default"">
+    </private>}</block>;</class>
+}</block></namespace>";
+
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "B.h");
+
+            var globalScope = SrcMLElementVisitor.Visit(xmlElement, codeParser);
+            var namespaceA = globalScope.ChildScopes.First() as NamespaceDefinition;
+            var typeB = namespaceA.ChildScopes.First() as TypeDefinition;
+
+            Assert.AreEqual("A", namespaceA.Name);
+            Assert.IsFalse(namespaceA.IsGlobal);
+
+            Assert.AreEqual("B", typeB.Name);
         }
 
         [Test]
@@ -106,18 +133,36 @@ namespace ABB.SrcML.Data.Test {
 </private>}</block>;</class>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
-            var scopes = VariableScopeIterator.Visit(SrcMLElementVisitor.Visit(xmlElement, codeParser));
-            Assert.AreEqual(3, scopes.Count());
-            Assert.Fail("TODO add assertions to verify class in class");
+            var globalScope = SrcMLElementVisitor.Visit(xmlElement, codeParser);
+
+            var typeA = globalScope.ChildScopes.First() as TypeDefinition;
+            var typeB = typeA.ChildScopes.First() as TypeDefinition;
+
+            Assert.AreSame(typeA, typeB.ParentScope);
+            Assert.AreEqual("A", typeA.GetFullName());
+            Assert.AreEqual("A.B", typeB.GetFullName());
         }
 
         [Test]
         public void TestCreateTypeDefinitions_ClassInFunction() {
-            string xml = @"";
+            // int main() {
+            //     class A {
+            //     };
+            // }
+            string xml = @"<function><type><name>int</name></type> <name>main</name><parameter_list>()</parameter_list> <block>{
+	<class>class <name>A</name> <block>{<private type=""default"">
+	</private>}</block>;</class>
+}</block></function>";
 
-            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
-            var typeDefinitions = SrcMLElementVisitor.Visit(xmlElement, codeParser);
-            Assert.Fail("TODO Need to add assertions to verify type in function");
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "main.cpp");
+            var mainMethod = SrcMLElementVisitor.Visit(xmlElement, codeParser).ChildScopes.First() as MethodDefinition;
+
+            Assert.AreEqual("main", mainMethod.Name);
+
+            var typeA = mainMethod.ChildScopes.First() as TypeDefinition;
+            Assert.AreEqual("A", typeA.Name);
+            Assert.AreEqual("main.A", typeA.GetFullName());
+            Assert.AreEqual(String.Empty, typeA.NamespaceName);
         }
 
         [Test]
@@ -129,9 +174,11 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
             var actual = SrcMLElementVisitor.Visit(xmlElement, codeParser).ChildScopes.First() as TypeDefinition;
+            var globalNamespace = actual.ParentScope as NamespaceDefinition;
+
             Assert.AreEqual("A", actual.Name);
             Assert.AreEqual(TypeKind.Struct, actual.Kind);
-            Assert.That(actual.Namespace.IsGlobal);
+            Assert.That(globalNamespace.IsGlobal);
         }
 
         [Test]
@@ -147,8 +194,9 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
             var actual = SrcMLElementVisitor.Visit(xmlElement, codeParser).ChildScopes.First() as TypeDefinition;
+            var globalNamespace = actual.ParentScope as NamespaceDefinition;
             Assert.AreEqual(TypeKind.Union, actual.Kind);
-            Assert.That(actual.Namespace.IsGlobal);
+            Assert.That(globalNamespace.IsGlobal);
         }
 
         [Test]
@@ -180,13 +228,77 @@ namespace ABB.SrcML.Data.Test {
             var inner = typeDefinitions.Last() as TypeDefinition;
 
             Assert.AreEqual("B", outer.Name);
-            Assert.AreEqual("A", outer.Namespace.Name);
-            Assert.IsFalse(outer.Namespace.IsGlobal);
-            Assert.AreEqual("C", inner.Name);
-            Assert.AreEqual("A", inner.Namespace.Name);
-            Assert.IsFalse(inner.Namespace.IsGlobal);
+            Assert.AreEqual("A", outer.NamespaceName);
+            Assert.AreEqual("A.B", outer.GetFullName());
 
-            Assert.Fail("TODO add assertions to verify class in class");
+            Assert.AreEqual("C", inner.Name);
+            Assert.AreEqual("A", inner.NamespaceName);
+            Assert.AreEqual("A.B.C", inner.GetFullName());
+        }
+
+        [Test]
+        public void TestCreateTypeDefinition_ClassWithMethodDeclaration() {
+            // class A {
+            // public:
+            //     int foo(int a);   
+            // };
+            string xml = @"<class>class <name>A</name> <block>{<private type=""default"">
+</private><public>public:
+    <function_decl><type><name>int</name></type> <name>foo</name><parameter_list>(<param><decl><type><name>int</name></type> <name>a</name></decl></param>)</parameter_list>;</function_decl>
+</public>}</block>;</class>";
+
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
+
+            var globalScope = SrcMLElementVisitor.Visit(xmlElement, codeParser);
+            var scopes = VariableScopeIterator.Visit(globalScope);
+
+            var typeA = globalScope.ChildScopes.First() as TypeDefinition;
+            var methodFoo = typeA.ChildScopes.First() as MethodDefinition;
+            Assert.AreEqual(3, scopes.Count());
+
+            Assert.AreEqual("A", typeA.Name);
+            Assert.AreEqual("foo", methodFoo.Name);
+
+            Assert.AreEqual(1, methodFoo.Parameters.Count);
+        }
+
+        [Test]
+        public void TestCreateMethodDefinition_OneUnresolvedParent() {
+            // # A.cpp
+            // int A::Foo() {
+            //     return 0;
+            // }
+            string xml = @"<function><type><name>int</name></type> <name><name>A</name><op:operator>::</op:operator><name>Foo</name></name><parameter_list>()</parameter_list> <block>{
+}</block></function>";
+
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
+
+            var fooMethod = SrcMLElementVisitor.Visit(xmlElement, codeParser).ChildScopes.First() as MethodDefinition;
+
+            var unresolvedA = fooMethod.UnresolvedParentScope;
+            Assert.AreEqual("Foo", fooMethod.Name);
+            Assert.AreEqual("A", unresolvedA.Name);
+        }
+
+        [Test]
+        public void TestCreateMethodDefinition_TwoUnresolvedParents() {
+            // # A.cpp
+            // int A::B::Foo() {
+            //     return 0;
+            // }
+            string xml = @"<function><type><name>int</name></type> <name><name>A</name><op:operator>::</op:operator><name>B</name><op:operator>::</op:operator><name>Foo</name></name><parameter_list>()</parameter_list> <block>{
+}</block></function>";
+
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
+
+            var fooMethod = SrcMLElementVisitor.Visit(xmlElement, codeParser).ChildScopes.First() as MethodDefinition;
+
+            var unresolvedA = fooMethod.UnresolvedParentScope;
+            Assert.AreEqual("Foo", fooMethod.Name);
+            Assert.AreEqual("A", unresolvedA.Name);
+            
+            var unresolvedB = unresolvedA.ChildScopes.First() as NamedVariableScope;
+            Assert.AreEqual("B", unresolvedB.Name);
         }
 
         [Test]

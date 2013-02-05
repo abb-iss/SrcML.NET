@@ -45,12 +45,16 @@ namespace ABB.SrcML.Data {
         /// <param name="fileUnit">The file unit that contains <paramref name="element"/></param>
         /// <returns>The namespace definition for the given element.</returns>
         public override NamespaceDefinition CreateNamespaceDefinition(XElement element, XElement fileUnit) {
-            var names = from namespaceElement in element.Ancestors(SRC.Namespace)
-                        let name = namespaceElement.Element(SRC.Name)
-                        select name.Value;
+            var namespaceName = string.Empty;
+            var name = element.Element(SRC.Name);
+            if(null != name) {
+                namespaceName = name.Value;
+            }
 
-            var namespaceName = String.Join(".", names.Reverse());
-            NamespaceDefinition definition = new NamespaceDefinition();
+            NamespaceDefinition definition = new NamespaceDefinition() {
+                Name = namespaceName,
+                IsAnonymous = (null == name),
+            };
             if(namespaceName.Length > 0) {
                 definition.Name = namespaceName;
             }
@@ -64,10 +68,38 @@ namespace ABB.SrcML.Data {
         /// <returns>a global namespace object.</returns>
         public override VariableScope CreateScopeFromFile(XElement fileUnit) {
             var namespaceForFile = new NamespaceDefinition();
-
             return namespaceForFile;
         }
 
+        public override MethodDefinition CreateMethodDefinition(XElement methodElement, XElement fileUnit) {
+            var methodDefinition = base.CreateMethodDefinition(methodElement, fileUnit);
+
+            var nameElement = methodElement.Element(SRC.Name);
+            var names = GetNameElementsFromName(nameElement);
+            var methodName = names.Last();
+
+            var parentNames = from name in names
+                              where name != methodName
+                              select name.Value;
+            
+            NamedVariableScope current = null;
+
+            if(parentNames.Any()) {
+                foreach(var name in parentNames) {
+                    var namedScope = new NamedVariableScope() { Name = name };
+
+                    if(null != current) {
+                        current.AddChildScope(namedScope);
+                        current = namedScope;
+                    } else {
+                        methodDefinition.UnresolvedParentScope = namedScope;
+                        current = namedScope;
+                    }
+                    
+                }
+            }
+            return methodDefinition;
+        }
         /// <summary>
         /// Gets the name for a method. This is the unqualified name, not any class names that might be prepended to it.
         /// </summary>

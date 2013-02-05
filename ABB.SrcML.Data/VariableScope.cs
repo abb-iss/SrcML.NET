@@ -35,6 +35,16 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        public string NamespaceName {
+            get {
+                var namespaceParents = from p in this.ParentScopes
+                                       let ns = (p as NamespaceDefinition)
+                                       where !(null == ns || ns.IsGlobal)
+                                       select ns.Name;
+                return String.Join(".", namespaceParents.Reverse());
+            }
+        }
+
         public string XPath { get; set; }
 
         public VariableScope() {
@@ -50,6 +60,10 @@ namespace ABB.SrcML.Data {
         public void AddDeclaredVariable(VariableDeclaration declaration) {
             DeclaredVariablesDictionary[declaration.Name] = declaration;
             declaration.Scope = this;
+        }
+
+        public virtual bool IsSameAs(VariableScope otherScope) {
+            return (null != otherScope && this.XPath == otherScope.XPath);
         }
 
         public bool IsScopeFor(XElement element) {

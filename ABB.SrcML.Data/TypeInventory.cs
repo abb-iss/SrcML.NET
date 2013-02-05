@@ -65,11 +65,14 @@ namespace ABB.SrcML.Data {
             NamespaceDefinition namespaceForType;
             Collection<TypeDefinition> bucket;
 
-            if(this.namespaceMap.TryGetValue(typeDefinition.Namespace.Name, out namespaceForType)) {
+            if(this.namespaceMap.TryGetValue(typeDefinition.NamespaceName, out namespaceForType)) {
                 namespaceForType.Types.Add(typeDefinition);
-                typeDefinition.Namespace = namespaceForType;
             } else {
-                namespaceMap[typeDefinition.Namespace.Name] = typeDefinition.Namespace;
+                var namespaceParent = (from p in typeDefinition.ParentScopes
+                                       let np = p as NamespaceDefinition
+                                       where np != null
+                                       select np).FirstOrDefault();
+                namespaceMap[typeDefinition.NamespaceName] = namespaceParent;
             }
             
             if(!this.typeMap.TryGetValue(typeDefinition.Name, out bucket)) {
@@ -78,6 +81,5 @@ namespace ABB.SrcML.Data {
             }
             bucket.Add(typeDefinition);
         }
-
     }
 }

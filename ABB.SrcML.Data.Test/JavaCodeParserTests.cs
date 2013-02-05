@@ -41,8 +41,9 @@ namespace ABB.SrcML.Data.Test {
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
 
             var actual = SrcMLElementVisitor.Visit(xmlElement, codeParser).ChildScopes.First() as TypeDefinition;
+            var globalNamespace = actual.ParentScope as NamespaceDefinition;
             Assert.AreEqual("A", actual.Name);
-            Assert.That(actual.Namespace.IsGlobal);
+            Assert.That(globalNamespace.IsGlobal);
         }
 
         [Test]
@@ -55,10 +56,33 @@ namespace ABB.SrcML.Data.Test {
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
 
             var actual = SrcMLElementVisitor.Visit(xmlElement, codeParser).ChildScopes.First() as TypeDefinition;
+            var globalNamespace = actual.ParentScope as NamespaceDefinition;
 
             Assert.AreEqual("A", actual.Name);
             Assert.AreEqual(TypeKind.Interface, actual.Kind);
-            Assert.That(actual.Namespace.IsGlobal);
+            Assert.That(globalNamespace.IsGlobal);
+        }
+
+        [Test]
+        public void TestCreateTypeDefinition_ClassInPackage() {
+            // package A.B.C
+            // public class D {
+            // }
+            string xml = @"<package>package <name>A</name>.<name>B</name>.<name>C</name>;</package>
+
+<class><specifier>public</specifier> class <name>D</name> <block>{
+}</block></class>";
+
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "D.java");
+
+            var packageABC = SrcMLElementVisitor.Visit(xmlElement, codeParser) as NamespaceDefinition;
+            var typeD = packageABC.ChildScopes.First() as TypeDefinition;
+
+            Assert.AreEqual("A.B.C", packageABC.Name);
+            Assert.IsFalse(packageABC.IsGlobal);
+
+            Assert.AreEqual("D", typeD.Name);
+            Assert.IsFalse(packageABC.IsGlobal);
         }
 
         [Test]
@@ -71,10 +95,10 @@ namespace ABB.SrcML.Data.Test {
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
 
             var actual = SrcMLElementVisitor.Visit(xmlElement, codeParser).ChildScopes.First() as TypeDefinition;
-
+            var globalNamespace = actual.ParentScope as NamespaceDefinition;
             Assert.AreEqual("A", actual.Name);
             Assert.AreEqual(3, actual.Parents.Count);
-            Assert.That(actual.Namespace.IsGlobal);
+            Assert.That(globalNamespace.IsGlobal);
 
             var parentNames = from parent in actual.Parents
                               select parent.Name;
@@ -95,10 +119,11 @@ namespace ABB.SrcML.Data.Test {
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "D.java");
 
             var actual = SrcMLElementVisitor.Visit(xmlElement, codeParser).ChildScopes.First() as TypeDefinition;
+            var globalNamespace = actual.ParentScope as NamespaceDefinition;
 
             Assert.AreEqual("D", actual.Name);
             Assert.AreEqual(1, actual.Parents.Count);
-            Assert.That(actual.Namespace.IsGlobal);
+            Assert.That(globalNamespace.IsGlobal);
 
             var parent = actual.Parents.First();
 
@@ -122,10 +147,14 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
 
-            var scopes = VariableScopeIterator.Visit(SrcMLElementVisitor.Visit(xmlElement, codeParser));
+            var globalScope = SrcMLElementVisitor.Visit(xmlElement, codeParser);
 
-            Assert.AreEqual(3, scopes.Count());
-            Assert.Fail("TODO add assertions to verify class in class");
+            var typeA = globalScope.ChildScopes.First() as TypeDefinition;
+            var typeB = typeA.ChildScopes.First() as TypeDefinition;
+
+            Assert.AreSame(typeA, typeB.ParentScope);
+            Assert.AreEqual("A", typeA.GetFullName());
+            Assert.AreEqual("A.B", typeB.GetFullName());
         }
 
         [Test]
@@ -154,14 +183,12 @@ namespace ABB.SrcML.Data.Test {
             var inner = typeDefinitions.Last() as TypeDefinition;
 
             Assert.AreEqual("B", outer.Name);
-            Assert.AreEqual("A", outer.Namespace.Name);
-            Assert.IsFalse(outer.Namespace.IsGlobal);
+            Assert.AreEqual("A", outer.NamespaceName);
+            Assert.AreEqual("A.B", outer.GetFullName());
 
             Assert.AreEqual("C", inner.Name);
-            Assert.AreEqual("A", inner.Namespace.Name);
-            Assert.IsFalse(inner.Namespace.IsGlobal);
-
-            Assert.Fail("TODO add assertions to verify class in class");
+            Assert.AreEqual("A", inner.NamespaceName);
+            Assert.AreEqual("A.B.C", inner.GetFullName());
         }
 
         [Test]
@@ -181,8 +208,17 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
 
-            var typeDefinitions = SrcMLElementVisitor.Visit(xmlElement, codeParser);
-            Assert.Fail("TODO Need to add assertions to verify type in function");
+            var globalScope = SrcMLElementVisitor.Visit(xmlElement, codeParser);
+
+            var typeA = globalScope.ChildScopes.First() as TypeDefinition;
+            var fooMethod = typeA.ChildScopes.First() as MethodDefinition;
+            var typeB = fooMethod.ChildScopes.First() as TypeDefinition;
+
+            Assert.AreEqual("A", typeA.GetFullName());
+            Assert.AreSame(typeA, fooMethod.ParentScope);
+            Assert.AreEqual("A.foo", fooMethod.GetFullName());
+            Assert.AreSame(fooMethod, typeB.ParentScope);
+            Assert.AreEqual("A.foo.B", typeB.GetFullName());
         }
 
         [Test]

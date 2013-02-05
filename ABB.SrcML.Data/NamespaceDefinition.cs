@@ -22,6 +22,7 @@ namespace ABB.SrcML.Data {
             this.Types = new Collection<TypeDefinition>();
             this.Methods = new Collection<MethodDefinition>();
             this.Variables = new Collection<VariableDeclaration>();
+            this.IsAnonymous = false;
         }
 
         public Collection<TypeDefinition> Types { get; set; }
@@ -29,10 +30,15 @@ namespace ABB.SrcML.Data {
         public Collection<VariableDeclaration> Variables { get; set; }
 
         /// <summary>
+        /// Returns true if this is an anonymous namespace
+        /// </summary>
+        public bool IsAnonymous { get; set; }
+
+        /// <summary>
         /// <para>Returns true if this namespace represents the global namespace</para>
         /// <para>A namespace is global if the <see cref="NamedVariableScope.Name"/> is <c>String.Empty</c></para>
         /// </summary>
-        public bool IsGlobal { get { return this.Name.Length == 0; } }
+        public bool IsGlobal { get { return this.Name.Length == 0 && !this.IsAnonymous && this.ParentScope == null; } }
 
         /// <summary>
         /// Returns the fully qualified name for the given type
@@ -43,6 +49,14 @@ namespace ABB.SrcML.Data {
             if(this.Name.Length == 0)
                 return name;
             return String.Format("{0}.{1}", this.Name, name);
+        }
+
+        public virtual bool IsSameAs(NamespaceDefinition otherScope) {
+            return base.IsSameAs(otherScope);
+        }
+
+        public override bool IsSameAs(NamedVariableScope otherScope) {
+            return this.IsSameAs(otherScope as NamespaceDefinition);
         }
     }
 }

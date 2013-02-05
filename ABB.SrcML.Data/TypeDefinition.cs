@@ -23,7 +23,6 @@ namespace ABB.SrcML.Data {
             this.InnerTypes = new Collection<TypeDefinition>();
             this.Methods = new Collection<MethodDefinition>();
             this.Parents = new Collection<TypeUse>();
-            this.Namespace = new NamespaceDefinition();
             this.IsPartial = false;
         }
 
@@ -35,15 +34,15 @@ namespace ABB.SrcML.Data {
         public TypeKind Kind { get; set; }
         public Language Language { get; set; } //TODO: figure out where this should be specified
         public Collection<MethodDefinition> Methods { get; set; }
-        public NamespaceDefinition Namespace { get; set; } //TODO: do we need this?
+        
         public Collection<TypeUse> Parents { get; set; }
 
-        public override bool IsScopeFor(string xpath) {
-            return base.IsScopeFor(xpath);
+        public virtual bool IsSameAs(TypeDefinition otherScope) {
+            return base.IsSameAs(otherScope) && this.IsPartial && otherScope.IsPartial;
         }
 
-        public string GetFullName() {
-            return this.Namespace.MakeQualifiedName(this.Name);
+        public override bool IsSameAs(NamedVariableScope otherScope) {
+            return this.IsSameAs(otherScope as TypeDefinition);
         }
     }
 }
