@@ -138,21 +138,24 @@ namespace ABB.SrcML {
         /// <param name="xmlFileName">The file name to write the resulting XML to.</param>
         /// <returns>A SrcMLFile for <paramref name="xmlFileName"/>.</returns>
         public SrcMLFile GenerateSrcMLFromFile(string sourceFileName, string xmlFileName) {
-            string ext = Path.GetExtension(sourceFileName);
-            if(ext == null || !extensionMapping.ContainsKey(ext)) {
-                throw new ArgumentException(string.Format("Unknown file extension: {0}", ext), "sourceFileName");
-            }
-            return GenerateSrcMLFromFile(sourceFileName, xmlFileName, extensionMapping[ext]);
+            return GenerateSrcMLFromFile(sourceFileName, xmlFileName, Language.Any);
         }
 
         /// <summary>
-        /// Generate a SrcML document from a single source file with the specified language.
+        /// Generate a SrcML document from a single source file.
         /// </summary>
         /// <param name="sourceFileName">The path to the source file to convert.</param>
         /// <param name="xmlFileName">The file name to write the resulting XML to.</param>
-        /// <param name="language">The language to parse the source file as.</param>
+        /// <param name="language">The language to parse the source file as. If this is Language.Any, then the language will be determined from the file extension.</param>
         /// <returns>A SrcMLFile for <paramref name="xmlFileName"/>.</returns>
         public SrcMLFile GenerateSrcMLFromFile(string sourceFileName, string xmlFileName, Language language) {
+            if(language == Language.Any) {
+                string ext = Path.GetExtension(sourceFileName);
+                if(ext == null || !extensionMapping.ContainsKey(ext)) {
+                    throw new ArgumentException(string.Format("Unknown file extension: {0}", ext), "sourceFileName");
+                }
+                language = extensionMapping[ext];
+            }
             Src2SrcMLRunner runner = nonDefaultExecutables.ContainsKey(language) ? nonDefaultExecutables[language] : defaultExecutable;
             SetExtensionMappingOnRunner(runner);
             return runner.GenerateSrcMLFromFile(sourceFileName, xmlFileName, language);
