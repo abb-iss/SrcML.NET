@@ -264,9 +264,7 @@ namespace ABB.SrcML.Test
         [Test]
         public void TestDontUseExistingSrcML() {
             var xmlDirectory = Path.Combine(srcDirectoryInfo.FullName, ".srcml");
-            var testFiles = new List<string>() {@"..\..\TestInputs\foo.c", @"..\..\TestInputs\baz.cpp", @"..\..\TestInputs\function_def.cpp"};
-            IFileMonitor watchedFiles = Substitute.For<IFileMonitor>();
-            watchedFiles.GetMonitoredFiles(Arg.Any<BackgroundWorker>()).Returns(testFiles);
+            var watchedFiles = new StaticFileList(new[] {@"..\..\TestInputs\foo.c", @"..\..\TestInputs\baz.cpp", @"..\..\TestInputs\function_def.cpp"});
 
             //convert the test files and place in the xml directory
             var archive = new SrcMLArchive(watchedFiles, xmlDirectory, new SrcMLGenerator(TestConstants.SrcmlPath));
