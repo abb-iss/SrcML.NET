@@ -17,6 +17,10 @@ using System.Text;
 using System.Xml.Linq;
 
 namespace ABB.SrcML.Data {
+    /// <summary>
+    /// The VariableScope class is the base class for variable scope objects. It encapsulates the basics of the type hierarchy (parent-child relationships)
+    /// and contains methods for adding child scopes and variable declarations.
+    /// </summary>
     public class VariableScope {
         protected Collection<VariableScope> ChildScopeCollection;
         protected Dictionary<string, VariableDeclaration> DeclaredVariablesDictionary;
@@ -27,6 +31,9 @@ namespace ABB.SrcML.Data {
         public IEnumerable<VariableScope> ChildScopes { get { return this.ChildScopeCollection.AsEnumerable(); } }
         public IEnumerable<VariableDeclaration> DeclaredVariables { get { return this.DeclaredVariablesDictionary.Values.AsEnumerable(); } }
 
+        /// <summary>
+        /// The parent scopes for this scope in reverse order (parent is returned first, followed by the grandparent, etc).
+        /// </summary>
         public IEnumerable<VariableScope> ParentScopes {
             get {
                 var current = this.ParentScope;
@@ -37,6 +44,9 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        /// <summary>
+        /// The namespace name for this scope. The namespace name is taken by iterating over all of the parents and selecting only the namespace definitions.
+        /// </summary>
         public string NamespaceName {
             get {
                 var namespaceParents = from p in this.ParentScopes
@@ -47,35 +57,71 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        /// <summary>
+        /// The XPath query where this scope is located.
+        /// </summary>
         public string XPath { get; set; }
 
+        /// <summary>
+        /// Initializes an empty variable scope.
+        /// </summary>
         public VariableScope() {
             DeclaredVariablesDictionary = new Dictionary<string, VariableDeclaration>();
             ChildScopeCollection = new Collection<VariableScope>();
         }
 
+        /// <summary>
+        /// Adds a child scope to this scope
+        /// </summary>
+        /// <param name="childScope">The child scope to add.</param>
         public void AddChildScope(VariableScope childScope) {
             ChildScopeCollection.Add(childScope);
             childScope.ParentScope = this;
         }
 
+        /// <summary>
+        /// Add a variable declaration to this scope
+        /// </summary>
+        /// <param name="declaration">The variable declaration to add.</param>
         public void AddDeclaredVariable(VariableDeclaration declaration) {
             DeclaredVariablesDictionary[declaration.Name] = declaration;
             declaration.Scope = this;
         }
 
+        /// <summary>
+        /// Tests value equality between this scope and <paramref name="otherScope"/>.
+        /// Two scopes are equal if they have the same <see cref="VariableScope.XPath"/>.
+        /// </summary>
+        /// <param name="otherScope">The scope to compare to</param>
+        /// <returns>True if the scopes are the same. False otherwise.</returns>
         public virtual bool IsSameAs(VariableScope otherScope) {
             return (null != otherScope && this.XPath == otherScope.XPath);
         }
 
+        /// <summary>
+        /// Returns true if this variable scope contains the given XElement. A variable scope contains an element if <see cref="VariableScope.XPath"/> is a 
+        /// prefix for the XPath for <paramref name="element"/>.
+        /// </summary>
+        /// <param name="element">The element to look for</param>
+        /// <returns>true if this is a container for <paramref name="element"/>. False otherwise.</returns>
         public bool IsScopeFor(XElement element) {
             return IsScopeFor(element.GetXPath(false));
         }
 
+        /// <summary>
+        /// Returns true if this variable scope contains the given XPath. A variable scope contains an expath if <see cref="VariableScope.XPath"/> is a prefix for <paramref name="xpath"/>
+        /// </summary>
+        /// <param name="xpath">The xpath to look for.</param>
+        /// <returns>True if this is a container for the given xpath. False, otherwise.</returns>
         public virtual bool IsScopeFor(string xpath) {
             return xpath.StartsWith(this.XPath);
         }
 
+        /// <summary>
+        /// returns an enumerable of all the scopes rooted here that are containers for this XPath. Includes the current scope.
+        /// </summary>
+        /// <param name="xpath">the xpath to find containers for.</param>
+        /// <returns>an enumerable of all the scopes rooted here that are containers for this XPath. Includes the current scope.</returns>
         public IEnumerable<VariableScope> GetScopesForPath(string xpath) {
             if(IsScopeFor(xpath)) {
                 yield return this;
@@ -88,6 +134,13 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        /// <summary>
+        /// Searches this scope and all of its children for variable declarations that match the given variable name and xpath.
+        /// It finds all the scopes where the xpath is valid and all of the declarations in those scopes that match the variable name.
+        /// </summary>
+        /// <param name="variableName">the variable name to search for.</param>
+        /// <param name="xpath">the xpath for the variable name</param>
+        /// <returns>An enumerable of matching variable declarations.</returns>
         public IEnumerable<VariableDeclaration> GetDeclarationsForVariableName(string variableName, string xpath) {
             foreach(var scope in GetScopesForPath(xpath)) {
                 VariableDeclaration declaration;
