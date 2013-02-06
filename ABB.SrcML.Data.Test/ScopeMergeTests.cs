@@ -16,7 +16,7 @@ using System.Text;
 using NUnit.Framework;
 
 namespace ABB.SrcML.Data.Test {
-    class ScopeMergeVisitorTests {
+    class ScopeMergeTests {
         private SrcMLFileUnitSetup srcMLFormat;
         private Dictionary<Language, SrcMLFileUnitSetup> FileUnitSetup;
 
