@@ -273,10 +273,15 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
 
-            var fooMethod = SrcMLElementVisitor.Visit(xmlElement, codeParser).ChildScopes.First() as MethodDefinition;
+            var globalScope = SrcMLElementVisitor.Visit(xmlElement, codeParser);
+            
+            Assert.AreEqual(1, (globalScope as NamedVariableScope).UnresolvedChildren.Count);
+
+            var fooMethod = (globalScope as NamedVariableScope).UnresolvedChildren.Values.First() as MethodDefinition;
 
             var unresolvedA = fooMethod.UnresolvedParentScope;
             Assert.AreEqual("Foo", fooMethod.Name);
+            Assert.AreEqual("A", fooMethod.UnresolvedName);
             Assert.AreEqual("A", unresolvedA.Name);
         }
 
@@ -291,10 +296,12 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
 
-            var fooMethod = SrcMLElementVisitor.Visit(xmlElement, codeParser).ChildScopes.First() as MethodDefinition;
+            var globalScope = SrcMLElementVisitor.Visit(xmlElement, codeParser);
+            var fooMethod = (globalScope as NamedVariableScope).UnresolvedChildren.Values.First() as MethodDefinition;
 
             var unresolvedA = fooMethod.UnresolvedParentScope;
             Assert.AreEqual("Foo", fooMethod.Name);
+            Assert.AreEqual("A.B", fooMethod.UnresolvedName);
             Assert.AreEqual("A", unresolvedA.Name);
             
             var unresolvedB = unresolvedA.ChildScopes.First() as NamedVariableScope;

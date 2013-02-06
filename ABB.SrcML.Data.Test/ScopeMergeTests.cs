@@ -17,7 +17,6 @@ using NUnit.Framework;
 
 namespace ABB.SrcML.Data.Test {
     class ScopeMergeTests {
-        private SrcMLFileUnitSetup srcMLFormat;
         private Dictionary<Language, SrcMLFileUnitSetup> FileUnitSetup;
 
         [TestFixtureSetUp]

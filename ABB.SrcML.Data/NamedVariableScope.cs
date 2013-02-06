@@ -17,16 +17,43 @@ using System.Text;
 
 namespace ABB.SrcML.Data {
     public class NamedVariableScope : VariableScope {
+        public Dictionary<string, VariableScope> UnresolvedChildren;
+
         public string Name { get; set; }
+        public NamedVariableScope UnresolvedParentScope { get; set; }
 
         public NamedVariableScope() : base() {
             Name = String.Empty;
             UnresolvedParentScope = null;
+            UnresolvedChildren = new Dictionary<string, VariableScope>();
         }
 
         public string FullName {
             get {
                 return GetFullName();
+            }
+        }
+
+        public string UnresolvedName {
+            get {
+                return GetUnresolvedName();
+            }
+        }
+
+        public override void AddChildScope(VariableScope childScope) {
+            var cs = childScope as NamedVariableScope;
+            if(cs != null) {
+                AddNamedChildScope(cs);
+            } else {
+                base.AddChildScope(childScope);
+            }
+        }
+
+        protected void AddNamedChildScope(NamedVariableScope childScope) {
+            if(childScope.UnresolvedParentScope == null) {
+                base.AddChildScope(childScope);
+            } else {
+                UnresolvedChildren[childScope.UnresolvedName] = childScope;
             }
         }
 
@@ -36,6 +63,18 @@ namespace ABB.SrcML.Data {
 
         public virtual bool IsSameAs(NamedVariableScope otherScope) {
             return (null != otherScope && this.Name == otherScope.Name);
+        }
+
+        private string GetUnresolvedName() {
+            StringBuilder sb = new StringBuilder();
+            var current = UnresolvedParentScope;
+            while(current != null) {
+                sb.Append(current.Name);
+                sb.Append(".");
+                current = current.ChildScopes.FirstOrDefault() as NamedVariableScope;
+            }
+
+            return sb.ToString().TrimEnd('.');
         }
 
         private string GetFullName() {
