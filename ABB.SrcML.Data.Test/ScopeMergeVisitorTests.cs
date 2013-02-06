@@ -169,9 +169,9 @@ namespace ABB.SrcML.Data.Test {
             Assert.That(typeD.ParentScope == typeE.ParentScope);
             Assert.That(typeD.ParentScope == namespaceC);
 
-            Assert.AreEqual("A.B.C.D", typeD.GetFullName());
-            Assert.AreEqual("A.B.C.E", typeE.GetFullName());
-            Assert.AreEqual("D.F", typeF.GetFullName());
+            Assert.AreEqual("A.B.C.D", typeD.FullName);
+            Assert.AreEqual("A.B.C.E", typeE.FullName);
+            Assert.AreEqual("D.F", typeF.FullName);
         }
     }
 }

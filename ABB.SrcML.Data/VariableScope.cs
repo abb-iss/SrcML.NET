@@ -22,6 +22,8 @@ namespace ABB.SrcML.Data {
         protected Dictionary<string, VariableDeclaration> DeclaredVariablesDictionary;
 
         public VariableScope ParentScope { get; set; }
+        public NamedVariableScope UnresolvedParentScope { get; set; }
+
         public IEnumerable<VariableScope> ChildScopes { get { return this.ChildScopeCollection.AsEnumerable(); } }
         public IEnumerable<VariableDeclaration> DeclaredVariables { get { return this.DeclaredVariablesDictionary.Values.AsEnumerable(); } }
 

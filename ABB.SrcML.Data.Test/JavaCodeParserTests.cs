@@ -153,8 +153,8 @@ namespace ABB.SrcML.Data.Test {
             var typeB = typeA.ChildScopes.First() as TypeDefinition;
 
             Assert.AreSame(typeA, typeB.ParentScope);
-            Assert.AreEqual("A", typeA.GetFullName());
-            Assert.AreEqual("A.B", typeB.GetFullName());
+            Assert.AreEqual("A", typeA.FullName);
+            Assert.AreEqual("A.B", typeB.FullName);
         }
 
         [Test]
@@ -184,11 +184,11 @@ namespace ABB.SrcML.Data.Test {
 
             Assert.AreEqual("B", outer.Name);
             Assert.AreEqual("A", outer.NamespaceName);
-            Assert.AreEqual("A.B", outer.GetFullName());
+            Assert.AreEqual("A.B", outer.FullName);
 
             Assert.AreEqual("C", inner.Name);
             Assert.AreEqual("A", inner.NamespaceName);
-            Assert.AreEqual("A.B.C", inner.GetFullName());
+            Assert.AreEqual("A.B.C", inner.FullName);
         }
 
         [Test]
@@ -214,11 +214,11 @@ namespace ABB.SrcML.Data.Test {
             var fooMethod = typeA.ChildScopes.First() as MethodDefinition;
             var typeB = fooMethod.ChildScopes.First() as TypeDefinition;
 
-            Assert.AreEqual("A", typeA.GetFullName());
+            Assert.AreEqual("A", typeA.FullName);
             Assert.AreSame(typeA, fooMethod.ParentScope);
-            Assert.AreEqual("A.foo", fooMethod.GetFullName());
+            Assert.AreEqual("A.foo", fooMethod.FullName);
             Assert.AreSame(fooMethod, typeB.ParentScope);
-            Assert.AreEqual("A.foo.B", typeB.GetFullName());
+            Assert.AreEqual("A.foo.B", typeB.FullName);
         }
 
         [Test]

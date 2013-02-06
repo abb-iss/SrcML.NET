@@ -18,14 +18,27 @@ using System.Text;
 namespace ABB.SrcML.Data {
     public class NamedVariableScope : VariableScope {
         public string Name { get; set; }
-        public NamedVariableScope UnresolvedParentScope { get; set; }
 
         public NamedVariableScope() : base() {
             Name = String.Empty;
             UnresolvedParentScope = null;
         }
 
-        public string GetFullName() {
+        public string FullName {
+            get {
+                return GetFullName();
+            }
+        }
+
+        public override bool IsSameAs(VariableScope otherScope) {
+            return this.IsSameAs(otherScope as NamedVariableScope);
+        }
+
+        public virtual bool IsSameAs(NamedVariableScope otherScope) {
+            return (null != otherScope && this.Name == otherScope.Name);
+        }
+
+        private string GetFullName() {
             var scopes = from p in this.ParentScopes
                          let namedScope = p as NamedVariableScope
                          where namedScope != null && namedScope.Name.Length > 0
@@ -37,14 +50,6 @@ namespace ABB.SrcML.Data {
             }
             sb.Append(this.Name);
             return sb.ToString();
-        }
-
-        public override bool IsSameAs(VariableScope otherScope) {
-            return this.IsSameAs(otherScope as NamedVariableScope);
-        }
-
-        public virtual bool IsSameAs(NamedVariableScope otherScope) {
-            return (null != otherScope && this.Name == otherScope.Name);
         }
     }
 }
