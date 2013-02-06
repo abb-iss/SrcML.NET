@@ -25,8 +25,9 @@ namespace ABB.SrcML.Data {
         protected Collection<VariableScope> ChildScopeCollection;
         protected Dictionary<string, VariableDeclaration> DeclaredVariablesDictionary;
 
+        protected Dictionary<string, VariableScope> UnresolvedChildren;
+
         public VariableScope ParentScope { get; set; }
-        public NamedVariableScope UnresolvedParentScope { get; set; }
 
         public IEnumerable<VariableScope> ChildScopes { get { return this.ChildScopeCollection.AsEnumerable(); } }
         public IEnumerable<VariableDeclaration> DeclaredVariables { get { return this.DeclaredVariablesDictionary.Values.AsEnumerable(); } }
@@ -68,13 +69,14 @@ namespace ABB.SrcML.Data {
         public VariableScope() {
             DeclaredVariablesDictionary = new Dictionary<string, VariableDeclaration>();
             ChildScopeCollection = new Collection<VariableScope>();
+            UnresolvedChildren = new Dictionary<string, VariableScope>();
         }
 
         /// <summary>
         /// Adds a child scope to this scope
         /// </summary>
         /// <param name="childScope">The child scope to add.</param>
-        public void AddChildScope(VariableScope childScope) {
+        public virtual void AddChildScope(VariableScope childScope) {
             ChildScopeCollection.Add(childScope);
             childScope.ParentScope = this;
         }
@@ -88,6 +90,36 @@ namespace ABB.SrcML.Data {
             declaration.Scope = this;
         }
 
+        /// <summary>
+        /// The merge function merges two scopes if they are the same. It assumes that the parents of the two scopes are identical.
+        /// Because of this, it is best to call it on two "global scope" objects. If the two scopes are the same (as determined by
+        /// the <see cref="IsSameAs"/> method), then the variable declarations in <paramref name="otherScope"/> are added to this scope
+        /// and the child scopes of <paramref name="otherScope"/> are merged with the child scopes of this scope.
+        /// </summary>
+        /// <param name="otherScope">The scope to merge with.</param>
+        /// <returns>True if the scopes were merged, false otherwise.</returns>
+        public bool Merge(VariableScope otherScope) {
+            if(IsSameAs(otherScope)) {
+                foreach(var declaration in otherScope.DeclaredVariables) {
+                    this.AddDeclaredVariable(declaration);
+                }
+
+                foreach(var newChild in otherScope.ChildScopes) {
+                    bool isMerged = false;
+                    foreach(var existingChild in this.ChildScopes) {
+                        isMerged = existingChild.Merge(newChild);
+                        if(isMerged) {
+                            break;
+                        }
+                    }
+                    if(!isMerged) {
+                        this.AddChildScope(newChild);
+                    }
+                }
+                return true;
+            }
+            return false;
+        }
         /// <summary>
         /// Tests value equality between this scope and <paramref name="otherScope"/>.
         /// Two scopes are equal if they have the same <see cref="VariableScope.XPath"/>.

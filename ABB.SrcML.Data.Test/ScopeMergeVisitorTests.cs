@@ -70,8 +70,8 @@ namespace ABB.SrcML.Data.Test {
             var scopeE = SrcMLElementVisitor.Visit(fileUnitE, codeParser);
             var scopeF = SrcMLElementVisitor.Visit(fileUnitF, codeParser);
 
-            ScopeMergeVisitor.MergeScopes(scopeD, scopeE);
-            ScopeMergeVisitor.MergeScopes(scopeD, scopeF);
+            scopeD.Merge(scopeE);
+            scopeD.Merge(scopeF);
 
             Assert.AreEqual(2, scopeD.ChildScopes.Count());
             Assert.AreEqual(1, scopeF.ChildScopes.Count());
@@ -127,7 +127,7 @@ namespace ABB.SrcML.Data.Test {
     }</block></namespace>
 }</block></namespace>";
 
-            // # F.java
+            // # F.h
             // namespace D {
             //     class F { };
             // }
@@ -142,9 +142,10 @@ namespace ABB.SrcML.Data.Test {
             var codeParser = new CPlusPlusCodeParser();
 
             var globalScope = SrcMLElementVisitor.Visit(fileUnitD, codeParser);
-            ScopeMergeVisitor.MergeScopes(globalScope, SrcMLElementVisitor.Visit(fileUnitE, codeParser));
-            ScopeMergeVisitor.MergeScopes(globalScope, SrcMLElementVisitor.Visit(fileUnitF, codeParser));
-            
+
+            globalScope.Merge(SrcMLElementVisitor.Visit(fileUnitE, codeParser));
+            globalScope.Merge(SrcMLElementVisitor.Visit(fileUnitF, codeParser));
+
             Assert.AreEqual(2, globalScope.ChildScopes.Count());
             
             var namespaceA = globalScope.ChildScopes.First() as NamespaceDefinition;
