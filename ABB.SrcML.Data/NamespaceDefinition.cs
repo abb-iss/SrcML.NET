@@ -51,12 +51,12 @@ namespace ABB.SrcML.Data {
             return String.Format("{0}.{1}", this.Name, name);
         }
 
-        public virtual bool IsSameAs(NamespaceDefinition otherScope) {
-            return base.IsSameAs(otherScope);
+        public virtual bool CanBeMergedWith(NamespaceDefinition otherScope) {
+            return base.CanBeMergedWith(otherScope);
         }
 
-        public override bool IsSameAs(NamedVariableScope otherScope) {
-            return this.IsSameAs(otherScope as NamespaceDefinition);
+        public override bool CanBeMergedWith(NamedVariableScope otherScope) {
+            return this.CanBeMergedWith(otherScope as NamespaceDefinition);
         }
     }
 }

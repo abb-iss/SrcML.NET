@@ -18,12 +18,17 @@ using NUnit.Framework;
 namespace ABB.SrcML.Data.Test {
     class ScopeMergeTests {
         private Dictionary<Language, SrcMLFileUnitSetup> FileUnitSetup;
+        private Dictionary<Language, AbstractCodeParser> CodeParser;
 
         [TestFixtureSetUp]
         public void ClassSetup() {
             FileUnitSetup = new Dictionary<Language, SrcMLFileUnitSetup>() {
-                {Language.CPlusPlus, new SrcMLFileUnitSetup(Language.CPlusPlus) },
+                { Language.CPlusPlus, new SrcMLFileUnitSetup(Language.CPlusPlus) },
                 { Language.Java, new SrcMLFileUnitSetup(Language.Java) },
+            };
+            CodeParser = new Dictionary<Language, AbstractCodeParser>() {
+                { Language.CPlusPlus, new CPlusPlusCodeParser() },
+                { Language.Java, new JavaCodeParser() },
             };
         }
 
@@ -63,11 +68,9 @@ namespace ABB.SrcML.Data.Test {
             var fileUnitE = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(e_xml, "E.java");
             var fileUnitF = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(f_xml, "F.java");
 
-            var codeParser = new JavaCodeParser();
-
-            var scopeD = SrcMLElementVisitor.Visit(fileUnitD, codeParser);
-            var scopeE = SrcMLElementVisitor.Visit(fileUnitE, codeParser);
-            var scopeF = SrcMLElementVisitor.Visit(fileUnitF, codeParser);
+            var scopeD = SrcMLElementVisitor.Visit(fileUnitD, CodeParser[Language.Java]);
+            var scopeE = SrcMLElementVisitor.Visit(fileUnitE, CodeParser[Language.Java]);
+            var scopeF = SrcMLElementVisitor.Visit(fileUnitF, CodeParser[Language.Java]);
 
             scopeD.Merge(scopeE);
             scopeD.Merge(scopeF);
@@ -138,12 +141,10 @@ namespace ABB.SrcML.Data.Test {
             var fileUnitE = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(e_xml, "E.h");
             var fileUnitF = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(f_xml, "F.h");
 
-            var codeParser = new CPlusPlusCodeParser();
+            var globalScope = SrcMLElementVisitor.Visit(fileUnitD, CodeParser[Language.CPlusPlus]);
 
-            var globalScope = SrcMLElementVisitor.Visit(fileUnitD, codeParser);
-
-            globalScope.Merge(SrcMLElementVisitor.Visit(fileUnitE, codeParser));
-            globalScope.Merge(SrcMLElementVisitor.Visit(fileUnitF, codeParser));
+            globalScope.Merge(SrcMLElementVisitor.Visit(fileUnitE, CodeParser[Language.CPlusPlus]));
+            globalScope.Merge(SrcMLElementVisitor.Visit(fileUnitF, CodeParser[Language.CPlusPlus]));
 
             Assert.AreEqual(2, globalScope.ChildScopes.Count());
             
@@ -152,9 +153,12 @@ namespace ABB.SrcML.Data.Test {
             
             Assert.AreEqual(1, namespaceA.ChildScopes.Count());
             Assert.AreEqual(1, namespaceD.ChildScopes.Count());
+            Assert.AreEqual("A", namespaceA.FullName);
+            Assert.AreEqual("D", namespaceD.FullName);
 
             var namespaceB = namespaceA.ChildScopes.First() as NamespaceDefinition;
             var typeF = namespaceD.ChildScopes.First() as TypeDefinition;
+
             Assert.AreEqual("B", namespaceB.Name);
             Assert.AreEqual("F", typeF.Name);
             Assert.AreEqual(1, namespaceB.ChildScopes.Count());
@@ -173,5 +177,161 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("A.B.C.E", typeE.FullName);
             Assert.AreEqual("D.F", typeF.FullName);
         }
+
+        [Test]
+        public void TestUnresolvedParentMerge_MethodsEncounteredFirst_Cpp() {
+            // # A.cpp
+            // int A::Foo() {
+            //     return 0;
+            // }
+            // 
+            // int A::Bar() {
+            //     return 0;
+            // }
+            string xmlcpp = @"<function><type><name>int</name></type> <name><name>A</name><op:operator>::</op:operator><name>Foo</name></name><parameter_list>()</parameter_list> <block>{
+     <return>return <expr><lit:literal type=""number"">0</lit:literal></expr>;</return>
+}</block></function>
+
+<function><type><name>int</name></type> <name><name>A</name><op:operator>::</op:operator><name>Bar</name></name><parameter_list>()</parameter_list> <block>{
+     <return>return <expr><lit:literal type=""number"">0</lit:literal></expr>;</return>
+}</block></function>";
+
+            string xmlh = @"<class>class <name>A</name> <block>{<private type=""default"">
+</private>}</block>;</class>";
+
+            var xmlImpl =  FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xmlcpp, "A.cpp");
+            var xmlHeader = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xmlh, "A.h");
+
+            var globalScope = SrcMLElementVisitor.Visit(xmlImpl, CodeParser[Language.CPlusPlus]);
+
+            Assert.AreEqual(1, globalScope.ChildScopes.Count());
+
+            var scopeA = globalScope.ChildScopes.FirstOrDefault() as NamedVariableScope;
+            Assert.AreEqual("A", scopeA.Name);
+            Assert.AreEqual(2, scopeA.ChildScopes.Count());
+
+            var methodFoo = scopeA.ChildScopes.First() as MethodDefinition;
+            var methodBar = scopeA.ChildScopes.Last() as MethodDefinition;
+
+            Assert.AreEqual("Foo", methodFoo.Name);
+            Assert.AreEqual("A.Foo", methodFoo.FullName);
+            Assert.AreEqual("Bar", methodBar.Name);
+            Assert.AreEqual("A.Bar", methodBar.FullName);
+
+            globalScope.Merge(SrcMLElementVisitor.Visit(xmlHeader, CodeParser[Language.CPlusPlus]));
+
+            Assert.AreEqual(1, globalScope.ChildScopes.Count());
+
+            var typeA = globalScope.ChildScopes.First() as TypeDefinition;
+            Assert.AreEqual(2, typeA.ChildScopes.Count());
+
+            var aDotFoo = typeA.ChildScopes.First() as MethodDefinition;
+            var aDotBar = typeA.ChildScopes.Last() as MethodDefinition;
+
+            Assert.AreEqual("A.Foo", aDotFoo.FullName);
+            Assert.AreEqual("A.Bar", aDotBar.FullName);
+
+            Assert.AreSame(methodFoo, aDotFoo);
+            Assert.AreSame(methodBar, aDotBar);
+
+            Assert.AreSame(typeA, methodFoo.ParentScope);
+            Assert.AreSame(typeA, methodBar.ParentScope);
+            Assert.AreSame(globalScope, typeA.ParentScope);
+        }
+
+        [Test]
+        public void TestUnresolvedParentMerge_ClassEncounteredFirst_Cpp() {
+            // # A.cpp
+            // int A::Foo() {
+            //     return 0;
+            // }
+            // 
+            // int A::Bar() {
+            //     return 0;
+            // }
+            string xmlcpp = @"<function><type><name>int</name></type> <name><name>A</name><op:operator>::</op:operator><name>Foo</name></name><parameter_list>()</parameter_list> <block>{
+     <return>return <expr><lit:literal type=""number"">0</lit:literal></expr>;</return>
+}</block></function>
+
+<function><type><name>int</name></type> <name><name>A</name><op:operator>::</op:operator><name>Bar</name></name><parameter_list>()</parameter_list> <block>{
+     <return>return <expr><lit:literal type=""number"">0</lit:literal></expr>;</return>
+}</block></function>";
+
+            string xmlh = @"<class>class <name>A</name> <block>{<private type=""default"">
+</private>}</block>;</class>";
+
+            var xmlImpl = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xmlcpp, "A.cpp");
+            var xmlHeader = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xmlh, "A.h");
+
+            var globalScope = SrcMLElementVisitor.Visit(xmlHeader, CodeParser[Language.CPlusPlus]);
+
+            Assert.AreEqual(1, globalScope.ChildScopes.Count());
+
+            var typeA = globalScope.ChildScopes.First() as TypeDefinition;
+            Assert.AreEqual("A", typeA.Name);
+            Assert.AreEqual(0, typeA.ChildScopes.Count());
+
+            globalScope.Merge(SrcMLElementVisitor.Visit(xmlImpl, CodeParser[Language.CPlusPlus]));
+
+            Assert.AreEqual(1, globalScope.ChildScopes.Count());
+
+            Assert.AreSame(typeA, globalScope.ChildScopes.First());
+            Assert.AreEqual(2, typeA.ChildScopes.Count());
+
+            var aDotFoo = typeA.ChildScopes.First() as MethodDefinition;
+            var aDotBar = typeA.ChildScopes.Last() as MethodDefinition;
+
+            Assert.AreEqual("A.Foo", aDotFoo.FullName);
+            Assert.AreEqual("A.Bar", aDotBar.FullName);
+
+            Assert.AreSame(typeA, aDotFoo.ParentScope);
+            Assert.AreSame(typeA, aDotFoo.ParentScope);
+            Assert.AreSame(globalScope, typeA.ParentScope);
+        }
+
+        [Test]
+        public void TestCreateMethodDefinition_TwoUnresolvedParents() {
+            // # B.h
+            // namespace A {
+            //     class B {
+            //     };
+            // }
+            string xmlh = @"<namespace>namespace <name>A</name> <block>{
+    <class>class <name>B</name> <block>{<private type=""default"">
+    </private>}</block>;</class>
+}</block></namespace>";
+
+            // # B.cpp
+            // int A::B::Foo() {
+            //     return 0;
+            // }
+            string xmlcpp = @"<function><type><name>int</name></type> <name><name>A</name><op:operator>::</op:operator><name>B</name><op:operator>::</op:operator><name>Foo</name></name><parameter_list>()</parameter_list> <block>{
+}</block></function>";
+
+            var xmlHeader = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xmlh, "B.h");
+            var xmlImpl = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xmlcpp, "B.cpp");
+
+            var globalScope = SrcMLElementVisitor.Visit(xmlHeader, CodeParser[Language.CPlusPlus]);
+            globalScope.Merge(SrcMLElementVisitor.Visit(xmlImpl, CodeParser[Language.CPlusPlus]));
+
+            Assert.AreEqual(1, globalScope.ChildScopes.Count());
+
+            var namespaceA = globalScope.ChildScopes.First() as NamespaceDefinition;
+            Assert.AreEqual("A", namespaceA.Name);
+            Assert.AreEqual(1, namespaceA.ChildScopes.Count());
+
+            var typeB = namespaceA.ChildScopes.First() as TypeDefinition;
+            Assert.AreEqual("A.B", typeB.FullName);
+            Assert.AreEqual(1, typeB.ChildScopes.Count());
+
+            var methodFoo = typeB.ChildScopes.First() as MethodDefinition;
+            Assert.AreEqual("A.B.Foo", methodFoo.FullName);
+            Assert.AreEqual(0, methodFoo.ChildScopes.Count());
+
+            Assert.AreSame(globalScope, namespaceA.ParentScope);
+            Assert.AreSame(namespaceA, typeB.ParentScope);
+            Assert.AreSame(typeB, methodFoo.ParentScope);
+        }
+
     }
 }

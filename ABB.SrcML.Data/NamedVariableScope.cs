@@ -17,15 +17,12 @@ using System.Text;
 
 namespace ABB.SrcML.Data {
     public class NamedVariableScope : VariableScope {
-        public Dictionary<string, VariableScope> UnresolvedChildren;
-
         public string Name { get; set; }
         public NamedVariableScope UnresolvedParentScope { get; set; }
 
         public NamedVariableScope() : base() {
             Name = String.Empty;
             UnresolvedParentScope = null;
-            UnresolvedChildren = new Dictionary<string, VariableScope>();
         }
 
         public string FullName {
@@ -53,15 +50,43 @@ namespace ABB.SrcML.Data {
             if(childScope.UnresolvedParentScope == null) {
                 base.AddChildScope(childScope);
             } else {
-                UnresolvedChildren[childScope.UnresolvedName] = childScope;
+                var root = childScope.UnresolvedParentScope;
+                
+                VariableScope latest = root, current;
+
+                do {
+                    current = latest;
+                    latest = current.ChildScopes.FirstOrDefault();
+                } while(latest != null);
+                
+                childScope.UnresolvedParentScope = null;
+                current.AddChildScope(childScope);
+                base.AddChildScope(root);
             }
         }
 
-        public override bool IsSameAs(VariableScope otherScope) {
-            return this.IsSameAs(otherScope as NamedVariableScope);
+        public override VariableScope Merge(VariableScope otherScope) {
+            if(this.CanBeMergedWith(otherScope) && otherScope.CanBeMergedWith(this)) {
+                // this and otherScope have the same name and the same type.
+                // they can be merged normally
+                return this.AddFrom(otherScope);
+            } else if(!this.CanBeMergedWith(otherScope) && otherScope.CanBeMergedWith(this)) {
+                // this is a subclass of NamedVariableScope and otherScope is a NamedVariableScope
+                // useful information (type, method, or namespace data) are in this
+                return this.AddFrom(otherScope);
+            } else if(this.CanBeMergedWith(otherScope) && !otherScope.CanBeMergedWith(this)) {
+                // this is a NamedVariableScope and otherScope is a subclass
+                // useful information (type, method, or namespace data) are in otherscope
+                return otherScope.AddFrom(this);
+            }
+            return null;
         }
 
-        public virtual bool IsSameAs(NamedVariableScope otherScope) {
+        public override bool CanBeMergedWith(VariableScope otherScope) {
+            return this.CanBeMergedWith(otherScope as NamedVariableScope);
+        }
+
+        public virtual bool CanBeMergedWith(NamedVariableScope otherScope) {
             return (null != otherScope && this.Name == otherScope.Name);
         }
 

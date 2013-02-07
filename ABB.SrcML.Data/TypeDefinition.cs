@@ -37,12 +37,12 @@ namespace ABB.SrcML.Data {
         
         public Collection<TypeUse> Parents { get; set; }
 
-        public virtual bool IsSameAs(TypeDefinition otherScope) {
-            return base.IsSameAs(otherScope) && this.IsPartial && otherScope.IsPartial;
+        public virtual bool CanBeMergedWith(TypeDefinition otherScope) {
+            return base.CanBeMergedWith(otherScope) && this.IsPartial && otherScope.IsPartial;
         }
 
-        public override bool IsSameAs(NamedVariableScope otherScope) {
-            return this.IsSameAs(otherScope as TypeDefinition);
+        public override bool CanBeMergedWith(NamedVariableScope otherScope) {
+            return this.CanBeMergedWith(otherScope as TypeDefinition);
         }
     }
 }

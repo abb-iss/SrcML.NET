@@ -263,52 +263,6 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestCreateMethodDefinition_OneUnresolvedParent() {
-            // # A.cpp
-            // int A::Foo() {
-            //     return 0;
-            // }
-            string xml = @"<function><type><name>int</name></type> <name><name>A</name><op:operator>::</op:operator><name>Foo</name></name><parameter_list>()</parameter_list> <block>{
-}</block></function>";
-
-            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
-
-            var globalScope = SrcMLElementVisitor.Visit(xmlElement, codeParser);
-            
-            Assert.AreEqual(1, (globalScope as NamedVariableScope).UnresolvedChildren.Count);
-
-            var fooMethod = (globalScope as NamedVariableScope).UnresolvedChildren.Values.First() as MethodDefinition;
-
-            var unresolvedA = fooMethod.UnresolvedParentScope;
-            Assert.AreEqual("Foo", fooMethod.Name);
-            Assert.AreEqual("A", fooMethod.UnresolvedName);
-            Assert.AreEqual("A", unresolvedA.Name);
-        }
-
-        [Test]
-        public void TestCreateMethodDefinition_TwoUnresolvedParents() {
-            // # A.cpp
-            // int A::B::Foo() {
-            //     return 0;
-            // }
-            string xml = @"<function><type><name>int</name></type> <name><name>A</name><op:operator>::</op:operator><name>B</name><op:operator>::</op:operator><name>Foo</name></name><parameter_list>()</parameter_list> <block>{
-}</block></function>";
-
-            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
-
-            var globalScope = SrcMLElementVisitor.Visit(xmlElement, codeParser);
-            var fooMethod = (globalScope as NamedVariableScope).UnresolvedChildren.Values.First() as MethodDefinition;
-
-            var unresolvedA = fooMethod.UnresolvedParentScope;
-            Assert.AreEqual("Foo", fooMethod.Name);
-            Assert.AreEqual("A.B", fooMethod.UnresolvedName);
-            Assert.AreEqual("A", unresolvedA.Name);
-            
-            var unresolvedB = unresolvedA.ChildScopes.First() as NamedVariableScope;
-            Assert.AreEqual("B", unresolvedB.Name);
-        }
-
-        [Test]
         public void TestCreateAliasesForFiles_ImportClass() {
             // using A::Foo;
             string xml = @"<using>using <name><name>A</name><op:operator>::</op:operator><name>Foo</name></name>;</using>";

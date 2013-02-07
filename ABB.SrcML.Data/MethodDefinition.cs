@@ -51,12 +51,12 @@ namespace ABB.SrcML.Data {
             }
         }
 
-        public virtual bool IsSameAs(MethodDefinition otherScope) {
-            return base.IsSameAs(otherScope);
+        public virtual bool CanBeMergedWith(MethodDefinition otherScope) {
+            return base.CanBeMergedWith(otherScope);
         }
 
-        public override bool IsSameAs(NamedVariableScope otherScope) {
-            return this.IsSameAs(otherScope as MethodDefinition);
+        public override bool CanBeMergedWith(NamedVariableScope otherScope) {
+            return this.CanBeMergedWith(otherScope as MethodDefinition);
         }
     }
 }

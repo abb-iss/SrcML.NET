@@ -74,8 +74,23 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="childScope">The child scope to add.</param>
         public virtual void AddChildScope(VariableScope childScope) {
-            ChildScopeCollection.Add(childScope);
-            childScope.ParentScope = this;
+            VariableScope mergedScope = null;
+            VariableScope currentScope = null;
+            foreach(var scope in this.ChildScopeCollection) {
+                currentScope = scope;
+                mergedScope = currentScope.Merge(childScope);
+                if(null != mergedScope) {
+                    break;
+                }
+            }
+            if(null == mergedScope) {
+                ChildScopeCollection.Add(childScope);
+                childScope.ParentScope = this;
+            } else if(mergedScope == childScope) {
+                ChildScopeCollection.Remove(currentScope);
+                ChildScopeCollection.Add(mergedScope);
+                mergedScope.ParentScope = this;
+            }
         }
 
         /// <summary>
@@ -90,32 +105,32 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The merge function merges two scopes if they are the same. It assumes that the parents of the two scopes are identical.
         /// Because of this, it is best to call it on two "global scope" objects. If the two scopes are the same (as determined by
-        /// the <see cref="IsSameAs"/> method), then the variable declarations in <paramref name="otherScope"/> are added to this scope
+        /// the <see cref="CanBeMergedWith"/> method), then the variable declarations in <paramref name="otherScope"/> are added to this scope
         /// and the child scopes of <paramref name="otherScope"/> are merged with the child scopes of this scope.
         /// </summary>
         /// <param name="otherScope">The scope to merge with.</param>
         /// <returns>True if the scopes were merged, false otherwise.</returns>
-        public bool Merge(VariableScope otherScope) {
-            if(IsSameAs(otherScope)) {
-                foreach(var declaration in otherScope.DeclaredVariables) {
-                    this.AddDeclaredVariable(declaration);
-                }
-
-                foreach(var newChild in otherScope.ChildScopes) {
-                    bool isMerged = false;
-                    foreach(var existingChild in this.ChildScopes) {
-                        isMerged = existingChild.Merge(newChild);
-                        if(isMerged) {
-                            break;
-                        }
-                    }
-                    if(!isMerged) {
-                        this.AddChildScope(newChild);
-                    }
-                }
-                return true;
+        public virtual VariableScope Merge(VariableScope otherScope) {
+            if(CanBeMergedWith(otherScope)) {
+                return AddFrom(otherScope);
             }
-            return false;
+            return null;
+        }
+
+        /// <summary>
+        /// The AddFrom function adds all of the declarations and children from <paramref name="otherScope"/> to this scope
+        /// </summary>
+        /// <param name="otherScope">The scope to add data from</param>
+        /// <returns>the new scope</returns>
+        public VariableScope AddFrom(VariableScope otherScope) {
+            foreach(var declaration in otherScope.DeclaredVariables) {
+                this.AddDeclaredVariable(declaration);
+            }
+
+            foreach(var newChild in otherScope.ChildScopes) {
+                AddChildScope(newChild);
+            }
+            return this;
         }
         /// <summary>
         /// Tests value equality between this scope and <paramref name="otherScope"/>.
@@ -123,7 +138,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="otherScope">The scope to compare to</param>
         /// <returns>True if the scopes are the same. False otherwise.</returns>
-        public virtual bool IsSameAs(VariableScope otherScope) {
+        public virtual bool CanBeMergedWith(VariableScope otherScope) {
             return (null != otherScope && this.XPath == otherScope.XPath);
         }
 
