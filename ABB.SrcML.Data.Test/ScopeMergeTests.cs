@@ -196,6 +196,9 @@ namespace ABB.SrcML.Data.Test {
      <return>return <expr><lit:literal type=""number"">0</lit:literal></expr>;</return>
 }</block></function>";
 
+            // # A.h
+            // class A {
+            // };
             string xmlh = @"<class>class <name>A</name> <block>{<private type=""default"">
 </private>}</block>;</class>";
 
