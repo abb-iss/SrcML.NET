@@ -16,10 +16,17 @@ using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML.Data {
+    /// <summary>
+    /// Enumerates the types of protection encountered in the supported programming languages
+    /// </summary>
     public enum AccessModifier {
+        /// <summary>Public</summary>
         Public = 0,
+        /// <summary>Protected</summary>
         Protected,
+        /// <summary>Internal</summary>
         Internal,
+        /// <summary>Private</summary>
         Private
     }
 }

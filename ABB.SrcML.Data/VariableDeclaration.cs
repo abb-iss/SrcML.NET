@@ -16,11 +16,33 @@ using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML.Data {
+    /// <summary>
+    /// Represents a variable declaration
+    /// </summary>
     public class VariableDeclaration {
+        /// <summary>
+        /// The name of the variable
+        /// </summary>
         public string Name { get; set; }
+
+        /// <summary>
+        /// Description of the type for this variable
+        /// </summary>
         public TypeUse VariableType { get; set; }
+
+        /// <summary>
+        /// The access modifier assigned to this type
+        /// </summary>
         public AccessModifier Accessibility { get; set; }
+
+        /// <summary>
+        /// The scope where this variable is declared
+        /// </summary>
         public VariableScope Scope { get; set; }
+
+        /// <summary>
+        /// XPath identifying the XML this declaration was created from
+        /// </summary>
         public string XPath { get; set; }
     }
 }

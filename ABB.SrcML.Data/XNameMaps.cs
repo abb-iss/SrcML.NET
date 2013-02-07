@@ -23,7 +23,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// gets the TypeKind for the given typeElement. The element must be of node type <see cref="ABB.SrcML.SRC.Struct"/>,
         /// <see cref="ABB.SrcML.SRC.Class"/>, <see cref="ABB.SrcML.SRC.Struct"/>, <see cref="ABB.SrcML.SRC.Union"/>,
-        /// or <see cref="ABB.SrcML.SRC.Enumeration"/>
+        /// or <see cref="ABB.SrcML.SRC.Enum"/>
         /// </summary>
         /// <param name="typeElement">The type element</param>
         /// <returns>The kind of the type element</returns>

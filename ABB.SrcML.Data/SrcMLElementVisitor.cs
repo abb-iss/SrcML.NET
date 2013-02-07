@@ -24,6 +24,9 @@ namespace ABB.SrcML.Data {
     public class SrcMLElementVisitor {
         AbstractCodeParser Parser;
 
+        /// <summary>
+        /// The current file unit being parsed. It is set when a <see cref="ABB.SrcML.SRC.Unit"/> is visited.
+        /// </summary>
         public XElement FileUnit;
         /// <summary>
         /// Returns the most recent scope from <see cref="ScopeStack"/>.

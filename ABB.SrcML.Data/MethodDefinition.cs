@@ -23,16 +23,32 @@ namespace ABB.SrcML.Data {
     public class MethodDefinition : NamedVariableScope {
         private Collection<VariableDeclaration> _parameters;
 
+        /// <summary>
+        /// Creates a new method definition object
+        /// </summary>
         public MethodDefinition() : base() {
             this._parameters = new Collection<VariableDeclaration>();
         }
+
+        /// <summary>
+        /// The access modifier for this type
+        /// </summary>
         public AccessModifier Accessibility { get; set; }
+
+        /// <summary>
+        /// True if this is a constructor; false otherwise
+        /// </summary>
         public bool IsConstructor { get; set; }
+
+        /// <summary>
+        /// True if this is a destructor; false otherwise
+        /// </summary>
         public bool IsDestructor { get; set; }
 
         public Collection<TypeDefinition> InnerTypes;
+
         /// <summary>
-        /// The parameters for this method. Replacing this collection causes the <see cref="VariableScope.DelcaredVariables"/> to be updated.
+        /// The parameters for this method. Replacing this collection causes the <see cref="VariableScope.DeclaredVariables"/> to be updated.
         /// </summary>
         /// TODO make the updating of the parameters collection more robust (you can't add an element to it and have DeclaredVariables updated.
         public Collection<VariableDeclaration> Parameters {
@@ -51,10 +67,21 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        /// <summary>
+        /// Returns true if both this and <paramref name="otherScope"/> have the same name.
+        /// </summary>
+        /// <param name="otherScope">The scope to test</param>
+        /// <returns>true if they are the same method; false otherwise.</returns>
+        /// TODO implement better method merging
         public virtual bool CanBeMergedWith(MethodDefinition otherScope) {
             return base.CanBeMergedWith(otherScope);
         }
 
+        /// <summary>
+        /// Casts <paramref name="otherScope"/> to a <see cref="MethodDefinition"/> and calls <see cref="CanBeMergedWith(MethodDefinition)"/>
+        /// </summary>
+        /// <param name="otherScope">The scope to test</param>
+        /// <returns>true if <see cref="CanBeMergedWith(MethodDefinition)"/> evaluates to true.</returns>
         public override bool CanBeMergedWith(NamedVariableScope otherScope) {
             return this.CanBeMergedWith(otherScope as MethodDefinition);
         }

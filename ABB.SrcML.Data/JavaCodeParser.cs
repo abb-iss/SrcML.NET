@@ -21,6 +21,9 @@ namespace ABB.SrcML.Data {
     /// Provides parsing facilities for the Java language
     /// </summary>
     public class JavaCodeParser : AbstractCodeParser {
+        /// <summary>
+        /// Creates a new java code parser object
+        /// </summary>
         public JavaCodeParser() {
             this.TypeElementNames = new HashSet<XName>(new XName[] { SRC.Class, SRC.Enum });
             this.NamespaceElementNames = new HashSet<XName>();

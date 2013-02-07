@@ -17,7 +17,13 @@ using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML.Data {
+    /// <summary>
+    /// Represents a namespace definition
+    /// </summary>
     public class NamespaceDefinition : NamedVariableScope {
+        /// <summary>
+        /// Creates a new namespace definition object
+        /// </summary>
         public NamespaceDefinition() : base() {
             this.Types = new Collection<TypeDefinition>();
             this.Methods = new Collection<MethodDefinition>();
@@ -51,10 +57,20 @@ namespace ABB.SrcML.Data {
             return String.Format("{0}.{1}", this.Name, name);
         }
 
+        /// <summary>
+        /// Returns true if both this and <paramref name="otherScope"/> have the same name.
+        /// </summary>
+        /// <param name="otherScope">The scope to test</param>
+        /// <returns>true if they are the same namespace; false otherwise.</returns>
         public virtual bool CanBeMergedWith(NamespaceDefinition otherScope) {
             return base.CanBeMergedWith(otherScope);
         }
 
+        /// <summary>
+        /// Casts <paramref name="otherScope"/> to a <see cref="NamespaceDefinition"/> and calls <see cref="CanBeMergedWith(NamespaceDefinition)"/>
+        /// </summary>
+        /// <param name="otherScope">The scope to test</param>
+        /// <returns>true if <see cref="CanBeMergedWith(NamespaceDefinition)"/> evaluates to true.</returns>
         public override bool CanBeMergedWith(NamedVariableScope otherScope) {
             return this.CanBeMergedWith(otherScope as NamespaceDefinition);
         }

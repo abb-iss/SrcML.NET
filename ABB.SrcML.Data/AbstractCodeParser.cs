@@ -20,9 +20,12 @@ using System.Xml.Linq;
 namespace ABB.SrcML.Data {
     /// <summary>
     /// <para>AbstractCodeParser is used to parse SrcML files and extract useful info from the elements. Implementations of this class provide language-specific functions to extract useful data from the class.</para>
-    /// <para>It contains two methods that wrap the language specific methods: <see cref="CreateTypeDefinition"/> and <see cref="CreateTypeUse"/></para>
+    /// <para>It contains two methods that wrap the language specific methods: <see cref="CreateTypeDefinition(XElement,XElement)"/> and <see cref="CreateTypeUse(XElement,XElement,IEnumerable{Alias})"/></para>
     /// </summary>
     public abstract class AbstractCodeParser {
+        /// <summary>
+        /// Creates a new abstract code parser object. Should only be called by child classes.
+        /// </summary>
         protected AbstractCodeParser() {
             ContainerElementNames = new HashSet<XName>(new XName[] {
                 SRC.Block, SRC.Catch, SRC.Class, SRC.Constructor, SRC.ConstructorDeclaration, SRC.Destructor,  SRC.DestructorDeclaration, SRC.Do,
@@ -68,9 +71,9 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Creates a MethodDefinition object for the given element.
         /// </summary>
-        /// <param name="element">The method element. <c>methodElement.Name</c> must belong to <c>Parser.MethodElementNames</c></param>
+        /// <param name="methodElement">The method element. <c>methodElement.Name</c> must belong to <c>Parser.MethodElementNames</c></param>
         /// <param name="fileUnit">The file unit that contains <paramref name="methodElement"/>. It must be a <see cref="ABB.SrcML.SRC.Unit"/></param>
-        /// <returns>A method definition that represents <paramref name="element"/></returns>
+        /// <returns>A method definition that represents <paramref name="methodElement"/></returns>
         public virtual MethodDefinition CreateMethodDefinition(XElement methodElement, XElement fileUnit) {
             if(null == methodElement) throw new ArgumentNullException("methodElement");
             if(null == fileUnit) throw new ArgumentNullException("fileUnit");
@@ -128,6 +131,7 @@ namespace ABB.SrcML.Data {
         /// Parses the given typeElement and returns a TypeDefinition object.
         /// </summary>
         /// <param name="typeElement">the type XML element.</param>
+        /// <param name="fileUnit">The containing file unit</param>
         /// <returns>A new TypeDefinition object</returns>
         public virtual TypeDefinition CreateTypeDefinition(XElement typeElement, XElement fileUnit) {
             if(null == typeElement)
@@ -258,7 +262,7 @@ namespace ABB.SrcML.Data {
         /// Generates the possible names for this type use based on the aliases and the use data.
         /// </summary>
         /// <param name="typeUse">The type use to create</param>
-        /// <returns>An enumerable of fully</returns>
+        /// <returns>An enumerable of full names for this type use.</returns>
         public abstract IEnumerable<string> GeneratePossibleNamesForTypeUse(TypeUse typeUse);
 
         /// <summary>
@@ -309,6 +313,11 @@ namespace ABB.SrcML.Data {
         }
 
         #region scope definition
+        /// <summary>
+        /// Gets all of the child containers for the given container
+        /// </summary>
+        /// <param name="container">The container</param>
+        /// <returns>An enumerable of all the children</returns>
         public virtual IEnumerable<XElement> GetChildContainers(XElement container) {
             if(null == container) return Enumerable.Empty<XElement>();
             IEnumerable<XElement> children;
@@ -327,16 +336,32 @@ namespace ABB.SrcML.Data {
             return children;
         }
 
+        /// <summary>
+        /// Gets all of the child containers for a namespace. It calls <see cref="GetChildContainers(XElement)"/> on the child block.
+        /// </summary>
+        /// <param name="container">The namespace container</param>
+        /// <returns>All of the child containers</returns>
         public virtual IEnumerable<XElement> GetChildContainersFromNamespace(XElement container) {
             var block = container.Element(SRC.Block);
             return GetChildContainers(block);
         }
+
+        /// <summary>
+        /// Gets all of the child containers for a method. It calls <see cref="GetChildContainers(XElement)"/> on the child block.
+        /// </summary>
+        /// <param name="container">The method container</param>
+        /// <returns>All of the child containers</returns>
         public virtual IEnumerable<XElement> GetChildContainersFromMethod(XElement container) {
 
             var block = container.Element(SRC.Block);
             return GetChildContainers(block);
         }
 
+        /// <summary>
+        /// Gets all of the child containers for a type. It calls <see cref="GetChildContainers(XElement)"/> on the child block.
+        /// </summary>
+        /// <param name="container">The namespace type</param>
+        /// <returns>All of the child containers</returns>
         public virtual IEnumerable<XElement> GetChildContainersFromType(XElement container) {
             var block = container.Element(SRC.Block);
             return GetChildContainers(block);
@@ -348,6 +373,7 @@ namespace ABB.SrcML.Data {
         /// Generates a variable declaration for the given declaration
         /// </summary>
         /// <param name="declaration">The declaration XElement. Can be of type <see cref="ABB.SrcML.SRC.Declaration"/>, <see cref="ABB.SrcML.SRC.DeclarationStatement"/>, or <see cref="ABB.SrcML.SRC.Parameter"/></param>
+        /// <param name="fileUnit">The containing file unit</param>
         /// <returns>A variable declaration object</returns>
         public virtual VariableDeclaration CreateVariableDeclaration(XElement declaration, XElement fileUnit) {
             if(declaration == null)
@@ -372,7 +398,12 @@ namespace ABB.SrcML.Data {
             };
             return variableDeclaration;
         }
-
+        /// <summary>
+        /// Gets all of the variable declarations from a container
+        /// </summary>
+        /// <param name="container">the container</param>
+        /// <param name="fileUnit">the containing file unit</param>
+        /// <returns>An enumerable of variable declarations</returns>
         public virtual IEnumerable<VariableDeclaration> GetVariableDeclarationsFromContainer(XElement container, XElement fileUnit) {
             if(null == container) return Enumerable.Empty<VariableDeclaration>();
 
@@ -397,6 +428,11 @@ namespace ABB.SrcML.Data {
             return declarations;
         }
 
+        /// <summary>
+        /// Gets all of the variable declarations for this catch block. It finds the variable declarations in <see cref="ABB.SrcML.SRC.ParameterList"/>.
+        /// </summary>
+        /// <param name="container">The catch container</param>
+        /// <returns>An enumerable of all the declaration XElements.</returns>
         public virtual IEnumerable<XElement> GetDeclarationsFromCatch(XElement container) {
             var declarations = from parameter in container.Elements(SRC.Parameter)
                                let declElement = parameter.Element(SRC.Declaration)
@@ -404,6 +440,11 @@ namespace ABB.SrcML.Data {
             return declarations;
         }
 
+        /// <summary>
+        /// Gets all of the variable declarations for this block.
+        /// </summary>
+        /// <param name="container">The type container</param>
+        /// <returns>An enumerable of all the declaration XElements.</returns>
         public virtual IEnumerable<XElement> GetDeclarationsFromBlock(XElement container) {
             if(null == container) return Enumerable.Empty<XElement>();
             var declarations = from stmtElement in container.Elements(SRC.DeclarationStatement)
@@ -412,12 +453,22 @@ namespace ABB.SrcML.Data {
             return declarations;
         }
 
+        /// <summary>
+        /// Gets all of the variable declarations for this for loop. It finds the variable declaration in the <see cref="ABB.SrcML.SRC.Init"/> statement.
+        /// </summary>
+        /// <param name="container">The type container</param>
+        /// <returns>An enumerable of all the declaration XElements.</returns>
         public virtual IEnumerable<XElement> GetDeclarationsFromFor(XElement container) {
             var declarations = from declElement in container.Element(SRC.Init).Elements(SRC.Declaration)
                                select declElement;
             return declarations;
         }
 
+        /// <summary>
+        /// Gets all of the parameters for this method. It finds the variable declarations in parameter list.
+        /// </summary>
+        /// <param name="method">The method container</param>
+        /// <returns>An enumerable of all the declaration XElements.</returns>
         public virtual IEnumerable<XElement> GetParametersFromMethod(XElement method) {
             var parameters = from parameter in method.Element(SRC.ParameterList).Elements(SRC.Parameter)
                              let declElement = parameter.Element(SRC.Declaration)
@@ -425,11 +476,21 @@ namespace ABB.SrcML.Data {
             return parameters;
         }
 
+        /// <summary>
+        /// Gets all of the variable declarations for this method. It finds the variable declarations in the child block.
+        /// </summary>
+        /// <param name="container">The method container</param>
+        /// <returns>An enumerable of all the declaration XElements.</returns>
         public virtual IEnumerable<XElement> GetDeclarationsFromMethod(XElement container) {
             var block = container.Element(SRC.Block);
             return GetDeclarationsFromBlock(block);
         }
 
+        /// <summary>
+        /// Gets all of the variable declarations for this type. It finds the variable declarations in the child block.
+        /// </summary>
+        /// <param name="container">The type container</param>
+        /// <returns>An enumerable of all the declaration XElements.</returns>
         public virtual IEnumerable<XElement> GetDeclarationsFromType(XElement container) {
             var block = container.Element(SRC.Block);
             foreach(var declElement in GetDeclarationsFromBlock(block)) {

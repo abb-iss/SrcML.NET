@@ -22,12 +22,29 @@ namespace ABB.SrcML.Data {
     /// and contains methods for adding child scopes and variable declarations.
     /// </summary>
     public class VariableScope {
+        /// <summary>
+        /// Holds all of the children for this scope.
+        /// </summary>
         protected Collection<VariableScope> ChildScopeCollection;
+
+        /// <summary>
+        /// Holds all of the variable declarations declared here. The key is the variable name.
+        /// </summary>
         protected Dictionary<string, VariableDeclaration> DeclaredVariablesDictionary;
 
+        /// <summary>
+        /// The parent container for this scope.
+        /// </summary>
         public VariableScope ParentScope { get; set; }
 
+        /// <summary>
+        /// Iterates over all of the child scopes of this class
+        /// </summary>
         public IEnumerable<VariableScope> ChildScopes { get { return this.ChildScopeCollection.AsEnumerable(); } }
+
+        /// <summary>
+        /// Iterates over all of the variable declarations for this scope
+        /// </summary>
         public IEnumerable<VariableDeclaration> DeclaredVariables { get { return this.DeclaredVariablesDictionary.Values.AsEnumerable(); } }
 
         /// <summary>

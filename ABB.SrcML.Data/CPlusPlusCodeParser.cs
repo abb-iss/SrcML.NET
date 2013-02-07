@@ -22,6 +22,9 @@ namespace ABB.SrcML.Data {
     /// Provides parsing facilities for the C++ language
     /// </summary>
     public class CPlusPlusCodeParser : AbstractCodeParser {
+        /// <summary>
+        /// Creates a new C++ code parser object
+        /// </summary>
         public CPlusPlusCodeParser() {
             this.SpecifierContainerNames = new HashSet<XName>(new XName[] { SRC.Private, SRC.Protected, SRC.Public });
             this.TypeElementNames = new HashSet<XName>(new XName[] { SRC.Class, SRC.Enum, SRC.Struct, SRC.Union });
@@ -71,6 +74,13 @@ namespace ABB.SrcML.Data {
             return namespaceForFile;
         }
 
+        /// <summary>
+        /// Creates a method definition object from <paramref name="methodElement"/>. For C++, it looks for
+        /// <code>int A::B::Foo(){ }</code> and sets the <see cref="NamedVariableScope.UnresolvedParentScope"/> property to "A->B".
+        /// </summary>
+        /// <param name="methodElement">The method element</param>
+        /// <param name="fileUnit">The containing file unit</param>
+        /// <returns>the method definition object for <paramref name="methodElement"/></returns>
         public override MethodDefinition CreateMethodDefinition(XElement methodElement, XElement fileUnit) {
             var methodDefinition = base.CreateMethodDefinition(methodElement, fileUnit);
 
@@ -189,6 +199,11 @@ namespace ABB.SrcML.Data {
             return alias;
         }
 
+        /// <summary>
+        /// Generates the possible names for this type use based on the aliases and the use data.
+        /// </summary>
+        /// <param name="typeUse">The type use to create</param>
+        /// <returns>An enumerable of full names for this type use.</returns>
         public override IEnumerable<string> GeneratePossibleNamesForTypeUse(TypeUse typeUse) {
             throw new NotImplementedException();
         }
