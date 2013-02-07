@@ -91,21 +91,21 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="childScope">The child scope to add.</param>
         public virtual void AddChildScope(VariableScope childScope) {
+            int i;
             VariableScope mergedScope = null;
-            VariableScope currentScope = null;
-            foreach(var scope in this.ChildScopeCollection) {
-                currentScope = scope;
-                mergedScope = currentScope.Merge(childScope);
+            
+            for(i = 0; i < this.ChildScopeCollection.Count; i++) {
+                mergedScope = this.ChildScopeCollection.ElementAt(i).Merge(childScope);
                 if(null != mergedScope) {
                     break;
                 }
             }
+
             if(null == mergedScope) {
                 ChildScopeCollection.Add(childScope);
                 childScope.ParentScope = this;
             } else if(mergedScope == childScope) {
-                ChildScopeCollection.Remove(currentScope);
-                ChildScopeCollection.Add(mergedScope);
+                ChildScopeCollection[i] = mergedScope;
                 mergedScope.ParentScope = this;
             }
         }
