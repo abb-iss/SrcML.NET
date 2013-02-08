@@ -166,11 +166,10 @@ namespace ABB.SrcML
 
             int lineNumber = -1;
 
-            // var srcLineAttribute = GetAttributeFromSelfOrDescendant(element, POS.Line);
-            // if (null != srcLineAttribute && Int32.TryParse(srcLineAttribute.Value, out lineNumber))
-            // {
-            // return lineNumber;
-            // }
+            var srcLineAttribute = GetAttributeFromSelfOrDescendant(element, POS.Line);
+            if(null != srcLineAttribute && Int32.TryParse(srcLineAttribute.Value, out lineNumber)) {
+                return lineNumber;
+            }
 
             int xmlLineNum = element.GetXmlLineNumber();
 
@@ -217,82 +216,84 @@ namespace ABB.SrcML
             if (null == element)
                 throw new ArgumentNullException("element");
 
-            //var srcPositionAttribute = GetAttributeFromSelfOrDescendant(element, POS.Column);
-            //int columnNumber = -1;
+            // if element is a unit, just return 0: Source line position does not make sense for a file.
+            if(SRC.Unit == element.Name)
+                return 0;
 
-            //if (null != srcPositionAttribute && Int32.TryParse(srcPositionAttribute.Value, out columnNumber))
-            //{
-            //    return columnNumber;
-            //}
+            var srcPositionAttribute = GetAttributeFromSelfOrDescendant(element, POS.Column);
+            int columnNumber = -1;
 
+            if(null != srcPositionAttribute && Int32.TryParse(srcPositionAttribute.Value, out columnNumber)) {
+                return columnNumber;
+            }
+
+            return -1;
             // if no line info is present, just return -1
             // This isn't technically necessary: position is computed without relying on the xml position. However, the position will most likely be useless without
             // the line number, and the line number calculation does rely on having line information.
-            if (element.GetXmlLinePosition() == -1)
-                return -1;
+            //if (element.GetXmlLinePosition() == -1)
+            //    return -1;
 
-            // if element is a unit, just return 0: Source line position does not make sense for a file.
-            if (SRC.Unit == element.Name)
-                return 1;
 
-            bool reachedNewLineOrBeginning = false;
-            XElement currentNode = element;
-            Stack<string> stack = new Stack<string>();
-            string text;
 
-            while (!reachedNewLineOrBeginning)
-            {
-                // get the text in reverse order that is
-                // 1. in the parent node
-                // 2. before currentNode (if we don't do this, we get 
-                var textNodes = (from node in currentNode.Parent.DescendantNodes()
-                                 where node.IsBefore(currentNode)
-                                 where XmlNodeType.Text == node.NodeType
-                                 select (node as XText).Value).Reverse();
+            //bool reachedNewLineOrBeginning = false;
+            //XElement currentNode = element;
+            //Stack<string> stack = new Stack<string>();
+            //string text;
 
-                // take each node and put it on the stack
-                foreach (var node in textNodes)
-                {
-                    stack.Push(node);
+            //while (!reachedNewLineOrBeginning)
+            //{
+            //    // get the text in reverse order that is
+            //    // 1. in the parent node
+            //    // 2. before currentNode (if we don't do this, we get 
+            //    var textNodes = (from node in currentNode.Parent.DescendantNodes()
+            //                     where node.IsBefore(currentNode)
+            //                     where XmlNodeType.Text == node.NodeType
+            //                     select (node as XText).Value).Reverse();
 
-                    // We can stop searching once we find a newline because that indicates we've moved to the previous line.
-                    if (node.Contains('\n'))
-                    {
-                        reachedNewLineOrBeginning = true;
-                        break;
-                    }
-                }
+            //    // take each node and put it on the stack
+            //    foreach (var node in textNodes)
+            //    {
+            //        stack.Push(node);
 
-                // set currentNode to it's parent. Stop searching if:
-                // 1. current node has no parent
-                // 2. the parent is a file unit
-                currentNode = currentNode.Parent;
-                if (null == currentNode || SRC.Unit == currentNode.Name)
-                    reachedNewLineOrBeginning = true;
-            }
+            //        // We can stop searching once we find a newline because that indicates we've moved to the previous line.
+            //        if (node.Contains('\n'))
+            //        {
+            //            reachedNewLineOrBeginning = true;
+            //            break;
+            //        }
+            //    }
 
-            // assemble all of the text we currently have by popping them off of the stack
-            using (StringWriter sw = new StringWriter(CultureInfo.InvariantCulture))
-            {
-                while (stack.Count > 0)
-                    sw.Write(stack.Pop());
-                text = sw.ToString();
-            }
+            //    // set currentNode to it's parent. Stop searching if:
+            //    // 1. current node has no parent
+            //    // 2. the parent is a file unit
+            //    currentNode = currentNode.Parent;
+            //    if (null == currentNode || SRC.Unit == currentNode.Name)
+            //        reachedNewLineOrBeginning = true;
+            //}
 
-            // check if the assembled text has a newline.
-            // If it doesn't, then the source line position is the length of the assembled text + 1
-            // If it does, then the source line position is the length of the assembled text *after the last newline* + 1
-            int newLineIndex = text.LastIndexOf('\n');
-            int srcLinePosition;
-            if (-1 == newLineIndex)
-            {
-                srcLinePosition = text.Length + 1;
-            }
-            else
-            {
-                srcLinePosition = text.Substring(newLineIndex + 1).Length + 1;
-            }
-            return srcLinePosition;
+            //// assemble all of the text we currently have by popping them off of the stack
+            //using (StringWriter sw = new StringWriter(CultureInfo.InvariantCulture))
+            //{
+            //    while (stack.Count > 0)
+            //        sw.Write(stack.Pop());
+            //    text = sw.ToString();
+            //}
+
+            //// check if the assembled text has a newline.
+            //// If it doesn't, then the source line position is the length of the assembled text + 1
+            //// If it does, then the source line position is the length of the assembled text *after the last newline* + 1
+            //int newLineIndex = text.LastIndexOf('\n');
+            //int srcLinePosition;
+            //if (-1 == newLineIndex)
+            //{
+            //    srcLinePosition = text.Length + 1;
+            //}
+            //else
+            //{
+            //    srcLinePosition = text.Substring(newLineIndex + 1).Length + 1;
+            //}
+            //return srcLinePosition;
         }
 
         /// <summary>

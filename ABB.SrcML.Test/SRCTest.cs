@@ -59,7 +59,7 @@ namespace ABB.SrcML.Test
 
             var firstUnit = doc.FileUnits.First();
 
-            Assert.AreEqual(1, firstUnit.GetSrcLinePosition());
+            Assert.AreEqual(0, firstUnit.GetSrcLinePosition());
             Assert.AreEqual(1, firstUnit.Descendants(SRC.Type).First().Element(SRC.Name).GetSrcLinePosition());
             Assert.AreEqual(1, firstUnit.Element(SRC.Function).GetSrcLinePosition());
             Assert.AreEqual(5, firstUnit.Descendants(SRC.Name).First(n => n.Value == "foo").GetSrcLinePosition());
@@ -98,10 +98,10 @@ printf(""hello world!"");
 
             var xml = srcmlObject.GenerateSrcMLFromString(source);
 
-            var element = XElement.Parse(xml);
+            var element = XElement.Parse(xml).Elements().First();
 
-            Assert.AreEqual(-1, element.GetSrcLineNumber());
-            Assert.AreEqual(-1, element.GetSrcLinePosition());
+            Assert.AreEqual(1, element.GetSrcLineNumber());
+            Assert.AreEqual(1, element.GetSrcLinePosition());
         }
 
         [Test]
