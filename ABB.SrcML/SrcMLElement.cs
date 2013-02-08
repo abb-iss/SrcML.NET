@@ -74,7 +74,22 @@ namespace ABB.SrcML {
                 throw new SrcMLException("unit contains no language attribute");
             }
 
-            return KsuAdapter.GetLanguageFromString(languageAttribute.Value); ;
+            return KsuAdapter.GetLanguageFromString(languageAttribute.Value);
+        }
+
+        /// <summary>
+        /// Returns the filename attribute in the given unit element.
+        /// </summary>
+        /// <param name="fileUnit"></param>
+        /// <returns></returns>
+        public static string GetFileNameForUnit(XElement fileUnit) {
+            if(fileUnit == null) throw new ArgumentNullException("fileUnit");
+            if(fileUnit.Name != SRC.Unit) throw new ArgumentException("should be a SRC.Unit", "fileUnit");
+            var fileNameAttribute = fileUnit.Attribute("filename");
+            if(null != fileNameAttribute) {
+                return fileNameAttribute.Value;
+            }
+            return null;
         }
     }
 }
