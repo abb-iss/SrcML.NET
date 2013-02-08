@@ -161,7 +161,7 @@ namespace ABB.SrcML.Data {
         /// <returns>The aliases for this file</returns>
         public override IEnumerable<Alias> CreateAliasesForFile(XElement fileUnit) {
             var aliases = from usingStatement in fileUnit.Descendants(SRC.Using)
-                          select CreateAliasFromUsingStatement(usingStatement);
+                          select CreateAliasFromUsingStatement(usingStatement, fileUnit);
             return aliases;
         }
 
@@ -170,13 +170,15 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="usingStatement">The using statement (<c>usingStatement.Name</c> must be <see cref="ABB.SrcML.SRC.Using"/></param>
         /// <returns>An alias for this using statement</returns>
-        public Alias CreateAliasFromUsingStatement(XElement usingStatement) {
+        public Alias CreateAliasFromUsingStatement(XElement usingStatement, XElement fileUnit) {
             if(null == usingStatement)
                 throw new ArgumentNullException("usingStatement");
             if(usingStatement.Name != SRC.Using)
                 throw new ArgumentException("must be an using statement", "usingStatement");
 
-            var alias = new Alias();
+            var alias = new Alias() {
+                Location = new SourceLocation(usingStatement, fileUnit),
+            };
             var nameElement = usingStatement.Element(SRC.Name);
             var names = GetNameElementsFromName(nameElement);
 

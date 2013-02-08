@@ -24,6 +24,11 @@ namespace ABB.SrcML.Data {
         public bool IsNamespaceAlias { get { return Name.Length == 0; } }
 
         /// <summary>
+        /// The location of this alias in both the source file and the XML.
+        /// </summary>
+        public SourceLocation Location { get; set; }
+
+        /// <summary>
         /// Constructs a new alias object
         /// </summary>
         public Alias() {

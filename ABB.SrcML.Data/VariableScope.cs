@@ -33,6 +33,16 @@ namespace ABB.SrcML.Data {
         protected Dictionary<string, VariableDeclaration> DeclaredVariablesDictionary;
 
         /// <summary>
+        /// The location of this scope in both the original source file and in XML.
+        /// </summary>
+        public SourceLocation Location { get; set; }
+
+        /// <summary>
+        /// Indicates the programming language used to create this scope
+        /// </summary>
+        public Language ProgrammingLanguage { get; set; }
+
+        /// <summary>
         /// The parent container for this scope.
         /// </summary>
         public VariableScope ParentScope { get; set; }
@@ -72,11 +82,6 @@ namespace ABB.SrcML.Data {
                 return String.Join(".", namespaceParents.Reverse());
             }
         }
-
-        /// <summary>
-        /// The XPath query where this scope is located.
-        /// </summary>
-        public string XPath { get; set; }
 
         /// <summary>
         /// Initializes an empty variable scope.
@@ -151,16 +156,16 @@ namespace ABB.SrcML.Data {
         }
         /// <summary>
         /// Tests value equality between this scope and <paramref name="otherScope"/>.
-        /// Two scopes are equal if they have the same <see cref="VariableScope.XPath"/>.
+        /// Two scopes are equal if they have the same <see cref="SourceLocation.XPath"/>.
         /// </summary>
         /// <param name="otherScope">The scope to compare to</param>
         /// <returns>True if the scopes are the same. False otherwise.</returns>
         public virtual bool CanBeMergedWith(VariableScope otherScope) {
-            return (null != otherScope && this.XPath == otherScope.XPath);
+            return (null != otherScope && this.Location.XPath == otherScope.Location.XPath);
         }
 
         /// <summary>
-        /// Returns true if this variable scope contains the given XElement. A variable scope contains an element if <see cref="VariableScope.XPath"/> is a 
+        /// Returns true if this variable scope contains the given XElement. A variable scope contains an element if <see cref="SourceLocation.XPath"/> is a 
         /// prefix for the XPath for <paramref name="element"/>.
         /// </summary>
         /// <param name="element">The element to look for</param>
@@ -170,12 +175,12 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Returns true if this variable scope contains the given XPath. A variable scope contains an expath if <see cref="VariableScope.XPath"/> is a prefix for <paramref name="xpath"/>
+        /// Returns true if this variable scope contains the given XPath. A variable scope contains an expath if <see cref="SourceLocation.XPath"/> is a prefix for <paramref name="xpath"/>
         /// </summary>
         /// <param name="xpath">The xpath to look for.</param>
         /// <returns>True if this is a container for the given xpath. False, otherwise.</returns>
         public virtual bool IsScopeFor(string xpath) {
-            return xpath.StartsWith(this.XPath);
+            return xpath.StartsWith(this.Location.XPath);
         }
 
         /// <summary>

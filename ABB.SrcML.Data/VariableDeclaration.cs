@@ -41,6 +41,11 @@ namespace ABB.SrcML.Data {
         public VariableScope Scope { get; set; }
 
         /// <summary>
+        /// The location of this declaration in both the original source file and in XML.
+        /// </summary>
+        public SourceLocation Location { get; set; }
+
+        /// <summary>
         /// XPath identifying the XML this declaration was created from
         /// </summary>
         public string XPath { get; set; }

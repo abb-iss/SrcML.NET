@@ -76,20 +76,11 @@ namespace ABB.SrcML.Data {
         /// <param name="element">The element to create a scope for</param>
         /// <returns>A variable scope for the element</returns>
         private VariableScope CreateScope(XElement element) {
-            VariableScope scope;
+            VariableScope scope = Parser.CreateScope(element, FileUnit);
+
             if(element.Name == SRC.Unit) {
                 FileUnit = element;
-                scope = Parser.CreateScopeFromFile(element);
-            } else if(Parser.TypeElementNames.Contains(element.Name)) {
-                scope = Parser.CreateTypeDefinition(element, FileUnit);
-            } else if(Parser.NamespaceElementNames.Contains(element.Name)) {
-                scope = Parser.CreateNamespaceDefinition(element, FileUnit);
-            } else if(Parser.MethodElementNames.Contains(element.Name)) {
-                scope = Parser.CreateMethodDefinition(element, FileUnit);
-            } else {
-                scope = Parser.CreateScopeFromContainer(element, FileUnit);
             }
-            scope.XPath = element.GetXPath(false);
             return scope;
         }
         /// <summary>

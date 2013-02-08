@@ -49,6 +49,7 @@
     <Compile Include="AccessModifier.cs" />
     <Compile Include="Alias.cs" />
     <Compile Include="NamedVariableScope.cs" />
+    <Compile Include="SourceLocation.cs" />
     <Compile Include="SrcMLElementVisitor.cs" />
     <Compile Include="DataArchive.cs" />
     <Compile Include="JavaCodeParser.cs" />

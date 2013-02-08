@@ -69,6 +69,31 @@ namespace ABB.SrcML.Data {
         public HashSet<XName> VariableDeclarationElementNames { get; protected set; }
 
         /// <summary>
+        /// Looks at the name of the element and then creates a variablescope depending on the <see cref="System.Xml.Linq.XName"/>.
+        /// </summary>
+        /// <param name="element">The element to create a scope for</param>
+        /// <param name="fileUnit">The file unit that contains this element</param>
+        /// <returns>A variable scope for the element</returns>
+        public VariableScope CreateScope(XElement element, XElement fileUnit) {
+            VariableScope scope;
+
+            if(element.Name == SRC.Unit) {
+                scope = CreateScopeFromFile(element);
+                fileUnit = element;
+            } else if(TypeElementNames.Contains(element.Name)) {
+                scope = CreateTypeDefinition(element, fileUnit);
+            } else if(NamespaceElementNames.Contains(element.Name)) {
+                scope = CreateNamespaceDefinition(element, fileUnit);
+            } else if(MethodElementNames.Contains(element.Name)) {
+                scope = CreateMethodDefinition(element, fileUnit);
+            } else {
+                scope = CreateScopeFromContainer(element, fileUnit);
+            }
+            scope.Location = new SourceLocation(element, fileUnit);
+            return scope;
+        }
+
+        /// <summary>
         /// Creates a MethodDefinition object for the given element.
         /// </summary>
         /// <param name="methodElement">The method element. <c>methodElement.Name</c> must belong to <c>Parser.MethodElementNames</c></param>
@@ -88,7 +113,6 @@ namespace ABB.SrcML.Data {
                 IsConstructor = (methodElement.Name == SRC.Constructor || methodElement.Name == SRC.ConstructorDeclaration),
                 IsDestructor = (methodElement.Name == SRC.Destructor || methodElement.Name == SRC.DestructorDeclaration),
                 Parameters = new Collection<VariableDeclaration>(parameters.ToList()),
-                XPath = methodElement.GetXPath(false),
             };
             
             return methodDefinition;
@@ -148,7 +172,6 @@ namespace ABB.SrcML.Data {
                Language = this.ParserLanguage,
                Name = GetNameForType(typeElement),
                Parents = GetParentTypeUses(typeElement, fileUnit),
-               XPath = typeElement.GetXPath(false),
             };
 
             var fileName = GetFileNameForUnit(fileUnit);
@@ -395,6 +418,7 @@ namespace ABB.SrcML.Data {
             var variableDeclaration = new VariableDeclaration() {
                 VariableType = CreateTypeUse(declElement.Element(SRC.Type), fileUnit),
                 Name = declElement.Element(SRC.Name).Value,
+                Location = new SourceLocation(declaration, fileUnit),
             };
             return variableDeclaration;
         }

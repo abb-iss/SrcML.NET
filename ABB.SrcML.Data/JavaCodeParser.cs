@@ -116,7 +116,7 @@ namespace ABB.SrcML.Data {
         /// <returns>an enumerable of alias objects</returns>
         public override IEnumerable<Alias> CreateAliasesForFile(XElement fileUnit) {
             var aliases = from statement in fileUnit.Descendants(SRC.Import)
-                          select CreateAliasFromImportStatement(statement);
+                          select CreateAliasFromImportStatement(statement, fileUnit);
             return aliases;
         }
 
@@ -125,13 +125,15 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="importStatement">an import element (<c>importStatement.Name</c> must be <see cref="ABB.SrcML.SRC.Import"/></param>
         /// <returns>An alias representing the import statement</returns>
-        public Alias CreateAliasFromImportStatement(XElement importStatement) {
+        public Alias CreateAliasFromImportStatement(XElement importStatement, XElement fileUnit) {
             if(null == importStatement)
                 throw new ArgumentNullException("importStatement");
             if(importStatement.Name != SRC.Import)
                 throw new ArgumentException("must be an import statement", "importStatement");
 
-            Alias alias = new Alias();
+            Alias alias = new Alias() {
+                Location = new SourceLocation(importStatement, fileUnit),
+            };
 
             var lastName = importStatement.Elements(SRC.Name).LastOrDefault();
             
