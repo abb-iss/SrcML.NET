@@ -9,8 +9,7 @@ PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
 
 ***************************************************************************/
 
-namespace Microsoft.VsSDK.IntegrationTestLibrary
-{
+namespace Microsoft.VsSDK.IntegrationTestLibrary {
     using System;
     using System.Collections.Generic;
     using System.Text;
@@ -21,8 +20,7 @@ namespace Microsoft.VsSDK.IntegrationTestLibrary
     /// <summary>
     /// Defines pinvoked utility methods and internal VS Constants
     /// </summary>
-    internal static class NativeMethods
-    {
+    internal static class NativeMethods {
         internal delegate bool CallBack(IntPtr hwnd, IntPtr lParam);
 
         // Declare two overloaded SendMessage functions
@@ -105,10 +103,8 @@ namespace Microsoft.VsSDK.IntegrationTestLibrary
                        IDTRYAGAIN = 10,
                        IDCONTINUE = 11;
 
-        internal static long HResultFromWin32(long error)
-        {
-            if (error <= 0)
-            {
+        internal static long HResultFromWin32(long error) {
+            if(error <= 0) {
                 return error;
             }
 
@@ -118,32 +114,25 @@ namespace Microsoft.VsSDK.IntegrationTestLibrary
         /// <devdoc>
         /// Please use this "approved" method to compare file names.
         /// </devdoc>
-        public static bool IsSamePath(string file1, string file2)
-        {
-            if (file1 == null || file1.Length == 0)
-            {
+        public static bool IsSamePath(string file1, string file2) {
+            if(file1 == null || file1.Length == 0) {
                 return (file2 == null || file2.Length == 0);
             }
 
             Uri uri1 = null;
             Uri uri2 = null;
 
-            try
-            {
-                if (!Uri.TryCreate(file1, UriKind.Absolute, out uri1) || !Uri.TryCreate(file2, UriKind.Absolute, out uri2))
-                {
+            try {
+                if(!Uri.TryCreate(file1, UriKind.Absolute, out uri1) || !Uri.TryCreate(file2, UriKind.Absolute, out uri2)) {
                     return false;
                 }
 
-                if (uri1 != null && uri1.IsFile && uri2 != null && uri2.IsFile)
-                {
+                if(uri1 != null && uri1.IsFile && uri2 != null && uri2.IsFile) {
                     return 0 == String.Compare(uri1.LocalPath, uri2.LocalPath, StringComparison.OrdinalIgnoreCase);
                 }
 
                 return file1 == file2;
-            }
-            catch (UriFormatException e)
-            {
+            } catch(UriFormatException e) {
                 System.Diagnostics.Trace.WriteLine("Exception " + e.Message);
             }
 

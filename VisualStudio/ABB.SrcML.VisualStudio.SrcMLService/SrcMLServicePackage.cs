@@ -1,17 +1,31 @@
-﻿using System;
+﻿/******************************************************************************
+ * Copyright (c) 2013 ABB Group
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    Jiang Zheng (ABB Group) - Initial implementation
+ *****************************************************************************/
+using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.ComponentModel.Design;
+using EnvDTE;
+using EnvDTE80;
 using Microsoft.Win32;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
+using log4net;
 
-namespace ABB.SrcML.VisualStudio.SrcMLService
-{
+namespace ABB.SrcML.VisualStudio.SrcMLService {
     /// <summary>
     /// This is the class that implements the package exposed by this assembly.
     ///
@@ -22,7 +36,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService
     /// IVsPackage interface and uses the registration attributes defined in the framework to 
     /// register itself and its components with the shell.
     /// 
-    /// //// Reference: Microsoft sample
+    /// Reference: Microsoft sample
     /// This is the package that exposes the Visual Studio services.
     /// In order to expose a service a package must implement the IServiceProvider interface (the one 
     /// defined in the Microsoft.VisualStudio.OLE.Interop.dll interop assembly, not the one defined in the
@@ -42,22 +56,75 @@ namespace ABB.SrcML.VisualStudio.SrcMLService
     /// ProvideServiceAttribute registration attribute to add the information needed inside the registry, 
     /// so that all we have to do is to use it in the definition of the class that implements the package.
     /// </summary>
-    // This attribute tells the PkgDef creation utility (CreatePkgDef.exe) that this class is
-    // a package.
+
+    /// <summary>
+    /// This attribute tells the PkgDef creation utility (CreatePkgDef.exe) that this class is a package.
+    /// </summary>
     [PackageRegistration(UseManagedResourcesOnly = true)]
-    // This attribute is used to register the information needed to show this package
-    // in the Help/About dialog of Visual Studio.
+
+    /// <summary>
+    /// This attribute is used to register the information needed to show this package in the Help/About dialog of Visual Studio.
+    /// </summary>
     [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)]
-    // This attribute is needed to let the shell know that this package exposes some menus.
+
+    /// <summary>
+    /// This attribute is needed to let the shell know that this package exposes some menus.
+    /// </summary>
     [ProvideMenuResource("Menus.ctmenu", 1)]
-    //// 1. Add the ProvideServiceAttribute to the VSPackage that provides the global service.
-    ////    ProvideServiceAttribute registers SSrcMLGlobalService with Visual Studio. Only the global service must be registered.
+
+    /// <summary>
+    /// Step 1: Add the ProvideServiceAttribute to the VSPackage that provides the global service.
+    /// ProvideServiceAttribute registers SSrcMLGlobalService with Visual Studio. Only the global service must be registered.
+    /// </summary>
     [ProvideService(typeof(SSrcMLGlobalService))]
+
+    /// <summary>
+    /// Get the Guid.
+    /// </summary>
     [Guid(GuidList.guidSrcMLServicePkgString)]
-    // This attribute starts up our extension early so that it can listen to solution events    
+
+    /// <summary>
+    /// This attribute starts up this extension early so that it can listen to solution events.
+    /// </summary>
     [ProvideAutoLoad("ADFC4E64-0397-11D1-9F4E-00A0C911004F")]
-    public sealed class SrcMLServicePackage : Package
-    {
+
+    public sealed class SrcMLServicePackage : Package {
+
+        /// <summary>
+        /// SrcML.NET Service.
+        /// </summary>
+        private ISrcMLGlobalService srcMLService;
+
+        /// <summary>
+        /// Events relating to the state of the environment.
+        /// </summary>
+        private DTEEvents DteEvents;
+
+        /// <summary>
+        /// Events for changes to a solution.
+        /// </summary>
+        private SolutionEvents SolutionEvents;
+
+        /// <summary>
+        /// Listening interface that monitors any notifications of changes to the solution.
+        /// </summary>
+        private SolutionChangeEventListener SolutionChangeListener;
+
+        /// <summary>
+        /// Visual Studio's Activity Logger.
+        /// </summary>
+        private IVsActivityLog ActivityLog;
+
+        /// <summary>
+        /// log4net logger.
+        /// </summary>
+        private ILog logger;
+
+        /// <summary>
+        /// The path of the SrcML.NET Service VS extension
+        /// </summary>
+        private string extensionDirectory;
+
         /// <summary>
         /// Default constructor of the package.
         /// Inside this method you can place any initialization code that does not require 
@@ -65,12 +132,11 @@ namespace ABB.SrcML.VisualStudio.SrcMLService
         /// not sited yet inside Visual Studio environment. The place to do all the other 
         /// initialization is the Initialize method.
         /// </summary>
-        public SrcMLServicePackage()
-        {
-            writeLog("D:\\Data\\log.txt", "SrcMLServicePackage.SrcMLServicePackage()");
-            Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "Entering constructor for: {0}", this.ToString()));
+        public SrcMLServicePackage() {
+            //WriteActivityLog("SrcMLServicePackage.SrcMLServicePackage()");    // Leave this here as an example of how to use Activity Log
+            FileLogger.DefaultLogger.Info(string.Format(CultureInfo.CurrentCulture, "Entering constructor for: {0}", this.ToString()));
 
-            //// 2. Add callback methods to the service container to create the services.
+            // Step 2: Add callback methods to the service container to create the services.
             // Here we update the list of the provided services with the ones specific for this package.
             // Notice that we set to true the boolean flag about the service promotion for the global:
             // to promote the service is actually to proffer it globally using the SProfferService service.
@@ -79,6 +145,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService
             // that will be called the first time the package will receive a request for the service. 
             // This callback function is the one responsible for creating the instance of the service 
             // object.
+            // The SrcML local service has not been used so far.
             IServiceContainer serviceContainer = this as IServiceContainer;
             ServiceCreatorCallback callback = new ServiceCreatorCallback(CreateService);
             serviceContainer.AddService(typeof(SSrcMLGlobalService), callback, true);
@@ -86,7 +153,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService
         }
 
         /// <summary>
-        /// //// 3. Implement the callback method.
+        /// Step 3: Implement the callback method.
         /// This is the function that will create a new instance of the services the first time a client
         /// will ask for a specific service type. It is called by the base class's implementation of
         /// IServiceProvider.
@@ -95,24 +162,21 @@ namespace ABB.SrcML.VisualStudio.SrcMLService
         ///                         This must be this package.</param>
         /// <param name="serviceType">The type of service to create.</param>
         /// <returns>The instance of the service.</returns>
-        private object CreateService(IServiceContainer container, Type serviceType)
-        {
-            writeLog("D:\\Data\\log.txt", "SrcMLServicePackage.CreateService()");
+        private object CreateService(IServiceContainer container, Type serviceType) {
+            FileLogger.DefaultLogger.Info("    SrcMLServicePackage.CreateService()");
+
             // Check if the IServiceContainer is this package.
-            if (container != this)
-            {
+            if(container != this) {
                 Trace.WriteLine("ServicesPackage.CreateService called from an unexpected service container.");
                 return null;
             }
 
             // Find the type of the requested service and create it.
-            if (typeof(SSrcMLGlobalService) == serviceType)
-            {
+            if(typeof(SSrcMLGlobalService) == serviceType) {
                 // Build the global service using this package as its service provider.
-                return new SrcMLGlobalService(this);
+                return new SrcMLGlobalService(this, extensionDirectory);
             }
-            if (typeof(SSrcMLLocalService) == serviceType)
-            {
+            if(typeof(SSrcMLLocalService) == serviceType) {
                 // Build the local service using this package as its service provider.
                 return new SrcMLLocalService(this);
             }
@@ -123,37 +187,74 @@ namespace ABB.SrcML.VisualStudio.SrcMLService
             return null;
         }
 
-
-        /////////////////////////////////////////////////////////////////////////////
-        // Overridden Package Implementation
         #region Package Members
-
         /// <summary>
         /// Initialization of the package; this method is called right after the package is sited, so this is the place
         /// where you can put all the initialization code that rely on services provided by VisualStudio.
         /// </summary>
-        protected override void Initialize()
-        {
-            writeLog("D:\\Data\\log.txt", "SrcMLServicePackage.Initialize()");
-            Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "Entering Initialize() of: {0}", this.ToString()));
+        protected override void Initialize() {
+            FileLogger.DefaultLogger.Info("Initializing SrcML.NET Service ...");
+
             base.Initialize();
 
-            SetUpCommand();
+            SetUpSrcMLServiceExtensionDirectory();
+
+            SetUpLogger();
+
+            SetUpActivityLogger();
+
+            //SetUpCommand(); // SrcML.NET does not need any command so far.
 
             SetUpSrcMLService();
+
+            SetUpDTEEvents();
+
+            FileLogger.DefaultLogger.Info("Initialization completed.");
+        }
+        #endregion
+
+        /// <summary>
+        /// Set up the working directory of the SrcMLService extention.
+        /// </summary>
+        /// <returns></returns>
+        private void SetUpSrcMLServiceExtensionDirectory() {
+            //pluginDirectory = Path.GetDirectoryName(Assembly.GetCallingAssembly().Location);
+            var uri = new UriBuilder(Assembly.GetExecutingAssembly().CodeBase);
+            extensionDirectory = Path.GetDirectoryName(Uri.UnescapeDataString(uri.Path));
+
+            FileLogger.DefaultLogger.Info("> Set up working directory. [" + extensionDirectory + "]");
         }
 
-        #endregion
+        /// <summary>
+        /// Set up log4net logger.
+        /// </summary>
+        private void SetUpLogger() {
+            var logFilePath = Path.Combine(extensionDirectory, "SrcML.NETService.log");
+            logger = FileLogger.CreateFileLogger("SrcMLServiceLogger", logFilePath);
+
+            FileLogger.DefaultLogger.Info("> Set up log4net logger. [" + logFilePath + "]");
+        }
+
+        /// <summary>
+        /// Set up Visual Studio activity logger.
+        /// </summary>
+        private void SetUpActivityLogger() {
+            FileLogger.DefaultLogger.Info("> Set up Visual Studio activity logger.");
+
+            ActivityLog = GetService(typeof(SVsActivityLog)) as IVsActivityLog;
+            if(null == ActivityLog) {
+                Trace.WriteLine("Can not get the Activity Log service.");
+            }
+        }
 
         /// <summary>
         /// Set up command handlers for menu (commands must exist in the .vsct file)
         /// </summary>
-        private void SetUpCommand()
-        {
-            writeLog("D:\\Data\\log.txt", "SrcMLServicePackage.SetUpCommand()");
+        private void SetUpCommand() {
+            FileLogger.DefaultLogger.Info("> Set up command handlers for menu.");
+
             OleMenuCommandService mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
-            if (null != mcs)
-            {
+            if(null != mcs) {
                 // Create the command for the menu item.
                 CommandID menuCommandID = new CommandID(GuidList.guidSrcMLServiceCmdSet, (int)PkgCmdIDList.SrcML);
                 MenuCommand menuItem = new MenuCommand(MenuItemCallback, menuCommandID);
@@ -162,31 +263,13 @@ namespace ABB.SrcML.VisualStudio.SrcMLService
         }
 
         /// <summary>
-        /// Set up SrcMLArchive.
-        /// </summary>
-        private void SetUpSrcMLService()
-        {
-            writeLog("D:\\Data\\log.txt", "SrcMLServicePackage.SetUpSrcMLService()");
-            ISrcMLGlobalService service = GetService(typeof(SSrcMLGlobalService)) as ISrcMLGlobalService;
-            if (null == service)
-            {
-                // If the service is not available we can exit now.
-                Trace.WriteLine("Can not get the SrcML global service.");
-                return;
-            }
-
-            service.StartMonitering();
-
-        }
-
-        /// <summary>
         /// This function is the callback used to execute a command when the a menu item is clicked.
         /// See the Initialize method to see how the menu item is associated to this function using
         /// the OleMenuCommandService service and the MenuCommand class.
         /// </summary>
-        private void MenuItemCallback(object sender, EventArgs e)
-        {
-            writeLog("D:\\Data\\log.txt", "SrcMLServicePackage.MenuItemCallback()");
+        private void MenuItemCallback(object sender, EventArgs e) {
+            FileLogger.DefaultLogger.Info("    SrcMLServicePackage.MenuItemCallback()");
+
             // Show a Message Box to prove we were here
             IVsUIShell uiShell = (IVsUIShell)GetService(typeof(SVsUIShell));
             Guid clsid = Guid.Empty;
@@ -206,15 +289,128 @@ namespace ABB.SrcML.VisualStudio.SrcMLService
         }
 
         /// <summary>
-        /// For debugging.
+        /// Set up SrcML Service.
         /// </summary>
-        /// <param name="logFile"></param>
+        private void SetUpSrcMLService() {
+            FileLogger.DefaultLogger.Info("> Set up SrcML Service.");
+
+            srcMLService = GetService(typeof(SSrcMLGlobalService)) as ISrcMLGlobalService;
+            if(null == srcMLService) {
+                Trace.WriteLine("Can not get the SrcML global service.");
+            }
+        }
+
+        /// <summary>
+        /// Register Visual Studio DTE events.
+        /// </summary>
+        private void SetUpDTEEvents() {
+            FileLogger.DefaultLogger.Info("> Register Visual Studio DTE events.");
+
+            DTE2 dte = GetService(typeof(DTE)) as DTE2;
+            if(dte != null) {
+                DteEvents = dte.Events.DTEEvents;
+                // Register the Visual Studio DTE event that occurs when the environment has completed initializing.
+                DteEvents.OnStartupComplete += DTEStartupCompleted;
+                // Register the Visual Studio DTE event that occurs when the development environment is closing.
+                DteEvents.OnBeginShutdown += DTEBeginShutdown;
+            }
+        }
+
+        /// <summary>
+        /// Respond to the Visual Studio DTE event that occurs when the environment has completed initializing.
+        /// </summary>
+        private void DTEStartupCompleted() {
+            FileLogger.DefaultLogger.Info("Respond to the Visual Studio DTE event that occurs when the environment has completed initializing.");
+
+            /*
+            if(GetDte().Version.StartsWith("10")) {
+                //only need to do this in VS2010, and it breaks things in VS2012
+                Solution openSolution = GetOpenSolution();
+                if(openSolution != null && !String.IsNullOrWhiteSpace(openSolution.FullName) && _currentMonitor == null) {
+                    SolutionOpened();
+                }
+            }
+            */
+
+            RegisterSolutionEvents();
+        }
+
+        /// <summary>
+        /// Register solution events.
+        /// </summary>
+        private void RegisterSolutionEvents() {
+            FileLogger.DefaultLogger.Info("> Register solution events.");
+
+            DTE2 dte = Package.GetGlobalService(typeof(DTE)) as DTE2;
+            if(dte != null) {
+                SolutionEvents = dte.Events.SolutionEvents;
+                // Register the Visual Studio event that occurs when a solution is being opened.
+                SolutionEvents.Opened += SolutionOpened;
+                // Register the Visual Studio event that occurs when a solution is about to close.
+                SolutionEvents.BeforeClosing += SolutionBeforeClosing;
+            }
+
+            // Queries listening clients as to whether the project can be unloaded.
+            SolutionChangeListener = new SolutionChangeEventListener();
+            SolutionChangeListener.OnQueryUnloadProject += () => {
+                SolutionBeforeClosing();
+                SolutionOpened();
+            };
+        }
+
+        /// <summary>
+        /// Respond to the Visual Studio event that occurs when a solution is being opened.
+        /// </summary>
+        private void SolutionOpened() {
+            FileLogger.DefaultLogger.Info("Respond to the Visual Studio event that occurs when a solution is being opened.");
+
+            BackgroundWorker bw = new BackgroundWorker();
+            bw.WorkerReportsProgress = false;
+            bw.WorkerSupportsCancellation = false;
+            bw.DoWork += new DoWorkEventHandler(RespondToSolutionOpened);
+            bw.RunWorkerAsync();
+        }
+
+        /// <summary>
+        /// SrcML service starts to monitor the opened solution.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="eventArgs"></param>
+        private void RespondToSolutionOpened(object sender, DoWorkEventArgs eventArgs) {
+            FileLogger.DefaultLogger.Info("> SrcML service starts monitoring the opened solution.");
+
+            srcMLService.StartMonitering();
+        }
+
+        /// <summary>
+        /// Respond to the Visual Studio event that occurs when a solution is about to close.
+        /// </summary>
+        private void SolutionBeforeClosing() {
+            FileLogger.DefaultLogger.Info("Respond to the Visual Studio event that occurs when a solution is about to close.");
+            FileLogger.DefaultLogger.Info("> SrcML service stops monitoring the opened solution.");
+
+            srcMLService.StopMonitoring();
+        }
+
+        /// <summary>
+        /// Respond to the Visual Studio DTE event that occurs when the development environment is closing.
+        /// </summary>
+        private void DTEBeginShutdown() {
+            FileLogger.DefaultLogger.Info("Respond to the Visual Studio DTE event that occurs when the development environment is closing.");
+
+            //UnregisterSolutionEvents(); // TODO if necessary
+            //UnregisterDTEEvents(); // TODO if necessary
+        }
+
+        /// <summary>
+        /// Write Visual Studio's Activity Log.
+        /// See %AppData%\Roaming\Microsoft\VisualStudio\11.0Exp\ActivityLog.xml
+        /// </summary>
         /// <param name="str"></param>
-        private void writeLog(string logFile, string str)
-        {
-            StreamWriter sw = new StreamWriter(logFile, true, System.Text.Encoding.ASCII);
-            sw.WriteLine(str);
-            sw.Close();
+        private void WriteActivityLog(string str) {
+            if(ActivityLog != null) {
+                int hr = ActivityLog.LogEntry((UInt32)__ACTIVITYLOG_ENTRYTYPE.ALE_INFORMATION, this.ToString(), str);
+            }
         }
     }
 }

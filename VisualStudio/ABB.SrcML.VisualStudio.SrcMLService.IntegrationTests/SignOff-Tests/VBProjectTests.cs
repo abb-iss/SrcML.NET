@@ -6,11 +6,9 @@ using Microsoft.VsSDK.IntegrationTestLibrary;
 using Microsoft.VSSDK.Tools.VsIdeTesting;
 using EnvDTE;
 
-namespace SrcMLService_IntegrationTests.IntegrationTests
-{
+namespace SrcMLService_IntegrationTests.IntegrationTests {
     [TestClass]
-    public class VisualBasicProjectTests
-    {
+    public class VisualBasicProjectTests {
         #region fields
         private delegate void ThreadInvoker();
         private TestContext _testContext;
@@ -21,16 +19,14 @@ namespace SrcMLService_IntegrationTests.IntegrationTests
         ///Gets or sets the test context which provides
         ///information about and functionality for the current test run.
         ///</summary>
-        public TestContext TestContext
-        {
+        public TestContext TestContext {
             get { return _testContext; }
             set { _testContext = value; }
         }
         #endregion
 
         #region ctors
-        public VisualBasicProjectTests()
-        {
+        public VisualBasicProjectTests() {
         }
         #endregion
 
@@ -58,10 +54,8 @@ namespace SrcMLService_IntegrationTests.IntegrationTests
 
         [HostType("VS IDE")]
         [TestMethod]
-        public void VBWinformsApplication()
-        {
-            UIThreadInvoker.Invoke((ThreadInvoker)delegate()
-            {
+        public void VBWinformsApplication() {
+            UIThreadInvoker.Invoke((ThreadInvoker)delegate() {
                 //Solution and project creation parameters
                 string solutionName = "VBWinApp";
                 string projectName = "VBWinApp";

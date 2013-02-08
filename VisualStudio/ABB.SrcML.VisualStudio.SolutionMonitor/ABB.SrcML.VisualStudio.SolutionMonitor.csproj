@@ -30,6 +30,12 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="envdte, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <SpecificVersion>False</SpecificVersion>
@@ -85,8 +91,11 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Key.snk" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\ABB.SrcML\ABB.SrcML.csproj">
-      <Project>{D52626E7-A4CA-471A-8A6A-FE0110430FE6}</Project>
+      <Project>{d52626e7-a4ca-471a-8a6a-fe0110430fe6}</Project>
       <Name>ABB.SrcML</Name>
     </ProjectReference>
   </ItemGroup>

@@ -9,11 +9,9 @@ using System.IO;
 using Microsoft.VsSDK.IntegrationTestLibrary;
 
 
-namespace SrcMLService_IntegrationTests.IntegrationTests
-{
+namespace SrcMLService_IntegrationTests.IntegrationTests {
     [TestClass]
-    public class SolutionTests
-    {
+    public class SolutionTests {
         #region fields
         private delegate void ThreadInvoker();
         private TestContext _testContext;
@@ -24,8 +22,7 @@ namespace SrcMLService_IntegrationTests.IntegrationTests
         ///Gets or sets the test context which provides
         ///information about and functionality for the current test run.
         ///</summary>
-        public TestContext TestContext
-        {
+        public TestContext TestContext {
             get { return _testContext; }
             set { _testContext = value; }
         }
@@ -33,18 +30,15 @@ namespace SrcMLService_IntegrationTests.IntegrationTests
 
 
         #region ctors
-        public SolutionTests()
-        {
+        public SolutionTests() {
         }
 
         #endregion
 
         [TestMethod]
         [HostType("VS IDE")]
-        public void CreateEmptySolution()
-        {
-            UIThreadInvoker.Invoke((ThreadInvoker)delegate()
-            {
+        public void CreateEmptySolution() {
+            UIThreadInvoker.Invoke((ThreadInvoker)delegate() {
                 TestUtils testUtils = new TestUtils();
                 testUtils.CloseCurrentSolution(__VSSLNSAVEOPTIONS.SLNSAVEOPT_NoSave);
                 testUtils.CreateEmptySolution(TestContext.TestDir, "EmptySolution");

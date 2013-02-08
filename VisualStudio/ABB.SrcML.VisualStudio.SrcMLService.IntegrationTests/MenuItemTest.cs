@@ -9,11 +9,9 @@ using Microsoft.VsSDK.IntegrationTestLibrary;
 using Microsoft.VSSDK.Tools.VsIdeTesting;
 using ABB.SrcML.VisualStudio.SrcMLService;
 
-namespace SrcMLService_IntegrationTests
-{
+namespace SrcMLService_IntegrationTests {
     [TestClass()]
-    public class MenuItemTest
-    {
+    public class MenuItemTest {
         private delegate void ThreadInvoker();
 
         private TestContext testContextInstance;
@@ -22,14 +20,11 @@ namespace SrcMLService_IntegrationTests
         ///Gets or sets the test context which provides
         ///information about and functionality for the current test run.
         ///</summary>
-        public TestContext TestContext
-        {
-            get
-            {
+        public TestContext TestContext {
+            get {
                 return testContextInstance;
             }
-            set
-            {
+            set {
                 testContextInstance = value;
             }
         }
@@ -39,25 +34,20 @@ namespace SrcMLService_IntegrationTests
         ///</summary>
         [TestMethod()]
         [HostType("VS IDE")]
-        public void LaunchCommand()
-        {
-            UIThreadInvoker.Invoke((ThreadInvoker)delegate()
-            {
+        public void LaunchCommand() {
+            UIThreadInvoker.Invoke((ThreadInvoker)delegate() {
                 ////CommandID menuItemCmd = new CommandID(GuidList.guidSrcMLServiceCmdSet, (int)PkgCmdIDList.SrcML);
 
                 // Create the DialogBoxListener Thread.
                 string expectedDialogBoxText = string.Format(CultureInfo.CurrentCulture, "{0}\n\nInside {1}.MenuItemCallback()", "SrcMLService", "ABB.SrcMLService.SrcMLServicePackage");
                 DialogBoxPurger purger = new DialogBoxPurger(NativeMethods.IDOK, expectedDialogBoxText);
 
-                try
-                {
+                try {
                     purger.Start();
 
                     TestUtils testUtils = new TestUtils();
                     ////testUtils.ExecuteCommand(menuItemCmd);
-                }
-                finally
-                {
+                } finally {
                     Assert.IsTrue(purger.WaitForDialogThreadToTerminate(), "The dialog box has not shown");
                 }
             });

@@ -9,14 +9,12 @@ using Microsoft.VisualStudio.Shell;
 using EnvDTE;
 using ABB.SrcML.VisualStudio.SrcMLService;
 
-namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests
-{
+namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
     /// <summary>
     /// Integration test for package validation
     /// </summary>
     [TestClass]
-    public class PackageTest
-    {
+    public class PackageTest {
         private delegate void ThreadInvoker();
 
         private TestContext testContextInstance;
@@ -25,24 +23,19 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests
         ///Gets or sets the test context which provides
         ///information about and functionality for the current test run.
         ///</summary>
-        public TestContext TestContext
-        {
-            get
-            {
+        public TestContext TestContext {
+            get {
                 return testContextInstance;
             }
-            set
-            {
+            set {
                 testContextInstance = value;
             }
         }
 
         [TestMethod]
         [HostType("VS IDE")]
-        public void PackageLoadTest()
-        {
-            UIThreadInvoker.Invoke((ThreadInvoker)delegate()
-            {
+        public void PackageLoadTest() {
+            UIThreadInvoker.Invoke((ThreadInvoker)delegate() {
 
                 //Get the Shell Service
                 IVsShell shellService = VsIdeTestHostContext.ServiceProvider.GetService(typeof(SVsShell)) as IVsShell;

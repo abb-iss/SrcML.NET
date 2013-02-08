@@ -41,10 +41,11 @@
          must be a menu. -->
     <Groups>
 
+<!-- SrcML.NET does not need any command so far.
       <Group guid="guidSrcMLServiceCmdSet" id="MyMenuGroup" priority="0x0600">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS"/>
       </Group>
-      
+-->      
 
 
     </Groups>
@@ -60,7 +61,7 @@
               <CommandFlag>DefaultInvisible</CommandFlag>
               <CommandFlag>DynamicVisibility</CommandFlag>
           If you do not want an image next to your command, remove the Icon node /> -->
-
+<!-- SrcML.NET does not need any command so far.
       <Button guid="guidSrcMLServiceCmdSet" id="SrcML" priority="0x0100" type="Button">
         <Parent guid="guidSrcMLServiceCmdSet" id="MyMenuGroup" />
         <Icon guid="guidImages" id="bmpPic1" />
@@ -68,11 +69,11 @@
           <ButtonText>SrcML</ButtonText>
         </Strings>
       </Button>
-
+-->
 
 
     </Buttons>
-   
+
     <!--The bitmaps section is used to define the bitmaps that are used for the commands.-->
     <Bitmaps>
       <!--  The bitmap id is defined in a way that is a little bit different from the others: 
@@ -95,12 +96,13 @@
     <GuidSymbol name="guidSrcMLServicePkg" value="{8b448a37-2665-4b23-a2f9-cad4510f1337}" />
     
     <!-- This is the guid used to group the menu commands together -->
+<!-- SrcML.NET does not need any command so far.
     <GuidSymbol name="guidSrcMLServiceCmdSet" value="{a92a902c-213b-4b54-9580-afacc7240bec}">
 
       <IDSymbol name="MyMenuGroup" value="0x1020" />
       <IDSymbol name="SrcML" value="0x0100" />
     </GuidSymbol>
-    
+-->
     
     
     <GuidSymbol name="guidImages" value="{2c010f33-f6f4-4a33-9912-b6049e36973a}" >

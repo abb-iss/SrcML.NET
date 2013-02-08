@@ -69,13 +69,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\ABB.SrcML\ABB.SrcML.csproj">
-      <Project>{D52626E7-A4CA-471A-8A6A-FE0110430FE6}</Project>
-      <Name>ABB.SrcML</Name>
-    </ProjectReference>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <ProjectReference Include="..\..\ABB.SrcML\ABB.SrcML.csproj">
+      <Project>{d52626e7-a4ca-471a-8a6a-fe0110430fe6}</Project>
+      <Name>ABB.SrcML</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />

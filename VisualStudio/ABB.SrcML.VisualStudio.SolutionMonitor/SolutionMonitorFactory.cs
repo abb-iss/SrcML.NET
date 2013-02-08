@@ -14,30 +14,20 @@ using System.IO;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
-////using Sando.Core;
-////using Sando.Indexer;
 
-namespace ABB.SrcML.VisualStudio.SolutionMonitor
-{
+namespace ABB.SrcML.VisualStudio.SolutionMonitor {
     /// <summary>
-    /// This class was from Sando.
+    /// This class was adapted from Sando.
     /// Now most likely this class would not be needed any more in SrcML.NET. Sando would maintain its own SolutionMonitorFactory class.
+    /// However for SrcML.NET Service, this class seems to be useful.
     /// </summary>
-    public class SolutionMonitorFactory
-    {
-        ////private const string Lucene = "\\lucene";
-        ////public static string LuceneDirectory { get; set; }
-
+    public class SolutionMonitorFactory {
         /// <summary>
         /// Constructor of SolutionMonitorFactory
         /// </summary>
         /// <returns></returns>
-        ////public static SolutionMonitor CreateMonitor(bool isIndexRecreationRequired)
-        public static SolutionMonitor CreateMonitor()
-        {
-            ////var openSolution = UIPackage.GetOpenSolution();
-            var openSolution = GetOpenSolution();   // Use my own GetOpenSolution()
-            ////return CreateMonitor(openSolution, isIndexRecreationRequired);
+        public static SolutionMonitor CreateMonitor() {
+            var openSolution = GetOpenSolution();
             return CreateMonitor(openSolution);
         }
 
@@ -46,75 +36,23 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         /// </summary>
         /// <param name="openSolution"></param>
         /// <returns></returns>
-        ////private static SolutionMonitor CreateMonitor(Solution openSolution, bool isIndexRecreationRequired)
-        private static SolutionMonitor CreateMonitor(Solution openSolution)
-        {
+        private static SolutionMonitor CreateMonitor(Solution openSolution) {
             Contract.Requires(openSolution != null, "A solution must be open");
 
-            ////TODO if solution is reopen - the guid should be read from file - future change
-            ////SolutionKey solutionKey = new SolutionKey(Guid.NewGuid(), openSolution.FileName, GetLuceneDirectoryForSolution(openSolution));
-            //SolutionKey solutionKey = new SolutionKey(Guid.NewGuid(), openSolution.FileName);
-            ////var currentIndexer = DocumentIndexerFactory.CreateIndexer(solutionKey, AnalyzerType.Snowball);
-            ////if (isIndexRecreationRequired)
-            ////{
-            ////    currentIndexer.DeleteDocuments("*");
-            ////    currentIndexer.CommitChanges();
-            ////}
-            ////var currentMonitor = new SolutionMonitor(SolutionWrapper.Create(openSolution), solutionKey, currentIndexer, isIndexRecreationRequired);
-            var currentMonitor = new SolutionMonitor(SolutionWrapper.Create(openSolution));    // Remove code about index
+            var currentMonitor = new SolutionMonitor(SolutionWrapper.Create(openSolution));
             return currentMonitor;
         }
 
-        /* //// Remove code about index
-        private static string CreateLuceneFolder()
-        {
-            Contract.Requires(LuceneDirectory != null, "Please set the LuceneDirectory before calling this method");
-            return CreateFolder(Lucene, LuceneDirectory);
-        }
-
-        private static string CreateFolder(string folderName, string parentDirectory)
-        {
-            if (!File.Exists(parentDirectory + folderName))
-            {
-                var directoryInfo = Directory.CreateDirectory(parentDirectory + folderName);
-                return directoryInfo.FullName;
-            }
-            else
-            {
-                return parentDirectory + folderName;
-            }
-        }
-
-        private static string GetName(Solution openSolution)
-        {
-            var fullName = openSolution.FullName;
-            var split = fullName.Split('\\');
-            return split[split.Length - 1] + fullName.GetHashCode();
-        }
-
-        private static string GetLuceneDirectoryForSolution(Solution openSolution)
-        {
-            var luceneFolder = CreateLuceneFolder();
-            CreateFolder(GetName(openSolution), luceneFolder + "\\");
-            return luceneFolder + "\\" + GetName(openSolution);
-        }
-        */
-
         /// <summary>
         /// Get the open solution.
-        /// Copied from UIPackage
         /// </summary>
         /// <returns></returns>
-        public static Solution GetOpenSolution()
-        {
+        public static Solution GetOpenSolution() {
             var dte = Package.GetGlobalService(typeof(DTE)) as DTE2;
-            if (dte != null)
-            {
+            if(dte != null) {
                 var openSolution = dte.Solution;
                 return openSolution;
-            }
-            else
-            {
+            } else {
                 return null;
             }
         }

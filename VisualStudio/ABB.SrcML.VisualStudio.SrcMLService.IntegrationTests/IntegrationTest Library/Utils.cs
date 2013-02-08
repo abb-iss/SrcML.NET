@@ -17,12 +17,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VSSDK.Tools.VsIdeTesting;
 using Microsoft.VisualStudio;
 
-namespace Microsoft.VsSDK.IntegrationTestLibrary
-{
+namespace Microsoft.VsSDK.IntegrationTestLibrary {
     /// <summary>
     /// </summary>
-    public class TestUtils
-    {
+    public class TestUtils {
 
         #region Methods: Handling embedded resources
         /// <summary>
@@ -31,26 +29,21 @@ namespace Microsoft.VsSDK.IntegrationTestLibrary
         /// </summary>
         /// <param name="resourceName">In VS, is DefaultNamespace.FileName?</param>
         /// <returns></returns>
-        public static string GetEmbeddedStringResource(Assembly assembly, string resourceName)
-        {
+        public static string GetEmbeddedStringResource(Assembly assembly, string resourceName) {
             string result = null;
 
             // Use the .NET procedure for loading a file embedded in the assembly
             Stream stream = assembly.GetManifestResourceStream(resourceName);
-            if (stream != null)
-            {
+            if(stream != null) {
                 // Convert bytes to string
                 byte[] fileContentsAsBytes = new byte[stream.Length];
                 stream.Read(fileContentsAsBytes, 0, (int)stream.Length);
                 result = Encoding.Default.GetString(fileContentsAsBytes);
-            }
-            else
-            {
+            } else {
                 // Embedded resource not found - list available resources
                 Debug.WriteLine("Unable to find the embedded resource file '" + resourceName + "'.");
                 Debug.WriteLine("  Available resources:");
-                foreach (string aResourceName in assembly.GetManifestResourceNames())
-                {
+                foreach(string aResourceName in assembly.GetManifestResourceNames()) {
                     Debug.WriteLine("    " + aResourceName);
                 }
             }
@@ -64,11 +57,10 @@ namespace Microsoft.VsSDK.IntegrationTestLibrary
         /// <param name="baseFileName"></param>
         /// <param name="fileExtension"></param>
         /// <returns></returns>
-        public static void WriteEmbeddedResourceToFile(Assembly assembly, string embeddedResourceName, string fileName)
-        {
+        public static void WriteEmbeddedResourceToFile(Assembly assembly, string embeddedResourceName, string fileName) {
             // Get file contents
             string fileContents = GetEmbeddedStringResource(assembly, embeddedResourceName);
-            if (fileContents == null)
+            if(fileContents == null)
                 throw new ApplicationException("Failed to get embedded resource '" + embeddedResourceName + "' from assembly '" + assembly.FullName);
 
             // Write to file
@@ -83,24 +75,21 @@ namespace Microsoft.VsSDK.IntegrationTestLibrary
         /// <param name="assembly">The name of the assembly that the embedded resource is defined.</param>
         /// <param name="embeddedResourceName">The name of the embedded resource.</param>
         /// <param name="fileName">The file to write the embedded resource's content.</param>
-        public static void WriteEmbeddedResourceToBinaryFile(Assembly assembly, string embeddedResourceName, string fileName)
-        {
+        public static void WriteEmbeddedResourceToBinaryFile(Assembly assembly, string embeddedResourceName, string fileName) {
             // Get file contents
             Stream stream = assembly.GetManifestResourceStream(embeddedResourceName);
-            if (stream == null)
+            if(stream == null)
                 throw new InvalidOperationException("Failed to get embedded resource '" + embeddedResourceName + "' from assembly '" + assembly.FullName);
 
             // Write to file
             BinaryWriter sw = null;
             FileStream fs = null;
-            try
-            {
+            try {
                 byte[] fileContentsAsBytes = new byte[stream.Length];
                 stream.Read(fileContentsAsBytes, 0, (int)stream.Length);
 
                 FileMode mode = FileMode.CreateNew;
-                if (File.Exists(fileName))
-                {
+                if(File.Exists(fileName)) {
                     mode = FileMode.Truncate;
                 }
 
@@ -108,15 +97,11 @@ namespace Microsoft.VsSDK.IntegrationTestLibrary
 
                 sw = new BinaryWriter(fs);
                 sw.Write(fileContentsAsBytes);
-            }
-            finally
-            {
-                if (fs != null)
-                {
+            } finally {
+                if(fs != null) {
                     fs.Close();
                 }
-                if (sw != null)
-                {
+                if(sw != null) {
                     sw.Close();
                 }
             }
@@ -137,8 +122,7 @@ namespace Microsoft.VsSDK.IntegrationTestLibrary
         /// <param name="extension">may be null, in which case the .[extension] part
         /// is not added.</param>
         /// <returns>Full file name.</returns>
-        public static string GetNewFileName(string directory, string baseFileName, string extension)
-        {
+        public static string GetNewFileName(string directory, string baseFileName, string extension) {
             // Get the new file name
             string fileName = GetNewFileOrDirectoryNameWithoutCreatingAnything(directory, baseFileName, extension);
 
@@ -158,8 +142,7 @@ namespace Microsoft.VsSDK.IntegrationTestLibrary
         /// <param name="directory">Directory that the file should live in.</param>
         /// <param name="baseDirectoryName"></param>
         /// <returns>Full directory name.</returns>
-        public static string GetNewDirectoryName(string directory, string baseDirectoryName)
-        {
+        public static string GetNewDirectoryName(string directory, string baseDirectoryName) {
             // Get the new file name
             string directoryName = GetNewFileOrDirectoryNameWithoutCreatingAnything(directory, baseDirectoryName, null);
 
@@ -176,24 +159,22 @@ namespace Microsoft.VsSDK.IntegrationTestLibrary
         /// <param name="baseFileName"></param>
         /// <param name="extension"></param>
         /// <returns></returns>
-        private static string GetNewFileOrDirectoryNameWithoutCreatingAnything(string directory, string baseFileName, string extension)
-        {
+        private static string GetNewFileOrDirectoryNameWithoutCreatingAnything(string directory, string baseFileName, string extension) {
             // - get a file name that we can use
             string fileName;
             int i = 1;
 
             string fullFileName = null;
-            while (true)
-            {
+            while(true) {
                 // construct next file name
                 fileName = baseFileName + i;
-                if (extension != null)
+                if(extension != null)
                     fileName += '.' + extension;
 
                 // check if that file exists in the directory
                 fullFileName = Path.Combine(directory, fileName);
 
-                if (!File.Exists(fullFileName) && !Directory.Exists(fullFileName))
+                if(!File.Exists(fullFileName) && !Directory.Exists(fullFileName))
                     break;
                 else
                     i++;
@@ -208,8 +189,7 @@ namespace Microsoft.VsSDK.IntegrationTestLibrary
         /// Closes the currently open solution (if any), and creates a new solution with the given name.
         /// </summary>
         /// <param name="solutionName">Name of new solution.</param>
-        public void CreateEmptySolution(string directory, string solutionName)
-        {
+        public void CreateEmptySolution(string directory, string solutionName) {
             CloseCurrentSolution(__VSSLNSAVEOPTIONS.SLNSAVEOPT_NoSave);
 
             string solutionDirectory = GetNewDirectoryName(directory, solutionName);
@@ -222,8 +202,7 @@ namespace Microsoft.VsSDK.IntegrationTestLibrary
             Assert.AreEqual(solutionName + ".sln", Path.GetFileName(dte.Solution.FileName), "Newly created solution has wrong Filename");
         }
 
-        public void CloseCurrentSolution(__VSSLNSAVEOPTIONS saveoptions)
-        {
+        public void CloseCurrentSolution(__VSSLNSAVEOPTIONS saveoptions) {
             // Get solution service
             IVsSolution solutionService = (IVsSolution)VsIdeTestHostContext.ServiceProvider.GetService(typeof(IVsSolution));
 
@@ -231,8 +210,7 @@ namespace Microsoft.VsSDK.IntegrationTestLibrary
             solutionService.CloseSolutionElement((uint)saveoptions, null, 0);
         }
 
-        public void ForceSaveSolution()
-        {
+        public void ForceSaveSolution() {
             // Get solution service
             IVsSolution solutionService = (IVsSolution)VsIdeTestHostContext.ServiceProvider.GetService(typeof(IVsSolution));
 
@@ -244,8 +222,7 @@ namespace Microsoft.VsSDK.IntegrationTestLibrary
         /// Get current number of open project in solution
         /// </summary>
         /// <returns></returns>
-        public int ProjectCount()
-        {
+        public int ProjectCount() {
             // Get solution service
             IVsSolution solutionService = (IVsSolution)VsIdeTestHostContext.ServiceProvider.GetService(typeof(IVsSolution));
             object projectCount;
@@ -262,8 +239,7 @@ namespace Microsoft.VsSDK.IntegrationTestLibrary
         /// <param name="templateName">Name of project template to use</param>
         /// <param name="language">language</param>
         /// <returns>New project.</returns>
-        public void CreateProjectFromTemplate(string projectName, string templateName, string language, bool exclusive)
-        {
+        public void CreateProjectFromTemplate(string projectName, string templateName, string language, bool exclusive) {
             DTE dte = (DTE)VsIdeTestHostContext.ServiceProvider.GetService(typeof(DTE));
 
             Solution2 sol = dte.Solution as Solution2;
@@ -286,11 +262,10 @@ namespace Microsoft.VsSDK.IntegrationTestLibrary
         /// <param name="language"></param>
         /// <param name="name"></param>
         /// <returns></returns>
-        public ProjectItem AddNewItemFromVsTemplate(ProjectItems parent, string templateName, string language, string name)
-        {
-            if (parent == null)
+        public ProjectItem AddNewItemFromVsTemplate(ProjectItems parent, string templateName, string language, string name) {
+            if(parent == null)
                 throw new ArgumentException("project");
-            if (name == null)
+            if(name == null)
                 throw new ArgumentException("name");
 
             DTE dte = (DTE)VsIdeTestHostContext.ServiceProvider.GetService(typeof(DTE));
@@ -308,8 +283,7 @@ namespace Microsoft.VsSDK.IntegrationTestLibrary
         /// Save an open document.
         /// </summary>
         /// <param name="documentMoniker">for filebased documents this is the full path to the document</param>
-        public void SaveDocument(string documentMoniker)
-        {
+        public void SaveDocument(string documentMoniker) {
             // Get document cookie and hierarchy for the file
             IVsRunningDocumentTable runningDocumentTableService = (IVsRunningDocumentTable)VsIdeTestHostContext.ServiceProvider.GetService(typeof(IVsRunningDocumentTable));
             uint docCookie;
@@ -329,8 +303,7 @@ namespace Microsoft.VsSDK.IntegrationTestLibrary
             solutionService.SaveSolutionElement((uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_ForceSave, hierarchy, docCookie);
         }
 
-        public void CloseInEditorWithoutSaving(string fullFileName)
-        {
+        public void CloseInEditorWithoutSaving(string fullFileName) {
             // Get the RDT service
             IVsRunningDocumentTable runningDocumentTableService = (IVsRunningDocumentTable)VsIdeTestHostContext.ServiceProvider.GetService(typeof(IVsRunningDocumentTable));
             Assert.IsNotNull(runningDocumentTableService, "Failed to get the Running Document Table Service");
@@ -361,8 +334,7 @@ namespace Microsoft.VsSDK.IntegrationTestLibrary
         #endregion
 
         #region Methods: Handling Toolwindows
-        public bool CanFindToolwindow(Guid persistenceGuid)
-        {
+        public bool CanFindToolwindow(Guid persistenceGuid) {
             IVsUIShell uiShellService = VsIdeTestHostContext.ServiceProvider.GetService(typeof(SVsUIShell)) as IVsUIShell;
             Assert.IsNotNull(uiShellService);
             IVsWindowFrame windowFrame;
@@ -374,8 +346,7 @@ namespace Microsoft.VsSDK.IntegrationTestLibrary
         #endregion
 
         #region Methods: Loading packages
-        public IVsPackage LoadPackage(Guid packageGuid)
-        {
+        public IVsPackage LoadPackage(Guid packageGuid) {
             IVsShell shellService = (IVsShell)VsIdeTestHostContext.ServiceProvider.GetService(typeof(SVsShell));
             IVsPackage package;
             shellService.LoadPackage(ref packageGuid, out package);
@@ -387,8 +358,7 @@ namespace Microsoft.VsSDK.IntegrationTestLibrary
         /// <summary>
         /// Executes a Command (menu item) in the given context
         /// </summary>
-        public void ExecuteCommand(CommandID cmd)
-        {
+        public void ExecuteCommand(CommandID cmd) {
             object Customin = null;
             object Customout = null;
             string guidString = cmd.Guid.ToString("B").ToUpper();

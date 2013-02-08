@@ -20,18 +20,15 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Shell;
 using ABB.SrcML.VisualStudio.SrcMLService;
 
-namespace ABB.SrcML.VisualStudio.SrcMLService.UnitTests.MenuItemTests
-{
+namespace ABB.SrcML.VisualStudio.SrcMLService.UnitTests.MenuItemTests {
     [TestClass()]
-    public class MenuItemTest
-    {
+    public class MenuItemTest {
         /// <summary>
         /// Verify that a new menu command object gets added to the OleMenuCommandService. 
         /// This action takes place In the Initialize method of the Package object
         /// </summary>
         [TestMethod]
-        public void InitializeMenuCommand()
-        {
+        public void InitializeMenuCommand() {
             /* temporarily comment out
             // Create the package
             IVsPackage package = new SrcMLServicePackage() as IVsPackage;
@@ -53,8 +50,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.UnitTests.MenuItemTests
         }
 
         [TestMethod]
-        public void MenuItemCallback()
-        {
+        public void MenuItemCallback() {
             /* temporarily comment out
             // Create the package
             IVsPackage package = new SrcMLServicePackage() as IVsPackage;

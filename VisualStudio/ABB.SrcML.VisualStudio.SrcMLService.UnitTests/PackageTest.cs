@@ -18,22 +18,18 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ABB.SrcML.VisualStudio.SrcMLService;
 
-namespace ABB.SrcML.VisualStudio.SrcMLService.UnitTests
-{
+namespace ABB.SrcML.VisualStudio.SrcMLService.UnitTests {
     [TestClass()]
-    public class PackageTest
-    {
+    public class PackageTest {
         [TestMethod()]
-        public void CreateInstance()
-        {
+        public void CreateInstance() {
             /* temporarily comment out
             SrcMLServicePackage package = new SrcMLServicePackage();
             */
         }
 
         [TestMethod()]
-        public void IsIVsPackage()
-        {
+        public void IsIVsPackage() {
             /* temporarily comment out
             SrcMLServicePackage package = new SrcMLServicePackage();
             Assert.IsNotNull(package as IVsPackage, "The object does not implement IVsPackage");
@@ -41,8 +37,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.UnitTests
         }
 
         [TestMethod()]
-        public void SetSite()
-        {
+        public void SetSite() {
             /* temporarily comment out
             // Create the package
             IVsPackage package = new SrcMLServicePackage() as IVsPackage;

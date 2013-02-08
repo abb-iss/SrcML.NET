@@ -7,11 +7,9 @@ using Microsoft.VSSDK.Tools.VsIdeTesting;
 using EnvDTE;
 using System.IO;
 
-namespace SrcMLService_IntegrationTests.IntegrationTests
-{
+namespace SrcMLService_IntegrationTests.IntegrationTests {
     [TestClass]
-    public class CPPProjectTests
-    {
+    public class CPPProjectTests {
         #region fields
         private delegate void ThreadInvoker();
         private TestContext _testContext;
@@ -22,16 +20,14 @@ namespace SrcMLService_IntegrationTests.IntegrationTests
         ///Gets or sets the test context which provides
         ///information about and functionality for the current test run.
         ///</summary>
-        public TestContext TestContext
-        {
+        public TestContext TestContext {
             get { return _testContext; }
             set { _testContext = value; }
         }
         #endregion
 
         #region ctors
-        public CPPProjectTests()
-        {
+        public CPPProjectTests() {
         }
         #endregion
 
@@ -59,10 +55,8 @@ namespace SrcMLService_IntegrationTests.IntegrationTests
 
         [HostType("VS IDE")]
         [TestMethod]
-        public void CPPWinformsApplication()
-        {
-            UIThreadInvoker.Invoke((ThreadInvoker)delegate()
-            {
+        public void CPPWinformsApplication() {
+            UIThreadInvoker.Invoke((ThreadInvoker)delegate() {
                 //Solution and project creation parameters
                 string solutionName = "CPPWinApp";
                 string projectName = "CPPWinApp";

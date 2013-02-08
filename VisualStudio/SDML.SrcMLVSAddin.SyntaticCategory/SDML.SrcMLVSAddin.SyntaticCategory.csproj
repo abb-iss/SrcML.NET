@@ -48,7 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\ABB.SrcML\ABB.SrcML.csproj">
-      <Project>{D52626E7-A4CA-471A-8A6A-FE0110430FE6}</Project>
+      <Project>{d52626e7-a4ca-471a-8a6a-fe0110430fe6}</Project>
       <Name>ABB.SrcML</Name>
     </ProjectReference>
   </ItemGroup>

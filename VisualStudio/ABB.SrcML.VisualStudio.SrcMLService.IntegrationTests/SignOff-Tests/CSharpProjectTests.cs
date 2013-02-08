@@ -5,11 +5,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VsSDK.IntegrationTestLibrary;
 using Microsoft.VSSDK.Tools.VsIdeTesting;
 
-namespace SrcMLService_IntegrationTests.IntegrationTests
-{
+namespace SrcMLService_IntegrationTests.IntegrationTests {
     [TestClass]
-    public class CSharpProjectTests
-    {
+    public class CSharpProjectTests {
         #region fields
         private delegate void ThreadInvoker();
         private TestContext _testContext;
@@ -20,16 +18,14 @@ namespace SrcMLService_IntegrationTests.IntegrationTests
         ///Gets or sets the test context which provides
         ///information about and functionality for the current test run.
         ///</summary>
-        public TestContext TestContext
-        {
+        public TestContext TestContext {
             get { return _testContext; }
             set { _testContext = value; }
         }
         #endregion
 
         #region ctors
-        public CSharpProjectTests()
-        {
+        public CSharpProjectTests() {
         }
         #endregion
 
@@ -57,10 +53,8 @@ namespace SrcMLService_IntegrationTests.IntegrationTests
 
         [TestMethod]
         [HostType("VS IDE")]
-        public void WinformsApplication()
-        {
-            UIThreadInvoker.Invoke((ThreadInvoker)delegate()
-            {
+        public void WinformsApplication() {
+            UIThreadInvoker.Invoke((ThreadInvoker)delegate() {
                 TestUtils testUtils = new TestUtils();
 
                 testUtils.CreateEmptySolution(TestContext.TestDir, "CSWinApp");
