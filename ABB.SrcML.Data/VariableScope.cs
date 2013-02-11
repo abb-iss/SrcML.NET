@@ -28,6 +28,11 @@ namespace ABB.SrcML.Data {
         protected Collection<VariableScope> ChildScopeCollection;
 
         /// <summary>
+        /// Holds all of the method calls for this scope
+        /// </summary>
+        protected Collection<MethodCall> MethodCallCollection;
+
+        /// <summary>
         /// Holds all of the variable declarations declared here. The key is the variable name.
         /// </summary>
         protected Dictionary<string, VariableDeclaration> DeclaredVariablesDictionary;
@@ -48,7 +53,7 @@ namespace ABB.SrcML.Data {
         public VariableScope ParentScope { get; set; }
 
         /// <summary>
-        /// Iterates over all of the child scopes of this class
+        /// Iterates over all of the child scopes of this scope
         /// </summary>
         public IEnumerable<VariableScope> ChildScopes { get { return this.ChildScopeCollection.AsEnumerable(); } }
 
@@ -56,6 +61,11 @@ namespace ABB.SrcML.Data {
         /// Iterates over all of the variable declarations for this scope
         /// </summary>
         public IEnumerable<VariableDeclaration> DeclaredVariables { get { return this.DeclaredVariablesDictionary.Values.AsEnumerable(); } }
+
+        /// <summary>
+        /// Iterates over all of the method calls in this scope
+        /// </summary>
+        public IEnumerable<MethodCall> MethodCalls { get { return this.MethodCallCollection.AsEnumerable(); } }
 
         /// <summary>
         /// The parent scopes for this scope in reverse order (parent is returned first, followed by the grandparent, etc).
@@ -89,6 +99,7 @@ namespace ABB.SrcML.Data {
         public VariableScope() {
             DeclaredVariablesDictionary = new Dictionary<string, VariableDeclaration>();
             ChildScopeCollection = new Collection<VariableScope>();
+            MethodCallCollection = new Collection<MethodCall>();
         }
 
         /// <summary>
@@ -122,6 +133,15 @@ namespace ABB.SrcML.Data {
         public void AddDeclaredVariable(VariableDeclaration declaration) {
             DeclaredVariablesDictionary[declaration.Name] = declaration;
             declaration.Scope = this;
+        }
+
+        /// <summary>
+        /// Adds a method call
+        /// </summary>
+        /// <param name="methodCall"></param>
+        public void AddMethodCall(MethodCall methodCall) {
+            MethodCallCollection.Add(methodCall);
+            methodCall.ParentScope = this;
         }
 
         /// <summary>

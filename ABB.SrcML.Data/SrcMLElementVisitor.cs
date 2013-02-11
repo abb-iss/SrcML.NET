@@ -62,6 +62,10 @@ namespace ABB.SrcML.Data {
                 CurrentScope.AddDeclaredVariable(variable);
             }
 
+            foreach(var methodCall in Parser.GetMethodCallsFromContainer(element, FileUnit, this.CurrentScope)) {
+                CurrentScope.AddMethodCall(methodCall);
+            }
+
             foreach(var child in Parser.GetChildContainers(element)) {
                 var childScope = Visit(child);
                 CurrentScope.AddChildScope(childScope);

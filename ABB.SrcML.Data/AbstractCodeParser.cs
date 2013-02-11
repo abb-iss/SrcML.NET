@@ -133,13 +133,6 @@ namespace ABB.SrcML.Data {
         /// <returns>A variable scope that represents <paramref name="container"/></returns>
         public virtual VariableScope CreateScopeFromContainer(XElement container, XElement fileUnit) {
             var currentScope = new VariableScope();
-
-            // get the variables declared at this scope
-            var declaredVariables = GetVariableDeclarationsFromContainer(container, fileUnit, currentScope);
-            foreach(var declaration in declaredVariables) {
-                currentScope.AddDeclaredVariable(declaration);
-            }
-
             return currentScope;
         }
 
@@ -391,6 +384,76 @@ namespace ABB.SrcML.Data {
         }
 
         #endregion get child containers
+
+        #region create method calls
+        public virtual MethodCall CreateMethodCall(XElement element, XElement fileUnit, VariableScope parentScope) {
+            string name = String.Empty;
+            bool isConstructor = false;
+            bool isDestructor = false;
+
+            var nameElement = element.Element(SRC.Name);
+            if(null != nameElement) {
+                name = GetNameElementsFromName(nameElement).Last().Value;
+            }
+
+            var precedingElements = element.ElementsBeforeSelf().Reverse();
+
+            foreach(var pe in precedingElements) {
+                if(pe.Name == OP.Operator && pe.Value == "new") {
+                    isConstructor = true;
+                } else if(pe.Name == OP.Operator && pe.Value == "~") {
+                    isDestructor = true;
+                }
+            }
+
+
+            var methodCall = new MethodCall() {
+                Name = name,
+                IsConstructor = isConstructor,
+                IsDestructor = isDestructor,
+                ParentScope = parentScope,
+                Location = new SourceLocation(element, fileUnit),
+            };
+            return methodCall;
+        }
+
+        public IEnumerable<MethodCall> GetMethodCallsFromContainer(XElement container, XElement fileUnit, VariableScope parentScope) {
+            if(null == container) return Enumerable.Empty<MethodCall>();
+
+            IEnumerable<XElement> methodCallElements;
+
+            if(MethodElementNames.Contains(container.Name) ||
+               NamespaceElementNames.Contains(container.Name) ||
+               TypeElementNames.Contains(container.Name)) {
+                methodCallElements = GetMethodCallsFromBlockParent(container);
+            } else {
+                methodCallElements = GetMethodCallsFromBlock(container);
+            }
+
+            var methodCalls = from call in methodCallElements
+                              select CreateMethodCall(call, fileUnit, parentScope);
+            return methodCalls;
+        }
+
+        private IEnumerable<XElement> GetMethodCallsFromBlockParent(XElement container)
+        {
+ 	        var block = container.Element(SRC.Block);
+            if(null == block)
+                return Enumerable.Empty<XElement>();
+            return GetMethodCallsFromBlock(block);
+        }   
+
+        private IEnumerable<XElement> GetMethodCallsFromBlock(XElement container) {
+            var methodCalls = from child in container.Elements()
+                              where !ContainerElementNames.Contains(child.Name)
+                              from call in child.Descendants(SRC.Call)
+                              select call;
+            return methodCalls;
+        }
+
+
+        #endregion create method calls
+
         #region create variable declarations
         /// <summary>
         /// Generates a variable declaration for the given declaration
