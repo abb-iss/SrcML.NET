@@ -105,16 +105,15 @@ namespace ABB.SrcML.Data {
             if(fileUnit.Name != SRC.Unit) throw new ArgumentException("must be a SRC.unit", "fileUnit");
             if(!MethodElementNames.Contains(methodElement.Name)) throw new ArgumentException("must be a method element", "fileUnit");
 
-            var parameters = from paramElement in GetParametersFromMethod(methodElement)
-                             select CreateVariableDeclaration(paramElement, fileUnit);
-
             var methodDefinition = new MethodDefinition() {
                 Name = GetNameForMethod(methodElement),
                 IsConstructor = (methodElement.Name == SRC.Constructor || methodElement.Name == SRC.ConstructorDeclaration),
                 IsDestructor = (methodElement.Name == SRC.Destructor || methodElement.Name == SRC.DestructorDeclaration),
-                Parameters = new Collection<VariableDeclaration>(parameters.ToList()),
             };
-            
+
+            var parameters = from paramElement in GetParametersFromMethod(methodElement)
+                             select CreateVariableDeclaration(paramElement, fileUnit, methodDefinition);
+            methodDefinition.Parameters = new Collection<VariableDeclaration>(parameters.ToList());
             return methodDefinition;
         }
 
@@ -136,7 +135,7 @@ namespace ABB.SrcML.Data {
             var currentScope = new VariableScope();
 
             // get the variables declared at this scope
-            var declaredVariables = GetVariableDeclarationsFromContainer(container, fileUnit);
+            var declaredVariables = GetVariableDeclarationsFromContainer(container, fileUnit, currentScope);
             foreach(var declaration in declaredVariables) {
                 currentScope.AddDeclaredVariable(declaration);
             }
@@ -171,8 +170,8 @@ namespace ABB.SrcML.Data {
                Kind = XNameMaps.GetKindForXElement(typeElement),
                Language = this.ParserLanguage,
                Name = GetNameForType(typeElement),
-               Parents = GetParentTypeUses(typeElement, fileUnit),
             };
+            typeDefinition.Parents = GetParentTypeUses(typeElement, fileUnit, typeDefinition);
 
             var fileName = GetFileNameForUnit(fileUnit);
             if(fileName.Length > 0) {
@@ -189,7 +188,7 @@ namespace ABB.SrcML.Data {
         /// <param name="fileUnit">The file unit that contains the typeElement</param>
         /// <param name="aliases">The aliases that apply to this type element (usually created from <paramref name="fileUnit"/>)</param>
         /// <returns>A new TypeUse object</returns>
-        public virtual TypeUse CreateTypeUse(XElement element, XElement fileUnit, IEnumerable<Alias> aliases) {
+        public virtual TypeUse CreateTypeUse(XElement element, XElement fileUnit, VariableScope parentScope, IEnumerable<Alias> aliases) {
             XElement typeNameElement;
 
             if(element == null)
@@ -216,8 +215,9 @@ namespace ABB.SrcML.Data {
 
             var typeUse = new TypeUse() {
                 Name = lastName.Value,
+                ParentScope = parentScope,
                 Prefix = new Collection<string>(prefixes.ToList()),
-                CurrentNamespace = CreateNamespaceDefinition(element, fileUnit),
+                Location = new SourceLocation(element, fileUnit),
                 Parser = this,
                 Aliases = new Collection<Alias>(aliases.ToList<Alias>()),
             };
@@ -230,9 +230,9 @@ namespace ABB.SrcML.Data {
         /// <param name="element">An element naming the type. Must be a <see cref="ABB.SrcML.SRC.Type"/>or <see cref="ABB.SrcML.SRC.Name"/>.</param>
         /// <param name="fileUnit">The file unit that contains the typeElement</param>
         /// <returns>A new TypeUse object</returns>
-        public virtual TypeUse CreateTypeUse(XElement element, XElement fileUnit) {
+        public virtual TypeUse CreateTypeUse(XElement element, XElement fileUnit, VariableScope parentScope) {
             var aliases = CreateAliasesForFile(fileUnit);
-            return CreateTypeUse(element, fileUnit, aliases);
+            return CreateTypeUse(element, fileUnit, parentScope, aliases);
         }
 
         /// <summary>
@@ -272,7 +272,7 @@ namespace ABB.SrcML.Data {
         /// <param name="typeElement">the type element to get the parents for</param>
         /// <param name="fileUnit">the file unit that contains <paramref name="typeElement"/></param>
         /// <returns>A collection of TypeUses that represent the parent classes of <paramref name="typeElement"/></returns>
-        public abstract Collection<TypeUse> GetParentTypeUses(XElement typeElement, XElement fileUnit);
+        public abstract Collection<TypeUse> GetParentTypeUses(XElement typeElement, XElement fileUnit, TypeDefinition typeDefinition);
 
         /// <summary>
         /// Get type aliases for the given file
@@ -398,7 +398,7 @@ namespace ABB.SrcML.Data {
         /// <param name="declaration">The declaration XElement. Can be of type <see cref="ABB.SrcML.SRC.Declaration"/>, <see cref="ABB.SrcML.SRC.DeclarationStatement"/>, or <see cref="ABB.SrcML.SRC.Parameter"/></param>
         /// <param name="fileUnit">The containing file unit</param>
         /// <returns>A variable declaration object</returns>
-        public virtual VariableDeclaration CreateVariableDeclaration(XElement declaration, XElement fileUnit) {
+        public virtual VariableDeclaration CreateVariableDeclaration(XElement declaration, XElement fileUnit, VariableScope parentScope) {
             if(declaration == null)
                 throw new ArgumentNullException("declaration");
             if(fileUnit == null)
@@ -416,7 +416,7 @@ namespace ABB.SrcML.Data {
             }
 
             var variableDeclaration = new VariableDeclaration() {
-                VariableType = CreateTypeUse(declElement.Element(SRC.Type), fileUnit),
+                VariableType = CreateTypeUse(declElement.Element(SRC.Type), fileUnit, parentScope),
                 Name = declElement.Element(SRC.Name).Value,
                 Location = new SourceLocation(declaration, fileUnit),
             };
@@ -428,7 +428,7 @@ namespace ABB.SrcML.Data {
         /// <param name="container">the container</param>
         /// <param name="fileUnit">the containing file unit</param>
         /// <returns>An enumerable of variable declarations</returns>
-        public virtual IEnumerable<VariableDeclaration> GetVariableDeclarationsFromContainer(XElement container, XElement fileUnit) {
+        public virtual IEnumerable<VariableDeclaration> GetVariableDeclarationsFromContainer(XElement container, XElement fileUnit, VariableScope parentScope) {
             if(null == container) return Enumerable.Empty<VariableDeclaration>();
 
             IEnumerable<XElement> declarationElements;
@@ -448,7 +448,7 @@ namespace ABB.SrcML.Data {
             }
 
             var declarations = from decl in declarationElements
-                               select CreateVariableDeclaration(decl, fileUnit);
+                               select CreateVariableDeclaration(decl, fileUnit, parentScope);
             return declarations;
         }
 

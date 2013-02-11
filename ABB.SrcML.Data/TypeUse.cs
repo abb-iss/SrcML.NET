@@ -27,19 +27,24 @@ namespace ABB.SrcML.Data {
         public string Name { get; set; }
 
         /// <summary>
+        /// The scope that contains this type use
+        /// </summary>
+        public VariableScope ParentScope { get; set; }
+
+        /// <summary>
         /// The possible prefixes for this type
         /// </summary>
         public Collection<string> Prefix { get; set; }
 
         /// <summary>
+        /// The location of this type use in both the source file and the XML document
+        /// </summary>
+        public SourceLocation Location { get; set; }
+
+        /// <summary>
         /// The parser that generated this object.
         /// </summary>
         public AbstractCodeParser Parser { get; set; }
-
-        /// <summary>
-        /// The current namespace definition
-        /// </summary>
-        public NamespaceDefinition CurrentNamespace { get; set; }
 
         /// <summary>
         /// All of the import/using directives for this type use.
@@ -52,7 +57,6 @@ namespace ABB.SrcML.Data {
         public TypeUse() {
             this.Name = String.Empty;
             this.Prefix = new Collection<string>();
-            this.CurrentNamespace = new NamespaceDefinition();
             this.Aliases = new Collection<Alias>();
         }
 

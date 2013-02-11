@@ -58,7 +58,7 @@ namespace ABB.SrcML.Data {
         public VariableScope Visit(XElement element) {
             ScopeStack.Push(CreateScope(element));
 
-            foreach(var variable in Parser.GetVariableDeclarationsFromContainer(element, FileUnit)) {
+            foreach(var variable in Parser.GetVariableDeclarationsFromContainer(element, FileUnit, this.CurrentScope)) {
                 CurrentScope.AddDeclaredVariable(variable);
             }
 

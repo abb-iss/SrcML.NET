@@ -140,7 +140,7 @@ namespace ABB.SrcML.Data {
         /// <param name="typeElement">The type element</param>
         /// <param name="fileUnit">The file unit that contains this type</param>
         /// <returns>A collection of type uses that represent the parent classes</returns>
-        public override Collection<TypeUse> GetParentTypeUses(XElement typeElement, XElement fileUnit) {
+        public override Collection<TypeUse> GetParentTypeUses(XElement typeElement, XElement fileUnit, TypeDefinition typeDefinition) {
             Collection<TypeUse> parents = new Collection<TypeUse>();
             var superTag = typeElement.Element(SRC.Super);
 
@@ -148,7 +148,7 @@ namespace ABB.SrcML.Data {
                 var parentElements = superTag.Elements(SRC.Name);
                 var aliases = CreateAliasesForFile(fileUnit);
                 foreach(var parentElement in parentElements) {
-                    parents.Add(CreateTypeUse(parentElement, fileUnit, aliases));
+                    parents.Add(CreateTypeUse(parentElement, fileUnit, typeDefinition, aliases));
                 }
             }
             return parents;

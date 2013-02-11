@@ -91,7 +91,7 @@ namespace ABB.SrcML.Data {
         /// <param name="typeElement">The type element</param>
         /// <param name="fileUnit">The file unit that contains this type</param>
         /// <returns>A collection of type uses that represent the parent classes</returns>
-        public override Collection<TypeUse> GetParentTypeUses(XElement typeElement, XElement fileUnit) {
+        public override Collection<TypeUse> GetParentTypeUses(XElement typeElement, XElement fileUnit, TypeDefinition typeDefinition) {
             Collection<TypeUse> parents = new Collection<TypeUse>();
             var superTag = typeElement.Element(SRC.Super);
 
@@ -101,7 +101,7 @@ namespace ABB.SrcML.Data {
                     var aliases = CreateAliasesForFile(fileUnit);
                     var parentElements = implementsTag.Elements(SRC.Name);
                     foreach(var parentElement in parentElements) {
-                        parents.Add(CreateTypeUse(parentElement, fileUnit, aliases));
+                        parents.Add(CreateTypeUse(parentElement, fileUnit, typeDefinition, aliases));
                     }
                 }
                 
@@ -168,8 +168,17 @@ namespace ABB.SrcML.Data {
         /// <returns>An enumerable of all the valid combinations of aliases with the name of the type use</returns>
         public override IEnumerable<string> GeneratePossibleNamesForTypeUse(TypeUse typeUse) {
             // a single name 
-            yield return typeUse.CurrentNamespace.MakeQualifiedName(typeUse.Name);
+            var parentNamespace = typeUse.ParentScope as NamespaceDefinition;
+            if(null == parentNamespace) {
+                parentNamespace = (from scope in typeUse.ParentScope.ParentScopes
+                                   let nsdef = scope as NamespaceDefinition
+                                   where nsdef != null
+                                   select nsdef).FirstOrDefault();
+            }
 
+            if(parentNamespace != null) {
+                yield return parentNamespace.MakeQualifiedName(typeUse.Name);
+            }
             var aliases = from alias in typeUse.Aliases
                           where alias.IsAliasFor(typeUse)
                           select alias.MakeQualifiedName(typeUse);
@@ -177,7 +186,7 @@ namespace ABB.SrcML.Data {
             foreach(var alias in aliases) {
                 yield return alias;
             }
-            if(!typeUse.CurrentNamespace.IsGlobal)
+            if(!parentNamespace.IsGlobal)
                 yield return typeUse.Name;
         }
     }

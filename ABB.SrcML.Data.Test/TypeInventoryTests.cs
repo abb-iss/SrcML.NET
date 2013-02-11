@@ -55,7 +55,11 @@ namespace ABB.SrcML.Data.Test {
             AbstractCodeParser parser = new JavaCodeParser();
             TypeInventory inventory = new TypeInventory();
 
-            var scopes = VariableScopeIterator.Visit(SrcMLElementVisitor.Visit(fileUnitA,parser));
+            var globalScope = SrcMLElementVisitor.Visit(fileUnitA, parser);
+            globalScope.Merge(SrcMLElementVisitor.Visit(fileUnitB, parser));
+            globalScope.Merge(SrcMLElementVisitor.Visit(fileUnitC, parser));
+
+            var scopes = VariableScopeIterator.Visit(globalScope);
             var typeDefinitions = from scope in scopes
                                   let typeDefinition = (scope as TypeDefinition)
                                   where typeDefinition != null
@@ -63,14 +67,11 @@ namespace ABB.SrcML.Data.Test {
 
             inventory.AddNewDefinitions(typeDefinitions);
 
-            typeDefinitions = from scope in VariableScopeIterator.Visit(SrcMLElementVisitor.Visit(fileUnitB, parser))
-                              let typeDefinition = (scope as TypeDefinition)
-                              where typeDefinition != null
-                              select typeDefinition;
+            var typeC = (from t in typeDefinitions
+                         where t.Name == "C"
+                         select t).First();
 
-            inventory.AddNewDefinitions(typeDefinitions);
-
-            var testTypeUse = parser.CreateTypeUse(fileUnitC.Descendants(SRC.Type).First(), fileUnitC);
+            var testTypeUse = typeC.DeclaredVariables.First().VariableType;
 
             var typeA = inventory.ResolveType(testTypeUse).FirstOrDefault();
             Assert.AreEqual("A", typeA.Name);
