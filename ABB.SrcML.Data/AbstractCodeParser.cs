@@ -191,7 +191,7 @@ namespace ABB.SrcML.Data {
             if(fileUnit.Name != SRC.Unit)
                 throw new ArgumentException("must be a SRC.unit", "fileUnit");
 
-            // validate the type use element (must be a SRC.Name or SRC.Type            
+            // validate the type use element (must be a SRC.Name or SRC.Type)
             if(element.Name == SRC.Type) {
                 typeNameElement = element.Element(SRC.Name);
             } else if(element.Name == SRC.Name) {
@@ -200,14 +200,16 @@ namespace ABB.SrcML.Data {
                 throw new ArgumentException("element should be of type type or name", "element");
             }
 
-            var nameElements = GetNameElementsFromName(typeNameElement);
+            string lastName = String.Empty;
+            IEnumerable<string> prefixes = Enumerable.Empty<string>();
 
-            var lastName = nameElements.Last();
-            var prefixes = from name in nameElements.TakeWhile(e => e.IsBefore(lastName))
-                           select name.Value;
+            if(typeNameElement != null) {
+                lastName = NameHelper.GetLastName(typeNameElement);
+                prefixes = NameHelper.GetNamesExceptLast(typeNameElement);
+            }
 
             var typeUse = new TypeUse() {
-                Name = lastName.Value,
+                Name = lastName,
                 ParentScope = parentScope,
                 Prefix = new Collection<string>(prefixes.ToList()),
                 Location = new SourceLocation(element, fileUnit),
@@ -312,22 +314,6 @@ namespace ABB.SrcML.Data {
             return textNodes;
         }
 
-        /// <summary>
-        /// This helper function returns all of the names from a name element. If a name element has no children, it just yields the name element back.
-        /// However, if the name element has child elements, it yields all of the child name elements.
-        /// </summary>
-        /// <param name="nameElement">The name element</param>
-        /// <returns>An enumerable of either all the child names, or the root if there are none.</returns>
-        public IEnumerable<XElement> GetNameElementsFromName(XElement nameElement) {
-            if(nameElement.Elements(SRC.Name).Any()) {
-                foreach(var name in nameElement.Elements(SRC.Name)) {
-                    yield return name;
-                }
-            } else {
-                yield return nameElement;
-            }
-        }
-
         #region scope definition
         /// <summary>
         /// Gets all of the child containers for the given container
@@ -393,10 +379,10 @@ namespace ABB.SrcML.Data {
 
             var nameElement = element.Element(SRC.Name);
             if(null != nameElement) {
-                name = GetNameElementsFromName(nameElement).Last().Value;
+                name = NameHelper.GetLastName(nameElement);
             }
 
-            var precedingElements = element.ElementsBeforeSelf().Reverse();
+            var precedingElements = element.ElementsBeforeSelf();
 
             foreach(var pe in precedingElements) {
                 if(pe.Name == OP.Operator && pe.Value == "new") {
@@ -472,15 +458,19 @@ namespace ABB.SrcML.Data {
                 throw new ArgumentException("must be of type SRC.Unit", "fileUnit");
 
             XElement declElement;
-            if(declaration.Name == SRC.Declaration) {
+            if(declaration.Name == SRC.Declaration || declaration.Name == SRC.FunctionDeclaration) {
                 declElement = declaration;
             } else {
                 declElement = declaration.Element(SRC.Declaration);
             }
 
+            var typeElement = declElement.Element(SRC.Type);
+            var nameElement = declElement.Element(SRC.Name);
+            var name = (nameElement == null ? String.Empty : nameElement.Value);
+
             var variableDeclaration = new VariableDeclaration() {
-                VariableType = CreateTypeUse(declElement.Element(SRC.Type), fileUnit, parentScope),
-                Name = declElement.Element(SRC.Name).Value,
+                VariableType = CreateTypeUse(typeElement, fileUnit, parentScope),
+                Name = name,
                 Location = new SourceLocation(declaration, fileUnit),
             };
             return variableDeclaration;
@@ -523,6 +513,9 @@ namespace ABB.SrcML.Data {
         public virtual IEnumerable<XElement> GetDeclarationsFromCatch(XElement container) {
             var declarations = from parameter in container.Elements(SRC.Parameter)
                                let declElement = parameter.Element(SRC.Declaration)
+                               let typeElement = declElement.Element(SRC.Type)
+                               where typeElement != null
+                               where !typeElement.Elements(TYPE.Modifier).Any()
                                select declElement;
             return declarations;
         }
@@ -558,7 +551,7 @@ namespace ABB.SrcML.Data {
         /// <returns>An enumerable of all the declaration XElements.</returns>
         public virtual IEnumerable<XElement> GetParametersFromMethod(XElement method) {
             var parameters = from parameter in method.Element(SRC.ParameterList).Elements(SRC.Parameter)
-                             let declElement = parameter.Element(SRC.Declaration)
+                             let declElement = parameter.Elements().First()
                              select declElement;
             return parameters;
         }

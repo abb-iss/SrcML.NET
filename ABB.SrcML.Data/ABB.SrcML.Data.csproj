@@ -50,6 +50,7 @@
     <Compile Include="Alias.cs" />
     <Compile Include="MethodCall.cs" />
     <Compile Include="NamedVariableScope.cs" />
+    <Compile Include="NameHelper.cs" />
     <Compile Include="SourceLocation.cs" />
     <Compile Include="SrcMLElementVisitor.cs" />
     <Compile Include="DataArchive.cs" />
