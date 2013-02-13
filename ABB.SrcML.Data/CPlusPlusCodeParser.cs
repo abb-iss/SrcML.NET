@@ -28,6 +28,7 @@ namespace ABB.SrcML.Data {
         public CPlusPlusCodeParser() {
             this.SpecifierContainerNames = new HashSet<XName>(new XName[] { SRC.Private, SRC.Protected, SRC.Public });
             this.TypeElementNames = new HashSet<XName>(new XName[] { SRC.Class, SRC.Enum, SRC.Struct, SRC.Union });
+            this.VariableDeclarationElementNames = new HashSet<XName>(new XName[] { SRC.Declaration,SRC.DeclarationStatement, SRC.Parameter, SRC.FunctionDeclaration });
         }
         /// <summary>
         /// Returns <c>Language.CPlusPlus</c>
@@ -85,18 +86,25 @@ namespace ABB.SrcML.Data {
             var methodDefinition = base.CreateMethodDefinition(methodElement, fileUnit);
 
             var nameElement = methodElement.Element(SRC.Name);
-            var names = GetNameElementsFromName(nameElement);
-            var methodName = names.Last();
+            IEnumerable<string> parentNames;
+            string methodName;
 
-            var parentNames = from name in names
-                              where name != methodName
-                              select name.Value;
+            if(null == nameElement) {
+                parentNames = Enumerable.Empty<string>();
+                methodName = String.Empty;
+            } else {
+                methodName = NameHelper.GetLastName(nameElement);
+                parentNames = NameHelper.GetNamesExceptLast(nameElement);
+            }
             
             NamedVariableScope current = null;
 
             if(parentNames.Any()) {
                 foreach(var name in parentNames) {
-                    var namedScope = new NamedVariableScope() { Name = name };
+                    var namedScope = new NamedVariableScope() {
+                        Name = name,
+                        Location = new SourceLocation(methodElement, fileUnit),
+                    };
 
                     if(null != current) {
                         current.AddChildScope(namedScope);
@@ -120,9 +128,7 @@ namespace ABB.SrcML.Data {
 
             if(null == nameElement)
                 return string.Empty;
-
-            var names = GetNameElementsFromName(nameElement);
-            return names.Last().Value;
+            return NameHelper.GetLastName(nameElement);
         }
 
         /// <summary>
@@ -177,27 +183,30 @@ namespace ABB.SrcML.Data {
                 throw new ArgumentException("must be an using statement", "usingStatement");
 
             var alias = new Alias() {
+                Name = String.Empty,
                 Location = new SourceLocation(usingStatement, fileUnit),
             };
             var nameElement = usingStatement.Element(SRC.Name);
-            var names = GetNameElementsFromName(nameElement);
 
             var containsNamespaceKeyword = (from textNode in GetTextNodes(usingStatement)
                                             where textNode.Value.Contains("namespace")
                                             select textNode).Any();
-            if(containsNamespaceKeyword) {
-                // if the using declaration contains the namespace keyword then this is a namespace import
-                alias.NamespaceName = String.Join(".", from name in names select name.Value);
-            } else {
-                // if the namespace keyword isn't present then the using declaration is importing a specific type or variable
-                var lastName = names.LastOrDefault();
-                var namespaceNames = from name in names
-                                     where name.IsBefore(lastName)
-                                     select name.Value;
+            if(nameElement != null) {
+                if(containsNamespaceKeyword) {
+                    // if the using declaration contains the namespace keyword then this is a namespace import
+                    var names = from name in NameHelper.GetNameElementsFromName(nameElement)
+                                select name.Value;
+                    alias.NamespaceName = String.Join(".", names);
+                } else {
+                    // if the namespace keyword isn't present then the using declaration is importing a specific type or variable
+                    var lastName = NameHelper.GetLastName(nameElement);
+                    var namespaceNames = NameHelper.GetNamesExceptLast(nameElement);
 
-                alias.NamespaceName = String.Join(".", namespaceNames);
-                alias.Name = lastName.Value;
+                    alias.NamespaceName = String.Join(".", namespaceNames);
+                    alias.Name = lastName;
+                }
             }
+            
             return alias;
         }
 
