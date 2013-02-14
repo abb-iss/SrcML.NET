@@ -103,8 +103,8 @@ namespace ABB.SrcML.Data {
                 foreach(var name in parentNames) {
                     var namedScope = new NamedVariableScope() {
                         Name = name,
-                        Location = new SourceLocation(methodElement, fileUnit),
                     };
+                    namedScope.AddSourceLocation(new SourceLocation(methodElement, fileUnit));
 
                     if(null != current) {
                         current.AddChildScope(namedScope);

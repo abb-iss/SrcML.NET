@@ -277,7 +277,7 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("int", declaration.VariableType.Name);
             Assert.AreEqual("X", declaration.Name);
 
-            Assert.That(useOfX.GetXPath(false).StartsWith(declaration.Scope.Location.XPath));
+            Assert.That(useOfX.GetXPath(false).StartsWith(declaration.Scope.PrimaryLocation.XPath));
         }
 
         [Test]

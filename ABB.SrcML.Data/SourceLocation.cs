@@ -36,6 +36,7 @@ namespace ABB.SrcML.Data {
         /// <param name="fileName">The filename</param>
         /// <param name="lineNumber">the line number</param>
         /// <param name="position">The position within the line</param>
+        /// <param name="xpath">The XPath that identifies this location</param>
         public SourceLocation(string fileName, int lineNumber, int position, string xpath) {
             this.SourceFileName = fileName;
             this.SourceLineNumber = lineNumber;
