@@ -12,6 +12,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
@@ -301,6 +302,42 @@ namespace ABB.SrcML.Data {
                 if(scope.DeclaredVariablesDictionary.TryGetValue(variableName, out declaration)) {
                     yield return declaration;
                 }
+            }
+        }
+
+
+        public virtual void RemoveFile(string fileName) {
+            if(!LocationDictionary.ContainsKey(fileName)) {
+                //this scope is not defined in the given file
+                return;
+            }
+
+            if(LocationDictionary.Count == 1) {
+                //this scope exists solely in the file to be deleted
+                ParentScope = null;
+            } else {
+                Debug.WriteLine("Found VariableScope with more than one location. This should be impossible!");
+                foreach(var loc in Locations) {
+                    Debug.WriteLine("Location: " + loc);
+                }
+                
+                //this scope is defined in more than one file, delete only the parts in the given file
+
+                //remove children
+                //remove method calls
+                //update locations
+
+                var childrenToRemove = new List<VariableScope>();
+                foreach(var child in ChildScopeCollection) {
+                    if(child.ExistsInFile(fileName)) {
+                        child.RemoveFile(fileName);
+                        if(child.ParentScope == null) {
+                            //child has deleted itself
+                            childrenToRemove.Add(child);
+                        }
+                    }
+                }
+                //remove identified children
             }
         }
     }
