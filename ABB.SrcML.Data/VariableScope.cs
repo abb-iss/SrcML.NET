@@ -43,7 +43,7 @@ namespace ABB.SrcML.Data {
         /// References the primary location where this location has been defined. This should be updated by using the <see cref="UpdatePrimaryLocation(SourceLocation)"/> method.
         /// For VariableScope objects, the primary location is simply the first location that was added.
         /// </summary>
-        public SourceLocation PrimaryLocation { get; protected set; }
+        public SourceLocation PrimaryLocation { get; set; }
 
         /// <summary>
         /// Holds all of the variable declarations declared here. The key is the variable name.
@@ -124,6 +124,16 @@ namespace ABB.SrcML.Data {
             PrimaryLocation = null;
         }
 
+        public VariableScope(VariableScope otherScope) {
+            PrimaryLocation = otherScope.PrimaryLocation;
+            ParentScope = otherScope.ParentScope;
+            DeclaredVariablesDictionary = new Dictionary<string, VariableDeclaration>(otherScope.DeclaredVariablesDictionary.Count);
+            LocationDictionary = new Dictionary<string, Collection<SourceLocation>>(otherScope.LocationDictionary.Count);
+            ChildScopeCollection = new Collection<VariableScope>();
+            MethodCallCollection = new Collection<MethodCall>();
+            AddFrom(otherScope);
+        }
+
         /// <summary>
         /// Adds a child scope to this scope
         /// </summary>
@@ -135,6 +145,8 @@ namespace ABB.SrcML.Data {
             for(i = 0; i < this.ChildScopeCollection.Count; i++) {
                 mergedScope = this.ChildScopeCollection.ElementAt(i).Merge(childScope);
                 if(null != mergedScope) {
+                    this.ChildScopeCollection[i] = mergedScope;
+                    mergedScope.ParentScope = this;
                     break;
                 }
             }
@@ -142,9 +154,6 @@ namespace ABB.SrcML.Data {
             if(null == mergedScope) {
                 ChildScopeCollection.Add(childScope);
                 childScope.ParentScope = this;
-            } else if(mergedScope == childScope) {
-                ChildScopeCollection[i] = mergedScope;
-                mergedScope.ParentScope = this;
             }
         }
 
@@ -216,14 +225,16 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The merge function merges two scopes if they are the same. It assumes that the parents of the two scopes are identical.
         /// Because of this, it is best to call it on two "global scope" objects. If the two scopes are the same (as determined by
-        /// the <see cref="CanBeMergedWith"/> method), then the variable declarations in <paramref name="otherScope"/> are added to this scope
-        /// and the child scopes of <paramref name="otherScope"/> are merged with the child scopes of this scope.
+        /// the <see cref="CanBeMergedInto"/> method), then the variable declarations in <paramref name="otherScope"/> then a new
+        /// VariableScope with all the children of the both scopes is returned.
         /// </summary>
-        /// <param name="otherScope">The scope to merge with.</param>
-        /// <returns>True if the scopes were merged, false otherwise.</returns>
+        /// <param name="otherScope">The scope to merge with</param>
+        /// <returns>A new variable scope if the scopes <see cref="CanBeMergedInto">could be merged</see>; null otherwise</returns>
         public virtual VariableScope Merge(VariableScope otherScope) {
-            if(CanBeMergedWith(otherScope)) {
-                return AddFrom(otherScope);
+            if(CanBeMergedInto(otherScope)) {
+                VariableScope mergedScope = new VariableScope(this);
+                mergedScope.AddFrom(otherScope);
+                return mergedScope;
             }
             return null;
         }
@@ -237,9 +248,14 @@ namespace ABB.SrcML.Data {
             foreach(var declaration in otherScope.DeclaredVariables) {
                 this.AddDeclaredVariable(declaration);
             }
-
+            foreach(var location in otherScope.Locations) {
+                this.AddSourceLocation(location);
+            }
             foreach(var newChild in otherScope.ChildScopes) {
                 AddChildScope(newChild);
+            }
+            foreach(var methodCall in otherScope.MethodCalls) {
+                AddMethodCall(methodCall);
             }
             return this;
         }
@@ -249,7 +265,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="otherScope">The scope to compare to</param>
         /// <returns>True if the scopes are the same. False otherwise.</returns>
-        public virtual bool CanBeMergedWith(VariableScope otherScope) {
+        public virtual bool CanBeMergedInto(VariableScope otherScope) {
             return (null != otherScope && this.PrimaryLocation.XPath == otherScope.PrimaryLocation.XPath);
         }
 

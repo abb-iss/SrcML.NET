@@ -56,8 +56,8 @@ namespace ABB.SrcML.Data.Test {
             TypeInventory inventory = new TypeInventory();
 
             var globalScope = SrcMLElementVisitor.Visit(fileUnitA, parser);
-            globalScope.Merge(SrcMLElementVisitor.Visit(fileUnitB, parser));
-            globalScope.Merge(SrcMLElementVisitor.Visit(fileUnitC, parser));
+            globalScope = globalScope.Merge(SrcMLElementVisitor.Visit(fileUnitB, parser));
+            globalScope = globalScope.Merge(SrcMLElementVisitor.Visit(fileUnitC, parser));
 
             var scopes = VariableScopeIterator.Visit(globalScope);
             var typeDefinitions = from scope in scopes

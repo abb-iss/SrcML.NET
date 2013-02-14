@@ -43,6 +43,11 @@ namespace ABB.SrcML.Data {
             UnresolvedParentScope = null;
         }
 
+        public NamedVariableScope(NamedVariableScope otherScope) : base(otherScope) {
+            Name = otherScope.Name;
+            UnresolvedParentScope = otherScope.UnresolvedParentScope;
+        }
+
         /// <summary>
         /// The full name of this object (taken by finding all of the NamedVariableScope objects that are ancestors of this
         /// object.
@@ -105,41 +110,54 @@ namespace ABB.SrcML.Data {
         /// <para>If this is a subclass of NamedVariableScope and <paramref name="otherScope"/> is not, it merges otherScope with this.</para>
         /// <para>If this is a NamedVariableScope and <paramref name="otherScope"/> is a subclass, it merges this with otherScope</para>
         /// <para>If the two objects cannot be merged, it does not merge them.</para>
-        /// <para><seealso cref="CanBeMergedWith(NamedVariableScope)">CanBeMergedWith is used to decide if the two objects can be merged.</seealso></para>
+        /// <para><seealso cref="CanBeMergedInto(NamedVariableScope)">CanBeMergedInto is used to decide if the two objects can be merged.</seealso></para>
         /// </summary>
         /// <param name="otherScope">The scope to merge with</param>
         /// <returns>The merged scope. null if they cannot be merged.</returns>
         public override VariableScope Merge(VariableScope otherScope) {
-            if(this.CanBeMergedWith(otherScope) && otherScope.CanBeMergedWith(this)) {
-                // this and otherScope have the same name and the same type.
-                // they can be merged normally
-                return this.AddFrom(otherScope);
-            } else if(!this.CanBeMergedWith(otherScope) && otherScope.CanBeMergedWith(this)) {
-                // this is a subclass of NamedVariableScope and otherScope is a NamedVariableScope
-                // useful information (type, method, or namespace data) are in this
-                return this.AddFrom(otherScope);
-            } else if(this.CanBeMergedWith(otherScope) && !otherScope.CanBeMergedWith(this)) {
-                // this is a NamedVariableScope and otherScope is a subclass
-                // useful information (type, method, or namespace data) are in otherscope
-                return otherScope.AddFrom(this);
-            }
-            return null;
+            return this.Merge(otherScope as NamedVariableScope);
         }
 
         /// <summary>
-        /// Overrides <see cref="VariableScope.CanBeMergedWith"/> to call <see cref="CanBeMergedWith(NamedVariableScope)"/>
+        /// Merges two NamedVariableScopes together. It works like this:
+        /// <list type="bullet">
+        /// <item><description>If this is the same type or more specific than <paramref name="otherScope"/>, then create a new merged NamedVariableScope
+        /// from <paramref name="otherscope"/> and this.</description></item>
+        /// <item><description>If <paramref name="otherScope"/> is more specific than this, call <c>otherScope.Merge</c></description></item>
+        /// </list>
+        /// </summary>
+        /// <param name="otherScope">The scope to merge with</param>
+        /// <returns>The new merged scope; null if they couldn't be merged</returns>
+        public virtual NamedVariableScope Merge(NamedVariableScope otherScope) {
+            NamedVariableScope mergedScope = null;
+            if(otherScope.CanBeMergedInto(this)) {
+                // this and other scope can be merged normally
+                // either they are the same type or
+                // this is a subclass of NamedVariableScope and otherScope is a NamedVariableScope
+                mergedScope = new NamedVariableScope(this);
+                mergedScope.AddFrom(otherScope);
+            } else if(this.CanBeMergedInto(otherScope) && !otherScope.CanBeMergedInto(this)) {
+                // this is a NamedVariableScope and otherScope is a subclass
+                // useful information (type, method, or namespace data) are in otherScope
+                mergedScope = otherScope.Merge(this);
+            }
+
+            return mergedScope;
+        }
+        /// <summary>
+        /// Overrides <see cref="VariableScope.CanBeMergedInto"/> to call <see cref="CanBeMergedInto(NamedVariableScope)"/>
         /// </summary>
         /// <param name="otherScope">the scope to test</param>
         /// <returns>true if the two objects can be merged, false otherwise</returns>
-        public override bool CanBeMergedWith(VariableScope otherScope) {
-            return this.CanBeMergedWith(otherScope as NamedVariableScope);
+        public override bool CanBeMergedInto(VariableScope otherScope) {
+            return this.CanBeMergedInto(otherScope as NamedVariableScope);
         }
         /// <summary>
         /// Two NamedVariableScope objects can be merged if they share the same name.
         /// </summary>
         /// <param name="otherScope">The scope to test</param>
         /// <returns>true if the two objects have the same <see cref="Name"/>. False, otherwise.</returns>
-        public virtual bool CanBeMergedWith(NamedVariableScope otherScope) {
+        public virtual bool CanBeMergedInto(NamedVariableScope otherScope) {
             return (null != otherScope && this.Name == otherScope.Name);
         }
 

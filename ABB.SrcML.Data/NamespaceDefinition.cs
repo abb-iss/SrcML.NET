@@ -31,6 +31,11 @@ namespace ABB.SrcML.Data {
             this.IsAnonymous = false;
         }
 
+        public NamespaceDefinition(NamespaceDefinition otherDefinition)
+            : base(otherDefinition) {
+                this.IsAnonymous = otherDefinition.IsAnonymous;
+        }
+
         public Collection<TypeDefinition> Types { get; set; }
         public Collection<MethodDefinition> Methods { get; set; }
         public Collection<VariableDeclaration> Variables { get; set; }
@@ -58,21 +63,36 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
+        /// Merges this namespace definition with <paramref name="otherScope"/>. This happens when <c>otherScope.CanBeMergedInto(this)</c> evaluates to true.
+        /// </summary>
+        /// <param name="otherScope">the scope to merge with</param>
+        /// <returns>a new namespace definition from this and otherScope</returns>
+        public override NamedVariableScope Merge(NamedVariableScope otherScope) {
+            NamespaceDefinition mergedScope = null;
+            if(otherScope.CanBeMergedInto(this)) {
+                mergedScope = new NamespaceDefinition(this);
+                mergedScope.AddFrom(otherScope);
+            }
+
+            return mergedScope;
+        }
+
+        /// <summary>
         /// Returns true if both this and <paramref name="otherScope"/> have the same name.
         /// </summary>
         /// <param name="otherScope">The scope to test</param>
         /// <returns>true if they are the same namespace; false otherwise.</returns>
-        public virtual bool CanBeMergedWith(NamespaceDefinition otherScope) {
-            return base.CanBeMergedWith(otherScope);
+        public virtual bool CanBeMergedInto(NamespaceDefinition otherScope) {
+            return base.CanBeMergedInto(otherScope);
         }
 
         /// <summary>
-        /// Casts <paramref name="otherScope"/> to a <see cref="NamespaceDefinition"/> and calls <see cref="CanBeMergedWith(NamespaceDefinition)"/>
+        /// Casts <paramref name="otherScope"/> to a <see cref="NamespaceDefinition"/> and calls <see cref="CanBeMergedInto(NamespaceDefinition)"/>
         /// </summary>
         /// <param name="otherScope">The scope to test</param>
-        /// <returns>true if <see cref="CanBeMergedWith(NamespaceDefinition)"/> evaluates to true.</returns>
-        public override bool CanBeMergedWith(NamedVariableScope otherScope) {
-            return this.CanBeMergedWith(otherScope as NamespaceDefinition);
+        /// <returns>true if <see cref="CanBeMergedInto(NamespaceDefinition)"/> evaluates to true.</returns>
+        public override bool CanBeMergedInto(NamedVariableScope otherScope) {
+            return this.CanBeMergedInto(otherScope as NamespaceDefinition);
         }
     }
 }
