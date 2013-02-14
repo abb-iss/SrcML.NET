@@ -55,5 +55,12 @@ namespace ABB.SrcML.Data {
             this.SourceColumnNumber = element.GetSrcLinePosition();
             this.XPath = element.GetXPath(false);
         }
+
+        /// <summary>
+        /// Returns a string representation of the SourceLocation.
+        /// </summary>
+        public override string ToString() {
+            return string.Format("{0}: line {1}, column {2}", SourceFileName, SourceLineNumber, SourceColumnNumber);
+        }
     }
 }

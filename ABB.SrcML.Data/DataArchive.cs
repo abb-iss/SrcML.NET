@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -44,9 +45,10 @@ namespace ABB.SrcML.Data {
     /// XElement parentXml = data.ResolveType(parentType).GetXElement();
     /// </code>
     /// </example>
-    
     public class DataArchive {
-        public SrcMLArchive Archive { get; set; }
+        private VariableScope globalScope;
+        
+        public SrcMLArchive Archive { get; private set; }
 
         /// <summary>
         /// Create a data archive for the given srcML archive. It will subscribe to the <see cref="SrcMLArchive.SourceFileChanged"/> event.
@@ -55,7 +57,45 @@ namespace ABB.SrcML.Data {
         public DataArchive(SrcMLArchive archive) {
             this.Archive = archive;
             this.Archive.SourceFileChanged += Archive_SourceFileChanged;
+            InitializeData();
         }
+
+        public void Clear() {
+            globalScope = null;
+            //TODO: clear any other data structures as necessary
+        }
+
+        public void AddFile(string sourceFile) {
+            var unit = Archive.GetXElementForSourceFile(sourceFile);
+            AddFile(unit);
+        }
+
+        public void AddFile(XElement fileUnitElement) {
+            var fileLanguage = SrcMLElement.GetLanguageForUnit(fileUnitElement);
+            VariableScope resultScope = null;
+            switch(fileLanguage) {
+                case Language.C:
+                    goto case Language.CPlusPlus;
+                case Language.CPlusPlus:
+                    resultScope = SrcMLElementVisitor.Visit(fileUnitElement, new CPlusPlusCodeParser());
+                    break;
+                case Language.Java:
+                    resultScope = SrcMLElementVisitor.Visit(fileUnitElement, new JavaCodeParser());
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
+            if(resultScope != null) {
+                globalScope = globalScope != null ? globalScope.Merge(resultScope) : resultScope;
+            }
+            //TODO: update other data structures as necessary
+        }
+
+        public void RemoveFile(string sourceFile) {
+            //globalScope.RemoveFile(sourceFile);
+            throw new NotImplementedException();
+        }
+
 
         public TypeDefinition ResolveType(XElement variableDeclarationElement) {
             //var typeUse = new TypeUse(variableDeclarationElement);
@@ -67,61 +107,36 @@ namespace ABB.SrcML.Data {
             throw new NotImplementedException();
         }
 
-        void Archive_SourceFileChanged(object sender, FileEventRaisedArgs e) {
-            switch(e.EventType) {
-                case FileEventType.FileChanged:
-                    // Treat a change source file as deleted then added
-                    RespondToSourceFileDeletion(e.SourceFilePath);
-                    goto case FileEventType.FileAdded;
-                case FileEventType.FileAdded:
-                    RespondToSourceFileAddition(e.SourceFilePath);
-                    break;
-                case FileEventType.FileDeleted:
-                    RespondToSourceFileDeletion(e.SourceFilePath);
-                    break;
-                case FileEventType.FileRenamed:
-                    // TODO remove the file from the data archive
-                    // TODO do we need the rename case? or just handle delete + add?
-                    throw new NotImplementedException();
+
+        #region Private Methods
+        private void InitializeData() {
+            Clear();
+            foreach(var unit in Archive.FileUnits) {
+                AddFile(unit);
             }
         }
 
-        /// <summary>
-        /// This function is a container function for all of the different "Load" functions
-        /// It is responsible for adding data for new files. It is *not* responsible for deleting existing data (<see cref="RespondToSourceFileDeletion(string)"/>
-        /// </summary>
-        /// <param name="pathToNewFile">the path to the source file that changed</param>
-        private void RespondToSourceFileAddition(string pathToNewFile) {
-            var updatedFileUnit = Archive.GetXElementForSourceFile(pathToNewFile);
-
-            LoadTypesFromFile(updatedFileUnit);
+        private void Archive_SourceFileChanged(object sender, FileEventRaisedArgs e) {
+            switch(e.EventType) {
+                case FileEventType.FileChanged:
+                    // Treat a changed source file as deleted then added
+                    RemoveFile(e.SourceFilePath);
+                    goto case FileEventType.FileAdded;
+                case FileEventType.FileAdded:
+                    AddFile(e.SourceFilePath);
+                    break;
+                case FileEventType.FileDeleted:
+                    RemoveFile(e.SourceFilePath);
+                    break;
+                case FileEventType.FileRenamed:
+                    // TODO: could a more efficient rename action be supported within the data structures themselves?
+                    RemoveFile(e.OldSourceFilePath);
+                    AddFile(e.SourceFilePath);
+                    break;
+            }
         }
 
-        /// <summary>
-        /// This function is a container function for all of the different "Remove" functions
-        /// It is responsible for removing existing data for changed or deleted files.
-        /// </summary>
-        /// <param name="pathToDeletedFile"></param>
-        private void RespondToSourceFileDeletion(string pathToDeletedFile) {
-            RemoveTypesForFile(pathToDeletedFile);
-        }
-
-        #region Type Inventory
-        /// <summary>
-        /// Load types from the given source file and add them to the type inventory
-        /// </summary>
-        /// <param name="updatedFileUnit">The file unit to get types for</param>
-        private void LoadTypesFromFile(XElement updatedFileUnit) {
-            throw new NotImplementedException();
-        }
-
-        private void RemoveTypesForFile(string pathToSourceFile) {
-            // TODO find all types defined in the given source file and remove them
-            throw new NotImplementedException();
-        }
         #endregion
-        
-        
 
     }
 }
