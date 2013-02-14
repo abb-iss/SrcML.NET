@@ -89,7 +89,7 @@ namespace ABB.SrcML.Data {
             } else {
                 scope = CreateScopeFromContainer(element, fileUnit);
             }
-            scope.Location = new SourceLocation(element, fileUnit);
+            scope.AddSourceLocation(new SourceLocation(element, fileUnit));
             return scope;
         }
 

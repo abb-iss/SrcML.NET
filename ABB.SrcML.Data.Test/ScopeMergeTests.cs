@@ -240,6 +240,8 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreSame(typeA, methodFoo.ParentScope);
             Assert.AreSame(typeA, methodBar.ParentScope);
             Assert.AreSame(globalScope, typeA.ParentScope);
+
+            Assert.AreEqual("A.h", typeA.PrimaryLocation.SourceFileName);
         }
 
         [Test]
@@ -260,6 +262,9 @@ namespace ABB.SrcML.Data.Test {
      <return>return <expr><lit:literal type=""number"">0</lit:literal></expr>;</return>
 }</block></function>";
 
+            // # A.h
+            // class A {
+            // };
             string xmlh = @"<class>class <name>A</name> <block>{<private type=""default"">
 </private>}</block>;</class>";
 
@@ -290,6 +295,8 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreSame(typeA, aDotFoo.ParentScope);
             Assert.AreSame(typeA, aDotFoo.ParentScope);
             Assert.AreSame(globalScope, typeA.ParentScope);
+
+            Assert.AreEqual("A.h", typeA.PrimaryLocation.SourceFileName);
         }
 
         [Test]
@@ -336,5 +343,47 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreSame(typeB, methodFoo.ParentScope);
         }
 
+        [Test]
+        public void TestMethodDefinitionMerge_Cpp() {
+            // # A.h
+            // class A {
+            //     int Foo();
+            // };
+            string header_xml = @"<class>class <name>A</name> <block>{<private type=""default"">
+    <function_decl><type><name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list>;</function_decl>
+</private>}</block>;</class>";
+
+            // # A.cpp
+            // #include "A.h"
+            // int A::Foo() {
+            //     int bar = 1;
+            //     return bar;
+            // }
+            string impl_xml = @"<cpp:include>#<cpp:directive>include</cpp:directive> <cpp:file><lit:literal type=""string"">""A.h""</lit:literal></cpp:file></cpp:include>
+
+<function><type><name>int</name></type> <name><name>A</name><op:operator>::</op:operator><name>Foo</name></name><parameter_list>()</parameter_list> <block>{
+    <decl_stmt><decl><type><name>int</name></type> <name>bar</name> =<init> <expr><lit:literal type=""number"">1</lit:literal></expr></init></decl>;</decl_stmt>
+    <return>return <expr><name>bar</name></expr>;</return>
+}</block></function>";
+
+            var header = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(header_xml, "A.h");
+            var implementation = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(impl_xml, "A.cpp");
+
+            var globalScope = SrcMLElementVisitor.Visit(header, CodeParser[Language.CPlusPlus]);
+            globalScope = globalScope.Merge(SrcMLElementVisitor.Visit(implementation, CodeParser[Language.CPlusPlus]));
+
+            Assert.AreEqual(1, globalScope.ChildScopes.Count());
+            
+            var typeA = globalScope.ChildScopes.First() as TypeDefinition;
+            Assert.AreEqual("A", typeA.Name);
+            Assert.AreEqual(1, typeA.ChildScopes.Count());
+
+            var methodFoo = typeA.ChildScopes.First() as MethodDefinition;
+            Assert.AreEqual("Foo", methodFoo.Name);
+            Assert.AreEqual(0, methodFoo.ChildScopes.Count());
+            Assert.AreEqual(1, methodFoo.DeclaredVariables.Count());
+            Assert.AreEqual("A.cpp", methodFoo.PrimaryLocation.SourceFileName);
+            Assert.AreEqual(AccessModifier.Private, methodFoo.Accessibility);
+        }
     }
 }

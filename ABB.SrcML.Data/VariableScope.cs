@@ -33,14 +33,33 @@ namespace ABB.SrcML.Data {
         protected Collection<MethodCall> MethodCallCollection;
 
         /// <summary>
+        /// Holds all of the source locations for this scope. The key is a filename.
+        /// the value is a collection of sourcelocations in that file where this scope has been defined.
+        /// </summary>
+        protected Dictionary<string, Collection<SourceLocation>> LocationDictionary;
+
+        /// <summary>
+        /// References the primary location where this location has been defined. This should be updated by using the <see cref="UpdatePrimaryLocation(SourceLocation)"/> method.
+        /// For VariableScope objects, the primary location is simply the first location that was added.
+        /// </summary>
+        public SourceLocation PrimaryLocation { get; protected set; }
+
+        /// <summary>
         /// Holds all of the variable declarations declared here. The key is the variable name.
         /// </summary>
         protected Dictionary<string, VariableDeclaration> DeclaredVariablesDictionary;
 
         /// <summary>
-        /// The location of this scope in both the original source file and in XML.
+        /// An enumerable of all the source location objects that this scope is defined at.
         /// </summary>
-        public SourceLocation Location { get; set; }
+        public IEnumerable<SourceLocation> Locations {
+            get {
+                var locations = from locationsForFile in LocationDictionary.Values
+                                from location in locationsForFile
+                                select location;
+                return locations;
+            }
+        }
 
         /// <summary>
         /// Indicates the programming language used to create this scope
@@ -100,6 +119,8 @@ namespace ABB.SrcML.Data {
             DeclaredVariablesDictionary = new Dictionary<string, VariableDeclaration>();
             ChildScopeCollection = new Collection<VariableScope>();
             MethodCallCollection = new Collection<MethodCall>();
+            LocationDictionary = new Dictionary<string, Collection<SourceLocation>>();
+            PrimaryLocation = null;
         }
 
         /// <summary>
@@ -124,6 +145,53 @@ namespace ABB.SrcML.Data {
                 ChildScopeCollection[i] = mergedScope;
                 mergedScope.ParentScope = this;
             }
+        }
+
+        /// <summary>
+        /// Adds a new source location to this scope.
+        /// </summary>
+        /// <param name="location"></param>
+        public virtual void AddSourceLocation(SourceLocation location) {
+            Collection<SourceLocation> locationsForFile;
+            if(!LocationDictionary.TryGetValue(location.SourceFileName, out locationsForFile)) {
+                locationsForFile = new Collection<SourceLocation>();
+                LocationDictionary[location.SourceFileName] = locationsForFile;
+            }
+            locationsForFile.Add(location);
+            UpdatePrimaryLocation(location);
+        }
+
+        /// <summary>
+        /// Updates <see cref="PrimaryLocation"/> property. This should be overrided by child classes.
+        /// If <see cref="PrimaryLocation"/> is null, then it is set to <paramref name="location"/>
+        /// </summary>
+        /// <param name="location">A new location</param>
+        protected virtual void UpdatePrimaryLocation(SourceLocation location) {
+            if(null == PrimaryLocation) {
+                PrimaryLocation = location;
+            }
+        }
+
+        /// <summary>
+        /// Checks if this scope was defined in <paramref name="fileName"/>.
+        /// </summary>
+        /// <param name="fileName">The filename to lookup.</param>
+        /// <returns>True if this scope contains locations in <paramref name="fileName"/>; false otherwise</returns>
+        public bool ExistsInFile(string fileName) {
+            return LocationDictionary.ContainsKey(fileName);
+        }
+
+        /// <summary>
+        /// Gets all of the locations for a particular <paramref name="fileName"/>.
+        /// </summary>
+        /// <param name="fileName">The file name to get locations for</param>
+        /// <returns>A collection of <see cref="SourceLocation"/> objects. If this scope was not defined in <paramref name="fileName"/>, null is returned.</returns>
+        public Collection<SourceLocation> GetLocationsInFile(string fileName) {
+            Collection<SourceLocation> locations;
+            if(LocationDictionary.TryGetValue(fileName, out locations)) {
+                return locations;
+            }
+            return null;
         }
 
         /// <summary>
@@ -181,7 +249,7 @@ namespace ABB.SrcML.Data {
         /// <param name="otherScope">The scope to compare to</param>
         /// <returns>True if the scopes are the same. False otherwise.</returns>
         public virtual bool CanBeMergedWith(VariableScope otherScope) {
-            return (null != otherScope && this.Location.XPath == otherScope.Location.XPath);
+            return (null != otherScope && this.PrimaryLocation.XPath == otherScope.PrimaryLocation.XPath);
         }
 
         /// <summary>
@@ -200,7 +268,7 @@ namespace ABB.SrcML.Data {
         /// <param name="xpath">The xpath to look for.</param>
         /// <returns>True if this is a container for the given xpath. False, otherwise.</returns>
         public virtual bool IsScopeFor(string xpath) {
-            return xpath.StartsWith(this.Location.XPath);
+            return xpath.StartsWith(this.PrimaryLocation.XPath);
         }
 
         /// <summary>

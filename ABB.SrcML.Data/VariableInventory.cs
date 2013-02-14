@@ -29,7 +29,7 @@ namespace ABB.SrcML.Data {
         }
 
         public void AddScope(VariableScope scope) {
-            _scopeMap[scope.Location.XPath] = scope;
+            _scopeMap[scope.PrimaryLocation.XPath] = scope;
         }
 
         public VariableDeclaration GetDeclarationForUse(VariableUse use) {
