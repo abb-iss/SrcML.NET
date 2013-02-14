@@ -32,6 +32,15 @@ namespace ABB.SrcML.Data {
             this.IsPartial = false;
         }
 
+        public TypeDefinition(TypeDefinition otherDefinition)
+            : base(otherDefinition) {
+            this.IsPartial = otherDefinition.IsPartial;
+            this.Parents = new Collection<TypeUse>();
+            foreach(var parent in otherDefinition.Parents) {
+                this.Parents.Add(parent);
+            }
+        }
+
         /// <summary>
         /// The access modifier for this type
         /// </summary>
@@ -59,21 +68,35 @@ namespace ABB.SrcML.Data {
         public Collection<TypeUse> Parents { get; set; }
 
         /// <summary>
+        /// Merges this type definition with <paramref name="otherScope"/>. This happens when <c>otherScope.CanBeMergedInto(this)</c> evaluates to true.
+        /// </summary>
+        /// <param name="otherScope">the scope to merge with</param>
+        /// <returns>a new type definition from this and otherScope</returns>
+        public override NamedVariableScope Merge(NamedVariableScope otherScope) {
+            TypeDefinition mergedScope = null;
+            if(otherScope.CanBeMergedInto(this)) {
+                mergedScope = new TypeDefinition(this);
+                mergedScope.AddFrom(otherScope);
+            }
+
+            return mergedScope;
+        }
+        /// <summary>
         /// Returns true if both this and <paramref name="otherScope"/> have the same name and are both partial.
         /// </summary>
         /// <param name="otherScope">The scope to test</param>
         /// <returns>true if they are the same class; false otherwise.</returns>
-        public virtual bool CanBeMergedWith(TypeDefinition otherScope) {
-            return base.CanBeMergedWith(otherScope) && this.IsPartial && otherScope.IsPartial;
+        public virtual bool CanBeMergedInto(TypeDefinition otherScope) {
+            return base.CanBeMergedInto(otherScope) && this.IsPartial && otherScope.IsPartial;
         }
 
         /// <summary>
-        /// Casts <paramref name="otherScope"/> to a <see cref="TypeDefinition"/> and calls <see cref="CanBeMergedWith(TypeDefinition)"/>
+        /// Casts <paramref name="otherScope"/> to a <see cref="TypeDefinition"/> and calls <see cref="CanBeMergedInto(TypeDefinition)"/>
         /// </summary>
         /// <param name="otherScope">The scope to test</param>
-        /// <returns>true if <see cref="CanBeMergedWith(TypeDefinition)"/> evaluates to true.</returns>
-        public override bool CanBeMergedWith(NamedVariableScope otherScope) {
-            return this.CanBeMergedWith(otherScope as TypeDefinition);
+        /// <returns>true if <see cref="CanBeMergedInto(TypeDefinition)"/> evaluates to true.</returns>
+        public override bool CanBeMergedInto(NamedVariableScope otherScope) {
+            return this.CanBeMergedInto(otherScope as TypeDefinition);
         }
     }
 }

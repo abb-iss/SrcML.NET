@@ -68,18 +68,23 @@ namespace ABB.SrcML.Data.Test {
             var fileUnitE = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(e_xml, "E.java");
             var fileUnitF = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(f_xml, "F.java");
 
+
             var scopeD = SrcMLElementVisitor.Visit(fileUnitD, CodeParser[Language.Java]);
             var scopeE = SrcMLElementVisitor.Visit(fileUnitE, CodeParser[Language.Java]);
             var scopeF = SrcMLElementVisitor.Visit(fileUnitF, CodeParser[Language.Java]);
 
-            scopeD.Merge(scopeE);
-            scopeD.Merge(scopeF);
+            NamespaceDefinition globalScope = new NamespaceDefinition() {
+                ProgrammingLanguage = Language.Java,
+            };
 
-            Assert.AreEqual(2, scopeD.ChildScopes.Count());
-            Assert.AreEqual(1, scopeF.ChildScopes.Count());
+            globalScope.AddChildScope(scopeD);
+            globalScope.AddChildScope(scopeE);
+            globalScope.AddChildScope(scopeF);
 
-            var packageABC = scopeD as NamespaceDefinition;
-            var packageD = scopeF as NamespaceDefinition;
+            Assert.AreEqual(2, globalScope.ChildScopes.Count());
+            
+            var packageABC = globalScope.ChildScopes.First() as NamespaceDefinition;
+            var packageD = globalScope.ChildScopes.Last() as NamespaceDefinition;
 
             Assert.AreEqual("A.B.C", packageABC.Name);
             Assert.AreEqual("D", packageD.Name);
@@ -137,14 +142,14 @@ namespace ABB.SrcML.Data.Test {
     <class>class <name>F</name> <block>{<private type=""default""> </private>}</block>;</class>
 }</block></namespace>";
 
-            var fileUnitD = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(d_xml, "D.h");
-            var fileUnitE = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(e_xml, "E.h");
-            var fileUnitF = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(f_xml, "F.h");
+            var fileUnitD = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(d_xml, "D.h");
+            var fileUnitE = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(e_xml, "E.h");
+            var fileUnitF = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(f_xml, "F.h");
 
             var globalScope = SrcMLElementVisitor.Visit(fileUnitD, CodeParser[Language.CPlusPlus]);
 
-            globalScope.Merge(SrcMLElementVisitor.Visit(fileUnitE, CodeParser[Language.CPlusPlus]));
-            globalScope.Merge(SrcMLElementVisitor.Visit(fileUnitF, CodeParser[Language.CPlusPlus]));
+            globalScope = globalScope.Merge(SrcMLElementVisitor.Visit(fileUnitE, CodeParser[Language.CPlusPlus]));
+            globalScope = globalScope.Merge(SrcMLElementVisitor.Visit(fileUnitF, CodeParser[Language.CPlusPlus]));
 
             Assert.AreEqual(2, globalScope.ChildScopes.Count());
             
@@ -221,7 +226,7 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("Bar", methodBar.Name);
             Assert.AreEqual("A.Bar", methodBar.FullName);
 
-            globalScope.Merge(SrcMLElementVisitor.Visit(xmlHeader, CodeParser[Language.CPlusPlus]));
+            globalScope = globalScope.Merge(SrcMLElementVisitor.Visit(xmlHeader, CodeParser[Language.CPlusPlus]));
 
             Assert.AreEqual(1, globalScope.ChildScopes.Count());
 
@@ -279,11 +284,11 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("A", typeA.Name);
             Assert.AreEqual(0, typeA.ChildScopes.Count());
 
-            globalScope.Merge(SrcMLElementVisitor.Visit(xmlImpl, CodeParser[Language.CPlusPlus]));
+            globalScope = globalScope.Merge(SrcMLElementVisitor.Visit(xmlImpl, CodeParser[Language.CPlusPlus]));
 
             Assert.AreEqual(1, globalScope.ChildScopes.Count());
-
-            Assert.AreSame(typeA, globalScope.ChildScopes.First());
+            
+            typeA = globalScope.ChildScopes.First() as TypeDefinition;
             Assert.AreEqual(2, typeA.ChildScopes.Count());
 
             var aDotFoo = typeA.ChildScopes.First() as MethodDefinition;
@@ -322,7 +327,7 @@ namespace ABB.SrcML.Data.Test {
             var xmlImpl = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xmlcpp, "B.cpp");
 
             var globalScope = SrcMLElementVisitor.Visit(xmlHeader, CodeParser[Language.CPlusPlus]);
-            globalScope.Merge(SrcMLElementVisitor.Visit(xmlImpl, CodeParser[Language.CPlusPlus]));
+            globalScope = globalScope.Merge(SrcMLElementVisitor.Visit(xmlImpl, CodeParser[Language.CPlusPlus]));
 
             Assert.AreEqual(1, globalScope.ChildScopes.Count());
 
