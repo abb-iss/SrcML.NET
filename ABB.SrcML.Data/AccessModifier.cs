@@ -20,8 +20,10 @@ namespace ABB.SrcML.Data {
     /// Enumerates the types of protection encountered in the supported programming languages
     /// </summary>
     public enum AccessModifier {
+        /// <summary>None indicates that no access modifier was provided</summary>
+        None = 0,
         /// <summary>Public</summary>
-        Public = 0,
+        Public,
         /// <summary>Protected</summary>
         Protected,
         /// <summary>Internal</summary>

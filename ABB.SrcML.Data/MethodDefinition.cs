@@ -37,16 +37,13 @@ namespace ABB.SrcML.Data {
         /// <param name="otherDefinition">The scope to copy from</param>
         public MethodDefinition(MethodDefinition otherDefinition)
             : base(otherDefinition) {
+            IsConstructor = otherDefinition.IsConstructor;
+            IsDestructor = otherDefinition.IsDestructor;
             this._parameters = new Collection<VariableDeclaration>();
             foreach(var parameter in otherDefinition._parameters) {
                 this._parameters.Add(parameter);
             }
         }
-
-        /// <summary>
-        /// The access modifier for this type
-        /// </summary>
-        public AccessModifier Accessibility { get; set; }
 
         /// <summary>
         /// True if this is a constructor; false otherwise
@@ -88,6 +85,9 @@ namespace ABB.SrcML.Data {
             if(otherScope.CanBeMergedInto(this)) {
                 mergedScope = new MethodDefinition(this);
                 mergedScope.AddFrom(otherScope);
+                if(mergedScope.Accessibility == AccessModifier.None) {
+                    mergedScope.Accessibility = otherScope.Accessibility;
+                }
             }
 
             return mergedScope;
@@ -100,7 +100,11 @@ namespace ABB.SrcML.Data {
         /// <returns>true if they are the same method; false otherwise.</returns>
         /// TODO implement better method merging
         public virtual bool CanBeMergedInto(MethodDefinition otherScope) {
-            return base.CanBeMergedInto(otherScope);
+            if(this.Parameters.Count == otherScope.Parameters.Count) {
+                var parameterComparisons = Enumerable.Zip(this.Parameters, otherScope.Parameters, (t, o) => t.Name == o.Name);
+                return base.CanBeMergedInto(otherScope) && parameterComparisons.All(x => x);
+            }
+            return false;
         }
 
         /// <summary>

@@ -38,16 +38,13 @@ namespace ABB.SrcML.Data {
         public TypeDefinition(TypeDefinition otherDefinition)
             : base(otherDefinition) {
             this.IsPartial = otherDefinition.IsPartial;
+            this.Kind = otherDefinition.Kind;
+
             this.ParentTypes = new Collection<TypeUse>();
             foreach(var parent in otherDefinition.ParentTypes) {
                 this.ParentTypes.Add(parent);
             }
         }
-
-        /// <summary>
-        /// The access modifier for this type
-        /// </summary>
-        public AccessModifier Accessibility { get; set; }
 
         /// <summary>
         /// Partial if this is a partial class (used in C#)
@@ -74,6 +71,9 @@ namespace ABB.SrcML.Data {
             if(otherScope.CanBeMergedInto(this)) {
                 mergedScope = new TypeDefinition(this);
                 mergedScope.AddFrom(otherScope);
+                if(mergedScope.Accessibility == AccessModifier.None) {
+                    mergedScope.Accessibility = otherScope.Accessibility;
+                }
             }
 
             return mergedScope;

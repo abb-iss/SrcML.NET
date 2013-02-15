@@ -117,6 +117,7 @@ namespace ABB.SrcML.Data {
                 Name = GetNameForMethod(methodElement),
                 IsConstructor = (methodElement.Name == SRC.Constructor || methodElement.Name == SRC.ConstructorDeclaration),
                 IsDestructor = (methodElement.Name == SRC.Destructor || methodElement.Name == SRC.DestructorDeclaration),
+                Accessibility = GetAccessModifierForMethod(methodElement),
             };
 
             var parameters = from paramElement in GetParametersFromMethod(methodElement)
@@ -170,7 +171,7 @@ namespace ABB.SrcML.Data {
                Kind = XNameMaps.GetKindForXElement(typeElement),
                Name = GetNameForType(typeElement),
             };
-            typeDefinition.Parents = GetParentTypeUses(typeElement, fileUnit, typeDefinition);
+            typeDefinition.ParentTypes = GetParentTypeUses(typeElement, fileUnit, typeDefinition);
             return typeDefinition;
         }
 
@@ -262,6 +263,32 @@ namespace ABB.SrcML.Data {
             if(null == name)
                 return string.Empty;
             return name.Value;
+        }
+
+        /// <summary>
+        /// Gets the access modifier for this method. For Java & C#, a "specifier" tag is placed in either
+        /// the method element, or the type element in the method.
+        /// </summary>
+        /// <param name="methodElement">The method element</param>
+        /// <returns>The first specifier encountered. If none, it returns <see cref="AccessModifier.None"/></returns>
+        public virtual AccessModifier GetAccessModifierForMethod(XElement methodElement) {
+            Dictionary<string, AccessModifier> accessModifierMap = new Dictionary<string, AccessModifier>() {
+                { "public", AccessModifier.Public },
+                { "private", AccessModifier.Private },
+                { "protected", AccessModifier.Protected },
+                { "internal", AccessModifier.Internal },
+            };
+
+            var specifierContainer = methodElement.Element(SRC.Type);
+            if(null == specifierContainer) {
+                specifierContainer = methodElement;
+            }
+
+            var specifiers = from specifier in specifierContainer.Elements(SRC.Specifier)
+                             where accessModifierMap.ContainsKey(specifier.Value)
+                             select accessModifierMap[specifier.Value];
+
+            return (specifiers.Any() ? specifiers.First() : AccessModifier.None);
         }
 
         /// <summary>

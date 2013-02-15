@@ -29,6 +29,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public NamedScope()
             : base() {
+            Accessibility = AccessModifier.None;
             Name = String.Empty;
             UnresolvedParentScope = null;
             UnresolvedParentScopeInUse = null;
@@ -40,10 +41,16 @@ namespace ABB.SrcML.Data {
         /// <param name="otherScope">The scope to copy from</param>
         public NamedScope(NamedScope otherScope)
             : base(otherScope) {
+            Accessibility = otherScope.Accessibility;
             Name = otherScope.Name;
             UnresolvedParentScope = otherScope.UnresolvedParentScope;
             UnresolvedParentScopeInUse = otherScope.UnresolvedParentScopeInUse;
         }
+        
+        /// <summary>
+        /// The access modifier for this scope
+        /// </summary>
+        public AccessModifier Accessibility { get; set; }
 
         /// <summary>
         /// The name of this scope

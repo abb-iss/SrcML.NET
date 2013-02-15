@@ -81,7 +81,7 @@ namespace ABB.SrcML.Data {
             var modifiers = from specifier in typeElement.Elements(SRC.Specifier)
                             where accessModifierMap.ContainsKey(specifier.Value)
                             select accessModifierMap[specifier.Value];
-            return modifiers.FirstOrDefault();
+            return (modifiers.Any() ? modifiers.First() : AccessModifier.None);
         }
 
         /// <summary>

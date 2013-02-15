@@ -132,12 +132,30 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
+        /// Gets the access modifiers for this method. In C++, methods are contained within "specifier" blocks
+        /// </summary>
+        /// <param name="methodElement">The method element</param>
+        /// <returns>The access modifier for this method; if none, it returns <see cref="AccesModifier.None"/></returns>
+        public override AccessModifier GetAccessModifierForMethod(XElement methodElement) {
+            Dictionary<XName, AccessModifier> accessModifierMap = new Dictionary<XName, AccessModifier>() {
+                { SRC.Public, AccessModifier.Public },
+                { SRC.Private, AccessModifier.Private },
+                { SRC.Protected, AccessModifier.Protected },
+            };
+
+            var specifiers = from container in methodElement.Ancestors()
+                             where SpecifierContainerNames.Contains(container.Name)
+                             select accessModifierMap[container.Name];
+
+            return (specifiers.Any() ? specifiers.First() : AccessModifier.None);
+        }
+        /// <summary>
         /// Gets the access modifier for this type. In C++, all types are public, so this always returns "public"
         /// </summary>
         /// <param name="typeElement">The type</param>
         /// <returns>the access modifier for this type.</returns>
         public override AccessModifier GetAccessModifierForType(XElement typeElement) {
-            return AccessModifier.Public;
+            return AccessModifier.None;
         }
 
         /// <summary>
