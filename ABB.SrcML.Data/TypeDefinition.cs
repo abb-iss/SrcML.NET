@@ -27,7 +27,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public TypeDefinition()
             : base() {
-            this.Parents = new Collection<TypeUse>();
+            this.ParentTypes = new Collection<TypeUse>();
             this.IsPartial = false;
         }
 
@@ -38,9 +38,9 @@ namespace ABB.SrcML.Data {
         public TypeDefinition(TypeDefinition otherDefinition)
             : base(otherDefinition) {
             this.IsPartial = otherDefinition.IsPartial;
-            this.Parents = new Collection<TypeUse>();
-            foreach(var parent in otherDefinition.Parents) {
-                this.Parents.Add(parent);
+            this.ParentTypes = new Collection<TypeUse>();
+            foreach(var parent in otherDefinition.ParentTypes) {
+                this.ParentTypes.Add(parent);
             }
         }
 
@@ -62,7 +62,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The parent types that this type inherits from
         /// </summary>
-        public Collection<TypeUse> Parents { get; set; }
+        public Collection<TypeUse> ParentTypes { get; set; }
 
         /// <summary>
         /// Merges this type definition with <paramref name="otherScope"/>. This happens when <c>otherScope.CanBeMergedInto(this)</c> evaluates to true.

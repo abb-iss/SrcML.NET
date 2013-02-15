@@ -61,10 +61,10 @@ namespace ABB.SrcML.Data.Test {
             var globalNamespace = actual.ParentScope as NamespaceDefinition;
 
             Assert.AreEqual("A", actual.Name);
-            Assert.AreEqual(3, actual.Parents.Count);
+            Assert.AreEqual(3, actual.ParentTypes.Count);
             Assert.That(globalNamespace.IsGlobal);
 
-            var parentNames = from parent in actual.Parents
+            var parentNames = from parent in actual.ParentTypes
                               select parent.Name;
 
             var tests = Enumerable.Zip<string, string, bool>(new[] { "B", "C", "D" }, parentNames, (e, a) => e == a
@@ -86,10 +86,10 @@ namespace ABB.SrcML.Data.Test {
             var globalNamespace = actual.ParentScope as NamespaceDefinition;
 
             Assert.AreEqual("D", actual.Name);
-            Assert.AreEqual(1, actual.Parents.Count);
+            Assert.AreEqual(1, actual.ParentTypes.Count);
             Assert.That(globalNamespace.IsGlobal);
 
-            var parent = actual.Parents.First();
+            var parent = actual.ParentTypes.First();
 
             Assert.AreEqual("C", parent.Name);
             var prefix_tests = Enumerable.Zip<string, string, bool>(new[] { "A", "B", "C" }, parent.Prefix, (e, a) => e == a);
