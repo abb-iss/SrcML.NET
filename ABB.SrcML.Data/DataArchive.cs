@@ -6,7 +6,8 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
- *    Vinay Augustine (ABB Group) - initial API, implementation, & documentation
+ *  Patrick Francis (ABB Group) - initial API, implementation, & documentation
+ *  Vinay Augustine (ABB Group) - initial API, implementation, & documentation
  *****************************************************************************/
 
 using System;

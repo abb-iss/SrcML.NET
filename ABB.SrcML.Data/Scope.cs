@@ -329,6 +329,10 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        /// <summary>
+        /// Removes any program elements defined in the given file.
+        /// </summary>
+        /// <param name="fileName">The file to remove.</param>
         public virtual void RemoveFile(string fileName) {
             if(!LocationDictionary.ContainsKey(fileName)) {
                 //this scope is not defined in the given file
@@ -343,24 +347,6 @@ namespace ABB.SrcML.Data {
                 foreach(var loc in Locations) {
                     Debug.WriteLine("Location: " + loc);
                 }
-                
-                //this scope is defined in more than one file, delete only the parts in the given file
-
-                //remove children
-                //remove method calls
-                //update locations
-
-                var childrenToRemove = new List<Scope>();
-                foreach(var child in ChildScopeCollection) {
-                    if(child.ExistsInFile(fileName)) {
-                        child.RemoveFile(fileName);
-                        if(child.ParentScope == null) {
-                            //child has deleted itself
-                            childrenToRemove.Add(child);
-                        }
-                    }
-                }
-                //remove identified children
             }
         }
     }

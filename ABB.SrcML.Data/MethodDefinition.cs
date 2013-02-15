@@ -111,5 +111,24 @@ namespace ABB.SrcML.Data {
         public override bool CanBeMergedInto(NamedScope otherScope) {
             return this.CanBeMergedInto(otherScope as MethodDefinition);
         }
+
+        /// <summary>
+        /// Removes any program elements defined in the given file.
+        /// </summary>
+        /// <param name="fileName">The file to remove.</param>
+        public override void RemoveFile(string fileName) {
+            if(!LocationDictionary.ContainsKey(fileName)) {
+                //this method is not defined in the given file
+                return;
+            }
+
+            if(LocationDictionary.Count == 1) {
+                //this method exists solely in the file to be deleted
+                ParentScope = null;
+            } else {
+                //Method is defined in more than one file, delete the stuff defined in the given file
+                //TODO: special handling based on whether we're deleting a method definition or method declaration
+            }
+        }
     }
 }
