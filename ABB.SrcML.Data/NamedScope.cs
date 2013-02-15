@@ -31,6 +31,7 @@ namespace ABB.SrcML.Data {
             : base() {
             Name = String.Empty;
             UnresolvedParentScope = null;
+            UnresolvedParentScopeInUse = null;
         }
 
         /// <summary>
@@ -41,6 +42,7 @@ namespace ABB.SrcML.Data {
             : base(otherScope) {
             Name = otherScope.Name;
             UnresolvedParentScope = otherScope.UnresolvedParentScope;
+            UnresolvedParentScopeInUse = otherScope.UnresolvedParentScopeInUse;
         }
 
         /// <summary>
@@ -53,6 +55,11 @@ namespace ABB.SrcML.Data {
         /// unresolved scopes that contain this object. This property should point to the root of the unresolved section.
         /// </summary>
         public NamedScope UnresolvedParentScope { get; set; }
+
+        /// <summary>
+        /// This indicates that an unresolved parent scope has been used to link this object with a parent object
+        /// </summary>
+        public NamedScope UnresolvedParentScopeInUse { get; set; }
 
         /// <summary>
         /// The full name of this object (taken by finding all of the NamedScope objects that are ancestors of this
@@ -104,7 +111,9 @@ namespace ABB.SrcML.Data {
                     current = latest;
                     latest = current.ChildScopes.FirstOrDefault();
                 } while(latest != null);
-                
+
+                childScope.UnresolvedParentScopeInUse = childScope.UnresolvedParentScope;
+                childScope.UnresolvedParentScope = null;
                 current.AddChildScope(childScope);
                 base.AddChildScope(root);
             }
