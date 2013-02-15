@@ -90,6 +90,7 @@ namespace ABB.SrcML.Data {
                 scope = CreateScopeFromContainer(element, fileUnit);
             }
             scope.AddSourceLocation(new SourceLocation(element, fileUnit));
+            scope.ProgrammingLanguage = this.ParserLanguage;
             return scope;
         }
 
