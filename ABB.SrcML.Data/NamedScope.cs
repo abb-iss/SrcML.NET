@@ -97,8 +97,9 @@ namespace ABB.SrcML.Data {
             } else {
                 var root = childScope.UnresolvedParentScope;
                 
+                // iterate through the unresolved parent scope and find the tail
+                // once you've found the tail, add this as a child scope
                 Scope latest = root, current;
-
                 do {
                     current = latest;
                     latest = current.ChildScopes.FirstOrDefault();
