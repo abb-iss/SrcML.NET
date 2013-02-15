@@ -104,7 +104,6 @@ namespace ABB.SrcML.Data {
                     latest = current.ChildScopes.FirstOrDefault();
                 } while(latest != null);
                 
-                childScope.UnresolvedParentScope = null;
                 current.AddChildScope(childScope);
                 base.AddChildScope(root);
             }
