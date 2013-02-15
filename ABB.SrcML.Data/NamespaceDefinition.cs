@@ -24,21 +24,15 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Creates a new namespace definition object
         /// </summary>
-        public NamespaceDefinition() : base() {
-            this.Types = new Collection<TypeDefinition>();
-            this.Methods = new Collection<MethodDefinition>();
-            this.Variables = new Collection<VariableDeclaration>();
+        public NamespaceDefinition()
+            : base() {
             this.IsAnonymous = false;
         }
 
         public NamespaceDefinition(NamespaceDefinition otherDefinition)
             : base(otherDefinition) {
-                this.IsAnonymous = otherDefinition.IsAnonymous;
+            this.IsAnonymous = otherDefinition.IsAnonymous;
         }
-
-        public Collection<TypeDefinition> Types { get; set; }
-        public Collection<MethodDefinition> Methods { get; set; }
-        public Collection<VariableDeclaration> Variables { get; set; }
 
         /// <summary>
         /// Returns true if this is an anonymous namespace

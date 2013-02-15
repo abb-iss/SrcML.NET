@@ -25,6 +25,21 @@ namespace ABB.SrcML.Data {
     /// </summary>
     public class NamedScope : Scope {
         /// <summary>
+        /// Create a new object
+        /// </summary>
+        public NamedScope()
+            : base() {
+            Name = String.Empty;
+            UnresolvedParentScope = null;
+        }
+
+        public NamedScope(NamedScope otherScope)
+            : base(otherScope) {
+            Name = otherScope.Name;
+            UnresolvedParentScope = otherScope.UnresolvedParentScope;
+        }
+
+        /// <summary>
         /// The name of this scope
         /// </summary>
         public string Name { get; set; }
@@ -34,19 +49,6 @@ namespace ABB.SrcML.Data {
         /// unresolved scopes that contain this object. This property should point to the root of the unresolved section.
         /// </summary>
         public NamedScope UnresolvedParentScope { get; set; }
-
-        /// <summary>
-        /// Create a new object
-        /// </summary>
-        public NamedScope() : base() {
-            Name = String.Empty;
-            UnresolvedParentScope = null;
-        }
-
-        public NamedScope(NamedScope otherScope) : base(otherScope) {
-            Name = otherScope.Name;
-            UnresolvedParentScope = otherScope.UnresolvedParentScope;
-        }
 
         /// <summary>
         /// The full name of this object (taken by finding all of the NamedScope objects that are ancestors of this
@@ -122,7 +124,7 @@ namespace ABB.SrcML.Data {
         /// Merges two NamedVariableScopes together. It works like this:
         /// <list type="bullet">
         /// <item><description>If this is the same type or more specific than <paramref name="otherScope"/>, then create a new merged NamedScope
-        /// from <paramref name="otherscope"/> and this.</description></item>
+        /// from <paramref name="otherScope"/> and this.</description></item>
         /// <item><description>If <paramref name="otherScope"/> is more specific than this, call <c>otherScope.Merge</c></description></item>
         /// </list>
         /// </summary>

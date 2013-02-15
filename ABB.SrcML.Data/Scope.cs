@@ -29,6 +29,11 @@ namespace ABB.SrcML.Data {
         protected Collection<Scope> ChildScopeCollection;
 
         /// <summary>
+        /// Holds all of the variable declarations declared here. The key is the variable name.
+        /// </summary>
+        protected Dictionary<string, VariableDeclaration> DeclaredVariablesDictionary;
+
+        /// <summary>
         /// Holds all of the method calls for this scope
         /// </summary>
         protected Collection<MethodCall> MethodCallCollection;
@@ -40,26 +45,27 @@ namespace ABB.SrcML.Data {
         protected Dictionary<string, Collection<SourceLocation>> LocationDictionary;
 
         /// <summary>
-        /// References the primary location where this location has been defined. This should be updated by using the <see cref="UpdatePrimaryLocation(SourceLocation)"/> method.
-        /// For Scope objects, the primary location is simply the first location that was added.
+        /// Initializes an empty variable scope.
         /// </summary>
-        public SourceLocation PrimaryLocation { get; set; }
+        public Scope() {
+            DeclaredVariablesDictionary = new Dictionary<string, VariableDeclaration>();
+            ChildScopeCollection = new Collection<Scope>();
+            MethodCallCollection = new Collection<MethodCall>();
+            LocationDictionary = new Dictionary<string, Collection<SourceLocation>>();
+            PrimaryLocation = null;
+        }
 
-        /// <summary>
-        /// Holds all of the variable declarations declared here. The key is the variable name.
-        /// </summary>
-        protected Dictionary<string, VariableDeclaration> DeclaredVariablesDictionary;
+        public Scope(Scope otherScope) {
+            ProgrammingLanguage = otherScope.ProgrammingLanguage;
+            ParentScope = otherScope.ParentScope;
+            PrimaryLocation = otherScope.PrimaryLocation;
 
-        /// <summary>
-        /// An enumerable of all the source location objects that this scope is defined at.
-        /// </summary>
-        public IEnumerable<SourceLocation> Locations {
-            get {
-                var locations = from locationsForFile in LocationDictionary.Values
-                                from location in locationsForFile
-                                select location;
-                return locations;
-            }
+            ChildScopeCollection = new Collection<Scope>();
+            DeclaredVariablesDictionary = new Dictionary<string, VariableDeclaration>(otherScope.DeclaredVariablesDictionary.Count);
+            MethodCallCollection = new Collection<MethodCall>();
+            LocationDictionary = new Dictionary<string, Collection<SourceLocation>>(otherScope.LocationDictionary.Count);
+
+            AddFrom(otherScope);
         }
 
         /// <summary>
@@ -71,6 +77,12 @@ namespace ABB.SrcML.Data {
         /// The parent container for this scope.
         /// </summary>
         public Scope ParentScope { get; set; }
+
+        /// <summary>
+        /// References the primary location where this location has been defined. This should be updated by using the <see cref="UpdatePrimaryLocation(SourceLocation)"/> method.
+        /// For Scope objects, the primary location is simply the first location that was added.
+        /// </summary>
+        public SourceLocation PrimaryLocation { get; set; }
 
         /// <summary>
         /// Iterates over all of the child scopes of this scope
@@ -86,6 +98,18 @@ namespace ABB.SrcML.Data {
         /// Iterates over all of the method calls in this scope
         /// </summary>
         public IEnumerable<MethodCall> MethodCalls { get { return this.MethodCallCollection.AsEnumerable(); } }
+
+        /// <summary>
+        /// An enumerable of all the source location objects that this scope is defined at.
+        /// </summary>
+        public IEnumerable<SourceLocation> Locations {
+            get {
+                var locations = from locationsForFile in LocationDictionary.Values
+                                from location in locationsForFile
+                                select location;
+                return locations;
+            }
+        }
 
         /// <summary>
         /// The parent scopes for this scope in reverse order (parent is returned first, followed by the grandparent, etc).
@@ -114,27 +138,6 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Initializes an empty variable scope.
-        /// </summary>
-        public Scope() {
-            DeclaredVariablesDictionary = new Dictionary<string, VariableDeclaration>();
-            ChildScopeCollection = new Collection<Scope>();
-            MethodCallCollection = new Collection<MethodCall>();
-            LocationDictionary = new Dictionary<string, Collection<SourceLocation>>();
-            PrimaryLocation = null;
-        }
-
-        public Scope(Scope otherScope) {
-            PrimaryLocation = otherScope.PrimaryLocation;
-            ParentScope = otherScope.ParentScope;
-            DeclaredVariablesDictionary = new Dictionary<string, VariableDeclaration>(otherScope.DeclaredVariablesDictionary.Count);
-            LocationDictionary = new Dictionary<string, Collection<SourceLocation>>(otherScope.LocationDictionary.Count);
-            ChildScopeCollection = new Collection<Scope>();
-            MethodCallCollection = new Collection<MethodCall>();
-            AddFrom(otherScope);
-        }
-
-        /// <summary>
         /// Adds a child scope to this scope
         /// </summary>
         /// <param name="childScope">The child scope to add.</param>
@@ -155,6 +158,24 @@ namespace ABB.SrcML.Data {
                 ChildScopeCollection.Add(childScope);
                 childScope.ParentScope = this;
             }
+        }
+
+        /// <summary>
+        /// Add a variable declaration to this scope
+        /// </summary>
+        /// <param name="declaration">The variable declaration to add.</param>
+        public void AddDeclaredVariable(VariableDeclaration declaration) {
+            DeclaredVariablesDictionary[declaration.Name] = declaration;
+            declaration.Scope = this;
+        }
+
+        /// <summary>
+        /// Adds a method call
+        /// </summary>
+        /// <param name="methodCall"></param>
+        public void AddMethodCall(MethodCall methodCall) {
+            MethodCallCollection.Add(methodCall);
+            methodCall.ParentScope = this;
         }
 
         /// <summary>
@@ -205,24 +226,6 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Add a variable declaration to this scope
-        /// </summary>
-        /// <param name="declaration">The variable declaration to add.</param>
-        public void AddDeclaredVariable(VariableDeclaration declaration) {
-            DeclaredVariablesDictionary[declaration.Name] = declaration;
-            declaration.Scope = this;
-        }
-
-        /// <summary>
-        /// Adds a method call
-        /// </summary>
-        /// <param name="methodCall"></param>
-        public void AddMethodCall(MethodCall methodCall) {
-            MethodCallCollection.Add(methodCall);
-            methodCall.ParentScope = this;
-        }
-
-        /// <summary>
         /// The merge function merges two scopes if they are the same. It assumes that the parents of the two scopes are identical.
         /// Because of this, it is best to call it on two "global scope" objects. If the two scopes are the same (as determined by
         /// the <see cref="CanBeMergedInto"/> method), then the variable declarations in <paramref name="otherScope"/> then a new
@@ -259,6 +262,7 @@ namespace ABB.SrcML.Data {
             }
             return this;
         }
+
         /// <summary>
         /// Tests value equality between this scope and <paramref name="otherScope"/>.
         /// Two scopes are equal if they have the same <see cref="SourceLocation.XPath"/>.
@@ -320,7 +324,6 @@ namespace ABB.SrcML.Data {
                 }
             }
         }
-
 
         public virtual void RemoveFile(string fileName) {
             if(!LocationDictionary.ContainsKey(fileName)) {

@@ -25,9 +25,8 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Creates a new type definition object
         /// </summary>
-        public TypeDefinition() : base() {
-            this.InnerTypes = new Collection<TypeDefinition>();
-            this.Methods = new Collection<MethodDefinition>();
+        public TypeDefinition()
+            : base() {
             this.Parents = new Collection<TypeUse>();
             this.IsPartial = false;
         }
@@ -46,10 +45,6 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public AccessModifier Accessibility { get; set; }
 
-        public Collection<VariableDeclaration> Fields { get; set; }
-        public Collection<string> Filenames { get; set; }
-        public Collection<TypeDefinition> InnerTypes { get; set; }
-
         /// <summary>
         /// Partial if this is a partial class (used in C#)
         /// </summary>
@@ -59,8 +54,6 @@ namespace ABB.SrcML.Data {
         /// The <see cref="TypeKind"/> of this type
         /// </summary>
         public TypeKind Kind { get; set; }
-        public Language Language { get; set; } //TODO: figure out where this should be specified
-        public Collection<MethodDefinition> Methods { get; set; }
         
         /// <summary>
         /// The parent types that this type inherits from

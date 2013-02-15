@@ -20,11 +20,9 @@ namespace ABB.SrcML.Data {
     /// The type inventory contains maps of all the types as well as what namespaces they resolve to.
     /// </summary>
     public class TypeInventory {
-        private Dictionary<string, NamespaceDefinition> namespaceMap;
         private Dictionary<string, Collection<TypeDefinition>> typeMap;
         
         public TypeInventory() {
-            namespaceMap = new Dictionary<string, NamespaceDefinition>();
             typeMap = new Dictionary<string, Collection<TypeDefinition>>();
         }
 
@@ -62,18 +60,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="typeDefinition">The type definition to add</param>
         public void AddNewDefinition(TypeDefinition typeDefinition) {
-            NamespaceDefinition namespaceForType;
             Collection<TypeDefinition> bucket;
-
-            if(this.namespaceMap.TryGetValue(typeDefinition.NamespaceName, out namespaceForType)) {
-                namespaceForType.Types.Add(typeDefinition);
-            } else {
-                var namespaceParent = (from p in typeDefinition.ParentScopes
-                                       let np = p as NamespaceDefinition
-                                       where np != null
-                                       select np).FirstOrDefault();
-                namespaceMap[typeDefinition.NamespaceName] = namespaceParent;
-            }
             
             if(!this.typeMap.TryGetValue(typeDefinition.Name, out bucket)) {
                 bucket = new Collection<TypeDefinition>();

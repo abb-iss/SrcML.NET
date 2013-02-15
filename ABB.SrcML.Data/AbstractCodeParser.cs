@@ -159,17 +159,10 @@ namespace ABB.SrcML.Data {
 
             var typeDefinition = new TypeDefinition() {
                Accessibility = GetAccessModifierForType(typeElement),
-               Filenames = new Collection<string>(),
                Kind = XNameMaps.GetKindForXElement(typeElement),
-               Language = this.ParserLanguage,
                Name = GetNameForType(typeElement),
             };
             typeDefinition.Parents = GetParentTypeUses(typeElement, fileUnit, typeDefinition);
-
-            var fileName = GetFileNameForUnit(fileUnit);
-            if(fileName.Length > 0) {
-                typeDefinition.Filenames.Add(fileName);
-            }
 
             return typeDefinition;
         }

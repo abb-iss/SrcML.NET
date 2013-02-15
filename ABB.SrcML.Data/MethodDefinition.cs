@@ -26,7 +26,8 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Creates a new method definition object
         /// </summary>
-        public MethodDefinition() : base() {
+        public MethodDefinition()
+            : base() {
             this._parameters = new Collection<VariableDeclaration>();
         }
 
@@ -37,6 +38,7 @@ namespace ABB.SrcML.Data {
                 this._parameters.Add(parameter);
             }
         }
+
         /// <summary>
         /// The access modifier for this type
         /// </summary>
@@ -51,8 +53,6 @@ namespace ABB.SrcML.Data {
         /// True if this is a destructor; false otherwise
         /// </summary>
         public bool IsDestructor { get; set; }
-
-        public Collection<TypeDefinition> InnerTypes;
 
         /// <summary>
         /// The parameters for this method. Replacing this collection causes the <see cref="Scope.DeclaredVariables"/> to be updated.
