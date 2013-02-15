@@ -175,6 +175,7 @@ namespace ABB.SrcML.Data {
         /// Creates an alias for a C++ using statement
         /// </summary>
         /// <param name="usingStatement">The using statement (<c>usingStatement.Name</c> must be <see cref="ABB.SrcML.SRC.Using"/></param>
+        /// <param name="fileUnit">The file unit that contains this using statement</param>
         /// <returns>An alias for this using statement</returns>
         public Alias CreateAliasFromUsingStatement(XElement usingStatement, XElement fileUnit) {
             if(null == usingStatement)
