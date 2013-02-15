@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>..\Build\Debug\ABB.SrcML.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -58,6 +59,7 @@
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="IArchive.cs" />
     <Compile Include="IFileMonitor.cs" />
+    <Compile Include="ShortXmlFileNameMapping.cs" />
     <Compile Include="SrcMLGenerator.cs" />
     <Compile Include="ITransform.cs" />
     <Compile Include="Language.cs" />
@@ -82,6 +84,7 @@
     <Compile Include="SrcMLHelper.cs" />
     <Compile Include="SrcMLRequiredNameException.cs" />
     <Compile Include="SrcMLRunner.cs" />
+    <Compile Include="StaticFileList.cs" />
     <Compile Include="Transform.cs" />
     <Compile Include="TransformObjectHarness.cs" />
     <Compile Include="TransformRunner.cs" />
@@ -93,6 +96,7 @@
     <Compile Include="Utilities\ReadOnlyDictionary.cs" />
     <Compile Include="Utilities\SrcMLRuntimeException.cs" />
     <Compile Include="Utilities\VisualStudioProjectReader.cs" />
+    <Compile Include="XmlFileNameMapping.cs" />
     <Compile Include="XmlHelper.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -12,6 +12,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -26,6 +27,7 @@ namespace ABB.SrcML.Test
     {
         public const string SOURCEDIRECTORY = "testSourceDir";
         private DirectoryInfo srcDirectoryInfo;
+        private bool startupCompleted = false;
 
         [TestFixtureSetUp]
         public void Setup()
@@ -254,9 +256,50 @@ namespace ABB.SrcML.Test
 
             archive.GenerateXmlForSource(SOURCEDIRECTORY + "\\foo.c");
             archive.GenerateXmlForSource(SOURCEDIRECTORY + "\\bar.c");
+            archive.Dispose();
 
             Assert.That(File.Exists(archive.GetXmlPathForSourcePath(Path.Combine(SOURCEDIRECTORY, "foo.c"))));
             Assert.That(File.Exists(archive.GetXmlPathForSourcePath(Path.Combine(SOURCEDIRECTORY, "bar.c"))));
+        }
+
+        [Test]
+        public void TestDontUseExistingSrcML() {
+            var xmlDirectory = Path.Combine(srcDirectoryInfo.FullName, ".srcml");
+            var watchedFiles = new StaticFileList(new[] {@"..\..\TestInputs\foo.c", @"..\..\TestInputs\baz.cpp", @"..\..\TestInputs\function_def.cpp"});
+
+            //convert the test files and place in the xml directory
+            var archive = new SrcMLArchive(watchedFiles, xmlDirectory, new SrcMLGenerator(TestConstants.SrcmlPath));
+            this.startupCompleted = false;
+            archive.StartupCompleted += (o, e) => { startupCompleted = true; };
+            archive.StartWatching();
+
+            //make sure the srcml files exist
+            while(!startupCompleted) {
+                System.Threading.Thread.Sleep(200);
+            }
+            archive.Dispose();
+            Assert.That(File.Exists(archive.GetXmlPathForSourcePath(@"..\..\TestInputs\foo.c")));
+            Assert.That(File.Exists(archive.GetXmlPathForSourcePath(@"..\..\TestInputs\baz.cpp")));
+            Assert.That(File.Exists(archive.GetXmlPathForSourcePath(@"..\..\TestInputs\function_def.cpp")));
+
+            //make new archive, and ignore existing srcml files in xml directory
+            archive = new SrcMLArchive(watchedFiles, xmlDirectory, false, new SrcMLGenerator(TestConstants.SrcmlPath));
+            Assert.That(!File.Exists(archive.GetXmlPathForSourcePath(@"..\..\TestInputs\foo.c")));
+            Assert.That(!File.Exists(archive.GetXmlPathForSourcePath(@"..\..\TestInputs\baz.cpp")));
+            Assert.That(!File.Exists(archive.GetXmlPathForSourcePath(@"..\..\TestInputs\function_def.cpp")));
+
+            startupCompleted = false;
+            archive.StartupCompleted += (o, e) => { startupCompleted = true; };
+            archive.StartWatching();
+
+            //make sure the srcml files now exist again
+            while(!startupCompleted) {
+                System.Threading.Thread.Sleep(200);
+            }
+            archive.Dispose();
+            Assert.That(File.Exists(archive.GetXmlPathForSourcePath(@"..\..\TestInputs\foo.c")));
+            Assert.That(File.Exists(archive.GetXmlPathForSourcePath(@"..\..\TestInputs\baz.cpp")));
+            Assert.That(File.Exists(archive.GetXmlPathForSourcePath(@"..\..\TestInputs\function_def.cpp")));
         }
 
         [Test]
@@ -265,53 +308,53 @@ namespace ABB.SrcML.Test
             int numberOfEventsRaised = 0;
             IFileMonitor watchedFolder = Substitute.For<IFileMonitor>();
 
-            var archive = new SrcMLArchive(watchedFolder, Path.Combine(srcDirectoryInfo.FullName, ".srcml"), new SrcMLGenerator(TestConstants.SrcmlPath));
-            var xmlDirectory = new DirectoryInfo(archive.ArchivePath);
+            using(var archive = new SrcMLArchive(watchedFolder, Path.Combine(srcDirectoryInfo.FullName, ".srcml"), new SrcMLGenerator(TestConstants.SrcmlPath))) {
+                var xmlDirectory = new DirectoryInfo(archive.ArchivePath);
 
-            ////archive.SourceFileChanged += (o, e) =>
-            archive.SourceFileChanged += (o, e) =>
-                {
-                    numberOfEventsRaised++;
-                    Assert.That(e.SourceFilePath, Is.Not.SamePathOrUnder(xmlDirectory.Name));
-                    Console.WriteLine("{0}: {1}", e.EventType, e.SourceFilePath);
-                };
+                ////archive.SourceFileChanged += (o, e) =>
+                archive.SourceFileChanged += (o, e) => {
+                                                 numberOfEventsRaised++;
+                                                 Assert.That(e.SourceFilePath, Is.Not.SamePathOrUnder(xmlDirectory.Name));
+                                                 Console.WriteLine("{0}: {1}", e.EventType, e.SourceFilePath);
+                                             };
 
-            WriteTextAndRaiseEvent(watchedFolder, "foo.c", @"int foo(int i) {
+                WriteTextAndRaiseEvent(watchedFolder, "foo.c", @"int foo(int i) {
     return i + 1;
 }");
-            Assert.That(File.Exists(archive.GetXmlPathForSourcePath(Path.Combine(SOURCEDIRECTORY, "foo.c"))));
+                Assert.That(File.Exists(archive.GetXmlPathForSourcePath(Path.Combine(SOURCEDIRECTORY, "foo.c"))));
 
-            WriteTextAndRaiseEvent(watchedFolder, "bar.c", @"int bar(int i) {
+                WriteTextAndRaiseEvent(watchedFolder, "bar.c", @"int bar(int i) {
     return i - 1;
 }");
-            Assert.That(File.Exists(archive.GetXmlPathForSourcePath(Path.Combine(SOURCEDIRECTORY, "bar.c"))));
+                Assert.That(File.Exists(archive.GetXmlPathForSourcePath(Path.Combine(SOURCEDIRECTORY, "bar.c"))));
 
-            Directory.CreateDirectory(Path.Combine(SOURCEDIRECTORY, "subdir"));
-            WriteTextAndRaiseEvent(watchedFolder, Path.Combine("subdir", "component.c"), @"int are_equal(int i, int j) {
+                Directory.CreateDirectory(Path.Combine(SOURCEDIRECTORY, "subdir"));
+                WriteTextAndRaiseEvent(watchedFolder, Path.Combine("subdir", "component.c"), @"int are_equal(int i, int j) {
     return i == j;
 
 }");
-            Assert.That(File.Exists(archive.GetXmlPathForSourcePath(Path.Combine(SOURCEDIRECTORY, "subdir", "component.c"))));
-            Assert.That(archive.FileUnits.Count(), Is.EqualTo(3));
-            Assert.That(numberOfFunctions(archive), Is.EqualTo(3));
+                Assert.That(File.Exists(archive.GetXmlPathForSourcePath(Path.Combine(SOURCEDIRECTORY, "subdir", "component.c"))));
+                Assert.That(archive.FileUnits.Count(), Is.EqualTo(3));
+                Assert.That(numberOfFunctions(archive), Is.EqualTo(3));
 
-            DeleteSourceAndRaiseEvent(watchedFolder, "bar.c");
-            Assert.That(archive.FileUnits.Count(), Is.EqualTo(2));
-            Assert.That(numberOfFunctions(archive), Is.EqualTo(2));
+                DeleteSourceAndRaiseEvent(watchedFolder, "bar.c");
+                Assert.That(archive.FileUnits.Count(), Is.EqualTo(2));
+                Assert.That(numberOfFunctions(archive), Is.EqualTo(2));
 
-            WriteTextAndRaiseEvent(watchedFolder, Path.Combine("subdir", "component.c"), @"struct A {
+                WriteTextAndRaiseEvent(watchedFolder, Path.Combine("subdir", "component.c"), @"struct A {
     int a;
     char b;
 }");
-            Assert.That(archive.FileUnits.Count(), Is.EqualTo(2));
-            Assert.That(numberOfFunctions(archive), Is.EqualTo(1));
+                Assert.That(archive.FileUnits.Count(), Is.EqualTo(2));
+                Assert.That(numberOfFunctions(archive), Is.EqualTo(1));
 
-            RenameSourceFileAndRaiseEvent(watchedFolder, "foo.c", "foo2.c");
+                RenameSourceFileAndRaiseEvent(watchedFolder, "foo.c", "foo2.c");
 
-            Assert.That(archive.FileUnits.Count(), Is.EqualTo(2));
-            Assert.That(numberOfFunctions(archive), Is.EqualTo(1));
+                Assert.That(archive.FileUnits.Count(), Is.EqualTo(2));
+                Assert.That(numberOfFunctions(archive), Is.EqualTo(1));
 
-            Assert.That(numberOfEventsRaised, Is.EqualTo(6));
+                Assert.That(numberOfEventsRaised, Is.EqualTo(6));
+            }
         }
         
         private int numberOfFunctions(IArchive archive)
