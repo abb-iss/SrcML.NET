@@ -134,7 +134,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// </summary>
         public SrcMLServicePackage() {
             //WriteActivityLog("SrcMLServicePackage.SrcMLServicePackage()");    // Leave this here as an example of how to use Activity Log
-            FileLogger.DefaultLogger.Info(string.Format(CultureInfo.CurrentCulture, "Entering constructor for: {0}", this.ToString()));
+            SrcMLFileLogger.DefaultLogger.Info(string.Format(CultureInfo.CurrentCulture, "Entering constructor for: {0}", this.ToString()));
 
             // Step 2: Add callback methods to the service container to create the services.
             // Here we update the list of the provided services with the ones specific for this package.
@@ -163,7 +163,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="serviceType">The type of service to create.</param>
         /// <returns>The instance of the service.</returns>
         private object CreateService(IServiceContainer container, Type serviceType) {
-            FileLogger.DefaultLogger.Info("    SrcMLServicePackage.CreateService()");
+            SrcMLFileLogger.DefaultLogger.Info("    SrcMLServicePackage.CreateService()");
 
             // Check if the IServiceContainer is this package.
             if(container != this) {
@@ -193,7 +193,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// where you can put all the initialization code that rely on services provided by VisualStudio.
         /// </summary>
         protected override void Initialize() {
-            FileLogger.DefaultLogger.Info("Initializing SrcML.NET Service ...");
+            SrcMLFileLogger.DefaultLogger.Info("Initializing SrcML.NET Service ...");
 
             base.Initialize();
 
@@ -209,7 +209,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
             SetUpDTEEvents();
 
-            FileLogger.DefaultLogger.Info("Initialization completed.");
+            SrcMLFileLogger.DefaultLogger.Info("Initialization completed.");
         }
         #endregion
 
@@ -222,7 +222,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             var uri = new UriBuilder(Assembly.GetExecutingAssembly().CodeBase);
             extensionDirectory = Path.GetDirectoryName(Uri.UnescapeDataString(uri.Path));
 
-            FileLogger.DefaultLogger.Info("> Set up working directory. [" + extensionDirectory + "]");
+            SrcMLFileLogger.DefaultLogger.Info("> Set up working directory. [" + extensionDirectory + "]");
         }
 
         /// <summary>
@@ -230,16 +230,16 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// </summary>
         private void SetUpLogger() {
             var logFilePath = Path.Combine(extensionDirectory, "SrcML.NETService.log");
-            logger = FileLogger.CreateFileLogger("SrcMLServiceLogger", logFilePath);
+            logger = SrcMLFileLogger.CreateFileLogger("SrcMLServiceLogger", logFilePath);
 
-            FileLogger.DefaultLogger.Info("> Set up log4net logger. [" + logFilePath + "]");
+            SrcMLFileLogger.DefaultLogger.Info("> Set up log4net logger. [" + logFilePath + "]");
         }
 
         /// <summary>
         /// Set up Visual Studio activity logger.
         /// </summary>
         private void SetUpActivityLogger() {
-            FileLogger.DefaultLogger.Info("> Set up Visual Studio activity logger.");
+            SrcMLFileLogger.DefaultLogger.Info("> Set up Visual Studio activity logger.");
 
             ActivityLog = GetService(typeof(SVsActivityLog)) as IVsActivityLog;
             if(null == ActivityLog) {
@@ -251,7 +251,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// Set up command handlers for menu (commands must exist in the .vsct file)
         /// </summary>
         private void SetUpCommand() {
-            FileLogger.DefaultLogger.Info("> Set up command handlers for menu.");
+            SrcMLFileLogger.DefaultLogger.Info("> Set up command handlers for menu.");
 
             OleMenuCommandService mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
             if(null != mcs) {
@@ -268,7 +268,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// the OleMenuCommandService service and the MenuCommand class.
         /// </summary>
         private void MenuItemCallback(object sender, EventArgs e) {
-            FileLogger.DefaultLogger.Info("    SrcMLServicePackage.MenuItemCallback()");
+            SrcMLFileLogger.DefaultLogger.Info("    SrcMLServicePackage.MenuItemCallback()");
 
             // Show a Message Box to prove we were here
             IVsUIShell uiShell = (IVsUIShell)GetService(typeof(SVsUIShell));
@@ -292,7 +292,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// Set up SrcML Service.
         /// </summary>
         private void SetUpSrcMLService() {
-            FileLogger.DefaultLogger.Info("> Set up SrcML Service.");
+            SrcMLFileLogger.DefaultLogger.Info("> Set up SrcML Service.");
 
             srcMLService = GetService(typeof(SSrcMLGlobalService)) as ISrcMLGlobalService;
             if(null == srcMLService) {
@@ -304,7 +304,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// Register Visual Studio DTE events.
         /// </summary>
         private void SetUpDTEEvents() {
-            FileLogger.DefaultLogger.Info("> Register Visual Studio DTE events.");
+            SrcMLFileLogger.DefaultLogger.Info("> Register Visual Studio DTE events.");
 
             DTE2 dte = GetService(typeof(DTE)) as DTE2;
             if(dte != null) {
@@ -320,7 +320,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// Respond to the Visual Studio DTE event that occurs when the environment has completed initializing.
         /// </summary>
         private void DTEStartupCompleted() {
-            FileLogger.DefaultLogger.Info("Respond to the Visual Studio DTE event that occurs when the environment has completed initializing.");
+            SrcMLFileLogger.DefaultLogger.Info("Respond to the Visual Studio DTE event that occurs when the environment has completed initializing.");
 
             /*
             if(GetDte().Version.StartsWith("10")) {
@@ -339,7 +339,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// Register solution events.
         /// </summary>
         private void RegisterSolutionEvents() {
-            FileLogger.DefaultLogger.Info("> Register solution events.");
+            SrcMLFileLogger.DefaultLogger.Info("> Register solution events.");
 
             DTE2 dte = Package.GetGlobalService(typeof(DTE)) as DTE2;
             if(dte != null) {
@@ -362,7 +362,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// Respond to the Visual Studio event that occurs when a solution is being opened.
         /// </summary>
         private void SolutionOpened() {
-            FileLogger.DefaultLogger.Info("Respond to the Visual Studio event that occurs when a solution is being opened.");
+            SrcMLFileLogger.DefaultLogger.Info("Respond to the Visual Studio event that occurs when a solution is being opened.");
 
             BackgroundWorker bw = new BackgroundWorker();
             bw.WorkerReportsProgress = false;
@@ -377,7 +377,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="sender"></param>
         /// <param name="eventArgs"></param>
         private void RespondToSolutionOpened(object sender, DoWorkEventArgs eventArgs) {
-            FileLogger.DefaultLogger.Info("> SrcML service starts monitoring the opened solution.");
+            SrcMLFileLogger.DefaultLogger.Info("> SrcML service starts monitoring the opened solution.");
 
             srcMLService.StartMonitering();
         }
@@ -386,8 +386,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// Respond to the Visual Studio event that occurs when a solution is about to close.
         /// </summary>
         private void SolutionBeforeClosing() {
-            FileLogger.DefaultLogger.Info("Respond to the Visual Studio event that occurs when a solution is about to close.");
-            FileLogger.DefaultLogger.Info("> SrcML service stops monitoring the opened solution.");
+            SrcMLFileLogger.DefaultLogger.Info("Respond to the Visual Studio event that occurs when a solution is about to close.");
+            SrcMLFileLogger.DefaultLogger.Info("> SrcML service stops monitoring the opened solution.");
 
             srcMLService.StopMonitoring();
         }
@@ -396,7 +396,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// Respond to the Visual Studio DTE event that occurs when the development environment is closing.
         /// </summary>
         private void DTEBeginShutdown() {
-            FileLogger.DefaultLogger.Info("Respond to the Visual Studio DTE event that occurs when the development environment is closing.");
+            SrcMLFileLogger.DefaultLogger.Info("Respond to the Visual Studio DTE event that occurs when the development environment is closing.");
 
             //UnregisterSolutionEvents(); // TODO if necessary
             //UnregisterDTEEvents(); // TODO if necessary

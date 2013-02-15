@@ -9,7 +9,7 @@ using log4net.Layout;
 using log4net.Repository.Hierarchy;
 
 namespace ABB.SrcML.VisualStudio.SrcMLService {
-    public class FileLogger {
+    public class SrcMLFileLogger {
         public static ILog CreateFileLogger(string loggerName, string filePath) {
             var appender = CreateFileAppender(loggerName + "Appender", filePath);
             AddAppender(loggerName, appender);
@@ -50,7 +50,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             return appender;
         }
 
-        static FileLogger() {
+        static SrcMLFileLogger() {
             var fileInfo = new FileInfo(Assembly.GetCallingAssembly().Location);
             var defaultLogPath = Path.Combine(fileInfo.DirectoryName, "SrcML.NETService" + Guid.NewGuid() + ".log");
             CreateDefaultLogger(defaultLogPath);

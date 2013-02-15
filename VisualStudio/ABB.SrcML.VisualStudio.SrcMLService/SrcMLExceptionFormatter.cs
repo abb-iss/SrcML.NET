@@ -2,7 +2,7 @@
 
 namespace ABB.SrcML.VisualStudio.SrcMLService
 {
-	public class ExceptionFormatter
+	public class SrcMLExceptionFormatter
 	{
         public static string CreateMessage(Exception ex)
         {
