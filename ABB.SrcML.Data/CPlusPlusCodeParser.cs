@@ -104,7 +104,7 @@ namespace ABB.SrcML.Data {
                     var namedScope = new NamedScope() {
                         Name = name,
                     };
-                    namedScope.AddSourceLocation(new SourceLocation(methodElement, fileUnit));
+                    namedScope.AddSourceLocation(new SourceLocation(methodElement, fileUnit, true));
 
                     if(null != current) {
                         current.AddChildScope(namedScope);

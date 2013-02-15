@@ -51,7 +51,6 @@ namespace ABB.SrcML.Data {
                                      select name.Value;
                 var namespaceName = string.Join(".", namespaceNames);
                 definition.Name = namespaceName;
-                
             }
             return definition;
         }

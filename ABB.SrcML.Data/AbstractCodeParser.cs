@@ -36,6 +36,8 @@ namespace ABB.SrcML.Data {
                                                                   SRC.FunctionDeclaration, SRC.ConstructorDeclaration, SRC.DestructorDeclaration });
             NamespaceElementNames = new HashSet<XName>(new XName[] { SRC.Namespace });
             VariableDeclarationElementNames = new HashSet<XName>(new XName[] { SRC.Declaration, SRC.DeclarationStatement, SRC.Parameter });
+            ContainerReferenceElementNames = new HashSet<XName>(new XName[] { SRC.ClassDeclaration, SRC.StructDeclaration, SRC.UnionDeclaration,
+                                                                                SRC.ConstructorDeclaration, SRC.DestructorDeclaration, SRC.FunctionDeclaration });
         }
 
         /// <summary>
@@ -69,6 +71,11 @@ namespace ABB.SrcML.Data {
         public HashSet<XName> VariableDeclarationElementNames { get; protected set; }
 
         /// <summary>
+        /// Returns the XNames that represent reference elements (such as function_decl and class_decl)
+        /// </summary>
+        public HashSet<XName> ContainerReferenceElementNames { get; protected set; }
+
+        /// <summary>
         /// Looks at the name of the element and then creates a variablescope depending on the <see cref="System.Xml.Linq.XName"/>.
         /// </summary>
         /// <param name="element">The element to create a scope for</param>
@@ -89,7 +96,7 @@ namespace ABB.SrcML.Data {
             } else {
                 scope = CreateScopeFromContainer(element, fileUnit);
             }
-            scope.AddSourceLocation(new SourceLocation(element, fileUnit));
+            scope.AddSourceLocation(new SourceLocation(element, fileUnit, ContainerIsReference(element)));
             scope.ProgrammingLanguage = this.ParserLanguage;
             return scope;
         }
@@ -164,7 +171,6 @@ namespace ABB.SrcML.Data {
                Name = GetNameForType(typeElement),
             };
             typeDefinition.Parents = GetParentTypeUses(typeElement, fileUnit, typeDefinition);
-
             return typeDefinition;
         }
 
@@ -213,6 +219,16 @@ namespace ABB.SrcML.Data {
 
             return typeUse;
         }
+
+        /// <summary>
+        /// Checks to see if this element is a reference container
+        /// </summary>
+        /// <param name="element">The element to check</param>
+        /// <returns>True if this is a reference container; false otherwise</returns>
+        public virtual bool ContainerIsReference(XElement element) {
+            return (element != null && ContainerReferenceElementNames.Contains(element.Name));
+        }
+
         /// <summary>
         /// Parses the type use and returns a TypeUse object
         /// </summary>

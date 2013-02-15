@@ -52,7 +52,6 @@ namespace ABB.SrcML.Data {
             ChildScopeCollection = new Collection<Scope>();
             MethodCallCollection = new Collection<MethodCall>();
             LocationDictionary = new Dictionary<string, Collection<SourceLocation>>();
-            PrimaryLocation = null;
         }
 
         /// <summary>
@@ -61,8 +60,6 @@ namespace ABB.SrcML.Data {
         /// <param name="otherScope">The scope to copy from</param>
         public Scope(Scope otherScope) {
             ProgrammingLanguage = otherScope.ProgrammingLanguage;
-            ParentScope = otherScope.ParentScope;
-            PrimaryLocation = otherScope.PrimaryLocation;
 
             ChildScopeCollection = new Collection<Scope>();
             DeclaredVariablesDictionary = new Dictionary<string, VariableDeclaration>(otherScope.DeclaredVariablesDictionary.Count);
@@ -83,12 +80,6 @@ namespace ABB.SrcML.Data {
         public Scope ParentScope { get; set; }
 
         /// <summary>
-        /// References the primary location where this location has been defined. This should be updated by using the <see cref="UpdatePrimaryLocation(SourceLocation)"/> method.
-        /// For Scope objects, the primary location is simply the first location that was added.
-        /// </summary>
-        public SourceLocation PrimaryLocation { get; set; }
-
-        /// <summary>
         /// Iterates over all of the child scopes of this scope
         /// </summary>
         public IEnumerable<Scope> ChildScopes { get { return this.ChildScopeCollection.AsEnumerable(); } }
@@ -104,6 +95,19 @@ namespace ABB.SrcML.Data {
         public IEnumerable<MethodCall> MethodCalls { get { return this.MethodCallCollection.AsEnumerable(); } }
 
         /// <summary>
+        /// References the primary location where this location has been defined.
+        /// For Scope objects, the primary location is simply the first <see cref="SourceLocation.IsReference">non-reference</see>location that was added.
+        /// if there are no <see cref="SourceLocation.IsReference">non-reference locations</see>, the first location is added.
+        /// </summary>
+        public virtual SourceLocation PrimaryLocation {
+            get {
+                if(DefinitionLocations.Any())
+                    return DefinitionLocations.First();
+                return ReferenceLocations.FirstOrDefault();
+            }
+        }
+
+        /// <summary>
         /// An enumerable of all the source location objects that this scope is defined at.
         /// </summary>
         public IEnumerable<SourceLocation> Locations {
@@ -114,6 +118,16 @@ namespace ABB.SrcML.Data {
                 return locations;
             }
         }
+
+        /// <summary>
+        /// An enumerable of all the locations where <see cref="SourceLocation.IsReference"/> is false
+        /// </summary>
+        public IEnumerable<SourceLocation> DefinitionLocations { get { return Locations.Where(l => !l.IsReference); } }
+
+        /// <summary>
+        /// An enumerable of all the locations where <see cref="SourceLocation.IsReference"/> is true
+        /// </summary>
+        public IEnumerable<SourceLocation> ReferenceLocations { get { return Locations.Where(l => l.IsReference); } }
 
         /// <summary>
         /// The parent scopes for this scope in reverse order (parent is returned first, followed by the grandparent, etc).
@@ -193,18 +207,6 @@ namespace ABB.SrcML.Data {
                 LocationDictionary[location.SourceFileName] = locationsForFile;
             }
             locationsForFile.Add(location);
-            UpdatePrimaryLocation(location);
-        }
-
-        /// <summary>
-        /// Updates <see cref="PrimaryLocation"/> property. This should be overrided by child classes.
-        /// If <see cref="PrimaryLocation"/> is null, then it is set to <paramref name="location"/>
-        /// </summary>
-        /// <param name="location">A new location</param>
-        protected virtual void UpdatePrimaryLocation(SourceLocation location) {
-            if(null == PrimaryLocation) {
-                PrimaryLocation = location;
-            }
         }
 
         /// <summary>

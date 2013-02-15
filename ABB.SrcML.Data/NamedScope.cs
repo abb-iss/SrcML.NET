@@ -147,7 +147,7 @@ namespace ABB.SrcML.Data {
                 // useful information (type, method, or namespace data) are in otherScope
                 mergedScope = otherScope.Merge(this);
             }
-
+            
             return mergedScope;
         }
         /// <summary>
