@@ -29,6 +29,10 @@ namespace ABB.SrcML.Data {
             this.IsAnonymous = false;
         }
 
+        /// <summary>
+        /// Copy constructor
+        /// </summary>
+        /// <param name="otherDefinition">The scope to copy from</param>
         public NamespaceDefinition(NamespaceDefinition otherDefinition)
             : base(otherDefinition) {
             this.IsAnonymous = otherDefinition.IsAnonymous;

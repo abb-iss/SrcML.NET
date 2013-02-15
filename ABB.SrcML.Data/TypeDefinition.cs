@@ -31,6 +31,10 @@ namespace ABB.SrcML.Data {
             this.IsPartial = false;
         }
 
+        /// <summary>
+        /// Copy constructor
+        /// </summary>
+        /// <param name="otherDefinition">The scope to copy from</param>
         public TypeDefinition(TypeDefinition otherDefinition)
             : base(otherDefinition) {
             this.IsPartial = otherDefinition.IsPartial;

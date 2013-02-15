@@ -55,6 +55,10 @@ namespace ABB.SrcML.Data {
             PrimaryLocation = null;
         }
 
+        /// <summary>
+        /// Copy constructor
+        /// </summary>
+        /// <param name="otherScope">The scope to copy from</param>
         public Scope(Scope otherScope) {
             ProgrammingLanguage = otherScope.ProgrammingLanguage;
             ParentScope = otherScope.ParentScope;
@@ -172,7 +176,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Adds a method call
         /// </summary>
-        /// <param name="methodCall"></param>
+        /// <param name="methodCall">the method call to add</param>
         public void AddMethodCall(MethodCall methodCall) {
             MethodCallCollection.Add(methodCall);
             methodCall.ParentScope = this;
@@ -181,7 +185,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Adds a new source location to this scope.
         /// </summary>
-        /// <param name="location"></param>
+        /// <param name="location">the location to add</param>
         public virtual void AddSourceLocation(SourceLocation location) {
             Collection<SourceLocation> locationsForFile;
             if(!LocationDictionary.TryGetValue(location.SourceFileName, out locationsForFile)) {

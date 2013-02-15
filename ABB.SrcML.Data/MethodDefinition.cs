@@ -31,6 +31,10 @@ namespace ABB.SrcML.Data {
             this._parameters = new Collection<VariableDeclaration>();
         }
 
+        /// <summary>
+        /// Copy constructor
+        /// </summary>
+        /// <param name="otherDefinition">The scope to copy from</param>
         public MethodDefinition(MethodDefinition otherDefinition)
             : base(otherDefinition) {
             this._parameters = new Collection<VariableDeclaration>();

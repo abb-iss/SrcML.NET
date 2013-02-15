@@ -33,6 +33,10 @@ namespace ABB.SrcML.Data {
             UnresolvedParentScope = null;
         }
 
+        /// <summary>
+        /// Copy constructor
+        /// </summary>
+        /// <param name="otherScope">The scope to copy from</param>
         public NamedScope(NamedScope otherScope)
             : base(otherScope) {
             Name = otherScope.Name;
