@@ -62,7 +62,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="fileUnit"></param>
         /// <returns></returns>
-        public override VariableScope CreateScopeFromFile(XElement fileUnit) {
+        public override Scope CreateScopeFromFile(XElement fileUnit) {
             var namespaceForFile = CreateNamespaceDefinition(fileUnit, fileUnit);
             return namespaceForFile;
         }

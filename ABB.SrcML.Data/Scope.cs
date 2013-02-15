@@ -19,14 +19,14 @@ using System.Xml.Linq;
 
 namespace ABB.SrcML.Data {
     /// <summary>
-    /// The VariableScope class is the base class for variable scope objects. It encapsulates the basics of the type hierarchy (parent-child relationships)
+    /// The Scope class is the base class for variable scope objects. It encapsulates the basics of the type hierarchy (parent-child relationships)
     /// and contains methods for adding child scopes and variable declarations.
     /// </summary>
-    public class VariableScope {
+    public class Scope {
         /// <summary>
         /// Holds all of the children for this scope.
         /// </summary>
-        protected Collection<VariableScope> ChildScopeCollection;
+        protected Collection<Scope> ChildScopeCollection;
 
         /// <summary>
         /// Holds all of the method calls for this scope
@@ -41,7 +41,7 @@ namespace ABB.SrcML.Data {
 
         /// <summary>
         /// References the primary location where this location has been defined. This should be updated by using the <see cref="UpdatePrimaryLocation(SourceLocation)"/> method.
-        /// For VariableScope objects, the primary location is simply the first location that was added.
+        /// For Scope objects, the primary location is simply the first location that was added.
         /// </summary>
         public SourceLocation PrimaryLocation { get; set; }
 
@@ -70,12 +70,12 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The parent container for this scope.
         /// </summary>
-        public VariableScope ParentScope { get; set; }
+        public Scope ParentScope { get; set; }
 
         /// <summary>
         /// Iterates over all of the child scopes of this scope
         /// </summary>
-        public IEnumerable<VariableScope> ChildScopes { get { return this.ChildScopeCollection.AsEnumerable(); } }
+        public IEnumerable<Scope> ChildScopes { get { return this.ChildScopeCollection.AsEnumerable(); } }
 
         /// <summary>
         /// Iterates over all of the variable declarations for this scope
@@ -90,7 +90,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The parent scopes for this scope in reverse order (parent is returned first, followed by the grandparent, etc).
         /// </summary>
-        public IEnumerable<VariableScope> ParentScopes {
+        public IEnumerable<Scope> ParentScopes {
             get {
                 var current = this.ParentScope;
                 while(null != current) {
@@ -116,20 +116,20 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Initializes an empty variable scope.
         /// </summary>
-        public VariableScope() {
+        public Scope() {
             DeclaredVariablesDictionary = new Dictionary<string, VariableDeclaration>();
-            ChildScopeCollection = new Collection<VariableScope>();
+            ChildScopeCollection = new Collection<Scope>();
             MethodCallCollection = new Collection<MethodCall>();
             LocationDictionary = new Dictionary<string, Collection<SourceLocation>>();
             PrimaryLocation = null;
         }
 
-        public VariableScope(VariableScope otherScope) {
+        public Scope(Scope otherScope) {
             PrimaryLocation = otherScope.PrimaryLocation;
             ParentScope = otherScope.ParentScope;
             DeclaredVariablesDictionary = new Dictionary<string, VariableDeclaration>(otherScope.DeclaredVariablesDictionary.Count);
             LocationDictionary = new Dictionary<string, Collection<SourceLocation>>(otherScope.LocationDictionary.Count);
-            ChildScopeCollection = new Collection<VariableScope>();
+            ChildScopeCollection = new Collection<Scope>();
             MethodCallCollection = new Collection<MethodCall>();
             AddFrom(otherScope);
         }
@@ -138,9 +138,9 @@ namespace ABB.SrcML.Data {
         /// Adds a child scope to this scope
         /// </summary>
         /// <param name="childScope">The child scope to add.</param>
-        public virtual void AddChildScope(VariableScope childScope) {
+        public virtual void AddChildScope(Scope childScope) {
             int i;
-            VariableScope mergedScope = null;
+            Scope mergedScope = null;
             
             for(i = 0; i < this.ChildScopeCollection.Count; i++) {
                 mergedScope = this.ChildScopeCollection.ElementAt(i).Merge(childScope);
@@ -226,13 +226,13 @@ namespace ABB.SrcML.Data {
         /// The merge function merges two scopes if they are the same. It assumes that the parents of the two scopes are identical.
         /// Because of this, it is best to call it on two "global scope" objects. If the two scopes are the same (as determined by
         /// the <see cref="CanBeMergedInto"/> method), then the variable declarations in <paramref name="otherScope"/> then a new
-        /// VariableScope with all the children of the both scopes is returned.
+        /// Scope with all the children of the both scopes is returned.
         /// </summary>
         /// <param name="otherScope">The scope to merge with</param>
         /// <returns>A new variable scope if the scopes <see cref="CanBeMergedInto">could be merged</see>; null otherwise</returns>
-        public virtual VariableScope Merge(VariableScope otherScope) {
+        public virtual Scope Merge(Scope otherScope) {
             if(CanBeMergedInto(otherScope)) {
-                VariableScope mergedScope = new VariableScope(this);
+                Scope mergedScope = new Scope(this);
                 mergedScope.AddFrom(otherScope);
                 return mergedScope;
             }
@@ -244,7 +244,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="otherScope">The scope to add data from</param>
         /// <returns>the new scope</returns>
-        public VariableScope AddFrom(VariableScope otherScope) {
+        public Scope AddFrom(Scope otherScope) {
             foreach(var declaration in otherScope.DeclaredVariables) {
                 this.AddDeclaredVariable(declaration);
             }
@@ -265,7 +265,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="otherScope">The scope to compare to</param>
         /// <returns>True if the scopes are the same. False otherwise.</returns>
-        public virtual bool CanBeMergedInto(VariableScope otherScope) {
+        public virtual bool CanBeMergedInto(Scope otherScope) {
             return (null != otherScope && this.PrimaryLocation.XPath == otherScope.PrimaryLocation.XPath);
         }
 
@@ -293,7 +293,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="xpath">the xpath to find containers for.</param>
         /// <returns>an enumerable of all the scopes rooted here that are containers for this XPath. Includes the current scope.</returns>
-        public IEnumerable<VariableScope> GetScopesForPath(string xpath) {
+        public IEnumerable<Scope> GetScopesForPath(string xpath) {
             if(IsScopeFor(xpath)) {
                 yield return this;
 
@@ -332,7 +332,7 @@ namespace ABB.SrcML.Data {
                 //this scope exists solely in the file to be deleted
                 ParentScope = null;
             } else {
-                Debug.WriteLine("Found VariableScope with more than one location. This should be impossible!");
+                Debug.WriteLine("Found Scope with more than one location. This should be impossible!");
                 foreach(var loc in Locations) {
                     Debug.WriteLine("Location: " + loc);
                 }
@@ -343,7 +343,7 @@ namespace ABB.SrcML.Data {
                 //remove method calls
                 //update locations
 
-                var childrenToRemove = new List<VariableScope>();
+                var childrenToRemove = new List<Scope>();
                 foreach(var child in ChildScopeCollection) {
                     if(child.ExistsInFile(fileName)) {
                         child.RemoveFile(fileName);

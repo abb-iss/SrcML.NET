@@ -16,19 +16,19 @@ using System.Text;
 
 namespace ABB.SrcML.Data {
     public class VariableInventory {
-        private Dictionary<string, VariableScope> _scopeMap;
+        private Dictionary<string, Scope> _scopeMap;
 
         public VariableInventory() {
-            _scopeMap = new Dictionary<string, VariableScope>();
+            _scopeMap = new Dictionary<string, Scope>();
         }
 
-        public void AddScopes(IEnumerable<VariableScope> scopes) {
+        public void AddScopes(IEnumerable<Scope> scopes) {
             foreach(var scope in scopes) {
                 AddScope(scope);
             }
         }
 
-        public void AddScope(VariableScope scope) {
+        public void AddScope(Scope scope) {
             _scopeMap[scope.PrimaryLocation.XPath] = scope;
         }
 
@@ -36,7 +36,7 @@ namespace ABB.SrcML.Data {
             var parentXPath = "";
             VariableDeclaration declaration = null;
 
-            VariableScope parentScope;
+            Scope parentScope;
             if(_scopeMap.TryGetValue(parentXPath, out parentScope)) {
                 while(declaration == null && parentScope != null) {
                     declaration = (from d in parentScope.DeclaredVariables

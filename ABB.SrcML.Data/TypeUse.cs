@@ -29,7 +29,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The scope that contains this type use
         /// </summary>
-        public VariableScope ParentScope { get; set; }
+        public Scope ParentScope { get; set; }
 
         /// <summary>
         /// The possible prefixes for this type

@@ -20,7 +20,7 @@ namespace ABB.SrcML.Data {
     /// <summary>
     /// Represents a namespace definition
     /// </summary>
-    public class NamespaceDefinition : NamedVariableScope {
+    public class NamespaceDefinition : NamedScope {
         /// <summary>
         /// Creates a new namespace definition object
         /// </summary>
@@ -47,7 +47,7 @@ namespace ABB.SrcML.Data {
 
         /// <summary>
         /// <para>Returns true if this namespace represents the global namespace</para>
-        /// <para>A namespace is global if the <see cref="NamedVariableScope.Name"/> is <c>String.Empty</c></para>
+        /// <para>A namespace is global if the <see cref="NamedScope.Name"/> is <c>String.Empty</c></para>
         /// </summary>
         public bool IsGlobal { get { return this.Name.Length == 0 && !this.IsAnonymous && this.ParentScope == null; } }
 
@@ -67,7 +67,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="otherScope">the scope to merge with</param>
         /// <returns>a new namespace definition from this and otherScope</returns>
-        public override NamedVariableScope Merge(NamedVariableScope otherScope) {
+        public override NamedScope Merge(NamedScope otherScope) {
             NamespaceDefinition mergedScope = null;
             if(otherScope.CanBeMergedInto(this)) {
                 mergedScope = new NamespaceDefinition(this);
@@ -91,7 +91,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="otherScope">The scope to test</param>
         /// <returns>true if <see cref="CanBeMergedInto(NamespaceDefinition)"/> evaluates to true.</returns>
-        public override bool CanBeMergedInto(NamedVariableScope otherScope) {
+        public override bool CanBeMergedInto(NamedScope otherScope) {
             return this.CanBeMergedInto(otherScope as NamespaceDefinition);
         }
     }

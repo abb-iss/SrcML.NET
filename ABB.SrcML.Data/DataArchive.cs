@@ -46,7 +46,7 @@ namespace ABB.SrcML.Data {
     /// </code>
     /// </example>
     public class DataArchive {
-        private VariableScope globalScope;
+        private Scope globalScope;
         
         public SrcMLArchive Archive { get; private set; }
 
@@ -72,7 +72,7 @@ namespace ABB.SrcML.Data {
 
         public void AddFile(XElement fileUnitElement) {
             var fileLanguage = SrcMLElement.GetLanguageForUnit(fileUnitElement);
-            VariableScope resultScope = null;
+            Scope resultScope = null;
             switch(fileLanguage) {
                 case Language.C:
                     goto case Language.CPlusPlus;

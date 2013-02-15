@@ -20,7 +20,7 @@ namespace ABB.SrcML.Data {
     /// <summary>
     /// A method definition object.
     /// </summary>
-    public class MethodDefinition : NamedVariableScope {
+    public class MethodDefinition : NamedScope {
         private Collection<VariableDeclaration> _parameters;
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace ABB.SrcML.Data {
         public Collection<TypeDefinition> InnerTypes;
 
         /// <summary>
-        /// The parameters for this method. Replacing this collection causes the <see cref="VariableScope.DeclaredVariables"/> to be updated.
+        /// The parameters for this method. Replacing this collection causes the <see cref="Scope.DeclaredVariables"/> to be updated.
         /// </summary>
         /// TODO make the updating of the parameters collection more robust (you can't add an element to it and have DeclaredVariables updated.
         public Collection<VariableDeclaration> Parameters {
@@ -79,7 +79,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="otherScope">the scope to merge with</param>
         /// <returns>a new method definition from this and otherScope</returns>
-        public override NamedVariableScope Merge(NamedVariableScope otherScope) {
+        public override NamedScope Merge(NamedScope otherScope) {
             MethodDefinition mergedScope = null;
             if(otherScope.CanBeMergedInto(this)) {
                 mergedScope = new MethodDefinition(this);
@@ -104,7 +104,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="otherScope">The scope to test</param>
         /// <returns>true if <see cref="CanBeMergedInto(MethodDefinition)"/> evaluates to true.</returns>
-        public override bool CanBeMergedInto(NamedVariableScope otherScope) {
+        public override bool CanBeMergedInto(NamedScope otherScope) {
             return this.CanBeMergedInto(otherScope as MethodDefinition);
         }
     }

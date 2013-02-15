@@ -21,7 +21,7 @@ namespace ABB.SrcML.Data {
     /// <summary>
     /// Represents a type definition
     /// </summary>
-    public class TypeDefinition : NamedVariableScope {
+    public class TypeDefinition : NamedScope {
         /// <summary>
         /// Creates a new type definition object
         /// </summary>
@@ -72,7 +72,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="otherScope">the scope to merge with</param>
         /// <returns>a new type definition from this and otherScope</returns>
-        public override NamedVariableScope Merge(NamedVariableScope otherScope) {
+        public override NamedScope Merge(NamedScope otherScope) {
             TypeDefinition mergedScope = null;
             if(otherScope.CanBeMergedInto(this)) {
                 mergedScope = new TypeDefinition(this);
@@ -95,7 +95,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="otherScope">The scope to test</param>
         /// <returns>true if <see cref="CanBeMergedInto(TypeDefinition)"/> evaluates to true.</returns>
-        public override bool CanBeMergedInto(NamedVariableScope otherScope) {
+        public override bool CanBeMergedInto(NamedScope otherScope) {
             return this.CanBeMergedInto(otherScope as TypeDefinition);
         }
     }

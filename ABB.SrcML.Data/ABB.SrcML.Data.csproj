@@ -49,7 +49,7 @@
     <Compile Include="AccessModifier.cs" />
     <Compile Include="Alias.cs" />
     <Compile Include="MethodCall.cs" />
-    <Compile Include="NamedVariableScope.cs" />
+    <Compile Include="NamedScope.cs" />
     <Compile Include="NameHelper.cs" />
     <Compile Include="SourceLocation.cs" />
     <Compile Include="SrcMLElementVisitor.cs" />
@@ -65,7 +65,7 @@
     <Compile Include="TypeUse.cs" />
     <Compile Include="VariableDeclaration.cs" />
     <Compile Include="VariableInventory.cs" />
-    <Compile Include="VariableScope.cs" />
+    <Compile Include="Scope.cs" />
     <Compile Include="VariableScopeIterator.cs" />
     <Compile Include="VariableUse.cs" />
     <Compile Include="XNameMaps.cs" />

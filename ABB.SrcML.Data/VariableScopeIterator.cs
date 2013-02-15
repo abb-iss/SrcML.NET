@@ -16,7 +16,7 @@ using System.Text;
 
 namespace ABB.SrcML.Data {
     /// <summary>
-    /// <para>The VariableScopeIterator returns an enumerable of a <see cref="VariableScope"/> and all of its descendants.</para>
+    /// <para>The VariableScopeIterator returns an enumerable of a <see cref="Scope"/> and all of its descendants.</para>
     /// <para>It works by yielding the element, and then calling Visit on each of the child scopes.</para>
     /// </summary>
     public class VariableScopeIterator {
@@ -31,7 +31,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="scope">the root scope</param>
         /// <returns>An enumerable of all the scopes rooted at <paramref name="scope"/></returns>
-        public IEnumerable<VariableScope> VisitScope(VariableScope scope) {
+        public IEnumerable<Scope> VisitScope(Scope scope) {
             yield return scope;
             foreach(var child in scope.ChildScopes) {
                 foreach(var descendant in VisitScope(child)) {
@@ -45,7 +45,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="scope">the root scope</param>
         /// <returns>An enumerable of all the scopes rooted at <paramref name="scope"/></returns>
-        public static IEnumerable<VariableScope> Visit(VariableScope scope) {
+        public static IEnumerable<Scope> Visit(Scope scope) {
             return (new VariableScopeIterator()).VisitScope(scope);
         }
     }

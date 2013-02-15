@@ -214,7 +214,7 @@ namespace ABB.SrcML.Data.Test {
 
             Assert.AreEqual(1, globalScope.ChildScopes.Count());
 
-            var scopeA = globalScope.ChildScopes.FirstOrDefault() as NamedVariableScope;
+            var scopeA = globalScope.ChildScopes.FirstOrDefault() as NamedScope;
             Assert.AreEqual("A", scopeA.Name);
             Assert.AreEqual(2, scopeA.ChildScopes.Count());
 

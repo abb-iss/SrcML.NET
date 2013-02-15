@@ -27,7 +27,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The scope that contains this variable usage.
         /// </summary>
-        public VariableScope ParentScope { get; set; }
+        public Scope ParentScope { get; set; }
 
         /// <summary>
         /// The location of this variable use in both the source code and the XML

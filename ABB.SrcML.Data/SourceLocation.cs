@@ -6,7 +6,7 @@ using System.Xml.Linq;
 
 namespace ABB.SrcML.Data {
     /// <summary>
-    /// Source locations indicate where in the original source code a <see cref="VariableScope"/> is located
+    /// Source locations indicate where in the original source code a <see cref="Scope"/> is located
     /// It stores the file name, line number, &amp; position
     /// </summary>
     public class SourceLocation {

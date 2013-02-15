@@ -74,8 +74,8 @@ namespace ABB.SrcML.Data {
         /// <param name="element">The element to create a scope for</param>
         /// <param name="fileUnit">The file unit that contains this element</param>
         /// <returns>A variable scope for the element</returns>
-        public VariableScope CreateScope(XElement element, XElement fileUnit) {
-            VariableScope scope;
+        public Scope CreateScope(XElement element, XElement fileUnit) {
+            Scope scope;
 
             if(element.Name == SRC.Unit) {
                 scope = CreateScopeFromFile(element);
@@ -131,8 +131,8 @@ namespace ABB.SrcML.Data {
         /// <param name="container">The variable scope</param>
         /// <param name="fileUnit">the file unit that contains this <paramref name="container"/></param>
         /// <returns>A variable scope that represents <paramref name="container"/></returns>
-        public virtual VariableScope CreateScopeFromContainer(XElement container, XElement fileUnit) {
-            var currentScope = new VariableScope();
+        public virtual Scope CreateScopeFromContainer(XElement container, XElement fileUnit) {
+            var currentScope = new Scope();
             return currentScope;
         }
 
@@ -141,7 +141,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="fileUnit">The file unit</param>
         /// <returns>A variable scope that represents the file.</returns>
-        public abstract VariableScope CreateScopeFromFile(XElement fileUnit);
+        public abstract Scope CreateScopeFromFile(XElement fileUnit);
 
         /// <summary>
         /// Parses the given typeElement and returns a TypeDefinition object.
@@ -181,7 +181,7 @@ namespace ABB.SrcML.Data {
         /// <param name="fileUnit">The file unit that contains the typeElement</param>
         /// <param name="aliases">The aliases that apply to this type element (usually created from <paramref name="fileUnit"/>)</param>
         /// <returns>A new TypeUse object</returns>
-        public virtual TypeUse CreateTypeUse(XElement element, XElement fileUnit, VariableScope parentScope, IEnumerable<Alias> aliases) {
+        public virtual TypeUse CreateTypeUse(XElement element, XElement fileUnit, Scope parentScope, IEnumerable<Alias> aliases) {
             XElement typeNameElement;
 
             if(element == null)
@@ -225,7 +225,7 @@ namespace ABB.SrcML.Data {
         /// <param name="element">An element naming the type. Must be a <see cref="ABB.SrcML.SRC.Type"/>or <see cref="ABB.SrcML.SRC.Name"/>.</param>
         /// <param name="fileUnit">The file unit that contains the typeElement</param>
         /// <returns>A new TypeUse object</returns>
-        public virtual TypeUse CreateTypeUse(XElement element, XElement fileUnit, VariableScope parentScope) {
+        public virtual TypeUse CreateTypeUse(XElement element, XElement fileUnit, Scope parentScope) {
             var aliases = CreateAliasesForFile(fileUnit);
             return CreateTypeUse(element, fileUnit, parentScope, aliases);
         }
@@ -372,7 +372,7 @@ namespace ABB.SrcML.Data {
         #endregion get child containers
 
         #region create method calls
-        public virtual MethodCall CreateMethodCall(XElement element, XElement fileUnit, VariableScope parentScope) {
+        public virtual MethodCall CreateMethodCall(XElement element, XElement fileUnit, Scope parentScope) {
             string name = String.Empty;
             bool isConstructor = false;
             bool isDestructor = false;
@@ -403,7 +403,7 @@ namespace ABB.SrcML.Data {
             return methodCall;
         }
 
-        public IEnumerable<MethodCall> GetMethodCallsFromContainer(XElement container, XElement fileUnit, VariableScope parentScope) {
+        public IEnumerable<MethodCall> GetMethodCallsFromContainer(XElement container, XElement fileUnit, Scope parentScope) {
             if(null == container) return Enumerable.Empty<MethodCall>();
 
             IEnumerable<XElement> methodCallElements;
@@ -447,7 +447,7 @@ namespace ABB.SrcML.Data {
         /// <param name="declaration">The declaration XElement. Can be of type <see cref="ABB.SrcML.SRC.Declaration"/>, <see cref="ABB.SrcML.SRC.DeclarationStatement"/>, or <see cref="ABB.SrcML.SRC.Parameter"/></param>
         /// <param name="fileUnit">The containing file unit</param>
         /// <returns>A variable declaration object</returns>
-        public virtual VariableDeclaration CreateVariableDeclaration(XElement declaration, XElement fileUnit, VariableScope parentScope) {
+        public virtual VariableDeclaration CreateVariableDeclaration(XElement declaration, XElement fileUnit, Scope parentScope) {
             if(declaration == null)
                 throw new ArgumentNullException("declaration");
             if(fileUnit == null)
@@ -481,7 +481,7 @@ namespace ABB.SrcML.Data {
         /// <param name="container">the container</param>
         /// <param name="fileUnit">the containing file unit</param>
         /// <returns>An enumerable of variable declarations</returns>
-        public virtual IEnumerable<VariableDeclaration> GetVariableDeclarationsFromContainer(XElement container, XElement fileUnit, VariableScope parentScope) {
+        public virtual IEnumerable<VariableDeclaration> GetVariableDeclarationsFromContainer(XElement container, XElement fileUnit, Scope parentScope) {
             if(null == container) return Enumerable.Empty<VariableDeclaration>();
 
             IEnumerable<XElement> declarationElements;

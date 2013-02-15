@@ -38,7 +38,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The scope where this variable is declared
         /// </summary>
-        public VariableScope Scope { get; set; }
+        public Scope Scope { get; set; }
 
         /// <summary>
         /// The location of this declaration in both the original source file and in XML.

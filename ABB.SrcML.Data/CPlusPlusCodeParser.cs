@@ -70,14 +70,14 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="fileUnit">The file unit</param>
         /// <returns>a global namespace object.</returns>
-        public override VariableScope CreateScopeFromFile(XElement fileUnit) {
+        public override Scope CreateScopeFromFile(XElement fileUnit) {
             var namespaceForFile = new NamespaceDefinition();
             return namespaceForFile;
         }
 
         /// <summary>
         /// Creates a method definition object from <paramref name="methodElement"/>. For C++, it looks for
-        /// <code>int A::B::Foo(){ }</code> and sets the <see cref="NamedVariableScope.UnresolvedParentScope"/> property to "A->B".
+        /// <code>int A::B::Foo(){ }</code> and sets the <see cref="NamedScope.UnresolvedParentScope"/> property to "A->B".
         /// </summary>
         /// <param name="methodElement">The method element</param>
         /// <param name="fileUnit">The containing file unit</param>
@@ -97,11 +97,11 @@ namespace ABB.SrcML.Data {
                 parentNames = NameHelper.GetNamesExceptLast(nameElement);
             }
             
-            NamedVariableScope current = null;
+            NamedScope current = null;
 
             if(parentNames.Any()) {
                 foreach(var name in parentNames) {
-                    var namedScope = new NamedVariableScope() {
+                    var namedScope = new NamedScope() {
                         Name = name,
                     };
                     namedScope.AddSourceLocation(new SourceLocation(methodElement, fileUnit));
