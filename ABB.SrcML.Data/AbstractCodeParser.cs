@@ -36,6 +36,8 @@ namespace ABB.SrcML.Data {
                                                                   SRC.FunctionDeclaration, SRC.ConstructorDeclaration, SRC.DestructorDeclaration });
             NamespaceElementNames = new HashSet<XName>(new XName[] { SRC.Namespace });
             VariableDeclarationElementNames = new HashSet<XName>(new XName[] { SRC.Declaration, SRC.DeclarationStatement, SRC.Parameter });
+            ContainerReferenceElementNames = new HashSet<XName>(new XName[] { SRC.ClassDeclaration, SRC.StructDeclaration, SRC.UnionDeclaration,
+                                                                                SRC.ConstructorDeclaration, SRC.DestructorDeclaration, SRC.FunctionDeclaration });
         }
 
         /// <summary>
@@ -69,6 +71,11 @@ namespace ABB.SrcML.Data {
         public HashSet<XName> VariableDeclarationElementNames { get; protected set; }
 
         /// <summary>
+        /// Returns the XNames that represent reference elements (such as function_decl and class_decl)
+        /// </summary>
+        public HashSet<XName> ContainerReferenceElementNames { get; protected set; }
+
+        /// <summary>
         /// Looks at the name of the element and then creates a variablescope depending on the <see cref="System.Xml.Linq.XName"/>.
         /// </summary>
         /// <param name="element">The element to create a scope for</param>
@@ -89,7 +96,7 @@ namespace ABB.SrcML.Data {
             } else {
                 scope = CreateScopeFromContainer(element, fileUnit);
             }
-            scope.AddSourceLocation(new SourceLocation(element, fileUnit));
+            scope.AddSourceLocation(new SourceLocation(element, fileUnit, ContainerIsReference(element)));
             scope.ProgrammingLanguage = this.ParserLanguage;
             return scope;
         }
@@ -110,6 +117,7 @@ namespace ABB.SrcML.Data {
                 Name = GetNameForMethod(methodElement),
                 IsConstructor = (methodElement.Name == SRC.Constructor || methodElement.Name == SRC.ConstructorDeclaration),
                 IsDestructor = (methodElement.Name == SRC.Destructor || methodElement.Name == SRC.DestructorDeclaration),
+                Accessibility = GetAccessModifierForMethod(methodElement),
             };
 
             var parameters = from paramElement in GetParametersFromMethod(methodElement)
@@ -163,8 +171,7 @@ namespace ABB.SrcML.Data {
                Kind = XNameMaps.GetKindForXElement(typeElement),
                Name = GetNameForType(typeElement),
             };
-            typeDefinition.Parents = GetParentTypeUses(typeElement, fileUnit, typeDefinition);
-
+            typeDefinition.ParentTypes = GetParentTypeUses(typeElement, fileUnit, typeDefinition);
             return typeDefinition;
         }
 
@@ -213,6 +220,16 @@ namespace ABB.SrcML.Data {
 
             return typeUse;
         }
+
+        /// <summary>
+        /// Checks to see if this element is a reference container
+        /// </summary>
+        /// <param name="element">The element to check</param>
+        /// <returns>True if this is a reference container; false otherwise</returns>
+        public virtual bool ContainerIsReference(XElement element) {
+            return (element != null && ContainerReferenceElementNames.Contains(element.Name));
+        }
+
         /// <summary>
         /// Parses the type use and returns a TypeUse object
         /// </summary>
@@ -246,6 +263,32 @@ namespace ABB.SrcML.Data {
             if(null == name)
                 return string.Empty;
             return name.Value;
+        }
+
+        /// <summary>
+        /// Gets the access modifier for this method. For Java & C#, a "specifier" tag is placed in either
+        /// the method element, or the type element in the method.
+        /// </summary>
+        /// <param name="methodElement">The method element</param>
+        /// <returns>The first specifier encountered. If none, it returns <see cref="AccessModifier.None"/></returns>
+        public virtual AccessModifier GetAccessModifierForMethod(XElement methodElement) {
+            Dictionary<string, AccessModifier> accessModifierMap = new Dictionary<string, AccessModifier>() {
+                { "public", AccessModifier.Public },
+                { "private", AccessModifier.Private },
+                { "protected", AccessModifier.Protected },
+                { "internal", AccessModifier.Internal },
+            };
+
+            var specifierContainer = methodElement.Element(SRC.Type);
+            if(null == specifierContainer) {
+                specifierContainer = methodElement;
+            }
+
+            var specifiers = from specifier in specifierContainer.Elements(SRC.Specifier)
+                             where accessModifierMap.ContainsKey(specifier.Value)
+                             select accessModifierMap[specifier.Value];
+
+            return (specifiers.Any() ? specifiers.First() : AccessModifier.None);
         }
 
         /// <summary>

@@ -374,14 +374,17 @@ namespace ABB.SrcML.Data.Test {
             var header = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(header_xml, "A.h");
             var implementation = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(impl_xml, "A.cpp");
 
-            var globalScope = SrcMLElementVisitor.Visit(header, CodeParser[Language.CPlusPlus]);
-            globalScope = globalScope.Merge(SrcMLElementVisitor.Visit(implementation, CodeParser[Language.CPlusPlus]));
+            var headerScope = SrcMLElementVisitor.Visit(header, CodeParser[Language.CPlusPlus]);
+            var implementationScope = SrcMLElementVisitor.Visit(implementation, CodeParser[Language.CPlusPlus]);
+
+            var globalScope = headerScope.Merge(implementationScope);
 
             Assert.AreEqual(1, globalScope.ChildScopes.Count());
             
             var typeA = globalScope.ChildScopes.First() as TypeDefinition;
             Assert.AreEqual("A", typeA.Name);
             Assert.AreEqual(1, typeA.ChildScopes.Count());
+            Assert.AreEqual("A.h", typeA.PrimaryLocation.SourceFileName);
 
             var methodFoo = typeA.ChildScopes.First() as MethodDefinition;
             Assert.AreEqual("Foo", methodFoo.Name);

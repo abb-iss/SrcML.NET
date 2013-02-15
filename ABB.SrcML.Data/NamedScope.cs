@@ -31,8 +31,10 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public NamedScope()
             : base() {
+            Accessibility = AccessModifier.None;
             Name = String.Empty;
             UnresolvedParentScope = null;
+            UnresolvedParentScopeInUse = null;
         }
 
         /// <summary>
@@ -41,9 +43,16 @@ namespace ABB.SrcML.Data {
         /// <param name="otherScope">The scope to copy from</param>
         public NamedScope(NamedScope otherScope)
             : base(otherScope) {
+            Accessibility = otherScope.Accessibility;
             Name = otherScope.Name;
             UnresolvedParentScope = otherScope.UnresolvedParentScope;
+            UnresolvedParentScopeInUse = otherScope.UnresolvedParentScopeInUse;
         }
+        
+        /// <summary>
+        /// The access modifier for this scope
+        /// </summary>
+        public AccessModifier Accessibility { get; set; }
 
         /// <summary>
         /// The name of this scope
@@ -55,6 +64,11 @@ namespace ABB.SrcML.Data {
         /// unresolved scopes that contain this object. This property should point to the root of the unresolved section.
         /// </summary>
         public NamedScope UnresolvedParentScope { get; set; }
+
+        /// <summary>
+        /// This indicates that an unresolved parent scope has been used to link this object with a parent object
+        /// </summary>
+        public NamedScope UnresolvedParentScopeInUse { get; set; }
 
         /// <summary>
         /// The full name of this object (taken by finding all of the NamedScope objects that are ancestors of this
@@ -99,13 +113,15 @@ namespace ABB.SrcML.Data {
             } else {
                 var root = childScope.UnresolvedParentScope;
                 
+                // iterate through the unresolved parent scope and find the tail
+                // once you've found the tail, add this as a child scope
                 Scope latest = root, current;
-
                 do {
                     current = latest;
                     latest = current.ChildScopes.FirstOrDefault();
                 } while(latest != null);
-                
+
+                childScope.UnresolvedParentScopeInUse = childScope.UnresolvedParentScope;
                 childScope.UnresolvedParentScope = null;
                 current.AddChildScope(childScope);
                 base.AddChildScope(root);
@@ -149,7 +165,7 @@ namespace ABB.SrcML.Data {
                 // useful information (type, method, or namespace data) are in otherScope
                 mergedScope = otherScope.Merge(this);
             }
-
+            
             return mergedScope;
         }
         /// <summary>

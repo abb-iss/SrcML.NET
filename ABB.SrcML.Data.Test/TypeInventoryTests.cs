@@ -76,7 +76,7 @@ namespace ABB.SrcML.Data.Test {
             var typeA = inventory.ResolveType(testTypeUse).FirstOrDefault();
             Assert.AreEqual("A", typeA.Name);
 
-            var typeB = inventory.ResolveType(typeA.Parents.First()).FirstOrDefault();
+            var typeB = inventory.ResolveType(typeA.ParentTypes.First()).FirstOrDefault();
             Assert.AreEqual("B", typeB.Name);
         }
     }
