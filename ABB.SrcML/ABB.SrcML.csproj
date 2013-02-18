@@ -53,6 +53,7 @@
     </Compile>
     <Compile Include="AbstractArchive.cs" />
     <Compile Include="AbstractDocument.cs" />
+    <Compile Include="AbstractFileMonitor.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="FileInfoComparer.cs" />
     <Compile Include="FileSystemSourceFolder.cs" />

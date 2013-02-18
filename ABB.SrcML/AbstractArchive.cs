@@ -5,52 +5,74 @@ using System.Text;
 using System.Xml.Linq;
 using System.IO;
 using System.Xml;
+using System.Collections.ObjectModel;
 
 namespace ABB.SrcML
 {
-    public abstract class AbstractArchive : IArchive
+    public abstract class AbstractArchive : IDisposable
     {
         private string _archivePath;
-        private string _projectPath;
-        private Dictionary<XName, XAttribute> _rootAttributeDictionary;
-
-        protected AbstractArchive(string projectPath, string archivePath)
+        
+        protected AbstractArchive(string archivePath)
             : this()
         {
-            this.SourceFolderPath = projectPath;
             this.ArchivePath = archivePath;
         }
 
-        protected AbstractArchive()
+        private AbstractArchive()
         {
-            this._rootAttributeDictionary = new Dictionary<XName, XAttribute>();
+            
         }
 
-        #region IArchive Members
+        public abstract ICollection<string> SupportedExtensions { get; }
 
-        public string GetPathForUnit(XElement unit)
-        {
-            if (null == unit)
-                throw new ArgumentNullException("unit");
-            try
-            {
-                SrcMLHelper.ThrowExceptionOnInvalidName(unit, SRC.Unit);
-            }
-            catch (SrcMLRequiredNameException e)
-            {
-                throw new ArgumentException(e.Message, "unit", e);
-            }
+        /// <summary>
+        /// This event should be raised whenever the archive updates its internal representation for a file
+        /// </summary>
+        public event EventHandler<FileEventRaisedArgs> FileChanged;
 
-            var fileName = unit.Attribute("filename");
+        /// <summary>
+        /// Adds or updates <paramref name="fileName"/> within the archive
+        /// </summary>
+        /// <param name="fileName">The file name to add or update. If the file exists, it is deleted and then added regardless of whether or not the file is outdated</param>
+        public abstract void AddOrUpdateFile(string fileName);
 
-            if (null != fileName)
-                return fileName.Value;
+        /// <summary>
+        /// Deletes <paramref name="fileName"/> from the archive
+        /// </summary>
+        /// <param name="fileName">The file name to delete. If it does not exist, nothing happens</param>
+        public abstract void DeleteFile(string fileName);
 
-            return null;
-            //return fileName.Value;
-        }
+        /// <summary>
+        /// Renames the file to the new file name
+        /// </summary>
+        /// <param name="oldFileName">the existing path</param>
+        /// <param name="newFileName">the new path</param>
+        public abstract void RenameFile(string oldFileName, string newFileName);
 
-        public abstract XElement GetUnitForPath(string pathToUnit);
+        /// <summary>
+        /// Tests to see if the archive contains <paramref name="fileName"/>
+        /// </summary>
+        /// <param name="fileName">the file name to check for</param>
+        /// <returns>True if the file is in the archive; false otherwise</returns>
+        public abstract bool ContainsFile(string fileName);
+
+        /// <summary>
+        /// Compares file name with the archive representation
+        /// </summary>
+        /// <param name="fileName">the file name to check for</param>
+        /// <returns>True if the archive version of the file is older than <paramref name="fileName"/></returns>
+        public abstract bool IsOutdated(string fileName);
+
+        /// <summary>
+        /// Gets all of the file names stored in this archive
+        /// </summary>
+        /// <returns>An enumerable of filenames stored in this archive.</returns>
+        public abstract IEnumerable<string> GetFiles();
+
+        /// <summary>
+        /// The path where this archive is stored.
+        /// </summary>
         public string ArchivePath
         {
             get
@@ -63,58 +85,15 @@ namespace ABB.SrcML
             }
         }
 
-        public string SourceFolderPath
-        {
-            get
-            {
-                return this._projectPath;
-            }
-            protected set
-            {
-                this._projectPath = value;
+        protected virtual void OnFileChanged(FileEventRaisedArgs e) {
+            EventHandler<FileEventRaisedArgs> handler = FileChanged;
+            if(handler != null) {
+                handler(this, e);
             }
         }
 
-        public abstract IEnumerable<XElement> FileUnits
-        {
-            get;
+        public virtual void Dispose() {
+            FileChanged = null;
         }
-
-        public Dictionary<XName, XAttribute> RootAttributeDictionary
-        {
-            get
-            {
-                return this._rootAttributeDictionary;
-            }
-            protected set
-            {
-                this._rootAttributeDictionary = value;
-            }
-        }
-
-        public abstract void AddUnits(IEnumerable<XElement> units);
-
-        public abstract void DeleteUnits(IEnumerable<XElement> units);
-
-        public abstract void UpdateUnits(IEnumerable<XElement> units);
-
-        public void ExportSource()
-        {
-            foreach (var unit in this.FileUnits)
-            {
-                var path = GetPathForUnit(unit);
-                try
-                {
-                    Directory.CreateDirectory(Path.GetDirectoryName(path));
-                    File.WriteAllText(path, unit.ToSource(), Encoding.UTF8);
-                }
-                catch (UnauthorizedAccessException)
-                {
-                    throw;
-                }
-            }
-        }
-
-        #endregion
     }
 }
