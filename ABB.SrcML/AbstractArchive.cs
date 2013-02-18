@@ -26,22 +26,6 @@ namespace ABB.SrcML
             this._rootAttributeDictionary = new Dictionary<XName, XAttribute>();
         }
 
-        /// <summary>
-        /// Write attribute strings for each SrcML namespace to the given XmlWriter. This should be called immediately after XmlWriter.WriteStartElement.
-        /// </summary>
-        /// <param name="writer">Instance of XmlWriter to write to.</param>
-        public static void WriteXmlnsAttributes(XmlWriter writer)
-        {
-            if (null == writer)
-                throw new ArgumentNullException("writer");
-
-            writer.WriteAttributeString("xmlns", CPP.Prefix, null, CPP.NS.NamespaceName);
-            writer.WriteAttributeString("xmlns", LIT.Prefix, null, LIT.NS.NamespaceName);
-            writer.WriteAttributeString("xmlns", OP.Prefix, null, OP.NS.NamespaceName);
-            writer.WriteAttributeString("xmlns", POS.Prefix, null, POS.NS.NamespaceName);
-            writer.WriteAttributeString("xmlns", TYPE.Prefix, null, TYPE.NS.NamespaceName);
-        }
-
         #region IArchive Members
 
         public string GetPathForUnit(XElement unit)

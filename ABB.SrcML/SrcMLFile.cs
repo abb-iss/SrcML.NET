@@ -22,10 +22,12 @@ namespace ABB.SrcML {
     /// <summary>
     /// This class represents a SrcMLFile. The underlying data is stored in an XML file, and can be accessed in a number of ways.
     /// </summary>
-    public class SrcMLFile : AbstractArchive//AbstractDocument
+    public class SrcMLFile
     {
         private string _rootDirectory;
         private XDocument _document;
+        private Dictionary<XName, XAttribute> _rootAttributeDictionary;
+        private string _archivePath;
 
         /// <summary>
         /// Instantiates a new SrcMLFile with the characteristics of another SrcMLFile.
@@ -44,6 +46,7 @@ namespace ABB.SrcML {
         /// <param name="fileName">The file to read from.</param>
         public SrcMLFile(string fileName) {
             this.ArchivePath = fileName;
+            this._rootAttributeDictionary = new Dictionary<XName, XAttribute>();
             this.NumberOfNestedFileUnits = XmlHelper.StreamElements(this.ArchivePath, SRC.Unit).Count();
             this._rootDirectory = getCommonPath();
         }
@@ -53,6 +56,25 @@ namespace ABB.SrcML {
                 return this.ArchivePath;
             }
         }
+
+        public string ArchivePath {
+            get {
+                return this._archivePath;
+            }
+            protected set {
+                this._archivePath = value;
+            }
+        }
+
+        public Dictionary<XName, XAttribute> RootAttributeDictionary {
+            get {
+                return this._rootAttributeDictionary;
+            }
+            protected set {
+                this._rootAttributeDictionary = value;
+            }
+        }
+
         /// <summary>
         /// Merges this SrcMLFile with another SrcMLFile. 
         /// </summary>
@@ -181,6 +203,36 @@ namespace ABB.SrcML {
             return path;
         }
 
+        public string GetPathForUnit(XElement unit) {
+            if(null == unit)
+                throw new ArgumentNullException("unit");
+            try {
+                SrcMLHelper.ThrowExceptionOnInvalidName(unit, SRC.Unit);
+            } catch(SrcMLRequiredNameException e) {
+                throw new ArgumentException(e.Message, "unit", e);
+            }
+
+            var fileName = unit.Attribute("filename");
+
+            if(null != fileName)
+                return fileName.Value;
+
+            return null;
+            //return fileName.Value;
+        }
+
+        public void ExportSource() {
+            foreach(var unit in this.FileUnits) {
+                var path = GetPathForUnit(unit);
+                try {
+                    Directory.CreateDirectory(Path.GetDirectoryName(path));
+                    File.WriteAllText(path, unit.ToSource(), Encoding.UTF8);
+                } catch(UnauthorizedAccessException) {
+                    throw;
+                }
+            }
+        }
+
         /// <summary>
         /// Get this SrcML file as an XDocument. This should not be used on very large SrcML file as it
         /// loads the entire XML file into memory.
@@ -300,12 +352,11 @@ namespace ABB.SrcML {
             return filenames.ToList<string>().IndexOf(Path.GetFileName(fileName));
         }
 
-        #region AbstractArchive
-        public override IEnumerable<XElement> FileUnits {
+        public IEnumerable<XElement> FileUnits {
             get {
                 if(0 == this.NumberOfNestedFileUnits) {
                     var shortList = new List<XElement>(1);
-                    shortList.Add(XElement.Load(this.ArchivePath, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo));
+                    shortList.Add(XElement.Load(this.FileName, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo));
                     return shortList;
                 }
                 IEnumerable<XElement> units = from unit in XmlHelper.StreamElements(this.ArchivePath, SRC.Unit)
@@ -315,7 +366,7 @@ namespace ABB.SrcML {
             }
         }
 
-        public override void AddUnits(IEnumerable<XElement> units) {
+        public void AddUnits(IEnumerable<XElement> units) {
             var tmpFileName = Path.GetTempFileName();
             using(XmlWriter xw = XmlWriter.Create(tmpFileName, new XmlWriterSettings() { Indent = false })) {
                 xw.WriteStartElement(SRC.Unit.LocalName, SRC.Unit.NamespaceName);
@@ -331,10 +382,10 @@ namespace ABB.SrcML {
 
                 xw.WriteEndElement();
             }
-            File.Move(tmpFileName, this.ArchivePath);
+            File.Move(tmpFileName, this.FileName);
         }
 
-        public override void DeleteUnits(IEnumerable<XElement> units) {
+        public void DeleteUnits(IEnumerable<XElement> units) {
             var tmpFileName = Path.GetTempFileName();
             using(XmlWriter xw = XmlWriter.Create(tmpFileName, new XmlWriterSettings() { Indent = false })) {
                 xw.WriteStartElement(SRC.Unit.LocalName, SRC.Unit.NamespaceName);
@@ -347,15 +398,21 @@ namespace ABB.SrcML {
                 xw.WriteEndElement();
             }
         }
-        public override void UpdateUnits(IEnumerable<XElement> units) {
-            this.Save(units);
-        }
 
-        public override XElement GetUnitForPath(string pathToUnit) {
-            throw new NotImplementedException();
-        }
-        #endregion
+        /// <summary>
+        /// Write attribute strings for each SrcML namespace to the given XmlWriter. This should be called immediately after XmlWriter.WriteStartElement.
+        /// </summary>
+        /// <param name="writer">Instance of XmlWriter to write to.</param>
+        public static void WriteXmlnsAttributes(XmlWriter writer) {
+            if(null == writer)
+                throw new ArgumentNullException("writer");
 
+            writer.WriteAttributeString("xmlns", CPP.Prefix, null, CPP.NS.NamespaceName);
+            writer.WriteAttributeString("xmlns", LIT.Prefix, null, LIT.NS.NamespaceName);
+            writer.WriteAttributeString("xmlns", OP.Prefix, null, OP.NS.NamespaceName);
+            writer.WriteAttributeString("xmlns", POS.Prefix, null, POS.NS.NamespaceName);
+            writer.WriteAttributeString("xmlns", TYPE.Prefix, null, TYPE.NS.NamespaceName);
+        }
 
         /// <summary>
         /// Added by JZ on 12/3/2012
