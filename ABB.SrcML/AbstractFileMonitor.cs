@@ -27,7 +27,8 @@ namespace ABB.SrcML {
         /// <summary>
         /// Creates a new AbstractFileMonitor with the default archive
         /// </summary>
-        /// <param name="defaultArchive"></param>
+        /// <param name="storageDirectory">The folder where this monitor stores its archives</param>
+        /// <param name="defaultArchive">The default archive</param>
         public AbstractFileMonitor(string storageDirectory, AbstractArchive defaultArchive) {
             this.MonitorStorage = storageDirectory;
             this.registeredArchives.Add(defaultArchive);
@@ -35,7 +36,7 @@ namespace ABB.SrcML {
         }
 
         /// <summary>
-        /// The folder where all of the archives can store their data
+        /// The folder where all of the archives can store their data. <see cref="AbstractArchive"/> objects can use this as their root folder
         /// </summary>
         public string MonitorStorage { get; protected set; }
 

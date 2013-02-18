@@ -24,7 +24,7 @@ namespace ABB.SrcML.Tools.ArchiveUpdater
         private SrcMLArchive _archive;
         public MainWindow()
         {
-            _archive = new SrcMLArchive(new FileSystemSourceFolder("."), ".srcml");
+            _archive = new SrcMLArchive(new FileSystemFolderMonitor("."), ".srcml");
             ////_archive.SourceFileChanged += _archive_SourceFileChanged;
             _archive.SourceFileChanged += _archive_SourceFileChanged;
             InitializeComponent();

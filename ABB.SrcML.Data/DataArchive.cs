@@ -54,7 +54,7 @@ namespace ABB.SrcML.Data {
         /// <param name="archive">The archive to monitor for changes.</param>
         public DataArchive(SrcMLArchive archive) {
             this.Archive = archive;
-            this.Archive.SourceFileChanged += Archive_SourceFileChanged;
+            this.Archive.FileChanged += Archive_SourceFileChanged;
         }
 
         public TypeDefinition ResolveType(XElement variableDeclarationElement) {
