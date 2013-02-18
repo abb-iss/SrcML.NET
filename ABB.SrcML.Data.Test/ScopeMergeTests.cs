@@ -393,5 +393,22 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("A.cpp", methodFoo.PrimaryLocation.SourceFileName);
             Assert.AreEqual(AccessModifier.Private, methodFoo.Accessibility);
         }
+
+        [Test]
+        public void TestMethodDefinitionMerge_NoParameterName() {
+            ////Foo.h
+            //int Foo(char);
+            string declXml = "<function_decl><type><name>int</name></type> <name>Foo</name><parameter_list>(<param><decl><type><name>char</name></type></decl></param>)</parameter_list>;</function_decl>";
+            var fileunitDecl = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(declXml, "Foo.h");
+            var globalScope = SrcMLElementVisitor.Visit(fileunitDecl, CodeParser[Language.CPlusPlus]);
+            ////Foo.cpp
+            //int Foo(char bar) { return 0; }
+            string defXml = "<function><type><name>int</name></type> <name>Foo</name><parameter_list>(<param><decl><type><name>char</name></type> <name>bar</name></decl></param>)</parameter_list> <block>{ <return>return <expr><lit:literal type=\"number\">0</lit:literal></expr>;</return> }</block></function>";
+            var fileUnitDef = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(defXml, "Foo.cpp");
+            globalScope = globalScope.Merge(SrcMLElementVisitor.Visit(fileUnitDef, CodeParser[Language.CPlusPlus]));
+
+            Assert.AreEqual(1, globalScope.ChildScopes.Count());
+            Assert.AreEqual("Foo", ((MethodDefinition)globalScope.ChildScopes.First()).Name);
+        }
     }
 }
