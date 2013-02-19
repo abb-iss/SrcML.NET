@@ -24,7 +24,7 @@ using NSubstitute;
 namespace ABB.SrcML.Test
 {
     [TestFixture]
-    class SrcMLArchiveTest
+    public class SrcMLArchiveTests
     {
         public const string SourceDirectory = "testSourceDir";
         public const string ArchiveDirectory = "SrcMLArchive";
