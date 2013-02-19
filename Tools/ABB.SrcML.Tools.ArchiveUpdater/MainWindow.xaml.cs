@@ -12,7 +12,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using ABB.SrcML;
-using System.IO;
+using FSPath = System.IO.Path;
 
 namespace ABB.SrcML.Tools.ArchiveUpdater
 {
@@ -22,15 +22,20 @@ namespace ABB.SrcML.Tools.ArchiveUpdater
     public partial class MainWindow : Window
     {
         private SrcMLArchive _archive;
+        private FileSystemFolderMonitor _monitor;
         public MainWindow()
         {
-            _archive = new SrcMLArchive(new FileSystemFolderMonitor("."), ".srcml");
-            ////_archive.SourceFileChanged += _archive_SourceFileChanged;
-            _archive.SourceFileChanged += _archive_SourceFileChanged;
+            var archivePath = FSPath.Combine(".", "ARCHIVE");
+            _monitor = new FileSystemFolderMonitor(".", archivePath, new LastModifiedArchive(archivePath, "lastmodified.txt"));
+            _archive = new SrcMLArchive(FSPath.Combine(_monitor.MonitorStorage, "srcml"));
+            _monitor.RegisterNonDefaultArchive(_archive);
+            _archive.FileChanged += _archive_SourceFileChanged;
+
+            _monitor.StartMonitoring();
+
             InitializeComponent();
         }
 
-        ////void _archive_SourceFileChanged(object sender, SourceEventArgs e)
         void _archive_SourceFileChanged(object sender, FileEventRaisedArgs e)
         {
             textBox1.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal,
@@ -42,6 +47,10 @@ namespace ABB.SrcML.Tools.ArchiveUpdater
                         else
                             textBox1.AppendText(String.Format("{0} {1}\n", e.EventType, e.SourceFilePath));
                     }));
+        }
+
+        private void Window_Closing_1(object sender, System.ComponentModel.CancelEventArgs e) {
+            _monitor.Dispose();
         }
     }
 }

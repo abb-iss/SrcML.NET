@@ -8,11 +8,13 @@ using System.IO;
 namespace ABB.SrcML {
     public class FileSystemFolderMonitor : AbstractFileMonitor {
         private DirectoryInfo _folderInfo;
+        private DirectoryInfo _monitorStorageInfo;
         private FileSystemWatcher _directoryWatcher;
 
         public FileSystemFolderMonitor(string pathToSourceFolder, string monitoringStorage, AbstractArchive defaultArchive) 
         : base(monitoringStorage, defaultArchive) {
             this.FullFolderPath = pathToSourceFolder;
+            this._monitorStorageInfo = new DirectoryInfo(monitoringStorage);
             SetupFileSystemWatcher();
         }
 
@@ -55,15 +57,21 @@ namespace ABB.SrcML {
         }
 
         void HandleFileChanged(object sender, FileSystemEventArgs e) {
-            UpdateFile(e.FullPath);
+            if(IsNotInMonitoringStorage(e.FullPath)) {
+                UpdateFile(e.FullPath);
+            }
         }
 
         void HandleFileCreated(object sender, FileSystemEventArgs e) {
-            AddFile(e.FullPath);
+            if(IsNotInMonitoringStorage(e.FullPath)) {
+                AddFile(e.FullPath);
+            }
         }
 
         void HandleFileDeleted(object sender, FileSystemEventArgs e) {
-            DeleteFile(e.FullPath);
+            if(IsNotInMonitoringStorage(e.FullPath)) {
+                DeleteFile(e.FullPath);
+            }
         }
 
         void HandleFileWatcherError(object sender, ErrorEventArgs e) {
@@ -71,7 +79,9 @@ namespace ABB.SrcML {
         }
 
         void HandleFileRenamed(object sender, RenamedEventArgs e) {
-            RenameFile(e.OldFullPath, e.FullPath);
+            if(IsNotInMonitoringStorage(e.FullPath)) {
+                RenameFile(e.OldFullPath, e.FullPath);
+            }
         }
 
         private static bool isFile(string fullPath) {
@@ -80,6 +90,10 @@ namespace ABB.SrcML {
 
             var pathAttributes = File.GetAttributes(fullPath);
             return !pathAttributes.HasFlag(FileAttributes.Directory);
+        }
+
+        private bool IsNotInMonitoringStorage(string filePath) {
+            return !Path.GetFullPath(filePath).StartsWith(_monitorStorageInfo.FullName, StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }

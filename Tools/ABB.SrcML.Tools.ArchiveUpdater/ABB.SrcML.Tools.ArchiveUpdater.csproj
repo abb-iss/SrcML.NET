@@ -18,13 +18,13 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DocumentationFile>bin\Debug\ABB.SrcML.Tools.ArchiveUpdater.XML</DocumentationFile>
+    <OutputPath>..\..\Build\Debug\</OutputPath>
+    <DocumentationFile>..\..\Build\Debug\ABB.SrcML.Tools.ArchiveUpdater.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <OutputPath>bin\Release\</OutputPath>
-    <DocumentationFile>bin\Release\ABB.SrcML.Tools.ArchiveUpdater.XML</DocumentationFile>
+    <OutputPath>..\..\Build\Release\</OutputPath>
+    <DocumentationFile>..\..\Build\Release\ABB.SrcML.Tools.ArchiveUpdater.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

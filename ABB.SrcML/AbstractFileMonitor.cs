@@ -31,6 +31,8 @@ namespace ABB.SrcML {
         /// <param name="defaultArchive">The default archive</param>
         public AbstractFileMonitor(string storageDirectory, AbstractArchive defaultArchive) {
             this.MonitorStorage = storageDirectory;
+            this.registeredArchives = new HashSet<AbstractArchive>();
+            this.archiveMap = new Dictionary<string, AbstractArchive>();
             this.registeredArchives.Add(defaultArchive);
             this.defaultArchive = defaultArchive;
         }
