@@ -7,11 +7,13 @@
  *
  * Contributors:
  *    Vinay Augustine (ABB Group) - initial API, implementation, & documentation
+ *    Patrick Francis (ABB Group) - initial API, implementation, & documentation
  *****************************************************************************/
 
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -181,6 +183,29 @@ namespace ABB.SrcML.Data {
         /// <returns>true if the two objects have the same <see cref="Name"/>. False, otherwise.</returns>
         public virtual bool CanBeMergedInto(NamedScope otherScope) {
             return (null != otherScope && this.Name == otherScope.Name);
+        }
+
+        /// <summary>
+        /// Removes any program elements defined in the given file.
+        /// </summary>
+        /// <param name="fileName">The file to remove.</param>
+        public override void RemoveFile(string fileName) {
+            if(!LocationDictionary.ContainsKey(fileName)) {
+                //this scope is not defined in the given file
+                return;
+            }
+
+            if(LocationDictionary.Count == 1) {
+                //this scope exists solely in the file to be deleted
+                ParentScope = null;
+            } else {
+                Debug.WriteLine("Found NamedScope with more than one location. Should this be possible?");
+                foreach(var loc in Locations) {
+                    Debug.WriteLine("Location: " + loc);
+                }
+
+                //TODO: figure out what to do here
+            }
         }
 
         private string GetUnresolvedName() {

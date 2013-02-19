@@ -95,5 +95,57 @@ namespace ABB.SrcML.Data {
         public override bool CanBeMergedInto(NamedScope otherScope) {
             return this.CanBeMergedInto(otherScope as TypeDefinition);
         }
+
+        /// <summary>
+        /// Removes any program elements defined in the given file.
+        /// </summary>
+        /// <param name="fileName">The file to remove.</param>
+        public override void RemoveFile(string fileName) {
+            if(!LocationDictionary.ContainsKey(fileName)) {
+                //this type is not defined in the given file
+                return;
+            }
+
+            if(LocationDictionary.Count == 1) {
+                //this type exists solely in the file to be deleted
+                ParentScope = null;
+            } else {
+                //this type is defined in more than one file, delete only the parts in the given file
+
+                //TODO: need special handling based on whether this is a partial class, or C++, or what
+                if(IsPartial) {
+                    //remove children
+                    var childrenToRemove = new List<Scope>();
+                    foreach(var child in ChildScopeCollection) {
+                        if(child.ExistsInFile(fileName)) {
+                            child.RemoveFile(fileName);
+                            if(child.ParentScope == null) {
+                                //child has deleted itself
+                                childrenToRemove.Add(child);
+                            }
+                        }
+                    }
+                    foreach(var child in childrenToRemove) {
+                        ChildScopeCollection.Remove(child);
+                    }
+
+                    //remove method calls
+                    var callsInFile = MethodCallCollection.Where(call => call.Location.SourceFileName == fileName);
+                    foreach(var call in callsInFile) {
+                        MethodCallCollection.Remove(call);
+                    }
+
+                    //remove declared variables
+                    var declsInFile = DeclaredVariablesDictionary.Where(kvp => kvp.Value.Location.SourceFileName == fileName);
+                    foreach(var kvp in declsInFile) {
+                        DeclaredVariablesDictionary.Remove(kvp.Key);
+                    }
+
+                    //update locations
+                    LocationDictionary.Remove(fileName);
+                    //TODO: update PrimaryLocation?
+                }
+            }
+        }
     }
 }
