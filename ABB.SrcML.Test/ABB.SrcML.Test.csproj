@@ -60,9 +60,12 @@
     <Compile Include="ExternalTests.cs" />
     <Compile Include="HelperTests.cs" />
     <Compile Include="InvalidQueryFunctions.cs" />
+    <Compile Include="LastModifiedArchiveTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ShortXmlFileNameMappingTests.cs" />
-    <Compile Include="SrcMLArchiveTest.cs" />
+    <Compile Include="SrcMLArchiveTest.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="SrcMLElementTests.cs" />
     <Compile Include="SrcMLFileTest.cs" />
     <Compile Include="SrcMLGeneratorTests.cs" />

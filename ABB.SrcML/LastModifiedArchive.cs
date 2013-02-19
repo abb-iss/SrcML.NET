@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -12,7 +13,8 @@ namespace ABB.SrcML {
     public class LastModifiedArchive : AbstractArchive {
         
         private Dictionary<string, DateTime> lastModifiedMap;
-        
+        private readonly object mapLock = new object();
+
         public LastModifiedArchive(string storageDirectory, string fileName)
         : this(Path.Combine(storageDirectory, fileName)) {
             
@@ -28,44 +30,78 @@ namespace ABB.SrcML {
         }
 
         public override void AddOrUpdateFile(string fileName) {
-            var eventType = (lastModifiedMap.ContainsKey(fileName) ? FileEventType.FileChanged : FileEventType.FileAdded);
-            lastModifiedMap[fileName] = File.GetLastWriteTime(fileName);
-            OnFileChanged(new FileEventRaisedArgs(fileName, eventType));
+            string fullPath = GetFullPath(fileName);
+            FileEventType eventType;
+            lock(mapLock) {
+                eventType = (lastModifiedMap.ContainsKey(fullPath) ? FileEventType.FileChanged : FileEventType.FileAdded);
+                lastModifiedMap[fullPath] = File.GetLastWriteTime(fullPath);
+            }
+
+            OnFileChanged(new FileEventRaisedArgs(fullPath, eventType));
         }
 
         public override void DeleteFile(string fileName) {
-            if(lastModifiedMap.ContainsKey(fileName)) {
-                lastModifiedMap.Remove(fileName);
-                OnFileChanged(new FileEventRaisedArgs(fileName, FileEventType.FileDeleted));
+            string fullPath = GetFullPath(fileName);
+            bool mapContainsFile = true;
+            lock(mapLock) {
+                mapContainsFile = lastModifiedMap.ContainsKey(fullPath);
+                if(mapContainsFile) {
+                    lastModifiedMap.Remove(fullPath);
+                }
+            }
+            if(mapContainsFile) {
+                OnFileChanged(new FileEventRaisedArgs(fullPath, FileEventType.FileDeleted));
             }
         }
 
         public override void RenameFile(string oldFileName, string newFileName) {
-            if(lastModifiedMap.ContainsKey(oldFileName)) {
-                lastModifiedMap.Remove(oldFileName);
-                lastModifiedMap[newFileName] = File.GetLastWriteTime(newFileName);
-                OnFileChanged(new FileEventRaisedArgs(oldFileName, newFileName, FileEventType.FileRenamed));
+            string oldFullPath = GetFullPath(oldFileName);
+            string newFullPath = GetFullPath(newFileName);
+
+            bool mapContainsFile = true;
+            lock(mapLock) {
+                mapContainsFile = lastModifiedMap.ContainsKey(oldFullPath);
+                if(mapContainsFile) {
+                    lastModifiedMap.Remove(oldFullPath);
+                    lastModifiedMap[newFullPath] = File.GetLastWriteTime(newFullPath);
+                }
+            }
+            if(mapContainsFile) {
+                OnFileChanged(new FileEventRaisedArgs(oldFullPath, newFullPath, FileEventType.FileRenamed));
             } else {
-                AddOrUpdateFile(newFileName);
+                AddOrUpdateFile(newFullPath);
             }
         }
 
         public override bool ContainsFile(string fileName) {
-            return lastModifiedMap.ContainsKey(fileName);
+            string fullPath = GetFullPath(fileName);
+            lock(mapLock) {
+                return lastModifiedMap.ContainsKey(fullPath);
+            }
         }
 
         public override bool IsOutdated(string fileName) {
-            DateTime lastModified = File.GetLastWriteTime(fileName);
+            string fullPath = GetFullPath(fileName);
+            bool fileNameExists = File.Exists(fullPath);
+            bool fileIsInArchive;
+            DateTime lastModified = File.GetLastWriteTime(fullPath);
             DateTime lastModifiedInArchive;
-            
-            if(!lastModifiedMap.TryGetValue(fileName, out lastModifiedInArchive)) {
-                return true;
+
+            lock(mapLock) {
+                fileIsInArchive = this.lastModifiedMap.TryGetValue(fullPath, out lastModifiedInArchive);
             }
-            return lastModified > lastModifiedInArchive;
+
+            return !(fileNameExists && fileIsInArchive && lastModified <= lastModifiedInArchive);
         }
 
         public override IEnumerable<string> GetFiles() {
-            return lastModifiedMap.Keys;
+            Collection<string> fileNames = new Collection<string>();
+            lock(mapLock) {
+                foreach(var fileName in lastModifiedMap.Keys) {
+                    fileNames.Add(fileName);
+                }
+            }
+            return fileNames;
         }
 
         public override void Dispose() {
@@ -77,6 +113,10 @@ namespace ABB.SrcML {
         }
 
         public void SaveMap() {
+        }
+
+        private string GetFullPath(string fileName) {
+            return (Path.IsPathRooted(fileName) ? fileName : Path.GetFullPath(fileName));
         }
     }
 }
