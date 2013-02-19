@@ -23,6 +23,7 @@ namespace ABB.SrcML {
         public LastModifiedArchive(string fileName)
             : base(fileName) {
                 lastModifiedMap = new Dictionary<string, DateTime>(StringComparer.InvariantCultureIgnoreCase);
+                ReadMap();
         }
 
         public override ICollection<string> SupportedExtensions {
@@ -105,14 +106,34 @@ namespace ABB.SrcML {
         }
 
         public override void Dispose() {
+            SaveMap();
             base.Dispose();
         }
 
         public void ReadMap() {
-
+            if(File.Exists(this.ArchivePath)) {
+                lock(mapLock) {
+                    this.lastModifiedMap.Clear();
+                    foreach(var line in File.ReadLines(this.ArchivePath)) {
+                        var parts = line.Split('|');
+                        this.lastModifiedMap[parts[0]] = DateTime.Parse(parts[1]);
+                    }
+                }
+            }
         }
 
         public void SaveMap() {
+            if(File.Exists(this.ArchivePath)) {
+                File.Delete(this.ArchivePath);
+            }
+
+            using(var output = File.CreateText(this.ArchivePath)) {
+                lock(mapLock) {
+                    foreach(var kvp in lastModifiedMap) {
+                        output.WriteLine("{0}|{1}", kvp.Key, kvp.Value);
+                    }
+                }
+            }
         }
 
         private string GetFullPath(string fileName) {

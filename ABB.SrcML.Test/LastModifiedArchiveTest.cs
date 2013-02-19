@@ -112,5 +112,24 @@ namespace ABB.SrcML.Test {
             archive.AddOrUpdateFile(relativePathToFoo);
             Assert.That(archive.ContainsFile(fullPathToFoo));
         }
+
+        [Test]
+        public void TestArchiveLoadRoundTrip() {
+            var archivePath = Path.Combine(testDirectory, "archive.txt");
+            LastModifiedArchive archive = new LastModifiedArchive(archivePath);
+            string pathToFoo = Path.GetFullPath(Path.Combine(testDirectory, "foo.txt"));
+
+            File.Create(pathToFoo).Dispose();
+
+            archive.AddOrUpdateFile(pathToFoo);
+
+            archive.Dispose();
+
+            Assert.That(File.Exists(archivePath));
+
+            archive = new LastModifiedArchive(archivePath);
+
+            Assert.That(archive.ContainsFile(pathToFoo));
+        }
     }
 }

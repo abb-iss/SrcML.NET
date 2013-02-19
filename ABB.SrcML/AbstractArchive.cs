@@ -13,9 +13,7 @@ namespace ABB.SrcML
     {
         private string _archivePath;
         
-        protected AbstractArchive(string archivePath)
-            : this()
-        {
+        protected AbstractArchive(string archivePath) {
             this.ArchivePath = archivePath;
         }
 
