@@ -118,21 +118,50 @@ namespace ABB.SrcML.Data {
 
         /// <summary>
         /// Removes any program elements defined in the given file.
+        /// If the scope is defined entirely within the given file, then it removes itself from its parent.
         /// </summary>
         /// <param name="fileName">The file to remove.</param>
-        public override void RemoveFile(string fileName) {
-            if(!LocationDictionary.ContainsKey(fileName)) {
-                //this method is not defined in the given file
-                return;
+        /// <returns>A collection of any unresolved scopes that result from removing the file. The caller is responsible for re-resolving these as appropriate.</returns>
+        public override Collection<Scope> RemoveFile(string fileName) {
+            if(LocationDictionary.ContainsKey(fileName)) {
+                if(LocationDictionary.Count == 1) {
+                    //this scope exists solely in the file to be deleted
+                    if(ParentScope != null) {
+                        ParentScope.RemoveChild(this);
+                        ParentScope = null;
+                    }
+                } else {
+                    //Method is defined in more than one file, delete the stuff defined in the given file
+                    //Remove the file from the children
+                    var unresolvedChildScopes = new List<Scope>();
+                    foreach(var child in ChildScopeCollection.ToList()) {
+                        var result = child.RemoveFile(fileName);
+                        if(result != null) {
+                            unresolvedChildScopes.AddRange(result);
+                        }
+                    }
+                    if(unresolvedChildScopes.Count > 0) {
+                        foreach(var child in unresolvedChildScopes) {
+                            AddChildScope(child);
+                        }
+                    }
+                    //remove method calls
+                    var callsInFile = MethodCallCollection.Where(call => call.Location.SourceFileName == fileName).ToList();
+                    foreach(var call in callsInFile) {
+                        MethodCallCollection.Remove(call);
+                    }
+                    //remove declared variables
+                    var declsInFile = DeclaredVariablesDictionary.Where(kvp => kvp.Value.Location.SourceFileName == fileName).ToList();
+                    foreach(var kvp in declsInFile) {
+                        DeclaredVariablesDictionary.Remove(kvp.Key);
+                    }
+                    //update locations
+                    LocationDictionary.Remove(fileName);
+                    //TODO: do something about the parameters?
+                    //TODO: update access modifiers based on which definitions/declarations we've deleted
+                }
             }
-
-            if(LocationDictionary.Count == 1) {
-                //this method exists solely in the file to be deleted
-                ParentScope = null;
-            } else {
-                //Method is defined in more than one file, delete the stuff defined in the given file
-                //TODO: special handling based on whether we're deleting a method definition or method declaration
-            }
+            return null;
         }
     }
 }

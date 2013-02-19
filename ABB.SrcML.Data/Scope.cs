@@ -332,24 +332,75 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Removes any program elements defined in the given file.
+        /// Removes the given child scope.
         /// </summary>
-        /// <param name="fileName">The file to remove.</param>
-        public virtual void RemoveFile(string fileName) {
-            if(!LocationDictionary.ContainsKey(fileName)) {
-                //this scope is not defined in the given file
-                return;
-            }
-
-            if(LocationDictionary.Count == 1) {
-                //this scope exists solely in the file to be deleted
-                ParentScope = null;
-            } else {
-                Debug.WriteLine("Found Scope with more than one location. This should be impossible!");
-                foreach(var loc in Locations) {
-                    Debug.WriteLine("Location: " + loc);
+        /// <param name="childScope">The child scope to remove.</param>
+        public virtual void RemoveChild(Scope childScope) {
+            //remove child
+            ChildScopeCollection.Remove(childScope);
+            //update locations
+            foreach(var childKvp in childScope.LocationDictionary) {
+                var fileName = childKvp.Key;
+                if(LocationDictionary.ContainsKey(fileName)) {
+                    var fileLocations = LocationDictionary[fileName];
+                    foreach(var childLoc in childKvp.Value) {
+                        fileLocations.Remove(childLoc);
+                    }
+                    if(fileLocations.Count == 0) {
+                        LocationDictionary.Remove(fileName);
+                    }
                 }
             }
+        }
+
+        /// <summary>
+        /// Removes any program elements defined in the given file.
+        /// If the scope is defined entirely within the given file, then it removes itself from its parent.
+        /// </summary>
+        /// <param name="fileName">The file to remove.</param>
+        /// <returns>A collection of any unresolved scopes that result from removing the file. The caller is responsible for re-resolving these as appropriate.</returns>
+        public virtual Collection<Scope> RemoveFile(string fileName) {
+            if(LocationDictionary.ContainsKey(fileName)) {
+                if(LocationDictionary.Count == 1) {
+                    //this scope exists solely in the file to be deleted
+                    if(ParentScope != null) {
+                        ParentScope.RemoveChild(this);
+                        ParentScope = null;
+                    }
+                } else {
+                    Debug.WriteLine("Found Scope with more than one location. Should this be possible?");
+                    foreach(var loc in Locations) {
+                        Debug.WriteLine("Location: " + loc);
+                    }
+
+                    //Remove the file from the children
+                    var unresolvedChildScopes = new List<Scope>();
+                    foreach(var child in ChildScopeCollection.ToList()) {
+                        var result = child.RemoveFile(fileName);
+                        if(result != null) {
+                            unresolvedChildScopes.AddRange(result);
+                        }
+                    }
+                    if(unresolvedChildScopes.Count > 0) {
+                        foreach(var child in unresolvedChildScopes) {
+                            AddChildScope(child);
+                        }
+                    }
+                    //remove method calls
+                    var callsInFile = MethodCallCollection.Where(call => call.Location.SourceFileName == fileName).ToList();
+                    foreach(var call in callsInFile) {
+                        MethodCallCollection.Remove(call);
+                    }
+                    //remove declared variables
+                    var declsInFile = DeclaredVariablesDictionary.Where(kvp => kvp.Value.Location.SourceFileName == fileName).ToList();
+                    foreach(var kvp in declsInFile) {
+                        DeclaredVariablesDictionary.Remove(kvp.Key);
+                    }
+                    //update locations
+                    LocationDictionary.Remove(fileName);
+                }
+            }
+            return null;
         }
     }
 }

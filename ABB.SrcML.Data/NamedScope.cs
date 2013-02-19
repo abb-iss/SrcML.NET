@@ -187,25 +187,85 @@ namespace ABB.SrcML.Data {
 
         /// <summary>
         /// Removes any program elements defined in the given file.
+        /// If the scope is defined entirely within the given file, then it removes itself from its parent.
         /// </summary>
         /// <param name="fileName">The file to remove.</param>
-        public override void RemoveFile(string fileName) {
-            if(!LocationDictionary.ContainsKey(fileName)) {
-                //this scope is not defined in the given file
-                return;
-            }
+        /// <returns>A collection of any unresolved scopes that result from removing the file. The caller is responsible for re-resolving these as appropriate.</returns>
+        public override Collection<Scope> RemoveFile(string fileName) {
+            Collection<Scope> unresolvedScopes = null;
+            if(LocationDictionary.ContainsKey(fileName)) {
+                if(LocationDictionary.Count == 1) {
+                    //this scope exists solely in the file to be deleted
+                    if(ParentScope != null) {
+                        ParentScope.RemoveChild(this);
+                        ParentScope = null;
+                    }
+                } else {
+                    //this NamedScope is defined in more than one file, delete only the parts in the given file
+                    //Remove the file from the children
+                    var unresolvedChildScopes = new List<Scope>();
+                    foreach(var child in ChildScopeCollection.ToList()) {
+                        var result = child.RemoveFile(fileName);
+                        if(result != null) {
+                            unresolvedChildScopes.AddRange(result);
+                        }
+                    }
+                    //remove method calls
+                    var callsInFile = MethodCallCollection.Where(call => call.Location.SourceFileName == fileName).ToList();
+                    foreach(var call in callsInFile) {
+                        MethodCallCollection.Remove(call);
+                    }
+                    //remove declared variables
+                    var declsInFile = DeclaredVariablesDictionary.Where(kvp => kvp.Value.Location.SourceFileName == fileName).ToList();
+                    foreach(var kvp in declsInFile) {
+                        DeclaredVariablesDictionary.Remove(kvp.Key);
+                    }
+                    //update locations
+                    LocationDictionary.Remove(fileName);
 
-            if(LocationDictionary.Count == 1) {
-                //this scope exists solely in the file to be deleted
-                ParentScope = null;
-            } else {
-                Debug.WriteLine("Found NamedScope with more than one location. Should this be possible?");
-                foreach(var loc in Locations) {
-                    Debug.WriteLine("Location: " + loc);
+                    if(DefinitionLocations.Any()) {
+                        //This NamedScope is still defined somewhere, so re-add the unresolved children to it
+                        if(unresolvedChildScopes.Count > 0) {
+                            foreach(var child in unresolvedChildScopes) {
+                                AddChildScope(child);
+                            }
+                        }
+                    } else {
+                        //This NamedScope is no longer defined, only referenced
+                        //Return any remaining children to be re-resolved by our parent
+                        if(MethodCallCollection.Any()) {
+                            Debug.WriteLine("Found Namespace containing method calls but with only reference locations!");
+                            Debug.WriteLine("Namespace locations:");
+                            foreach(var loc in LocationDictionary.Values) {
+                                Debug.WriteLine(loc);
+                            }
+                            Debug.WriteLine("Method call locations:");
+                            foreach(var mc in MethodCallCollection) {
+                                Debug.WriteLine(mc.Location);
+                            }
+                        }
+                        if(DeclaredVariablesDictionary.Any()) {
+                            Debug.WriteLine("Found Namespace containing declared variables but with only reference locations!");
+                            Debug.WriteLine("Namespace locations:");
+                            foreach(var loc in LocationDictionary.Values) {
+                                Debug.WriteLine(loc);
+                            }
+                            Debug.WriteLine("Variable locations:");
+                            foreach(var dc in DeclaredVariablesDictionary.Values) {
+                                Debug.WriteLine(dc.Location);
+                            }
+                        }
+
+                        if(ParentScope != null) {
+                            ParentScope.RemoveChild(this);
+                            ParentScope = null;
+                        }
+                        unresolvedChildScopes.AddRange(ChildScopeCollection);
+                        unresolvedScopes = new Collection<Scope>(unresolvedChildScopes);
+                    }
                 }
-
-                //TODO: figure out what to do here
             }
+            return unresolvedScopes;
         }
 
         private string GetUnresolvedName() {

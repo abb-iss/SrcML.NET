@@ -13,6 +13,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -95,50 +96,98 @@ namespace ABB.SrcML.Data {
 
         /// <summary>
         /// Removes any program elements defined in the given file.
+        /// If the scope is defined entirely within the given file, then it removes itself from its parent.
         /// </summary>
         /// <param name="fileName">The file to remove.</param>
-        public virtual void RemoveFile(string fileName) {
-            if(!LocationDictionary.ContainsKey(fileName)) {
-                //this namespace is not defined in the given file
-                return;
-            }
-
-            if(LocationDictionary.Count == 1) {
-                //this namespace exists solely in the file to be deleted
-                ParentScope = null;
-            } else {
-                //this namespace is defined in more than one file, delete only the parts in the given file
-                //remove children
-                var childrenToRemove = new List<Scope>();
-                foreach(var child in ChildScopeCollection) {
-                    if(child.ExistsInFile(fileName)) {
-                        child.RemoveFile(fileName);
-                        if(child.ParentScope == null) {
-                            //child has deleted itself
-                            childrenToRemove.Add(child);
+        /// <returns>A collection of any unresolved scopes that result from removing the file. The caller is responsible for re-resolving these as appropriate.</returns>
+        public override Collection<Scope> RemoveFile(string fileName) {
+            Collection<Scope> unresolvedScopes = null;
+            if(LocationDictionary.ContainsKey(fileName)) {
+                if(LocationDictionary.Count == 1) {
+                    //this namespace exists solely in the file to be deleted
+                    if(ParentScope != null) {
+                        ParentScope.RemoveChild(this);
+                        ParentScope = null;
+                    }
+                } else {
+                    //this namespace is defined in more than one file, delete only the parts in the given file
+                    //remove children
+                    var unresolvedChildScopes = new List<Scope>();
+                    foreach(var child in ChildScopeCollection.ToList()) {
+                        var result = child.RemoveFile(fileName);
+                        if(result != null) {
+                            unresolvedChildScopes.AddRange(result);
                         }
                     }
-                }
-                foreach(var child in childrenToRemove) {
-                    ChildScopeCollection.Remove(child);
-                }
+                    //remove method calls
+                    var callsInFile = MethodCallCollection.Where(call => call.Location.SourceFileName == fileName).ToList();
+                    foreach(var call in callsInFile) {
+                        MethodCallCollection.Remove(call);
+                    }
+                    //remove declared variables
+                    var declsInFile = DeclaredVariablesDictionary.Where(kvp => kvp.Value.Location.SourceFileName == fileName).ToList();
+                    foreach(var kvp in declsInFile) {
+                        DeclaredVariablesDictionary.Remove(kvp.Key);
+                    }
+                    //update locations
+                    LocationDictionary.Remove(fileName);
 
-                //remove method calls
-                var callsInFile = MethodCallCollection.Where(call => call.Location.SourceFileName == fileName);
-                foreach(var call in callsInFile) {
-                    MethodCallCollection.Remove(call);
-                }
+                    if(DefinitionLocations.Any()) {
+                        //This namespace is still defined somewhere, so re-add the unresolved children to it
+                        if(unresolvedChildScopes.Count > 0) {
+                            foreach(var child in unresolvedChildScopes) {
+                                AddChildScope(child);
+                            }
+                        }
+                    } else {
+                        //This namespace is no longer defined, only referenced
+                        //Return any remaining children to be re-resolved by our parent
+                        if(MethodCallCollection.Any()) {
+                            Debug.WriteLine("Found Namespace containing method calls but with only reference locations!");
+                            Debug.WriteLine("Namespace locations:");
+                            foreach(var loc in LocationDictionary.Values) {
+                                Debug.WriteLine(loc);
+                            }
+                            Debug.WriteLine("Method call locations:");
+                            foreach(var mc in MethodCallCollection) {
+                                Debug.WriteLine(mc.Location);
+                            }
+                        }
+                        if(DeclaredVariablesDictionary.Any()) {
+                            Debug.WriteLine("Found Namespace containing declared variables but with only reference locations!");
+                            Debug.WriteLine("Namespace locations:");
+                            foreach(var loc in LocationDictionary.Values) {
+                                Debug.WriteLine(loc);
+                            }
+                            Debug.WriteLine("Variable locations:");
+                            foreach(var dc in DeclaredVariablesDictionary.Values) {
+                                Debug.WriteLine(dc.Location);
+                            }
+                        }
 
-                //remove declared variables
-                var declsInFile = DeclaredVariablesDictionary.Where(kvp => kvp.Value.Location.SourceFileName == fileName);
-                foreach(var kvp in declsInFile) {
-                    DeclaredVariablesDictionary.Remove(kvp.Key);
-                }
+                        if(ParentScope != null) {
+                            ParentScope.RemoveChild(this);
+                            ParentScope = null;
+                        }
+                        unresolvedChildScopes.AddRange(ChildScopeCollection);
+                        unresolvedScopes = new Collection<Scope>(unresolvedChildScopes);
 
-                //update locations
-                LocationDictionary.Remove(fileName);
-                //TODO: update PrimaryLocation?
+                        //unresolvedScopes = new Collection<Scope>();
+                        //foreach(var locKvp in LocationDictionary) {
+                        //    var referenceFile = locKvp.Key;
+                        //    var ns = new NamedScope() {Name = this.Name};
+                        //    foreach(var refLoc in locKvp.Value) {
+                        //        ns.AddSourceLocation(refLoc);
+                        //    }
+                        //    foreach(var child in ChildScopeCollection.Where(c => c.ExistsInFile(referenceFile))) {
+                        //        ns.AddChildScope(child);
+                        //    }
+                        //    unresolvedScopes.Add(ns);
+                        //}
+                    }
+                }
             }
+            return unresolvedScopes;
         }
     }
 }
