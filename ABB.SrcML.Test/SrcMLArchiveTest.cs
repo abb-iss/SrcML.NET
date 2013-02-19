@@ -16,6 +16,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using ABB.SrcML;
 using NUnit.Framework;
 using NSubstitute;
@@ -25,384 +26,281 @@ namespace ABB.SrcML.Test
     [TestFixture]
     class SrcMLArchiveTest
     {
-        public const string SOURCEDIRECTORY = "testSourceDir";
+        public const string SourceDirectory = "testSourceDir";
+        public const string ArchiveDirectory = "SrcMLArchive";
+
         private DirectoryInfo srcDirectoryInfo;
+        private DirectoryInfo archiveDirectoryInfo;
         private bool startupCompleted = false;
 
         [TestFixtureSetUp]
         public void Setup()
         {
-            if (Directory.Exists(SOURCEDIRECTORY))
-            {
-                Directory.Delete(SOURCEDIRECTORY, true);
+            if(!Directory.Exists(SourceDirectory)) {
+                srcDirectoryInfo = Directory.CreateDirectory(SourceDirectory);
+            } else {
+                srcDirectoryInfo = new DirectoryInfo(SourceDirectory);
             }
-            srcDirectoryInfo = Directory.CreateDirectory(SOURCEDIRECTORY);
+
+            if(!Directory.Exists(ArchiveDirectory)) {
+                archiveDirectoryInfo = Directory.CreateDirectory(ArchiveDirectory);
+            } else {
+                archiveDirectoryInfo = new DirectoryInfo(ArchiveDirectory);
+            }
         }
 
-        [Test]
-        public void GenerateXmlForDirectoryStressTest()
-        {
-            Console.WriteLine("------- Start -------\n");
-
-            Process thisProcess = null;
-
-            thisProcess = Process.GetCurrentProcess();
-            Console.WriteLine("ID: [" + thisProcess.Id + "\n");
-            Console.WriteLine("NonpagedSystemMemorySize64: [" + thisProcess.NonpagedSystemMemorySize64 + "\n");
-            Console.WriteLine("PagedMemorySize64: [" + thisProcess.PagedMemorySize64 + "\n");
-            Console.WriteLine("PagedSystemMemorySize64: [" + thisProcess.PagedSystemMemorySize64 + "\n");
-            Console.WriteLine("PeakPagedMemorySize64: [" + thisProcess.PeakPagedMemorySize64 + "\n");
-            Console.WriteLine("PeakVirtualMemorySize64: [" + thisProcess.PeakVirtualMemorySize64 + "\n");
-            Console.WriteLine("PeakWorkingSet64: [" + thisProcess.PeakWorkingSet64 + "\n");
-            Console.WriteLine("PrivateMemorySize64: [" + thisProcess.PrivateMemorySize64 + "\n");
-            Console.WriteLine("VirtualMemorySize64: [" + thisProcess.VirtualMemorySize64 + "\n");
-
-            Stopwatch swInit = new Stopwatch();
-            swInit.Start();
-
-            IFileMonitor watchedFolder = Substitute.For<IFileMonitor>();
-
-            var archive = new SrcMLArchive(watchedFolder, Path.Combine(srcDirectoryInfo.FullName, ".srcml"), new SrcMLGenerator(TestConstants.SrcmlPath));
-            var xmlDirectory = new DirectoryInfo(archive.ArchivePath);
-
-            for (int i = 0; i < 10; i++)
-            {
-                File.WriteAllText(SOURCEDIRECTORY + "\\foo(" + i + ").c", String.Format(@"int foo() {{{0}printf(""hello world!"");{0}}}", Environment.NewLine));
-                File.WriteAllText(SOURCEDIRECTORY + "\\bar(" + i + ").c", String.Format(@"int bar() {{{0}    printf(""goodbye, world!"");{0}}}", Environment.NewLine));
-                Directory.CreateDirectory(Path.Combine(SOURCEDIRECTORY, "subdir_" + i));
-                for (int j = 0; j < 10; j++)
-                {
-                    File.WriteAllText(SOURCEDIRECTORY + "\\subdir_" + i + "\\foo(" + i + "_" + j + ").c", String.Format(@"int foo1() {{{0}printf(""hello world 1!"");{0}}}", Environment.NewLine));
-                    File.WriteAllText(SOURCEDIRECTORY + "\\subdir_" + i + "\\bar(" + i + "_" + j + ").c", String.Format(@"int bar1() {{{0}    printf(""goodbye, world 1!"");{0}}}", Environment.NewLine));
-                    Directory.CreateDirectory(Path.Combine(SOURCEDIRECTORY, "subdir_" + i + "\\subdir_" + i + "_" + j));
-                    for (int k = 0; k < 10; k++)
-                    {
-                        File.WriteAllText(SOURCEDIRECTORY + "\\subdir_" + i + "\\subdir_" + i + "_" + j + "\\foo(" + i + "_" + j + "_" + k + ").c", String.Format(@"int foo1() {{{0}printf(""hello world 1!"");{0}}}", Environment.NewLine));
-                        File.WriteAllText(SOURCEDIRECTORY + "\\subdir_" + i + "\\subdir_" + i + "_" + j + "\\bar(" + i + "_" + j + "_" + k + ").c", String.Format(@"int bar1() {{{0}    printf(""goodbye, world 1!"");{0}}}", Environment.NewLine));
-                    }
+        [SetUp]
+        public void TestSetUp() {
+            if(srcDirectoryInfo.Exists) {
+                foreach(var file in srcDirectoryInfo.GetFiles("*.*")) {
+                    File.Delete(file.Name);
                 }
             }
-
-            swInit.Stop();
-            Console.WriteLine("\nTotal time elapsed for initialization: {0}", swInit.Elapsed.ToString());
-            Console.WriteLine("ID: [" + thisProcess.Id + "\n");
-            Console.WriteLine("NonpagedSystemMemorySize64: [" + thisProcess.NonpagedSystemMemorySize64 + "\n");
-            Console.WriteLine("PagedMemorySize64: [" + thisProcess.PagedMemorySize64 + "\n");
-            Console.WriteLine("PagedSystemMemorySize64: [" + thisProcess.PagedSystemMemorySize64 + "\n");
-            Console.WriteLine("PeakPagedMemorySize64: [" + thisProcess.PeakPagedMemorySize64 + "\n");
-            Console.WriteLine("PeakVirtualMemorySize64: [" + thisProcess.PeakVirtualMemorySize64 + "\n");
-            Console.WriteLine("PeakWorkingSet64: [" + thisProcess.PeakWorkingSet64 + "\n");
-            Console.WriteLine("PrivateMemorySize64: [" + thisProcess.PrivateMemorySize64 + "\n");
-            Console.WriteLine("VirtualMemorySize64: [" + thisProcess.VirtualMemorySize64 + "\n");
-
-            //System.Threading.Thread.Sleep(1000);
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-            
-            ////archive.GenerateXmlForDirectory(SOURCEDIRECTORY);
-            
-            sw.Stop();
-            Console.WriteLine("\nTotal time elapsed for srcML files generation: {0}", sw.Elapsed.ToString());
-            Console.WriteLine("ID: [" + thisProcess.Id + "\n");
-            Console.WriteLine("NonpagedSystemMemorySize64: [" + thisProcess.NonpagedSystemMemorySize64 + "\n");
-            Console.WriteLine("PagedMemorySize64: [" + thisProcess.PagedMemorySize64 + "\n");
-            Console.WriteLine("PagedSystemMemorySize64: [" + thisProcess.PagedSystemMemorySize64 + "\n");
-            Console.WriteLine("PeakPagedMemorySize64: [" + thisProcess.PeakPagedMemorySize64 + "\n");
-            Console.WriteLine("PeakVirtualMemorySize64: [" + thisProcess.PeakVirtualMemorySize64 + "\n");
-            Console.WriteLine("PeakWorkingSet64: [" + thisProcess.PeakWorkingSet64 + "\n");
-            Console.WriteLine("PrivateMemorySize64: [" + thisProcess.PrivateMemorySize64 + "\n");
-            Console.WriteLine("VirtualMemorySize64: [" + thisProcess.VirtualMemorySize64 + "\n");
-            Console.WriteLine("\n------- End -------\n");
-
-            /*
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "foo.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "bar.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\foo1.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\bar1.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\foo2.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\bar2.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir11\\foo11.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir11\\bar11.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir12\\foo12.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir12\\bar12.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\subdir21\\foo21.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\subdir21\\bar21.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\subdir22\\foo22.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\subdir22\\bar22.c.xml")));
-            Assert.That(archive.FileUnits.Count(), Is.EqualTo(14));
-            */
-
-            /*
-            File.WriteAllText(SOURCEDIRECTORY + "\\foo.c", String.Format(@"int foo() {{{0}printf(""hello world! changed"");{0}}}", Environment.NewLine));
-            File.WriteAllText(SOURCEDIRECTORY + "\\subdir2\\subdir21\\bar21.c", String.Format(@"int bar21() {{{0}    printf(""goodbye, world 21! changed"");{0}}}", Environment.NewLine));
-            File.Delete("C:\\Users\\USJIZHE\\Documents\\GitHub\\SrcML.NET\\Build\\Debug\\testSourceDir\\subdir1\\subdir12\\bar12.c");
-            File.Move("C:\\Users\\USJIZHE\\Documents\\GitHub\\SrcML.NET\\Build\\Debug\\testSourceDir\\subdir1\\subdir11\\foo11.c",
-                "C:\\Users\\USJIZHE\\Documents\\GitHub\\SrcML.NET\\Build\\Debug\\testSourceDir\\subdir1\\subdir11\\foo1111111.c");
-
-            System.Threading.Thread.Sleep(5000);
-            archive.GenerateXmlForDirectory(SOURCEDIRECTORY);
-            */
-
-            /*
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "foo.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "bar.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\foo1.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\bar1.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\foo2.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\bar2.c.xml")));
-            Assert.That(!File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir11\\foo11.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir11\\foo1111111.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir11\\bar11.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir12\\foo12.c.xml")));
-            Assert.That(!File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir12\\bar12.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\subdir21\\foo21.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\subdir21\\bar21.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\subdir22\\foo22.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\subdir22\\bar22.c.xml")));
-            Assert.That(archive.FileUnits.Count(), Is.EqualTo(13));
-            */
-
+            if(archiveDirectoryInfo.Exists) {
+                foreach(var file in archiveDirectoryInfo.GetFiles("*.*")) {
+                    File.Delete(file.Name);
+                }
+            }
         }
 
-        // Added on 2012.10.10
-        [Test]
-        public void GenerateXmlForDirectoryTest()
-        {
-            IFileMonitor watchedFolder = Substitute.For<IFileMonitor>();
-
-            var archive = new SrcMLArchive(watchedFolder, Path.Combine(srcDirectoryInfo.FullName, ".srcml"), new SrcMLGenerator(TestConstants.SrcmlPath));
-            var xmlDirectory = new DirectoryInfo(archive.ArchivePath);
-
-            File.WriteAllText(SOURCEDIRECTORY + "\\foo.c", String.Format(@"int foo() {{{0}printf(""hello world!"");{0}}}", Environment.NewLine));
-            File.WriteAllText(SOURCEDIRECTORY + "\\bar.c", String.Format(@"int bar() {{{0}    printf(""goodbye, world!"");{0}}}", Environment.NewLine));
-            Directory.CreateDirectory(Path.Combine(SOURCEDIRECTORY, "subdir1"));
-            File.WriteAllText(SOURCEDIRECTORY + "\\subdir1\\foo1.c", String.Format(@"int foo1() {{{0}printf(""hello world 1!"");{0}}}", Environment.NewLine));
-            File.WriteAllText(SOURCEDIRECTORY + "\\subdir1\\bar1.c", String.Format(@"int bar1() {{{0}    printf(""goodbye, world 1!"");{0}}}", Environment.NewLine));
-            Directory.CreateDirectory(Path.Combine(SOURCEDIRECTORY, "subdir2"));
-            File.WriteAllText(SOURCEDIRECTORY + "\\subdir2\\foo2.c", String.Format(@"int foo2() {{{0}printf(""hello world 2!"");{0}}}", Environment.NewLine));
-            File.WriteAllText(SOURCEDIRECTORY + "\\subdir2\\bar2.c", String.Format(@"int bar2() {{{0}    printf(""goodbye, world 2!"");{0}}}", Environment.NewLine));
-            Directory.CreateDirectory(Path.Combine(SOURCEDIRECTORY, "subdir1\\subdir11"));
-            File.WriteAllText(SOURCEDIRECTORY + "\\subdir1\\subdir11\\foo11.c", String.Format(@"int foo11() {{{0}printf(""hello world 11!"");{0}}}", Environment.NewLine));
-            File.WriteAllText(SOURCEDIRECTORY + "\\subdir1\\subdir11\\bar11.c", String.Format(@"int bar11() {{{0}    printf(""goodbye, world 11!"");{0}}}", Environment.NewLine));
-            Directory.CreateDirectory(Path.Combine(SOURCEDIRECTORY, "subdir1\\subdir12"));
-            File.WriteAllText(SOURCEDIRECTORY + "\\subdir1\\subdir12\\foo12.c", String.Format(@"int foo12() {{{0}printf(""hello world 12!"");{0}}}", Environment.NewLine));
-            File.WriteAllText(SOURCEDIRECTORY + "\\subdir1\\subdir12\\bar12.c", String.Format(@"int bar12() {{{0}    printf(""goodbye, world 12!"");{0}}}", Environment.NewLine));
-            Directory.CreateDirectory(Path.Combine(SOURCEDIRECTORY, "subdir2\\subdir21"));
-            File.WriteAllText(SOURCEDIRECTORY + "\\subdir2\\subdir21\\foo21.c", String.Format(@"int foo21() {{{0}printf(""hello world 21!"");{0}}}", Environment.NewLine));
-            File.WriteAllText(SOURCEDIRECTORY + "\\subdir2\\subdir21\\bar21.c", String.Format(@"int bar21() {{{0}    printf(""goodbye, world 21!"");{0}}}", Environment.NewLine));
-            Directory.CreateDirectory(Path.Combine(SOURCEDIRECTORY, "subdir2\\subdir22"));
-            File.WriteAllText(SOURCEDIRECTORY + "\\subdir2\\subdir22\\foo22.c", String.Format(@"int foo22() {{{0}printf(""hello world 22!"");{0}}}", Environment.NewLine));
-            File.WriteAllText(SOURCEDIRECTORY + "\\subdir2\\subdir22\\bar22.c", String.Format(@"int bar22() {{{0}    printf(""goodbye, world 22!"");{0}}}", Environment.NewLine));
-
-            System.Threading.Thread.Sleep(5000);
-            ////archive.GenerateXmlForDirectory(SOURCEDIRECTORY);
-            /*
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "foo.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "bar.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\foo1.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\bar1.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\foo2.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\bar2.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir11\\foo11.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir11\\bar11.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir12\\foo12.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir12\\bar12.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\subdir21\\foo21.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\subdir21\\bar21.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\subdir22\\foo22.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\subdir22\\bar22.c.xml")));
-            Assert.That(archive.FileUnits.Count(), Is.EqualTo(14));
-            */
-
-            File.WriteAllText(SOURCEDIRECTORY + "\\foo.c", String.Format(@"int foo() {{{0}printf(""hello world! changed"");{0}}}", Environment.NewLine));
-            File.WriteAllText(SOURCEDIRECTORY + "\\subdir2\\subdir21\\bar21.c", String.Format(@"int bar21() {{{0}    printf(""goodbye, world 21! changed"");{0}}}", Environment.NewLine));
-            File.Delete(SOURCEDIRECTORY + "\\subdir1\\subdir12\\bar12.c");
-            File.Move(SOURCEDIRECTORY + "\\subdir1\\subdir11\\foo11.c", SOURCEDIRECTORY + "\\subdir1\\subdir11\\foo1111111.c");
-
-            System.Threading.Thread.Sleep(5000);
-            ////archive.GenerateXmlForDirectory(SOURCEDIRECTORY);
-            /*
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "foo.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "bar.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\foo1.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\bar1.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\foo2.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\bar2.c.xml")));
-            Assert.That(!File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir11\\foo11.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir11\\foo1111111.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir11\\bar11.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir12\\foo12.c.xml")));
-            Assert.That(!File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir12\\bar12.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\subdir21\\foo21.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\subdir21\\bar21.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\subdir22\\foo22.c.xml")));
-            Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\subdir22\\bar22.c.xml")));
-            Assert.That(archive.FileUnits.Count(), Is.EqualTo(13));
-            */
-
+        [TestFixtureTearDown]
+        public void TearDown() {
+            if(Directory.Exists(SourceDirectory)) {
+                Directory.Delete(SourceDirectory, true);
+            }
+            if(Directory.Exists(ArchiveDirectory)) {
+                Directory.Delete(ArchiveDirectory, true);
+            }
         }
 
-        // Added on 2012.10.09
         [Test]
-        public void GenerateXmlForSourceTest()
-        {
-            IFileMonitor watchedFolder = Substitute.For<IFileMonitor>();
+        public void GenerateXmlForDirectoryTest() {
+            ManualResetEvent resetEvent = new ManualResetEvent(false);
 
-            var archive = new SrcMLArchive(watchedFolder, Path.Combine(srcDirectoryInfo.FullName, ".srcml"), new SrcMLGenerator(TestConstants.SrcmlPath));
-            var xmlDirectory = new DirectoryInfo(archive.ArchivePath);
+            var archive = new SrcMLArchive(archiveDirectoryInfo.FullName, new SrcMLGenerator(TestConstants.SrcmlPath));
+            FileEventType expectedEventType = FileEventType.FileAdded;
+            FileEventType actualEventType = FileEventType.FileChanged;
 
-            File.WriteAllText(SOURCEDIRECTORY + "\\foo.c", String.Format(@"int foo() {{{0}printf(""hello world!"");{0}}}", Environment.NewLine));
-            File.WriteAllText(SOURCEDIRECTORY + "\\bar.c", String.Format(@"int bar() {{{0}    printf(""goodbye, world!"");{0}}}", Environment.NewLine));
+            archive.FileChanged += (sender, e) => {
+                actualEventType = e.EventType;
+                resetEvent.Set();
+            };
 
-            archive.GenerateXmlForSource(SOURCEDIRECTORY + "\\foo.c");
-            archive.GenerateXmlForSource(SOURCEDIRECTORY + "\\bar.c");
-            archive.Dispose();
+            Dictionary<string, string> sourceFiles = new Dictionary<string, string>() {
+                { Path.Combine(SourceDirectory, "foo.c"), String.Format(@"int foo() {{{0}printf(""hello world!"");{0}}}", Environment.NewLine) }, 
+                { Path.Combine(SourceDirectory, "bar.c"), String.Format(@"int bar() {{{0}    printf(""goodbye, world!"");{0}}}", Environment.NewLine) },
+                { Path.Combine(SourceDirectory, "subdir1", "foo1.c"), String.Format(@"int foo1() {{{0}printf(""hello world 1!"");{0}}}", Environment.NewLine) },
+                { Path.Combine(SourceDirectory, "subdir1", "bar1.c"), String.Format(@"int bar1() {{{0}    printf(""goodbye, world 1!"");{0}}}", Environment.NewLine) },
+                { Path.Combine(SourceDirectory, "subdir2", "foo2.c"), String.Format(@"int foo2() {{{0}printf(""hello world 2!"");{0}}}", Environment.NewLine) },
+                { Path.Combine(SourceDirectory, "subdir2", "bar2.c"), String.Format(@"int bar2() {{{0}    printf(""goodbye, world 2!"");{0}}}", Environment.NewLine) },
+                { Path.Combine(SourceDirectory, "subdir1", "subdir11", "foo11.c"), String.Format(@"int foo11() {{{0}printf(""hello world 11!"");{0}}}", Environment.NewLine) },
+                { Path.Combine(SourceDirectory, "subdir1", "subdir11", "bar11.c"), String.Format(@"int bar11() {{{0}    printf(""goodbye, world 11!"");{0}}}", Environment.NewLine) },
+                { Path.Combine(SourceDirectory, "subdir1", "subdir12", "foo12.c"), String.Format(@"int foo12() {{{0}printf(""hello world 12!"");{0}}}", Environment.NewLine) },
+                { Path.Combine(SourceDirectory, "subdir1", "subdir12", "bar12.c"), String.Format(@"int bar12() {{{0}    printf(""goodbye, world 12!"");{0}}}", Environment.NewLine) },
+                { Path.Combine(SourceDirectory, "subdir2", "subdir21", "foo21.c"), String.Format(@"int foo21() {{{0}printf(""hello world 21!"");{0}}}", Environment.NewLine) },
+                { Path.Combine(SourceDirectory, "subdir2", "subdir21", "bar21.c"), String.Format(@"int bar21() {{{0}    printf(""goodbye, world 21!"");{0}}}", Environment.NewLine) },
+                { Path.Combine(SourceDirectory, "subdir2", "subdir22", "foo22.c"), String.Format(@"int foo22() {{{0}printf(""hello world 22!"");{0}}}", Environment.NewLine) },
+                { Path.Combine(SourceDirectory, "subdir2", "subdir22", "bar22.c"), String.Format(@"int bar22() {{{0}    printf(""goodbye, world 22!"");{0}}}", Environment.NewLine) },
+            };
 
-            Assert.That(File.Exists(archive.GetXmlPathForSourcePath(Path.Combine(SOURCEDIRECTORY, "foo.c"))));
-            Assert.That(File.Exists(archive.GetXmlPathForSourcePath(Path.Combine(SOURCEDIRECTORY, "bar.c"))));
+            foreach(var fileDataPair in sourceFiles) {
+                var directory = Path.GetDirectoryName(fileDataPair.Key);
+                if(!Directory.Exists(directory)) {
+                    Directory.CreateDirectory(directory);
+                }
+                File.WriteAllText(fileDataPair.Key, fileDataPair.Value);
+                archive.AddOrUpdateFile(fileDataPair.Key);
+                Assert.That(resetEvent.WaitOne(300));
+                Assert.AreEqual(expectedEventType, actualEventType);
+            }
+
+            foreach(var fileName in sourceFiles.Keys) {
+                Assert.That(archive.ContainsFile(fileName), String.Format("Archive should contain {0}", fileName));
+            }
+
+            var changedFileName = Path.Combine(SourceDirectory, "foo.c");
+            var changedFileContents = String.Format(@"int foo() {{{0}printf(""hello world! changed"");{0}}}", Environment.NewLine);
+
+            expectedEventType = FileEventType.FileChanged;
+            File.WriteAllText(changedFileName, changedFileContents);
+            File.SetLastWriteTime(changedFileName, DateTime.Now);
+            
+            Assert.That(archive.ContainsFile(changedFileName));
+            Assert.That(archive.IsOutdated(changedFileName));
+
+            archive.AddOrUpdateFile(changedFileName);
+            Assert.That(resetEvent.WaitOne(300));
+            Assert.AreEqual(expectedEventType, actualEventType);
+
+            expectedEventType = FileEventType.FileDeleted;
+            var deletedFileName = Path.Combine(SourceDirectory, "subdir1", "subdir12", "bar12.c");
+            File.Delete(deletedFileName);
+            Assert.That(archive.IsOutdated(deletedFileName));
+            archive.DeleteFile(deletedFileName);
+            Assert.That(resetEvent.WaitOne(300));
+            Assert.AreEqual(expectedEventType, actualEventType);
+
+            expectedEventType = FileEventType.FileRenamed;
+            var movedFileName = Path.Combine(SourceDirectory, "subdir1", "subdir11", "foo11.c");
+            var newNameForMoved = Path.Combine(SourceDirectory, "subdir1", "subdir11", "foo1111111.c");
+            File.Move(movedFileName, newNameForMoved);
+            Assert.That(archive.IsOutdated(movedFileName));
+            archive.RenameFile(movedFileName, newNameForMoved);
+            Assert.That(resetEvent.WaitOne(300));
+            Assert.AreEqual(expectedEventType, actualEventType);
+            Assert.That(archive.ContainsFile(newNameForMoved));
+            Assert.IsFalse(archive.ContainsFile(movedFileName));
         }
 
         [Test]
         public void TestDontUseExistingSrcML() {
-            var xmlDirectory = Path.Combine(srcDirectoryInfo.FullName, ".srcml");
-            var watchedFiles = new StaticFileList(new[] {@"..\..\TestInputs\foo.c", @"..\..\TestInputs\baz.cpp", @"..\..\TestInputs\function_def.cpp"});
-
             //convert the test files and place in the xml directory
-            var archive = new SrcMLArchive(watchedFiles, xmlDirectory, new SrcMLGenerator(TestConstants.SrcmlPath));
-            this.startupCompleted = false;
-            archive.StartupCompleted += (o, e) => { startupCompleted = true; };
-            archive.StartWatching();
+            ManualResetEvent resetEvent = new ManualResetEvent(false);
+            var archive = new SrcMLArchive(ArchiveDirectory, new SrcMLGenerator(TestConstants.SrcmlPath));
+            archive.FileChanged += (o, e) => { resetEvent.Set(); };
 
-            //make sure the srcml files exist
-            while(!startupCompleted) {
-                System.Threading.Thread.Sleep(200);
+            string[] sourceFiles = new[] { @"..\..\TestInputs\foo.c", @"..\..\TestInputs\baz.cpp", @"..\..\TestInputs\function_def.cpp" };
+
+            foreach(var sourceFile in sourceFiles) {
+                archive.AddOrUpdateFile(sourceFile);
+                Assert.That(resetEvent.WaitOne(300), "Timed out waiting for " + sourceFile);
+            }
+            foreach(var sourceFile in sourceFiles) {
+                Assert.That(archive.ContainsFile(sourceFile), sourceFile + " should be in the archive!");
             }
             archive.Dispose();
-            Assert.That(File.Exists(archive.GetXmlPathForSourcePath(@"..\..\TestInputs\foo.c")));
-            Assert.That(File.Exists(archive.GetXmlPathForSourcePath(@"..\..\TestInputs\baz.cpp")));
-            Assert.That(File.Exists(archive.GetXmlPathForSourcePath(@"..\..\TestInputs\function_def.cpp")));
 
             //make new archive, and ignore existing srcml files in xml directory
-            archive = new SrcMLArchive(watchedFiles, xmlDirectory, false, new SrcMLGenerator(TestConstants.SrcmlPath));
-            Assert.That(!File.Exists(archive.GetXmlPathForSourcePath(@"..\..\TestInputs\foo.c")));
-            Assert.That(!File.Exists(archive.GetXmlPathForSourcePath(@"..\..\TestInputs\baz.cpp")));
-            Assert.That(!File.Exists(archive.GetXmlPathForSourcePath(@"..\..\TestInputs\function_def.cpp")));
-
-            startupCompleted = false;
-            archive.StartupCompleted += (o, e) => { startupCompleted = true; };
-            archive.StartWatching();
-
-            //make sure the srcml files now exist again
-            while(!startupCompleted) {
-                System.Threading.Thread.Sleep(200);
+            archive = new SrcMLArchive(ArchiveDirectory, false, new SrcMLGenerator(TestConstants.SrcmlPath));
+            foreach(var sourceFile in sourceFiles) {
+                Assert.IsFalse(archive.ContainsFile(sourceFile));
             }
             archive.Dispose();
-            Assert.That(File.Exists(archive.GetXmlPathForSourcePath(@"..\..\TestInputs\foo.c")));
-            Assert.That(File.Exists(archive.GetXmlPathForSourcePath(@"..\..\TestInputs\baz.cpp")));
-            Assert.That(File.Exists(archive.GetXmlPathForSourcePath(@"..\..\TestInputs\function_def.cpp")));
         }
 
-        [Test]
-        public void FileCreationTest()
-        {
-            int numberOfEventsRaised = 0;
-            IFileMonitor watchedFolder = Substitute.For<IFileMonitor>();
+        //[Test]
+        //public void GenerateXmlForDirectoryStressTest()
+        //{
+        //    Console.WriteLine("------- Start -------\n");
 
-            using(var archive = new SrcMLArchive(watchedFolder, Path.Combine(srcDirectoryInfo.FullName, ".srcml"), new SrcMLGenerator(TestConstants.SrcmlPath))) {
-                var xmlDirectory = new DirectoryInfo(archive.ArchivePath);
+        //    Process thisProcess = null;
 
-                ////archive.SourceFileChanged += (o, e) =>
-                archive.SourceFileChanged += (o, e) => {
-                                                 numberOfEventsRaised++;
-                                                 Assert.That(e.SourceFilePath, Is.Not.SamePathOrUnder(xmlDirectory.Name));
-                                                 Console.WriteLine("{0}: {1}", e.EventType, e.SourceFilePath);
-                                             };
+        //    thisProcess = Process.GetCurrentProcess();
+        //    Console.WriteLine("ID: [" + thisProcess.Id + "\n");
+        //    Console.WriteLine("NonpagedSystemMemorySize64: [" + thisProcess.NonpagedSystemMemorySize64 + "\n");
+        //    Console.WriteLine("PagedMemorySize64: [" + thisProcess.PagedMemorySize64 + "\n");
+        //    Console.WriteLine("PagedSystemMemorySize64: [" + thisProcess.PagedSystemMemorySize64 + "\n");
+        //    Console.WriteLine("PeakPagedMemorySize64: [" + thisProcess.PeakPagedMemorySize64 + "\n");
+        //    Console.WriteLine("PeakVirtualMemorySize64: [" + thisProcess.PeakVirtualMemorySize64 + "\n");
+        //    Console.WriteLine("PeakWorkingSet64: [" + thisProcess.PeakWorkingSet64 + "\n");
+        //    Console.WriteLine("PrivateMemorySize64: [" + thisProcess.PrivateMemorySize64 + "\n");
+        //    Console.WriteLine("VirtualMemorySize64: [" + thisProcess.VirtualMemorySize64 + "\n");
 
-                WriteTextAndRaiseEvent(watchedFolder, "foo.c", @"int foo(int i) {
-    return i + 1;
-}");
-                Assert.That(File.Exists(archive.GetXmlPathForSourcePath(Path.Combine(SOURCEDIRECTORY, "foo.c"))));
+        //    Stopwatch swInit = new Stopwatch();
+        //    swInit.Start();
 
-                WriteTextAndRaiseEvent(watchedFolder, "bar.c", @"int bar(int i) {
-    return i - 1;
-}");
-                Assert.That(File.Exists(archive.GetXmlPathForSourcePath(Path.Combine(SOURCEDIRECTORY, "bar.c"))));
+        //    IFileMonitor watchedFolder = Substitute.For<IFileMonitor>();
 
-                Directory.CreateDirectory(Path.Combine(SOURCEDIRECTORY, "subdir"));
-                WriteTextAndRaiseEvent(watchedFolder, Path.Combine("subdir", "component.c"), @"int are_equal(int i, int j) {
-    return i == j;
+        //    var archive = new SrcMLArchive(watchedFolder, Path.Combine(srcDirectoryInfo.FullName, ".srcml"), new SrcMLGenerator(TestConstants.SrcmlPath));
+        //    var xmlDirectory = new DirectoryInfo(archive.ArchivePath);
 
-}");
-                Assert.That(File.Exists(archive.GetXmlPathForSourcePath(Path.Combine(SOURCEDIRECTORY, "subdir", "component.c"))));
-                Assert.That(archive.FileUnits.Count(), Is.EqualTo(3));
-                Assert.That(numberOfFunctions(archive), Is.EqualTo(3));
+        //    for (int i = 0; i < 10; i++)
+        //    {
+        //        File.WriteAllText(SourceDirectory + "\\foo(" + i + ").c", String.Format(@"int foo() {{{0}printf(""hello world!"");{0}}}", Environment.NewLine));
+        //        File.WriteAllText(SourceDirectory + "\\bar(" + i + ").c", String.Format(@"int bar() {{{0}    printf(""goodbye, world!"");{0}}}", Environment.NewLine));
+        //        Directory.CreateDirectory(Path.Combine(SourceDirectory, "subdir_" + i));
+        //        for (int j = 0; j < 10; j++)
+        //        {
+        //            File.WriteAllText(SourceDirectory + "\\subdir_" + i + "\\foo(" + i + "_" + j + ").c", String.Format(@"int foo1() {{{0}printf(""hello world 1!"");{0}}}", Environment.NewLine));
+        //            File.WriteAllText(SourceDirectory + "\\subdir_" + i + "\\bar(" + i + "_" + j + ").c", String.Format(@"int bar1() {{{0}    printf(""goodbye, world 1!"");{0}}}", Environment.NewLine));
+        //            Directory.CreateDirectory(Path.Combine(SourceDirectory, "subdir_" + i + "\\subdir_" + i + "_" + j));
+        //            for (int k = 0; k < 10; k++)
+        //            {
+        //                File.WriteAllText(SourceDirectory + "\\subdir_" + i + "\\subdir_" + i + "_" + j + "\\foo(" + i + "_" + j + "_" + k + ").c", String.Format(@"int foo1() {{{0}printf(""hello world 1!"");{0}}}", Environment.NewLine));
+        //                File.WriteAllText(SourceDirectory + "\\subdir_" + i + "\\subdir_" + i + "_" + j + "\\bar(" + i + "_" + j + "_" + k + ").c", String.Format(@"int bar1() {{{0}    printf(""goodbye, world 1!"");{0}}}", Environment.NewLine));
+        //            }
+        //        }
+        //    }
 
-                DeleteSourceAndRaiseEvent(watchedFolder, "bar.c");
-                Assert.That(archive.FileUnits.Count(), Is.EqualTo(2));
-                Assert.That(numberOfFunctions(archive), Is.EqualTo(2));
+        //    swInit.Stop();
+        //    Console.WriteLine("\nTotal time elapsed for initialization: {0}", swInit.Elapsed.ToString());
+        //    Console.WriteLine("ID: [" + thisProcess.Id + "\n");
+        //    Console.WriteLine("NonpagedSystemMemorySize64: [" + thisProcess.NonpagedSystemMemorySize64 + "\n");
+        //    Console.WriteLine("PagedMemorySize64: [" + thisProcess.PagedMemorySize64 + "\n");
+        //    Console.WriteLine("PagedSystemMemorySize64: [" + thisProcess.PagedSystemMemorySize64 + "\n");
+        //    Console.WriteLine("PeakPagedMemorySize64: [" + thisProcess.PeakPagedMemorySize64 + "\n");
+        //    Console.WriteLine("PeakVirtualMemorySize64: [" + thisProcess.PeakVirtualMemorySize64 + "\n");
+        //    Console.WriteLine("PeakWorkingSet64: [" + thisProcess.PeakWorkingSet64 + "\n");
+        //    Console.WriteLine("PrivateMemorySize64: [" + thisProcess.PrivateMemorySize64 + "\n");
+        //    Console.WriteLine("VirtualMemorySize64: [" + thisProcess.VirtualMemorySize64 + "\n");
 
-                WriteTextAndRaiseEvent(watchedFolder, Path.Combine("subdir", "component.c"), @"struct A {
-    int a;
-    char b;
-}");
-                Assert.That(archive.FileUnits.Count(), Is.EqualTo(2));
-                Assert.That(numberOfFunctions(archive), Is.EqualTo(1));
-
-                RenameSourceFileAndRaiseEvent(watchedFolder, "foo.c", "foo2.c");
-
-                Assert.That(archive.FileUnits.Count(), Is.EqualTo(2));
-                Assert.That(numberOfFunctions(archive), Is.EqualTo(1));
-
-                Assert.That(numberOfEventsRaised, Is.EqualTo(6));
-            }
-        }
-        
-        private int numberOfFunctions(IArchive archive)
-        {
-            var functions = from unit in archive.FileUnits
-                            from function in unit.Elements(SRC.Function)
-                            select function;
-            return functions.Count();
-        }
-
-        private void WriteTextAndRaiseEvent(IFileMonitor watchedFolder, string fileName, string source)
-        {
-            var path = Path.Combine(this.srcDirectoryInfo.Name, fileName);
-            var xmlPath = Path.Combine(this.srcDirectoryInfo.Name, ".srcml", fileName) + ".xml";
+        //    //System.Threading.Thread.Sleep(1000);
+        //    Stopwatch sw = new Stopwatch();
+        //    sw.Start();
             
-            var eventType = (File.Exists(path) ? FileEventType.FileChanged : FileEventType.FileAdded);
-
-            File.WriteAllText(path, source);
-
-            watchedFolder.FileEventRaised += Raise.EventWith(new FileEventRaisedArgs(path, eventType));
-            watchedFolder.FileEventRaised += Raise.EventWith(new FileEventRaisedArgs(xmlPath, eventType));
-        }
-
-        private void DeleteSourceAndRaiseEvent(IFileMonitor watchedFolder, string fileName)
-        {
-            var path = Path.Combine(this.srcDirectoryInfo.Name, fileName);
-            var xmlPath = Path.Combine(this.srcDirectoryInfo.Name, ".srcml", fileName);
-            xmlPath += ".xml";
-
-            File.Delete(path);
-
-            watchedFolder.FileEventRaised += Raise.EventWith(new FileEventRaisedArgs(path, FileEventType.FileDeleted));
-            watchedFolder.FileEventRaised += Raise.EventWith(new FileEventRaisedArgs(xmlPath, FileEventType.FileDeleted));
-        }
-        
-        private void RenameSourceFileAndRaiseEvent(IFileMonitor watchedFolder, string oldFileName, string fileName)
-        {
-            var oldPath = Path.Combine(this.srcDirectoryInfo.Name, oldFileName);
-            var path = Path.Combine(this.srcDirectoryInfo.Name, fileName);
+        //    ////archive.GenerateXmlForDirectory(SourceDirectory);
             
-            var oldXmlPath = Path.Combine(this.srcDirectoryInfo.Name, ".srcml", oldFileName) + ".xml";
-            var xmlPath = Path.Combine(this.srcDirectoryInfo.Name, ".srcml", fileName) + ".xml";
+        //    sw.Stop();
+        //    Console.WriteLine("\nTotal time elapsed for srcML files generation: {0}", sw.Elapsed.ToString());
+        //    Console.WriteLine("ID: [" + thisProcess.Id + "\n");
+        //    Console.WriteLine("NonpagedSystemMemorySize64: [" + thisProcess.NonpagedSystemMemorySize64 + "\n");
+        //    Console.WriteLine("PagedMemorySize64: [" + thisProcess.PagedMemorySize64 + "\n");
+        //    Console.WriteLine("PagedSystemMemorySize64: [" + thisProcess.PagedSystemMemorySize64 + "\n");
+        //    Console.WriteLine("PeakPagedMemorySize64: [" + thisProcess.PeakPagedMemorySize64 + "\n");
+        //    Console.WriteLine("PeakVirtualMemorySize64: [" + thisProcess.PeakVirtualMemorySize64 + "\n");
+        //    Console.WriteLine("PeakWorkingSet64: [" + thisProcess.PeakWorkingSet64 + "\n");
+        //    Console.WriteLine("PrivateMemorySize64: [" + thisProcess.PrivateMemorySize64 + "\n");
+        //    Console.WriteLine("VirtualMemorySize64: [" + thisProcess.VirtualMemorySize64 + "\n");
+        //    Console.WriteLine("\n------- End -------\n");
 
-            File.Move(oldPath, path);
+        //    /*
+        //    Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "foo.c.xml")));
+        //    Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "bar.c.xml")));
+        //    Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\foo1.c.xml")));
+        //    Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\bar1.c.xml")));
+        //    Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\foo2.c.xml")));
+        //    Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\bar2.c.xml")));
+        //    Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir11\\foo11.c.xml")));
+        //    Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir11\\bar11.c.xml")));
+        //    Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir12\\foo12.c.xml")));
+        //    Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir12\\bar12.c.xml")));
+        //    Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\subdir21\\foo21.c.xml")));
+        //    Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\subdir21\\bar21.c.xml")));
+        //    Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\subdir22\\foo22.c.xml")));
+        //    Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\subdir22\\bar22.c.xml")));
+        //    Assert.That(archive.FileUnits.Count(), Is.EqualTo(14));
+        //    */
 
-            watchedFolder.FileEventRaised += Raise.EventWith(new FileEventRaisedArgs(path, oldPath, FileEventType.FileRenamed));
-            watchedFolder.FileEventRaised += Raise.EventWith(new FileEventRaisedArgs(oldXmlPath, FileEventType.FileDeleted));
-            watchedFolder.FileEventRaised += Raise.EventWith(new FileEventRaisedArgs(xmlPath, FileEventType.FileAdded));
-        }
+        //    /*
+        //    File.WriteAllText(SourceDirectory + "\\foo.c", String.Format(@"int foo() {{{0}printf(""hello world! changed"");{0}}}", Environment.NewLine));
+        //    File.WriteAllText(SourceDirectory + "\\subdir2\\subdir21\\bar21.c", String.Format(@"int bar21() {{{0}    printf(""goodbye, world 21! changed"");{0}}}", Environment.NewLine));
+        //    File.Delete("C:\\Users\\USJIZHE\\Documents\\GitHub\\SrcML.NET\\Build\\Debug\\testSourceDir\\subdir1\\subdir12\\bar12.c");
+        //    File.Move("C:\\Users\\USJIZHE\\Documents\\GitHub\\SrcML.NET\\Build\\Debug\\testSourceDir\\subdir1\\subdir11\\foo11.c",
+        //        "C:\\Users\\USJIZHE\\Documents\\GitHub\\SrcML.NET\\Build\\Debug\\testSourceDir\\subdir1\\subdir11\\foo1111111.c");
+
+        //    System.Threading.Thread.Sleep(5000);
+        //    archive.GenerateXmlForDirectory(SourceDirectory);
+        //    */
+
+        //    /*
+        //    Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "foo.c.xml")));
+        //    Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "bar.c.xml")));
+        //    Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\foo1.c.xml")));
+        //    Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\bar1.c.xml")));
+        //    Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\foo2.c.xml")));
+        //    Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\bar2.c.xml")));
+        //    Assert.That(!File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir11\\foo11.c.xml")));
+        //    Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir11\\foo1111111.c.xml")));
+        //    Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir11\\bar11.c.xml")));
+        //    Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir12\\foo12.c.xml")));
+        //    Assert.That(!File.Exists(Path.Combine(xmlDirectory.FullName, "subdir1\\subdir12\\bar12.c.xml")));
+        //    Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\subdir21\\foo21.c.xml")));
+        //    Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\subdir21\\bar21.c.xml")));
+        //    Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\subdir22\\foo22.c.xml")));
+        //    Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "subdir2\\subdir22\\bar22.c.xml")));
+        //    Assert.That(archive.FileUnits.Count(), Is.EqualTo(13));
+        //    */
+
+        //}
     }
 }
