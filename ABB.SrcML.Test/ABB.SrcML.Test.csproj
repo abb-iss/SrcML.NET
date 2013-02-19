@@ -60,7 +60,7 @@
     <Compile Include="ExternalTests.cs" />
     <Compile Include="HelperTests.cs" />
     <Compile Include="InvalidQueryFunctions.cs" />
-    <Compile Include="LastModifiedArchiveTest.cs" />
+    <Compile Include="LastModifiedArchiveTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ShortXmlFileNameMappingTests.cs" />
     <Compile Include="SrcMLArchiveTest.cs">
