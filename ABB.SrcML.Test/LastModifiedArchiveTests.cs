@@ -131,5 +131,11 @@ namespace ABB.SrcML.Test {
 
             Assert.That(archive.ContainsFile(pathToFoo));
         }
+
+        [Test]
+        public void TestOutdatedWithNonExistentFiles() {
+            var archive = new LastModifiedArchive(testDirectory, "archive.txt");
+            Assert.IsFalse(archive.IsOutdated("foo.txt"));
+        }
     }
 }

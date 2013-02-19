@@ -15,11 +15,20 @@ namespace ABB.SrcML {
         private Dictionary<string, DateTime> lastModifiedMap;
         private readonly object mapLock = new object();
 
+        /// <summary>
+        /// Creates a new archive in the <paramref name="storageDirectory">specified directory</paramref> with the given <paramref name="fileName"/>
+        /// </summary>
+        /// <param name="storageDirectory">the directory that this archive will be stored in</param>
+        /// <param name="fileName">the filename to store the mapping in</param>
         public LastModifiedArchive(string storageDirectory, string fileName)
         : this(Path.Combine(storageDirectory, fileName)) {
             
         }
 
+        /// <summary>
+        /// Creates a new archive stored in <paramref name="fileName"/>
+        /// </summary>
+        /// <param name="fileName"></param>
         public LastModifiedArchive(string fileName)
             : base(fileName) {
                 lastModifiedMap = new Dictionary<string, DateTime>(StringComparer.InvariantCultureIgnoreCase);
@@ -30,6 +39,11 @@ namespace ABB.SrcML {
             get { throw new NotImplementedException(); }
         }
 
+        /// <summary>
+        /// Adds or updates <paramref name="fileName"/> to the archive. It raises <see cref="AbstractArchive.FileChanged"/> with
+        /// <see cref="FileEventType.FileChanged"/> (if the file was in the archive) or <see cref="FileEventType.FileAdded"/>.
+        /// </summary>
+        /// <param name="fileName">The file name to add</param>
         public override void AddOrUpdateFile(string fileName) {
             string fullPath = GetFullPath(fileName);
             FileEventType eventType;
@@ -41,6 +55,11 @@ namespace ABB.SrcML {
             OnFileChanged(new FileEventRaisedArgs(fullPath, eventType));
         }
 
+        /// <summary>
+        /// Deletes the given <paramref name="fileName"/> from the archive. It raises <see cref="AbstractArchive.FileChanged"/> with
+        /// <see cref="FileEventType.FileDeleted"/> if the file was in the archive.
+        /// </summary>
+        /// <param name="fileName">The file to delete</param>
         public override void DeleteFile(string fileName) {
             string fullPath = GetFullPath(fileName);
             bool mapContainsFile = true;
@@ -55,6 +74,12 @@ namespace ABB.SrcML {
             }
         }
 
+        /// <summary>
+        /// Renames filename from <paramref name="oldFileName"/> to <paramref name="newFileName"/>. If <paramref name="oldFileName"/> is
+        /// in the archive, then <see cref="AbstractArchive.FileChanged"/> is raised with <see cref="FileEventType.FileRenamed"/>. Otherwise, this method simply calls <see cref="AddOrUpdateFile(string)"/>
+        /// </summary>
+        /// <param name="oldFileName">the old file path</param>
+        /// <param name="newFileName">the new file path</param>
         public override void RenameFile(string oldFileName, string newFileName) {
             string oldFullPath = GetFullPath(oldFileName);
             string newFullPath = GetFullPath(newFileName);
@@ -74,6 +99,11 @@ namespace ABB.SrcML {
             }
         }
 
+        /// <summary>
+        /// Checks if the given file name is present in the archive
+        /// </summary>
+        /// <param name="fileName">The file name to test for</param>
+        /// <returns>True if the file is in the archive; false otherwise</returns>
         public override bool ContainsFile(string fileName) {
             string fullPath = GetFullPath(fileName);
             lock(mapLock) {
@@ -81,20 +111,37 @@ namespace ABB.SrcML {
             }
         }
 
+        /// <summary>
+        /// Checks if the archive is outdated in comparison to the original file. A file is outdated if any of the following are true:
+        /// <list type="bullet">
+        /// <item><description>the file does not exist and it is in the archive</description></item>
+        /// <item><description>the file is not in the archive and it exists</description></item>
+        /// <item><description>The last modified time in the archive is more recent than <paramref name="fileName"/></description></item>
+        /// </list>
+        /// </summary>
+        /// <param name="fileName">the file to check</param>
+        /// <returns>True if the file is outdated; false otherwise</returns>
         public override bool IsOutdated(string fileName) {
             string fullPath = GetFullPath(fileName);
             bool fileNameExists = File.Exists(fullPath);
             bool fileIsInArchive;
-            DateTime lastModified = File.GetLastWriteTime(fullPath);
+            DateTime lastModified = (fileNameExists ? File.GetLastWriteTime(fullPath) : DateTime.MinValue);
             DateTime lastModifiedInArchive;
 
             lock(mapLock) {
                 fileIsInArchive = this.lastModifiedMap.TryGetValue(fullPath, out lastModifiedInArchive);
+                if(!fileIsInArchive) {
+                    lastModifiedInArchive = DateTime.MinValue;
+                }
             }
 
-            return !(fileNameExists && fileIsInArchive && lastModified <= lastModifiedInArchive);
+            return !(fileNameExists == fileIsInArchive && lastModified <= lastModifiedInArchive);
         }
 
+        /// <summary>
+        /// Gets all of the files stored in the archive
+        /// </summary>
+        /// <returns>the files in the archive</returns>
         public override IEnumerable<string> GetFiles() {
             Collection<string> fileNames = new Collection<string>();
             lock(mapLock) {
@@ -105,11 +152,17 @@ namespace ABB.SrcML {
             return fileNames;
         }
 
+        /// <summary>
+        /// saves this archive to disk
+        /// </summary>
         public override void Dispose() {
             SaveMap();
             base.Dispose();
         }
 
+        /// <summary>
+        /// Loads this map from disk (assuming <see cref="AbstractArchive.ArchivePath"/> exists)
+        /// </summary>
         public void ReadMap() {
             if(File.Exists(this.ArchivePath)) {
                 lock(mapLock) {
@@ -122,6 +175,9 @@ namespace ABB.SrcML {
             }
         }
 
+        /// <summary>
+        /// Saves this map to disk (at <see cref="AbstractArchive.ArchivePath"/>
+        /// </summary>
         public void SaveMap() {
             if(File.Exists(this.ArchivePath)) {
                 File.Delete(this.ArchivePath);
@@ -136,6 +192,11 @@ namespace ABB.SrcML {
             }
         }
 
+        /// <summary>
+        /// Gets the full path for a file name (returns the file name if <see cref="Path.IsPathRooted(string)"/> is true.
+        /// </summary>
+        /// <param name="fileName"></param>
+        /// <returns></returns>
         private string GetFullPath(string fileName) {
             return (Path.IsPathRooted(fileName) ? fileName : Path.GetFullPath(fileName));
         }
