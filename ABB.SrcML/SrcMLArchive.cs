@@ -192,7 +192,7 @@ namespace ABB.SrcML {
         /// <param name="fileName">the file name to check</param>
         /// <returns>true if the source file is newer than srcML file in the archive or the file is not in the archive.</returns>
         public override bool IsOutdated(string fileName) {
-            if(!File.Exists(xmlPath)) return true;
+            if(!File.Exists(fileName)) return true;
             
             var sourceFileInfo = new FileInfo(fileName);
             var xmlPath = GetXmlPathForSourcePath(fileName);
