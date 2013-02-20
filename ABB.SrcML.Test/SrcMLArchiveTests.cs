@@ -77,7 +77,7 @@ namespace ABB.SrcML.Test
         public void GenerateXmlForDirectoryTest() {
             ManualResetEvent resetEvent = new ManualResetEvent(false);
 
-            var archive = new SrcMLArchive(archiveDirectoryInfo.FullName, new SrcMLGenerator(TestConstants.SrcmlPath));
+            var archive = new SrcMLArchive(ArchiveDirectory, false, new SrcMLGenerator(TestConstants.SrcmlPath));
             FileEventType expectedEventType = FileEventType.FileAdded;
             FileEventType actualEventType = FileEventType.FileChanged;
 
@@ -156,7 +156,7 @@ namespace ABB.SrcML.Test
         public void TestDontUseExistingSrcML() {
             //convert the test files and place in the xml directory
             ManualResetEvent resetEvent = new ManualResetEvent(false);
-            var archive = new SrcMLArchive(ArchiveDirectory, new SrcMLGenerator(TestConstants.SrcmlPath));
+            var archive = new SrcMLArchive(ArchiveDirectory, false, new SrcMLGenerator(TestConstants.SrcmlPath));
             archive.FileChanged += (o, e) => { resetEvent.Set(); };
 
             string[] sourceFiles = new[] { @"..\..\TestInputs\foo.c", @"..\..\TestInputs\baz.cpp", @"..\..\TestInputs\function_def.cpp" };

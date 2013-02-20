@@ -26,9 +26,8 @@ namespace ABB.SrcML.Tools.ArchiveUpdater
         public MainWindow()
         {
             var archivePath = FSPath.Combine(".", "ARCHIVE");
-            _monitor = new FileSystemFolderMonitor(".", archivePath, new LastModifiedArchive(archivePath, "lastmodified.txt"));
-            _archive = new SrcMLArchive(FSPath.Combine(_monitor.MonitorStorage, "srcml"));
-            _monitor.RegisterNonDefaultArchive(_archive);
+            _monitor = new FileSystemFolderMonitor(".", archivePath, new LastModifiedArchive(archivePath), new SrcMLArchive(archivePath));
+            
             _monitor.FileChanged += _archive_SourceFileChanged;
 
             _monitor.StartMonitoring();

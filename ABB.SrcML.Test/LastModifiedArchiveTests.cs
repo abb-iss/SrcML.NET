@@ -35,7 +35,7 @@ namespace ABB.SrcML.Test {
         [Test]
         public void TestAddUpdateDelete() {
             bool receivedFileAdded = false, receivedFileUpdated = false, receivedFileDeleted = false;
-            LastModifiedArchive archive = new LastModifiedArchive(Path.Combine(testDirectory, "archive.txt"));
+            LastModifiedArchive archive = new LastModifiedArchive(testDirectory);
             archive.FileChanged += (sender, e) => {
                 switch(e.EventType) {
                     case FileEventType.FileAdded:
@@ -73,7 +73,7 @@ namespace ABB.SrcML.Test {
         [Test]
         public void TestRename() {
             bool receivedFileAdd = false, receivedFileRename = false;
-            LastModifiedArchive archive = new LastModifiedArchive(Path.Combine(testDirectory, "archive.txt"));
+            LastModifiedArchive archive = new LastModifiedArchive(testDirectory);
             archive.FileChanged += (sender, e) => {
                 switch(e.EventType) {
                     case FileEventType.FileAdded:
@@ -103,7 +103,7 @@ namespace ABB.SrcML.Test {
 
         [Test]
         public void TestRelativePathInsertWithFullPathCheck() {
-            LastModifiedArchive archive = new LastModifiedArchive(Path.Combine(testDirectory, "archive.txt"));
+            LastModifiedArchive archive = new LastModifiedArchive(testDirectory);
             string relativePathToFoo = Path.Combine(testDirectory, "foo.txt");
             string fullPathToFoo = Path.GetFullPath(relativePathToFoo);
             
@@ -115,8 +115,8 @@ namespace ABB.SrcML.Test {
 
         [Test]
         public void TestArchiveLoadRoundTrip() {
-            var archivePath = Path.Combine(testDirectory, "archive.txt");
-            LastModifiedArchive archive = new LastModifiedArchive(archivePath);
+            LastModifiedArchive archive = new LastModifiedArchive(testDirectory);
+            var archivePath = archive.ArchivePath;
             string pathToFoo = Path.GetFullPath(Path.Combine(testDirectory, "foo.txt"));
 
             File.Create(pathToFoo).Dispose();
@@ -127,7 +127,7 @@ namespace ABB.SrcML.Test {
 
             Assert.That(File.Exists(archivePath));
 
-            archive = new LastModifiedArchive(archivePath);
+            archive = new LastModifiedArchive(testDirectory);
 
             Assert.That(archive.ContainsFile(pathToFoo));
         }

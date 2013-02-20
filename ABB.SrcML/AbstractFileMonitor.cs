@@ -25,12 +25,24 @@ namespace ABB.SrcML {
         private Dictionary<string, AbstractArchive> archiveMap;
 
         /// <summary>
+        /// Creates a new AbstractFileMonitor with the default archive and a collection of non-default archives that should be registered
+        /// </summary>
+        /// <param name="baseDirectory">The folder where this monitor stores it archives</param>
+        /// <param name="defaultArchive">The default archive</param>
+        /// <param name="otherArchives">A list of other archives that should be registered via <see cref="RegisterNonDefaultArchive(AbstractArchive)"/></param>
+        public AbstractFileMonitor(string baseDirectory, AbstractArchive defaultArchive, params AbstractArchive[] otherArchives)
+            : this(baseDirectory, defaultArchive) {
+                foreach(var archive in otherArchives) {
+                    this.RegisterNonDefaultArchive(archive);
+                }
+        }
+        /// <summary>
         /// Creates a new AbstractFileMonitor with the default archive
         /// </summary>
-        /// <param name="storageDirectory">The folder where this monitor stores its archives</param>
+        /// <param name="baseDirectory">The folder where this monitor stores its archives</param>
         /// <param name="defaultArchive">The default archive</param>
-        public AbstractFileMonitor(string storageDirectory, AbstractArchive defaultArchive) {
-            this.MonitorStorage = storageDirectory;
+        public AbstractFileMonitor(string baseDirectory, AbstractArchive defaultArchive) {
+            this.MonitorStoragePath = baseDirectory;
             this.registeredArchives = new HashSet<AbstractArchive>();
             this.archiveMap = new Dictionary<string, AbstractArchive>();
             this.registeredArchives.Add(defaultArchive);
@@ -41,7 +53,7 @@ namespace ABB.SrcML {
         /// <summary>
         /// The folder where all of the archives can store their data. <see cref="AbstractArchive"/> objects can use this as their root folder
         /// </summary>
-        public string MonitorStorage { get; protected set; }
+        public string MonitorStoragePath { get; protected set; }
 
         /// <summary>
         /// Event fires when any of the archives raises their <see cref="AbstractArchive.FileChanged"/>.
@@ -83,6 +95,11 @@ namespace ABB.SrcML {
             }
         }
 
+        /// <summary>
+        /// Raises the <see cref="FileChanged"/> event.
+        /// </summary>
+        /// <param name="sender">The caller</param>
+        /// <param name="e">The event arguments</param>
         protected virtual void RespondToArchiveFileEvent(object sender, FileEventRaisedArgs e) {
             OnFileChanged(e);
         }
@@ -211,6 +228,10 @@ namespace ABB.SrcML {
             }
         }
 
+        /// <summary>
+        /// event handler for <see cref="FileChanged"/>
+        /// </summary>
+        /// <param name="e">event arguments</param>
         protected virtual void OnFileChanged(FileEventRaisedArgs e) {
             EventHandler<FileEventRaisedArgs> handler = FileChanged;
             if(handler != null) {
