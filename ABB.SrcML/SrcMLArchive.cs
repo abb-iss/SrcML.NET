@@ -134,7 +134,7 @@ namespace ABB.SrcML {
                 eventType = FileEventType.FileChanged;
             }
             GenerateXmlForSource(fileName);
-            OnFileChanged(new FileEventRaisedArgs(fileName, eventType));
+            OnFileChanged(new FileEventRaisedArgs(eventType, fileName, true));
         }
 
         /// <summary>
@@ -156,7 +156,7 @@ namespace ABB.SrcML {
             if(File.Exists(xmlPath)) {
                 File.Delete(xmlPath);
             }
-            OnFileChanged(new FileEventRaisedArgs(fileName, FileEventType.FileDeleted));
+            OnFileChanged(new FileEventRaisedArgs(FileEventType.FileDeleted, fileName, true));
         }
 
         /// <summary>
@@ -212,7 +212,7 @@ namespace ABB.SrcML {
                 File.Delete(oldXmlPath);
             }
             GenerateXmlForSource(newFileName);
-            OnFileChanged(new FileEventRaisedArgs(oldFileName, newFileName, FileEventType.FileRenamed));
+            OnFileChanged(new FileEventRaisedArgs(FileEventType.FileRenamed, newFileName, oldFileName, true));
         }
 
         #endregion AbstractArchive Members

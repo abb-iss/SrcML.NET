@@ -35,12 +35,18 @@ namespace ABB.SrcML {
             this.archiveMap = new Dictionary<string, AbstractArchive>();
             this.registeredArchives.Add(defaultArchive);
             this.defaultArchive = defaultArchive;
+            this.defaultArchive.FileChanged += RespondToArchiveFileEvent;
         }
 
         /// <summary>
         /// The folder where all of the archives can store their data. <see cref="AbstractArchive"/> objects can use this as their root folder
         /// </summary>
         public string MonitorStorage { get; protected set; }
+
+        /// <summary>
+        /// Event fires when any of the archives raises their <see cref="AbstractArchive.FileChanged"/>.
+        /// </summary>
+        public event EventHandler<FileEventRaisedArgs> FileChanged;
 
         /// <summary>
         /// Event fires when <see cref="Startup()"/> is completed
@@ -71,9 +77,14 @@ namespace ABB.SrcML {
         /// <param name="archive">the archive to add.</param>
         public void RegisterNonDefaultArchive(AbstractArchive archive) {
             registeredArchives.Add(archive);
+            archive.FileChanged += RespondToArchiveFileEvent;
             foreach(var extension in archive.SupportedExtensions) {
                 archiveMap[extension] = archive;
             }
+        }
+
+        protected virtual void RespondToArchiveFileEvent(object sender, FileEventRaisedArgs e) {
+            OnFileChanged(e);
         }
 
         /// <summary>
@@ -183,6 +194,7 @@ namespace ABB.SrcML {
         /// </summary>
         public void Dispose() {
             StartupCompleted = null;
+            FileChanged = null;
             foreach(var archive in registeredArchives) {
                 archive.Dispose();
             }
@@ -194,6 +206,13 @@ namespace ABB.SrcML {
         /// <param name="e">null event</param>
         protected virtual void OnStartupCompleted(EventArgs e) {
             EventHandler handler = StartupCompleted;
+            if(handler != null) {
+                handler(this, e);
+            }
+        }
+
+        protected virtual void OnFileChanged(FileEventRaisedArgs e) {
+            EventHandler<FileEventRaisedArgs> handler = FileChanged;
             if(handler != null) {
                 handler(this, e);
             }
@@ -215,5 +234,7 @@ namespace ABB.SrcML {
             }
             return selectedArchive;
         }
+
+
     }
 }

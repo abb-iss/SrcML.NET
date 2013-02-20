@@ -52,7 +52,7 @@ namespace ABB.SrcML {
                 lastModifiedMap[fullPath] = File.GetLastWriteTime(fullPath);
             }
 
-            OnFileChanged(new FileEventRaisedArgs(fullPath, eventType));
+            OnFileChanged(new FileEventRaisedArgs(eventType, fullPath));
         }
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace ABB.SrcML {
                 }
             }
             if(mapContainsFile) {
-                OnFileChanged(new FileEventRaisedArgs(fullPath, FileEventType.FileDeleted));
+                OnFileChanged(new FileEventRaisedArgs(FileEventType.FileDeleted, fullPath));
             }
         }
 
@@ -93,7 +93,7 @@ namespace ABB.SrcML {
                 }
             }
             if(mapContainsFile) {
-                OnFileChanged(new FileEventRaisedArgs(oldFullPath, newFullPath, FileEventType.FileRenamed));
+                OnFileChanged(new FileEventRaisedArgs(FileEventType.FileRenamed, newFullPath, oldFullPath));
             } else {
                 AddOrUpdateFile(newFullPath);
             }
