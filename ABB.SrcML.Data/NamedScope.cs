@@ -33,8 +33,8 @@ namespace ABB.SrcML.Data {
             : base() {
             Accessibility = AccessModifier.None;
             Name = String.Empty;
-            UnresolvedParentScope = null;
             UnresolvedParentScopeInUse = null;
+            ParentScopeCandidates = new Collection<NamedScopeUse>();
         }
 
         /// <summary>
@@ -45,7 +45,10 @@ namespace ABB.SrcML.Data {
             : base(otherScope) {
             Accessibility = otherScope.Accessibility;
             Name = otherScope.Name;
-            UnresolvedParentScope = otherScope.UnresolvedParentScope;
+            ParentScopeCandidates = new Collection<NamedScopeUse>();
+            foreach(var candidate in otherScope.ParentScopeCandidates) {
+                ParentScopeCandidates.Add(candidate);
+            }
             UnresolvedParentScopeInUse = otherScope.UnresolvedParentScopeInUse;
         }
         
@@ -60,15 +63,14 @@ namespace ABB.SrcML.Data {
         public string Name { get; set; }
 
         /// <summary>
-        /// An unresolved parent scope for this object. This is used by <see cref="CPlusPlusCodeParser"/> to track
-        /// unresolved scopes that contain this object. This property should point to the root of the unresolved section.
+        /// This indicates which unresolved parent scope has been used to link this object with a parent object
         /// </summary>
-        public NamedScope UnresolvedParentScope { get; set; }
-
+        public NamedScopeUse UnresolvedParentScopeInUse { get; set; }
+        
         /// <summary>
-        /// This indicates that an unresolved parent scope has been used to link this object with a parent object
+        /// Collection of possible parent scope candidates
         /// </summary>
-        public NamedScope UnresolvedParentScopeInUse { get; set; }
+        public Collection<NamedScopeUse> ParentScopeCandidates { get; set; }
 
         /// <summary>
         /// The full name of this object (taken by finding all of the NamedScope objects that are ancestors of this
@@ -108,24 +110,33 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="childScope">The child scope to add</param>
         protected void AddNamedChildScope(NamedScope childScope) {
-            if(childScope.UnresolvedParentScope == null) {
-                base.AddChildScope(childScope);
-            } else {
-                var root = childScope.UnresolvedParentScope;
-                
-                // iterate through the unresolved parent scope and find the tail
-                // once you've found the tail, add this as a child scope
-                Scope latest = root, current;
+            var scopeToAdd = childScope;
+            if(childScope.UnresolvedParentScopeInUse == null && childScope.ParentScopeCandidates.Any()) {
+                var selectedScope = childScope.SelectUnresolvedScope();
+                scopeToAdd = selectedScope.CreateScope();
+
+                Scope latest = scopeToAdd, current;
                 do {
                     current = latest;
                     latest = current.ChildScopes.FirstOrDefault();
                 } while(latest != null);
 
-                childScope.UnresolvedParentScopeInUse = childScope.UnresolvedParentScope;
-                childScope.UnresolvedParentScope = null;
                 current.AddChildScope(childScope);
-                base.AddChildScope(root);
             }
+            base.AddChildScope(scopeToAdd);
+        }
+
+        /// <summary>
+        /// Selects the most likely unresolved path to this element. Currently, it always selects the first element.
+        /// Calling this sets <see cref="UnresolvedParentScopeInUse"/>.
+        /// </summary>
+        /// <returns><see cref="UnresolvedParentScopeInUse"/> unless there are no <see cref="ParentScopeCandidates"/>. Then it returns null</returns>
+        public NamedScopeUse SelectUnresolvedScope() {
+            if(ParentScopeCandidates.Any()) {
+                UnresolvedParentScopeInUse = ParentScopeCandidates.First();
+                return UnresolvedParentScopeInUse;
+            }
+            return null;
         }
 
         /// <summary>
@@ -270,11 +281,13 @@ namespace ABB.SrcML.Data {
 
         private string GetUnresolvedName() {
             StringBuilder sb = new StringBuilder();
-            var current = UnresolvedParentScope;
+            //var current = UnresolvedParentScope;
+            var current = UnresolvedParentScopeInUse;
             while(current != null) {
                 sb.Append(current.Name);
                 sb.Append(".");
-                current = current.ChildScopes.FirstOrDefault() as NamedScope;
+                current = current.ChildScopeUse;
+                //current = current.ChildScopes.FirstOrDefault() as NamedScope;
             }
 
             return sb.ToString().TrimEnd('.');

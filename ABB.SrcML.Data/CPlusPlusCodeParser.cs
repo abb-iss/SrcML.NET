@@ -86,36 +86,39 @@ namespace ABB.SrcML.Data {
             var methodDefinition = base.CreateMethodDefinition(methodElement, fileUnit);
 
             var nameElement = methodElement.Element(SRC.Name);
-            IEnumerable<string> parentNames;
             string methodName;
+            IEnumerable<XElement> parentNameElements;
+            
 
             if(null == nameElement) {
-                parentNames = Enumerable.Empty<string>();
                 methodName = String.Empty;
+                parentNameElements = Enumerable.Empty<XElement>();
             } else {
                 methodName = NameHelper.GetLastName(nameElement);
-                parentNames = NameHelper.GetNamesExceptLast(nameElement);
+                parentNameElements = NameHelper.GetNameElementsExceptLast(nameElement);
             }
-            
-            NamedScope current = null;
 
-            if(parentNames.Any()) {
-                foreach(var name in parentNames) {
-                    var namedScope = new NamedScope() {
-                        Name = name,
+            NamedScopeUse current = null, root = null;
+
+            if(parentNameElements.Any()) {
+                foreach(var element in parentNameElements) {
+                    var scopeUse = new NamedScopeUse() {
+                        Name = element.Value,
+                        Location = new SourceLocation(element, fileUnit),
+                        ProgrammingLanguage = this.ParserLanguage,
                     };
-                    namedScope.AddSourceLocation(new SourceLocation(methodElement, fileUnit, true));
-
-                    if(null != current) {
-                        current.AddChildScope(namedScope);
-                        current = namedScope;
-                    } else {
-                        methodDefinition.UnresolvedParentScope = namedScope;
-                        current = namedScope;
+                    if(null == root) {
+                        root = scopeUse;
                     }
-                    
+                    if(current != null) {
+                        current.ChildScopeUse = scopeUse;
+                    }
+                    current = scopeUse;
                 }
+
+                methodDefinition.ParentScopeCandidates.Add(root);
             }
+
             return methodDefinition;
         }
         /// <summary>
