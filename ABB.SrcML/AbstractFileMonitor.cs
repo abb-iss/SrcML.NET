@@ -181,7 +181,7 @@ namespace ABB.SrcML {
         /// <summary>
         /// disposes of all of the archives and stops the events
         /// </summary>
-        public void Dispose() {
+        public virtual void Dispose() {
             StartupCompleted = null;
             foreach(var archive in registeredArchives) {
                 archive.Dispose();
@@ -215,5 +215,21 @@ namespace ABB.SrcML {
             }
             return selectedArchive;
         }
+
+
+
+        /// <summary>
+        /// For debugging.
+        /// writeLog("C:\\Data\\srcMLNETlog.txt", "======= SolutionMonitor: START MONITORING =======");
+        /// </summary>
+        /// <param name="logFile"></param>
+        /// <param name="str"></param>
+        private void writeLog(string logFile, string str) {
+            StreamWriter sw = new StreamWriter(logFile, true, System.Text.Encoding.ASCII);
+            sw.WriteLine(str);
+            sw.Close();
+        }
+
+    
     }
 }

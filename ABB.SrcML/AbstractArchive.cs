@@ -93,5 +93,21 @@ namespace ABB.SrcML
         public virtual void Dispose() {
             FileChanged = null;
         }
+
+
+
+
+        /// <summary>
+        /// For debugging.
+        /// writeLog("C:\\Data\\srcMLNETlog.txt", "======= SolutionMonitor: START MONITORING =======");
+        /// </summary>
+        /// <param name="logFile"></param>
+        /// <param name="str"></param>
+        private void writeLog(string logFile, string str) {
+            StreamWriter sw = new StreamWriter(logFile, true, System.Text.Encoding.ASCII);
+            sw.WriteLine(str);
+            sw.Close();
+        }
+
     }
 }

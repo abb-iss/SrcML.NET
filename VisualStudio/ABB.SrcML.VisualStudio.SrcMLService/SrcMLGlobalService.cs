@@ -30,12 +30,12 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <summary>
         /// SrcML.NET's Solution Monitor.
         /// </summary>
-        private ABB.SrcML.VisualStudio.SolutionMonitor.SolutionMonitor CurrentMonitor;
+        private AbstractFileMonitor CurrentMonitor;
         
         /// <summary>
         /// SrcML.NET's SrcMLArchive.
         /// </summary>
-        private SrcMLArchive CurrentSrcMLArchive;
+        private AbstractArchive CurrentSrcMLArchive;
 
         /// <summary>
         /// The folder name of storing srcML files.
@@ -115,6 +115,67 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             SrcMLFileLogger.DefaultLogger.Info("SrcMLGlobalService.StartMonitering()");
 
             try {
+
+                // Create a new instance of SrcML.NET's SrcMLArchive
+                // TODO: this SrcMLArchiveDirectory may be changed to a configurable user input, instead of under the plugin folder.
+                SrcMLArchiveDirectory = GetSrcMLArchiveFolder(SolutionMonitorFactory.GetOpenSolution());
+                SrcMLFileLogger.DefaultLogger.Info("SrcMLArchive Directory: [" + SrcMLArchiveDirectory + "]");
+                // TODO: how would this bool useExistingSrcML come from?
+                bool useExistingSrcML = true;
+
+                // the directory might be conflict with AbstractFileMonitor's "storageDirectory" ??
+                CurrentSrcMLArchive = new SrcMLArchive(SrcMLArchiveDirectory, useExistingSrcML);
+
+                CurrentDefaultArchive = new CurrentDefaultArchive(defaultArchivePath);    // how to create the defaultArchive??
+
+                // Subscribe events from SrcMLArchive ==> NO events from SrcMLArchive/DefaultArchive any more
+                //CurrentSrcMLArchive.FileChanged += RespondToSourceFileChangedEvent;
+
+
+                List<AbstractArchive> listOfArchives = new List<AbstractArchive>(); // or say ArchiveSet as a member variable
+
+                // Create a new instance of SrcML.NET's solution monitor
+                CurrentMonitor = SolutionMonitorFactory.CreateMonitor(ListOfArchives);
+
+                // Subscribe events from Solution Monitor
+                CurrentMonitor.FileChanged += RespondToFileChangedEvent;
+                CurrentMonitor.StartupCompleted += RespondToStartupCompletedEvent;
+                //CurrentSrcMLArchive.MonitoringStopped += RespondToMonitoringStoppedEvent;
+
+                // Start monitoring
+                CurrentMonitor.StartMonitoring();
+
+            } catch(Exception e) {
+                SrcMLFileLogger.DefaultLogger.Error(SrcMLExceptionFormatter.CreateMessage(e, "Exception in SrcMLGlobalService.StartMonitering()"));
+            }
+
+        }
+
+        /// <summary>
+        /// SrcML service stops monitoring the opened solution.
+        /// </summary>
+        public void StopMonitoring() {
+            SrcMLFileLogger.DefaultLogger.Info("SrcMLGlobalService.StopMonitoring()");
+
+            try {
+                if(CurrentMonitor != null && CurrentSrcMLArchive != null) {
+                    CurrentMonitor.StopMonitoring();
+                    CurrentSrcMLArchive = null;
+                    CurrentMonitor = null;
+                }
+            } catch(Exception e) {
+                SrcMLFileLogger.DefaultLogger.Error(SrcMLExceptionFormatter.CreateMessage(e, "Exception in SrcMLGlobalService.StopMonitoring()"));
+            }
+        }
+
+        /*
+        /// <summary>
+        /// SrcML service starts to monitor the opened solution.
+        /// </summary>
+        public void StartMonitering() {
+            SrcMLFileLogger.DefaultLogger.Info("SrcMLGlobalService.StartMonitering()");
+
+            try {   // ==> reverse the order of CurrentMonitor and CurrentSrcMLArchive
                 // Create a new instance of SrcML.NET's solution monitor
                 CurrentMonitor = SolutionMonitorFactory.CreateMonitor();
                 CurrentMonitor.FileEventRaised += RespondToSolutionMonitorEvent;
@@ -146,7 +207,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             if(CurrentMonitor != null) {
                 try {
                     if(CurrentSrcMLArchive != null) {
-                        CurrentSrcMLArchive.StopWatching();
+                        CurrentSrcMLArchive.StopWatching(); // ==> CurrentMonitor.StopMonitoring()
                         CurrentSrcMLArchive = null;
                     }
                     CurrentMonitor = null;
@@ -155,7 +216,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 }
             }
         }
-
+        */
         #endregion
 
         /// <summary>
@@ -189,9 +250,9 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             return split[split.Length - 1] + fullName.GetHashCode();
         }
 
-
+        /* // obsolete
         /// <summary>
-        /// Respond to the FileEventRaised event from Solution Monitor.
+        /// Respond to the FileEventRaised event from Solution Monitor. (obsolete)
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="eventArgs"></param>
@@ -203,29 +264,31 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 OnFileEventRaised(eventArgs);
             }
         }
+        */
 
         /// <summary>
-        /// Respond to the SourceFileChanged event from SrcMLArchive.
+        /// Respond to the FileChanged event from Solution Monitor.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="eventArgs"></param>
-        private void RespondToSourceFileChangedEvent(object sender, FileEventRaisedArgs eventArgs) {
-            SrcMLFileLogger.DefaultLogger.Info("SrcMLService: RespondToSourceFileChangedEvent(), File = " + eventArgs.SourceFilePath + ", EventType = " + eventArgs.EventType);
+        private void RespondToFileChangedEvent(object sender, FileEventRaisedArgs eventArgs) {
+            SrcMLFileLogger.DefaultLogger.Info("SrcMLService: RespondToFileChangedEvent(), File = " + eventArgs.SourceFilePath + ", EventType = " + eventArgs.EventType);
 
-            // Event would be raised for only source file changes. (the filter is in SrcMLArchive)
-            OnSourceFileChanged(eventArgs);
+            OnFileChanged(eventArgs);
         }
 
         /// <summary>
-        /// Respond to the StartupCompleted event from SrcMLArchive.
+        /// Respond to the StartupCompleted event from Solution Monitor.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="eventArgs"></param>
         private void RespondToStartupCompletedEvent(object sender, EventArgs eventArgs) {
             SrcMLFileLogger.DefaultLogger.Info("SrcMLService: RespondToStartupCompletedEvent()");
+
             OnStartupCompleted(eventArgs);
         }
 
+        /* // obsolete
         /// <summary>
         /// Respond to the MonitorStopped event from SrcMLArchive.
         /// </summary>
@@ -235,7 +298,9 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             SrcMLFileLogger.DefaultLogger.Info("SrcMLService: RespondToMonitoringStoppedEvent()");
             OnMonitoringStopped(eventArgs);
         }
+        */
 
+        /* // obsolete
         /// <summary>
         /// Handle SolutionMonitorEvents.
         /// </summary>
@@ -246,8 +311,9 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 handler(this, e);
             }
         }
+        */
 
-        protected virtual void OnSourceFileChanged(FileEventRaisedArgs e) {
+        protected virtual void OnFileChanged(FileEventRaisedArgs e) {
             EventHandler<FileEventRaisedArgs> handler = SourceFileChanged;
             if(handler != null) {
                 handler(this, e);
@@ -261,11 +327,13 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             }
         }
 
+        /* // obsolete
         protected virtual void OnMonitoringStopped(EventArgs e) {
             EventHandler<EventArgs> handler = MonitoringStopped;
             if(handler != null) {
                 handler(this, e);
             }
         }
+        */
     }
 }

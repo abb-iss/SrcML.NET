@@ -33,7 +33,8 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
     /// Methods of this interface were implemented to handle file change events in Visual Studio envinronment.
     /// This class also implements IFileMonitor so that client applications and SrcMLArchive can subscribe events that are raised from solution monitor.
     /// </summary>
-    public class SolutionMonitor : IVsTrackProjectDocumentsEvents2, IVsRunningDocTableEvents, IFileMonitor {
+    //public class SolutionMonitor : IVsTrackProjectDocumentsEvents2, IVsRunningDocTableEvents, IFileMonitor {
+    public class SolutionMonitor : AbstractFileMonitor, IVsTrackProjectDocumentsEvents2, IVsRunningDocTableEvents {
 
         /*
         public string FullFolderPath { get; set; }
@@ -68,9 +69,82 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// Constructor.
         /// </summary>
         /// <param name="openSolution"></param>
-        public SolutionMonitor(SolutionWrapper openSolution) {
+        public SolutionMonitor(List<AbstractArchive> listOfArchives, SolutionWrapper openSolution) {
             OpenSolution = openSolution;
         }
+
+
+        /*
+        #region IFileMonitor
+        public event EventHandler<FileEventRaisedArgs> FileEventRaised;
+
+        /// <summary>
+        /// Start monitoring the solution.
+        /// </summary>
+        public void StartMonitoring() {
+            //FileLogger.DefaultLogger.Info("======= SolutionMonitor: START MONITORING ======="");
+            RegisterTrackProjectDocumentsEvents2();
+            RegisterRunningDocumentTableEvents();
+        }
+
+        /// <summary>
+        /// Stop monitoring the solution.
+        /// </summary>
+        public void StopMonitoring() {
+            //FileLogger.DefaultLogger.Info("======= SolutionMonitor: STOP MONITORING ======="");
+            Dispose();
+        }
+
+        /// <summary>
+        /// Handle SolutionMonitorEvents.
+        /// </summary>
+        /// <param name="e"></param>
+        protected virtual void OnFileEventRaised(FileEventRaisedArgs e) {
+            EventHandler<FileEventRaisedArgs> handler = FileEventRaised;
+            if(handler != null) {
+                handler(this, e);
+            }
+        }
+        #endregion
+        */
+
+
+        ///////  should add the event and method below into AbstractFileMonitor
+        public event EventHandler<FileEventRaisedArgs> FileEventRaised;
+        /// <summary>
+        /// Handle SolutionMonitorEvents.
+        /// </summary>
+        /// <param name="e"></param>
+        protected virtual void OnFileEventRaised(FileEventRaisedArgs e) {
+            EventHandler<FileEventRaisedArgs> handler = FileEventRaised;
+            if(handler != null) {
+                handler(this, e);
+            }
+        }
+
+        #region AbstractFileMonitor Members
+        /// <summary>
+        /// Start monitoring the solution.
+        /// </summary>
+        public override void StartMonitoring() {
+            //FileLogger.DefaultLogger.Info("======= SolutionMonitor: START MONITORING ======="");
+            RegisterTrackProjectDocumentsEvents2();
+            RegisterRunningDocumentTableEvents();
+
+            // Call AbstractFileMonitor's Startup()
+            Startup();
+        }
+
+        /// <summary>
+        /// Stop monitoring the solution.
+        /// </summary>
+        public void StopMonitoring() {
+            //FileLogger.DefaultLogger.Info("======= SolutionMonitor: STOP MONITORING ======="");
+
+            // unsubscribe from visual studio
+            Dispose();
+        }
+        #endregion AbstractFileMonitor Members
 
         /// <summary>
         /// Register TrackProjectDocuments2 events.
@@ -93,6 +167,30 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
                 ErrorHandler.ThrowOnFailure(hr);
             }
         }
+
+        /// <summary>
+        /// Dispose this solution monitor.
+        /// </summary>
+        public override void Dispose() {
+            // Unregister IVsTrackProjectDocumentsEvents2 events
+            if(PdwCookie != VSConstants.VSCOOKIE_NIL && ProjectDocumentsTracker != null) {
+                int hr = ProjectDocumentsTracker.UnadviseTrackProjectDocumentsEvents(PdwCookie);
+                ErrorHandler.Succeeded(hr);
+                PdwCookie = VSConstants.VSCOOKIE_NIL;
+            }
+
+            // Unregister IVsRunningDocTableEvents events
+            if(DocumentTable != null) {
+                int hr = DocumentTable.UnadviseRunningDocTableEvents(DocumentTableItemId);
+                ErrorHandler.Succeeded(hr);
+            }
+            base.Dispose();
+        }
+
+
+
+
+        ////// obsolete methods from here
 
         /// <summary>
         /// Get all "monitored" files in this solution.
@@ -190,77 +288,10 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
             }
         }
 
-        /// <summary>
-        /// Get a list of all files in the Running Docuement Table.
-        /// </summary>
-        /// <returns></returns>
-        public List<string> GetRDTFiles() {
-            List<string> list = new List<string>();
-            IEnumRunningDocuments documents;
-            if(DocumentTable != null) {
-                DocumentTable.GetRunningDocumentsEnum(out documents);
-                uint[] docCookie = new uint[1];
-                uint fetched;
-                while((VSConstants.S_OK == documents.Next(1, docCookie, out fetched)) && (1 == fetched)) {
-                    uint flags;
-                    uint editLocks;
-                    uint readLocks;
-                    string moniker;
-                    IVsHierarchy docHierarchy;
-                    uint docId;
-                    IntPtr docData = IntPtr.Zero;
-                    DocumentTable.GetDocumentInfo(docCookie[0], out flags, out readLocks, out editLocks, out moniker, out docHierarchy, out docId, out docData);
-                    list.Add(moniker);
-                }
-            }
-            return list;
-        }
+        ////// obsolete methods above
 
-        /// <summary>
-        /// Save a specific file in the Running Docuement Table.
-        /// Being called in Sando's SolutionMonitor_SaveProjectItemsTest()
-        /// </summary>
-        /// <param name="fileName"></param>
-        public void saveRDTFile(string fileName) {
-            IEnumRunningDocuments documents;
-            if(DocumentTable != null) {
-                DocumentTable.GetRunningDocumentsEnum(out documents);
-                uint[] docCookie = new uint[1];
-                uint fetched;
-                while((VSConstants.S_OK == documents.Next(1, docCookie, out fetched)) && (1 == fetched)) {
-                    uint flags;
-                    uint editLocks;
-                    uint readLocks;
-                    string moniker;
-                    IVsHierarchy docHierarchy;
-                    uint docId;
-                    IntPtr docData = IntPtr.Zero;
-                    DocumentTable.GetDocumentInfo(docCookie[0], out flags, out readLocks, out editLocks, out moniker, out docHierarchy, out docId, out docData);
-                    if(fileName.Equals(moniker)) {
-                        DocumentTable.SaveDocuments((uint)__VSRDTSAVEOPTIONS.RDTSAVEOPT_ForceSave, null, 0, docCookie[0]);
-                        //FileLogger.DefaultLogger.Info("IVsRunningDocumentTable.SaveDocuments() DONE. [" + moniker + "]");
-                    }
-                }
-            }
-        }
 
-        /// <summary>
-        /// Dispose this solution monitor.
-        /// </summary>
-        public void Dispose() {
-            // Unregister IVsTrackProjectDocumentsEvents2 events
-            if(PdwCookie != VSConstants.VSCOOKIE_NIL && ProjectDocumentsTracker != null) {
-                int hr = ProjectDocumentsTracker.UnadviseTrackProjectDocumentsEvents(PdwCookie);
-                ErrorHandler.Succeeded(hr);
-                PdwCookie = VSConstants.VSCOOKIE_NIL;
-            }
 
-            // Unregister IVsRunningDocTableEvents events
-            if(DocumentTable != null) {
-                int hr = DocumentTable.UnadviseRunningDocTableEvents(DocumentTableItemId);
-                ErrorHandler.Succeeded(hr);
-            }
-        }
 
         /// <summary>
         /// Handle file creation/deletion cases.
@@ -613,36 +644,79 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         }
         #endregion
 
-        #region IFileMonitor
-        public event EventHandler<FileEventRaisedArgs> FileEventRaised;
+
+
+
+
+
+
 
         /// <summary>
-        /// Start monitoring the solution.
+        /// Get a list of all files in the Running Docuement Table.
         /// </summary>
-        public void StartMonitoring() {
-            //FileLogger.DefaultLogger.Info("======= SolutionMonitor: START MONITORING ======="");
-            RegisterTrackProjectDocumentsEvents2();
-            RegisterRunningDocumentTableEvents();
+        /// <returns></returns>
+        public List<string> GetRDTFiles() {
+            List<string> list = new List<string>();
+            IEnumRunningDocuments documents;
+            if(DocumentTable != null) {
+                DocumentTable.GetRunningDocumentsEnum(out documents);
+                uint[] docCookie = new uint[1];
+                uint fetched;
+                while((VSConstants.S_OK == documents.Next(1, docCookie, out fetched)) && (1 == fetched)) {
+                    uint flags;
+                    uint editLocks;
+                    uint readLocks;
+                    string moniker;
+                    IVsHierarchy docHierarchy;
+                    uint docId;
+                    IntPtr docData = IntPtr.Zero;
+                    DocumentTable.GetDocumentInfo(docCookie[0], out flags, out readLocks, out editLocks, out moniker, out docHierarchy, out docId, out docData);
+                    list.Add(moniker);
+                }
+            }
+            return list;
         }
 
         /// <summary>
-        /// Stop monitoring the solution.
+        /// Save a specific file in the Running Docuement Table.
+        /// Being called in Sando's SolutionMonitor_SaveProjectItemsTest()
         /// </summary>
-        public void StopMonitoring() {
-            //FileLogger.DefaultLogger.Info("======= SolutionMonitor: STOP MONITORING ======="");
-            Dispose();
-        }
-
-        /// <summary>
-        /// Handle SolutionMonitorEvents.
-        /// </summary>
-        /// <param name="e"></param>
-        protected virtual void OnFileEventRaised(FileEventRaisedArgs e) {
-            EventHandler<FileEventRaisedArgs> handler = FileEventRaised;
-            if(handler != null) {
-                handler(this, e);
+        /// <param name="fileName"></param>
+        public void saveRDTFile(string fileName) {
+            IEnumRunningDocuments documents;
+            if(DocumentTable != null) {
+                DocumentTable.GetRunningDocumentsEnum(out documents);
+                uint[] docCookie = new uint[1];
+                uint fetched;
+                while((VSConstants.S_OK == documents.Next(1, docCookie, out fetched)) && (1 == fetched)) {
+                    uint flags;
+                    uint editLocks;
+                    uint readLocks;
+                    string moniker;
+                    IVsHierarchy docHierarchy;
+                    uint docId;
+                    IntPtr docData = IntPtr.Zero;
+                    DocumentTable.GetDocumentInfo(docCookie[0], out flags, out readLocks, out editLocks, out moniker, out docHierarchy, out docId, out docData);
+                    if(fileName.Equals(moniker)) {
+                        DocumentTable.SaveDocuments((uint)__VSRDTSAVEOPTIONS.RDTSAVEOPT_ForceSave, null, 0, docCookie[0]);
+                        //FileLogger.DefaultLogger.Info("IVsRunningDocumentTable.SaveDocuments() DONE. [" + moniker + "]");
+                    }
+                }
             }
         }
-        #endregion
+
+        /// <summary>
+        /// For debugging.
+        /// writeLog("C:\\Data\\srcMLNETlog.txt", "======= SolutionMonitor: START MONITORING =======");
+        /// </summary>
+        /// <param name="logFile"></param>
+        /// <param name="str"></param>
+        private void writeLog(string logFile, string str) {
+            StreamWriter sw = new StreamWriter(logFile, true, System.Text.Encoding.ASCII);
+            sw.WriteLine(str);
+            sw.Close();
+        }
+
+    
     }
 }

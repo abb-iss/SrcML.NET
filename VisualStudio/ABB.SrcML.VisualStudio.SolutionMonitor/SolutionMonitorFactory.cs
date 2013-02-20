@@ -9,6 +9,7 @@
  *    Jiang Zheng (ABB Group) - Initial implementation
  *****************************************************************************/
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO;
 using EnvDTE;
@@ -26,9 +27,9 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// Constructor of SolutionMonitorFactory
         /// </summary>
         /// <returns></returns>
-        public static SolutionMonitor CreateMonitor() {
+        public static SolutionMonitor CreateMonitor(List<AbstractArchive> listOfArchives) {
             var openSolution = GetOpenSolution();
-            return CreateMonitor(openSolution);
+            return CreateMonitor(listOfArchives, openSolution);
         }
 
         /// <summary>
@@ -36,10 +37,10 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// </summary>
         /// <param name="openSolution"></param>
         /// <returns></returns>
-        private static SolutionMonitor CreateMonitor(Solution openSolution) {
+        private static SolutionMonitor CreateMonitor(List<AbstractArchive> listOfArchives, Solution openSolution) {
             Contract.Requires(openSolution != null, "A solution must be open");
 
-            var currentMonitor = new SolutionMonitor(SolutionWrapper.Create(openSolution));
+            var currentMonitor = new SolutionMonitor(listOfArchives, SolutionWrapper.Create(openSolution));
             return currentMonitor;
         }
 
