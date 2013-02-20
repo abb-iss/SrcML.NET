@@ -9,12 +9,20 @@ using System.Collections.ObjectModel;
 
 namespace ABB.SrcML
 {
+    /// <summary>
+    /// The abstract archive class is the base class for archives. Archives are responsible for recording changes to files and then raising an <see cref="FileChanged">event</see> when they are done.
+    /// </summary>
     public abstract class AbstractArchive : IDisposable
     {
         private string _archivePath;
-        
-        protected AbstractArchive(string archivePath) {
-            this.ArchivePath = archivePath;
+
+        /// <summary>
+        /// Sets the archive path for AbstractArchive objects
+        /// </summary>
+        /// <param name="baseDirectory">the base directory</param>
+        /// <param name="archiveSubDirectory">the relative path within <paramref name="baseDirectory"/></param>
+        protected AbstractArchive(string baseDirectory, string archiveSubDirectory) {
+            this.ArchivePath = Path.Combine(baseDirectory, archiveSubDirectory);
         }
 
         private AbstractArchive()
@@ -22,6 +30,9 @@ namespace ABB.SrcML
             
         }
 
+        /// <summary>
+        /// the extensions supported by this collection. The strings returned by this property should match the ones returned by <see cref="System.IO.Path.GetExtension(string)"/>
+        /// </summary>
         public abstract ICollection<string> SupportedExtensions { get; }
 
         /// <summary>
@@ -90,6 +101,9 @@ namespace ABB.SrcML
             }
         }
 
+        /// <summary>
+        /// Disposes of this object
+        /// </summary>
         public virtual void Dispose() {
             FileChanged = null;
         }

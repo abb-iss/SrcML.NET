@@ -26,10 +26,9 @@ namespace ABB.SrcML.Tools.ArchiveUpdater
         public MainWindow()
         {
             var archivePath = FSPath.Combine(".", "ARCHIVE");
-            _monitor = new FileSystemFolderMonitor(".", archivePath, new LastModifiedArchive(archivePath, "lastmodified.txt"));
-            _archive = new SrcMLArchive(FSPath.Combine(_monitor.MonitorStorage, "srcml"));
-            _monitor.RegisterNonDefaultArchive(_archive);
-            _archive.FileChanged += _archive_SourceFileChanged;
+            _monitor = new FileSystemFolderMonitor(".", archivePath, new LastModifiedArchive(archivePath), new SrcMLArchive(archivePath));
+            
+            _monitor.FileChanged += _archive_SourceFileChanged;
 
             _monitor.StartMonitoring();
 
@@ -42,10 +41,11 @@ namespace ABB.SrcML.Tools.ArchiveUpdater
                 new Action(() =>
                     {
                         ////if (SourceEventType.Renamed == e.EventType)
+                        string srcMLAvailableText = (e.HasSrcML ? "(SrcML Available)" : String.Empty);
                         if (FileEventType.FileRenamed== e.EventType)
-                            textBox1.AppendText(String.Format("{0} {1} to {2}\n", e.EventType, e.OldSourceFilePath, e.SourceFilePath));
+                            textBox1.AppendText(String.Format("{0} {1} to {2}\n", e.EventType, e.OldFilePath, e.FilePath, srcMLAvailableText));
                         else
-                            textBox1.AppendText(String.Format("{0} {1}\n", e.EventType, e.SourceFilePath));
+                            textBox1.AppendText(String.Format("{0} {1} {2}\n", e.EventType, e.FilePath, srcMLAvailableText));
                     }));
         }
 

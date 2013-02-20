@@ -15,24 +15,18 @@ namespace ABB.SrcML {
         private Dictionary<string, DateTime> lastModifiedMap;
         private readonly object mapLock = new object();
 
+        public LastModifiedArchive(string baseDirectory)
+            : this(baseDirectory, "lastmodifiedmap.txt") {
+        }
         /// <summary>
         /// Creates a new archive in the <paramref name="storageDirectory">specified directory</paramref> with the given <paramref name="fileName"/>
         /// </summary>
-        /// <param name="storageDirectory">the directory that this archive will be stored in</param>
+        /// <param name="baseDirectory">the directory that this archive will be stored in</param>
         /// <param name="fileName">the filename to store the mapping in</param>
-        public LastModifiedArchive(string storageDirectory, string fileName)
-        : this(Path.Combine(storageDirectory, fileName)) {
-            
-        }
-
-        /// <summary>
-        /// Creates a new archive stored in <paramref name="fileName"/>
-        /// </summary>
-        /// <param name="fileName"></param>
-        public LastModifiedArchive(string fileName)
-            : base(fileName) {
-                lastModifiedMap = new Dictionary<string, DateTime>(StringComparer.InvariantCultureIgnoreCase);
-                ReadMap();
+        public LastModifiedArchive(string baseDirectory, string fileName)
+            : base(baseDirectory, fileName) {
+            lastModifiedMap = new Dictionary<string, DateTime>(StringComparer.InvariantCultureIgnoreCase);
+            ReadMap();
         }
 
         public override ICollection<string> SupportedExtensions {
@@ -52,7 +46,7 @@ namespace ABB.SrcML {
                 lastModifiedMap[fullPath] = File.GetLastWriteTime(fullPath);
             }
 
-            OnFileChanged(new FileEventRaisedArgs(fullPath, eventType));
+            OnFileChanged(new FileEventRaisedArgs(eventType, fullPath));
         }
 
         /// <summary>
@@ -70,7 +64,7 @@ namespace ABB.SrcML {
                 }
             }
             if(mapContainsFile) {
-                OnFileChanged(new FileEventRaisedArgs(fullPath, FileEventType.FileDeleted));
+                OnFileChanged(new FileEventRaisedArgs(FileEventType.FileDeleted, fullPath));
             }
         }
 
@@ -93,7 +87,7 @@ namespace ABB.SrcML {
                 }
             }
             if(mapContainsFile) {
-                OnFileChanged(new FileEventRaisedArgs(oldFullPath, newFullPath, FileEventType.FileRenamed));
+                OnFileChanged(new FileEventRaisedArgs(FileEventType.FileRenamed, newFullPath, oldFullPath));
             } else {
                 AddOrUpdateFile(newFullPath);
             }

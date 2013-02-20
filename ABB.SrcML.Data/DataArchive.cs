@@ -71,13 +71,13 @@ namespace ABB.SrcML.Data {
             switch(e.EventType) {
                 case FileEventType.FileChanged:
                     // Treat a change source file as deleted then added
-                    RespondToSourceFileDeletion(e.SourceFilePath);
+                    RespondToSourceFileDeletion(e.FilePath);
                     goto case FileEventType.FileAdded;
                 case FileEventType.FileAdded:
-                    RespondToSourceFileAddition(e.SourceFilePath);
+                    RespondToSourceFileAddition(e.FilePath);
                     break;
                 case FileEventType.FileDeleted:
-                    RespondToSourceFileDeletion(e.SourceFilePath);
+                    RespondToSourceFileDeletion(e.FilePath);
                     break;
                 case FileEventType.FileRenamed:
                     // TODO remove the file from the data archive
