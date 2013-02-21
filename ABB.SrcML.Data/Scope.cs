@@ -253,7 +253,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="otherScope">The scope to add data from</param>
         /// <returns>the new scope</returns>
-        public Scope AddFrom(Scope otherScope) {
+        public virtual Scope AddFrom(Scope otherScope) {
             foreach(var declaration in otherScope.DeclaredVariables) {
                 this.AddDeclaredVariable(declaration);
             }

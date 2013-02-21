@@ -165,20 +165,37 @@ namespace ABB.SrcML.Data {
         /// <returns>The new merged scope; null if they couldn't be merged</returns>
         public virtual NamedScope Merge(NamedScope otherScope) {
             NamedScope mergedScope = null;
-            if(otherScope.CanBeMergedInto(this)) {
-                // this and other scope can be merged normally
-                // either they are the same type or
-                // this is a subclass of NamedScope and otherScope is a NamedScope
-                mergedScope = new NamedScope(this);
-                mergedScope.AddFrom(otherScope);
-            } else if(this.CanBeMergedInto(otherScope) && !otherScope.CanBeMergedInto(this)) {
-                // this is a NamedScope and otherScope is a subclass
-                // useful information (type, method, or namespace data) are in otherScope
-                mergedScope = otherScope.Merge(this);
+            if(otherScope != null) {
+                if(otherScope.CanBeMergedInto(this)) {
+                    // this and other scope can be merged normally
+                    // either they are the same type or
+                    // this is a subclass of NamedScope and otherScope is a NamedScope
+                    mergedScope = new NamedScope(this);
+                    mergedScope.AddFrom(otherScope);
+                } else if(this.CanBeMergedInto(otherScope) && !otherScope.CanBeMergedInto(this)) {
+                    // this is a NamedScope and otherScope is a subclass
+                    // useful information (type, method, or namespace data) are in otherScope
+                    mergedScope = otherScope.Merge(this);
+                }
             }
-            
             return mergedScope;
         }
+
+        /// <summary>
+        /// The AddFrom function adds all of the declarations and children from <paramref name="otherScope"/> to this scope
+        /// </summary>
+        /// <param name="otherScope">The scope to add data from</param>
+        /// <returns>the new scope</returns>
+        public override Scope AddFrom(Scope otherScope) {
+            var otherNamedScope = otherScope as NamedScope;
+            if(otherNamedScope != null) {
+                foreach(var candidate in otherNamedScope.ParentScopeCandidates) {
+                    this.ParentScopeCandidates.Add(candidate);
+                }
+            }
+            return base.AddFrom(otherScope);
+        }
+
         /// <summary>
         /// Overrides <see cref="Scope.CanBeMergedInto"/> to call <see cref="CanBeMergedInto(NamedScope)"/>
         /// </summary>
@@ -272,6 +289,10 @@ namespace ABB.SrcML.Data {
                             ParentScope = null;
                         }
                         unresolvedChildScopes.AddRange(ChildScopeCollection);
+                        //reset the UnresolvedParentScopeInUse so the children will be re-resolved by our parent
+                        foreach(var namedChild in unresolvedChildScopes.OfType<NamedScope>()) {
+                            namedChild.UnresolvedParentScopeInUse = null;
+                        }
                         unresolvedScopes = new Collection<Scope>(unresolvedChildScopes);
                     }
                 }

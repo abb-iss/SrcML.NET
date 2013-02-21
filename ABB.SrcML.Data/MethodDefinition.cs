@@ -79,17 +79,18 @@ namespace ABB.SrcML.Data {
         /// Merges this method definition with <paramref name="otherScope"/>. This happens when <c>otherScope.CanBeMergedInto(this)</c> evaluates to true.
         /// </summary>
         /// <param name="otherScope">the scope to merge with</param>
-        /// <returns>a new method definition from this and otherScope</returns>
+        /// <returns>a new method definition from this and otherScope, or null if they couldn't be merged.</returns>
         public override NamedScope Merge(NamedScope otherScope) {
             MethodDefinition mergedScope = null;
-            if(otherScope.CanBeMergedInto(this)) {
-                mergedScope = new MethodDefinition(this);
-                mergedScope.AddFrom(otherScope);
-                if(mergedScope.Accessibility == AccessModifier.None) {
-                    mergedScope.Accessibility = otherScope.Accessibility;
+            if(otherScope != null) {
+                if(otherScope.CanBeMergedInto(this)) {
+                    mergedScope = new MethodDefinition(this);
+                    mergedScope.AddFrom(otherScope);
+                    if(mergedScope.Accessibility == AccessModifier.None) {
+                        mergedScope.Accessibility = otherScope.Accessibility;
+                    }
                 }
             }
-
             return mergedScope;
         }
 
@@ -114,6 +115,19 @@ namespace ABB.SrcML.Data {
         /// <returns>true if <see cref="CanBeMergedInto(MethodDefinition)"/> evaluates to true.</returns>
         public override bool CanBeMergedInto(NamedScope otherScope) {
             return this.CanBeMergedInto(otherScope as MethodDefinition);
+        }
+
+        /// <summary>
+        /// The AddFrom function adds all of the declarations and children from <paramref name="otherScope"/> to this scope
+        /// </summary>
+        /// <param name="otherScope">The scope to add data from</param>
+        /// <returns>the new scope</returns>
+        public override Scope AddFrom(Scope otherScope) {
+            var otherMethod = otherScope as MethodDefinition;
+            if(otherMethod != null) {
+                //TODO: add parameters from other method?
+            }
+            return base.AddFrom(otherScope);
         }
 
         /// <summary>
