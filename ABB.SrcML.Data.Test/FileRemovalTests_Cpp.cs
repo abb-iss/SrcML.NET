@@ -63,7 +63,45 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestRemoveMethodDefinition_Class() {
+            ////A.h
+            //class Foo {
+            //  public:
+            //    int a;
+            //    int Add(int b);
+            //};
+            string hXml = @"<class>class <name>Foo</name> <block>{<private type=""default"">
+  </private><public>public:
+    <decl_stmt><decl><type><name>int</name></type> <name>a</name></decl>;</decl_stmt>
+    <function_decl><type><name>int</name></type> <name>Add</name><parameter_list>(<param><decl><type><name>int</name></type> <name>b</name></decl></param>)</parameter_list>;</function_decl>
+</public>}</block>;</class>";
+            var hFileunit = FileUnitSetup.GetFileUnitForXmlSnippet(hXml, "A.h");
+            var globalScope = SrcMLElementVisitor.Visit(hFileunit, CodeParser);
+            ////A.cpp
+            //#include "A.h"
+            //int Foo::Add(int b) {
+            //  return this->a + b;
+            //}
+            string cppXml = @"<cpp:include>#<cpp:directive>include</cpp:directive> <cpp:file><lit:literal type=""string"">""A.h""</lit:literal></cpp:file></cpp:include>
+<function><type><name>int</name></type> <name><name>Foo</name><op:operator>::</op:operator><name>Add</name></name><parameter_list>(<param><decl><type><name>int</name></type> <name>b</name></decl></param>)</parameter_list> <block>{
+  <return>return <expr><name>this</name><op:operator>-&gt;</op:operator><name>a</name> <op:operator>+</op:operator> <name>b</name></expr>;</return>
+}</block></function>";
+            var cppFileunit = FileUnitSetup.GetFileUnitForXmlSnippet(cppXml, "A.cpp");
+            globalScope = globalScope.Merge(SrcMLElementVisitor.Visit(cppFileunit, CodeParser));
+
+            Assert.AreEqual(1, globalScope.ChildScopes.Count());
+            Assert.IsNotNull(globalScope.ChildScopes.First() as TypeDefinition);
             
+            globalScope.RemoveFile("A.cpp");
+
+            Assert.AreEqual(1, globalScope.ChildScopes.Count());
+            var foo = globalScope.ChildScopes.First() as TypeDefinition;
+            Assert.IsNotNull(foo);
+            Assert.AreEqual("Foo", foo.Name);
+            Assert.AreEqual(1, foo.ChildScopes.Count());
+            var add = foo.ChildScopes.First() as MethodDefinition;
+            Assert.IsNotNull(add);
+            Assert.AreEqual(0, add.DefinitionLocations.Count());
+            Assert.IsFalse(add.Locations.Any(l => l.SourceFileName == "A.cpp"));
         }
 
         [Test]
@@ -131,6 +169,68 @@ namespace ABB.SrcML.Data.Test {
             var aChild = first.ChildScopes.First() as MethodDefinition;
             Assert.IsNotNull(aChild);
             Assert.AreEqual("Bar", aChild.Name);
+        }
+
+        [Test]
+        public void TestRemoveClassDefinition() {
+            ////A.h
+            //class Foo {
+            //  public:
+            //    int a;
+            //    int Add(int b);
+            //};
+            string hXml = @"<class>class <name>Foo</name> <block>{<private type=""default"">
+  </private><public>public:
+    <decl_stmt><decl><type><name>int</name></type> <name>a</name></decl>;</decl_stmt>
+    <function_decl><type><name>int</name></type> <name>Add</name><parameter_list>(<param><decl><type><name>int</name></type> <name>b</name></decl></param>)</parameter_list>;</function_decl>
+</public>}</block>;</class>";
+            var hFileunit = FileUnitSetup.GetFileUnitForXmlSnippet(hXml, "A.h");
+            var globalScope = SrcMLElementVisitor.Visit(hFileunit, CodeParser);
+            ////A.cpp
+            //#include "A.h"
+            //int Foo::Add(int b) {
+            //  return this->a + b;
+            //}
+            string cppXml = @"<cpp:include>#<cpp:directive>include</cpp:directive> <cpp:file><lit:literal type=""string"">""A.h""</lit:literal></cpp:file></cpp:include>
+<function><type><name>int</name></type> <name><name>Foo</name><op:operator>::</op:operator><name>Add</name></name><parameter_list>(<param><decl><type><name>int</name></type> <name>b</name></decl></param>)</parameter_list> <block>{
+  <return>return <expr><name>this</name><op:operator>-&gt;</op:operator><name>a</name> <op:operator>+</op:operator> <name>b</name></expr>;</return>
+}</block></function>";
+            var cppFileunit = FileUnitSetup.GetFileUnitForXmlSnippet(cppXml, "A.cpp");
+            globalScope = globalScope.Merge(SrcMLElementVisitor.Visit(cppFileunit, CodeParser));
+
+            Assert.AreEqual(1, globalScope.ChildScopes.Count());
+            Assert.IsNotNull(globalScope.ChildScopes.First() as TypeDefinition);
+
+            globalScope.RemoveFile("A.h");
+
+            Assert.AreEqual(1, globalScope.ChildScopes.Count());
+            var foo = globalScope.ChildScopes.First() as NamedScope;
+            Assert.IsNotNull(foo);
+            Assert.AreEqual("Foo", foo.Name);
+            Assert.AreEqual(1, foo.ChildScopes.Count());
+            var add = foo.ChildScopes.First() as MethodDefinition;
+            Assert.IsNotNull(add);
+            Assert.AreEqual(0, add.ReferenceLocations.Count());
+            Assert.IsFalse(add.Locations.Any(l => l.SourceFileName == "A.h"));
+        }
+
+        [Test]
+        public void TestTestHelper() {
+            ////A.h
+            //class Foo {
+            //  public:
+            //    int a;
+            //    int Add(int b);
+            //};
+            string xml = @"<class>class <name>Foo</name> <block>{<private type=""default"">
+  </private><public>public:
+    <decl_stmt><decl><type><name>int</name></type> <name>a</name></decl>;</decl_stmt>
+    <function_decl><type><name>int</name></type> <name>Add</name><parameter_list>(<param><decl><type><name>int</name></type> <name>b</name></decl></param>)</parameter_list>;</function_decl>
+</public>}</block>;</class>";
+            var fileunit = FileUnitSetup.GetFileUnitForXmlSnippet(xml, "A.h");
+            var scope1 = SrcMLElementVisitor.Visit(fileunit, CodeParser);
+            var scope2 = SrcMLElementVisitor.Visit(fileunit, CodeParser);
+            Assert.IsTrue(TestHelper.ScopesAreEqual(scope1, scope2));
         }
     }
 }
