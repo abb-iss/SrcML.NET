@@ -233,15 +233,6 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Generates the possible names for this type use based on the aliases and the use data.
-        /// </summary>
-        /// <param name="typeUse">The type use to create</param>
-        /// <returns>An enumerable of full names for this type use.</returns>
-        public override IEnumerable<string> GeneratePossibleNamesForTypeUse(TypeUse typeUse) {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
         /// Gets the child containers for a C++ type element. This iterates over the public, private, and protected blocks that appear in C++ classes in srcML.
         /// </summary>
         /// <param name="container">the type element</param>

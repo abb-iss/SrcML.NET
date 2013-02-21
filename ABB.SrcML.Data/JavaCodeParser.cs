@@ -159,34 +159,5 @@ namespace ABB.SrcML.Data {
 
             return alias;
         }
-
-        /// <summary>
-        /// Generates a list of possible names for a type use
-        /// </summary>
-        /// <param name="typeUse">The type use</param>
-        /// <returns>An enumerable of all the valid combinations of aliases with the name of the type use</returns>
-        public override IEnumerable<string> GeneratePossibleNamesForTypeUse(TypeUse typeUse) {
-            // a single name 
-            var parentNamespace = typeUse.ParentScope as NamespaceDefinition;
-            if(null == parentNamespace) {
-                parentNamespace = (from scope in typeUse.ParentScope.ParentScopes
-                                   let nsdef = scope as NamespaceDefinition
-                                   where nsdef != null
-                                   select nsdef).FirstOrDefault();
-            }
-
-            if(parentNamespace != null) {
-                yield return parentNamespace.MakeQualifiedName(typeUse.Name);
-            }
-            var aliases = from alias in typeUse.Aliases
-                          where alias.IsAliasFor(typeUse)
-                          select alias.MakeQualifiedName(typeUse);
-
-            foreach(var alias in aliases) {
-                yield return alias;
-            }
-            if(!parentNamespace.IsGlobal)
-                yield return typeUse.Name;
-        }
     }
 }

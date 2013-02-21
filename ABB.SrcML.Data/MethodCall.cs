@@ -19,31 +19,15 @@ namespace ABB.SrcML.Data {
     /// <summary>
     /// Represents a method call
     /// </summary>
-    public class MethodCall {
+    public class MethodCall : AbstractUse {
         /// <summary>
-        /// The name of the method being called
+        /// Creates a new MethodCall object
         /// </summary>
-        public string Name { get; set; }
-
-        /// <summary>
-        /// True if this is a call to a constructor
-        /// </summary>
-        public bool IsConstructor { get; set; }
-
-        /// <summary>
-        /// True if this is a call to a destructor
-        /// </summary>
-        public bool IsDestructor { get; set; }
-
-        /// <summary>
-        /// The scope that contains this method call
-        /// </summary>
-        public Scope ParentScope { get; set; }
-
-        /// <summary>
-        /// The location of this call in both the source file and XML
-        /// </summary>
-        public SourceLocation Location { get; set; }
+        public MethodCall() {
+            Arguments = new Collection<VariableUse>();
+            IsConstructor = false;
+            IsDestructor = false;
+        }
 
         /// <summary>
         /// The arguments to this call
@@ -56,10 +40,13 @@ namespace ABB.SrcML.Data {
         public VariableUse Caller { get; set; }
 
         /// <summary>
-        /// Creates a new MethodCall object
+        /// True if this is a call to a constructor
         /// </summary>
-        public MethodCall() {
-            Arguments = new Collection<VariableUse>();
-        }
+        public bool IsConstructor { get; set; }
+
+        /// <summary>
+        /// True if this is a call to a destructor
+        /// </summary>
+        public bool IsDestructor { get; set; }
     }
 }

@@ -18,20 +18,7 @@ namespace ABB.SrcML.Data {
     /// <summary>
     /// The variable use class represents a use of a variable.
     /// </summary>
-    public class VariableUse {
-        /// <summary>
-        /// The name of the variable being used
-        /// </summary>
-        public string Name { get; set; }
-
-        /// <summary>
-        /// The scope that contains this variable usage.
-        /// </summary>
-        public Scope ParentScope { get; set; }
-
-        /// <summary>
-        /// The location of this variable use in both the source code and the XML
-        /// </summary>
-        public SourceLocation Location { get; set; }
+    public class VariableUse : AbstractUse {
+        
     }
 }
