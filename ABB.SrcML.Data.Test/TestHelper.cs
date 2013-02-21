@@ -4,9 +4,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using NUnit.Framework;
+using System.Collections.ObjectModel;
 
 namespace ABB.SrcML.Data.Test {
     public static class TestHelper {
+        public static void VerifyPrefixValues(IEnumerable<string> expected, NamedScopeUse use) {
+            var prefix = use;
+            Collection<string> prefixes = new Collection<string>();
+            do {
+                prefixes.Add(prefix.Name);
+                prefix = prefix.ChildScopeUse;
+            } while(prefix != null);
+
+            CollectionAssert.AreEqual(expected as IEnumerable, prefixes as IEnumerable);
+        }
+
         public static bool ScopesAreEqual(Scope a, Scope b) {
             if(a == b) { return true; }
             Assert.AreEqual(a.GetType(), b.GetType());
@@ -59,10 +71,9 @@ namespace ABB.SrcML.Data.Test {
 
         public static bool TypeUsesAreEqual(TypeUse a, TypeUse b) {
             if(a == b) { return true; }
-            bool prefixesEqual = a.Prefix.Intersect(b.Prefix).Count() == a.Prefix.Count();
-            return LocationsAreEqual(a.Location, b.Location) &&
-                   a.Name == b.Name &&
-                   prefixesEqual;
+            return LocationsAreEqual(a.Location, b.Location) && 
+                   NamedScopeUsesAreEqual(a.Prefix, b.Prefix) &&
+                   a.Name == b.Name;
         }
 
         public static bool AliasesAreEqual(Alias a, Alias b) {

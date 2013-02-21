@@ -128,10 +128,7 @@ namespace ABB.SrcML.Data.Test {
             var parent = actual.ParentTypes.First();
 
             Assert.AreEqual("C", parent.Name);
-            var prefix_tests = Enumerable.Zip<string, string, bool>(new[] { "A", "B", "C" }, parent.Prefix, (e, a) => e == a);
-            foreach(var prefixMatches in prefix_tests) {
-                Assert.That(prefixMatches);
-            }
+            TestHelper.VerifyPrefixValues(new[] { "A", "B" }, parent.Prefix);
         }
         
         [Test]

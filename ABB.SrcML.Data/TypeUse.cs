@@ -26,9 +26,8 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public TypeUse() {
             this.Name = String.Empty;
-            this.Prefix = new Collection<string>();
         }
 
-        public Collection<string> Prefix { get; set; }
+        public NamedScopeUse Prefix { get; set; }
     }
 }
