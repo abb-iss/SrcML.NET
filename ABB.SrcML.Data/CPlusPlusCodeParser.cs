@@ -87,36 +87,16 @@ namespace ABB.SrcML.Data {
 
             var nameElement = methodElement.Element(SRC.Name);
             string methodName;
-            IEnumerable<XElement> parentNameElements;
-            
 
             if(null == nameElement) {
                 methodName = String.Empty;
-                parentNameElements = Enumerable.Empty<XElement>();
             } else {
                 methodName = NameHelper.GetLastName(nameElement);
-                parentNameElements = NameHelper.GetNameElementsExceptLast(nameElement);
             }
 
-            NamedScopeUse current = null, root = null;
-
-            if(parentNameElements.Any()) {
-                foreach(var element in parentNameElements) {
-                    var scopeUse = new NamedScopeUse() {
-                        Name = element.Value,
-                        Location = new SourceLocation(element, fileUnit, true),
-                        ProgrammingLanguage = this.ParserLanguage,
-                    };
-                    if(null == root) {
-                        root = scopeUse;
-                    }
-                    if(current != null) {
-                        current.ChildScopeUse = scopeUse;
-                    }
-                    current = scopeUse;
-                }
-
-                methodDefinition.ParentScopeCandidates.Add(root);
+            var prefix = CreateNamedScopeUsePrefix(nameElement, fileUnit);
+            if(null != prefix) {
+                methodDefinition.ParentScopeCandidates.Add(prefix);
             }
 
             return methodDefinition;

@@ -201,21 +201,47 @@ namespace ABB.SrcML.Data {
                 throw new ArgumentException("element should be of type type or name", "element");
             }
 
-            string lastName = String.Empty;
-            IEnumerable<string> prefixes = Enumerable.Empty<string>();
-
+            XElement lastNameElement = null;
+            NamedScopeUse prefix = null;
+            
             if(typeNameElement != null) {
-                lastName = NameHelper.GetLastName(typeNameElement);
-                prefixes = NameHelper.GetNamesExceptLast(typeNameElement);
+                lastNameElement = NameHelper.GetLastNameElement(typeNameElement);
+                prefix = CreateNamedScopeUsePrefix(typeNameElement, fileUnit);
             }
 
             var typeUse = new TypeUse() {
-                Name = lastName,
+                Name = lastNameElement.Value,
                 ParentScope = parentScope,
-                Location = new SourceLocation(element, fileUnit),
+                Location = new SourceLocation(lastNameElement, fileUnit),
+                Prefix = prefix,
             };
 
             return typeUse;
+        }
+
+        public NamedScopeUse CreateNamedScopeUsePrefix(XElement nameElement, XElement fileUnit) {
+            IEnumerable<XElement> parentNameElements = Enumerable.Empty<XElement>();
+
+            parentNameElements = NameHelper.GetNameElementsExceptLast(nameElement);
+            NamedScopeUse current = null, root = null;
+
+            if(parentNameElements.Any()) {
+                foreach(var element in parentNameElements) {
+                    var scopeUse = new NamedScopeUse() {
+                        Name = element.Value,
+                        Location = new SourceLocation(element, fileUnit, true),
+                        ProgrammingLanguage = this.ParserLanguage,
+                    };
+                    if(null == root) {
+                        root = scopeUse;
+                    }
+                    if(current != null) {
+                        current.ChildScopeUse = scopeUse;
+                    }
+                    current = scopeUse;
+                }
+            }
+            return root;
         }
 
         /// <summary>
