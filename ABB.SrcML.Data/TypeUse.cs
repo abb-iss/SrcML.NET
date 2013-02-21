@@ -28,6 +28,9 @@ namespace ABB.SrcML.Data {
             this.Name = String.Empty;
         }
 
+        /// <summary>
+        /// The prefix for this type use object
+        /// </summary>
         public NamedScopeUse Prefix { get; set; }
     }
 }
