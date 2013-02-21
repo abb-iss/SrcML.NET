@@ -27,9 +27,9 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// Constructor of SolutionMonitorFactory
         /// </summary>
         /// <returns></returns>
-        public static SolutionMonitor CreateMonitor(List<AbstractArchive> listOfArchives) {
+        public static SolutionMonitor CreateMonitor(string SrcMLServiceDirectory, AbstractArchive lastModifiedArchive, params AbstractArchive[] CurrentSrcMLArchive) {
             var openSolution = GetOpenSolution();
-            return CreateMonitor(listOfArchives, openSolution);
+            return CreateMonitor(openSolution, SrcMLServiceDirectory, lastModifiedArchive, CurrentSrcMLArchive);
         }
 
         /// <summary>
@@ -37,10 +37,10 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// </summary>
         /// <param name="openSolution"></param>
         /// <returns></returns>
-        private static SolutionMonitor CreateMonitor(List<AbstractArchive> listOfArchives, Solution openSolution) {
+        private static SolutionMonitor CreateMonitor(Solution openSolution, string SrcMLServiceDirectory, AbstractArchive lastModifiedArchive, params AbstractArchive[] CurrentSrcMLArchive) {
             Contract.Requires(openSolution != null, "A solution must be open");
 
-            var currentMonitor = new SolutionMonitor(listOfArchives, SolutionWrapper.Create(openSolution));
+            var currentMonitor = new SolutionMonitor(SolutionWrapper.Create(openSolution), SrcMLServiceDirectory, lastModifiedArchive, CurrentSrcMLArchive);
             return currentMonitor;
         }
 

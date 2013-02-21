@@ -48,9 +48,9 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         private string SrcMLServiceDirectory;
 
         /// <summary>
-        /// The path of storing srcML files.
+        /// The path of storing srcML files.  (obsolete)
         /// </summary>
-        private string SrcMLArchiveDirectory;
+        //////private string SrcMLArchiveDirectory;
 
         /// <summary>
         /// Store in this variable the service provider that will be used to query for other services.
@@ -113,29 +113,28 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// </summary>
         public void StartMonitering() {
             SrcMLFileLogger.DefaultLogger.Info("SrcMLGlobalService.StartMonitering()");
+            writeLog("C:\\Data\\srcMLNETlog.txt", "======= SrcMLGlobalService.StartMonitoring() =======");
 
             try {
 
-                // Create a new instance of SrcML.NET's SrcMLArchive
                 // TODO: this SrcMLArchiveDirectory may be changed to a configurable user input, instead of under the plugin folder.
-                SrcMLArchiveDirectory = GetSrcMLArchiveFolder(SolutionMonitorFactory.GetOpenSolution());
-                SrcMLFileLogger.DefaultLogger.Info("SrcMLArchive Directory: [" + SrcMLArchiveDirectory + "]");
+                ////SrcMLArchiveDirectory = GetSrcMLArchiveFolder(SolutionMonitorFactory.GetOpenSolution());
+                ////SrcMLFileLogger.DefaultLogger.Info("SrcMLArchive Directory: [" + SrcMLArchiveDirectory + "]");
                 // TODO: how would this bool useExistingSrcML come from?
+
+                SrcMLFileLogger.DefaultLogger.Info("SrcMLService Directory: [" + SrcMLServiceDirectory + "]");
+                writeLog("C:\\Data\\srcMLNETlog.txt", "SrcMLService Directory: [" + SrcMLServiceDirectory + "]");
+                // Create a new instance of SrcML.NET's LastModifiedArchive
+                LastModifiedArchive lastModifiedArchive = new LastModifiedArchive(SrcMLServiceDirectory);
+                // Create a new instance of SrcML.NET's SrcMLArchive
                 bool useExistingSrcML = true;
-
-                // the directory might be conflict with AbstractFileMonitor's "storageDirectory" ??
-                CurrentSrcMLArchive = new SrcMLArchive(SrcMLArchiveDirectory, useExistingSrcML);
-
-                CurrentDefaultArchive = new CurrentDefaultArchive(defaultArchivePath);    // how to create the defaultArchive??
+                CurrentSrcMLArchive = new SrcMLArchive(SrcMLServiceDirectory, useExistingSrcML);
 
                 // Subscribe events from SrcMLArchive ==> NO events from SrcMLArchive/DefaultArchive any more
                 //CurrentSrcMLArchive.FileChanged += RespondToSourceFileChangedEvent;
 
-
-                List<AbstractArchive> listOfArchives = new List<AbstractArchive>(); // or say ArchiveSet as a member variable
-
                 // Create a new instance of SrcML.NET's solution monitor
-                CurrentMonitor = SolutionMonitorFactory.CreateMonitor(ListOfArchives);
+                CurrentMonitor = SolutionMonitorFactory.CreateMonitor(SrcMLServiceDirectory, lastModifiedArchive, CurrentSrcMLArchive);
 
                 // Subscribe events from Solution Monitor
                 CurrentMonitor.FileChanged += RespondToFileChangedEvent;
@@ -156,6 +155,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// </summary>
         public void StopMonitoring() {
             SrcMLFileLogger.DefaultLogger.Info("SrcMLGlobalService.StopMonitoring()");
+            writeLog("C:\\Data\\srcMLNETlog.txt", "======= SrcMLGlobalService.StopMonitoring() =======");
 
             try {
                 if(CurrentMonitor != null && CurrentSrcMLArchive != null) {
@@ -272,7 +272,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="sender"></param>
         /// <param name="eventArgs"></param>
         private void RespondToFileChangedEvent(object sender, FileEventRaisedArgs eventArgs) {
-            SrcMLFileLogger.DefaultLogger.Info("SrcMLService: RespondToFileChangedEvent(), File = " + eventArgs.SourceFilePath + ", EventType = " + eventArgs.EventType);
+            SrcMLFileLogger.DefaultLogger.Info("SrcMLService: RespondToFileChangedEvent(), File = " + eventArgs.FilePath + ", EventType = " + eventArgs.EventType);
+            writeLog("C:\\Data\\srcMLNETlog.txt", "SrcMLService: RespondToFileChangedEvent(), File = " + eventArgs.FilePath + ", EventType = " + eventArgs.EventType);
 
             OnFileChanged(eventArgs);
         }
@@ -284,6 +285,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="eventArgs"></param>
         private void RespondToStartupCompletedEvent(object sender, EventArgs eventArgs) {
             SrcMLFileLogger.DefaultLogger.Info("SrcMLService: RespondToStartupCompletedEvent()");
+            writeLog("C:\\Data\\srcMLNETlog.txt", "SrcMLService: RespondToStartupCompletedEvent()");
 
             OnStartupCompleted(eventArgs);
         }
@@ -335,5 +337,18 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             }
         }
         */
+
+        /// <summary>
+        /// For debugging.
+        /// writeLog("C:\\Data\\srcMLNETlog.txt", "======= SolutionMonitor: START MONITORING =======");
+        /// </summary>
+        /// <param name="logFile"></param>
+        /// <param name="str"></param>
+        private void writeLog(string logFile, string str) {
+            StreamWriter sw = new StreamWriter(logFile, true, System.Text.Encoding.ASCII);
+            sw.WriteLine(str);
+            sw.Close();
+        }
+
     }
 }
