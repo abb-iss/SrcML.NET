@@ -148,10 +148,19 @@ namespace ABB.SrcML.Data {
                     foreach(var kvp in declsInFile) {
                         DeclaredVariablesDictionary.Remove(kvp.Key);
                     }
+                    //remove parent types
+                    var parentsInFile = ParentTypes.Where(parent => parent.Location.SourceFileName == fileName).ToList();
+                    foreach(var parent in parentsInFile) {
+                        ParentTypes.Remove(parent);
+                    }
+                    //remove parent scope candidates
+                    var candidatesInFile = ParentScopeCandidates.Where(psc => psc.Location.SourceFileName == fileName).ToList();
+                    foreach(var candidate in candidatesInFile) {
+                        ParentScopeCandidates.Remove(candidate);
+                    }
                     //update locations
                     LocationDictionary.Remove(fileName);
 
-                    //TODO: remove parent types, other things from base classes
 
                     if(DefinitionLocations.Any()) {
                         //This type is still defined somewhere, so re-add the unresolved children to it

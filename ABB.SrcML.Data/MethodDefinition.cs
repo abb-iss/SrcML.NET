@@ -125,7 +125,9 @@ namespace ABB.SrcML.Data {
         public override Scope AddFrom(Scope otherScope) {
             var otherMethod = otherScope as MethodDefinition;
             if(otherMethod != null) {
-                //TODO: add parameters from other method?
+                foreach(var otherParam in otherMethod.Parameters) {
+                    this._parameters.Add(otherParam);
+                }
             }
             return base.AddFrom(otherScope);
         }
@@ -169,9 +171,18 @@ namespace ABB.SrcML.Data {
                     foreach(var kvp in declsInFile) {
                         DeclaredVariablesDictionary.Remove(kvp.Key);
                     }
+                    //remove parameters
+                    var paramsInFile = _parameters.Where(param => param.Location.SourceFileName == fileName).ToList();
+                    foreach(var param in paramsInFile) {
+                        _parameters.Remove(param);
+                    }
+                    //remove parent scope candidates
+                    var candidatesInFile = ParentScopeCandidates.Where(psc => psc.Location.SourceFileName == fileName).ToList();
+                    foreach(var candidate in candidatesInFile) {
+                        ParentScopeCandidates.Remove(candidate);
+                    }
                     //update locations
                     LocationDictionary.Remove(fileName);
-                    //TODO: do something about the parameters?
                     //TODO: update access modifiers based on which definitions/declarations we've deleted
                 }
             }

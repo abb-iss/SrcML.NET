@@ -130,6 +130,11 @@ namespace ABB.SrcML.Data {
                     foreach(var kvp in declsInFile) {
                         DeclaredVariablesDictionary.Remove(kvp.Key);
                     }
+                    //remove parent scope candidates
+                    var candidatesInFile = ParentScopeCandidates.Where(psc => psc.Location.SourceFileName == fileName).ToList();
+                    foreach(var candidate in candidatesInFile) {
+                        ParentScopeCandidates.Remove(candidate);
+                    }
                     //update locations
                     LocationDictionary.Remove(fileName);
 

@@ -204,16 +204,6 @@ namespace ABB.SrcML.Data.Test {
             afterScope.RemoveFile("A.h");
 
             Assert.IsTrue(TestHelper.ScopesAreEqual(beforeScope, afterScope));
-
-            //Assert.AreEqual(1, afterScope.ChildScopes.Count());
-            //var foo = afterScope.ChildScopes.First() as NamedScope;
-            //Assert.IsNotNull(foo);
-            //Assert.AreEqual("Foo", foo.Name);
-            //Assert.AreEqual(1, foo.ChildScopes.Count());
-            //var add = foo.ChildScopes.First() as MethodDefinition;
-            //Assert.IsNotNull(add);
-            //Assert.AreEqual(0, add.ReferenceLocations.Count());
-            //Assert.IsFalse(add.Locations.Any(l => l.SourceFileName == "A.h"));
         }
 
         [Test]
@@ -234,5 +224,7 @@ namespace ABB.SrcML.Data.Test {
             var scope2 = SrcMLElementVisitor.Visit(fileunit, CodeParser);
             Assert.IsTrue(TestHelper.ScopesAreEqual(scope1, scope2));
         }
+
+
     }
 }
