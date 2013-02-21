@@ -66,17 +66,18 @@ namespace ABB.SrcML.Data {
         /// Merges this type definition with <paramref name="otherScope"/>. This happens when <c>otherScope.CanBeMergedInto(this)</c> evaluates to true.
         /// </summary>
         /// <param name="otherScope">the scope to merge with</param>
-        /// <returns>a new type definition from this and otherScope</returns>
+        /// <returns>a new type definition from this and otherScope, or null if they couldn't be merged</returns>
         public override NamedScope Merge(NamedScope otherScope) {
             TypeDefinition mergedScope = null;
-            if(otherScope.CanBeMergedInto(this)) {
-                mergedScope = new TypeDefinition(this);
-                mergedScope.AddFrom(otherScope);
-                if(mergedScope.Accessibility == AccessModifier.None) {
-                    mergedScope.Accessibility = otherScope.Accessibility;
+            if(otherScope != null) {
+                if(otherScope.CanBeMergedInto(this)) {
+                    mergedScope = new TypeDefinition(this);
+                    mergedScope.AddFrom(otherScope);
+                    if(mergedScope.Accessibility == AccessModifier.None) {
+                        mergedScope.Accessibility = otherScope.Accessibility;
+                    }
                 }
             }
-
             return mergedScope;
         }
         /// <summary>
@@ -95,6 +96,21 @@ namespace ABB.SrcML.Data {
         /// <returns>true if <see cref="CanBeMergedInto(TypeDefinition)"/> evaluates to true.</returns>
         public override bool CanBeMergedInto(NamedScope otherScope) {
             return this.CanBeMergedInto(otherScope as TypeDefinition);
+        }
+
+        /// <summary>
+        /// The AddFrom function adds all of the declarations and children from <paramref name="otherScope"/> to this scope
+        /// </summary>
+        /// <param name="otherScope">The scope to add data from</param>
+        /// <returns>the new scope</returns>
+        public override Scope AddFrom(Scope otherScope) {
+            var otherType = otherScope as TypeDefinition;
+            if(otherType != null) {
+                foreach(var parent in otherType.ParentTypes) {
+                    this.ParentTypes.Add(parent);
+                }
+            }
+            return base.AddFrom(otherScope);
         }
 
         /// <summary>
@@ -132,8 +148,19 @@ namespace ABB.SrcML.Data {
                     foreach(var kvp in declsInFile) {
                         DeclaredVariablesDictionary.Remove(kvp.Key);
                     }
+                    //remove parent types
+                    var parentsInFile = ParentTypes.Where(parent => parent.Location.SourceFileName == fileName).ToList();
+                    foreach(var parent in parentsInFile) {
+                        ParentTypes.Remove(parent);
+                    }
+                    //remove parent scope candidates
+                    var candidatesInFile = ParentScopeCandidates.Where(psc => psc.Location.SourceFileName == fileName).ToList();
+                    foreach(var candidate in candidatesInFile) {
+                        ParentScopeCandidates.Remove(candidate);
+                    }
                     //update locations
                     LocationDictionary.Remove(fileName);
+
 
                     if(DefinitionLocations.Any()) {
                         //This type is still defined somewhere, so re-add the unresolved children to it
@@ -173,20 +200,11 @@ namespace ABB.SrcML.Data {
                             ParentScope = null;
                         }
                         unresolvedChildScopes.AddRange(ChildScopeCollection);
+                        //reset the UnresolvedParentScopeInUse so the children will be re-resolved by our parent
+                        foreach(var namedChild in unresolvedChildScopes.OfType<NamedScope>()) {
+                            namedChild.UnresolvedParentScopeInUse = null;
+                        }
                         unresolvedScopes = new Collection<Scope>(unresolvedChildScopes);
-
-                        //unresolvedScopes = new Collection<Scope>();
-                        //foreach(var locKvp in LocationDictionary) {
-                        //    var referenceFile = locKvp.Key;
-                        //    var ns = new NamedScope() {Name = this.Name};
-                        //    foreach(var refLoc in locKvp.Value) {
-                        //        ns.AddSourceLocation(refLoc);
-                        //    }
-                        //    foreach(var child in ChildScopeCollection.Where(c => c.ExistsInFile(referenceFile))) {
-                        //        ns.AddChildScope(child);
-                        //    }
-                        //    unresolvedScopes.Add(ns);
-                        //}
                     }
                 }
             }

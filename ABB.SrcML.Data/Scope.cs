@@ -66,7 +66,7 @@ namespace ABB.SrcML.Data {
             MethodCallCollection = new Collection<MethodCall>();
             LocationDictionary = new Dictionary<string, Collection<SourceLocation>>(otherScope.LocationDictionary.Count);
 
-            AddFrom(otherScope);
+            CopyFromOtherScope(otherScope);
         }
 
         /// <summary>
@@ -253,19 +253,8 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="otherScope">The scope to add data from</param>
         /// <returns>the new scope</returns>
-        public Scope AddFrom(Scope otherScope) {
-            foreach(var declaration in otherScope.DeclaredVariables) {
-                this.AddDeclaredVariable(declaration);
-            }
-            foreach(var location in otherScope.Locations) {
-                this.AddSourceLocation(location);
-            }
-            foreach(var newChild in otherScope.ChildScopes) {
-                AddChildScope(newChild);
-            }
-            foreach(var methodCall in otherScope.MethodCalls) {
-                AddMethodCall(methodCall);
-            }
+        public virtual Scope AddFrom(Scope otherScope) {
+            CopyFromOtherScope(otherScope);
             return this;
         }
 
@@ -401,6 +390,28 @@ namespace ABB.SrcML.Data {
                 }
             }
             return null;
+        }
+
+        /// <summary>
+        /// Copies the values from another Scope into this one.
+        /// This is intentially separate from AddFrom(), because it is called from the copy constructor and so must be non-virtual.
+        /// </summary>
+        /// <param name="otherScope"></param>
+        private void CopyFromOtherScope(Scope otherScope) {
+            if(otherScope == null) { return; }
+
+            foreach(var declaration in otherScope.DeclaredVariables) {
+                this.AddDeclaredVariable(declaration);
+            }
+            foreach(var location in otherScope.Locations) {
+                this.AddSourceLocation(location);
+            }
+            foreach(var newChild in otherScope.ChildScopes) {
+                AddChildScope(newChild);
+            }
+            foreach(var methodCall in otherScope.MethodCalls) {
+                AddMethodCall(methodCall);
+            }
         }
     }
 }

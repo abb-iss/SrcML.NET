@@ -65,14 +65,15 @@ namespace ABB.SrcML.Data {
         /// Merges this namespace definition with <paramref name="otherScope"/>. This happens when <c>otherScope.CanBeMergedInto(this)</c> evaluates to true.
         /// </summary>
         /// <param name="otherScope">the scope to merge with</param>
-        /// <returns>a new namespace definition from this and otherScope</returns>
+        /// <returns>a new namespace definition from this and otherScope, or null if they couldn't be merged.</returns>
         public override NamedScope Merge(NamedScope otherScope) {
             NamespaceDefinition mergedScope = null;
-            if(otherScope.CanBeMergedInto(this)) {
-                mergedScope = new NamespaceDefinition(this);
-                mergedScope.AddFrom(otherScope);
+            if(otherScope != null) {
+                if(otherScope.CanBeMergedInto(this)) {
+                    mergedScope = new NamespaceDefinition(this);
+                    mergedScope.AddFrom(otherScope);
+                }
             }
-
             return mergedScope;
         }
 
@@ -129,6 +130,11 @@ namespace ABB.SrcML.Data {
                     foreach(var kvp in declsInFile) {
                         DeclaredVariablesDictionary.Remove(kvp.Key);
                     }
+                    //remove parent scope candidates
+                    var candidatesInFile = ParentScopeCandidates.Where(psc => psc.Location.SourceFileName == fileName).ToList();
+                    foreach(var candidate in candidatesInFile) {
+                        ParentScopeCandidates.Remove(candidate);
+                    }
                     //update locations
                     LocationDictionary.Remove(fileName);
 
@@ -170,20 +176,11 @@ namespace ABB.SrcML.Data {
                             ParentScope = null;
                         }
                         unresolvedChildScopes.AddRange(ChildScopeCollection);
+                        //reset the UnresolvedParentScopeInUse so the children will be re-resolved by our parent
+                        foreach(var namedChild in unresolvedChildScopes.OfType<NamedScope>()) {
+                            namedChild.UnresolvedParentScopeInUse = null;
+                        }
                         unresolvedScopes = new Collection<Scope>(unresolvedChildScopes);
-
-                        //unresolvedScopes = new Collection<Scope>();
-                        //foreach(var locKvp in LocationDictionary) {
-                        //    var referenceFile = locKvp.Key;
-                        //    var ns = new NamedScope() {Name = this.Name};
-                        //    foreach(var refLoc in locKvp.Value) {
-                        //        ns.AddSourceLocation(refLoc);
-                        //    }
-                        //    foreach(var child in ChildScopeCollection.Where(c => c.ExistsInFile(referenceFile))) {
-                        //        ns.AddChildScope(child);
-                        //    }
-                        //    unresolvedScopes.Add(ns);
-                        //}
                     }
                 }
             }
