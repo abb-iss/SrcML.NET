@@ -59,12 +59,10 @@ namespace ABB.SrcML.Data.Test {
 
         public static bool TypeUsesAreEqual(TypeUse a, TypeUse b) {
             if(a == b) { return true; }
-            bool aliasesEqual = CollectionsAreEqual(a.Aliases, b.Aliases, AliasesAreEqual);
             bool prefixesEqual = a.Prefix.Intersect(b.Prefix).Count() == a.Prefix.Count();
             return LocationsAreEqual(a.Location, b.Location) &&
                    a.Name == b.Name &&
-                   prefixesEqual &&
-                   aliasesEqual;
+                   prefixesEqual;
         }
 
         public static bool AliasesAreEqual(Alias a, Alias b) {

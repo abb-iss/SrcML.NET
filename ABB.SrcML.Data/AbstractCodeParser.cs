@@ -212,10 +212,7 @@ namespace ABB.SrcML.Data {
             var typeUse = new TypeUse() {
                 Name = lastName,
                 ParentScope = parentScope,
-                Prefix = new Collection<string>(prefixes.ToList()),
                 Location = new SourceLocation(element, fileUnit),
-                Parser = this,
-                Aliases = new Collection<Alias>(aliases.ToList<Alias>()),
             };
 
             return typeUse;
@@ -312,13 +309,6 @@ namespace ABB.SrcML.Data {
         /// <param name="fileUnit"></param>
         /// <returns></returns>
         public abstract IEnumerable<Alias> CreateAliasesForFile(XElement fileUnit);
-
-        /// <summary>
-        /// Generates the possible names for this type use based on the aliases and the use data.
-        /// </summary>
-        /// <param name="typeUse">The type use to create</param>
-        /// <returns>An enumerable of full names for this type use.</returns>
-        public abstract IEnumerable<string> GeneratePossibleNamesForTypeUse(TypeUse typeUse);
 
         /// <summary>
         /// Gets the filename for the given file unit.

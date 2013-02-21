@@ -104,7 +104,7 @@ namespace ABB.SrcML.Data {
                 foreach(var element in parentNameElements) {
                     var scopeUse = new NamedScopeUse() {
                         Name = element.Value,
-                        Location = new SourceLocation(element, fileUnit),
+                        Location = new SourceLocation(element, fileUnit, true),
                         ProgrammingLanguage = this.ParserLanguage,
                     };
                     if(null == root) {
@@ -230,15 +230,6 @@ namespace ABB.SrcML.Data {
             }
             
             return alias;
-        }
-
-        /// <summary>
-        /// Generates the possible names for this type use based on the aliases and the use data.
-        /// </summary>
-        /// <param name="typeUse">The type use to create</param>
-        /// <returns>An enumerable of full names for this type use.</returns>
-        public override IEnumerable<string> GeneratePossibleNamesForTypeUse(TypeUse typeUse) {
-            throw new NotImplementedException();
         }
 
         /// <summary>
