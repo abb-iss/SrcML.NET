@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ABB.SrcML.VisualStudio.SrcMLService
+namespace ABB.SrcML.Utilities
 {
 	public class SrcMLExceptionFormatter
 	{

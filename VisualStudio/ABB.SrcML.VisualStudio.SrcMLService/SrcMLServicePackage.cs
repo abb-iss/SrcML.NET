@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using log4net;
+using ABB.SrcML.Utilities;
 
 namespace ABB.SrcML.VisualStudio.SrcMLService {
     /// <summary>

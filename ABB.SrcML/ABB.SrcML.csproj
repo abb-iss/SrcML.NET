@@ -39,6 +39,10 @@
     <AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="log4net, Version=1.2.11.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\log4net.2.0.0\lib\net40-full\log4net.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -96,6 +100,8 @@
     <Compile Include="Utilities\ExecutableRunner.cs" />
     <Compile Include="Utilities\KsuAdapter.cs" />
     <Compile Include="Utilities\ReadOnlyDictionary.cs" />
+    <Compile Include="Utilities\SrcMLExceptionFormatter.cs" />
+    <Compile Include="Utilities\SrcMLFileLogger.cs" />
     <Compile Include="Utilities\SrcMLRuntimeException.cs" />
     <Compile Include="Utilities\VisualStudioProjectReader.cs" />
     <Compile Include="XmlFileNameMapping.cs" />

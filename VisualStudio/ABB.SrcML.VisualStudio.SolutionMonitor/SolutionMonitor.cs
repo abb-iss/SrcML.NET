@@ -1,5 +1,5 @@
 ﻿/******************************************************************************
- * Copyright (c) 2011 ABB Group
+ * Copyright (c) 2013 ABB Group
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,6 +11,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -23,6 +24,8 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Thread = System.Threading.Thread;
+using log4net;
+using ABB.SrcML.Utilities;
 
 namespace ABB.SrcML.VisualStudio.SolutionMonitor {
     /// <summary>
@@ -31,9 +34,8 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
     /// Methods of this interface were implemented to handle file creation and deletion events in Visual Studio envinronment.
     /// (2) IVsRunningDocTableEvents: Implements methods that fire in response to changes to documents in the Running Document Table (RDT).
     /// Methods of this interface were implemented to handle file change events in Visual Studio envinronment.
-    /// This class also implements IFileMonitor so that client applications and SrcMLArchive can subscribe events that are raised from solution monitor.
+    /// This class also extends AbstractFileMonitor so that SrcMLService can subscribe events that are raised from solution monitor.
     /// </summary>
-    //public class SolutionMonitor : IVsTrackProjectDocumentsEvents2, IVsRunningDocTableEvents, IFileMonitor {
     public class SolutionMonitor : AbstractFileMonitor, IVsTrackProjectDocumentsEvents2, IVsRunningDocTableEvents {
 
         /*
@@ -69,58 +71,23 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// Constructor.
         /// </summary>
         /// <param name="openSolution"></param>
+        /// <param name="baseDirectory"></param>
+        /// <param name="defaultArchive"></param>
+        /// <param name="otherArchives"></param>
         public SolutionMonitor(SolutionWrapper openSolution, string baseDirectory, AbstractArchive defaultArchive, params AbstractArchive[] otherArchives)
             : base(baseDirectory, defaultArchive, otherArchives) {
-            OpenSolution = openSolution;
-            writeLog("C:\\Data\\srcMLNETlog.txt", "SolutionMonitor.SolutionMonitor()");
+            this.OpenSolution = openSolution;
         }
         
-        /*
-        #region IFileMonitor
-        public event EventHandler<FileEventRaisedArgs> FileEventRaised;
-
-        /// <summary>
-        /// Start monitoring the solution.
-        /// </summary>
-        public void StartMonitoring() {
-            //FileLogger.DefaultLogger.Info("======= SolutionMonitor: START MONITORING ======="");
-            RegisterTrackProjectDocumentsEvents2();
-            RegisterRunningDocumentTableEvents();
-        }
-
-        /// <summary>
-        /// Stop monitoring the solution.
-        /// </summary>
-        public void StopMonitoring() {
-            //FileLogger.DefaultLogger.Info("======= SolutionMonitor: STOP MONITORING ======="");
-            Dispose();
-        }
-
-        /// <summary>
-        /// Handle SolutionMonitorEvents.
-        /// </summary>
-        /// <param name="e"></param>
-        protected virtual void OnFileEventRaised(FileEventRaisedArgs e) {
-            EventHandler<FileEventRaisedArgs> handler = FileEventRaised;
-            if(handler != null) {
-                handler(this, e);
-            }
-        }
-        #endregion
-        */
-
-
         #region AbstractFileMonitor Members
         /// <summary>
         /// Start monitoring the solution.
         /// </summary>
         public override void StartMonitoring() {
-            //FileLogger.DefaultLogger.Info("======= SolutionMonitor: START MONITORING ======="");
-            writeLog("C:\\Data\\srcMLNETlog.txt", "SolutionMonitor.StartMonitoring()");
+            SrcMLFileLogger.DefaultLogger.Info("======= SolutionMonitor: START MONITORING =======");
             RegisterTrackProjectDocumentsEvents2();
             RegisterRunningDocumentTableEvents();
 
-            // Call AbstractFileMonitor's Startup()
             base.Startup();
         }
 
@@ -128,11 +95,9 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// Stop monitoring the solution.
         /// </summary>
         public override void StopMonitoring() {
-            //FileLogger.DefaultLogger.Info("======= SolutionMonitor: STOP MONITORING ======="");
-            writeLog("C:\\Data\\srcMLNETlog.txt", "SolutionMonitor.StopMonitoring()");
-
-            // unsubscribe from visual studio
-            Dispose();
+            SrcMLFileLogger.DefaultLogger.Info("======= SolutionMonitor: STOP MONITORING =======");
+            UnregisterTrackProjectDocumentsEvents2();
+            UnregisterRunningDocumentTableEvents();
 
             base.StopMonitoring();
         }
@@ -141,10 +106,8 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// Gets the list of all files from the opened solution being monitored.
         /// </summary>
         /// <returns>An enumerable of files to be monitored</returns>
-        public override IEnumerable<string> GetFilesFromSource() {
-            writeLog("C:\\Data\\srcMLNETlog.txt", "SolutionMonitor.GetFilesFromSource()");
-            return GetMonitoredFiles(null);
-            //return Directory.GetFiles(this.FullFolderPath, "*", SearchOption.AllDirectories);
+        public override Collection<string> GetFilesFromSource() {
+            return new Collection<string>(GetMonitoredFiles(null));
         }
         #endregion AbstractFileMonitor Members
 
@@ -171,19 +134,20 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         }
 
         /// <summary>
-        /// Dispose this solution monitor.
+        /// Unregister TrackProjectDocuments2 events.
         /// </summary>
-        public void Dispose() {
-            writeLog("C:\\Data\\srcMLNETlog.txt", "SolutionMonitor.Dispose()");
-
-            // Unregister IVsTrackProjectDocumentsEvents2 events
+        public void UnregisterTrackProjectDocumentsEvents2() {
             if(PdwCookie != VSConstants.VSCOOKIE_NIL && ProjectDocumentsTracker != null) {
                 int hr = ProjectDocumentsTracker.UnadviseTrackProjectDocumentsEvents(PdwCookie);
                 ErrorHandler.Succeeded(hr);
                 PdwCookie = VSConstants.VSCOOKIE_NIL;
             }
+        }
 
-            // Unregister IVsRunningDocTableEvents events
+        /// <summary>
+        /// Unregister RunningDocumentTable events.
+        /// </summary>
+        public void UnregisterRunningDocumentTableEvents() {
             if(DocumentTable != null) {
                 int hr = DocumentTable.UnadviseRunningDocTableEvents(DocumentTableItemId);
                 ErrorHandler.Succeeded(hr);
@@ -322,40 +286,25 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
 
         /// <summary>
         /// Respond to events of file creation/change/deletion in the solution in Visual Studio
-        /// TODO: the condition check? (From original SrcML.NET)
         /// </summary>
         /// <param name="file"></param>
         /// <param name="type"></param>
         public void RespondToVSFileChangedEvent(string filePath, string oldFilePath, FileEventType type) {
-            writeLog("C:\\Data\\srcMLNETlog.txt", "SolutionMonitor.RespondToVSFileChangedEvent(): filePath = " + filePath + ", oldFilePath = " + oldFilePath + ", type = " + type);
-
-            //var directoryName = Path.GetDirectoryName(Path.GetFullPath(eventArgs.SourceFilePath));
-            //var xmlFullPath = Path.GetFullPath(this.ArchivePath);
-
-            //if (!directoryName.StartsWith(xmlFullPath, StringComparison.InvariantCultureIgnoreCase))
-            {
-                //FileEventRaisedArgs eventArgs = null;
-                switch(type) {
-                    case FileEventType.FileAdded:
-                        AddFile(filePath);
-                        //eventArgs = new FileEventRaisedArgs(filePath, FileEventType.FileAdded);
-                        break;
-                    case FileEventType.FileChanged:
-                        AddFile(filePath);
-                        //eventArgs = new FileEventRaisedArgs(filePath, FileEventType.FileChanged);
-                        break;
-                    case FileEventType.FileDeleted:
-                        DeleteFile(filePath);
-                        //eventArgs = new FileEventRaisedArgs(filePath, FileEventType.FileDeleted);
-                        break;
-                    case FileEventType.FileRenamed:  // actually not used
-                        DeleteFile(oldFilePath);
-                        AddFile(filePath);
-                        //eventArgs = new FileEventRaisedArgs(filePath, oldFilePath, FileEventType.FileRenamed);
-                        break;
-                }
-                //FileLogger.DefaultLogger.Info("SolutionMonitor raises a " + type + " event for [" + filePath + "]");
-                //OnFileChanged(eventArgs);
+            SrcMLFileLogger.DefaultLogger.Info("SolutionMonitor.RespondToVSFileChangedEvent(): filePath = " + filePath + ", oldFilePath = " + oldFilePath + ", type = " + type);
+            switch(type) {
+                case FileEventType.FileAdded:
+                    AddFile(filePath);
+                    break;
+                case FileEventType.FileChanged:
+                    AddFile(filePath);
+                    break;
+                case FileEventType.FileDeleted:
+                    DeleteFile(filePath);
+                    break;
+                case FileEventType.FileRenamed:  // actually not used
+                    DeleteFile(oldFilePath);
+                    AddFile(filePath);
+                    break;
             }
         }
 
@@ -376,8 +325,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
                                                       int[] rgFirstIndices,
                                                       string[] rgpszMkDocuments,
                                                       VSADDFILEFLAGS[] rgFlags) {
-            //FileLogger.DefaultLogger.Info("==> Triggered IVsTrackProjectDocumentsEvents2.OnAfterAddFilesEx()");
-            writeLog("C:\\Data\\srcMLNETlog.txt", "==> Triggered IVsTrackProjectDocumentsEvents2.OnAfterAddFilesEx()");
+            SrcMLFileLogger.DefaultLogger.Info("==> Triggered IVsTrackProjectDocumentsEvents2.OnAfterAddFilesEx()");
             return OnNotifyFileAddRemove(cProjects, cFiles, rgpProjects, rgFirstIndices, rgpszMkDocuments, FileEventType.FileAdded);
         }
 
@@ -397,8 +345,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
                                                                int[] rgFirstIndices,
                                                                string[] rgpszMkDocuments,
                                                                VSREMOVEFILEFLAGS[] rgFlags) {
-            //FileLogger.DefaultLogger.Info("==> Triggered IVsTrackProjectDocumentsEvents2.OnAfterRemoveFiles()");
-            writeLog("C:\\Data\\srcMLNETlog.txt", "==> Triggered IVsTrackProjectDocumentsEvents2.OnAfterRemoveFiles()");
+            SrcMLFileLogger.DefaultLogger.Info("==> Triggered IVsTrackProjectDocumentsEvents2.OnAfterRemoveFiles()");
             return OnNotifyFileAddRemove(cProjects, cFiles, rgpProjects, rgFirstIndices, rgpszMkDocuments, FileEventType.FileDeleted);
         }
 
@@ -420,8 +367,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
                                                                string[] rgszMkOldNames,
                                                                string[] rgszMkNewNames,
                                                                VSRENAMEFILEFLAGS[] rgFlags) {
-            //FileLogger.DefaultLogger.Info("==> Triggered IVsTrackProjectDocumentsEvents2.OnAfterRenameFiles()");
-            writeLog("C:\\Data\\srcMLNETlog.txt", "==> Triggered IVsTrackProjectDocumentsEvents2.OnAfterRenameFiles()");
+            SrcMLFileLogger.DefaultLogger.Info("==> Triggered IVsTrackProjectDocumentsEvents2.OnAfterRenameFiles()");
             OnNotifyFileAddRemove(cProjects, cFiles, rgpProjects, rgFirstIndices, rgszMkOldNames, FileEventType.FileDeleted);
             return OnNotifyFileAddRemove(cProjects, cFiles, rgpProjects, rgFirstIndices, rgszMkNewNames, FileEventType.FileAdded);
         }
@@ -578,8 +524,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// <param name="cookie"></param>
         /// <returns></returns>
         public int OnAfterSave(uint cookie) {
-            //FileLogger.DefaultLogger.Info("==> Triggered IVsRunningDocTableEvents.OnAfterSave()");
-            writeLog("C:\\Data\\srcMLNETlog.txt", "==> Triggered IVsRunningDocTableEvents.OnAfterSave()");
+            SrcMLFileLogger.DefaultLogger.Info("==> Triggered IVsRunningDocTableEvents.OnAfterSave()");
             uint flags;
             uint readingLocks;
             uint edittingLocks;
@@ -709,19 +654,5 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
                 }
             }
         }
-
-        /// <summary>
-        /// For debugging.
-        /// writeLog("C:\\Data\\srcMLNETlog.txt", "======= SolutionMonitor: START MONITORING =======");
-        /// </summary>
-        /// <param name="logFile"></param>
-        /// <param name="str"></param>
-        private void writeLog(string logFile, string str) {
-            StreamWriter sw = new StreamWriter(logFile, true, System.Text.Encoding.ASCII);
-            sw.WriteLine(str);
-            sw.Close();
-        }
-
-    
     }
 }

@@ -120,8 +120,6 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="SrcMLExceptionFormatter.cs" />
-    <Compile Include="SrcMLFileLogger.cs" />
     <Compile Include="Guids.cs" />
     <Compile Include="HelperFunctions.cs" />
     <Compile Include="ISrcMLGlobalService.cs" />

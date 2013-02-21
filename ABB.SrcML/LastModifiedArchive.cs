@@ -163,7 +163,7 @@ namespace ABB.SrcML {
                     this.lastModifiedMap.Clear();
                     foreach(var line in File.ReadLines(this.ArchivePath)) {
                         var parts = line.Split('|');
-                        this.lastModifiedMap[parts[0]] = DateTime.Parse(parts[1]);
+                        this.lastModifiedMap[parts[0]] = new DateTime(Int64.Parse(parts[1]));
                     }
                 }
             }
@@ -180,7 +180,7 @@ namespace ABB.SrcML {
             using(var output = File.CreateText(this.ArchivePath)) {
                 lock(mapLock) {
                     foreach(var kvp in lastModifiedMap) {
-                        output.WriteLine("{0}|{1}", kvp.Key, kvp.Value);
+                        output.WriteLine("{0}|{1}", kvp.Key, kvp.Value.Ticks);
                     }
                 }
             }

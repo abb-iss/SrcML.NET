@@ -8,7 +8,7 @@ using log4net.Config;
 using log4net.Layout;
 using log4net.Repository.Hierarchy;
 
-namespace ABB.SrcML.VisualStudio.SrcMLService {
+namespace ABB.SrcML.Utilities {
     public class SrcMLFileLogger {
         public static ILog CreateFileLogger(string loggerName, string filePath) {
             var appender = CreateFileAppender(loggerName + "Appender", filePath);

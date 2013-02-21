@@ -4,6 +4,8 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text;
+using log4net;
+using ABB.SrcML.Utilities;
 
 namespace ABB.SrcML {
     /// <summary>
@@ -102,7 +104,8 @@ namespace ABB.SrcML {
         /// <param name="sender">The caller</param>
         /// <param name="e">The event arguments</param>
         protected virtual void RespondToArchiveFileEvent(object sender, FileEventRaisedArgs e) {
-            writeLog("C:\\Data\\srcMLNETlog.txt", "AbstractFileMonitor.RespondToArchiveFileEvent() type = " + e.EventType + ", file = " + e.FilePath + ", oldfile = " + e.OldFilePath + ", HasSrcML = " + e.HasSrcML);
+            SrcMLFileLogger.DefaultLogger.Info("AbstractFileMonitor.RespondToArchiveFileEvent() type = " + e.EventType + ", file = " + e.FilePath + ", oldfile = " + e.OldFilePath + ", HasSrcML = " + e.HasSrcML);
+            FileInfo fi = new FileInfo(e.FilePath);
             OnFileChanged(e);
         }
 
@@ -115,7 +118,6 @@ namespace ABB.SrcML {
         /// Stops monitoring. Also calls <see cref="Dispose()"/>
         /// </summary>
         public virtual void StopMonitoring() {
-            writeLog("C:\\Data\\srcMLNETlog.txt", "AbstractFileMonitor.StopMonitoring()");
             Dispose();
         }
 
@@ -124,7 +126,6 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="filePath">the file to add</param>
         public void AddFile(string filePath) {
-            writeLog("C:\\Data\\srcMLNETlog.txt", "AbstractFileMonitor.AddFile()");
             this.GetArchiveForFile(filePath).AddOrUpdateFile(filePath);
         }
 
@@ -133,7 +134,6 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="filePath">The file to delete</param>
         public void DeleteFile(string filePath) {
-            writeLog("C:\\Data\\srcMLNETlog.txt", "AbstractFileMonitor.DeleteFile()");
             this.GetArchiveForFile(filePath).DeleteFile(filePath);
         }
 
@@ -142,7 +142,6 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="filePath">the file to update</param>
         public void UpdateFile(string filePath) {
-            writeLog("C:\\Data\\srcMLNETlog.txt", "AbstractFileMonitor.UpdateFile()");
             this.GetArchiveForFile(filePath).AddOrUpdateFile(filePath);
         }
 
@@ -155,7 +154,6 @@ namespace ABB.SrcML {
         /// <param name="oldFilePath">the old file name</param>
         /// <param name="newFilePath">the new file name</param>
         public void RenameFile(string oldFilePath, string newFilePath) {
-            writeLog("C:\\Data\\srcMLNETlog.txt", "AbstractFileMonitor.RenameFile()");
             var oldArchive = GetArchiveForFile(oldFilePath);
             var newArchive = GetArchiveForFile(newFilePath);
 
@@ -172,7 +170,7 @@ namespace ABB.SrcML {
         /// no longer present on disk.
         /// </summary>
         public virtual void Startup() {
-            writeLog("C:\\Data\\srcMLNETlog.txt", "AbstractFileMonitor.Startup()");
+            SrcMLFileLogger.DefaultLogger.Info("AbstractFileMonitor.Startup()");
 
             // make a hashset of all the files to monitor
             var monitoredFiles = new HashSet<string>(StringComparer.CurrentCultureIgnoreCase);
@@ -219,7 +217,7 @@ namespace ABB.SrcML {
         /// disposes of all of the archives and stops the events
         /// </summary>
         public void Dispose() {
-            writeLog("C:\\Data\\srcMLNETlog.txt", "AbstractFileMonitor.Dispose()");
+            SrcMLFileLogger.DefaultLogger.Info("AbstractFileMonitor.Dispose()");
             StartupCompleted = null;
             FileChanged = null;
             foreach(var archive in registeredArchives) {
@@ -265,18 +263,5 @@ namespace ABB.SrcML {
             }
             return selectedArchive;
         }
-
-        /// <summary>
-        /// For debugging.
-        /// writeLog("C:\\Data\\srcMLNETlog.txt", "======= SolutionMonitor: START MONITORING =======");
-        /// </summary>
-        /// <param name="logFile"></param>
-        /// <param name="str"></param>
-        private void writeLog(string logFile, string str) {
-            StreamWriter sw = new StreamWriter(logFile, true, System.Text.Encoding.ASCII);
-            sw.WriteLine(str);
-            sw.Close();
-        }
-
     }
 }
