@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.IO;
+using System.Collections.ObjectModel;
 
 namespace ABB.SrcML {
     /// <summary>
@@ -50,8 +51,10 @@ namespace ABB.SrcML {
             this._directoryWatcher.EnableRaisingEvents = false;
         }
 
-        public override IEnumerable<string> GetFilesFromSource() {
-            return Directory.GetFiles(this.FullFolderPath, "*", SearchOption.AllDirectories);
+        public override Collection<string> GetFilesFromSource() {
+            var filePaths = from file in this._folderInfo.GetFiles("*", SearchOption.AllDirectories)
+                            select file.FullName;
+            return new Collection<string>(filePaths.ToList<string>());
         }
 
         #endregion

@@ -77,7 +77,7 @@ namespace ABB.SrcML
         /// Gets all of the file names stored in this archive
         /// </summary>
         /// <returns>An enumerable of filenames stored in this archive.</returns>
-        public abstract IEnumerable<string> GetFiles();
+        public abstract Collection<string> GetFiles();
 
         /// <summary>
         /// The path where this archive is stored.

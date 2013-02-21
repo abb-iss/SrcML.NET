@@ -136,7 +136,7 @@ namespace ABB.SrcML {
         /// Gets all of the files stored in the archive
         /// </summary>
         /// <returns>the files in the archive</returns>
-        public override IEnumerable<string> GetFiles() {
+        public override Collection<string> GetFiles() {
             Collection<string> fileNames = new Collection<string>();
             lock(mapLock) {
                 foreach(var fileName in lastModifiedMap.Keys) {

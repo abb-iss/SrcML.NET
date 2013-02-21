@@ -202,8 +202,8 @@ namespace ABB.SrcML {
         /// Gets all of the source file names stored in this archive
         /// </summary>
         /// <returns>an enumerable of file names stored in this archive</returns>
-        public override IEnumerable<string> GetFiles() {
-            List<string> allSrcMLedFiles = new List<string>();
+        public override Collection<string> GetFiles() {
+            Collection<string> allSrcMLedFiles = new Collection<string>();
             DirectoryInfo srcMLDir = new DirectoryInfo(Path.GetFullPath(this.ArchivePath));
             FileInfo[] srcMLFiles = null;
             try {
@@ -215,13 +215,12 @@ namespace ABB.SrcML {
             } catch(DirectoryNotFoundException e) {
                 Console.WriteLine(e.Message);
             }
-
             if(srcMLFiles != null) {
-                foreach(FileInfo fi in srcMLFiles) {
-                    string sourceFilePath = GetSourcePathForXmlPath(fi.Name);
-                    yield return sourceFilePath;
-                }
+                var results = from fInfo in srcMLFiles
+                              select GetSourcePathForXmlPath(fInfo.Name);
+                return new Collection<string>(results.ToList<string>());
             }
+            return null;
         }
 
         /// <summary>

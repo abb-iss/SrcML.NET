@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -69,7 +70,7 @@ namespace ABB.SrcML {
         /// Gets the list of source files from the object being monitored
         /// </summary>
         /// <returns>An enumerable of files to be monitored</returns>
-        public abstract IEnumerable<string> GetFilesFromSource();
+        public abstract Collection<string> GetFilesFromSource();
 
         /// <summary>
         /// Gets the list of files already present in this archive
