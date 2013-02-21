@@ -53,31 +53,25 @@ namespace ABB.SrcML.Data.Test {
             var fileUnitC = fileSetup.GetFileUnitForXmlSnippet(c_xml, "C.java");
 
             AbstractCodeParser parser = new JavaCodeParser();
-            TypeInventory inventory = new TypeInventory();
+            // TypeInventory inventory = new TypeInventory();
 
             var globalScope = SrcMLElementVisitor.Visit(fileUnitA, parser);
             globalScope = globalScope.Merge(SrcMLElementVisitor.Visit(fileUnitB, parser));
             globalScope = globalScope.Merge(SrcMLElementVisitor.Visit(fileUnitC, parser));
 
             var scopes = VariableScopeIterator.Visit(globalScope);
-            var typeDefinitions = from scope in scopes
-                                  let typeDefinition = (scope as TypeDefinition)
-                                  where typeDefinition != null
-                                  select typeDefinition;
+            var typeDefinitions = (from scope in scopes
+                                   let typeDefinition = (scope as TypeDefinition)
+                                   where typeDefinition != null
+                                   orderby typeDefinition.Name
+                                   select typeDefinition).ToList();
 
-            inventory.AddNewDefinitions(typeDefinitions);
+            var typeA = typeDefinitions[0];
+            var typeB = typeDefinitions[1];
+            var typeC = typeDefinitions[2];
 
-            var typeC = (from t in typeDefinitions
-                         where t.Name == "C"
-                         select t).First();
-
-            var testTypeUse = typeC.DeclaredVariables.First().VariableType;
-
-            var typeA = inventory.ResolveType(testTypeUse).FirstOrDefault();
-            Assert.AreEqual("A", typeA.Name);
-
-            var typeB = inventory.ResolveType(typeA.ParentTypes.First()).FirstOrDefault();
-            Assert.AreEqual("B", typeB.Name);
+            Assert.AreEqual(typeA, typeC.DeclaredVariables.First().VariableType.FindMatches().First());
+            Assert.AreEqual(typeB, typeA.ParentTypes.First().FindMatches().First());
         }
     }
 }

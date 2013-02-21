@@ -8,7 +8,7 @@ namespace ABB.SrcML.Data {
     /// The NamedScopeUse class represents a use of a named scope. It can create a <see cref="NamedScope"/> based
     /// on itself by calling <see cref="NamedScopeUse.CreateScope()"/>.
     /// </summary>
-    public class NamedScopeUse : AbstractUse {
+    public class NamedScopeUse : AbstractUse<NamedScope> {
         /// <summary>
         /// The child of this scope
         /// </summary>
@@ -28,6 +28,11 @@ namespace ABB.SrcML.Data {
                 scope.AddChildScope(ChildScopeUse.CreateScope());
             }
             return scope;
+        }
+
+        public override bool Matches(NamedScope definition) {
+            if(null == definition) return false;
+            return definition.Name == this.Name;
         }
     }
 }
