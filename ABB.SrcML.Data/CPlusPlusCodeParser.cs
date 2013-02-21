@@ -104,7 +104,7 @@ namespace ABB.SrcML.Data {
                 foreach(var element in parentNameElements) {
                     var scopeUse = new NamedScopeUse() {
                         Name = element.Value,
-                        Location = new SourceLocation(element, fileUnit),
+                        Location = new SourceLocation(element, fileUnit, true),
                         ProgrammingLanguage = this.ParserLanguage,
                     };
                     if(null == root) {
