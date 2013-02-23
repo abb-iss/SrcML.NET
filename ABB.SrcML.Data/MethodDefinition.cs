@@ -101,7 +101,7 @@ namespace ABB.SrcML.Data {
         /// <returns>true if they are the same method; false otherwise.</returns>
         /// TODO implement better method merging
         public virtual bool CanBeMergedInto(MethodDefinition otherScope) {
-            if(this.Parameters.Count == otherScope.Parameters.Count) {
+            if(otherScope != null && this.Parameters.Count == otherScope.Parameters.Count) {
                 var parameterComparisons = Enumerable.Zip(this.Parameters, otherScope.Parameters, (t, o) => t.VariableType.Name == o.VariableType.Name);
                 return base.CanBeMergedInto(otherScope) && parameterComparisons.All(x => x);
             }
