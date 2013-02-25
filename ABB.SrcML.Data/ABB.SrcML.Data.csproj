@@ -53,6 +53,7 @@
     <Compile Include="NamedScope.cs" />
     <Compile Include="NameHelper.cs" />
     <Compile Include="NamedScopeUse.cs" />
+    <Compile Include="ParameterDeclaration.cs" />
     <Compile Include="SourceLocation.cs" />
     <Compile Include="SrcMLElementVisitor.cs" />
     <Compile Include="DataArchive.cs" />

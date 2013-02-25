@@ -121,8 +121,8 @@ namespace ABB.SrcML.Data {
             };
 
             var parameters = from paramElement in GetParametersFromMethod(methodElement)
-                             select CreateVariableDeclaration(paramElement, fileUnit, methodDefinition);
-            methodDefinition.Parameters = new Collection<VariableDeclaration>(parameters.ToList());
+                             select CreateParameterDeclaration(paramElement, fileUnit, methodDefinition);
+            methodDefinition.Parameters = new Collection<ParameterDeclaration>(parameters.ToList());
             return methodDefinition;
         }
 
@@ -545,8 +545,9 @@ namespace ABB.SrcML.Data {
             } else if(SRC.For == container.Name) {
                 declarationElements = GetDeclarationsFromFor(container);
             } else if(MethodElementNames.Contains(container.Name)) {
-                declarationElements = GetParametersFromMethod(container);
-                declarationElements = declarationElements.Concat(GetDeclarationsFromMethod(container));
+                //declarationElements = GetParametersFromMethod(container);
+                //declarationElements = declarationElements.Concat(GetDeclarationsFromMethod(container));
+                declarationElements = GetDeclarationsFromMethod(container);
             } else if(TypeElementNames.Contains(container.Name)) {
                 declarationElements = GetDeclarationsFromType(container);
             }else {
@@ -631,6 +632,39 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        /// <summary>
+        /// Generates a parameter declaration for the given declaration
+        /// </summary>
+        /// <param name="declElement">The declaration XElement from within the parameter element.</param>
+        /// <param name="fileUnit">The containing file unit</param>
+        /// <param name="method">The method that this parameter is part of.</param>
+        /// <returns>A parameter declaration object</returns>
+        public virtual ParameterDeclaration CreateParameterDeclaration(XElement declElement, XElement fileUnit, MethodDefinition method) {
+            if(declElement == null)
+                throw new ArgumentNullException("declElement");
+            if(fileUnit == null)
+                throw new ArgumentNullException("fileUnit");
+            if(method == null)
+                throw new ArgumentNullException("method");
+            if(declElement.Name != SRC.Declaration)
+                throw new ArgumentException("must be of element type SRC.Declaration", "declElement");
+            if(fileUnit.Name != SRC.Unit)
+                throw new ArgumentException("must be of type SRC.Unit", "fileUnit");
+
+            var typeElement = declElement.Element(SRC.Type);
+            var nameElement = declElement.Element(SRC.Name);
+            var name = (nameElement == null ? String.Empty : nameElement.Value);
+
+            var parameterDeclaration = new ParameterDeclaration
+                                       {
+                                           VariableType = CreateTypeUse(typeElement, fileUnit, method),
+                                           Name = name,
+                                           Method = method
+                                       };
+            parameterDeclaration.Locations.Add(new SourceLocation(declElement, fileUnit));
+
+            return parameterDeclaration;
+        }
         #endregion create variable declarations
     }
 }

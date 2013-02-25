@@ -58,7 +58,7 @@ namespace ABB.SrcML.Data.Test {
         private static bool TestEquality(MethodDefinition a, MethodDefinition b) {
             Assert.AreEqual(a.IsConstructor, b.IsConstructor);
             Assert.AreEqual(a.IsDestructor, b.IsDestructor);
-            Assert.IsTrue(CollectionsAreEqual(a.Parameters, b.Parameters, VariableDeclarationsAreEqual));
+            Assert.IsTrue(OrderedCollectionsAreEqual(a.Parameters, b.Parameters, ParameterDeclarationsAreEqual));
             return TestEquality((NamedScope)a, (NamedScope)b);
         }
 
@@ -68,6 +68,16 @@ namespace ABB.SrcML.Data.Test {
                    LocationsAreEqual(a.Location, b.Location) &&
                    a.Name == b.Name &&
                    TypeUsesAreEqual(a.VariableType, b.VariableType);
+        }
+
+        public static bool ParameterDeclarationsAreEqual(ParameterDeclaration a, ParameterDeclaration b) {
+            if(a == b) { return true; }
+            //we intentially don't test parameter names, because those may differ between signatures
+            //we also intentionally ignore the parameter type locations
+            var variableTypesEqual = a.VariableType.Name == b.VariableType.Name &&
+                                     NamedScopeUsesAreEqual(a.VariableType.Prefix, b.VariableType.Prefix);
+            return variableTypesEqual &&
+                   CollectionsAreEqual(a.Locations, b.Locations, LocationsAreEqual);
         }
 
         public static bool TypeUsesAreEqual(TypeUse a, TypeUse b) {
@@ -117,6 +127,9 @@ namespace ABB.SrcML.Data.Test {
                    LocationsAreEqual(a.Location, b.Location);
         }
 
+        /// <summary>
+        /// Checks whether two collections have the same contents. The ordering is ignored.
+        /// </summary>
         private static bool CollectionsAreEqual<T>(ICollection<T> a, ICollection<T> b, Func<T, T, bool> equalityComparer) {
             if(a == b) { return true; }
             bool equal = a.Count == b.Count;
@@ -126,6 +139,16 @@ namespace ABB.SrcML.Data.Test {
             foreach(var bMember in b) {
                 equal = equal && a.Any(aMember => equalityComparer(bMember, aMember));
             }
+            return equal;
+        }
+
+        /// <summary>
+        /// Checks whether two collections have the same contents in the same order.
+        /// </summary>
+        private static bool OrderedCollectionsAreEqual<T>(ICollection<T> a, ICollection<T> b, Func<T, T, bool> equalityComparer) {
+            if(a == b) { return true; }
+            bool equal = a.Count == b.Count;
+            equal = a.Zip(b, equalityComparer).Aggregate(equal, (current, result) => current && result);
             return equal;
         }
     }

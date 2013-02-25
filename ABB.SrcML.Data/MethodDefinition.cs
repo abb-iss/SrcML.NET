@@ -13,6 +13,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -21,14 +22,15 @@ namespace ABB.SrcML.Data {
     /// A method definition object.
     /// </summary>
     public class MethodDefinition : NamedScope {
-        private Collection<VariableDeclaration> _parameters;
+        //private Collection<VariableDeclaration> _parameters;
+        //private Collection<ParameterDeclaration> _parameters;
 
         /// <summary>
         /// Creates a new method definition object
         /// </summary>
         public MethodDefinition()
             : base() {
-            this._parameters = new Collection<VariableDeclaration>();
+            Parameters = new Collection<ParameterDeclaration>();
         }
 
         /// <summary>
@@ -39,9 +41,9 @@ namespace ABB.SrcML.Data {
             : base(otherDefinition) {
             IsConstructor = otherDefinition.IsConstructor;
             IsDestructor = otherDefinition.IsDestructor;
-            this._parameters = new Collection<VariableDeclaration>();
-            foreach(var parameter in otherDefinition._parameters) {
-                this._parameters.Add(parameter);
+            Parameters = new Collection<ParameterDeclaration>();
+            foreach(var parameter in otherDefinition.Parameters) {
+                Parameters.Add(parameter);
             }
         }
 
@@ -59,21 +61,29 @@ namespace ABB.SrcML.Data {
         /// The parameters for this method. Replacing this collection causes the <see cref="Scope.DeclaredVariables"/> to be updated.
         /// </summary>
         /// TODO make the updating of the parameters collection more robust (you can't add an element to it and have DeclaredVariables updated.
-        public Collection<VariableDeclaration> Parameters {
-            get { return this._parameters; }
-            set {
-                var oldParameters = this._parameters;
-                this._parameters = value;
+        //public Collection<VariableDeclaration> Parameters {
+        //    get { return this._parameters; }
+        //    set {
+        //        var oldParameters = this._parameters;
+        //        this._parameters = value;
                 
-                foreach(var parameter in oldParameters) {
-                    this.DeclaredVariablesDictionary.Remove(parameter.Name);
-                }
+        //        foreach(var parameter in oldParameters) {
+        //            this.DeclaredVariablesDictionary.Remove(parameter.Name);
+        //        }
                 
-                foreach(var parameter in this._parameters) {
-                    this.AddDeclaredVariable(parameter);
-                }
-            }
-        }
+        //        foreach(var parameter in this._parameters) {
+        //            this.AddDeclaredVariable(parameter);
+        //        }
+        //    }
+        //}
+        public Collection<ParameterDeclaration> Parameters { get; set; }
+
+        ///// <summary>
+        ///// Iterates over all of the variable declarations for this scope, including the method parameters.
+        ///// </summary>
+        //public override IEnumerable<VariableDeclaration> DeclaredVariables {
+        //    get { return DeclaredVariablesDictionary.Values.Union(_parameters); }
+        //}
 
         /// <summary>
         /// Merges this method definition with <paramref name="otherScope"/>. This happens when <c>otherScope.CanBeMergedInto(this)</c> evaluates to true.
@@ -125,8 +135,25 @@ namespace ABB.SrcML.Data {
         public override Scope AddFrom(Scope otherScope) {
             var otherMethod = otherScope as MethodDefinition;
             if(otherMethod != null) {
-                foreach(var otherParam in otherMethod.Parameters) {
-                    this._parameters.Add(otherParam);
+                var parameters = Parameters.ToList();
+                var otherParameters = otherMethod.Parameters.ToList();
+                if(parameters.Count == otherParameters.Count) {
+                    for(int i = 0; i < parameters.Count; i++) {
+                        var param = parameters[i];
+                        var otherParam = otherParameters[i];
+                        if(param.VariableType.Name == otherParam.VariableType.Name) {
+                            foreach(var otherLoc in otherParam.Locations) {
+                                param.Locations.Add(otherLoc);
+                            }
+                            if(string.IsNullOrWhiteSpace(param.Name)) {
+                                param.Name = otherParam.Name;
+                            }
+                        } else {
+                            Debug.WriteLine("MethodDefinition.AddFrom: conflicting parameter types at position {0}: {1} and {2}", i, param.VariableType.Name, otherParam.VariableType.Name);
+                        }
+                    }
+                } else {
+                    Debug.WriteLine("MethodDefinition.AddFrom: adding from method with different number of parameters!");
                 }
             }
             return base.AddFrom(otherScope);
@@ -171,10 +198,15 @@ namespace ABB.SrcML.Data {
                     foreach(var kvp in declsInFile) {
                         DeclaredVariablesDictionary.Remove(kvp.Key);
                     }
-                    //remove parameters
-                    var paramsInFile = _parameters.Where(param => param.Location.SourceFileName == fileName).ToList();
-                    foreach(var param in paramsInFile) {
-                        _parameters.Remove(param);
+                    //remove parameter locations
+                    foreach(var param in Parameters) {
+                        var locationsInFile = param.Locations.Where(loc => loc.SourceFileName == fileName).ToList();
+                        foreach(var loc in locationsInFile) {
+                            param.Locations.Remove(loc);
+                        }
+                        if(param.Locations.Count == 0) {
+                            Debug.WriteLine("MethodDefinition.RemoveFile: Found a method parameter with fewer locations than the rest of the method!");
+                        }
                     }
                     //remove parent scope candidates
                     var candidatesInFile = ParentScopeCandidates.Where(psc => psc.Location.SourceFileName == fileName).ToList();
@@ -188,5 +220,6 @@ namespace ABB.SrcML.Data {
             }
             return null;
         }
+        
     }
 }

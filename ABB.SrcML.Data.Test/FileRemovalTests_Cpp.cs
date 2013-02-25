@@ -35,30 +35,35 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual(1, globalScope.ChildScopes.OfType<MethodDefinition>().Count());
             var bazFunc = globalScope.ChildScopes.First() as MethodDefinition;
             Assert.AreEqual("Baz", bazFunc.Name);
+
+            //TODO: update to use TestHelper
         }
 
         [Test]
         public void TestRemoveMethodDefinition_Global() {
             ////Foo.h
-            //int Foo(char);
+            //int Foo(char bar);
             string declXml = "<function_decl><type><name>int</name></type> <name>Foo</name><parameter_list>(<param><decl><type><name>char</name></type> <name>bar</name></decl></param>)</parameter_list>;</function_decl>";
             var fileunitDecl = FileUnitSetup.GetFileUnitForXmlSnippet(declXml, "Foo.h");
-            var globalScope = SrcMLElementVisitor.Visit(fileunitDecl, CodeParser);
+            var beforeScope = SrcMLElementVisitor.Visit(fileunitDecl, CodeParser);
             ////Foo.cpp
             //int Foo(char bar) { return 0; }
             string defXml = "<function><type><name>int</name></type> <name>Foo</name><parameter_list>(<param><decl><type><name>char</name></type> <name>bar</name></decl></param>)</parameter_list> <block>{ <return>return <expr><lit:literal type=\"number\">0</lit:literal></expr>;</return> }</block></function>";
             var fileUnitDef = FileUnitSetup.GetFileUnitForXmlSnippet(defXml, "Foo.cpp");
-            globalScope = globalScope.Merge(SrcMLElementVisitor.Visit(fileUnitDef, CodeParser));
+            var afterScope = beforeScope.Merge(SrcMLElementVisitor.Visit(fileUnitDef, CodeParser));
 
-            Assert.AreEqual(1, globalScope.ChildScopes.Count());
-            Assert.AreEqual("Foo", ((MethodDefinition)globalScope.ChildScopes.First()).Name);
+            Assert.AreEqual(1, afterScope.ChildScopes.Count());
+            Assert.AreEqual("Foo", ((MethodDefinition)afterScope.ChildScopes.First()).Name);
 
-            globalScope.RemoveFile("Foo.cpp");
-            Assert.AreEqual(1, globalScope.ChildScopes.Count());
-            var foo = globalScope.ChildScopes.First() as MethodDefinition;
-            Assert.AreEqual("Foo", foo.Name);
-            Assert.IsFalse(foo.DefinitionLocations.Any());
-            Assert.AreEqual("Foo.h", foo.Locations.First().SourceFileName);
+            afterScope.RemoveFile("Foo.cpp");
+
+            Assert.IsTrue(TestHelper.ScopesAreEqual(beforeScope, afterScope));
+
+            //Assert.AreEqual(1, afterScope.ChildScopes.Count());
+            //var foo = afterScope.ChildScopes.First() as MethodDefinition;
+            //Assert.AreEqual("Foo", foo.Name);
+            //Assert.IsFalse(foo.DefinitionLocations.Any());
+            //Assert.AreEqual("Foo.h", foo.Locations.First().SourceFileName);
         }
 
         [Test]
