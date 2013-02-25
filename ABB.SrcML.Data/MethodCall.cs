@@ -89,7 +89,7 @@ namespace ABB.SrcML.Data {
                    allParametersAreEqual;
         }
 
-        private bool ArgumentMatchesDefinition(VariableUse argument, VariableDeclaration parameter) {
+        private bool ArgumentMatchesDefinition(VariableUse argument, ParameterDeclaration parameter) {
             var declarationsForArgument = argument.FindMatches();
             
             return declarationsForArgument.Any() && declarationsForArgument.First().VariableType.Name == parameter.VariableType.Name;
