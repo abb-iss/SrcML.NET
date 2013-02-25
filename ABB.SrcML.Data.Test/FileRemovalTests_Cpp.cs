@@ -58,12 +58,6 @@ namespace ABB.SrcML.Data.Test {
             afterScope.RemoveFile("Foo.cpp");
 
             Assert.IsTrue(TestHelper.ScopesAreEqual(beforeScope, afterScope));
-
-            //Assert.AreEqual(1, afterScope.ChildScopes.Count());
-            //var foo = afterScope.ChildScopes.First() as MethodDefinition;
-            //Assert.AreEqual("Foo", foo.Name);
-            //Assert.IsFalse(foo.DefinitionLocations.Any());
-            //Assert.AreEqual("Foo.h", foo.Locations.First().SourceFileName);
         }
 
         [Test]
@@ -80,7 +74,7 @@ namespace ABB.SrcML.Data.Test {
     <function_decl><type><name>int</name></type> <name>Add</name><parameter_list>(<param><decl><type><name>int</name></type> <name>b</name></decl></param>)</parameter_list>;</function_decl>
 </public>}</block>;</class>";
             var hFileunit = FileUnitSetup.GetFileUnitForXmlSnippet(hXml, "A.h");
-            var globalScope = SrcMLElementVisitor.Visit(hFileunit, CodeParser);
+            var beforeScope = SrcMLElementVisitor.Visit(hFileunit, CodeParser);
             ////A.cpp
             //#include "A.h"
             //int Foo::Add(int b) {
@@ -91,22 +85,14 @@ namespace ABB.SrcML.Data.Test {
   <return>return <expr><name>this</name><op:operator>-&gt;</op:operator><name>a</name> <op:operator>+</op:operator> <name>b</name></expr>;</return>
 }</block></function>";
             var cppFileunit = FileUnitSetup.GetFileUnitForXmlSnippet(cppXml, "A.cpp");
-            globalScope = globalScope.Merge(SrcMLElementVisitor.Visit(cppFileunit, CodeParser));
+            var afterScope = beforeScope.Merge(SrcMLElementVisitor.Visit(cppFileunit, CodeParser));
 
-            Assert.AreEqual(1, globalScope.ChildScopes.Count());
-            Assert.IsNotNull(globalScope.ChildScopes.First() as TypeDefinition);
+            Assert.AreEqual(1, afterScope.ChildScopes.Count());
+            Assert.IsNotNull(afterScope.ChildScopes.First() as TypeDefinition);
             
-            globalScope.RemoveFile("A.cpp");
+            afterScope.RemoveFile("A.cpp");
 
-            Assert.AreEqual(1, globalScope.ChildScopes.Count());
-            var foo = globalScope.ChildScopes.First() as TypeDefinition;
-            Assert.IsNotNull(foo);
-            Assert.AreEqual("Foo", foo.Name);
-            Assert.AreEqual(1, foo.ChildScopes.Count());
-            var add = foo.ChildScopes.First() as MethodDefinition;
-            Assert.IsNotNull(add);
-            Assert.AreEqual(0, add.DefinitionLocations.Count());
-            Assert.IsFalse(add.Locations.Any(l => l.SourceFileName == "A.cpp"));
+            Assert.IsTrue(TestHelper.ScopesAreEqual(beforeScope, afterScope));
         }
 
         [Test]
@@ -119,7 +105,7 @@ namespace ABB.SrcML.Data.Test {
     <function><type><name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list><block>{ <return>return <expr><lit:literal type=""number"">0</lit:literal></expr>;</return>}</block></function>
 }</block></namespace>";
             var aFileunit = FileUnitSetup.GetFileUnitForXmlSnippet(aXml, "A.cpp");
-            var globalScope = SrcMLElementVisitor.Visit(aFileunit, CodeParser);
+            var beforeScope = SrcMLElementVisitor.Visit(aFileunit, CodeParser);
             ////B.cpp
             //namespace B {
             //    char* Bar(){return "Hello, World!";}
@@ -128,18 +114,13 @@ namespace ABB.SrcML.Data.Test {
     <function><type><name>char</name><type:modifier>*</type:modifier></type> <name>Bar</name><parameter_list>()</parameter_list><block>{<return>return <expr><lit:literal type=""string"">""Hello, World!""</lit:literal></expr>;</return>}</block></function>
 }</block></namespace>";
             var bFileunit = FileUnitSetup.GetFileUnitForXmlSnippet(bXml, "B.cpp");
-            globalScope = globalScope.Merge(SrcMLElementVisitor.Visit(bFileunit, CodeParser));
+            var afterScope = beforeScope.Merge(SrcMLElementVisitor.Visit(bFileunit, CodeParser));
 
-            Assert.AreEqual(2, globalScope.ChildScopes.OfType<NamespaceDefinition>().Count());
-            globalScope.RemoveFile("A.cpp");
-            Assert.AreEqual(1, globalScope.ChildScopes.Count());
-            var first = globalScope.ChildScopes.First() as NamespaceDefinition;
-            Assert.IsNotNull(first);
-            Assert.AreEqual("B", first.Name);
-            Assert.AreEqual(1, first.ChildScopes.Count());
-            var bChild = first.ChildScopes.First() as MethodDefinition;
-            Assert.IsNotNull(bChild);
-            Assert.AreEqual("Bar", bChild.Name);
+            Assert.AreEqual(2, afterScope.ChildScopes.OfType<NamespaceDefinition>().Count());
+
+            afterScope.RemoveFile("B.cpp");
+
+            Assert.IsTrue(TestHelper.ScopesAreEqual(beforeScope, afterScope));
         }
 
         [Test]
@@ -152,7 +133,7 @@ namespace ABB.SrcML.Data.Test {
     <function><type><name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list><block>{ <return>return <expr><lit:literal type=""number"">0</lit:literal></expr>;</return>}</block></function>
 }</block></namespace>";
             var a1FileUnit = FileUnitSetup.GetFileUnitForXmlSnippet(a1Xml, "A1.cpp");
-            var globalScope = SrcMLElementVisitor.Visit(a1FileUnit, CodeParser);
+            var beforeScope = SrcMLElementVisitor.Visit(a1FileUnit, CodeParser);
             ////A2.cpp
             //namespace A {
             //    char* Bar(){return "Hello, World!";}
@@ -161,19 +142,14 @@ namespace ABB.SrcML.Data.Test {
     <function><type><name>char</name><type:modifier>*</type:modifier></type> <name>Bar</name><parameter_list>()</parameter_list><block>{<return>return <expr><lit:literal type=""string"">""Hello, World!""</lit:literal></expr>;</return>}</block></function>
 }</block></namespace>";
             var a2Fileunit = FileUnitSetup.GetFileUnitForXmlSnippet(a2Xml, "A2.cpp");
-            globalScope = globalScope.Merge(SrcMLElementVisitor.Visit(a2Fileunit, CodeParser));
+            var afterScope = beforeScope.Merge(SrcMLElementVisitor.Visit(a2Fileunit, CodeParser));
 
-            Assert.AreEqual(1, globalScope.ChildScopes.OfType<NamespaceDefinition>().Count());
-            Assert.AreEqual(2, globalScope.ChildScopes.First().ChildScopes.OfType<MethodDefinition>().Count());
-            globalScope.RemoveFile("A1.cpp");
-            Assert.AreEqual(1, globalScope.ChildScopes.Count());
-            var first = globalScope.ChildScopes.First() as NamespaceDefinition;
-            Assert.IsNotNull(first);
-            Assert.AreEqual("A", first.Name);
-            Assert.AreEqual(1, first.ChildScopes.Count());
-            var aChild = first.ChildScopes.First() as MethodDefinition;
-            Assert.IsNotNull(aChild);
-            Assert.AreEqual("Bar", aChild.Name);
+            Assert.AreEqual(1, afterScope.ChildScopes.OfType<NamespaceDefinition>().Count());
+            Assert.AreEqual(2, afterScope.ChildScopes.First().ChildScopes.OfType<MethodDefinition>().Count());
+
+            afterScope.RemoveFile("A2.cpp");
+
+            Assert.IsTrue(TestHelper.ScopesAreEqual(beforeScope, afterScope));
         }
 
         [Test]
