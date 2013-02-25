@@ -33,6 +33,15 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public NamedScopeUse Prefix { get; set; }
 
+        public override IEnumerable<TypeDefinition> FindMatches() {
+            if(BuiltInTypeFactory.IsBuiltIn(this)) {
+                yield return BuiltInTypeFactory.GetBuiltIn(this);
+            } else {
+                foreach(var match in base.FindMatches()) {
+                    yield return match;
+                }
+            }
+        }
         /// <summary>
         /// Tests if this type use is a match for the given <paramref name="definition"/>
         /// </summary>

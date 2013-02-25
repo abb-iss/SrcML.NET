@@ -49,6 +49,7 @@
     <Compile Include="AbstractUse.cs" />
     <Compile Include="AccessModifier.cs" />
     <Compile Include="Alias.cs" />
+    <Compile Include="BuiltInTypeFactory.cs" />
     <Compile Include="MethodCall.cs" />
     <Compile Include="NamedScope.cs" />
     <Compile Include="NameHelper.cs" />

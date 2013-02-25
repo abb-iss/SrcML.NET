@@ -20,8 +20,10 @@ namespace ABB.SrcML.Data {
     /// Enumerates the kinds of types encountered in the supported programming languages.
     /// </summary>
     public enum TypeKind {
+        /// <summary>Built-In type</summary>
+        BuiltIn = 0,
         /// <summary>Class type</summary>
-        Class = 0,
+        Class,
         /// <summary>Struct type</summary>
         Struct,
         /// <summary>Union type</summary>

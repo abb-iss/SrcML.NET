@@ -182,7 +182,7 @@ namespace ABB.SrcML.Data {
         /// <param name="fileUnit">The file unit that contains the typeElement</param>
         /// <param name="aliases">The aliases that apply to this type element (usually created from <paramref name="fileUnit"/>)</param>
         /// <returns>A new TypeUse object</returns>
-        public virtual TypeUse CreateTypeUse(XElement element, XElement fileUnit, Scope parentScope, IEnumerable<Alias> aliases) {
+        public virtual TypeUse CreateTypeUse(XElement element, XElement fileUnit, Scope parentScope) {
             XElement typeNameElement;
 
             if(element == null)
@@ -214,6 +214,7 @@ namespace ABB.SrcML.Data {
                 ParentScope = parentScope,
                 Location = new SourceLocation(lastNameElement, fileUnit),
                 Prefix = prefix,
+                ProgrammingLanguage = this.ParserLanguage,
             };
 
             return typeUse;
@@ -251,17 +252,6 @@ namespace ABB.SrcML.Data {
         /// <returns>True if this is a reference container; false otherwise</returns>
         public virtual bool ContainerIsReference(XElement element) {
             return (element != null && ContainerReferenceElementNames.Contains(element.Name));
-        }
-
-        /// <summary>
-        /// Parses the type use and returns a TypeUse object
-        /// </summary>
-        /// <param name="element">An element naming the type. Must be a <see cref="ABB.SrcML.SRC.Type"/>or <see cref="ABB.SrcML.SRC.Name"/>.</param>
-        /// <param name="fileUnit">The file unit that contains the typeElement</param>
-        /// <returns>A new TypeUse object</returns>
-        public virtual TypeUse CreateTypeUse(XElement element, XElement fileUnit, Scope parentScope) {
-            var aliases = CreateAliasesForFile(fileUnit);
-            return CreateTypeUse(element, fileUnit, parentScope, aliases);
         }
 
         /// <summary>

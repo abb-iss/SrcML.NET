@@ -101,6 +101,11 @@ namespace ABB.SrcML.Data {
 
             return methodDefinition;
         }
+
+        public override TypeUse CreateTypeUse(XElement element, XElement fileUnit, Scope parentScope) {
+
+            return base.CreateTypeUse(element, fileUnit, parentScope);
+        }
         /// <summary>
         /// Gets the name for a method. This is the unqualified name, not any class names that might be prepended to it.
         /// </summary>
@@ -153,9 +158,8 @@ namespace ABB.SrcML.Data {
 
             if(null != superTag) {
                 var parentElements = superTag.Elements(SRC.Name);
-                var aliases = CreateAliasesForFile(fileUnit);
                 foreach(var parentElement in parentElements) {
-                    parents.Add(CreateTypeUse(parentElement, fileUnit, typeDefinition, aliases));
+                    parents.Add(CreateTypeUse(parentElement, fileUnit, typeDefinition));
                 }
             }
             return parents;

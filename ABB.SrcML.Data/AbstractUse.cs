@@ -40,10 +40,10 @@ namespace ABB.SrcML.Data {
         public IEnumerable<Scope> ParentScopes {
             get {
                 Scope current = ParentScope;
-                do {
+                while(null != current) {
                     yield return current;
                     current = current.ParentScope;
-                } while(null != current);
+                }
             }
         }
         /// <summary>
