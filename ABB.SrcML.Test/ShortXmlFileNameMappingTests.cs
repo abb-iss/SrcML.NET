@@ -27,9 +27,9 @@ namespace ABB.SrcML.Test {
 
         [TestFixtureTearDown]
         public void FixtureTearDown() {
-            //if(Directory.Exists("mappingTest")) {
-            //    Directory.Delete("mappingTest", true);
-            //} 
+            if(Directory.Exists("mappingTest")) {
+                Directory.Delete("mappingTest", true);
+            } 
         }
         
         [Test]
@@ -72,6 +72,15 @@ C:\Foo\Bar\xyzzy\Example.cs|C:\srcmlArchive\Example.cs.2.xml";
             var map = new ShortXmlFileNameMapping("mappingTest");
             var thirdName = map.GetXmlPath(@"C:\OtherDir\Example.cs");
             Assert.AreEqual(Path.Combine(Environment.CurrentDirectory, @"mappingTest\Example.cs.3.xml"), thirdName);
+        }
+
+        [Test]
+        public void TestGetXmlPath_DifferentCase() {
+            var map = new ShortXmlFileNameMapping("mappingTest");
+            var xmlPath1 = map.GetXMLPath("Example.cpp");
+            var xmlPath2 = map.GetXMLPath("example.CPP");
+            //This assumes that our current file system is case-insensitive
+            Assert.AreEqual(xmlPath1, xmlPath2);
         }
 
         [Test]

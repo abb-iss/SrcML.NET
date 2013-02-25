@@ -16,6 +16,7 @@ namespace ABB.SrcML {
         private const string mappingFile = "mapping.txt";
         private readonly object mappingLock = new object();
         //maps source path to xml path
+        //TODO should support case insensitive paths, add option in constructor
         private Dictionary<string, string> mapping;
         //maps source files names (without path) to a count of how many times that name has been seen
         private Dictionary<string, int> nameCount;
@@ -26,7 +27,11 @@ namespace ABB.SrcML {
         /// <param name="xmlDirectory">The directory for the XML files.</param>
         public ShortXmlFileNameMapping(string xmlDirectory)
             : base(xmlDirectory) {
-            mapping = new Dictionary<string, string>();
+            if(CheckIfDirectoryIsCaseInsensitive(xmlDirectory)) {
+                mapping = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase);
+            } else {
+                mapping = new Dictionary<string, string>();
+            }
             nameCount = new Dictionary<string, int>();
             ReadMapping();
         }
@@ -161,5 +166,24 @@ namespace ABB.SrcML {
             }
         }
 
+        private bool CheckIfDirectoryIsCaseInsensitive(string directory) {
+            bool isCaseInsensitive = false;
+            string tempFile = string.Empty;
+            try {
+                if(Directory.Exists(directory)) {
+                    tempFile = Path.Combine(directory, Guid.NewGuid().ToString()).ToLower();
+                } else {
+                    tempFile = Path.GetTempFileName().ToLower();
+                }
+                File.Create(tempFile).Close();
+                isCaseInsensitive = File.Exists(tempFile.ToUpper());
+
+            } finally {
+                if(File.Exists(tempFile)) {
+                    File.Delete(tempFile);
+                }
+            }
+            return isCaseInsensitive;
+        }
     }
 }
