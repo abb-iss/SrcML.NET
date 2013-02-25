@@ -18,7 +18,29 @@ namespace ABB.SrcML.Data {
     /// <summary>
     /// The variable use class represents a use of a variable.
     /// </summary>
-    public class VariableUse : AbstractUse {
-        
+    public class VariableUse : AbstractUse<VariableDeclaration> {
+
+        /// <summary>
+        /// Searches through the <see cref="Scope.DeclaredVariables"/> to see if any of them <see cref="Matches(VariableDeclaration)">matches</see>
+        /// </summary>
+        /// <returns>An enumerable of matching variable declarations.</returns>
+        public override IEnumerable<VariableDeclaration> FindMatches() {
+            var currentScope = this.ParentScope;
+
+            var matchingVariables = from scope in ParentScopes
+                                    from variable in scope.DeclaredVariables
+                                    where Matches(variable)
+                                    select variable;
+            return matchingVariables;
+        }
+
+        /// <summary>
+        /// Tests if this variable usage is a match for <paramref name="definition"/>
+        /// </summary>
+        /// <param name="definition">The variable declaration to test</param>
+        /// <returns>true if this matches the variable declaration; false otherwise</returns>
+        public override bool Matches(VariableDeclaration definition) {
+            return definition != null && definition.Name == this.Name;
+        }
     }
 }

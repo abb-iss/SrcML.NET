@@ -20,11 +20,19 @@ using System.Xml.Linq;
 namespace ABB.SrcML.Data.Test {
     [TestFixture]
     public class TypeInventoryTests {
-        private SrcMLFileUnitSetup fileSetup;
+        private Dictionary<Language, SrcMLFileUnitSetup> FileUnitSetup;
+        private Dictionary<Language, AbstractCodeParser> CodeParser;
 
         [TestFixtureSetUp]
         public void ClassSetup() {
-            fileSetup = new SrcMLFileUnitSetup(Language.Java);
+            FileUnitSetup = new Dictionary<Language, SrcMLFileUnitSetup>() {
+                { Language.CPlusPlus, new SrcMLFileUnitSetup(Language.CPlusPlus) },
+                { Language.Java, new SrcMLFileUnitSetup(Language.Java) },
+            };
+            CodeParser = new Dictionary<Language, AbstractCodeParser>() {
+                { Language.CPlusPlus, new CPlusPlusCodeParser() },
+                { Language.Java, new JavaCodeParser() },
+            };
         }
 
         [Test]
@@ -48,36 +56,97 @@ namespace ABB.SrcML.Data.Test {
 	<decl_stmt><decl><type><name>A</name></type> <name>a</name></decl>;</decl_stmt>
 }</block></class>";
 
-            var fileUnitA = fileSetup.GetFileUnitForXmlSnippet(a_xml, "A.java");
-            var fileUnitB = fileSetup.GetFileUnitForXmlSnippet(b_xml, "B.java");
-            var fileUnitC = fileSetup.GetFileUnitForXmlSnippet(c_xml, "C.java");
+            var fileUnitA = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(a_xml, "A.java");
+            var fileUnitB = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(b_xml, "B.java");
+            var fileUnitC = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(c_xml, "C.java");
 
-            AbstractCodeParser parser = new JavaCodeParser();
-            TypeInventory inventory = new TypeInventory();
-
-            var globalScope = SrcMLElementVisitor.Visit(fileUnitA, parser);
-            globalScope = globalScope.Merge(SrcMLElementVisitor.Visit(fileUnitB, parser));
-            globalScope = globalScope.Merge(SrcMLElementVisitor.Visit(fileUnitC, parser));
+            var globalScope = SrcMLElementVisitor.Visit(fileUnitA, CodeParser[Language.Java]);
+            globalScope = globalScope.Merge(SrcMLElementVisitor.Visit(fileUnitB, CodeParser[Language.Java]));
+            globalScope = globalScope.Merge(SrcMLElementVisitor.Visit(fileUnitC, CodeParser[Language.Java]));
 
             var scopes = VariableScopeIterator.Visit(globalScope);
-            var typeDefinitions = from scope in scopes
-                                  let typeDefinition = (scope as TypeDefinition)
-                                  where typeDefinition != null
-                                  select typeDefinition;
+            var typeDefinitions = (from scope in scopes
+                                   let typeDefinition = (scope as TypeDefinition)
+                                   where typeDefinition != null
+                                   orderby typeDefinition.Name
+                                   select typeDefinition).ToList();
 
-            inventory.AddNewDefinitions(typeDefinitions);
+            var typeA = typeDefinitions[0];
+            var typeB = typeDefinitions[1];
+            var typeC = typeDefinitions[2];
 
-            var typeC = (from t in typeDefinitions
-                         where t.Name == "C"
-                         select t).First();
+            Assert.That(typeC.DeclaredVariables.First().VariableType.FindMatches().First(), Is.SameAs(typeA));
+            Assert.That(typeA.ParentTypes.First().FindMatches().First(), Is.SameAs(typeB));
+        }
 
-            var testTypeUse = typeC.DeclaredVariables.First().VariableType;
+        [Test]
+        public void TestMethodCallFindMatches() {
+            // # A.h
+            // class A {
+            //     int state;
+            //     public:
+            //         A();
+            // };
+            string headerXml = @"<class>class <name>A</name> <block>{<private type=""default"">
+    <decl_stmt><decl><type><name>int</name></type> <name>state</name></decl>;</decl_stmt>
+    </private><public>public:
+        <constructor_decl><name>A</name><parameter_list>()</parameter_list>;</constructor_decl>
+</public>}</block>;</class>";
 
-            var typeA = inventory.ResolveType(testTypeUse).FirstOrDefault();
+            // # A.cpp
+            // #include "A.h"
+            // A::A() {
+            // }
+            string implementationXml = @"<cpp:include>#<cpp:directive>include</cpp:directive> <cpp:file><lit:literal type=""string"">""A.h""</lit:literal></cpp:file></cpp:include>
+<constructor><name><name>A</name><op:operator>::</op:operator><name>A</name></name><parameter_list>(<param><decl><type><name>int</name></type> <name>val</name></decl></param>)</parameter_list> <block>{
+}</block></constructor>";
+
+            // # main.cpp
+            // #include "A.h"
+            // int main() {
+            //     A a = new A();
+            //     return 0;
+            // }
+            string mainXml = @"<cpp:include>#<cpp:directive>include</cpp:directive> <cpp:file><lit:literal type=""string"">""A.h""</lit:literal></cpp:file></cpp:include>
+<function><type><name>int</name></type> <name>main</name><parameter_list>()</parameter_list> <block>{
+    <decl_stmt><decl><type><name>A</name></type> <name>a</name> =<init> <expr><op:operator>new</op:operator> <call><name>A</name><argument_list>()</argument_list></call></expr></init></decl>;</decl_stmt>
+    <return>return <expr><lit:literal type=""number"">0</lit:literal></expr>;</return>
+}</block></function>";
+
+            var headerElement = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(headerXml, "A.h");
+            var implementationElement = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(implementationXml, "A.cpp");
+            var mainElement = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(mainXml, "main.cpp");
+
+            var header = SrcMLElementVisitor.Visit(headerElement, CodeParser[Language.CPlusPlus]);
+            var implementation = SrcMLElementVisitor.Visit(implementationElement, CodeParser[Language.CPlusPlus]);
+            var main = SrcMLElementVisitor.Visit(mainElement, CodeParser[Language.CPlusPlus]);
+
+            var unmergedMainMethod = main.ChildScopes.First() as MethodDefinition;
+            Assert.That(unmergedMainMethod.MethodCalls.First().FindMatches(), Is.Empty);
+
+            var globalScope = main.Merge(implementation);
+            globalScope = globalScope.Merge(header);
+
+            var namedChildren = from child in globalScope.ChildScopes
+                                let namedChild = child as NamedScope
+                                where namedChild != null
+                                orderby namedChild.Name
+                                select namedChild;
+
+            Assert.AreEqual(2, namedChildren.Count());
+            
+            var typeA = namedChildren.First() as TypeDefinition;
+            var mainMethod = namedChildren.Last() as MethodDefinition;
+            
             Assert.AreEqual("A", typeA.Name);
+            Assert.AreEqual("main", mainMethod.Name);
 
-            var typeB = inventory.ResolveType(typeA.ParentTypes.First()).FirstOrDefault();
-            Assert.AreEqual("B", typeB.Name);
+            var callInMain = mainMethod.MethodCalls.First();
+            var constructor = typeA.ChildScopes.First() as MethodDefinition;
+            
+            Assert.IsTrue(callInMain.IsConstructor);
+            Assert.IsTrue(constructor.IsConstructor);
+            Assert.AreSame(constructor, callInMain.FindMatches().First());
         }
     }
 }
