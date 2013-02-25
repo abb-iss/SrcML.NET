@@ -104,7 +104,7 @@ namespace ABB.SrcML.Data.Test {
             // # main.cpp
             // #include "A.h"
             // int main() {
-            //     A a = new A();
+            //     A a = A();a.b().c();
             //     return 0;
             // }
             string mainXml = @"<cpp:include>#<cpp:directive>include</cpp:directive> <cpp:file><lit:literal type=""string"">""A.h""</lit:literal></cpp:file></cpp:include>
@@ -144,6 +144,76 @@ namespace ABB.SrcML.Data.Test {
             var callInMain = mainMethod.MethodCalls.First();
             var constructor = typeA.ChildScopes.First() as MethodDefinition;
             
+            Assert.IsTrue(callInMain.IsConstructor);
+            Assert.IsTrue(constructor.IsConstructor);
+            Assert.AreSame(constructor, callInMain.FindMatches().First());
+        }
+
+        [Test]
+        public void TestMethodCallFindMatches_WithArguments() {
+            // # A.h
+            // class A {
+            //     int state;
+            //     public:
+            //         A(int value);
+            // };
+            string headerXml = @"<class>class <name>A</name> <block>{<private type=""default"">
+    <decl_stmt><decl><type><name>int</name></type> <name>state</name></decl>;</decl_stmt>
+</private><public>public:
+    <constructor_decl><name>A</name><parameter_list>(<param><decl><type><name>int</name></type> <name>value</name></decl></param>)</parameter_list>;</constructor_decl>
+</public>}</block>;</class>";
+
+            // # A.cpp
+            // #include "A.h"
+            // A::A(int value) {
+            //     state = value;
+            // }
+            string implementationXml = @"<cpp:include>#<cpp:directive>include</cpp:directive> <cpp:file><lit:literal type=""string"">""A.h""</lit:literal></cpp:file></cpp:include>
+<constructor><name><name>A</name><op:operator>::</op:operator><name>A</name></name><parameter_list>(<param><decl><type><name>int</name></type> <name>value</name></decl></param>)</parameter_list> <block>{
+    <expr_stmt><expr><name>state</name> <op:operator>=</op:operator> <name>value</name></expr>;</expr_stmt>
+}</block></constructor>";
+
+            // # main.cpp
+            // #include "A.h"
+            // int main() {
+            //     int startingState = 0;
+            //     A *a = new A(startingState);
+            //     return startingState;
+            // }
+            string mainXml = @"<cpp:include>#<cpp:directive>include</cpp:directive> <cpp:file><lit:literal type=""string"">""A.h""</lit:literal></cpp:file></cpp:include>
+<function><type><name>int</name></type> <name>main</name><parameter_list>()</parameter_list> <block>{
+    <decl_stmt><decl><type><name>int</name></type> <name>startingState</name> =<init> <expr><lit:literal type=""number"">0</lit:literal></expr></init></decl>;</decl_stmt>
+    <decl_stmt><decl><type><name>A</name> <type:modifier>*</type:modifier></type><name>a</name> =<init> <expr><op:operator>new</op:operator> <call><name>A</name><argument_list>(<argument><expr><name>startingState</name></expr></argument>)</argument_list></call></expr></init></decl>;</decl_stmt>
+    <return>return <expr><name>startingState</name></expr>;</return></block></function>";
+
+            var headerElement = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(headerXml, "A.h");
+            var implementationElement = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(implementationXml, "A.cpp");
+            var mainElement = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(mainXml, "main.cpp");
+
+            var header = SrcMLElementVisitor.Visit(headerElement, CodeParser[Language.CPlusPlus]);
+            var implementation = SrcMLElementVisitor.Visit(implementationElement, CodeParser[Language.CPlusPlus]);
+            var main = SrcMLElementVisitor.Visit(mainElement, CodeParser[Language.CPlusPlus]);
+
+            var globalScope = main.Merge(implementation);
+            globalScope = globalScope.Merge(header);
+
+            var namedChildren = from child in globalScope.ChildScopes
+                                let namedChild = child as NamedScope
+                                where namedChild != null
+                                orderby namedChild.Name
+                                select namedChild;
+
+            Assert.AreEqual(2, namedChildren.Count());
+
+            var typeA = namedChildren.First() as TypeDefinition;
+            var mainMethod = namedChildren.Last() as MethodDefinition;
+
+            Assert.AreEqual("A", typeA.Name);
+            Assert.AreEqual("main", mainMethod.Name);
+
+            var callInMain = mainMethod.MethodCalls.First();
+            var constructor = typeA.ChildScopes.First() as MethodDefinition;
+
             Assert.IsTrue(callInMain.IsConstructor);
             Assert.IsTrue(constructor.IsConstructor);
             Assert.AreSame(constructor, callInMain.FindMatches().First());

@@ -443,7 +443,31 @@ namespace ABB.SrcML.Data {
                 ParentScope = parentScope,
                 Location = new SourceLocation(element, fileUnit),
             };
+            var arguments = from argument in element.Element(SRC.ArgumentList).Elements(SRC.Argument)
+                            select CreateVariableUse(argument, fileUnit, parentScope);
+            methodCall.Arguments = new Collection<VariableUse>(arguments.ToList<VariableUse>());
             return methodCall;
+        }
+
+        public virtual VariableUse CreateVariableUse(XElement element, XElement fileUnit, Scope parentScope) {
+            XElement expression;
+            if(element.Name == SRC.Expression) {
+                expression = element;
+            } else if(element.Name == SRC.ExpressionStatement || element.Name == SRC.Argument) {
+                expression = element.Element(SRC.Expression);
+            } else {
+                throw new ArgumentException("element should be an expression, expression statement, or argument", "element");
+            }
+
+            var nameElement = NameHelper.GetLastNameElement(expression.Element(SRC.Name));
+
+            var variableUse = new VariableUse() {
+                Location = new SourceLocation(nameElement, fileUnit, true),
+                Name = nameElement.Value,
+                ParentScope = parentScope,
+                ProgrammingLanguage = ParserLanguage,
+            };
+            return variableUse;
         }
 
         public IEnumerable<MethodCall> GetMethodCallsFromContainer(XElement container, XElement fileUnit, Scope parentScope) {
