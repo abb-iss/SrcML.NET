@@ -42,12 +42,13 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
 
-            var actual = SrcMLElementVisitor.Visit(xmlElement, codeParser).ChildScopes.First() as TypeDefinition;
-            var globalNamespace = actual.ParentScope as NamespaceDefinition;
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            var actual = globalScope.ChildScopes.First() as TypeDefinition;
 
             Assert.AreEqual("A", actual.Name);
             Assert.AreEqual(TypeKind.Class, actual.Kind);
-            Assert.That(globalNamespace.IsGlobal);
+            Assert.That(globalScope.IsGlobal);
+            Assert.AreSame(globalScope, actual.ParentScope);
         }
 
         [Test]
@@ -58,12 +59,13 @@ namespace ABB.SrcML.Data.Test {
 </private>}</block>;</class>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
-            var actual = SrcMLElementVisitor.Visit(xmlElement, codeParser).ChildScopes.First() as TypeDefinition;
-            var globalNamespace = actual.ParentScope as NamespaceDefinition;
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            var actual = globalScope.ChildScopes.First() as TypeDefinition;
 
             Assert.AreEqual("A", actual.Name);
             Assert.AreEqual(3, actual.ParentTypes.Count);
-            Assert.That(globalNamespace.IsGlobal);
+            Assert.That(globalScope.IsGlobal);
+            Assert.AreSame(globalScope, actual.ParentScope);
 
             var parentNames = from parent in actual.ParentTypes
                               select parent.Name;
@@ -83,7 +85,7 @@ namespace ABB.SrcML.Data.Test {
 </private>}</block>;</class>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "D.h");
-            var actual = SrcMLElementVisitor.Visit(xmlElement, codeParser).ChildScopes.First() as TypeDefinition;
+            var actual = codeParser.ParseFileUnit(xmlElement).ChildScopes.First() as TypeDefinition;
             var globalNamespace = actual.ParentScope as NamespaceDefinition;
 
             Assert.AreEqual("D", actual.Name);
@@ -109,7 +111,7 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "B.h");
 
-            var globalScope = SrcMLElementVisitor.Visit(xmlElement, codeParser);
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
             var namespaceA = globalScope.ChildScopes.First() as NamespaceDefinition;
             var typeB = namespaceA.ChildScopes.First() as TypeDefinition;
 
@@ -131,7 +133,7 @@ namespace ABB.SrcML.Data.Test {
 </private>}</block>;</class>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
-            var globalScope = SrcMLElementVisitor.Visit(xmlElement, codeParser);
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
 
             var typeA = globalScope.ChildScopes.First() as TypeDefinition;
             var typeB = typeA.ChildScopes.First() as TypeDefinition;
@@ -153,7 +155,7 @@ namespace ABB.SrcML.Data.Test {
 }</block></function>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "main.cpp");
-            var mainMethod = SrcMLElementVisitor.Visit(xmlElement, codeParser).ChildScopes.First() as MethodDefinition;
+            var mainMethod = codeParser.ParseFileUnit(xmlElement).ChildScopes.First() as MethodDefinition;
 
             Assert.AreEqual("main", mainMethod.Name);
 
@@ -171,7 +173,7 @@ namespace ABB.SrcML.Data.Test {
 </public>}</block>;</struct>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
-            var actual = SrcMLElementVisitor.Visit(xmlElement, codeParser).ChildScopes.First() as TypeDefinition;
+            var actual = codeParser.ParseFileUnit(xmlElement).ChildScopes.First() as TypeDefinition;
             var globalNamespace = actual.ParentScope as NamespaceDefinition;
 
             Assert.AreEqual("A", actual.Name);
@@ -191,7 +193,7 @@ namespace ABB.SrcML.Data.Test {
 </public>}</block>;</union>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
-            var actual = SrcMLElementVisitor.Visit(xmlElement, codeParser).ChildScopes.First() as TypeDefinition;
+            var actual = codeParser.ParseFileUnit(xmlElement).ChildScopes.First() as TypeDefinition;
             var globalNamespace = actual.ParentScope as NamespaceDefinition;
             Assert.AreEqual(TypeKind.Union, actual.Kind);
             Assert.That(globalNamespace.IsGlobal);
@@ -213,7 +215,7 @@ namespace ABB.SrcML.Data.Test {
 }</block></namespace>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
-            var scopes = VariableScopeIterator.Visit(SrcMLElementVisitor.Visit(xmlElement, codeParser));
+            var scopes = VariableScopeIterator.Visit(codeParser.ParseFileUnit(xmlElement));
 
             Assert.AreEqual(4, scopes.Count());
 
@@ -247,7 +249,7 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
 
-            var globalScope = SrcMLElementVisitor.Visit(xmlElement, codeParser);
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
             var scopes = VariableScopeIterator.Visit(globalScope);
 
             var typeA = globalScope.ChildScopes.First() as TypeDefinition;

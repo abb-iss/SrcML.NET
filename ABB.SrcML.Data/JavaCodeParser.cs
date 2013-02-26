@@ -37,6 +37,24 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
+        /// Parses a java file unit and returns a global namespace object. Because Java uses a package directive at the top of a source file
+        /// this function inserts a global namespace object as the root of the parse tree if necessary
+        /// </summary>
+        /// <param name="fileUnit">the java file unit to parse</param>
+        /// <returns>A global namespace object for <paramref name="fileUnit"/></returns>
+        public override NamespaceDefinition ParseFileUnit(XElement fileUnit) {
+            if(null == fileUnit) throw new ArgumentNullException("fileUnit");
+            if(SRC.Unit != fileUnit.Name) throw new ArgumentException("should be a SRC.Unit", "fileUnit");
+
+            var namespaceForFile = base.ParseFileUnit(fileUnit);
+            if(namespaceForFile.IsGlobal)
+                return namespaceForFile;
+            var globalNamespace = new NamespaceDefinition();
+            globalNamespace.AddSourceLocation(new SourceLocation(fileUnit, fileUnit));
+            globalNamespace.AddChildScope(namespaceForFile);
+            return globalNamespace;
+        }
+        /// <summary>
         /// Parses the java package statement from a file
         /// </summary>
         /// <param name="element">The element to find the namespace for</param>

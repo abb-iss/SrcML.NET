@@ -40,7 +40,7 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
 
-            var actual = SrcMLElementVisitor.Visit(xmlElement, codeParser).ChildScopes.First() as TypeDefinition;
+            var actual = codeParser.ParseFileUnit(xmlElement).ChildScopes.First() as TypeDefinition;
             var globalNamespace = actual.ParentScope as NamespaceDefinition;
             Assert.AreEqual("A", actual.Name);
             Assert.That(globalNamespace.IsGlobal);
@@ -55,7 +55,7 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
 
-            var actual = SrcMLElementVisitor.Visit(xmlElement, codeParser).ChildScopes.First() as TypeDefinition;
+            var actual = codeParser.ParseFileUnit(xmlElement).ChildScopes.First() as TypeDefinition;
             var globalNamespace = actual.ParentScope as NamespaceDefinition;
 
             Assert.AreEqual("A", actual.Name);
@@ -75,7 +75,8 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "D.java");
 
-            var packageABC = SrcMLElementVisitor.Visit(xmlElement, codeParser) as NamespaceDefinition;
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            var packageABC = globalScope.ChildScopes.First() as NamespaceDefinition;
             var typeD = packageABC.ChildScopes.First() as TypeDefinition;
 
             Assert.AreEqual("A.B.C", packageABC.Name);
@@ -94,7 +95,7 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
 
-            var actual = SrcMLElementVisitor.Visit(xmlElement, codeParser).ChildScopes.First() as TypeDefinition;
+            var actual = codeParser.ParseFileUnit(xmlElement).ChildScopes.First() as TypeDefinition;
             var globalNamespace = actual.ParentScope as NamespaceDefinition;
             Assert.AreEqual("A", actual.Name);
             Assert.AreEqual(3, actual.ParentTypes.Count);
@@ -118,7 +119,7 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "D.java");
 
-            var actual = SrcMLElementVisitor.Visit(xmlElement, codeParser).ChildScopes.First() as TypeDefinition;
+            var actual = codeParser.ParseFileUnit(xmlElement).ChildScopes.First() as TypeDefinition;
             var globalNamespace = actual.ParentScope as NamespaceDefinition;
 
             Assert.AreEqual("D", actual.Name);
@@ -144,7 +145,7 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
 
-            var globalScope = SrcMLElementVisitor.Visit(xmlElement, codeParser);
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
 
             var typeA = globalScope.ChildScopes.First() as TypeDefinition;
             var typeB = typeA.ChildScopes.First() as TypeDefinition;
@@ -168,7 +169,7 @@ namespace ABB.SrcML.Data.Test {
 }</block></class>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "B.java");
-            var scopes = VariableScopeIterator.Visit(SrcMLElementVisitor.Visit(xmlElement, codeParser));
+            var scopes = VariableScopeIterator.Visit(codeParser.ParseFileUnit(xmlElement));
             var typeDefinitions = from scope in scopes
                                   let definition = (scope as TypeDefinition)
                                   where definition != null
@@ -205,7 +206,7 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
 
-            var globalScope = SrcMLElementVisitor.Visit(xmlElement, codeParser);
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
 
             var typeA = globalScope.ChildScopes.First() as TypeDefinition;
             var fooMethod = typeA.ChildScopes.First() as MethodDefinition;
@@ -262,7 +263,7 @@ namespace ABB.SrcML.Data.Test {
 
             var declarationElement = xmlElement.Descendants(SRC.DeclarationStatement).First();
 
-            var rootScope = SrcMLElementVisitor.Visit(xmlElement, codeParser);
+            var rootScope = codeParser.ParseFileUnit(xmlElement);
             var scope = VariableScopeIterator.Visit(rootScope).Last();
             var useOfX = xmlElement.Descendants(SRC.Return).First().Descendants(SRC.Name).First();
 
@@ -289,7 +290,7 @@ namespace ABB.SrcML.Data.Test {
 
             var xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
 
-            var globalScope = SrcMLElementVisitor.Visit(xmlElement, codeParser);
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
 
             var typeA = globalScope.ChildScopes.First();
 
@@ -329,7 +330,7 @@ namespace ABB.SrcML.Data.Test {
 
             var fileUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
 
-            var globalScope = SrcMLElementVisitor.Visit(fileUnit, codeParser);
+            var globalScope = codeParser.ParseFileUnit(fileUnit);
 
             var executeMethod = globalScope.ChildScopes.First().ChildScopes.First() as MethodDefinition;
 

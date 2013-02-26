@@ -76,6 +76,19 @@ namespace ABB.SrcML.Data {
         public HashSet<XName> ContainerReferenceElementNames { get; protected set; }
 
         /// <summary>
+        /// Parses a file unit and returns a <see cref="NamespaceDefinition.IsGlobal">global</see> <see cref="NamespaceDefinition">namespace definition</see> object
+        /// </summary>
+        /// <param name="fileUnit">The file unit to parse</param>
+        /// <returns>a global namespace definition for <paramref name="fileUnit"/></returns>
+        public virtual NamespaceDefinition ParseFileUnit(XElement fileUnit) {
+            if(null == fileUnit) throw new ArgumentNullException("fileUnit");
+            if(SRC.Unit != fileUnit.Name) throw new ArgumentException("should be a SRC.Unit", "fileUnit");
+
+            var globalScope = SrcMLElementVisitor.Visit(fileUnit, this) as NamespaceDefinition;
+            return globalScope;
+        }
+
+        /// <summary>
         /// Looks at the name of the element and then creates a variablescope depending on the <see cref="System.Xml.Linq.XName"/>.
         /// </summary>
         /// <param name="element">The element to create a scope for</param>

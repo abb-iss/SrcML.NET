@@ -48,7 +48,7 @@ namespace ABB.SrcML.Data {
     /// </example>
     public class DataArchive {
         private Scope globalScope;
-        
+        private Dictionary<Language, AbstractCodeParser> Parser;
         public SrcMLArchive Archive { get; private set; }
 
         /// <summary>
@@ -74,18 +74,11 @@ namespace ABB.SrcML.Data {
         public void AddFile(XElement fileUnitElement) {
             var fileLanguage = SrcMLElement.GetLanguageForUnit(fileUnitElement);
             Scope resultScope = null;
-            switch(fileLanguage) {
-                case Language.C:
-                    goto case Language.CPlusPlus;
-                case Language.CPlusPlus:
-                    resultScope = SrcMLElementVisitor.Visit(fileUnitElement, new CPlusPlusCodeParser());
-                    break;
-                case Language.Java:
-                    resultScope = SrcMLElementVisitor.Visit(fileUnitElement, new JavaCodeParser());
-                    break;
-                default:
-                    throw new NotImplementedException();
+            AbstractCodeParser parserForUnit;
+            if(Parser.TryGetValue(fileLanguage, out parserForUnit)) {
+                resultScope = parserForUnit.ParseFileUnit(fileUnitElement);
             }
+            
             if(resultScope != null) {
                 globalScope = globalScope != null ? globalScope.Merge(resultScope) : resultScope;
             }
@@ -115,6 +108,13 @@ namespace ABB.SrcML.Data {
             foreach(var unit in Archive.FileUnits) {
                 AddFile(unit);
             }
+        }
+
+        private void SetupParsers() {
+            Parser = new Dictionary<Language, AbstractCodeParser>() {
+                { Language.CPlusPlus, new CPlusPlusCodeParser() },
+                { Language.Java, new JavaCodeParser() },
+            };
         }
 
         private void Archive_SourceFileChanged(object sender, FileEventRaisedArgs e) {

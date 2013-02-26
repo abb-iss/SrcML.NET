@@ -22,13 +22,13 @@ namespace ABB.SrcML.Data.Test {
             //int Foo(char bar) { return 0; }
             string fooXml = "<function><type><name>int</name></type> <name>Foo</name><parameter_list>(<param><decl><type><name>char</name></type> <name>bar</name></decl></param>)</parameter_list> <block>{ <return>return <expr><lit:literal type=\"number\">0</lit:literal></expr>;</return> }</block></function>";
             var fileunitFoo = FileUnitSetup.GetFileUnitForXmlSnippet(fooXml, "Foo.cpp");
-            var beforeScope = SrcMLElementVisitor.Visit(fileunitFoo, CodeParser);
+            var beforeScope = CodeParser.ParseFileUnit(fileunitFoo);
+            
             ////Baz.cpp
             //char* Baz() { return "Hello, World!"; }
             string bazXml = "<function><type><name>char</name><type:modifier>*</type:modifier></type> <name>Baz</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><lit:literal type=\"string\">\"Hello, World!\"</lit:literal></expr>;</return> }</block></function>";
             var fileunitBaz = FileUnitSetup.GetFileUnitForXmlSnippet(bazXml, "Baz.cpp");
-            var afterScope = beforeScope.Merge(SrcMLElementVisitor.Visit(fileunitBaz, CodeParser));
-
+            var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(fileunitBaz));
             Assert.AreEqual(2, afterScope.ChildScopes.OfType<MethodDefinition>().Count());
 
             afterScope.RemoveFile("Baz.cpp");
@@ -42,12 +42,13 @@ namespace ABB.SrcML.Data.Test {
             //int Foo(char bar);
             string declXml = "<function_decl><type><name>int</name></type> <name>Foo</name><parameter_list>(<param><decl><type><name>char</name></type> <name>bar</name></decl></param>)</parameter_list>;</function_decl>";
             var fileunitDecl = FileUnitSetup.GetFileUnitForXmlSnippet(declXml, "Foo.h");
-            var beforeScope = SrcMLElementVisitor.Visit(fileunitDecl, CodeParser);
+            var beforeScope = CodeParser.ParseFileUnit(fileunitDecl);
+
             ////Foo.cpp
             //int Foo(char bar) { return 0; }
             string defXml = "<function><type><name>int</name></type> <name>Foo</name><parameter_list>(<param><decl><type><name>char</name></type> <name>bar</name></decl></param>)</parameter_list> <block>{ <return>return <expr><lit:literal type=\"number\">0</lit:literal></expr>;</return> }</block></function>";
             var fileUnitDef = FileUnitSetup.GetFileUnitForXmlSnippet(defXml, "Foo.cpp");
-            var afterScope = beforeScope.Merge(SrcMLElementVisitor.Visit(fileUnitDef, CodeParser));
+            var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(fileUnitDef));
 
             Assert.AreEqual(1, afterScope.ChildScopes.Count());
             Assert.AreEqual("Foo", ((MethodDefinition)afterScope.ChildScopes.First()).Name);
@@ -63,12 +64,13 @@ namespace ABB.SrcML.Data.Test {
             //int Foo(char bar) { return 0; }
             string defXml = "<function><type><name>int</name></type> <name>Foo</name><parameter_list>(<param><decl><type><name>char</name></type> <name>bar</name></decl></param>)</parameter_list> <block>{ <return>return <expr><lit:literal type=\"number\">0</lit:literal></expr>;</return> }</block></function>";
             var fileUnitDef = FileUnitSetup.GetFileUnitForXmlSnippet(defXml, "Foo.cpp");
-            var beforeScope = SrcMLElementVisitor.Visit(fileUnitDef, CodeParser);
+            var beforeScope = CodeParser.ParseFileUnit(fileUnitDef);
+            
             ////Foo.h
             //int Foo(char bar);
             string declXml = "<function_decl><type><name>int</name></type> <name>Foo</name><parameter_list>(<param><decl><type><name>char</name></type> <name>bar</name></decl></param>)</parameter_list>;</function_decl>";
             var fileunitDecl = FileUnitSetup.GetFileUnitForXmlSnippet(declXml, "Foo.h");
-            var afterScope = beforeScope.Merge(SrcMLElementVisitor.Visit(fileunitDecl, CodeParser));
+            var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(fileunitDecl));
 
             Assert.AreEqual(1, afterScope.ChildScopes.Count());
             Assert.AreEqual("Foo", ((MethodDefinition)afterScope.ChildScopes.First()).Name);
@@ -92,7 +94,8 @@ namespace ABB.SrcML.Data.Test {
     <function_decl><type><name>int</name></type> <name>Add</name><parameter_list>(<param><decl><type><name>int</name></type> <name>b</name></decl></param>)</parameter_list>;</function_decl>
 </public>}</block>;</class>";
             var hFileunit = FileUnitSetup.GetFileUnitForXmlSnippet(hXml, "A.h");
-            var beforeScope = SrcMLElementVisitor.Visit(hFileunit, CodeParser);
+            var beforeScope = CodeParser.ParseFileUnit(hFileunit);
+            
             ////A.cpp
             //#include "A.h"
             //int Foo::Add(int b) {
@@ -103,7 +106,7 @@ namespace ABB.SrcML.Data.Test {
   <return>return <expr><name>this</name><op:operator>-&gt;</op:operator><name>a</name> <op:operator>+</op:operator> <name>b</name></expr>;</return>
 }</block></function>";
             var cppFileunit = FileUnitSetup.GetFileUnitForXmlSnippet(cppXml, "A.cpp");
-            var afterScope = beforeScope.Merge(SrcMLElementVisitor.Visit(cppFileunit, CodeParser));
+            var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(cppFileunit));
 
             Assert.AreEqual(1, afterScope.ChildScopes.Count());
             Assert.IsNotNull(afterScope.ChildScopes.First() as TypeDefinition);
@@ -123,7 +126,8 @@ namespace ABB.SrcML.Data.Test {
     <function><type><name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list><block>{ <return>return <expr><lit:literal type=""number"">0</lit:literal></expr>;</return>}</block></function>
 }</block></namespace>";
             var aFileunit = FileUnitSetup.GetFileUnitForXmlSnippet(aXml, "A.cpp");
-            var beforeScope = SrcMLElementVisitor.Visit(aFileunit, CodeParser);
+            var beforeScope = CodeParser.ParseFileUnit(aFileunit);
+            
             ////B.cpp
             //namespace B {
             //    char* Bar(){return "Hello, World!";}
@@ -132,7 +136,7 @@ namespace ABB.SrcML.Data.Test {
     <function><type><name>char</name><type:modifier>*</type:modifier></type> <name>Bar</name><parameter_list>()</parameter_list><block>{<return>return <expr><lit:literal type=""string"">""Hello, World!""</lit:literal></expr>;</return>}</block></function>
 }</block></namespace>";
             var bFileunit = FileUnitSetup.GetFileUnitForXmlSnippet(bXml, "B.cpp");
-            var afterScope = beforeScope.Merge(SrcMLElementVisitor.Visit(bFileunit, CodeParser));
+            var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(bFileunit));
 
             Assert.AreEqual(2, afterScope.ChildScopes.OfType<NamespaceDefinition>().Count());
 
@@ -151,7 +155,8 @@ namespace ABB.SrcML.Data.Test {
     <function><type><name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list><block>{ <return>return <expr><lit:literal type=""number"">0</lit:literal></expr>;</return>}</block></function>
 }</block></namespace>";
             var a1FileUnit = FileUnitSetup.GetFileUnitForXmlSnippet(a1Xml, "A1.cpp");
-            var beforeScope = SrcMLElementVisitor.Visit(a1FileUnit, CodeParser);
+            var beforeScope = CodeParser.ParseFileUnit(a1FileUnit);
+            
             ////A2.cpp
             //namespace A {
             //    char* Bar(){return "Hello, World!";}
@@ -160,7 +165,7 @@ namespace ABB.SrcML.Data.Test {
     <function><type><name>char</name><type:modifier>*</type:modifier></type> <name>Bar</name><parameter_list>()</parameter_list><block>{<return>return <expr><lit:literal type=""string"">""Hello, World!""</lit:literal></expr>;</return>}</block></function>
 }</block></namespace>";
             var a2Fileunit = FileUnitSetup.GetFileUnitForXmlSnippet(a2Xml, "A2.cpp");
-            var afterScope = beforeScope.Merge(SrcMLElementVisitor.Visit(a2Fileunit, CodeParser));
+            var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(a2Fileunit));
 
             Assert.AreEqual(1, afterScope.ChildScopes.OfType<NamespaceDefinition>().Count());
             Assert.AreEqual(2, afterScope.ChildScopes.First().ChildScopes.OfType<MethodDefinition>().Count());
@@ -182,7 +187,7 @@ namespace ABB.SrcML.Data.Test {
   <return>return <expr><name>this</name><op:operator>-&gt;</op:operator><name>a</name> <op:operator>+</op:operator> <name>b</name></expr>;</return>
 }</block></function>";
             var cppFileunit = FileUnitSetup.GetFileUnitForXmlSnippet(cppXml, "A.cpp");
-            var beforeScope = SrcMLElementVisitor.Visit(cppFileunit, CodeParser);
+            var beforeScope = CodeParser.ParseFileUnit(cppFileunit);
             ////A.h
             //class Foo {
             //  public:
@@ -195,7 +200,7 @@ namespace ABB.SrcML.Data.Test {
     <function_decl><type><name>int</name></type> <name>Add</name><parameter_list>(<param><decl><type><name>int</name></type> <name>b</name></decl></param>)</parameter_list>;</function_decl>
 </public>}</block>;</class>";
             var hFileunit = FileUnitSetup.GetFileUnitForXmlSnippet(hXml, "A.h");
-            var afterScope = beforeScope.Merge(SrcMLElementVisitor.Visit(hFileunit, CodeParser));
+            var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(hFileunit));
 
             Assert.AreEqual(1, afterScope.ChildScopes.Count());
             Assert.IsNotNull(afterScope.ChildScopes.First() as TypeDefinition);
@@ -219,8 +224,8 @@ namespace ABB.SrcML.Data.Test {
     <function_decl><type><name>int</name></type> <name>Add</name><parameter_list>(<param><decl><type><name>int</name></type> <name>b</name></decl></param>)</parameter_list>;</function_decl>
 </public>}</block>;</class>";
             var fileunit = FileUnitSetup.GetFileUnitForXmlSnippet(xml, "A.h");
-            var scope1 = SrcMLElementVisitor.Visit(fileunit, CodeParser);
-            var scope2 = SrcMLElementVisitor.Visit(fileunit, CodeParser);
+            var scope1 = CodeParser.ParseFileUnit(fileunit);
+            var scope2 = CodeParser.ParseFileUnit(fileunit);
             Assert.IsTrue(TestHelper.ScopesAreEqual(scope1, scope2));
         }
 

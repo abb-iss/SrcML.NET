@@ -60,9 +60,9 @@ namespace ABB.SrcML.Data.Test {
             var fileUnitB = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(b_xml, "B.java");
             var fileUnitC = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(c_xml, "C.java");
 
-            var globalScope = SrcMLElementVisitor.Visit(fileUnitA, CodeParser[Language.Java]);
-            globalScope = globalScope.Merge(SrcMLElementVisitor.Visit(fileUnitB, CodeParser[Language.Java]));
-            globalScope = globalScope.Merge(SrcMLElementVisitor.Visit(fileUnitC, CodeParser[Language.Java]));
+            var globalScope = CodeParser[Language.Java].ParseFileUnit(fileUnitA) as NamedScope;
+            globalScope = globalScope.Merge(CodeParser[Language.Java].ParseFileUnit(fileUnitB));
+            globalScope = globalScope.Merge(CodeParser[Language.Java].ParseFileUnit(fileUnitC));
 
             var scopes = VariableScopeIterator.Visit(globalScope);
             var typeDefinitions = (from scope in scopes
@@ -117,9 +117,9 @@ namespace ABB.SrcML.Data.Test {
             var implementationElement = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(implementationXml, "A.cpp");
             var mainElement = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(mainXml, "main.cpp");
 
-            var header = SrcMLElementVisitor.Visit(headerElement, CodeParser[Language.CPlusPlus]);
-            var implementation = SrcMLElementVisitor.Visit(implementationElement, CodeParser[Language.CPlusPlus]);
-            var main = SrcMLElementVisitor.Visit(mainElement, CodeParser[Language.CPlusPlus]);
+            var header = CodeParser[Language.CPlusPlus].ParseFileUnit(headerElement) as NamedScope;
+            var implementation = CodeParser[Language.CPlusPlus].ParseFileUnit(implementationElement) as NamedScope;
+            var main = CodeParser[Language.CPlusPlus].ParseFileUnit(mainElement) as NamedScope;
 
             var unmergedMainMethod = main.ChildScopes.First() as MethodDefinition;
             Assert.That(unmergedMainMethod.MethodCalls.First().FindMatches(), Is.Empty);
@@ -190,9 +190,9 @@ namespace ABB.SrcML.Data.Test {
             var implementationElement = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(implementationXml, "A.cpp");
             var mainElement = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(mainXml, "main.cpp");
 
-            var header = SrcMLElementVisitor.Visit(headerElement, CodeParser[Language.CPlusPlus]);
-            var implementation = SrcMLElementVisitor.Visit(implementationElement, CodeParser[Language.CPlusPlus]);
-            var main = SrcMLElementVisitor.Visit(mainElement, CodeParser[Language.CPlusPlus]);
+            var header = CodeParser[Language.CPlusPlus].ParseFileUnit(headerElement) as NamedScope;
+            var implementation = CodeParser[Language.CPlusPlus].ParseFileUnit(implementationElement) as NamedScope;
+            var main = CodeParser[Language.CPlusPlus].ParseFileUnit(mainElement) as NamedScope;
 
             var globalScope = main.Merge(implementation);
             globalScope = globalScope.Merge(header);
