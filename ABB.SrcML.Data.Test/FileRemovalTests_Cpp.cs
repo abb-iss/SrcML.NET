@@ -22,21 +22,18 @@ namespace ABB.SrcML.Data.Test {
             //int Foo(char bar) { return 0; }
             string fooXml = "<function><type><name>int</name></type> <name>Foo</name><parameter_list>(<param><decl><type><name>char</name></type> <name>bar</name></decl></param>)</parameter_list> <block>{ <return>return <expr><lit:literal type=\"number\">0</lit:literal></expr>;</return> }</block></function>";
             var fileunitFoo = FileUnitSetup.GetFileUnitForXmlSnippet(fooXml, "Foo.cpp");
-            var globalScope = SrcMLElementVisitor.Visit(fileunitFoo, CodeParser);
+            var beforeScope = SrcMLElementVisitor.Visit(fileunitFoo, CodeParser);
             ////Baz.cpp
             //char* Baz() { return "Hello, World!"; }
             string bazXml = "<function><type><name>char</name><type:modifier>*</type:modifier></type> <name>Baz</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><lit:literal type=\"string\">\"Hello, World!\"</lit:literal></expr>;</return> }</block></function>";
             var fileunitBaz = FileUnitSetup.GetFileUnitForXmlSnippet(bazXml, "Baz.cpp");
-            globalScope = globalScope.Merge(SrcMLElementVisitor.Visit(fileunitBaz, CodeParser));
+            var afterScope = beforeScope.Merge(SrcMLElementVisitor.Visit(fileunitBaz, CodeParser));
 
-            Assert.AreEqual(2, globalScope.ChildScopes.OfType<MethodDefinition>().Count());
+            Assert.AreEqual(2, afterScope.ChildScopes.OfType<MethodDefinition>().Count());
 
-            globalScope.RemoveFile("Foo.cpp");
-            Assert.AreEqual(1, globalScope.ChildScopes.OfType<MethodDefinition>().Count());
-            var bazFunc = globalScope.ChildScopes.First() as MethodDefinition;
-            Assert.AreEqual("Baz", bazFunc.Name);
+            afterScope.RemoveFile("Baz.cpp");
 
-            //TODO: update to use TestHelper
+            Assert.IsTrue(TestHelper.ScopesAreEqual(beforeScope, afterScope));
         }
 
         [Test]
@@ -56,6 +53,27 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("Foo", ((MethodDefinition)afterScope.ChildScopes.First()).Name);
 
             afterScope.RemoveFile("Foo.cpp");
+
+            Assert.IsTrue(TestHelper.ScopesAreEqual(beforeScope, afterScope));
+        }
+
+        [Test]
+        public void TestRemoveMethodDeclaration_Global() {
+            ////Foo.cpp
+            //int Foo(char bar) { return 0; }
+            string defXml = "<function><type><name>int</name></type> <name>Foo</name><parameter_list>(<param><decl><type><name>char</name></type> <name>bar</name></decl></param>)</parameter_list> <block>{ <return>return <expr><lit:literal type=\"number\">0</lit:literal></expr>;</return> }</block></function>";
+            var fileUnitDef = FileUnitSetup.GetFileUnitForXmlSnippet(defXml, "Foo.cpp");
+            var beforeScope = SrcMLElementVisitor.Visit(fileUnitDef, CodeParser);
+            ////Foo.h
+            //int Foo(char bar);
+            string declXml = "<function_decl><type><name>int</name></type> <name>Foo</name><parameter_list>(<param><decl><type><name>char</name></type> <name>bar</name></decl></param>)</parameter_list>;</function_decl>";
+            var fileunitDecl = FileUnitSetup.GetFileUnitForXmlSnippet(declXml, "Foo.h");
+            var afterScope = beforeScope.Merge(SrcMLElementVisitor.Visit(fileunitDecl, CodeParser));
+
+            Assert.AreEqual(1, afterScope.ChildScopes.Count());
+            Assert.AreEqual("Foo", ((MethodDefinition)afterScope.ChildScopes.First()).Name);
+
+            afterScope.RemoveFile("Foo.h");
 
             Assert.IsTrue(TestHelper.ScopesAreEqual(beforeScope, afterScope));
         }
@@ -206,6 +224,6 @@ namespace ABB.SrcML.Data.Test {
             Assert.IsTrue(TestHelper.ScopesAreEqual(scope1, scope2));
         }
 
-
+        
     }
 }
