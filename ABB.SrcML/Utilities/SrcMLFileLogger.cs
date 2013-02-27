@@ -10,6 +10,16 @@ using log4net.Repository.Hierarchy;
 
 namespace ABB.SrcML.Utilities {
     public class SrcMLFileLogger {
+
+        /*
+        public static string MyLoggerName { get; set; }
+
+        public static ILog CreateFileLogger(string loggerName) {
+            MyLoggerName = loggerName;
+            return LogManager.GetLogger(loggerName);
+        }
+        */
+
         public static ILog CreateFileLogger(string loggerName, string filePath) {
             var appender = CreateFileAppender(loggerName + "Appender", filePath);
             AddAppender(loggerName, appender);
@@ -21,6 +31,14 @@ namespace ABB.SrcML.Utilities {
                 return LogManager.GetLogger("DefaultLogger");
             }
         }
+
+        /*
+        public static ILog MyLogger {
+            get {
+                return LogManager.GetLogger(MyLoggerName);
+            }
+        }
+        */
 
         private static void AddAppender(string loggerName, IAppender appender) {
             var log = LogManager.GetLogger(loggerName);
@@ -40,7 +58,7 @@ namespace ABB.SrcML.Utilities {
             };
 
             var layout = new PatternLayout {
-                ConversionPattern = "%date %-5level %logger - %message%newline"
+                ConversionPattern = "%date %-5level %logger - %message%newline "
             };
             layout.ActivateOptions();
 
@@ -53,6 +71,7 @@ namespace ABB.SrcML.Utilities {
         static SrcMLFileLogger() {
             var fileInfo = new FileInfo(Assembly.GetCallingAssembly().Location);
             var defaultLogPath = Path.Combine(fileInfo.DirectoryName, "SrcML.NETService" + Guid.NewGuid() + ".log");
+            //var defaultLogPath = Path.Combine("C:\\Data\\", "SrcML.NETServicee_" + MyLoggerName + "_" + Guid.NewGuid() + ".log");
             CreateDefaultLogger(defaultLogPath);
         }
 

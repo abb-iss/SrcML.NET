@@ -69,6 +69,11 @@ namespace ABB.SrcML {
         public event EventHandler StartupCompleted;
 
         /// <summary>
+        /// Event fires when <see cref="StopMonitoring()"/> is completed
+        /// </summary>
+        public event EventHandler MonitoringStopped;
+
+        /// <summary>
         /// Gets the list of source files from the object being monitored
         /// </summary>
         /// <returns>An enumerable of files to be monitored</returns>
@@ -119,6 +124,8 @@ namespace ABB.SrcML {
         /// </summary>
         public virtual void StopMonitoring() {
             Dispose();
+
+            OnMonitoringStopped(new EventArgs());
         }
 
         /// <summary>
@@ -226,6 +233,17 @@ namespace ABB.SrcML {
         }
 
         /// <summary>
+        /// event handler for <see cref="FileChanged"/>
+        /// </summary>
+        /// <param name="e">event arguments</param>
+        protected virtual void OnFileChanged(FileEventRaisedArgs e) {
+            EventHandler<FileEventRaisedArgs> handler = FileChanged;
+            if(handler != null) {
+                handler(this, e);
+            }
+        }
+
+        /// <summary>
         /// event handler for <see cref="StartupCompleted"/>
         /// </summary>
         /// <param name="e">null event</param>
@@ -237,11 +255,11 @@ namespace ABB.SrcML {
         }
 
         /// <summary>
-        /// event handler for <see cref="FileChanged"/>
+        /// event handler for <see cref="MonitoringStopped"/>
         /// </summary>
-        /// <param name="e">event arguments</param>
-        protected virtual void OnFileChanged(FileEventRaisedArgs e) {
-            EventHandler<FileEventRaisedArgs> handler = FileChanged;
+        /// <param name="e">null event</param>
+        protected virtual void OnMonitoringStopped(EventArgs e) {
+            EventHandler handler = MonitoringStopped;
             if(handler != null) {
                 handler(this, e);
             }

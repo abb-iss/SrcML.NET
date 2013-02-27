@@ -10,6 +10,7 @@
  *****************************************************************************/
 using System;
 using System.Runtime.InteropServices;
+using System.Xml.Linq;
 
 namespace ABB.SrcML.VisualStudio.SrcMLService {
     /// <summary>
@@ -26,10 +27,14 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
         event EventHandler<FileEventRaisedArgs> SourceFileChanged;
         event EventHandler<EventArgs> StartupCompleted;
-        //event EventHandler<EventArgs> MonitoringStopped;
+        event EventHandler<EventArgs> MonitoringStopped;
 
         void StartMonitering();
+        void StartMonitering(string srcMlArchiveDirectory, bool useExistingSrcML);
         void StopMonitoring();
+        SrcMLArchive GetSrcMLArchive();
+        XElement GetXElementForSourceFile(string sourceFilePath); 
+
     }
 
     /// <summary>

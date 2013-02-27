@@ -230,10 +230,11 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// Set up log4net logger.
         /// </summary>
         private void SetUpLogger() {
+            //var logFilePath = Path.Combine("D:\\Data\\", this.ToString() + ".log");
+            //logger = SrcMLFileLogger.CreateFileLogger(this.ToString() + "Logger", logFilePath);
             var logFilePath = Path.Combine(extensionDirectory, "SrcML.NETService.log");
             logger = SrcMLFileLogger.CreateFileLogger("SrcMLServiceLogger", logFilePath);
-
-            SrcMLFileLogger.DefaultLogger.Info("> Set up log4net logger. [" + logFilePath + "]");
+            SrcMLFileLogger.DefaultLogger.Info("> Set up log4net logger.");
         }
 
         /// <summary>
