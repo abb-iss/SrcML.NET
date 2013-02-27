@@ -35,7 +35,8 @@ namespace ABB.SrcML.Data {
             MethodElementNames = new HashSet<XName>(new XName[] { SRC.Function, SRC.Constructor, SRC.Destructor,
                                                                   SRC.FunctionDeclaration, SRC.ConstructorDeclaration, SRC.DestructorDeclaration });
             NamespaceElementNames = new HashSet<XName>(new XName[] { SRC.Namespace });
-            VariableDeclarationElementNames = new HashSet<XName>(new XName[] { SRC.Declaration, SRC.DeclarationStatement, SRC.Parameter });
+            //VariableDeclarationElementNames = new HashSet<XName>(new XName[] { SRC.Declaration, SRC.DeclarationStatement, SRC.Parameter });
+            VariableDeclarationElementNames = new HashSet<XName>(new XName[] { SRC.Declaration, SRC.DeclarationStatement });
             ContainerReferenceElementNames = new HashSet<XName>(new XName[] { SRC.ClassDeclaration, SRC.StructDeclaration, SRC.UnionDeclaration,
                                                                                 SRC.ConstructorDeclaration, SRC.DestructorDeclaration, SRC.FunctionDeclaration });
         }
@@ -140,12 +141,12 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Creates a NamespaceDefinition object for the given element. This function looks for the namespace that contains <paramref name="element"/> and creates a definition based on that.
+        /// Creates a NamespaceDefinition object for the given namespace element. This must be one of the element types defined in NamespaceElementNames.
         /// </summary>
-        /// <param name="element">the element</param>
+        /// <param name="namespaceElement">the element</param>
         /// <param name="fileUnit">The file unit</param>
         /// <returns>a new NamespaceDefinition object</returns>
-        public abstract NamespaceDefinition CreateNamespaceDefinition(XElement element, XElement fileUnit);
+        public abstract NamespaceDefinition CreateNamespaceDefinition(XElement namespaceElement, XElement fileUnit);
 
         /// <summary>
         /// Creates a variable scope object for the given container. It adds all of the variables declared at this scope.

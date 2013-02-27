@@ -55,12 +55,16 @@ namespace ABB.SrcML.Data {
             return globalNamespace;
         }
         /// <summary>
-        /// Parses the java package statement from a file
+        /// Parses the java package statement from a file, and creates a NamespaceDefinition out of it.
         /// </summary>
-        /// <param name="element">The element to find the namespace for</param>
-        /// <param name="fileUnit">The file unit that contains <paramref name="element"/></param>
-        /// <returns>The namespace definition for the given element.</returns>
-        public override NamespaceDefinition CreateNamespaceDefinition(XElement element, XElement fileUnit) {
+        /// <param name="namespaceElement">This parameter is not used.</param>
+        /// <param name="fileUnit">The file unit</param>
+        /// <returns>The namespace definition for the file.</returns>
+        public override NamespaceDefinition CreateNamespaceDefinition(XElement namespaceElement, XElement fileUnit) {
+            if(fileUnit.Name != SRC.Unit) {
+                throw new ArgumentException("must be a SRC.Unit", "fileUnit");
+            }
+            
             var javaPackage = fileUnit.Descendants(SRC.Package).FirstOrDefault();
 
             var definition = new NamespaceDefinition();
