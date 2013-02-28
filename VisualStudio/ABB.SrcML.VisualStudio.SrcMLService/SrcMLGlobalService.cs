@@ -50,11 +50,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         private string SrcMLServiceDirectory;
 
         /// <summary>
-        /// The path of storing srcML files.
-        /// </summary>
-        //private string SrcMLArchiveDirectory;
-
-        /// <summary>
         /// Store in this variable the service provider that will be used to query for other services.
         /// </summary>
         private IServiceProvider serviceProvider;
@@ -263,17 +258,5 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 handler(this, e);
             }
         }
-
-
-
-        /*
-        private void SetUpLogger() {
-            var logFilePath = Path.Combine(SrcMLArchiveDirectory, this.ToString() + ".log");
-            
-            ILog logger = SrcMLFileLogger.CreateFileLogger("SrcMLServiceLogger", logFilePath);
-
-            SrcMLFileLogger.DefaultLogger.Info("in SrcMLGlobalService: Set up log4net logger. [" + logFilePath + "]");
-        }
-        */
     }
 }
