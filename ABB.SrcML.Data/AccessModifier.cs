@@ -24,6 +24,8 @@ namespace ABB.SrcML.Data {
         None = 0,
         /// <summary>Public</summary>
         Public,
+        /// <summary>Protected Internal, used in C#</summary>
+        ProtectedInternal,
         /// <summary>Protected</summary>
         Protected,
         /// <summary>Internal</summary>

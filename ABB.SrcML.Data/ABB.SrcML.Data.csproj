@@ -50,10 +50,13 @@
     <Compile Include="AccessModifier.cs" />
     <Compile Include="Alias.cs" />
     <Compile Include="BuiltInTypeFactory.cs" />
+    <Compile Include="Class1.cs" />
+    <Compile Include="CSharpCodeParser.cs" />
     <Compile Include="MethodCall.cs" />
     <Compile Include="NamedScope.cs" />
     <Compile Include="NameHelper.cs" />
     <Compile Include="NamedScopeUse.cs" />
+    <Compile Include="NamespaceUse.cs" />
     <Compile Include="ParameterDeclaration.cs" />
     <Compile Include="SourceLocation.cs" />
     <Compile Include="SrcMLElementVisitor.cs" />

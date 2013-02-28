@@ -18,7 +18,7 @@ namespace ABB.SrcML.Data {
         /// Creates a <see cref="NamedScope"/> object from this use (along with all of its descendants based on <see cref="ChildScopeUse"/>).
         /// </summary>
         /// <returns>A new named scope based on this use</returns>
-        public NamedScope CreateScope() {
+        public virtual NamedScope CreateScope() {
             var scope = new NamedScope() {
                 Name = this.Name,
                 ProgrammingLanguage = this.ProgrammingLanguage,
