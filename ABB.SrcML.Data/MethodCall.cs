@@ -19,12 +19,12 @@ namespace ABB.SrcML.Data {
     /// <summary>
     /// Represents a method call
     /// </summary>
-    public class MethodCall : AbstractUse<MethodDefinition> {
+    public class MethodCall : AbstractUse<MethodDefinition>, IResolvesToType {
         /// <summary>
         /// Creates a new MethodCall object
         /// </summary>
         public MethodCall() {
-            Arguments = new Collection<VariableUse>();
+            Arguments = new Collection<IResolvesToType>();
             IsConstructor = false;
             IsDestructor = false;
         }
@@ -32,7 +32,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The arguments to this call
         /// </summary>
-        public Collection<VariableUse> Arguments { get; set; }
+        public Collection<IResolvesToType> Arguments { get; set; }
 
         /// <summary>
         /// The calling object for this method
@@ -71,6 +71,7 @@ namespace ABB.SrcML.Data {
             }
             return base.FindMatches();
         }
+
         /// <summary>
         /// Tests if the provided method definition matches this method call
         /// </summary>
@@ -79,20 +80,44 @@ namespace ABB.SrcML.Data {
         public override bool Matches(MethodDefinition definition) {
             if(null == definition) return false;
 
-            var allParametersAreEqual = Enumerable.Zip(this.Arguments, definition.Parameters,
-                                                       (a,p) => ArgumentMatchesDefinition(a,p)).All(a => a);
+            var argumentsMatchParameters = Enumerable.Zip(this.Arguments, definition.Parameters,
+                                                          (a,p) => ArgumentMatchesDefinition(a,p));
 
             return this.IsConstructor == definition.IsConstructor &&
                    this.IsDestructor == definition.IsDestructor &&
                    this.Name == definition.Name &&
                    this.Arguments.Count == definition.Parameters.Count &&
-                   allParametersAreEqual;
+                   argumentsMatchParameters.All(a => a);
         }
 
-        private bool ArgumentMatchesDefinition(VariableUse argument, ParameterDeclaration parameter) {
-            var declarationsForArgument = argument.FindMatches();
-            
-            return declarationsForArgument.Any() && declarationsForArgument.First().VariableType.Name == parameter.VariableType.Name;
+        /// <summary>
+        /// Finds all of the matching type definitions for the return type of this method definition
+        /// </summary>
+        /// <returns>An enumerable of the matching type definitions for this method</returns>
+        public IEnumerable<TypeDefinition> FindMatchingTypes() {
+            var possibleReturnTypes = from methodDefinition in FindMatches()
+                                      where methodDefinition.ReturnType != null
+                                      from typeDefinition in methodDefinition.ReturnType.FindMatches()
+                                      select typeDefinition;
+            return possibleReturnTypes;
+        }
+
+        public TypeDefinition FindFirstMatchingType() {
+            return FindMatchingTypes().FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Computes the intersection of the matching types for <paramref name="argument"/> and <paramref name="parameter"/>.
+        /// It returns true if the intersection has any elements in it.
+        /// </summary>
+        /// <param name="argument">an argument from <see cref="Arguments"/></param>
+        /// <param name="parameter">a parameter from <see cref="MethodDefinition.Parameters"/></param>
+        /// <returns>true if the argument and the parameter have a matching type in common; false otherwise</returns>
+        private bool ArgumentMatchesDefinition(IResolvesToType argument, ParameterDeclaration parameter) {
+            var possibleArgumentTypes = argument.FindMatchingTypes();
+            var possibleParameterTypes = parameter.VariableType.FindMatchingTypes();
+
+            return possibleArgumentTypes.Intersect(possibleParameterTypes).Any();
         }
     }
 }

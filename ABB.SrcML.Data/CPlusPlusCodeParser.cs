@@ -259,5 +259,29 @@ namespace ABB.SrcML.Data {
                 }
             }
         }
+
+        public override string GetTypeForBooleanLiteral(string literalValue) {
+            return "bool";
+        }
+
+        public override string GetTypeForCharacterLiteral(string literalValue) {
+            return "char";
+        }
+
+        public override string GetTypeForNumberLiteral(string literalValue) {
+            // rules taken from: http://www.cplusplus.com/doc/tutorial/constants/
+            // double rules: contains '.', 'e', 'E'
+            //   long double also ends in 'L'
+            // float: ends in 'f' or 'F'
+            if(literalValue.cont
+            // otherwise it's an integer
+            // ends with 'u' indicates "unsigned int"
+            // ends with 'l' indicates "long"
+            // ends with 'ul' indicates "unsigned long"
+        }
+
+        public override string GetTypeForStringLiteral(string literalValue) {
+            return "char*";
+        }
     }
 }

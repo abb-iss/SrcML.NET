@@ -20,7 +20,7 @@ namespace ABB.SrcML.Data {
     /// <summary>
     /// Represents a use of a type. It is used in declarations and inheritance specifications.
     /// </summary>
-    public class TypeUse : AbstractUse<TypeDefinition> {
+    public class TypeUse : AbstractUse<TypeDefinition>, IResolvesToType {
         /// <summary>
         /// Create a new type use object.
         /// </summary>
@@ -49,6 +49,18 @@ namespace ABB.SrcML.Data {
         /// <returns>true if the definitions match; false otherwise</returns>
         public override bool Matches(TypeDefinition definition) {
             return definition != null && definition.Name == this.Name;
+        }
+
+        /// <summary>
+        /// This is just a call to <see cref="FindMatches()"/>
+        /// </summary>
+        /// <returns>The matching type definitions for this use</returns>
+        public IEnumerable<TypeDefinition> FindMatchingTypes() {
+            return this.FindMatches();
+        }
+
+        public TypeDefinition FindFirstMatchingType() {
+            return this.FindMatches().FirstOrDefault();
         }
     }
 }

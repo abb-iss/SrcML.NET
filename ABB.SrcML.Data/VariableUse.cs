@@ -18,7 +18,7 @@ namespace ABB.SrcML.Data {
     /// <summary>
     /// The variable use class represents a use of a variable.
     /// </summary>
-    public class VariableUse : AbstractUse<VariableDeclaration> {
+    public class VariableUse : AbstractUse<VariableDeclaration>, IResolvesToType {
 
         /// <summary>
         /// Searches through the <see cref="Scope.DeclaredVariables"/> to see if any of them <see cref="Matches(VariableDeclaration)">matches</see>
@@ -41,6 +41,22 @@ namespace ABB.SrcML.Data {
         /// <returns>true if this matches the variable declaration; false otherwise</returns>
         public override bool Matches(VariableDeclaration definition) {
             return definition != null && definition.Name == this.Name;
+        }
+
+        /// <summary>
+        /// Finds all of the matching type definitions for all of the variable declarations that match this variable use
+        /// </summary>
+        /// <returns>An enumerable of matching type definitions</returns>
+        public IEnumerable<TypeDefinition> FindMatchingTypes() {
+            var typeDefinitions = from declaration in FindMatches()
+                                  where declaration.VariableType != null
+                                  from typeDefinition in declaration.VariableType.FindMatches()
+                                  select typeDefinition;
+            return typeDefinitions;
+        }
+
+        public TypeDefinition FindFirstMatchingType() {
+            return FindMatchingTypes().FirstOrDefault();
         }
     }
 }
