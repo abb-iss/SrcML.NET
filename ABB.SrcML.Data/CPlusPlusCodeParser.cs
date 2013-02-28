@@ -28,7 +28,8 @@ namespace ABB.SrcML.Data {
         public CPlusPlusCodeParser() {
             this.SpecifierContainerNames = new HashSet<XName>(new XName[] { SRC.Private, SRC.Protected, SRC.Public });
             this.TypeElementNames = new HashSet<XName>(new XName[] { SRC.Class, SRC.Enum, SRC.Struct, SRC.Union });
-            this.VariableDeclarationElementNames = new HashSet<XName>(new XName[] { SRC.Declaration,SRC.DeclarationStatement, SRC.Parameter, SRC.FunctionDeclaration });
+            //this.VariableDeclarationElementNames = new HashSet<XName>(new XName[] { SRC.Declaration,SRC.DeclarationStatement, SRC.Parameter, SRC.FunctionDeclaration });
+            this.VariableDeclarationElementNames = new HashSet<XName>(new XName[] { SRC.Declaration, SRC.DeclarationStatement, SRC.FunctionDeclaration });
         }
         /// <summary>
         /// Returns <c>Language.CPlusPlus</c>
@@ -43,14 +44,21 @@ namespace ABB.SrcML.Data {
         public HashSet<XName> SpecifierContainerNames { get; set; }
 
         /// <summary>
-        /// Finds all of the namespace blocks that wrap this <paramref name="element"/>. It then creates the namespace name.
+        /// Creates a NamespaceDefinition object for the given namespace element. This must be one of the element types defined in NamespaceElementNames.
         /// </summary>
-        /// <param name="element">The element to find the namespace for</param>
-        /// <param name="fileUnit">The file unit that contains <paramref name="element"/></param>
-        /// <returns>The namespace definition for the given element.</returns>
-        public override NamespaceDefinition CreateNamespaceDefinition(XElement element, XElement fileUnit) {
+        /// <param name="namespaceElement">the element</param>
+        /// <param name="fileUnit">The file unit</param>
+        /// <returns>a new NamespaceDefinition object</returns>
+        public override NamespaceDefinition CreateNamespaceDefinition(XElement namespaceElement, XElement fileUnit) {
+            if(namespaceElement == null)
+                throw new ArgumentNullException("namespaceElement");
+            if(fileUnit == null)
+                throw new ArgumentNullException("fileUnit");
+            if(!NamespaceElementNames.Contains(namespaceElement.Name))
+                throw new ArgumentException("must be a SRC.Unit", "fileUnit");
+
             var namespaceName = string.Empty;
-            var name = element.Element(SRC.Name);
+            var name = namespaceElement.Element(SRC.Name);
             if(null != name) {
                 namespaceName = name.Value;
             }
