@@ -29,8 +29,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         event EventHandler<EventArgs> StartupCompleted;
         event EventHandler<EventArgs> MonitoringStopped;
 
-        void StartMonitering();
-        void StartMonitering(string srcMlArchiveDirectory, bool useExistingSrcML);
+        void StartMonitoring();
+        void StartMonitoring(string srcMlArchiveDirectory, bool useExistingSrcML, string srcMLBinaryDirectory);
         void StopMonitoring();
         SrcMLArchive GetSrcMLArchive();
         XElement GetXElementForSourceFile(string sourceFilePath); 

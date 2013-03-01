@@ -381,7 +381,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         private void RespondToSolutionOpened(object sender, DoWorkEventArgs eventArgs) {
             SrcMLFileLogger.DefaultLogger.Info("> SrcML service starts monitoring the opened solution.");
 
-            srcMLService.StartMonitering();
+            srcMLService.StartMonitoring();
         }
 
         /// <summary>

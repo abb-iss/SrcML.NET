@@ -109,7 +109,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// </summary>
         /// <param name="srcMLArchiveDirectory"></param>
         /// <param name="useExistingSrcML"></param>
-        public void StartMonitering(string srcMLArchiveDirectory, bool useExistingSrcML) {
+        public void StartMonitoring(string srcMLArchiveDirectory, bool useExistingSrcML, string srcMLBinaryDirectory) {
             SrcMLFileLogger.DefaultLogger.Info("SrcMLGlobalService.StartMonitering(" + srcMLArchiveDirectory + ")");
 
             try {
@@ -117,7 +117,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 LastModifiedArchive lastModifiedArchive = new LastModifiedArchive(srcMLArchiveDirectory);
 
                 // Create a new instance of SrcML.NET's SrcMLArchive
-                CurrentSrcMLArchive = new SrcMLArchive(srcMLArchiveDirectory, useExistingSrcML);
+                CurrentSrcMLArchive = new SrcMLArchive(srcMLArchiveDirectory, useExistingSrcML, new SrcMLGenerator(srcMLBinaryDirectory));
 
                 // Create a new instance of SrcML.NET's solution monitor
                 CurrentMonitor = SolutionMonitorFactory.CreateMonitor(srcMLArchiveDirectory, lastModifiedArchive, CurrentSrcMLArchive);
@@ -137,9 +137,9 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <summary>
         /// SrcML service starts to monitor the opened solution.
         /// </summary>
-        public void StartMonitering() {
+        public void StartMonitoring() {
             string srcMLArchiveDirectory = GetSrcMLArchiveFolder(SolutionMonitorFactory.GetOpenSolution());
-            StartMonitering(srcMLArchiveDirectory, true);
+            StartMonitoring(srcMLArchiveDirectory, true, SrcMLHelper.GetSrcMLDefaultDirectory());
         }
 
         /// <summary>
