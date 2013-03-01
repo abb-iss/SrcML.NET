@@ -32,6 +32,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DeployExtension>False</DeployExtension>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -48,7 +49,7 @@
       <HintPath>..\..\packages\log4net.2.0.0\lib\net40-full\log4net.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
-	<Reference Include="Microsoft.VisualStudio.OLE.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <Reference Include="Microsoft.VisualStudio.OLE.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\External\VisualStudio\VSSDK\Microsoft.VisualStudio.OLE.Interop.dll</HintPath>
     </Reference>
@@ -219,16 +220,16 @@
   </Target>
   -->
   <UsingTask TaskName="SetVsSDKEnvironmentVariables" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
-  <ParameterGroup>
-    <ProjectDirectory Required="true" />
-  </ParameterGroup>
-  <Task>
-    <Code Type="Fragment" Language="cs">
+    <ParameterGroup>
+      <ProjectDirectory Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Code Type="Fragment" Language="cs">
       System.Environment.SetEnvironmentVariable("VsSDKToolsPath", System.IO.Path.GetFullPath(ProjectDirectory + @"\..\..\External\VisualStudio\VSSDK\Bin"));
     </Code>
-  </Task>
-</UsingTask>
-<Target Name="SetVsSDKEnvironmentVariables" BeforeTargets="VSCTCompile">
-  <SetVsSDKEnvironmentVariables ProjectDirectory="$(MSBuildProjectDirectory)" />
-</Target> 
+    </Task>
+  </UsingTask>
+  <Target Name="SetVsSDKEnvironmentVariables" BeforeTargets="VSCTCompile">
+    <SetVsSDKEnvironmentVariables ProjectDirectory="$(MSBuildProjectDirectory)" />
+  </Target>
 </Project>
