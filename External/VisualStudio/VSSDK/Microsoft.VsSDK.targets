@@ -14,6 +14,7 @@ PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
   <Import Project="Microsoft.VsSDK.Common.targets" />
 
   <UsingTask TaskName="CtoResourceMerger" AssemblyFile="Microsoft.VsSDK.Build.Tasks.dll" />
+  <UsingTask TaskName="MPLex" AssemblyFile="Microsoft.VsSDK.Build.Tasks.dll" />
   <UsingTask TaskName="CreatePkgDef" AssemblyFile="Microsoft.VsSDK.Build.Tasks.dll" />
   <UsingTask TaskName="CopyIfChanged" AssemblyFile="Microsoft.VsSDK.Build.Tasks.dll" />
   <UsingTask TaskName="VsTemplatePaths" AssemblyFile="Microsoft.VsSDK.Build.Tasks.dll" />
@@ -31,12 +32,10 @@ PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
   <UsingTask TaskName="ReadReferencesFromVsixManifest" AssemblyFile="Microsoft.VsSDK.Build.Tasks.dll" />
   <UsingTask TaskName="DetokenizeVsixManifestSource" AssemblyFile="Microsoft.VsSDK.Build.Tasks.dll" />
   <UsingTask TaskName="ValidateVsixManifest" AssemblyFile="Microsoft.VsSDK.Build.Tasks.dll" />
-  <UsingTask TaskName="ValidateVsixParts" AssemblyFile="Microsoft.VsSDK.Build.Tasks.dll" />
   <UsingTask TaskName="Devenv" AssemblyFile="Microsoft.VsSDK.Build.Tasks.dll" />
   <UsingTask TaskName="CheckProfileSetup" AssemblyFile="Microsoft.VsSDK.Build.Tasks.dll" />
   <UsingTask TaskName="CreateVsixSourceItemFromReferences" AssemblyFile="Microsoft.VsSDK.Build.Tasks.dll" />
   <UsingTask TaskName="SplitIncludeOutputGroupsInVSIX" AssemblyFile="Microsoft.VsSDK.Build.Tasks.dll" />
-  <UsingTask TaskName="ReadInfoFromVsixManifest" AssemblyFile="Microsoft.VsSDK.Build.Tasks.dll" />
 
   <PropertyGroup>
     <DeployVSTemplates Condition="'$(DeployVSTemplates)' == ''">true</DeployVSTemplates>
@@ -72,7 +71,7 @@ PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
     <VsixSchemaPath Condition="'$(VsixSchemaPath)' == ''"></VsixSchemaPath>
   </PropertyGroup>
   <Target Name="ValidateVsixManifest" DependsOnTargets="$(ValidateVsixManifestDependsOn)">
-    <ValidateVsixManifest Condition="Exists('@(SourceVsixManifest)') AND '$(BypassVsixValidation)' != 'true'" ItemToValidate="@(SourceVsixManifest)" VsixSchemaPath="$(VsixSchemaPath)">
+    <ValidateVsixManifest Condition="Exists('@(SourceVsixManifest)')" ItemToValidate="@(SourceVsixManifest)" BypassVsixValidation="$(BypassVsixValidation)" VsixSchemaPath="$(VsixSchemaPath)">
     </ValidateVsixManifest>
   </Target>
 
@@ -111,7 +110,7 @@ PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
     <MSBuild Projects="@(_VsixManifestReferencesToResolve)"
          Properties="%(_VsixManifestReferencesToResolve.SetConfiguration); %(_VsixManifestReferencesToResolve.SetPlatform)"
          Targets="%(_VsixManifestReferencesToResolve.OutputGroupToResolve)"
-         RebaseOutputs="false">
+         RebaseOutputs="true">
       <Output TaskParameter="TargetOutputs" ItemName="_VsixManifestResolvedReferences"/>
     </MSBuild>
 
@@ -164,8 +163,7 @@ PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
     <TargetVsixContainerName Condition="'$(TargetVsixContainerName)'==''">$(TargetName).vsix</TargetVsixContainerName>
     <TargetVsixContainer Condition="'$(TargetVsixContainer)'==''">$(OutDir)$(TargetVsixContainerName)</TargetVsixContainer>
     <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);AssignProjectConfiguration;DetokenizeVsixManifestFile;ZipProjects;ZipItems</GetVsixSourceItemsDependsOn>
-    <ValidateVsixPartsDependsOn>$(ValidateVsixPartsDependsOn);GetVsixSourceItems</ValidateVsixPartsDependsOn>
-    <CreateVsixContainerDependsOn>$(CreateVsixContainerDependsOn);ValidateVsixParts</CreateVsixContainerDependsOn>
+    <CreateVsixContainerDependsOn>$(CreateVsixContainerDependsOn);GetVsixSourceItems</CreateVsixContainerDependsOn>
 
     <!--By default, only include items necessary for executing. 
         Exclude debug symbols & documentation files.-->
@@ -274,7 +272,7 @@ PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
       <ProjectReferenceWithConfiguration Condition="'%(ProjectReferenceWithConfiguration.Private)' != 'false' AND 
                                                     '%(ProjectReferenceWithConfiguration.IncludeOutputGroupsInVSIX)' == '' AND 
                                                     '%(ProjectReferenceWithConfiguration.IncludeOutputGroupsInVSIXLocalOnly)' == ''">
-        <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;BuiltProjectOutputGroupDependencies;GetCopyToOutputDirectoryItems;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
+        <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;BuiltProjectOutputGroupDependencies;GetCopyToOutputDirectoryItems</IncludeOutputGroupsInVSIX>
         <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup;</IncludeOutputGroupsInVSIXLocalOnly>
       </ProjectReferenceWithConfiguration>
     </ItemGroup>
@@ -337,18 +335,6 @@ PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
         <VSIXSubPath Condition="'%(VSIXSourceItemLocalOnly.TemplateSubPath)'!=''">%(VSIXSourceItemLocalOnly.VSIXSubPath)\%(VSIXSourceItemLocalOnly.TemplateSubPath)</VSIXSubPath>
       </VSIXSourceItemLocalOnly>
     </ItemGroup>
-  </Target>
-
-  <!-- Validate the source items for the VSIX. Namely ensure EULA is below 1 MB in size. -->
-  <Target
-    Name="ValidateVsixParts"
-    DependsOnTargets="$(ValidateVsixPartsDependsOn)">
-
-    <ValidateVsixParts
-        Condition="'$(BypassVsixValidation)' != 'true'"
-        Manifest="$(IntermediateVsixManifest)"
-        Files="@(VSIXSourceItem)">
-    </ValidateVsixParts>
   </Target>
 
   <Target
@@ -548,7 +534,7 @@ PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
   <!--
     ============================================================
              VSIXContainerProjectOutputGroup
-             
+
       Used for determining the VSIX Container that this project
       builds from other projects that reference it.
     ============================================================
@@ -563,61 +549,6 @@ PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
 
     <ItemGroup Condition="'$(CreateVsixContainer)'=='true'">
       <VSIXContainerOutputGroupOutput Include="@(_VSIXContainerOutputGroupOutput->'%(FullPath)')" />
-    </ItemGroup>
-  </Target>
-
-  <PropertyGroup>
-    <VSIXNameProjectOutputGroupDependsOn>$(VSIXIdentifierProjectOutputGroupDependsOn);FindSourceVsixManifest</VSIXNameProjectOutputGroupDependsOn>
-  </PropertyGroup>
-
-  <!--
-    ============================================================
-             VSIXNameProjectOutputGroup
-
-     Used for determining the Name of a VSIX from another project.
-    ============================================================
-    -->
-  <Target Name="VSIXNameProjectOutputGroup"
-          Outputs="@(VSIXNameProjectOutputGroup)"
-          DependsOnTargets="$(VSIXNameProjectOutputGroupDependsOn)">
-
-    <PropertyGroup>
-      <_VSIXName></_VSIXName>
-    </PropertyGroup>
-
-    <ReadInfoFromVsixManifest VsixManifest="@(SourceVsixManifest)" >
-      <Output TaskParameter="VsixName" PropertyName="_VSIXName" />
-    </ReadInfoFromVsixManifest>
-
-    <ItemGroup>
-      <VSIXNameProjectOutputGroup Include="$(_VSIXName)" />
-    </ItemGroup>
-  </Target>
-
-  <PropertyGroup>
-    <VSIXIdentifierProjectOutputGroupDependsOn>$(VSIXIdentifierProjectOutputGroupDependsOn);FindSourceVsixManifest</VSIXIdentifierProjectOutputGroupDependsOn>
-  </PropertyGroup>
-  <!--
-    ============================================================
-             VSIXIdentifierProjectOutputGroup
-
-     Used for determining the Identifier of a VSIX from another project.
-    ============================================================
-    -->
-  <Target Name="VSIXIdentifierProjectOutputGroup"
-          Outputs="@(VSIXIdentifierProjectOutputGroup)"
-          DependsOnTargets="$(VSIXIdentifierProjectOutputGroupDependsOn)">
-
-    <PropertyGroup>
-      <_VSIXIdentifier></_VSIXIdentifier>
-    </PropertyGroup>
-
-    <ReadInfoFromVsixManifest VsixManifest="@(SourceVsixManifest)" >
-      <Output TaskParameter="VsixId" PropertyName="_VSIXIdentifier" />
-    </ReadInfoFromVsixManifest>
-
-    <ItemGroup>
-      <VSIXIdentifierProjectOutputGroup Include="$(_VSIXIdentifier)" />
     </ItemGroup>
   </Target>
 
@@ -724,6 +655,68 @@ PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
 
   <!--
     =======================================================================================================
+                                       Generate code from LEX files
+    =======================================================================================================
+  -->
+  <PropertyGroup>
+    <!--Make sure that the lexer runs before the C# compiler-->
+    <CoreCompileDependsOn>$(CoreCompileDependsOn);GenerateCodeFromLex</CoreCompileDependsOn>
+  </PropertyGroup>
+  <!--
+    TODO: When MPLex.exe will allow us to specify the name / path of the output file we should change this
+    target to use custom output names and use @(MPLexCompile->'$(IntermediateOutputPath)%(FileName).cs')
+    as default.
+  -->
+  <Target Name="GenerateCodeFromLex"
+          Condition="'$(BuildingProject)'!='false'"
+          Inputs="@(MPLexCompile);$(LexFrameFile)"
+          Outputs="@(MPLexCompile->'$(IntermediateOutputPath)%(FileName).cs')"
+          DependsOnTargets="$(GenerateCodeFromLexDependsOn)">
+
+    <MPLex InputFile="@(MPLexCompile)"
+           OutputFile="@(MPLexCompile->'$(IntermediateOutputPath)%(FileName).cs')"
+           CompressTables="$(CompressTables)"
+           FrameFile="$(LexFrameFile)"
+           SDKVersion="$(VsSDKVersion)">
+      <Output TaskParameter="OutputFile" ItemName="Compile" />
+      <Output TaskParameter="OutputFile" ItemName="FileWrites"/>
+    </MPLex>
+
+  </Target>
+
+  <!--
+    =======================================================================================================
+                                      Generate parser code from Y files
+    =======================================================================================================
+  -->
+  <PropertyGroup>
+    <GenerateParserCodeFromGrammarDependsOn>$(GenerateParserCodeFromGrammarDependsOn);FindSDKInstallation</GenerateParserCodeFromGrammarDependsOn>
+    <CoreCompileDependsOn>$(CoreCompileDependsOn);GenerateParserCodeFromGrammar</CoreCompileDependsOn>
+  </PropertyGroup>
+  <Target Name="GenerateParserCodeFromGrammar"
+          Condition="'$(BuildingProject)'!='false'"
+          Inputs="@(MPPGCompile)"
+          Outputs="@(MPPGCompile->'$(IntermediateOutputPath)%(FileName).cs')"
+          DependsOnTargets="$(GenerateParserCodeFromGrammarDependsOn)">
+
+    <!--Check if there are .lex files in the project because in this case mppg should generate the base classes
+        used by the code generated by MPLex-->
+    <CreateProperty Value="-mplex" Condition="'@(MPLexCompile)' != ''">
+      <Output TaskParameter="ValueSetByTask" PropertyName="__GenerateForMPLex" />
+    </CreateProperty>
+
+    <!--Run the command line tool that generates the cs files.-->
+    <Exec Command="&quot;$(VsSDKToolsPath)\MPPG.exe&quot; $(__GenerateForMPLex) @(MPPGCompile->'&quot;%(Identity)&quot;') > @(MPPGCompile->'&quot;$(IntermediateOutputPath)%(FileName).cs&quot;')" />
+
+    <!--Add the generated files to the list of the files to compile.-->
+    <CreateItem Include="@(MPPGCompile->'$(IntermediateOutputPath)%(FileName).cs')">
+      <Output TaskParameter="Include" ItemName="Compile" />
+      <Output TaskParameter="Include" ItemName="FileWrites"/>
+    </CreateItem>
+  </Target>
+
+  <!--
+    =======================================================================================================
                                          Generating PkgDef File
     =======================================================================================================
   -->
@@ -754,16 +747,11 @@ PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
               ProductVersion="$(TargetVSVersion)"
               SDKVersion="$(VsSDKVersion)"
               OutputFile="$(IntermediateOutputPath)$(TargetName).latest.pkgdef"
-              UseCodebase="$(UseCodebase)"
+              UseCodebase="$(UseCodebase)" 
               ReferencedAssemblies="@(ReferencePath)"  />
     <CopyIfChanged Condition="Exists('$(IntermediateOutputPath)$(TargetName).latest.pkgdef')"
                    SourceFile="$(IntermediateOutputPath)$(TargetName).latest.pkgdef"
                    DestinationFile="$(IntermediateOutputPath)$(TargetName).pkgdef" />
-
-    <!-- If the CTO file was changed, touch the pkgdef file to cause a re-merge -->
-    <Touch Files="$(IntermediateOutputPath)$(TargetName).pkgdef"
-           Condition="'$(CTOFileHasChanged)'=='true' AND Exists('$(IntermediateOutputPath)$(TargetName).pkgdef')" />
-
     <ItemGroup>
       <FileWrites Include="$(IntermediateOutputPath)$(TargetName).pkgdef" Condition="Exists('$(IntermediateOutputPath)$(TargetName).pkgdef')"/>
       <FileWrites Include="$(IntermediateOutputPath)$(TargetName).latest.pkgdef" Condition="Exists('$(IntermediateOutputPath)$(TargetName).latest.pkgdef')"/>
@@ -837,6 +825,8 @@ PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
   </PropertyGroup>
 
   <Target Name="CopyPkgDef"
+          Inputs="$(IntermediateOutputPath)$(TargetName).pkgdef"
+          Outputs="$(OutDir)$(TargetName).pkgdef"
           Condition="'$(GeneratePkgDefFile)'=='true'"
           DependsOnTargets="$(CopyPkgDefDependsOn)">
 
@@ -1106,7 +1096,7 @@ PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
     <Message Importance="High" Text="$(MSBuildProjectName) -&gt; @(_ZipItemOutDir->'%(FullPath)')" />
 
   </Target>
-
+  
   <!--Provide support for setting type (BuildAction) to ZipProject/ZipItem from VS-->
   <ItemGroup>
     <AvailableItemName Include="VSTemplate"/>

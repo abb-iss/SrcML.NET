@@ -21,45 +21,12 @@ PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   <!--
     Set the general properties for this installation of the SDK
   -->
   <PropertyGroup>
-    <VsSDKVersion>11.0</VsSDKVersion>
-    <VSSDKTargetPlatformVersion>11.0</VSSDKTargetPlatformVersion>
+    <VsSDKVersion>10.0</VsSDKVersion>
+    <VSSDKTargetPlatformVersion>10.0</VSSDKTargetPlatformVersion>
     <VSSDKTargetsPath>$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VsSDKVersion)\VSSDK</VSSDKTargetsPath>
     <VSSDKTargetPlatformRegRoot>Software\Microsoft\VisualStudio\$(VSSDKTargetPlatformVersion)</VSSDKTargetPlatformRegRoot>
     <VSSDKTargetPlatformRegRootSuffix Condition="'$(VSSDKTargetPlatformRegRootSuffix)' == ''">Exp</VSSDKTargetPlatformRegRootSuffix>
