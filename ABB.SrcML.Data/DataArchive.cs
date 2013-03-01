@@ -92,7 +92,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="pathToNewFile">the path to the source file that changed</param>
         private void RespondToSourceFileAddition(string pathToNewFile) {
-            var updatedFileUnit = GetXElementForSourceFile(pathToNewFile);
+            var updatedFileUnit = Archive.GetXElementForSourceFile(pathToNewFile);
 
             LoadTypesFromFile(updatedFileUnit);
         }
@@ -121,17 +121,7 @@ namespace ABB.SrcML.Data {
         }
         #endregion
         
-        /// <summary>
-        /// Get the XElement corresponding to a source file.
-        /// </summary>
-        /// <param name="pathToSourceFile">The path to the source file on disk</param>
-        /// <returns>The file unit element for the source file</returns>
-        private XElement GetXElementForSourceFile(string pathToSourceFile) {
-            var pathToXmlFile = this.Archive.GetXmlPathForSourcePath(pathToSourceFile);
-
-            var fileUnit = XElement.Load(pathToXmlFile);
-            return fileUnit;
-        }
+        
 
     }
 }

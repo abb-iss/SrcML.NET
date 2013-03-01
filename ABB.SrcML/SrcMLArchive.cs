@@ -20,19 +20,68 @@ using System.Xml.Linq;
 using ABB.SrcML.Utilities;
 
 namespace ABB.SrcML {
-    public class SrcMLArchive : AbstractArchive {
+    public class SrcMLArchive : AbstractArchive, IDisposable {
         private BackgroundWorker startupWorker;
+        private XmlFileNameMapping xmlFileNameMapping;
         
+        /// <summary>
+        /// Creates a new SrcMLArchive.
+        /// </summary>
+        /// <param name="fileMonitor">An IFileMonitor to indicate which files to convert to SrcML.</param>
+        /// <param name="xmlDirectory">The directory to store the SrcML files in.</param>
         public SrcMLArchive(IFileMonitor fileMonitor, string xmlDirectory)
-            : this(fileMonitor, xmlDirectory, new SrcMLGenerator()) {}
+            : this(fileMonitor, xmlDirectory, true) {}
 
-        public SrcMLArchive(IFileMonitor fileMonitor, string xmlDirectory, SrcMLGenerator generator) {
+        /// <summary>
+        /// Creates a new SrcMLArchive.
+        /// </summary>
+        /// <param name="fileMonitor">An IFileMonitor to indicate which files to convert to SrcML.</param>
+        /// <param name="xmlDirectory">The directory to store the SrcML files in.</param>
+        /// <param name="useExistingSrcML">If True, any existing SrcML files in <paramref name="xmlDirectory"/> will be used. If False, these files will be deleted and potentially recreated.</param>
+        public SrcMLArchive(IFileMonitor fileMonitor, string xmlDirectory, bool useExistingSrcML)
+            : this(fileMonitor, xmlDirectory, useExistingSrcML, new SrcMLGenerator()) {}
+
+        /// <summary>
+        /// Creates a new SrcMLArchive.
+        /// </summary>
+        /// <param name="fileMonitor">An IFileMonitor to indicate which files to convert to SrcML.</param>
+        /// <param name="xmlDirectory">The directory to store the SrcML files in.</param>
+        /// <param name="generator">The SrcMLGenerator to use to convert source files to SrcML.</param>
+        public SrcMLArchive(IFileMonitor fileMonitor, string xmlDirectory, SrcMLGenerator generator)
+            : this(fileMonitor, xmlDirectory, true, generator) {}
+
+        /// <summary>
+        /// Creates a new SrcMLArchive.
+        /// </summary>
+        /// <param name="fileMonitor">An IFileMonitor to indicate which files to convert to SrcML.</param>
+        /// <param name="xmlDirectory">The directory to store the SrcML files in.</param>
+        /// <param name="useExistingSrcML">If True, any existing SrcML files in <paramref name="xmlDirectory"/> will be used. If False, these files will be deleted and potentially recreated.</param>
+        /// <param name="generator">The SrcMLGenerator to use to convert source files to SrcML.</param>
+        public SrcMLArchive(IFileMonitor fileMonitor, string xmlDirectory, bool useExistingSrcML, SrcMLGenerator generator)
+            : this(fileMonitor, xmlDirectory, useExistingSrcML, generator, new ShortXmlFileNameMapping(xmlDirectory)) {}
+
+        /// <summary>
+        /// Creates a new SrcMLArchive.
+        /// </summary>
+        /// <param name="fileMonitor">An IFileMonitor to indicate which files to convert to SrcML.</param>
+        /// <param name="xmlDirectory">The directory to store the SrcML files in.</param>
+        /// <param name="useExistingSrcML">If True, any existing SrcML files in <paramref name="xmlDirectory"/> will be used. If False, these files will be deleted and potentially recreated.</param>
+        /// <param name="generator">The SrcMLGenerator to use to convert source files to SrcML.</param>
+        /// <param name="xmlMapping">The XmlFileNameMapping to use to map source paths to xml file paths.</param>
+        public SrcMLArchive(IFileMonitor fileMonitor, string xmlDirectory, bool useExistingSrcML, SrcMLGenerator generator, XmlFileNameMapping xmlMapping) {
             this.FileMonitor = fileMonitor;
             this.ArchivePath = xmlDirectory;
             this.XmlGenerator = generator;
+            this.xmlFileNameMapping = xmlMapping;
 
             if(!Directory.Exists(this.ArchivePath)) {
                 Directory.CreateDirectory(this.ArchivePath);
+            } else {
+                if(!useExistingSrcML) {
+                    foreach(var file in Directory.GetFiles(ArchivePath, "*.xml")) {
+                        File.Delete(file);
+                    }
+                }
             }
 
             this.FileMonitor.FileEventRaised += RespondToFileEvent;
@@ -70,6 +119,18 @@ namespace ABB.SrcML {
                 OnMonitoringStopped(new EventArgs());
             }
         }
+
+        #region IDisposable Members
+
+        public void Dispose() {
+            StopWatching();
+            SourceFileChanged = null;
+            StartupCompleted = null;
+            MonitoringStopped = null;
+            xmlFileNameMapping.Dispose();
+        }
+
+        #endregion
 
         #region AbstractArchive Members
 
@@ -288,13 +349,13 @@ namespace ABB.SrcML {
         /// Generate a srcML File for a source code file. Now use this method instead of GenerateXmlAndXElementForSource()
         /// </summary>
         /// <param name="sourcePath"></param>
-        public void GenerateXmlForSource(string sourcePath) {
+        public SrcMLFile GenerateXmlForSource(string sourcePath) {
             var xmlPath = GetXmlPathForSourcePath(sourcePath);
             var directory = Path.GetDirectoryName(xmlPath);
             if(!Directory.Exists(directory)) {
                 Directory.CreateDirectory(directory);
             }
-            this.XmlGenerator.GenerateSrcMLFromFile(sourcePath, xmlPath);
+            return this.XmlGenerator.GenerateSrcMLFromFile(sourcePath, xmlPath);
         }
 
         /// <summary>
@@ -319,47 +380,36 @@ namespace ABB.SrcML {
         }
 
         /// <summary>
-        /// Get the corresponding srcML file path for a specific source file.
-        /// For single folder storage algorithm
+        /// Returns the corresponding srcML file path for the given source file.
         /// </summary>
         /// <param name="sourcePath"></param>
         /// <returns></returns>
         public string GetXmlPathForSourcePath(string sourcePath) {
-            string fullPath = (Path.IsPathRooted(sourcePath)) ? sourcePath : Path.GetFullPath(sourcePath);
-            //if (!fullPath.StartsWith(this.SourceDirectory.FullFolderPath, StringComparison.InvariantCultureIgnoreCase))
-            //{
-            //    throw new IOException(String.Format("{0} is not rooted in {1}", sourcePath, this.SourceDirectory));
-            //}
-            //string srcMLFileName = Base32.ToBase32String(fullPath);               // Base32 encoding
-            string srcMLFileName = fullPath.Replace("\\", "-").Replace(":", "=");   // Simple encoding
-            string xmlPath = Path.Combine(this.ArchivePath, srcMLFileName) + ".xml";
-            return xmlPath;
+            return xmlFileNameMapping.GetXMLPath(sourcePath);
         }
 
         /// <summary>
         /// Get the corresponding source file path for a specific srcML file.
-        /// For single folder storage algorithm
         /// </summary>
         /// <param name="xmlPath"></param>
         /// <returns></returns>
         public string GetSourcePathForXmlPath(string xmlPath) {
-            string sourcePath = xmlPath.Substring(0, xmlPath.Length - 4);
-            //sourcePath = Base32.FromBase32String(sourcePath);                     // Base32 decoding
-            sourcePath = sourcePath.Replace("=", ":").Replace("-", "\\");           // Simple decoding
-            return sourcePath;
+            return xmlFileNameMapping.GetSourcePath(xmlPath);
         }
 
         /// <summary>
-        /// Gets the XElement for the specified source file.
+        /// Gets the XElement for the specified source file. If the SrcML does not already exist in the archive, it will be created.
         /// </summary>
         /// <param name="sourceFilePath">The source file to get the root XElement for.</param>
-        /// <returns>The root XElement of the source file, or null if the file does not exist in the archive.</returns>
+        /// <returns>The root XElement of the source file.</returns>
         public XElement GetXElementForSourceFile(string sourceFilePath) {
             string xmlPath = GetXmlPathForSourcePath(sourceFilePath);
-            if(!File.Exists(xmlPath)) {
-                return null;
+            SrcMLFile srcMLFile;
+            if(File.Exists(xmlPath)) {
+                srcMLFile = new SrcMLFile(xmlPath);
+            } else {
+                srcMLFile = GenerateXmlForSource(sourceFilePath);
             }
-            var srcMLFile = new SrcMLFile(sourceFilePath);
             return srcMLFile.FileUnits.FirstOrDefault();
         }
 
@@ -389,6 +439,9 @@ namespace ABB.SrcML {
             }
         }
 
+
+
         
     }
+
 }

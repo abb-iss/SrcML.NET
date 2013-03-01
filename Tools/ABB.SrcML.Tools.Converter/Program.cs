@@ -57,13 +57,13 @@ namespace ABB.SrcML.Tools.Converter
                 outputFileName = String.Format("{0}-{1}.xml", name, DateTime.Now.ToString("yyyyMMddHHmmss"));
             }
             
-            Src2SrcMLRunner runner = null;
+            SrcMLGenerator generator = null;
 
             if(null != binaryFolder)
             {
                 try
                 {
-                    runner = GetRunnerWithDirectory(binaryFolder);
+                    generator = GetGeneratorWithDirectory(binaryFolder);
                 }
                 catch(IOException e)
                 {
@@ -73,15 +73,15 @@ namespace ABB.SrcML.Tools.Converter
             }
             else
             {
-                try
-                {
+                //try
+                //{
                     // check all of the usual suspects
-                    runner = new Src2SrcMLRunner();
-                }
-                catch(IOException)
-                {
-                    runner = null;
-                }
+                    generator = new SrcMLGenerator();
+                //}
+                //catch(IOException)
+                //{
+                //    generator = null;
+                //}
             }
 
             Language lang = KsuAdapter.GetLanguageFromString(language);
@@ -95,18 +95,19 @@ namespace ABB.SrcML.Tools.Converter
                 foreach (var pair in ParseLanguageMap(languageMapping))
                 {
                     Console.WriteLine("Mapping {0} files to {1} language", pair.Extension, KsuAdapter.GetLanguage(pair.Language));
-                    runner.ExtensionMapping.Add(pair.Extension, pair.Language);
+                    string ext = pair.Extension.StartsWith(".") ? pair.Extension : "." + pair.Extension;
+                    generator.ExtensionMapping.Add(ext, pair.Language);
                 }
             }
             SrcMLFile doc;
-            if (Directory.Exists(source))
+            if (Directory.Exists(source)) 
             {
-                doc = runner.GenerateSrcMLFromDirectory(source, outputFileName, lang);
+                doc = generator.GenerateSrcMLFromDirectory(source, outputFileName, lang);
                 Console.WriteLine("Created {0}, a srcML archive, from {1} files located at {2}", doc.FileName, doc.FileUnits.Count(), source);
             }
             else if (File.Exists(source))
             {
-                doc = runner.GenerateSrcMLFromFile(source, outputFileName, lang);
+                doc = generator.GenerateSrcMLFromFile(source, outputFileName, lang);
                 Console.WriteLine("Converted {0} to a srcML document at {1}", source, outputFileName);
             }
             else
@@ -222,18 +223,17 @@ namespace ABB.SrcML.Tools.Converter
             return unitChildDictionary;
         }
 
-        private static Src2SrcMLRunner GetRunnerWithDirectory(string directory)
+        private static SrcMLGenerator GetGeneratorWithDirectory(string directory)
         {
             if (!Directory.Exists(directory))
             {
                 throw new DirectoryNotFoundException(String.Format("{0} does not exist", directory));
             }
-            Src2SrcMLRunner runner = new Src2SrcMLRunner(directory);
-            if (!File.Exists(runner.ExecutablePath))
-            {
-                throw new FileNotFoundException(String.Format("{0} does not exist", runner.ExecutablePath));
-            }
-            return runner;
+            //if (!File.Exists(runner.ExecutablePath))
+            //{
+            //    throw new FileNotFoundException(String.Format("{0} does not exist", runner.ExecutablePath));
+            //}
+            return new SrcMLGenerator(directory);
         }
     }
 }
