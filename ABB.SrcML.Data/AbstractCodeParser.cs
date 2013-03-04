@@ -718,8 +718,8 @@ namespace ABB.SrcML.Data {
                 throw new ArgumentNullException("fileUnit");
             if(method == null)
                 throw new ArgumentNullException("method");
-            if(declElement.Name != SRC.Declaration)
-                throw new ArgumentException("must be of element type SRC.Declaration", "declElement");
+            if(declElement.Name != SRC.Declaration && declElement.Name != SRC.FunctionDeclaration)
+                throw new ArgumentException("must be of element type SRC.Declaration or SRC.FunctionDeclaration", "declElement");
             if(fileUnit.Name != SRC.Unit)
                 throw new ArgumentException("must be of type SRC.Unit", "fileUnit");
 

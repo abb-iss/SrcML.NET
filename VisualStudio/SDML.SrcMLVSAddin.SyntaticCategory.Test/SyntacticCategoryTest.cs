@@ -18,6 +18,7 @@ using System.Xml.XPath;
 using NUnit.Framework;
 using ABB.SrcML;
 using SDML.SrcMLVSAddin.SyntaticCategory;
+using System.IO;
 
 
 namespace SDML.SrcMLVSAddin.SyntaticCategory.Test
@@ -40,6 +41,9 @@ namespace SDML.SrcMLVSAddin.SyntaticCategory.Test
         [Test]
         public void BasicTest()
         {
+            if(!File.Exists(Helper.NppXmlPath)) {
+                Assert.Ignore(String.Format("SrcML for Notepad++ is not available at {0}", Helper.NppXmlPath));
+            }
             var document = new SrcMLFile(Helper.NppXmlPath);
 
             var newUses = from unit in document.FileUnits
