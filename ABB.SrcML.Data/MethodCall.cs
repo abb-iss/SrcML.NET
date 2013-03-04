@@ -86,8 +86,8 @@ namespace ABB.SrcML.Data {
             return this.IsConstructor == definition.IsConstructor &&
                    this.IsDestructor == definition.IsDestructor &&
                    this.Name == definition.Name &&
-                   this.Arguments.Count == definition.Parameters.Count &&
-                   argumentsMatchParameters.All(a => a);
+                   this.Arguments.Count == definition.Parameters.Count;// &&
+                   //argumentsMatchParameters.All(a => a);
         }
 
         /// <summary>
