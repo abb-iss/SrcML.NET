@@ -57,6 +57,8 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public bool IsDestructor { get; set; }
 
+        public TypeUse ReturnType { get; set; }
+
         /// <summary>
         /// The parameters for this method.
         /// </summary>

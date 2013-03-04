@@ -457,10 +457,47 @@ namespace ABB.SrcML.Data {
                 Location = new SourceLocation(element, fileUnit),
             };
             var arguments = from argument in element.Element(SRC.ArgumentList).Elements(SRC.Argument)
-                            select CreateVariableUse(argument, fileUnit, parentScope);
-            methodCall.Arguments = new Collection<VariableUse>(arguments.ToList<VariableUse>());
+                            select CreateResolvableUse(argument, fileUnit, parentScope);
+            methodCall.Arguments = new Collection<IResolvesToType>(arguments.ToList<IResolvesToType>());
             return methodCall;
         }
+
+        public virtual LiteralUse CreateLiteralUse(XElement literalElement, XElement fileUnit, Scope parentScope) {
+            if(literalElement == null) throw new ArgumentNullException("literalElement");
+            if(literalElement.Name != LIT.Literal) throw new ArgumentException("should be a literal", "literalElement");
+
+            var kind = LiteralUse.GetLiteralKind(literalElement);
+            string typeName = string.Empty;
+            
+
+            var use = new LiteralUse() {
+                Kind = kind,
+                Location = new SourceLocation(literalElement, fileUnit),
+                Name = GetTypeForLiteralValue(kind, literalElement.Value),
+                ParentScope = parentScope,
+            };
+
+            return use;
+        }
+
+        public virtual string GetTypeForLiteralValue(LiteralKind kind, string literalValue) {
+            switch(kind) {
+                case LiteralKind.Boolean:
+                    return GetTypeForBooleanLiteral(literalValue);
+                case LiteralKind.Character:
+                    return GetTypeForCharacterLiteral(literalValue);
+                case LiteralKind.Number:
+                    return GetTypeForNumberLiteral(literalValue);
+                case LiteralKind.String:
+                    return GetTypeForStringLiteral(literalValue);
+            }
+            return String.Empty;
+        }
+
+        public abstract string GetTypeForBooleanLiteral(string literalValue);
+        public abstract string GetTypeForCharacterLiteral(string literalValue);
+        public abstract string GetTypeForNumberLiteral(string literalValue);
+        public abstract string GetTypeForStringLiteral(string literalValue);
 
         public virtual VariableUse CreateVariableUse(XElement element, XElement fileUnit, Scope parentScope) {
             XElement expression;
@@ -483,6 +520,14 @@ namespace ABB.SrcML.Data {
             return variableUse;
         }
 
+        public virtual IResolvesToType CreateResolvableUse(XElement element, XElement fileUnit, Scope parentScope) {
+            var use = new VariableUse() {
+                Location = new SourceLocation(element, fileUnit, true),
+                ParentScope = parentScope,
+                ProgrammingLanguage = ParserLanguage,
+            };
+            return use;
+        }
         public IEnumerable<MethodCall> GetMethodCallsFromContainer(XElement container, XElement fileUnit, Scope parentScope) {
             if(null == container) return Enumerable.Empty<MethodCall>();
 

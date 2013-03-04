@@ -50,6 +50,9 @@
     <Compile Include="AccessModifier.cs" />
     <Compile Include="Alias.cs" />
     <Compile Include="BuiltInTypeFactory.cs" />
+    <Compile Include="IResolvesToType.cs" />
+    <Compile Include="LiteralType.cs" />
+    <Compile Include="LiteralUse.cs" />
     <Compile Include="Class1.cs" />
     <Compile Include="CSharpCodeParser.cs" />
     <Compile Include="MethodCall.cs" />

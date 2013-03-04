@@ -26,7 +26,7 @@ namespace ABB.SrcML.Data {
                                                                               "float", "double", "decimal", "char", "string", "bool" };
         private static HashSet<string> javaBuiltIns = new HashSet<string> { "byte", "short", "int", "long", "float", "double", "boolean", "char" };
         private static HashSet<string> cppBuiltInParts = new HashSet<string> { "char", "short", "int", "long", "bool", "float", "double", "wchar_t",
-                                                                               "signed", "unsigned", "short", "long"};
+                                                                               "signed", "unsigned", "short", "long", "char*"};
 
         static BuiltInTypeFactory() {
             builtInTypeMap = new Dictionary<Tuple<Language, string>, TypeDefinition>();
