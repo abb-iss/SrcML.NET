@@ -57,7 +57,7 @@ namespace ABB.SrcML.Data {
         /// <param name="archive">The archive to monitor for changes.</param>
         public DataArchive(SrcMLArchive archive) {
             this.Archive = archive;
-            this.Archive.SourceFileChanged += Archive_SourceFileChanged;
+            this.Archive.FileChanged += Archive_SourceFileChanged;
             InitializeData();
         }
 
@@ -121,18 +121,18 @@ namespace ABB.SrcML.Data {
             switch(e.EventType) {
                 case FileEventType.FileChanged:
                     // Treat a changed source file as deleted then added
-                    RemoveFile(e.SourceFilePath);
+                    RemoveFile(e.FilePath);
                     goto case FileEventType.FileAdded;
                 case FileEventType.FileAdded:
-                    AddFile(e.SourceFilePath);
+                    AddFile(e.FilePath);
                     break;
                 case FileEventType.FileDeleted:
-                    RemoveFile(e.SourceFilePath);
+                    RemoveFile(e.FilePath);
                     break;
                 case FileEventType.FileRenamed:
                     // TODO: could a more efficient rename action be supported within the data structures themselves?
-                    RemoveFile(e.OldSourceFilePath);
-                    AddFile(e.SourceFilePath);
+                    RemoveFile(e.OldFilePath);
+                    AddFile(e.FilePath);
                     break;
             }
         }
