@@ -35,7 +35,6 @@ namespace ABB.SrcML.Data {
             MethodElementNames = new HashSet<XName>(new XName[] { SRC.Function, SRC.Constructor, SRC.Destructor,
                                                                   SRC.FunctionDeclaration, SRC.ConstructorDeclaration, SRC.DestructorDeclaration });
             NamespaceElementNames = new HashSet<XName>(new XName[] { SRC.Namespace });
-            //VariableDeclarationElementNames = new HashSet<XName>(new XName[] { SRC.Declaration, SRC.DeclarationStatement, SRC.Parameter });
             VariableDeclarationElementNames = new HashSet<XName>(new XName[] { SRC.Declaration, SRC.DeclarationStatement });
             ContainerReferenceElementNames = new HashSet<XName>(new XName[] { SRC.ClassDeclaration, SRC.StructDeclaration, SRC.UnionDeclaration,
                                                                                 SRC.ConstructorDeclaration, SRC.DestructorDeclaration, SRC.FunctionDeclaration });

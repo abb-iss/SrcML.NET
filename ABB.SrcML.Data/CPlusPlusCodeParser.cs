@@ -28,7 +28,6 @@ namespace ABB.SrcML.Data {
         public CPlusPlusCodeParser() {
             this.SpecifierContainerNames = new HashSet<XName>(new XName[] { SRC.Private, SRC.Protected, SRC.Public });
             this.TypeElementNames = new HashSet<XName>(new XName[] { SRC.Class, SRC.Enum, SRC.Struct, SRC.Union });
-            //this.VariableDeclarationElementNames = new HashSet<XName>(new XName[] { SRC.Declaration,SRC.DeclarationStatement, SRC.Parameter, SRC.FunctionDeclaration });
             this.VariableDeclarationElementNames = new HashSet<XName>(new XName[] { SRC.Declaration, SRC.DeclarationStatement, SRC.FunctionDeclaration });
         }
         /// <summary>
@@ -52,25 +51,13 @@ namespace ABB.SrcML.Data {
         public override NamespaceDefinition CreateNamespaceDefinition(XElement namespaceElement, XElement fileUnit) {
             if(namespaceElement == null)
                 throw new ArgumentNullException("namespaceElement");
-            if(fileUnit == null)
-                throw new ArgumentNullException("fileUnit");
             if(!NamespaceElementNames.Contains(namespaceElement.Name))
-                throw new ArgumentException("must be a SRC.Unit", "fileUnit");
+                throw new ArgumentException(string.Format("Not a valid namespace element: {0}", namespaceElement.Name), "namespaceElement");
 
-            var namespaceName = string.Empty;
-            var name = namespaceElement.Element(SRC.Name);
-            if(null != name) {
-                namespaceName = name.Value;
-            }
+            var nameElement = namespaceElement.Element(SRC.Name);
+            var namespaceName = nameElement != null ? nameElement.Value : string.Empty;
 
-            NamespaceDefinition definition = new NamespaceDefinition() {
-                Name = namespaceName,
-                IsAnonymous = (null == name),
-            };
-            if(namespaceName.Length > 0) {
-                definition.Name = namespaceName;
-            }
-            return definition;
+            return new NamespaceDefinition {Name = namespaceName};
         }
 
         /// <summary>

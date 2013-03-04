@@ -61,9 +61,10 @@ namespace ABB.SrcML.Data {
         /// <param name="fileUnit">The file unit</param>
         /// <returns>The namespace definition for the file.</returns>
         public override NamespaceDefinition CreateNamespaceDefinition(XElement namespaceElement, XElement fileUnit) {
-            if(fileUnit.Name != SRC.Unit) {
+            if(fileUnit == null)
+                throw new ArgumentNullException("fileUnit");
+            if(fileUnit.Name != SRC.Unit)
                 throw new ArgumentException("must be a SRC.Unit", "fileUnit");
-            }
             
             var javaPackage = fileUnit.Descendants(SRC.Package).FirstOrDefault();
 

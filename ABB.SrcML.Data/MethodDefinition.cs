@@ -60,32 +60,9 @@ namespace ABB.SrcML.Data {
         public TypeUse ReturnType { get; set; }
 
         /// <summary>
-        /// The parameters for this method. Replacing this collection causes the <see cref="Scope.DeclaredVariables"/> to be updated.
+        /// The parameters for this method.
         /// </summary>
-        /// TODO make the updating of the parameters collection more robust (you can't add an element to it and have DeclaredVariables updated.
-        //public Collection<VariableDeclaration> Parameters {
-        //    get { return this._parameters; }
-        //    set {
-        //        var oldParameters = this._parameters;
-        //        this._parameters = value;
-                
-        //        foreach(var parameter in oldParameters) {
-        //            this.DeclaredVariablesDictionary.Remove(parameter.Name);
-        //        }
-                
-        //        foreach(var parameter in this._parameters) {
-        //            this.AddDeclaredVariable(parameter);
-        //        }
-        //    }
-        //}
         public Collection<ParameterDeclaration> Parameters { get; set; }
-
-        ///// <summary>
-        ///// Iterates over all of the variable declarations for this scope, including the method parameters.
-        ///// </summary>
-        //public override IEnumerable<VariableDeclaration> DeclaredVariables {
-        //    get { return DeclaredVariablesDictionary.Values.Union(_parameters); }
-        //}
 
         /// <summary>
         /// Merges this method definition with <paramref name="otherScope"/>. This happens when <c>otherScope.CanBeMergedInto(this)</c> evaluates to true.

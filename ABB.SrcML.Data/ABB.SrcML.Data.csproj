@@ -53,10 +53,13 @@
     <Compile Include="IResolvesToType.cs" />
     <Compile Include="LiteralType.cs" />
     <Compile Include="LiteralUse.cs" />
+    <Compile Include="Class1.cs" />
+    <Compile Include="CSharpCodeParser.cs" />
     <Compile Include="MethodCall.cs" />
     <Compile Include="NamedScope.cs" />
     <Compile Include="NameHelper.cs" />
     <Compile Include="NamedScopeUse.cs" />
+    <Compile Include="NamespaceUse.cs" />
     <Compile Include="ParameterDeclaration.cs" />
     <Compile Include="SourceLocation.cs" />
     <Compile Include="SrcMLElementVisitor.cs" />

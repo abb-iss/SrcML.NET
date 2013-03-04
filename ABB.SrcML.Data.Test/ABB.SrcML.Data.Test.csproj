@@ -52,6 +52,7 @@
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
     <Compile Include="BuiltInTypeFactoryTests.cs" />
+    <Compile Include="CSharpCodeParserTests.cs" />
     <Compile Include="FileRemovalTests_Cpp.cs" />
     <Compile Include="FileRemovalTests_Java.cs" />
     <Compile Include="NameHelperTests.cs" />

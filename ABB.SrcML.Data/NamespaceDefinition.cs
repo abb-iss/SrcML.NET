@@ -26,29 +26,27 @@ namespace ABB.SrcML.Data {
         /// Creates a new namespace definition object
         /// </summary>
         public NamespaceDefinition()
-            : base() {
-            this.IsAnonymous = false;
-        }
+            : base() {}
 
         /// <summary>
         /// Copy constructor
         /// </summary>
         /// <param name="otherDefinition">The scope to copy from</param>
         public NamespaceDefinition(NamespaceDefinition otherDefinition)
-            : base(otherDefinition) {
-            this.IsAnonymous = otherDefinition.IsAnonymous;
-        }
+            : base(otherDefinition) {}
 
         /// <summary>
         /// Returns true if this is an anonymous namespace
         /// </summary>
-        public bool IsAnonymous { get; set; }
+        public bool IsAnonymous {
+            get { return string.IsNullOrWhiteSpace(Name); }
+        }
 
         /// <summary>
         /// <para>Returns true if this namespace represents the global namespace</para>
         /// <para>A namespace is global if the <see cref="NamedScope.Name"/> is <c>String.Empty</c></para>
         /// </summary>
-        public bool IsGlobal { get { return this.Name.Length == 0 && !this.IsAnonymous && this.ParentScope == null; } }
+        public bool IsGlobal { get { return this.IsAnonymous && this.ParentScope == null; } }
 
         /// <summary>
         /// Returns the fully qualified name for the given type
