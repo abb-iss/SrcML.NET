@@ -24,8 +24,6 @@ namespace ABB.SrcML {
         void StartMonitoring();
         void StopMonitoring();
         List<string> GetMonitoredFiles(System.ComponentModel.BackgroundWorker worker);
-        // temp approach
-        void RaiseSolutionMonitorEvent(string filePath, string oldFilePath, FileEventType type);
     }
 
     /// <summary>
@@ -45,28 +43,23 @@ namespace ABB.SrcML {
         protected FileEventRaisedArgs() {
         }
 
-        public FileEventRaisedArgs(string SourcePath, FileEventType eventType)
-            : this(SourcePath, SourcePath, null, eventType) {
+        public FileEventRaisedArgs(FileEventType eventType, string pathToFile)
+            : this(eventType, pathToFile, pathToFile, false) {
         }
 
-        public FileEventRaisedArgs(string SourcePath, XElement xelement, FileEventType eventType)
-            : this(SourcePath, SourcePath, xelement, eventType) {
+        public FileEventRaisedArgs(FileEventType eventType, string pathToFile, bool hasSrcML)
+            : this(eventType, pathToFile, pathToFile, hasSrcML) {
         }
 
-        public FileEventRaisedArgs(string SourcePath, string oldSourcePath, FileEventType eventType)
-            : this(SourcePath, oldSourcePath, null, null, eventType) {
+        public FileEventRaisedArgs(FileEventType eventType, string pathToFile, string oldPathToFile)
+            : this(eventType, pathToFile, oldPathToFile, false) {
         }
 
-        public FileEventRaisedArgs(string SourcePath, string oldSourcePath, XElement xelement, FileEventType eventType)
-            : this(SourcePath, oldSourcePath, xelement, null, eventType) {
-        }
-
-        public FileEventRaisedArgs(string SourcePath, string oldSourcePath, XElement xelement, string SrcMLPath, FileEventType eventType) {
-            this.SourceFilePath = SourcePath;
-            this.OldSourceFilePath = oldSourcePath;
-            this.SrcMLXElement = xelement;
-            this.SrcMLFilePath = SrcMLPath;
+        public FileEventRaisedArgs(FileEventType eventType, string pathToFile, string oldPathToFile, bool hasSrcML) {
             this.EventType = eventType;
+            this.FilePath = pathToFile;
+            this.OldFilePath = oldPathToFile;
+            this.HasSrcML = hasSrcML;
         }
 
         public FileEventType EventType {
@@ -74,24 +67,16 @@ namespace ABB.SrcML {
             set;
         }
 
-        public string OldSourceFilePath {
+        public string OldFilePath {
             get;
             set;
         }
 
-        public string SourceFilePath {
+        public string FilePath {
             get;
             set;
         }
 
-        public XElement SrcMLXElement {
-            get;
-            set;
-        }
-
-        public string SrcMLFilePath {
-            get;
-            set;
-        }
+        public bool HasSrcML { get; set; }
     }
 }

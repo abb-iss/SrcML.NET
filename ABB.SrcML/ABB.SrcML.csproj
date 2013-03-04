@@ -12,6 +12,8 @@
     <AssemblyName>ABB.SrcML</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -40,6 +42,10 @@
     </AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="log4net, Version=1.2.11.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\log4net.2.0.0\lib\net40-full\log4net.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -54,12 +60,14 @@
     </Compile>
     <Compile Include="AbstractArchive.cs" />
     <Compile Include="AbstractDocument.cs" />
+    <Compile Include="AbstractFileMonitor.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="FileInfoComparer.cs" />
-    <Compile Include="FileSystemSourceFolder.cs" />
+    <Compile Include="FileSystemFolderMonitor.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="IArchive.cs" />
     <Compile Include="IFileMonitor.cs" />
+    <Compile Include="LastModifiedArchive.cs" />
     <Compile Include="ShortXmlFileNameMapping.cs" />
     <Compile Include="SrcMLGenerator.cs" />
     <Compile Include="ITransform.cs" />
@@ -95,12 +103,18 @@
     <Compile Include="Utilities\ExecutableRunner.cs" />
     <Compile Include="Utilities\KsuAdapter.cs" />
     <Compile Include="Utilities\ReadOnlyDictionary.cs" />
+    <Compile Include="Utilities\SrcMLExceptionFormatter.cs" />
+    <Compile Include="Utilities\SrcMLFileLogger.cs" />
     <Compile Include="Utilities\SrcMLRuntimeException.cs" />
     <Compile Include="Utilities\VisualStudioProjectReader.cs" />
     <Compile Include="XmlFileNameMapping.cs" />
     <Compile Include="XmlHelper.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

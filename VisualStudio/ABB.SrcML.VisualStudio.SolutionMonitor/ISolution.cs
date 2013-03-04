@@ -14,20 +14,17 @@ using System.Linq;
 using System.Text;
 using EnvDTE;
 
-namespace ABB.SrcML.VisualStudio.SolutionMonitor
-{
+namespace ABB.SrcML.VisualStudio.SolutionMonitor {
     /// <summary>
     /// Wrapper of the Visual Studio EnvDTE.Solution interface.
     /// </summary>
-    public class SolutionWrapper
-    {
+    public class SolutionWrapper {
         /// <summary>
         /// Locates an item in a project.
         /// </summary>
         /// <param name="name">The name of the project item.</param>
         /// <returns></returns>
-        public virtual ProjectItem FindProjectItem(string name)
-        {
+        public virtual ProjectItem FindProjectItem(string name) {
             throw new NotImplementedException();
         }
 
@@ -35,8 +32,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         /// Gets a collection of the projects currently in the solution.
         /// </summary>
         /// <returns></returns>
-        public virtual Projects getProjects()
-        {
+        public virtual Projects getProjects() {
             throw new NotImplementedException();
         }
 
@@ -45,8 +41,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         /// </summary>
         /// <param name="openSolution"></param>
         /// <returns></returns>
-        public static SolutionWrapper Create(Solution openSolution)
-        {
+        public static SolutionWrapper Create(Solution openSolution) {
             return new StandardSolutionWrapper(openSolution);
         }
 
@@ -54,8 +49,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         /// Gets the full path and name of the object's file.
         /// </summary>
         /// <returns></returns>
-        public virtual string GetSolutionFullName()
-        {
+        public virtual string GetSolutionFullName() {
             throw new NotImplementedException();
         }
     }
@@ -63,16 +57,14 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
     /// <summary>
     /// Standard wrapper of the Visual Studio EnvDTE.Solution interface.
     /// </summary>
-    public class StandardSolutionWrapper : SolutionWrapper
-    {
+    public class StandardSolutionWrapper : SolutionWrapper {
         private Solution _mySolution;
 
         /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="s"></param>
-        public StandardSolutionWrapper(Solution s)
-        {
+        public StandardSolutionWrapper(Solution s) {
             _mySolution = s;
         }
 
@@ -81,8 +73,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         /// </summary>
         /// <param name="name">The name of the project item.</param>
         /// <returns></returns>
-        public override ProjectItem FindProjectItem(string name)
-        {
+        public override ProjectItem FindProjectItem(string name) {
             return _mySolution.FindProjectItem(name);
         }
 
@@ -90,8 +81,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         /// Gets a collection of the projects currently in the solution.
         /// </summary>
         /// <returns></returns>
-        public override Projects getProjects()
-        {
+        public override Projects getProjects() {
             return _mySolution.Projects;
         }
 
@@ -99,8 +89,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         /// Gets the full path and name of the object's file.
         /// </summary>
         /// <returns></returns>
-        public override string GetSolutionFullName()
-        {
+        public override string GetSolutionFullName() {
             return _mySolution.FullName;
         }
     }

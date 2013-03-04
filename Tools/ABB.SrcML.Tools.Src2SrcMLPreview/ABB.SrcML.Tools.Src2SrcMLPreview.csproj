@@ -11,7 +11,8 @@
     <RootNamespace>ABB.SrcML.Tools.Src2SrcMLPreview</RootNamespace>
     <AssemblyName>Src2SrcMLPreview</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
@@ -106,6 +107,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="app.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -114,7 +116,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\ABB.SrcML\ABB.SrcML.csproj">
-      <Project>{D52626E7-A4CA-471A-8A6A-FE0110430FE6}</Project>
+      <Project>{d52626e7-a4ca-471a-8a6a-fe0110430fe6}</Project>
       <Name>ABB.SrcML</Name>
     </ProjectReference>
   </ItemGroup>

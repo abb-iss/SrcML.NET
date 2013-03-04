@@ -18,59 +18,95 @@ using System.Linq;
 using System.IO;
 using System.Xml.Linq;
 using ABB.SrcML.Utilities;
+using System.Collections.ObjectModel;
 
 namespace ABB.SrcML {
-    public class SrcMLArchive : AbstractArchive, IDisposable {
-        private BackgroundWorker startupWorker;
+    /// <summary>
+    /// This is an implementation of <see cref="AbstractArchive"/>. File changes trigger the addition, update, and deletion of srcML archives in
+    /// the archive directory
+    /// </summary>
+    public class SrcMLArchive : AbstractArchive {
         private XmlFileNameMapping xmlFileNameMapping;
-        
-        /// <summary>
-        /// Creates a new SrcMLArchive.
-        /// </summary>
-        /// <param name="fileMonitor">An IFileMonitor to indicate which files to convert to SrcML.</param>
-        /// <param name="xmlDirectory">The directory to store the SrcML files in.</param>
-        public SrcMLArchive(IFileMonitor fileMonitor, string xmlDirectory)
-            : this(fileMonitor, xmlDirectory, true) {}
 
         /// <summary>
-        /// Creates a new SrcMLArchive.
+        /// Creates a new SrcMLArchive. The archive is created in <c>"baseDirectory\srcML"</c>.
         /// </summary>
-        /// <param name="fileMonitor">An IFileMonitor to indicate which files to convert to SrcML.</param>
-        /// <param name="xmlDirectory">The directory to store the SrcML files in.</param>
+        /// <param name="baseDirectory">the base directory</param>
+        public SrcMLArchive(string baseDirectory)
+            : this(baseDirectory, "srcML") {
+        }
+
+        /// <summary>
+        /// Creates a new SrcMLArchive. The archive is created in <c>"baseDirectory\srcML"</c>.
+        /// </summary>
+        /// <param name="baseDirectory">the base directory</param>
         /// <param name="useExistingSrcML">If True, any existing SrcML files in <paramref name="xmlDirectory"/> will be used. If False, these files will be deleted and potentially recreated.</param>
-        public SrcMLArchive(IFileMonitor fileMonitor, string xmlDirectory, bool useExistingSrcML)
-            : this(fileMonitor, xmlDirectory, useExistingSrcML, new SrcMLGenerator()) {}
+        public SrcMLArchive(string baseDirectory, bool useExistingSrcML)
+            : this(baseDirectory, "srcML", useExistingSrcML) {
+        }
 
         /// <summary>
-        /// Creates a new SrcMLArchive.
+        /// Creates a new SrcMLArchive. The archive is created in <c>"baseDirectory\srcML"</c>.
         /// </summary>
-        /// <param name="fileMonitor">An IFileMonitor to indicate which files to convert to SrcML.</param>
-        /// <param name="xmlDirectory">The directory to store the SrcML files in.</param>
-        /// <param name="generator">The SrcMLGenerator to use to convert source files to SrcML.</param>
-        public SrcMLArchive(IFileMonitor fileMonitor, string xmlDirectory, SrcMLGenerator generator)
-            : this(fileMonitor, xmlDirectory, true, generator) {}
-
-        /// <summary>
-        /// Creates a new SrcMLArchive.
-        /// </summary>
-        /// <param name="fileMonitor">An IFileMonitor to indicate which files to convert to SrcML.</param>
-        /// <param name="xmlDirectory">The directory to store the SrcML files in.</param>
+        /// <param name="baseDirectory">the base directory</param>
         /// <param name="useExistingSrcML">If True, any existing SrcML files in <paramref name="xmlDirectory"/> will be used. If False, these files will be deleted and potentially recreated.</param>
         /// <param name="generator">The SrcMLGenerator to use to convert source files to SrcML.</param>
-        public SrcMLArchive(IFileMonitor fileMonitor, string xmlDirectory, bool useExistingSrcML, SrcMLGenerator generator)
-            : this(fileMonitor, xmlDirectory, useExistingSrcML, generator, new ShortXmlFileNameMapping(xmlDirectory)) {}
+        public SrcMLArchive(string baseDirectory, bool useExistingSrcML, SrcMLGenerator generator)
+            : this(baseDirectory, "srcML", useExistingSrcML, generator) {
+        }
 
         /// <summary>
-        /// Creates a new SrcMLArchive.
+        /// Creates a new SrcMLArchive. The archive is created in <c>"baseDirectory\srcML"</c>.
         /// </summary>
-        /// <param name="fileMonitor">An IFileMonitor to indicate which files to convert to SrcML.</param>
-        /// <param name="xmlDirectory">The directory to store the SrcML files in.</param>
+        /// <param name="baseDirectory">the base directory</param>
         /// <param name="useExistingSrcML">If True, any existing SrcML files in <paramref name="xmlDirectory"/> will be used. If False, these files will be deleted and potentially recreated.</param>
         /// <param name="generator">The SrcMLGenerator to use to convert source files to SrcML.</param>
         /// <param name="xmlMapping">The XmlFileNameMapping to use to map source paths to xml file paths.</param>
-        public SrcMLArchive(IFileMonitor fileMonitor, string xmlDirectory, bool useExistingSrcML, SrcMLGenerator generator, XmlFileNameMapping xmlMapping) {
-            this.FileMonitor = fileMonitor;
-            this.ArchivePath = xmlDirectory;
+        public SrcMLArchive(string baseDirectory, bool useExistingSrcML, SrcMLGenerator generator, XmlFileNameMapping xmlMapping)
+            : this(baseDirectory, "srcML", useExistingSrcML, generator, xmlMapping) {
+        }
+        /// <summary>
+        /// Creates a new SrcMLArchive. By default, any existing srcML will be used.
+        /// </summary>
+        /// <param name="baseDirectory">The parent of <paramref name="srcMLDirectory"/>. <see cref="AbstractArchive.ArchivePath"/> will be set to <c>Path.Combine(baseDirectory, srcMLDirectory)</c></param>
+        /// <param name="srcMLDirectory">The directory to store the SrcML files in. This will be created as a subdirectory of <paramref name="baseDirectory"/></param>
+        public SrcMLArchive(string baseDirectory, string srcMLDirectory)
+            : this(baseDirectory, srcMLDirectory, true) {
+        }
+
+        /// <summary>
+        /// Creates a new SrcMLArchive.
+        /// </summary>
+        /// <param name="baseDirectory">The parent of <paramref name="srcMLDirectory"/>. <see cref="AbstractArchive.ArchivePath"/> will be set to <c>Path.Combine(baseDirectory, srcMLDirectory)</c></param>
+        /// <param name="srcMLDirectory">The directory to store the SrcML files in. This will be created as a subdirectory of <paramref name="baseDirectory"/></param>
+        /// <param name="useExistingSrcML">If True, any existing SrcML files in <paramref name="xmlDirectory"/> will be used. If False, these files will be deleted and potentially recreated.</param>
+        public SrcMLArchive(string baseDirectory, string srcMLDirectory, bool useExistingSrcML)
+            : this(baseDirectory, srcMLDirectory, useExistingSrcML, new SrcMLGenerator()) {
+        }
+
+        /// <summary>
+        /// Creates a new SrcMLArchive.
+        /// </summary>
+        /// <param name="baseDirectory">The parent of <paramref name="srcMLDirectory"/>. <see cref="AbstractArchive.ArchivePath"/> will be set to <c>Path.Combine(baseDirectory, srcMLDirectory)</c></param>
+        /// <param name="srcMLDirectory">The directory to store the SrcML files in. This will be created as a subdirectory of <paramref name="baseDirectory"/></param>
+        /// <param name="useExistingSrcML">If True, any existing SrcML files in <paramref name="xmlDirectory"/> will be used. If False, these files will be deleted and potentially recreated.</param>
+        /// <param name="generator">The SrcMLGenerator to use to convert source files to SrcML.</param>
+        public SrcMLArchive(string baseDirectory, string srcMLDirectory, bool useExistingSrcML, SrcMLGenerator generator)
+            : this(baseDirectory, srcMLDirectory, useExistingSrcML, generator,
+                   new ShortXmlFileNameMapping(Path.Combine(baseDirectory, srcMLDirectory))) {
+
+        }
+
+        /// <summary>
+        /// Creates a new SrcMLArchive.
+        /// </summary>
+        /// <param name="baseDirectory">The parent of <paramref name="srcMLDirectory"/>. <see cref="AbstractArchive.ArchivePath"/> will be set to <c>Path.Combine(baseDirectory, srcMLDirectory)</c></param>
+        /// <param name="srcMLDirectory">The directory to store the SrcML files in. This will be created as a subdirectory of <paramref name="baseDirectory"/></param>
+        /// <param name="useExistingSrcML">If True, any existing SrcML files in <paramref name="xmlDirectory"/> will be used. If False, these files will be deleted and potentially recreated.</param>
+        /// <param name="generator">The SrcMLGenerator to use to convert source files to SrcML.</param>
+        /// <param name="xmlMapping">The XmlFileNameMapping to use to map source paths to xml file paths.</param>
+        public SrcMLArchive(string baseDirectory, string srcMLDirectory, bool useExistingSrcML, SrcMLGenerator generator, XmlFileNameMapping xmlMapping) 
+            : base(baseDirectory, srcMLDirectory) {
             this.XmlGenerator = generator;
             this.xmlFileNameMapping = xmlMapping;
 
@@ -83,58 +119,17 @@ namespace ABB.SrcML {
                     }
                 }
             }
-
-            this.FileMonitor.FileEventRaised += RespondToFileEvent;
         }
 
-        public IFileMonitor FileMonitor { get; set; }
-
+        /// <summary>
+        /// The SrcML generator used to generate srcML
+        /// </summary>
         public SrcMLGenerator XmlGenerator { get; set; }
 
-        public event EventHandler<FileEventRaisedArgs> SourceFileChanged;
-        public event EventHandler<EventArgs> StartupCompleted;
-        public event EventHandler<EventArgs> MonitoringStopped;
-
-        public void StartWatching() {
-            // run background thread for startup
-            startupWorker = new BackgroundWorker();
-            startupWorker.WorkerSupportsCancellation = true;
-            startupWorker.DoWork += new DoWorkEventHandler(_runStartupInBackground_DoWork);
-            startupWorker.RunWorkerAsync();
-
-            this.FileMonitor.StartMonitoring();
-        }
-
-        public void StopWatching() {
-            try {
-                this.FileMonitor.StopMonitoring();
-
-                // Disable the startup background worker
-                if(startupWorker != null) {
-                    startupWorker.CancelAsync();
-                }
-            }
-            finally {
-                // maybe not necessary
-                OnMonitoringStopped(new EventArgs());
-            }
-        }
-
-        #region IDisposable Members
-
-        public void Dispose() {
-            StopWatching();
-            SourceFileChanged = null;
-            StartupCompleted = null;
-            MonitoringStopped = null;
-            xmlFileNameMapping.Dispose();
-        }
-
-        #endregion
-
-        #region AbstractArchive Members
-
-        public override IEnumerable<XElement> FileUnits {
+        /// <summary>
+        /// Enumerates over each file in the archive and returns a file unit
+        /// </summary>
+        public IEnumerable<XElement> FileUnits {
             get {
                 var xmlFiles = Directory.EnumerateFiles(this.ArchivePath, "*.xml", SearchOption.AllDirectories);
                 foreach(var xmlFileName in xmlFiles) {
@@ -143,75 +138,76 @@ namespace ABB.SrcML {
             }
         }
 
-        public override void AddUnits(IEnumerable<XElement> units) {
-            foreach(var unit in units) {
-                var path = this.GetPathForUnit(unit);
-                var xmlPath = this.GetXmlPathForSourcePath(path);
-                unit.Save(xmlPath, SaveOptions.DisableFormatting);
-            }
+
+
+        #region IDisposable Members
+
+        /// <summary>
+        /// Disposes of the internal <see cref="XmlFileNameMapping"/> and then calls <see cref="AbstractArchive.Dispose()"/>
+        /// </summary>
+        public override void Dispose() {
+            xmlFileNameMapping.Dispose();
+            base.Dispose();
         }
 
-        public override void DeleteUnits(IEnumerable<XElement> units) {
-            foreach(var unit in units) {
-                var path = this.GetPathForUnit(unit);
-                DeleteXmlForSourceFile(path);
-            }
-        }
-
-        public override void UpdateUnits(IEnumerable<XElement> units) {
-            foreach(var unit in units) {
-                var path = this.GetPathForUnit(unit);
-                var xmlPath = this.GetXmlPathForSourcePath(path);
-                unit.Save(xmlPath, SaveOptions.DisableFormatting);
-            }
-        }
-
-        public override XElement GetUnitForPath(string pathToUnit) {
-            throw new NotImplementedException();
-        }
         #endregion
 
+        #region AbstractArchive Members
 
         /// <summary>
-        /// Run in background when starting up the solution.
+        /// The list of extensions supported by the archive (taken from <see cref="XmlGenerator"/>)
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="anEvent"></param>
-        private void _runStartupInBackground_DoWork(object sender, DoWorkEventArgs anEvent) {
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
-
-            var worker = sender as BackgroundWorker;
-            try {
-                List<string> allMonitoredFiles = FileMonitor.GetMonitoredFiles(worker);
-                foreach(string sourceFilePath in allMonitoredFiles) {
-                    // PROBLEM: cannot generate index in Sando for .txt, .xml etc files
-                    ProcessSingleSourceFile(sourceFilePath);
-                }
-
-                List<string> allSrcMLedFiles = GetAllSrcMLedFiles();
-                foreach(string sourceFilePath in allSrcMLedFiles) {
-                    // PROBLEM: cannot generate index in Sando for .txt, .xml etc files
-                    ProcessSingleSourceFile(sourceFilePath);
-                }
-            } finally {
-                OnStartupCompleted(new EventArgs());
-            }
-
-            stopwatch.Stop();
+        public override ICollection<string> SupportedExtensions {
+            get { return this.XmlGenerator.ExtensionMapping.Keys; }
         }
 
         /// <summary>
-        /// Get all "SrcMLed" files in this solution.
-        /// TODO: maybe use KeyValuePairs instead of List for better performance
+        /// generates srcML for the given file. It raises <see cref="AbstractArchive.FileChanged"/> when finished.
         /// </summary>
-        /// <returns></returns>
-        public List<string> GetAllSrcMLedFiles() {
-            List<string> allSrcMLedFiles = new List<string>();
+        /// <param name="fileName">the file to add or update</param>
+        public override void AddOrUpdateFile(string fileName) {
+            FileEventType eventType = FileEventType.FileAdded;
+            if(this.ContainsFile(fileName)) {
+                eventType = FileEventType.FileChanged;
+            }
+            if(File.Exists(fileName)) {
+                GenerateXmlForSource(fileName);
+                OnFileChanged(new FileEventRaisedArgs(eventType, fileName, true));
+            }
+        }
+
+        /// <summary>
+        /// Checks to see if the file has a companions srcML file in the archive
+        /// </summary>
+        /// <param name="fileName">the file to check for</param>
+        /// <returns>true if the file is in the archive; false otherwise</returns>
+        public override bool ContainsFile(string fileName) {
+            var xmlPath = GetXmlPathForSourcePath(fileName);
+            return File.Exists(xmlPath);
+        }
+
+        /// <summary>
+        /// Deletes the srcML document for the given file. It raises <see cref="AbstractArchive.FileChanged"/> when finished.
+        /// </summary>
+        /// <param name="fileName">the file to delete</param>
+        public override void DeleteFile(string fileName) {
+            var xmlPath = GetXmlPathForSourcePath(fileName);
+            if(File.Exists(xmlPath)) {
+                File.Delete(xmlPath);
+            }
+            OnFileChanged(new FileEventRaisedArgs(FileEventType.FileDeleted, fileName, false));
+        }
+
+        /// <summary>
+        /// Gets all of the source file names stored in this archive
+        /// </summary>
+        /// <returns>an enumerable of file names stored in this archive</returns>
+        public override Collection<string> GetFiles() {
+            Collection<string> allSrcMLedFiles = new Collection<string>();
             DirectoryInfo srcMLDir = new DirectoryInfo(Path.GetFullPath(this.ArchivePath));
             FileInfo[] srcMLFiles = null;
             try {
-                srcMLFiles = srcMLDir.GetFiles("*.*");
+                srcMLFiles = srcMLDir.GetFiles("*.xml");
             }
                 // In case one of the files requires permissions greater than the application provides
             catch(UnauthorizedAccessException e) {
@@ -219,55 +215,45 @@ namespace ABB.SrcML {
             } catch(DirectoryNotFoundException e) {
                 Console.WriteLine(e.Message);
             }
-
             if(srcMLFiles != null) {
-                foreach(FileInfo fi in srcMLFiles) {
-                    string sourceFilePath = GetSourcePathForXmlPath(fi.Name);
-                    allSrcMLedFiles.Add(sourceFilePath);
-                }
+                var results = from fInfo in srcMLFiles
+                              select GetSourcePathForXmlPath(fInfo.Name);
+                return new Collection<string>(results.ToList<string>());
             }
-            return allSrcMLedFiles;
+            return null;
         }
 
         /// <summary>
-        /// Process a single source file to add or change the corresponding srcML file, or do nothing.
-        /// TODO: GetXmlPathForSourcePath() twice
-        /// PROBLEM: cannot generate index in Sando for .txt, .xml etc files.  Have to raise solution monitor events too.
+        /// Checks if the srcML stored in the archive is up to date with the source file.
+        /// If the file is not in the archive, it is outdated
         /// </summary>
-        /// <param name="sourceFilePath"></param>
-        public void ProcessSingleSourceFile(string sourceFilePath) {
-            //if (IsValidFileExtension(sourceFilePath))
-            //{
-            if(!File.Exists(sourceFilePath)) {
-                // If there is not such a source file, then delete the corresponding srcML file
-                if(IsValidFileExtension(sourceFilePath)) {
-                    RespondToFileEvent(null, new FileEventRaisedArgs(sourceFilePath, FileEventType.FileDeleted));
-                } else {
-                    this.FileMonitor.RaiseSolutionMonitorEvent(sourceFilePath, null, FileEventType.FileDeleted);
-                }
-            } else {
-                string srcMLFilePath = GetXmlPathForSourcePath(sourceFilePath);
-                if(!File.Exists(srcMLFilePath)) {
-                    // If there is not a corresponding srcML file, then generate the srcML file
-                    if(IsValidFileExtension(sourceFilePath)) {
-                        RespondToFileEvent(null, new FileEventRaisedArgs(sourceFilePath, FileEventType.FileAdded));
-                    } else {
-                        this.FileMonitor.RaiseSolutionMonitorEvent(sourceFilePath, null, FileEventType.FileAdded);
-                    }
-                } else {
-                    DateTime sourceFileTimestamp = new FileInfo(sourceFilePath).LastWriteTime;
-                    DateTime srcLMFileTimestamp = new FileInfo(srcMLFilePath).LastWriteTime;
-                    if(sourceFileTimestamp.CompareTo(srcLMFileTimestamp) > 0) {
-                        // If source file's timestamp is later than its srcML file's timestamp, then generate the srcML file, otherwise do nothing
-                        if(IsValidFileExtension(sourceFilePath)) {
-                            RespondToFileEvent(null, new FileEventRaisedArgs(sourceFilePath, FileEventType.FileChanged));
-                        } else {
-                            this.FileMonitor.RaiseSolutionMonitorEvent(sourceFilePath, null, FileEventType.FileChanged);
-                        }
-                    }
-                }
-            }
+        /// <param name="fileName">the file name to check</param>
+        /// <returns>true if the source file is newer than srcML file in the archive or the file is not in the archive.</returns>
+        public override bool IsOutdated(string fileName) {
+            var sourceFileInfo = new FileInfo(fileName);
+            var xmlPath = GetXmlPathForSourcePath(fileName);
+            var xmlFileInfo = new FileInfo(xmlPath);
+
+            return !(sourceFileInfo.Exists == xmlFileInfo.Exists && sourceFileInfo.LastWriteTime <= xmlFileInfo.LastWriteTime);
         }
+
+        /// <summary>
+        /// Deletes the old XML file and generates the new one
+        /// </summary>
+        /// <param name="oldFileName">the old file name</param>
+        /// <param name="newFileName">the new file name</param>
+        public override void RenameFile(string oldFileName, string newFileName) {
+            var oldXmlPath = GetXmlPathForSourcePath(oldFileName);
+            var newXmlPath = GetXmlPathForSourcePath(newFileName);
+
+            if(File.Exists(oldXmlPath)) {
+                File.Delete(oldXmlPath);
+            }
+            GenerateXmlForSource(newFileName);
+            OnFileChanged(new FileEventRaisedArgs(FileEventType.FileRenamed, newFileName, oldFileName, true));
+        }
+
+        #endregion AbstractArchive Members
 
         /// <summary>
         /// Check if the file extension is in the set of file types that can be processed by SrcML.NET.
@@ -280,41 +266,6 @@ namespace ABB.SrcML {
                 return true;
             }
             return false;
-        }
-
-        /// <summary>
-        /// Respond to an event raised from Solution Monitor. Then raise a new event to client application (e.g., Sando)
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="eventArgs"></param>
-        public void RespondToFileEvent(object sender, FileEventRaisedArgs eventArgs) {
-            string sourceFilePath = eventArgs.SourceFilePath;
-            string oldSourceFilePath = eventArgs.OldSourceFilePath;
-
-            var directoryName = Path.GetDirectoryName(Path.GetFullPath(sourceFilePath));
-            var xmlFullPath = Path.GetFullPath(this.ArchivePath);
-
-            if(!directoryName.StartsWith(xmlFullPath, StringComparison.InvariantCultureIgnoreCase) && IsValidFileExtension(sourceFilePath)) {
-                XElement xElement = null;
-                switch(eventArgs.EventType) {
-                    case FileEventType.FileAdded:
-                        xElement = GenerateXmlAndXElementForSource(sourceFilePath);
-                        break;
-                    case FileEventType.FileChanged:
-                        xElement = GenerateXmlAndXElementForSource(sourceFilePath);
-                        break;
-                    case FileEventType.FileDeleted:
-                        DeleteXmlForSourceFile(sourceFilePath);
-                        break;
-                    case FileEventType.FileRenamed:
-                        DeleteXmlForSourceFile(oldSourceFilePath);
-                        xElement = GenerateXmlAndXElementForSource(sourceFilePath);
-                        break;
-                }
-
-                eventArgs.SrcMLXElement = xElement;
-                OnSourceFileChanged(eventArgs);
-            }
         }
 
         /// <summary>
@@ -412,36 +363,5 @@ namespace ABB.SrcML {
             }
             return srcMLFile.FileUnits.FirstOrDefault();
         }
-
-        /// <summary>
-        /// Raise a SrcML.NET event (SourceFileAdded, SourceFileChanged, SourceFileDeleted, SourceFileRenamed)
-        /// </summary>
-        /// <param name="e"></param>
-        ////protected virtual void OnSourceFileChanged(SourceEventArgs e)
-        protected virtual void OnSourceFileChanged(FileEventRaisedArgs e) {
-            EventHandler<FileEventRaisedArgs> handler = SourceFileChanged;
-            if(handler != null) {
-                handler(this, e);
-            }
-        }
-
-        protected virtual void OnStartupCompleted(EventArgs e) {
-            EventHandler<EventArgs> handler = StartupCompleted;
-            if(handler != null) {
-                handler(this, e);
-            }
-        }
-
-        protected virtual void OnMonitoringStopped(EventArgs e) {
-            EventHandler<EventArgs> handler = MonitoringStopped;
-            if(handler != null) {
-                handler(this, e);
-            }
-        }
-
-
-
-        
     }
-
 }
