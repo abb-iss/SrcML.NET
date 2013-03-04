@@ -108,16 +108,24 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Gets the parent types for this type. It parses the java "implements" statement.
+        /// Gets the parent types for this type. It parses the java "extends" and "implements" statements.
         /// </summary>
         /// <param name="typeElement">The type element</param>
         /// <param name="fileUnit">The file unit that contains this type</param>
+        /// <param name="typeDefinition">The TypeDefinition object for the type element.</param>
         /// <returns>A collection of type uses that represent the parent classes</returns>
         public override Collection<TypeUse> GetParentTypeUses(XElement typeElement, XElement fileUnit, TypeDefinition typeDefinition) {
             Collection<TypeUse> parents = new Collection<TypeUse>();
             var superTag = typeElement.Element(SRC.Super);
 
             if(null != superTag) {
+                var extendsTag = superTag.Element(SRC.Extends);
+                if(null != extendsTag) {
+                    var parentElements = extendsTag.Elements(SRC.Name);
+                    foreach(var parentElement in parentElements) {
+                        parents.Add(CreateTypeUse(parentElement, fileUnit, typeDefinition));
+                    } 
+                }
                 var implementsTag = superTag.Element(SRC.Implements);
                 if(null != implementsTag) {
                     var parentElements = implementsTag.Elements(SRC.Name);

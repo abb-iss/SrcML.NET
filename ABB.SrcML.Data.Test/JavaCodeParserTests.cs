@@ -131,6 +131,57 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("C", parent.Name);
             TestHelper.VerifyPrefixValues(new[] { "A", "B" }, parent.Prefix);
         }
+
+        //TODO: add tests for classes with extends keyword
+        [Test]
+        public void TestCreateTypeDefinitions_ClassWithSuperClass() {
+            //Foo.java
+            //public class Foo extends xyzzy {
+            //    public int bar;
+            //}
+            string xml = @"<class><specifier>public</specifier> class <name>Foo</name> <super><extends>extends <name>xyzzy</name></extends></super> <block>{
+    <decl_stmt><decl><type><specifier>public</specifier> <name>int</name></type> <name>bar</name></decl>;</decl_stmt>
+}</block></class>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.java");
+
+            var actual = codeParser.ParseFileUnit(xmlElement).ChildScopes.First() as TypeDefinition;
+            Assert.IsNotNull(actual);
+            Assert.AreEqual("Foo", actual.Name);
+            Assert.AreEqual(1, actual.ParentTypes.Count);
+            Assert.AreEqual("xyzzy", actual.ParentTypes.First().Name);
+            var globalNamespace = actual.ParentScope as NamespaceDefinition;
+            Assert.IsNotNull(globalNamespace);
+            Assert.That(globalNamespace.IsGlobal);
+        }
+
+        [Test]
+        public void TestCreateTypeDefinitions_ClassWithExtendsAndImplements() {
+            //Foo.java
+            //public class Foo extends xyzzy implements A, B, C {
+            //    public int bar;
+            //}
+            string xml = @"<class><specifier>public</specifier> class <name>Foo</name> <super><extends>extends <name>xyzzy</name></extends> <implements>implements <name>A</name>, <name>B</name>, <name>C</name></implements></super> <block>{
+    <decl_stmt><decl><type><specifier>public</specifier> <name>int</name></type> <name>bar</name></decl>;</decl_stmt>
+}</block></class>";
+
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.java");
+
+            var actual = codeParser.ParseFileUnit(xmlElement).ChildScopes.First() as TypeDefinition;
+            Assert.IsNotNull(actual);
+            var globalNamespace = actual.ParentScope as NamespaceDefinition;
+            Assert.IsNotNull(globalNamespace);
+            Assert.AreEqual("Foo", actual.Name);
+            Assert.AreEqual(4, actual.ParentTypes.Count);
+            Assert.That(globalNamespace.IsGlobal);
+
+            var parentNames = from parent in actual.ParentTypes
+                              select parent.Name;
+
+            var tests = Enumerable.Zip<string, string, bool>(new[] { "xyzzy", "A", "B", "C" }, parentNames, (e, a) => e == a);
+            foreach(var test in tests) {
+                Assert.That(test);
+            }
+        }
         
         [Test]
         public void TestCreateTypeDefinitions_ClassWithInnerClass() {

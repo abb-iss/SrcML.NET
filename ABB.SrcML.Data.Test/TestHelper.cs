@@ -122,8 +122,10 @@ namespace ABB.SrcML.Data.Test {
         }
 
         public static bool IResolvesToTypesAreEqual(IResolvesToType a, IResolvesToType b) {
+            //TODO: implement value comparison?
             return a == b;
         }
+
         public static bool VariableUsesAreEqual(VariableUse a, VariableUse b) {
             if(a == b) { return true; }
             return a.Name == b.Name &&

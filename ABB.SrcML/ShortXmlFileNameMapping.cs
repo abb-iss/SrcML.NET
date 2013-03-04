@@ -16,7 +16,6 @@ namespace ABB.SrcML {
         private const string mappingFile = "mapping.txt";
         private readonly object mappingLock = new object();
         //maps source path to xml path
-        //TODO should support case insensitive paths, add option in constructor
         private Dictionary<string, string> mapping;
         //maps source files names (without path) to a count of how many times that name has been seen
         private Dictionary<string, int> nameCount;

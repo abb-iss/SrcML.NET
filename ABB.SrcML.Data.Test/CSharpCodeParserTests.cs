@@ -43,6 +43,49 @@ namespace ABB.SrcML.Data.Test {
             var foo = globalScope.ChildScopes.First() as TypeDefinition;
             Assert.IsNotNull(foo);
             Assert.AreEqual("Foo", foo.Name);
+            Assert.AreEqual(TypeKind.Class, foo.Kind);
+            Assert.AreEqual(0, foo.ChildScopes.Count());
+            Assert.AreEqual(1, foo.DeclaredVariables.Count());
+        }
+
+        [Test]
+        public void TestCreateTypeDefinition_Interface() {
+            ////Foo.cs
+            //public interface Foo {
+            //    public int GetBar();
+            //}
+            string fooXml = @"<class type=""interface""><specifier>public</specifier> interface <name>Foo</name> <block>{
+    <function_decl><type><specifier>public</specifier> <name>int</name></type> <name>GetBar</name><parameter_list>()</parameter_list>;</function_decl>
+}</block></class>";
+            var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(fooXml, "Foo.cs");
+            var globalScope = codeParser.ParseFileUnit(fooFileUnit);
+
+            Assert.AreEqual(1, globalScope.ChildScopes.Count());
+            var foo = globalScope.ChildScopes.First() as TypeDefinition;
+            Assert.IsNotNull(foo);
+            Assert.AreEqual("Foo", foo.Name);
+            Assert.AreEqual(TypeKind.Interface, foo.Kind);
+            Assert.AreEqual(1, foo.ChildScopes.Count());
+            Assert.AreEqual(0, foo.DeclaredVariables.Count());
+        }
+
+        [Test]
+        public void TestCreateTypeDefinition_Struct() {
+            ////Foo.cs
+            //public struct Foo {
+            //    public int bar;
+            //}
+            string fooXml = @"<struct><specifier>public</specifier> struct <name>Foo</name> <block>{
+    <decl_stmt><decl><type><specifier>public</specifier> <name>int</name></type> <name>bar</name></decl>;</decl_stmt>
+}</block></struct>";
+            var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(fooXml, "Foo.cs");
+            var globalScope = codeParser.ParseFileUnit(fooFileUnit);
+
+            Assert.AreEqual(1, globalScope.ChildScopes.Count());
+            var foo = globalScope.ChildScopes.First() as TypeDefinition;
+            Assert.IsNotNull(foo);
+            Assert.AreEqual("Foo", foo.Name);
+            Assert.AreEqual(TypeKind.Struct, foo.Kind);
             Assert.AreEqual(0, foo.ChildScopes.Count());
             Assert.AreEqual(1, foo.DeclaredVariables.Count());
         }
@@ -153,6 +196,54 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("Foo", foo.Name);
             Assert.AreEqual(0, foo.ChildScopes.Count());
             Assert.AreEqual(1, foo.DeclaredVariables.Count());
+        }
+
+        [Test]
+        public void TestCreateTypeDefinition_ClassWithParent() {
+            ////Foo.cs
+            //public class Foo : Baz {
+            //    public int bar;
+            //}
+            string fooXml = @"<class><specifier>public</specifier> class <name>Foo</name> <super>: <name>Baz</name></super> <block>{
+    <decl_stmt><decl><type><specifier>public</specifier> <name>int</name></type> <name>bar</name></decl>;</decl_stmt>
+}</block></class>";
+            var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(fooXml, "Foo.cs");
+            var globalScope = codeParser.ParseFileUnit(fooFileUnit);
+
+            Assert.AreEqual(1, globalScope.ChildScopes.Count());
+            var foo = globalScope.ChildScopes.First() as TypeDefinition;
+            Assert.IsNotNull(foo);
+            Assert.AreEqual("Foo", foo.Name);
+            Assert.AreEqual(TypeKind.Class, foo.Kind);
+            Assert.AreEqual(0, foo.ChildScopes.Count());
+            Assert.AreEqual(1, foo.DeclaredVariables.Count());
+            Assert.AreEqual(1, foo.ParentTypes.Count);
+            Assert.AreEqual("Baz", foo.ParentTypes.First().Name);
+        }
+
+        [Test]
+        public void TestCreateTypeDefinition_ClassWithQualifiedParent() {
+            ////Foo.cs
+            //public class Foo : Baz, System.IDisposable {
+            //    public int bar;
+            //}
+            string fooXml = @"<class><specifier>public</specifier> class <name>Foo</name> <super>: <name>Baz</name>, <name><name>System</name><op:operator>.</op:operator><name>IDisposable</name></name></super> <block>{
+    <decl_stmt><decl><type><specifier>public</specifier> <name>int</name></type> <name>bar</name></decl>;</decl_stmt>
+}</block></class>";
+            var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(fooXml, "Foo.cs");
+            var globalScope = codeParser.ParseFileUnit(fooFileUnit);
+
+            Assert.AreEqual(1, globalScope.ChildScopes.Count());
+            var foo = globalScope.ChildScopes.First() as TypeDefinition;
+            Assert.IsNotNull(foo);
+            Assert.AreEqual("Foo", foo.Name);
+            Assert.AreEqual(TypeKind.Class, foo.Kind);
+            Assert.AreEqual(0, foo.ChildScopes.Count());
+            Assert.AreEqual(1, foo.DeclaredVariables.Count());
+            Assert.AreEqual(2, foo.ParentTypes.Count);
+            Assert.AreEqual("Baz", foo.ParentTypes[0].Name);
+            Assert.AreEqual("IDisposable", foo.ParentTypes[1].Name);
+            Assert.AreEqual("System", foo.ParentTypes[1].Prefix.Name);
         }
     }
 }

@@ -364,6 +364,11 @@ namespace ABB.SrcML {
         public static readonly XName Super = NS + "super";
 
         /// <summary>
+        /// markup for the extends java tag
+        /// </summary>
+        public static readonly XName Extends = NS + "extends";
+
+        /// <summary>
         /// markup for the implements java tag
         /// </summary>
         public static readonly XName Implements = NS + "implements";

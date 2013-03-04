@@ -105,9 +105,23 @@ namespace ABB.SrcML.Data {
             return result;
         }
 
+        /// <summary>
+        /// Gets the parent types for this type, from the "super" element.
+        /// </summary>
+        /// <param name="typeElement">The type element</param>
+        /// <param name="fileUnit">The file unit that contains this type</param>
+        /// <param name="typeDefinition">The TypeDefinition object for the type element.</param>
+        /// <returns>A collection of type uses that represent the parent classes</returns>
         public override Collection<TypeUse> GetParentTypeUses(XElement typeElement, XElement fileUnit, TypeDefinition typeDefinition) {
-            //TODO: implement
-            return new Collection<TypeUse>();
+            var parents = new Collection<TypeUse>();
+            var superElement = typeElement.Element(SRC.Super);
+            if(superElement != null) {
+                var parentNameElements = superElement.Elements(SRC.Name);
+                foreach(var parentName in parentNameElements) {
+                    parents.Add(CreateTypeUse(parentName, fileUnit, typeDefinition));
+                }
+            }
+            return parents;
         }
 
         public override IEnumerable<Alias> CreateAliasesForFile(XElement fileUnit) {
@@ -115,6 +129,74 @@ namespace ABB.SrcML.Data {
             return Enumerable.Empty<Alias>();
         }
 
+        public override string GetTypeForBooleanLiteral(string literalValue) {
+            return "bool";
+        }
+
+        public override string GetTypeForCharacterLiteral(string literalValue) {
+            return "char";
+        }
+
+        public override string GetTypeForNumberLiteral(string literalValue) {
+            //rules taken from C# 4.0 in a Nutshell by Joseph Albahari and Ben Albahari, page 22.
+            bool isHex = literalValue.StartsWith("0x");
+            string suffix;
+            if(literalValue.EndsWith("UL") || literalValue.EndsWith("LU")) {
+                suffix = literalValue.Substring(literalValue.Length - 2);
+            } else {
+                suffix = literalValue.Substring(literalValue.Length - 1);
+            }
+            //process suffix
+            if(string.Compare(suffix, "F", StringComparison.InvariantCultureIgnoreCase) == 0 && !isHex) {
+                return "float";
+            }
+            if(string.Compare(suffix, "D", StringComparison.InvariantCultureIgnoreCase) == 0) {
+                return "double";
+            }
+            if(string.Compare(suffix, "M", StringComparison.InvariantCultureIgnoreCase) == 0) {
+                return "decimal";
+            }
+            if(string.Compare(suffix, "U", StringComparison.InvariantCultureIgnoreCase) == 0) {
+                return "uint";
+            }
+            if(string.Compare(suffix, "L", StringComparison.InvariantCultureIgnoreCase) == 0) {
+                return "long";
+            }
+            if(string.Compare(suffix, "UL", StringComparison.InvariantCultureIgnoreCase) == 0 ||
+               string.Compare(suffix, "LU", StringComparison.InvariantCultureIgnoreCase) == 0) {
+                return "ulong";
+            }
+            //no (valid) suffix, infer type
+            if(literalValue.Contains('.') || literalValue.Contains('E')) {
+                return "double";
+            }
+            //TODO: determine proper integral type based on size of literal, i.e. int, uint, long, or ulong
+            return "int";
+        }
+
+        public override string GetTypeForStringLiteral(string literalValue) {
+            return "string";
+        }
+
+        //TODO: implement support for using blocks, once SrcML has been fixed to parse them correctly
+        ///// <summary>
+        ///// Gets all of the variable declarations from a container
+        ///// </summary>
+        ///// <param name="container">the container</param>
+        ///// <param name="fileUnit">the containing file unit</param>
+        ///// <returns>An enumerable of variable declarations</returns>
+        //public override IEnumerable<VariableDeclaration> GetVariableDeclarationsFromContainer(XElement container, XElement fileUnit, Scope parentScope) {
+        //    if(null == container) return Enumerable.Empty<VariableDeclaration>();
+
+        //    if(container.Name != SRC.Using) {
+        //        return base.GetVariableDeclarationsFromContainer(container, fileUnit, parentScope);
+        //    }
+        //    //parse using element
+
+        //}
+
+
+        #region Private methods
         private NamespaceUse CreateNamespaceUsePrefix(XElement nameElement, XElement fileUnit) {
             IEnumerable<XElement> parentNameElements = Enumerable.Empty<XElement>();
 
@@ -140,21 +222,7 @@ namespace ABB.SrcML.Data {
             }
             return root;
         }
+        #endregion
 
-        public override string GetTypeForBooleanLiteral(string literalValue) {
-            throw new NotImplementedException();
-        }
-
-        public override string GetTypeForCharacterLiteral(string literalValue) {
-            throw new NotImplementedException();
-        }
-
-        public override string GetTypeForNumberLiteral(string literalValue) {
-            throw new NotImplementedException();
-        }
-
-        public override string GetTypeForStringLiteral(string literalValue) {
-            throw new NotImplementedException();
-        }
     }
 }
