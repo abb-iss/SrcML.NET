@@ -268,11 +268,12 @@ namespace ABB.SrcML.Data {
             // double rules: contains '.', 'e', 'E'
             //   long double also ends in 'L'
             // float: ends in 'f' or 'F'
-            if(literalValue.cont
+            //if(literalValue.cont
             // otherwise it's an integer
             // ends with 'u' indicates "unsigned int"
             // ends with 'l' indicates "long"
             // ends with 'ul' indicates "unsigned long"
+            throw new NotImplementedException();
         }
 
         public override string GetTypeForStringLiteral(string literalValue) {

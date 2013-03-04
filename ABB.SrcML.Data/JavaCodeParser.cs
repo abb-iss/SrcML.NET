@@ -130,6 +130,22 @@ namespace ABB.SrcML.Data {
             return parents;
         }
 
+        public override string GetTypeForBooleanLiteral(string literalValue) {
+            throw new NotImplementedException();
+        }
+
+        public override string GetTypeForCharacterLiteral(string literalValue) {
+            throw new NotImplementedException();
+        }
+
+        public override string GetTypeForNumberLiteral(string literalValue) {
+            throw new NotImplementedException();
+        }
+
+        public override string GetTypeForStringLiteral(string literalValue) {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Creates a list of aliases for the <paramref name="fileUnit"/>. For java, this parses the import statements (marked up by the <see cref="ABB.SrcML.SRC.Import"/>).
         /// </summary>

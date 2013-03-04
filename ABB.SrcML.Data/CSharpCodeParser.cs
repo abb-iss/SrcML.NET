@@ -140,5 +140,21 @@ namespace ABB.SrcML.Data {
             }
             return root;
         }
+
+        public override string GetTypeForBooleanLiteral(string literalValue) {
+            throw new NotImplementedException();
+        }
+
+        public override string GetTypeForCharacterLiteral(string literalValue) {
+            throw new NotImplementedException();
+        }
+
+        public override string GetTypeForNumberLiteral(string literalValue) {
+            throw new NotImplementedException();
+        }
+
+        public override string GetTypeForStringLiteral(string literalValue) {
+            throw new NotImplementedException();
+        }
     }
 }

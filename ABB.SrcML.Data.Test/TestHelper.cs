@@ -113,7 +113,7 @@ namespace ABB.SrcML.Data.Test {
 
         public static bool MethodCallsAreEqual(MethodCall a, MethodCall b) {
             if(a == b) { return true; }
-            return CollectionsAreEqual(a.Arguments, b.Arguments, VariableUsesAreEqual) &&
+            return CollectionsAreEqual(a.Arguments, b.Arguments, IResolvesToTypesAreEqual) &&
                    VariableUsesAreEqual(a.Caller, b.Caller) &&
                    a.IsConstructor == b.IsConstructor &&
                    a.IsDestructor == b.IsDestructor &&
@@ -121,6 +121,9 @@ namespace ABB.SrcML.Data.Test {
                    a.Name == b.Name;
         }
 
+        public static bool IResolvesToTypesAreEqual(IResolvesToType a, IResolvesToType b) {
+            return a == b;
+        }
         public static bool VariableUsesAreEqual(VariableUse a, VariableUse b) {
             if(a == b) { return true; }
             return a.Name == b.Name &&
