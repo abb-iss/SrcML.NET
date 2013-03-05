@@ -26,31 +26,61 @@ namespace ABB.SrcML.Data.Test {
         [Test]
         public void TestFileUnitParsing_NotepadPlusPlus() {
             string npp62SourcePath = @"C:\Workspace\Source\Notepad++\6.2";
-            string npp62DataPath = @"C:\Workspace\Source\Notepad++\6.2-data";
-            string callLogPath = Path.Combine(npp62DataPath, "methodcalls.log");
+            string npp62DataPath = @"C:\Workspace\SrcMLData\NPP-6.2";
+            
+            Console.WriteLine("\nReal world test: Notepad++ 6.2");
+            Console.WriteLine("=======================================");
+            TestDataGeneration(npp62SourcePath, npp62DataPath, new CPlusPlusCodeParser());
+        }
+
+        [Test]
+        public void TestFileUnitParsing_Bullet() {
+            string bullet281SourcePath = @"C:\Workspace\Source\bullet\2.81\src";
+            string bullet281DataPath = @"C:\Workspace\SrcMLData\bullet-2.81";
+
+            Console.WriteLine("\nReal World Test: Bullet 2.81 (src/ only)");
+            Console.WriteLine("=======================================");
+            TestDataGeneration(bullet281SourcePath, bullet281DataPath, new CPlusPlusCodeParser());
+        }
+
+        [Test]
+        public void TestFileUnitParsing_Eclipse() {
+            string eclipse422SourcePath = @"C:\Workspace\Source\eclipse\platform422";
+            string eclipse422Datapath = @"C:\Workspace\SrcMLData\eclipse-4.2.2";
+
+            Console.WriteLine("\nReal World Test: Eclipse Platform 4.2.2");
+            Console.WriteLine("=======================================");
+            TestDataGeneration(eclipse422SourcePath, eclipse422Datapath, new JavaCodeParser());
+        }
+
+        private void TestDataGeneration(string sourcePath, string dataPath, AbstractCodeParser parser) {
+            string fileLogPath = Path.Combine(dataPath, "parse.log");
+            string callLogPath = Path.Combine(dataPath, "methodcalls.log");
             bool regenerateSrcML = shouldRegenerateSrcML;
 
-            if(!Directory.Exists(npp62SourcePath)) {
-                Assert.Ignore("Source code for Notepad++ 6.2 is missing");
+            if(!Directory.Exists(sourcePath)) {
+                Assert.Ignore("Source code for is missing");
             }
             if(File.Exists(callLogPath)) {
                 File.Delete(callLogPath);
             }
-
-            if(!Directory.Exists(npp62DataPath)) {
+            if(File.Exists(fileLogPath)) {
+                File.Delete(fileLogPath);
+            }
+            if(!Directory.Exists(dataPath)) {
                 regenerateSrcML = true;
             } else if(shouldRegenerateSrcML) {
-                Directory.Delete(npp62DataPath, true);
+                Directory.Delete(dataPath, true);
             }
-            
-            var archive = new SrcMLArchive(npp62DataPath, regenerateSrcML);
-            AbstractFileMonitor monitor = new FileSystemFolderMonitor(npp62SourcePath, npp62DataPath, new LastModifiedArchive(npp62DataPath), archive);
+
+            var archive = new SrcMLArchive(dataPath, regenerateSrcML);
+            AbstractFileMonitor monitor = new FileSystemFolderMonitor(sourcePath, dataPath, new LastModifiedArchive(dataPath), archive);
 
             ManualResetEvent mre = new ManualResetEvent(false);
             Stopwatch sw = new Stopwatch();
             bool startupCompleted = false;
 
-            monitor.StartupCompleted += (o,e) => {
+            monitor.StartupCompleted += (o, e) => {
                 sw.Stop();
                 startupCompleted = true;
                 mre.Set();
@@ -62,56 +92,72 @@ namespace ABB.SrcML.Data.Test {
             if(sw.IsRunning) {
                 sw.Stop();
             }
-            var srcMLGenerationElapsed = sw.ElapsedMilliseconds;
+
+            Console.WriteLine("{0} to {1} srcML", sw.Elapsed, (regenerateSrcML ? "generate" : "verify"));
             Assert.That(startupCompleted);
 
-            AbstractCodeParser parser = new CPlusPlusCodeParser();
             Scope globalScope = null;
             sw.Reset();
-            
+
             int numberOfFailures = 0;
             int numberOfSuccesses = 0;
             int numberOfFiles = 0;
             Dictionary<string, List<string>> errors = new Dictionary<string, List<string>>();
-            
-            foreach(var unit in archive.FileUnits) {
-                numberOfFiles++;
-                var fileName = parser.GetFileNameForUnit(unit);
-                Console.Write("Parsing {0}", fileName);
-                try {
-                    sw.Start();
-                    var scopeForUnit = parser.ParseFileUnit(unit);
 
-                    if(null == globalScope) {
-                        globalScope = scopeForUnit;
-                    } else {
-                        globalScope = globalScope.Merge(scopeForUnit);
+            using(var fileLog = new StreamWriter(fileLogPath)) {
+                foreach(var unit in archive.FileUnits) {
+                    if(++numberOfFiles % 100 == 0) {
+                        Console.WriteLine("{0,5:N0} files completed in {1}", numberOfFiles, sw.Elapsed);
                     }
-                    sw.Stop();
-                    Console.WriteLine(" PASSED");
-                    numberOfSuccesses++;
-                } catch(Exception e) {
-                    sw.Stop();
-                    Console.WriteLine(" FAILED");
-                    var key = e.StackTrace.Split('\n')[0].Trim();
-                    if(!errors.ContainsKey(key)) {
-                        errors[key] = new List<string>();
-                    }
-                    errors[key].Add(fileName);
+                    
+                    var fileName = parser.GetFileNameForUnit(unit);
+                    fileLog.Write("Parsing {0}", fileName);
+                    try {
+                        sw.Start();
+                        var scopeForUnit = parser.ParseFileUnit(unit);
 
-                    numberOfFailures++;
+                        if(null == globalScope) {
+                            globalScope = scopeForUnit;
+                        } else {
+                            globalScope = globalScope.Merge(scopeForUnit);
+                        }
+                        sw.Stop();
+                        fileLog.WriteLine(" PASSED");
+                        numberOfSuccesses++;
+                    } catch(Exception e) {
+                        sw.Stop();
+                        fileLog.WriteLine(" FAILED");
+                        var key = e.StackTrace.Split('\n')[0].Trim();
+                        if(!errors.ContainsKey(key)) {
+                            errors[key] = new List<string>();
+                        }
+                        errors[key].Add(fileName);
+
+                        numberOfFailures++;
+                    }
                 }
             }
+            Console.WriteLine("{0,5:N0} files completed in {1}", numberOfFiles, sw.Elapsed);
 
             Console.WriteLine("\nSummary");
-            Console.WriteLine("=======");
+            Console.WriteLine("===================");
 
-            Console.WriteLine("{0} to {1} srcML", TimeSpan.FromMilliseconds(srcMLGenerationElapsed), (regenerateSrcML ? "generate" : "verify"));
-            Console.WriteLine("{0,10:N0} failures  ({1,7:P2})", numberOfFailures, ((float)numberOfFailures) / numberOfFiles);
-            Console.WriteLine("{0,10:N0} successes ({1,7:P2})", numberOfSuccesses, ((float)numberOfSuccesses) / numberOfFiles);
+            Console.WriteLine("{0,10:N0} failures  ({1,8:P2})", numberOfFailures, ((float)numberOfFailures) / numberOfFiles);
+            Console.WriteLine("{0,10:N0} successes ({1,8:P2})", numberOfSuccesses, ((float)numberOfSuccesses) / numberOfFiles);
             Console.WriteLine("{0} to generate data", sw.Elapsed);
+            Console.WriteLine("See parse log at {0}", fileLogPath);
 
-            Console.WriteLine("\nScope Breakdown");
+            PrintScopeReport(globalScope);
+            PrintMethodCallReport(globalScope, callLogPath);
+            PrintErrorReport(errors);
+
+            monitor.Dispose();
+            Assert.AreEqual(numberOfFailures, (from e in errors.Values select e.Count).Sum());
+            Assert.AreEqual(0, numberOfFailures);
+        }
+
+        private void PrintScopeReport(Scope globalScope) {
+            Console.WriteLine("\nScope Report");
             Console.WriteLine("===============");
 
             Console.WriteLine("{0,10:N0} scopes", VariableScopeIterator.Visit(globalScope).Count());
@@ -126,21 +172,24 @@ namespace ABB.SrcML.Data.Test {
                              where (scope as TypeDefinition) != null
                              select scope;
             var methodScopes = from scope in namedScopes
-                                  where (scope as MethodDefinition) != null
-                                  select scope;
+                               where (scope as MethodDefinition) != null
+                               select scope;
             Console.WriteLine("{0,10:N0} namespaces", namespaceScopes.Count());
             Console.WriteLine("{0,10:N0} types", typeScopes.Count());
             Console.WriteLine("{0,10:N0} methods", methodScopes.Count());
+        }
 
-            Console.WriteLine("\nMethod Calls");
-            Console.WriteLine("============");
+        private void PrintMethodCallReport(Scope globalScope, string callLogPath) {
+            Console.WriteLine("\nMethod Call Report");
+            Console.WriteLine("===============");
             var methodCalls = from scope in VariableScopeIterator.Visit(globalScope)
                               from call in scope.MethodCalls
                               select call;
 
             int numMethodCalls = 0;
             int numMatchedMethodCalls = 0;
-            sw.Reset();
+            Stopwatch sw = new Stopwatch();
+
             using(var callLog = new StreamWriter(callLogPath)) {
                 foreach(var call in methodCalls) {
                     sw.Start();
@@ -155,27 +204,30 @@ namespace ABB.SrcML.Data.Test {
             }
 
             Console.WriteLine("{0,10:N0} method calls", numMethodCalls);
-            Console.WriteLine("{0,10:N0} matched method calls ({1,7:P2})", numMatchedMethodCalls, ((float)numMatchedMethodCalls) / numMethodCalls);
+            Console.WriteLine("{0,10:N0} matched method calls ({1,8:P2})", numMatchedMethodCalls, ((float)numMatchedMethodCalls) / numMethodCalls);
             Console.WriteLine("{0} to match the method calls", sw.Elapsed);
-            Console.WriteLine("{0,10:N0} ms / match", ((float) sw.ElapsedMilliseconds) / numMethodCalls);
+            Console.WriteLine("{0,10:N0} ms / match", ((float)sw.ElapsedMilliseconds) / numMethodCalls);
             Console.WriteLine("See matched method calls in {0}", callLogPath);
+        }
 
-            Console.WriteLine("\nErrors");
-            Console.WriteLine("======");
+        private void PrintErrorReport(Dictionary<string, List<string>> errors) {
+            Console.WriteLine("\nError Report");
+            Console.WriteLine("===============");
             var sortedErrors = from kvp in errors
                                orderby kvp.Value.Count descending
                                select kvp;
 
-            foreach(var kvp in sortedErrors) {
-                Console.WriteLine("{0} exceptions {1}", kvp.Value.Count, kvp.Key);
-                foreach(var fileName in kvp.Value) {
-                    Console.WriteLine("\t{0}", fileName);
+            if(sortedErrors.Any()) {
+                foreach(var kvp in sortedErrors) {
+                    Console.WriteLine("{0} exceptions {1}", kvp.Value.Count, kvp.Key);
+                    foreach(var fileName in kvp.Value) {
+                        Console.WriteLine("\t{0}", fileName);
+                    }
                 }
+            } else {
+                Console.WriteLine("No parsing errors!");
             }
-
-            monitor.Dispose();
-            Assert.AreEqual(numberOfFailures, (from e in errors.Values select e.Count).Sum());
-            Assert.AreEqual(0, numberOfFailures);
+            
         }
     }
 }
