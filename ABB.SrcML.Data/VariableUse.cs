@@ -19,19 +19,28 @@ namespace ABB.SrcML.Data {
     /// The variable use class represents a use of a variable.
     /// </summary>
     public class VariableUse : AbstractUse<VariableDeclaration>, IResolvesToType {
+        public IResolvesToType CallingObject { get; set; }
 
         /// <summary>
         /// Searches through the <see cref="Scope.DeclaredVariables"/> to see if any of them <see cref="Matches(VariableDeclaration)">matches</see>
         /// </summary>
         /// <returns>An enumerable of matching variable declarations.</returns>
         public override IEnumerable<VariableDeclaration> FindMatches() {
-            var currentScope = this.ParentScope;
+            if(CallingObject == null) {
+                var currentScope = this.ParentScope;
 
-            var matchingVariables = from scope in ParentScopes
-                                    from variable in scope.DeclaredVariables
-                                    where Matches(variable)
-                                    select variable;
-            return matchingVariables;
+                var matchingVariables = from scope in ParentScopes
+                                        from variable in scope.DeclaredVariables
+                                        where Matches(variable)
+                                        select variable;
+                return matchingVariables;
+            } else {
+                var parentType = CallingObject.FindFirstMatchingType();
+                var matchingVariables = from variable in parentType.DeclaredVariables
+                                        where Matches(variable)
+                                        select variable;
+                return matchingVariables;
+            }
         }
 
         /// <summary>
@@ -48,10 +57,20 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <returns>An enumerable of matching type definitions</returns>
         public IEnumerable<TypeDefinition> FindMatchingTypes() {
-            var typeDefinitions = from declaration in FindMatches()
+            IEnumerable<TypeDefinition> typeDefinitions;
+            if(this.Name == "this") {
+                typeDefinitions = (from parent in ParentScopes
+                                   let parentAsType = parent as TypeDefinition
+                                   where parentAsType != null
+                                   select parentAsType).Take(1);
+            } else if(this.CallingObject != null) {
+                typeDefinitions = this.CallingObject.FindMatchingTypes();
+            } else {
+                typeDefinitions = from declaration in FindMatches()
                                   where declaration.VariableType != null
                                   from typeDefinition in declaration.VariableType.FindMatches()
                                   select typeDefinition;
+            }
             return typeDefinitions;
         }
 

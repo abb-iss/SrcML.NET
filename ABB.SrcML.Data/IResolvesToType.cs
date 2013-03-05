@@ -21,6 +21,11 @@ namespace ABB.SrcML.Data {
     /// </summary>
     public interface IResolvesToType {
         /// <summary>
+        /// The calling object
+        /// </summary>
+        IResolvesToType CallingObject { get; set; }
+
+        /// <summary>
         /// Finds all of the possible matching types for this usage
         /// </summary>
         /// <returns>An enumerable of type definition objects</returns>

@@ -114,7 +114,7 @@ namespace ABB.SrcML.Data.Test {
         public static bool MethodCallsAreEqual(MethodCall a, MethodCall b) {
             if(a == b) { return true; }
             return CollectionsAreEqual(a.Arguments, b.Arguments, IResolvesToTypesAreEqual) &&
-                   VariableUsesAreEqual(a.Caller, b.Caller) &&
+                   IResolvesToTypesAreEqual(a.CallingObject, b.CallingObject) && 
                    a.IsConstructor == b.IsConstructor &&
                    a.IsDestructor == b.IsDestructor &&
                    LocationsAreEqual(a.Location, b.Location) &&
