@@ -245,5 +245,161 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("IDisposable", foo.ParentTypes[1].Name);
             Assert.AreEqual("System", foo.ParentTypes[1].Prefix.Name);
         }
+
+        [Test]
+        public void TestCreateTypeDefinitions_ClassWithInnerClass() {
+            ////A.cs
+            //class A {
+            //    class B {}
+            //}
+            string xml = @"<class>class <name>A</name> <block>{
+    <class>class <name>B</name> <block>{}</block></class>
+}</block></class>";
+            var xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+
+            Assert.AreEqual(1, globalScope.ChildScopes.Count());
+            var typeA = globalScope.ChildScopes.First() as TypeDefinition;
+            Assert.IsNotNull(typeA);
+            Assert.AreEqual(1, typeA.ChildScopes.Count());
+            var typeB = typeA.ChildScopes.First() as TypeDefinition;
+            Assert.IsNotNull(typeB);
+
+            Assert.AreSame(typeA, typeB.ParentScope);
+            Assert.AreEqual("A", typeA.FullName);
+            Assert.AreEqual("A.B", typeB.FullName);
+        }
+
+        [Test]
+        public void TestCreateTypeDefinitions_InnerClassWithNamespace() {
+            ////A.cs
+            //namespace Foo {
+            //    class A {
+            //        class B {}
+            //    }
+            //}
+            string xml = @"<namespace>namespace <name>Foo</name> <block>{
+    <class>class <name>A</name> <block>{
+        <class>class <name>B</name> <block>{}</block></class>
+    }</block></class>
+}</block></namespace>";
+            var xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+
+            Assert.AreEqual(1, globalScope.ChildScopes.Count());
+            var foo = globalScope.ChildScopes.First() as NamespaceDefinition;
+            Assert.IsNotNull(foo);
+            Assert.AreEqual(1, foo.ChildScopes.Count());
+            var typeA = foo.ChildScopes.First() as TypeDefinition;
+            Assert.IsNotNull(typeA);
+            Assert.AreEqual(1, typeA.ChildScopes.Count());
+            var typeB = typeA.ChildScopes.First() as TypeDefinition;
+            Assert.IsNotNull(typeB);
+
+            Assert.AreEqual("A", typeA.Name);
+            Assert.AreEqual("Foo", typeA.NamespaceName);
+            Assert.AreEqual("Foo.A", typeA.FullName);
+
+            Assert.AreEqual("B", typeB.Name);
+            Assert.AreEqual("Foo", typeB.NamespaceName);
+            Assert.AreEqual("Foo.A.B", typeB.FullName);
+        }
+
+        [Test]
+        public void TestFieldCreation() {
+            //// A.cs
+            //class A {
+            //    public int Foo;
+            //}
+            string xml = @"<class>class <name>A</name> <block>{
+    <decl_stmt><decl><type><specifier>public</specifier> <name>int</name></type> <name>Foo</name></decl>;</decl_stmt>
+}</block></class>";
+            var xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+
+            Assert.AreEqual(1, globalScope.ChildScopes.Count());
+            var typeA = globalScope.ChildScopes.First();
+            Assert.IsNotNull(typeA);
+            Assert.AreEqual(1, typeA.DeclaredVariables.Count());
+            var foo = typeA.DeclaredVariables.First();
+            Assert.AreEqual("Foo", foo.Name);
+            Assert.AreEqual("int", foo.VariableType.Name);
+        }
+
+        [Test]
+        public void TestMethodCallCreation() {
+            //// A.cs
+            //class A {
+            //    public int Execute() {
+            //        B b = new B();
+            //        for(int i = 0; i < b.max(); i++) {
+            //            try {
+            //                PrintOutput(b.analyze(i));
+            //            } catch(Exception e) {
+            //                PrintError(e.ToString());
+            //            }
+            //        }
+            //    }
+            //}
+            string xml = @"<class>class <name>A</name> <block>{
+    <function><type><specifier>public</specifier> <name>int</name></type> <name>Execute</name><parameter_list>()</parameter_list> <block>{
+        <decl_stmt><decl><type><name>B</name></type> <name>b</name> =<init> <expr><op:operator>new</op:operator> <call><name>B</name><argument_list>()</argument_list></call></expr></init></decl>;</decl_stmt>
+        <for>for(<init><decl><type><name>int</name></type> <name>i</name> =<init> <expr><lit:literal type=""number"">0</lit:literal></expr></init></decl>;</init> <condition><expr><name>i</name> <op:operator>&lt;</op:operator> <call><name><name>b</name><op:operator>.</op:operator><name>max</name></name><argument_list>()</argument_list></call></expr>;</condition> <incr><expr><name>i</name><op:operator>++</op:operator></expr></incr>) <block>{
+            <try>try <block>{
+                <expr_stmt><expr><call><name>PrintOutput</name><argument_list>(<argument><expr><call><name><name>b</name><op:operator>.</op:operator><name>analyze</name></name><argument_list>(<argument><expr><name>i</name></expr></argument>)</argument_list></call></expr></argument>)</argument_list></call></expr>;</expr_stmt>
+            }</block> <catch>catch(<param><decl><type><name>Exception</name></type> <name>e</name></decl></param>) <block>{
+                <expr_stmt><expr><call><name>PrintError</name><argument_list>(<argument><expr><call><name><name>e</name><op:operator>.</op:operator><name>ToString</name></name><argument_list>()</argument_list></call></expr></argument>)</argument_list></call></expr>;</expr_stmt>
+            }</block></catch></try>
+        }</block></for>
+    }</block></function>
+}</block></class>";
+            var fileUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
+            var globalScope = codeParser.ParseFileUnit(fileUnit);
+
+            var executeMethod = globalScope.ChildScopes.First().ChildScopes.First() as MethodDefinition;
+            Assert.IsNotNull(executeMethod);
+
+            Assert.AreEqual(1, executeMethod.MethodCalls.Count());
+            var callToNewB = executeMethod.MethodCalls.First();
+            Assert.AreEqual("B", callToNewB.Name);
+            Assert.IsTrue(callToNewB.IsConstructor);
+            Assert.IsFalse(callToNewB.IsDestructor);
+
+            var forStatement = executeMethod.ChildScopes.First();
+            Assert.AreEqual(1, forStatement.MethodCalls.Count());
+            var callToMax = forStatement.MethodCalls.First();
+            Assert.AreEqual("max", callToMax.Name);
+            Assert.IsFalse(callToMax.IsDestructor);
+            Assert.IsFalse(callToMax.IsConstructor);
+
+            var forBlock = forStatement.ChildScopes.First();
+            var tryStatement = forBlock.ChildScopes.First();
+            var tryBlock = tryStatement.ChildScopes.First();
+
+            Assert.AreEqual(2, tryBlock.MethodCalls.Count());
+            var callToPrintOutput = tryBlock.MethodCalls.First();
+            Assert.AreEqual("PrintOutput", callToPrintOutput.Name);
+            Assert.IsFalse(callToPrintOutput.IsDestructor);
+            Assert.IsFalse(callToPrintOutput.IsConstructor);
+
+            var callToAnalyze = tryBlock.MethodCalls.Last();
+            Assert.AreEqual("analyze", callToAnalyze.Name);
+            Assert.IsFalse(callToAnalyze.IsDestructor);
+            Assert.IsFalse(callToAnalyze.IsConstructor);
+
+            var catchStatement = tryStatement.ChildScopes.Last();
+            var catchBlock = catchStatement.ChildScopes.First();
+
+            Assert.AreEqual(2, catchBlock.MethodCalls.Count());
+            var callToPrintError = catchBlock.MethodCalls.First();
+            Assert.AreEqual("PrintError", callToPrintError.Name);
+            Assert.IsFalse(callToPrintError.IsDestructor);
+            Assert.IsFalse(callToPrintError.IsConstructor);
+
+            var callToToString = catchBlock.MethodCalls.Last();
+            Assert.AreEqual("ToString", callToToString.Name);
+            Assert.IsFalse(callToToString.IsDestructor);
+            Assert.IsFalse(callToToString.IsConstructor);
+        }
     }
 }

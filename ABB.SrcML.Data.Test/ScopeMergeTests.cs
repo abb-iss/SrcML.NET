@@ -25,10 +25,12 @@ namespace ABB.SrcML.Data.Test {
             FileUnitSetup = new Dictionary<Language, SrcMLFileUnitSetup>() {
                 { Language.CPlusPlus, new SrcMLFileUnitSetup(Language.CPlusPlus) },
                 { Language.Java, new SrcMLFileUnitSetup(Language.Java) },
+                { Language.CSharp, new SrcMLFileUnitSetup(Language.CSharp) }
             };
             CodeParser = new Dictionary<Language, AbstractCodeParser>() {
                 { Language.CPlusPlus, new CPlusPlusCodeParser() },
                 { Language.Java, new JavaCodeParser() },
+                { Language.CSharp, new CSharpCodeParser() }
             };
         }
 
@@ -397,6 +399,43 @@ namespace ABB.SrcML.Data.Test {
 
             Assert.AreEqual(1, globalScope.ChildScopes.Count());
             Assert.AreEqual("Foo", ((MethodDefinition)globalScope.ChildScopes.First()).Name);
+        }
+
+        [Test]
+        public void TestPartialClassMerge_CSharp() {
+            ////A1.cs
+            //public partial class A {
+            //    public int Execute() {
+            //        return 0;
+            //    }
+            //}
+            string a1Xml = @"<class><specifier>public</specifier> <specifier>partial</specifier> class <name>A</name> <block>{
+    <function><type><specifier>public</specifier> <name>int</name></type> <name>Execute</name><parameter_list>()</parameter_list> <block>{
+        <return>return <expr><lit:literal type=""number"">0</lit:literal></expr>;</return>
+    }</block></function>
+}</block></class>";
+            var a1FileUnit = FileUnitSetup[Language.CSharp].GetFileUnitForXmlSnippet(a1Xml, "A1.cs");
+            var globalScope = CodeParser[Language.CSharp].ParseFileUnit(a1FileUnit) as NamedScope;
+            ////A2.cs
+            //public partial class A {
+            //    private bool Foo() {
+            //        return true;
+            //    }
+            //}
+            string a2Xml = @"<class><specifier>public</specifier> <specifier>partial</specifier> class <name>A</name> <block>{
+    <function><type><specifier>private</specifier> <name>bool</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{
+        <return>return <expr><lit:literal type=""boolean"">true</lit:literal></expr>;</return>
+    }</block></function>
+}</block></class>";
+            var a2FileUnit = FileUnitSetup[Language.CSharp].GetFileUnitForXmlSnippet(a2Xml, "A2.cs");
+            globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(a2FileUnit));
+
+            Assert.AreEqual(1, globalScope.ChildScopes.Count());
+            var typeA = globalScope.ChildScopes.First() as TypeDefinition;
+            Assert.IsNotNull(typeA);
+            Assert.AreEqual(2, typeA.ChildScopes.OfType<MethodDefinition>().Count());
+            Assert.IsTrue(typeA.ChildScopes.OfType<MethodDefinition>().Any(m => m.Name == "Execute"));
+            Assert.IsTrue(typeA.ChildScopes.OfType<MethodDefinition>().Any(m => m.Name == "Foo"));
         }
     }
 }

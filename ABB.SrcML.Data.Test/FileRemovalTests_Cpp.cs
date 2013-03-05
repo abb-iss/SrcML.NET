@@ -109,7 +109,9 @@ namespace ABB.SrcML.Data.Test {
             var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(cppFileunit));
 
             Assert.AreEqual(1, afterScope.ChildScopes.Count());
-            Assert.IsNotNull(afterScope.ChildScopes.First() as TypeDefinition);
+            var foo = afterScope.ChildScopes.First() as TypeDefinition;
+            Assert.IsNotNull(foo);
+            Assert.AreEqual(1, foo.DeclaredVariables.Count());
             
             afterScope.RemoveFile("A.cpp");
 
