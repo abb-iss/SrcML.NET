@@ -244,7 +244,7 @@ namespace ABB.SrcML.Data {
             }
 
             var block = container.Element(SRC.Block);
-            var specifierElements = from child in container.Elements()
+            var specifierElements = from child in block.Elements()
                                     where SpecifierContainerNames.Contains(child.Name)
                                     select child;
 
