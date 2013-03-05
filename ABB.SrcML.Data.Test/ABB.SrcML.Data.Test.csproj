@@ -54,6 +54,7 @@
     <Compile Include="BuiltInTypeFactoryTests.cs" />
     <Compile Include="CSharpCodeParserTests.cs" />
     <Compile Include="FileRemovalTests_Cpp.cs" />
+    <Compile Include="FileRemovalTests_CSharp.cs" />
     <Compile Include="FileRemovalTests_Java.cs" />
     <Compile Include="NameHelperTests.cs" />
     <Compile Include="RealWorldTests.cs" />

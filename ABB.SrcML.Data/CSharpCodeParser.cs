@@ -35,6 +35,21 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
+        /// Parses the given typeElement and returns a TypeDefinition object.
+        /// </summary>
+        /// <param name="typeElement">the type XML element.</param>
+        /// <param name="fileUnit">The containing file unit</param>
+        /// <returns>A new TypeDefinition object</returns>
+        public override TypeDefinition CreateTypeDefinition(XElement typeElement, XElement fileUnit) {
+            var typeDef = base.CreateTypeDefinition(typeElement, fileUnit);
+            var partials = from specifiers in typeElement.Elements(SRC.Specifier)
+                           where specifiers.Value == "partial"
+                           select specifiers;
+            typeDef.IsPartial = partials.Any();
+            return typeDef;
+        }
+
+        /// <summary>
         /// Creates a NamespaceDefinition object for the given namespace element. This must be one of the element types defined in NamespaceElementNames.
         /// </summary>
         /// <param name="namespaceElement">The namespace element</param>
@@ -97,10 +112,9 @@ namespace ABB.SrcML.Data {
             } else if(specifiers.Count == 2 && specifiers[0].Value == "protected" && specifiers[1].Value == "internal") {
                 result = AccessModifier.ProtectedInternal;
             } else {
-                if(specifiers.Count > 1) {
-                    Debug.WriteLine("Found too many access modifiers on type: " + typeElement);
-                }
-                result = accessModifierMap[specifiers.First().Value];
+                //specifiers might include non-access keywords like "partial"
+                //get first specifier that is in the access modifier map
+                result = accessModifierMap[specifiers.First(spec => accessModifierMap.ContainsKey(spec.Value)).Value];
             }
             return result;
         }
