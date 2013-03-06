@@ -19,7 +19,7 @@ namespace ABB.SrcML {
     /// <summary>
     /// Maintains a mapping between source file paths and the paths where XML versions are stored.
     /// </summary>
-    public class XmlFileNameMapping : IDisposable {
+    public abstract class XmlFileNameMapping : IDisposable {
         /// <summary>
         /// The directory where the XML files should be located.
         /// </summary>
@@ -29,7 +29,7 @@ namespace ABB.SrcML {
         /// Creates a new XmlFileNameMapping.
         /// </summary>
         /// <param name="xmlDirectory">The directory for the XML files.</param>
-        public XmlFileNameMapping(string xmlDirectory) {
+        protected XmlFileNameMapping(string xmlDirectory) {
             if(string.IsNullOrWhiteSpace(xmlDirectory)) {
                 throw new ArgumentException("Argument cannot be null, empty, or whitespace.", "xmlDirectory");
             }
@@ -41,37 +41,23 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="sourcePath">The path for the source file.</param>
         /// <returns>The full path for an XML file based on <paramref name="sourcePath"/>.</returns>
-        public virtual string GetXMLPath(string sourcePath) {
-            string srcMLFileName = Path.GetFullPath(sourcePath).Replace("\\", "-").Replace(":", "=");   // Simple encoding
-            string xmlPath = Path.Combine(XmlDirectory, srcMLFileName) + ".xml";
-            return xmlPath;
-        }
+        public abstract string GetXmlPath(string sourcePath);
 
         /// <summary>
         /// Returns the path where the source file for <paramref name="xmlPath"/> is located.
         /// </summary>
         /// <param name="xmlPath">The path for the XML file.</param>
         /// <returns>The full path for the source file that <paramref name="xmlPath"/> is based on.</returns>
-        public virtual string GetSourcePath(string xmlPath) {
-            var sourcePath = Path.GetFileNameWithoutExtension(xmlPath);
-            if(sourcePath != null) {
-                sourcePath = sourcePath.Replace("=", ":").Replace("-", "\\"); // Simple decoding
-            }
-            return sourcePath;
-        }
+        public abstract string GetSourcePath(string xmlPath);
 
         /// <summary>
         /// Saves the file name mapping to the XmlDirectory.
         /// </summary>
-        public virtual void SaveMapping() {
-            
-        }
+        public abstract void SaveMapping();
 
         #region IDisposable Members
 
-        public virtual void Dispose() {
-            
-        }
+        public abstract void Dispose();
 
         #endregion
     }
