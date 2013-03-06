@@ -273,7 +273,8 @@ namespace ABB.SrcML.Data.Test {
 
             var actual = aliases.First();
 
-            Assert.AreEqual("A", actual.NamespaceName);
+            Assert.AreEqual("Foo", actual.ImportedNamedScope.Name);
+            Assert.AreEqual("A", actual.ImportedNamespace.Name);
             Assert.IsFalse(actual.IsNamespaceAlias);
         }
 
@@ -288,8 +289,11 @@ namespace ABB.SrcML.Data.Test {
 
             var actual = aliases.First();
 
-            Assert.AreEqual("x.y.z", actual.NamespaceName);
+            Assert.IsNull(actual.ImportedNamedScope);
             Assert.That(actual.IsNamespaceAlias);
+            Assert.AreEqual("x", actual.ImportedNamespace.Name);
+            Assert.AreEqual("y", actual.ImportedNamespace.ChildScopeUse.Name);
+            Assert.AreEqual("z", actual.ImportedNamespace.ChildScopeUse.ChildScopeUse.Name);
         }
 
         [Test]
@@ -393,6 +397,41 @@ namespace ABB.SrcML.Data.Test {
 
             Assert.AreSame(bDotContains, methodCall.FindMatches().First());
             Assert.AreNotSame(aDotContains, methodCall.FindMatches().First());
+        }
+        [Test]
+        public void TestMergeWithUsing() {
+            // namespace A { class B { void Foo(); }; }
+            string headerXml = @"<namespace>namespace <name>A</name> <block>{ <class>class <name>B</name> <block>{<private type=""default""> <function_decl><type><name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list>;</function_decl> </private>}</block>;</class> }</block></namespace>";
+
+            //using namespace A;
+            //
+            //void B::Foo() { }
+            string implementationXml = @"<using>using namespace <name>A</name>;</using>
+
+<function><type><name>void</name></type> <name><name>B</name><op:operator>::</op:operator><name>Foo</name></name><parameter_list>()</parameter_list> <block>{ }</block></function>";
+
+            var headerScope = codeParser.ParseFileUnit(fileSetup.GetFileUnitForXmlSnippet(headerXml, "A.h"));
+            var implementationScope = codeParser.ParseFileUnit(fileSetup.GetFileUnitForXmlSnippet(implementationXml, "A.cpp"));
+
+            var globalScope = headerScope.Merge(implementationScope);
+
+            Assert.AreEqual(1, globalScope.ChildScopes.Count());
+            
+            var namespaceA = globalScope.ChildScopes.First() as NamespaceDefinition;
+            Assert.AreEqual("A", namespaceA.Name);
+            Assert.AreEqual(1, namespaceA.ChildScopes.Count());
+            
+            var typeB = namespaceA.ChildScopes.First() as TypeDefinition;
+            Assert.AreEqual("B", typeB.Name);
+            Assert.AreEqual(1, typeB.ChildScopes.Count());
+
+            var methodFoo = typeB.ChildScopes.First() as MethodDefinition;
+            Assert.AreEqual("Foo", methodFoo);
+            Assert.IsEmpty(typeB.ChildScopes);
+
+            var globalScope_implementationFirst = implementationScope.Merge(headerScope);
+
+            TestHelper.ScopesAreEqual(globalScope, globalScope_implementationFirst);
         }
     }
 }

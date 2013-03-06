@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using NUnit.Framework;
+using System.Xml.Linq;
 
 namespace ABB.SrcML.Data.Test {
     [TestFixture]
@@ -400,6 +401,23 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("ToString", callToToString.Name);
             Assert.IsFalse(callToToString.IsDestructor);
             Assert.IsFalse(callToToString.IsConstructor);
+        }
+
+        [Test]
+        public void TestCreateAliasesForFiles_UsingNamespace() {
+            // using x.y.z;
+            string xml = @"<using>using <name><name>x</name><op:operator>.</op:operator><name>y</name><op:operator>.</op:operator><name>z</name></name>;</using>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
+
+            var aliases = codeParser.CreateAliasesForFile(xmlElement);
+
+            var actual = aliases.First();
+
+            Assert.IsNull(actual.ImportedNamedScope);
+            Assert.That(actual.IsNamespaceAlias);
+            Assert.AreEqual("x", actual.ImportedNamespace.Name);
+            Assert.AreEqual("y", actual.ImportedNamespace.ChildScopeUse.Name);
+            Assert.AreEqual("z", actual.ImportedNamespace.ChildScopeUse.ChildScopeUse.Name);
         }
     }
 }

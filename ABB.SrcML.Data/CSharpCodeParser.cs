@@ -24,6 +24,7 @@ namespace ABB.SrcML.Data {
 
         public CSharpCodeParser() :base() {
             this.TypeElementNames = new HashSet<XName> {SRC.Class, SRC.Enum, SRC.Struct}; //SRC.Interface?
+            this.AliasElementName = SRC.Using;
             //TODO: what else needs to be set here?
         }
 
@@ -138,9 +139,9 @@ namespace ABB.SrcML.Data {
             return parents;
         }
 
-        public override IEnumerable<Alias> CreateAliasesForFile(XElement fileUnit) {
-            //TODO: implement
-            return Enumerable.Empty<Alias>();
+        public override bool AliasIsNamespaceImport(XElement aliasStatement) {
+            // TODO handle "using A = B.C"
+            return true;
         }
 
         public override string GetTypeForBooleanLiteral(string literalValue) {

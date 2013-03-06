@@ -75,6 +75,8 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public HashSet<XName> ContainerReferenceElementNames { get; protected set; }
 
+        public XName AliasElementName { get; protected set; }
+
         /// <summary>
         /// Parses a file unit and returns a <see cref="NamespaceDefinition.IsGlobal">global</see> <see cref="NamespaceDefinition">namespace definition</see> object
         /// </summary>
@@ -333,12 +335,90 @@ namespace ABB.SrcML.Data {
         public abstract Collection<TypeUse> GetParentTypeUses(XElement typeElement, XElement fileUnit, TypeDefinition typeDefinition);
 
         /// <summary>
-        /// Get type aliases for the given file
+        /// Get the aliases from the given file
         /// </summary>
-        /// <param name="fileUnit"></param>
-        /// <returns></returns>
-        public abstract IEnumerable<Alias> CreateAliasesForFile(XElement fileUnit);
+        /// <param name="fileUnit">The file unit to find aliases in</param>
+        /// <returns>All of the aliases that are children if <paramref name="fileUnit"/></returns>
+        public virtual IEnumerable<Alias> CreateAliasesForFile(XElement fileUnit) {
+            var aliases = from aliasStatement in fileUnit.Elements(AliasElementName)
+                          select CreateAlias(aliasStatement, fileUnit);
+            return aliases;
+        }
 
+        /// <summary>
+        /// Creates an <see cref="Alias"/> object from a using import (such as using in C++ and C# and import in Java).
+        /// </summary>
+        /// <param name="aliasStatement">The statement to parse. Should be of type <see cref="AliasElementName"/></param>
+        /// <param name="fileUnit">The file unit that contains this element</param>
+        /// <returns>a new alias object that represents this alias statement</returns>
+        public Alias CreateAlias(XElement aliasStatement, XElement fileUnit) {
+            if(null == aliasStatement)
+                throw new ArgumentNullException("aliasStatement");
+            if(aliasStatement.Name != AliasElementName)
+                throw new ArgumentException(String.Format("must be a {0} statement", AliasElementName), "usingStatement");
+
+            var alias = new Alias() {
+                Location = new SourceLocation(aliasStatement, fileUnit),
+                ProgrammingLanguage = ParserLanguage,
+            };
+
+            IEnumerable<XElement> namespaceNames = GetNamesFromAlias(aliasStatement);
+
+            if(!AliasIsNamespaceImport(aliasStatement)) {
+                var lastNameElement = namespaceNames.LastOrDefault();
+                namespaceNames = from name in namespaceNames
+                                 where name.IsBefore(lastNameElement)
+                                 select name;
+
+                alias.ImportedNamedScope = new NamedScopeUse() {
+                    Name = lastNameElement.Value,
+                    Location = new SourceLocation(lastNameElement, fileUnit),
+                    ProgrammingLanguage = ParserLanguage,
+                };
+            }
+
+            NamespaceUse current = null;
+            foreach(var namespaceName in namespaceNames) {
+                var use = new NamespaceUse() {
+                    Name = namespaceName.Value,
+                    Location = new SourceLocation(namespaceName, fileUnit),
+                    ProgrammingLanguage = ParserLanguage,
+                };
+
+                if(alias.ImportedNamespace == null) {
+                    alias.ImportedNamespace = use;
+                    current = use;
+                } else {
+                    current.ChildScopeUse = use;
+                    current = use;
+                }
+            }
+
+            return alias;
+        }
+
+        /// <summary>
+        /// Checks if this alias statement is a namespace import or something more specific (such as a type or method)
+        /// </summary>
+        /// <param name="aliasStatement">The alias statement to check. Must be of type <see cref="AliasElementName"/></param>
+        /// <returns>True if this is a namespace import; false otherwise</returns>
+        public abstract bool AliasIsNamespaceImport(XElement aliasStatement);
+
+        /// <summary>
+        /// Gets all of the names for this alias
+        /// </summary>
+        /// <param name="aliasStatement">The alias statement. Must be of type <see cref="AliasElementName"/></param>
+        /// <returns>An enumerable of all the <see cref="ABB.SrcML.SRC.Name">name elements</see> for this statement</returns>
+        public virtual IEnumerable<XElement> GetNamesFromAlias(XElement aliasStatement) {
+            if(null == aliasStatement) throw new ArgumentNullException("aliasStatement");
+            if(aliasStatement.Name != AliasElementName) throw new ArgumentException(String.Format("should be an {0} statement", AliasElementName), "aliasStatement");
+
+            var nameElement = aliasStatement.Element(SRC.Name);
+            if(null != nameElement)
+                return NameHelper.GetNameElementsFromName(nameElement);
+            return Enumerable.Empty<XElement>();
+        }
+        
         /// <summary>
         /// Gets the filename for the given file unit.
         /// </summary>

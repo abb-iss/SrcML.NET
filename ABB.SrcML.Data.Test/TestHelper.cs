@@ -90,8 +90,8 @@ namespace ABB.SrcML.Data.Test {
         public static bool AliasesAreEqual(Alias a, Alias b) {
             if(a == b) { return true; }
             return LocationsAreEqual(a.Location, b.Location) &&
-                   a.Name == b.Name &&
-                   a.NamespaceName == b.NamespaceName;
+                   NamedScopeUsesAreEqual(a.ImportedNamedScope, b.ImportedNamedScope) &&
+                   NamedScopeUsesAreEqual(a.ImportedNamespace, b.ImportedNamespace);
         }
 
         public static bool LocationsAreEqual(SourceLocation a, SourceLocation b) {

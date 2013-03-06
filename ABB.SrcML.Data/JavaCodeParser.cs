@@ -27,6 +27,7 @@ namespace ABB.SrcML.Data {
         public JavaCodeParser() {
             this.TypeElementNames = new HashSet<XName>(new XName[] { SRC.Class, SRC.Enum });
             this.NamespaceElementNames = new HashSet<XName>();
+            this.AliasElementName = SRC.Import;
         }
 
         /// <summary>
@@ -155,55 +156,34 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Creates a list of aliases for the <paramref name="fileUnit"/>. For java, this parses the import statements (marked up by the <see cref="ABB.SrcML.SRC.Import"/>).
+        /// Checks if this java import statement is a wild card (<c>import java.lang.*</c>) or for a specific class (<c>import java.lang.String</c>)
         /// </summary>
-        /// <param name="fileUnit">The file unit</param>
-        /// <returns>an enumerable of alias objects</returns>
-        public override IEnumerable<Alias> CreateAliasesForFile(XElement fileUnit) {
-            var aliases = from statement in fileUnit.Descendants(SRC.Import)
-                          select CreateAliasFromImportStatement(statement, fileUnit);
-            return aliases;
-        }
+        /// <param name="aliasStatement">The alias statement to check. Must be of type <see cref="AliasElementName"/></param>
+        /// <returns>True if this import statement ends with an asterisk; false otherwise</returns>
+        public override bool AliasIsNamespaceImport(XElement aliasStatement) {
+            if(null == aliasStatement) throw new ArgumentNullException("aliasStatement");
+            if(aliasStatement.Name != AliasElementName) throw new ArgumentException(String.Format("should be an {0} statement", AliasElementName), "aliasStatement");
 
-        /// <summary>
-        /// Creates an alias for the given import XElement.
-        /// </summary>
-        /// <param name="importStatement">an import element (<c>importStatement.Name</c> must be <see cref="ABB.SrcML.SRC.Import"/></param>
-        /// <returns>An alias representing the import statement</returns>
-        public Alias CreateAliasFromImportStatement(XElement importStatement, XElement fileUnit) {
-            if(null == importStatement)
-                throw new ArgumentNullException("importStatement");
-            if(importStatement.Name != SRC.Import)
-                throw new ArgumentException("must be an import statement", "importStatement");
-
-            Alias alias = new Alias() {
-                Location = new SourceLocation(importStatement, fileUnit),
-            };
-
-            var lastName = importStatement.Elements(SRC.Name).LastOrDefault();
-            
-            var textContainsAsterisk = (from textNode in GetTextNodes(importStatement)
+            var lastName = aliasStatement.Elements(SRC.Name).LastOrDefault();
+            var textContainsAsterisk = (from textNode in GetTextNodes(aliasStatement)
                                         where textNode.IsAfter(lastName)
                                         where textNode.Value.Contains("*")
                                         select textNode).Any();
-            if(textContainsAsterisk) {
-                // if text contains asterisk, this is a namespace import
-                var names = from name in importStatement.Elements(SRC.Name)
-                            select name.Value;
+            return textContainsAsterisk;
+        }
 
-                alias.NamespaceName = String.Join(".", names);
-            } else {
-                // if the text does not contain an asterisk this is a class import
-                // the last <name> element is the imported class name
-                // and the rest of the 
-                var names = from name in importStatement.Elements(SRC.Name)
-                            where name.IsBefore(lastName)
-                            select name.Value;
-                alias.NamespaceName = String.Join(".", names);
-                alias.Name = lastName.Value;
-            }
+        /// <summary>
+        /// Gets all of the names for this alias
+        /// </summary>
+        /// <param name="aliasStatement">The alias statement. Must be of type <see cref="AliasElementName"/></param>
+        /// <returns>An enumerable of all the <see cref="ABB.SrcML.SRC.Name">name elements</see> for this statement</returns>
+        public override IEnumerable<XElement> GetNamesFromAlias(XElement aliasStatement) {
+            if(null == aliasStatement) throw new ArgumentNullException("aliasStatement");
+            if(aliasStatement.Name != AliasElementName) throw new ArgumentException(String.Format("should be an {0} statement", AliasElementName), "aliasStatement");
 
-            return alias;
+            var nameElements = from name in aliasStatement.Elements(SRC.Name)
+                               select name;
+            return nameElements;
         }
     }
 }

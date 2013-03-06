@@ -29,6 +29,7 @@ namespace ABB.SrcML.Data {
             this.SpecifierContainerNames = new HashSet<XName>(new XName[] { SRC.Private, SRC.Protected, SRC.Public });
             this.TypeElementNames = new HashSet<XName>(new XName[] { SRC.Class, SRC.Enum, SRC.Struct, SRC.Union });
             this.VariableDeclarationElementNames = new HashSet<XName>(new XName[] { SRC.Declaration, SRC.DeclarationStatement, SRC.FunctionDeclaration });
+            this.AliasElementName = SRC.Using;
         }
         /// <summary>
         /// Returns <c>Language.CPlusPlus</c>
@@ -161,54 +162,18 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Creates aliases for the files. For C++, this means interpreting using statements (both <c>using A::B;</c> and <c>using namespace std;</c>).
+        /// Checks if this alias statement represents a namespace import or something more specific (such as a method or class alias).
+        /// In C++, namespace aliases contain the "namespace" keyword (for instance, <c>using namespace std;</c>).
         /// </summary>
-        /// <param name="fileUnit">The file unit to find aliases in</param>
-        /// <returns>The aliases for this file</returns>
-        public override IEnumerable<Alias> CreateAliasesForFile(XElement fileUnit) {
-            var aliases = from usingStatement in fileUnit.Descendants(SRC.Using)
-                          select CreateAliasFromUsingStatement(usingStatement, fileUnit);
-            return aliases;
-        }
-
-        /// <summary>
-        /// Creates an alias for a C++ using statement
-        /// </summary>
-        /// <param name="usingStatement">The using statement (<c>usingStatement.Name</c> must be <see cref="ABB.SrcML.SRC.Using"/></param>
-        /// <param name="fileUnit">The file unit that contains this using statement</param>
-        /// <returns>An alias for this using statement</returns>
-        public Alias CreateAliasFromUsingStatement(XElement usingStatement, XElement fileUnit) {
-            if(null == usingStatement)
-                throw new ArgumentNullException("usingStatement");
-            if(usingStatement.Name != SRC.Using)
-                throw new ArgumentException("must be an using statement", "usingStatement");
-
-            var alias = new Alias() {
-                Name = String.Empty,
-                Location = new SourceLocation(usingStatement, fileUnit),
-            };
-            var nameElement = usingStatement.Element(SRC.Name);
-
-            var containsNamespaceKeyword = (from textNode in GetTextNodes(usingStatement)
+        /// <param name="aliasStatement">The statement to parse. Should be of type <see cref="AliasElementName"/></param>
+        /// <returns>True if this is a namespace import; false otherwise</returns>
+        public override bool AliasIsNamespaceImport(XElement aliasStatement) {
+            if(null == aliasStatement) throw new ArgumentNullException("aliasStatement");
+            if(aliasStatement.Name != AliasElementName) throw new ArgumentException(String.Format("should be an {0} statement", AliasElementName), "aliasStatement");
+            var containsNamespaceKeyword = (from textNode in GetTextNodes(aliasStatement)
                                             where textNode.Value.Contains("namespace")
                                             select textNode).Any();
-            if(nameElement != null) {
-                if(containsNamespaceKeyword) {
-                    // if the using declaration contains the namespace keyword then this is a namespace import
-                    var names = from name in NameHelper.GetNameElementsFromName(nameElement)
-                                select name.Value;
-                    alias.NamespaceName = String.Join(".", names);
-                } else {
-                    // if the namespace keyword isn't present then the using declaration is importing a specific type or variable
-                    var lastName = NameHelper.GetLastName(nameElement);
-                    var namespaceNames = NameHelper.GetNamesExceptLast(nameElement);
-
-                    alias.NamespaceName = String.Join(".", namespaceNames);
-                    alias.Name = lastName;
-                }
-            }
-            
-            return alias;
+            return containsNamespaceKeyword;
         }
 
         /// <summary>

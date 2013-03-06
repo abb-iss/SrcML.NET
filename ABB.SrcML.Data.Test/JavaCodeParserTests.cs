@@ -272,7 +272,8 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestCreateAliasesForFiles_ImportNamespace() {
-            string xml = @"<import>import <name>x</name> . <comment type=""block"">/*test */</comment> <name>y</name> . <name>z</name> . <comment type=""block"">/*test */</comment> * <comment type=""block"">/*test*/</comment>;</import>";
+            // import x . /*test */ y . z . /*test */  * /*test*/;
+            string xml = @"<import>import <name>x</name> . <comment type=""block"">/*test */</comment> <name>y</name> . <name>z</name> . <comment type=""block"">/*test */</comment>  * <comment type=""block"">/*test*/</comment>;</import>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
             
@@ -280,12 +281,17 @@ namespace ABB.SrcML.Data.Test {
 
             var actual = aliases.First();
 
-            Assert.AreEqual("x.y.z", actual.NamespaceName);
+            Assert.AreEqual("x", actual.ImportedNamespace.Name);
+            Assert.AreEqual("y", actual.ImportedNamespace.ChildScopeUse.Name);
+            Assert.AreEqual("z", actual.ImportedNamespace.ChildScopeUse.ChildScopeUse.Name);
+            Assert.IsNull(actual.ImportedNamespace.ChildScopeUse.ChildScopeUse.ChildScopeUse);
+            Assert.IsNull(actual.ImportedNamedScope);
             Assert.That(actual.IsNamespaceAlias);
         }
 
         [Test]
         public void TestCreateAliasesForFiles_ImportClass() {
+            //import x.y.z;
             string xml = @"<import>import <name>x</name>.<name>y</name>.<name>z</name>;</import>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
@@ -294,8 +300,11 @@ namespace ABB.SrcML.Data.Test {
 
             var actual = aliases.First();
 
-            Assert.AreEqual("x.y", actual.NamespaceName);
-            Assert.AreEqual("z", actual.Name);
+            Assert.AreEqual("x", actual.ImportedNamespace.Name);
+            Assert.AreEqual("y", actual.ImportedNamespace.ChildScopeUse.Name);
+            Assert.IsNull(actual.ImportedNamespace.ChildScopeUse.ChildScopeUse);
+
+            Assert.AreEqual("z", actual.ImportedNamedScope.Name);
             Assert.IsFalse(actual.IsNamespaceAlias);
         }
 
