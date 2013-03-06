@@ -93,7 +93,6 @@
     <Compile Include="SrcMLHelper.cs" />
     <Compile Include="SrcMLRequiredNameException.cs" />
     <Compile Include="SrcMLRunner.cs" />
-    <Compile Include="StaticFileList.cs" />
     <Compile Include="Transform.cs" />
     <Compile Include="TransformObjectHarness.cs" />
     <Compile Include="TransformRunner.cs" />
