@@ -34,10 +34,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public Collection<IResolvesToType> Arguments { get; set; }
 
-        /// <summary>
-        /// The calling object for this method
-        /// </summary>
-        public VariableUse Caller { get; set; }
+        public IResolvesToType CallingObject { get; set; }
 
         /// <summary>
         /// True if this is a call to a constructor
@@ -68,8 +65,16 @@ namespace ABB.SrcML.Data {
                                       where Matches(method)
                                       select method;
                 return matchingMethods;
+            } else if(CallingObject != null) {
+                var matchingMethods = from typeDefinition in CallingObject.FindMatchingTypes()
+                                      from child in typeDefinition.ChildScopes
+                                      let method = child as MethodDefinition
+                                      where Matches(method)
+                                      select method;
+                return matchingMethods;
+            } else {
+                return base.FindMatches();
             }
-            return base.FindMatches();
         }
 
         /// <summary>

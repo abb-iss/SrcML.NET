@@ -28,6 +28,8 @@ namespace ABB.SrcML.Data {
             this.Name = String.Empty;
         }
 
+        public IResolvesToType CallingObject { get; set; }
+
         /// <summary>
         /// The prefix for this type use object
         /// </summary>

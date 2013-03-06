@@ -223,9 +223,9 @@ namespace ABB.SrcML.Data {
             }
 
             var typeUse = new TypeUse() {
-                Name = lastNameElement.Value,
+                Name = (lastNameElement != null ? lastNameElement.Value : String.Empty),
                 ParentScope = parentScope,
-                Location = new SourceLocation(lastNameElement, fileUnit),
+                Location = new SourceLocation((lastNameElement != null ? lastNameElement : element), fileUnit),
                 Prefix = prefix,
                 ProgrammingLanguage = this.ParserLanguage,
             };
@@ -432,10 +432,12 @@ namespace ABB.SrcML.Data {
             string name = String.Empty;
             bool isConstructor = false;
             bool isDestructor = false;
+            IEnumerable<XElement> callingObjectNames = Enumerable.Empty<XElement>();
 
             var nameElement = element.Element(SRC.Name);
             if(null != nameElement) {
                 name = NameHelper.GetLastName(nameElement);
+                callingObjectNames = NameHelper.GetNameElementsExceptLast(nameElement);
             }
 
             var precedingElements = element.ElementsBeforeSelf();
@@ -448,7 +450,6 @@ namespace ABB.SrcML.Data {
                 }
             }
 
-
             var methodCall = new MethodCall() {
                 Name = name,
                 IsConstructor = isConstructor,
@@ -456,9 +457,31 @@ namespace ABB.SrcML.Data {
                 ParentScope = parentScope,
                 Location = new SourceLocation(element, fileUnit),
             };
+            
             var arguments = from argument in element.Element(SRC.ArgumentList).Elements(SRC.Argument)
                             select CreateResolvableUse(argument, fileUnit, parentScope);
             methodCall.Arguments = new Collection<IResolvesToType>(arguments.ToList<IResolvesToType>());
+
+            IResolvesToType current = methodCall;
+            foreach(var callingObjectName in callingObjectNames.Reverse()) {
+                var callingObject = this.CreateVariableUse(callingObjectName, fileUnit, parentScope);
+                current.CallingObject = callingObject;
+                current = callingObject;
+            }
+            
+            var elementsBeforeCall = element.ElementsBeforeSelf().ToArray();
+            int i = elementsBeforeCall.Length - 1;
+
+            while(i > 0 && elementsBeforeCall[i].Name == OP.Operator &&
+                  (elementsBeforeCall[i].Value == "." || elementsBeforeCall[i].Value == "->")) {
+                i--;
+                if(i >= 0 && elementsBeforeCall[i].Name == SRC.Name) {
+                    var callingObject = CreateVariableUse(elementsBeforeCall[i], fileUnit, parentScope);
+                    current.CallingObject = callingObject;
+                    current = callingObject;
+                }
+
+            }
             return methodCall;
         }
 
@@ -500,20 +523,22 @@ namespace ABB.SrcML.Data {
         public abstract string GetTypeForStringLiteral(string literalValue);
 
         public virtual VariableUse CreateVariableUse(XElement element, XElement fileUnit, Scope parentScope) {
-            XElement expression;
-            if(element.Name == SRC.Expression) {
-                expression = element;
+            XElement nameElement;
+            if(element.Name == SRC.Name) {
+                nameElement = element;
+            } else if(element.Name == SRC.Expression) {
+                nameElement = element.Element(SRC.Name);
             } else if(element.Name == SRC.ExpressionStatement || element.Name == SRC.Argument) {
-                expression = element.Element(SRC.Expression);
+                nameElement = element.Element(SRC.Expression).Element(SRC.Name);
             } else {
-                throw new ArgumentException("element should be an expression, expression statement, or argument", "element");
+                throw new ArgumentException("element should be an expression, expression statement, argument, or name", "element");
             }
 
-            var nameElement = NameHelper.GetLastNameElement(expression.Element(SRC.Name));
+            var lastNameElement = NameHelper.GetLastNameElement(nameElement);
 
             var variableUse = new VariableUse() {
-                Location = new SourceLocation(nameElement, fileUnit, true),
-                Name = nameElement.Value,
+                Location = new SourceLocation(lastNameElement, fileUnit, true),
+                Name = lastNameElement.Value,
                 ParentScope = parentScope,
                 ProgrammingLanguage = ParserLanguage,
             };

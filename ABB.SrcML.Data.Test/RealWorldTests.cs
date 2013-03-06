@@ -74,6 +74,7 @@ namespace ABB.SrcML.Data.Test {
             }
 
             var archive = new SrcMLArchive(dataPath, regenerateSrcML);
+            archive.XmlGenerator.ExtensionMapping[".cxx"] = Language.CPlusPlus;
             AbstractFileMonitor monitor = new FileSystemFolderMonitor(sourcePath, dataPath, new LastModifiedArchive(dataPath), archive);
 
             ManualResetEvent mre = new ManualResetEvent(false);
@@ -107,7 +108,7 @@ namespace ABB.SrcML.Data.Test {
             using(var fileLog = new StreamWriter(fileLogPath)) {
                 foreach(var unit in archive.FileUnits) {
                     if(++numberOfFiles % 100 == 0) {
-                        Console.WriteLine("{0,5:N0} files completed in {1}", numberOfFiles, sw.Elapsed);
+                        Console.WriteLine("{0,5:N0} files completed in {1} with {2,5:N0} failures", numberOfFiles, sw.Elapsed, numberOfFailures);
                     }
                     
                     var fileName = parser.GetFileNameForUnit(unit);
