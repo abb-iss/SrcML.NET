@@ -75,6 +75,9 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public HashSet<XName> ContainerReferenceElementNames { get; protected set; }
 
+        /// <summary>
+        /// Returns the XName that represents an import statement
+        /// </summary>
         public XName AliasElementName { get; protected set; }
 
         /// <summary>
