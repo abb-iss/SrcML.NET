@@ -146,5 +146,73 @@ namespace ABB.SrcML.Data.Test {
 
             Assert.IsTrue(TestHelper.ScopesAreEqual(beforeScope, afterScope));
         }
+
+        [Test]
+        public void TestRemovePartialMethod_Implementation() {
+            ////A1.cs
+            //public partial class A {
+            //    public partial int Foo();
+            //}
+            string a1Xml = @"<class><specifier>public</specifier> <specifier>partial</specifier> class <name>A</name> <block>{
+    <function_decl><type><specifier>public</specifier> <specifier>partial</specifier> <name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list>;</function_decl>
+}</block></class>";
+            var a1FileUnit = FileUnitSetup.GetFileUnitForXmlSnippet(a1Xml, "A1.cs");
+            var beforeScope = CodeParser.ParseFileUnit(a1FileUnit);
+            ////A2.cs
+            //public partial class A {
+            //    public partial int Foo() { return 42; }
+            //}
+            string a2Xml = @"<class><specifier>public</specifier> <specifier>partial</specifier> class <name>A</name> <block>{
+    <function><type><specifier>public</specifier> <specifier>partial</specifier> <name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><lit:literal type=""number"">42</lit:literal></expr>;</return> }</block></function>
+}</block></class>";
+            var a2FileUnit = FileUnitSetup.GetFileUnitForXmlSnippet(a2Xml, "A2.cs");
+            var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(a2FileUnit));
+
+            Assert.AreEqual(1, afterScope.ChildScopes.Count());
+            var typeA = afterScope.ChildScopes.First() as TypeDefinition;
+            Assert.IsNotNull(typeA);
+            Assert.AreEqual(1, typeA.ChildScopes.OfType<MethodDefinition>().Count());
+            var foo = typeA.ChildScopes.First() as MethodDefinition;
+            Assert.IsNotNull(foo);
+            Assert.AreEqual("Foo", foo.Name);
+
+            afterScope.RemoveFile("A2.cs");
+
+            Assert.IsTrue(TestHelper.ScopesAreEqual(beforeScope, afterScope));
+        }
+
+        [Test]
+        public void TestRemovePartialMethod_Declaration() {
+            ////A2.cs
+            //public partial class A {
+            //    public partial int Foo() { return 42; }
+            //}
+            string a2Xml = @"<class><specifier>public</specifier> <specifier>partial</specifier> class <name>A</name> <block>{
+    <function><type><specifier>public</specifier> <specifier>partial</specifier> <name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><lit:literal type=""number"">42</lit:literal></expr>;</return> }</block></function>
+}</block></class>";
+            var a2FileUnit = FileUnitSetup.GetFileUnitForXmlSnippet(a2Xml, "A2.cs");
+            var beforeScope = CodeParser.ParseFileUnit(a2FileUnit);
+            ////A1.cs
+            //public partial class A {
+            //    public partial int Foo();
+            //}
+            string a1Xml = @"<class><specifier>public</specifier> <specifier>partial</specifier> class <name>A</name> <block>{
+    <function_decl><type><specifier>public</specifier> <specifier>partial</specifier> <name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list>;</function_decl>
+}</block></class>";
+            var a1FileUnit = FileUnitSetup.GetFileUnitForXmlSnippet(a1Xml, "A1.cs");
+            var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(a1FileUnit));
+
+            Assert.AreEqual(1, afterScope.ChildScopes.Count());
+            var typeA = afterScope.ChildScopes.First() as TypeDefinition;
+            Assert.IsNotNull(typeA);
+            Assert.AreEqual(1, typeA.ChildScopes.OfType<MethodDefinition>().Count());
+            var foo = typeA.ChildScopes.First() as MethodDefinition;
+            Assert.IsNotNull(foo);
+            Assert.AreEqual("Foo", foo.Name);
+
+            afterScope.RemoveFile("A1.cs");
+
+            Assert.IsTrue(TestHelper.ScopesAreEqual(beforeScope, afterScope));
+        }
     }
 }
