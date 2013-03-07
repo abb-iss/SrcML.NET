@@ -210,6 +210,29 @@ namespace ABB.SrcML.Data {
 
         //}
 
+        /// <summary>
+        /// Tests whether this container is a reference or whether it includes a definition.
+        /// </summary>
+        /// <param name="element"></param>
+        /// <returns></returns>
+        public override bool ContainerIsReference(XElement element) {
+            if(element == null) {
+                throw new ArgumentNullException("element");
+            }
+
+            var functionNames = new[] {SRC.Function, SRC.Constructor, SRC.Destructor};
+            bool isReference = false;
+            if(functionNames.Contains(element.Name)) {
+                var typeElement = element.Element(SRC.Type);
+                if(typeElement != null && typeElement.Elements(SRC.Specifier).Any(spec => spec.Value == "partial")) {
+                    //partial method
+                    if(element.Element(SRC.Block) == null) {
+                        isReference = true;
+                    }
+                }
+            }
+            return isReference || base.ContainerIsReference(element);
+        }
 
         #region Private methods
         private NamespaceUse CreateNamespaceUsePrefix(XElement nameElement, XElement fileUnit) {
