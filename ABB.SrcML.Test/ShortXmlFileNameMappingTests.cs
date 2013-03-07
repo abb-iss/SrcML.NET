@@ -77,8 +77,8 @@ C:\Foo\Bar\xyzzy\Example.cs|C:\srcmlArchive\Example.cs.2.xml";
         [Test]
         public void TestGetXmlPath_DifferentCase() {
             var map = new ShortXmlFileNameMapping("mappingTest");
-            var xmlPath1 = map.GetXMLPath("Example.cpp");
-            var xmlPath2 = map.GetXMLPath("example.CPP");
+            var xmlPath1 = map.GetXmlPath("Example.cpp");
+            var xmlPath2 = map.GetXmlPath("example.CPP");
             //This assumes that our current file system is case-insensitive
             Assert.AreEqual(xmlPath1, xmlPath2);
         }
