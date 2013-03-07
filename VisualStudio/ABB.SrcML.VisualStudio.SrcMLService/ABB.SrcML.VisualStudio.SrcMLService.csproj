@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <PropertyGroup>
-	<VsSDKInstall>..\..\External\VisualStudio\VSSDK</VsSDKInstall>
+    <VsSDKInstall>..\..\External\VisualStudio\VSSDK</VsSDKInstall>
     <VsSDKIncludes>$(VsSDKInstall)\inc</VsSDKIncludes>
     <VsSDKToolsPath>$(VsSDKInstall)\bin</VsSDKToolsPath>
     <VsixSchemaPath>$(VsSDKInstall)\schemas\VSIXManifestSchema.xsd</VsixSchemaPath>
@@ -37,7 +37,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DeployExtension>False</DeployExtension>
+    <DeployExtension>True</DeployExtension>
     <CodeContractsEnableRuntimeChecking>False</CodeContractsEnableRuntimeChecking>
     <CodeContractsRuntimeOnlyPublicSurface>False</CodeContractsRuntimeOnlyPublicSurface>
     <CodeContractsRuntimeThrowOnFailure>True</CodeContractsRuntimeThrowOnFailure>
@@ -70,6 +70,8 @@
     <CodeContractsRuntimeCheckingLevel>Full</CodeContractsRuntimeCheckingLevel>
     <CodeContractsReferenceAssembly>DoNotBuild</CodeContractsReferenceAssembly>
     <CodeContractsAnalysisWarningLevel>0</CodeContractsAnalysisWarningLevel>
+    <CreateVsixContainer>True</CreateVsixContainer>
+    <CopyVsixExtensionFiles>False</CopyVsixExtensionFiles>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>

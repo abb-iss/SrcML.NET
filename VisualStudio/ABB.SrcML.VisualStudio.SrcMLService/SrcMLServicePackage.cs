@@ -381,7 +381,12 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         private void RespondToSolutionOpened(object sender, DoWorkEventArgs eventArgs) {
             SrcMLFileLogger.DefaultLogger.Info("> SrcML service starts monitoring the opened solution.");
 
-            srcMLService.StartMonitoring();
+            //srcMLService.StartMonitoring();
+
+            string srcMlArchiveFolder = "C:\\Data\\srcmlarchives";
+            bool useExistingSrcML = true;
+            string src2SrcmlDir = SrcMLHelper.GetSrcMLDefaultDirectory();
+            srcMLService.StartMonitoring(srcMlArchiveFolder, useExistingSrcML, src2SrcmlDir);
         }
 
         /// <summary>
