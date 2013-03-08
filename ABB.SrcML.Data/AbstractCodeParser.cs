@@ -94,46 +94,43 @@ namespace ABB.SrcML.Data {
         }
 
         public virtual Scope ParseElement(XElement element, ParserContext context) {
-            Scope scope;
-
             if(element.Name == SRC.Unit) {
-                scope = ParseUnitElement(element, context);
+                ParseUnitElement(element, context);
             } else if(TypeElementNames.Contains(element.Name)) {
-                scope = ParseTypeElement(element, context);
+                ParseTypeElement(element, context);
             } else if(NamespaceElementNames.Contains(element.Name)) {
-                scope = ParseNamespaceElement(element, context);
+                ParseNamespaceElement(element, context);
             } else if(MethodElementNames.Contains(element.Name)) {
-                scope = ParseMethodElement(element, context);
+                ParseMethodElement(element, context);
             } else {
-                scope = ParseContainerElement(element, context);
+                ParseContainerElement(element, context);
             }
 
-            context.ScopeStack.Push(scope);
             foreach(var declarationElement in GetDeclarationsFromElement(element)) {
                 var declaration = ParseDeclarationElement(declarationElement, context);
-                scope.AddDeclaredVariable(declaration);
+                context.CurrentScope.AddDeclaredVariable(declaration);
             }
             foreach(var methodCallElement in GetMethodCallsFromElement(element)) {
                 var methodCall = ParseCallElement(methodCallElement, context);
-                scope.AddMethodCall(methodCall);
+                context.CurrentScope.AddMethodCall(methodCall);
             }
 
             foreach(var childElement in GetChildContainers(element)) {
                 var childScope = ParseElement(childElement, context);
                 context.CurrentScope.AddChildScope(childScope);
             }
-            scope.AddSourceLocation(context.CreateLocation(element, ContainerIsReference(element)));
-            scope.ProgrammingLanguage = this.ParserLanguage;
+            context.CurrentScope.AddSourceLocation(context.CreateLocation(element, ContainerIsReference(element)));
+            context.CurrentScope.ProgrammingLanguage = ParserLanguage;
 
-            return context.ScopeStack.Pop();
+            return context.Pop();
         }
 
-        public virtual Scope ParseContainerElement(XElement element, ParserContext context) {
+        public virtual void ParseContainerElement(XElement element, ParserContext context) {
             var scope = new Scope();
-            return scope;
+            context.Push(scope);
         }
 
-        public virtual MethodDefinition ParseMethodElement(XElement methodElement, ParserContext context) {
+        public virtual void ParseMethodElement(XElement methodElement, ParserContext context) {
             if(null == methodElement) throw new ArgumentNullException("methodElement");
             if(!MethodElementNames.Contains(methodElement.Name)) throw new ArgumentException("must be a method typeUseElement", "fileUnit");
 
@@ -148,12 +145,12 @@ namespace ABB.SrcML.Data {
             foreach(var parameter in parameters) {
                 methodDefinition.Parameters.Add(parameter);
             }
-            return methodDefinition;
+            context.Push(methodDefinition);
         }
 
-        public abstract NamespaceDefinition ParseNamespaceElement(XElement namespaceElement, ParserContext context);
+        public abstract void ParseNamespaceElement(XElement namespaceElement, ParserContext context);
 
-        public virtual TypeDefinition ParseTypeElement(XElement typeElement, ParserContext context) {
+        public virtual void ParseTypeElement(XElement typeElement, ParserContext context) {
             if(null == typeElement) throw new ArgumentNullException("typeElement");
 
             var typeDefinition = new TypeDefinition() {
@@ -165,10 +162,10 @@ namespace ABB.SrcML.Data {
                 var parentTypeUse = ParseTypeUseElement(parentTypeElement, context);
                 typeDefinition.AddParentType(parentTypeUse);
             }
-            return typeDefinition;
+            context.Push(typeDefinition);
         }
 
-        public virtual NamespaceDefinition ParseUnitElement(XElement unitElement, ParserContext context) {
+        public virtual void ParseUnitElement(XElement unitElement, ParserContext context) {
             if(null == unitElement) throw new ArgumentNullException("unitElement");
             if(SRC.Unit != unitElement.Name) throw new ArgumentException("should be a SRC.Unit", "unitElement");
             context.FileUnit = unitElement;
@@ -178,8 +175,7 @@ namespace ABB.SrcML.Data {
             context.Aliases = new Collection<Alias>(aliases.ToList());
 
             var namespaceForUnit = new NamespaceDefinition();
-            
-            return namespaceForUnit;
+            context.Push(namespaceForUnit);
         }
 
         /// <summary>

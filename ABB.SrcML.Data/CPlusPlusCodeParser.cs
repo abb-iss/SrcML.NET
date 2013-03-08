@@ -49,7 +49,7 @@ namespace ABB.SrcML.Data {
         /// <param name="namespaceElement">the namespace element</param>
         /// <param name="context">The parser context</param>
         /// <returns>a new NamespaceDefinition object</returns>
-        public override NamespaceDefinition ParseNamespaceElement(XElement namespaceElement, ParserContext context) {
+        public override void ParseNamespaceElement(XElement namespaceElement, ParserContext context) {
             if(namespaceElement == null)
                 throw new ArgumentNullException("namespaceElement");
             if(!NamespaceElementNames.Contains(namespaceElement.Name))
@@ -58,7 +58,8 @@ namespace ABB.SrcML.Data {
             var nameElement = namespaceElement.Element(SRC.Name);
             var namespaceName = nameElement != null ? nameElement.Value : string.Empty;
 
-            return new NamespaceDefinition { Name = namespaceName };
+            var namespaceDefinition = new NamespaceDefinition { Name = namespaceName };
+            context.Push(namespaceDefinition);
         }
 
         /// <summary>
@@ -68,24 +69,15 @@ namespace ABB.SrcML.Data {
         /// <param name="methodElement">The method typeUseElement</param>
         /// <param name="context">The parser context</param>
         /// <returns>the method definition object for <paramref name="methodElement"/></returns>
-        public override MethodDefinition ParseMethodElement(XElement methodElement, ParserContext context) {
-            var methodDefinition = base.ParseMethodElement(methodElement, context);
-
+        public override void ParseMethodElement(XElement methodElement, ParserContext context) {
             var nameElement = methodElement.Element(SRC.Name);
-            string methodName;
 
-            if(null == nameElement) {
-                methodName = String.Empty;
-            } else {
-                methodName = NameHelper.GetLastName(nameElement);
-            }
+            base.ParseMethodElement(methodElement, context);
 
             var prefix = ParseNamedScopeUsePrefix(nameElement, context);
             if(null != prefix) {
-                methodDefinition.ParentScopeCandidates.Add(prefix);
+                (context.CurrentScope as NamedScope).ParentScopeCandidates.Add(prefix);
             }
-
-            return methodDefinition;
         }
 
         /// <summary>

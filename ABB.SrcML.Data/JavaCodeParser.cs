@@ -57,7 +57,7 @@ namespace ABB.SrcML.Data {
             return globalNamespace;
         }
 
-        public override NamespaceDefinition ParseUnitElement(XElement unitElement, ParserContext context) {
+        public override void ParseUnitElement(XElement unitElement, ParserContext context) {
             if(null == unitElement) throw new ArgumentNullException("unitElement");
             if(unitElement.Name != SRC.Unit) throw new ArgumentException("should be a unit", "unitElement");
 
@@ -67,11 +67,10 @@ namespace ABB.SrcML.Data {
 
             context.Aliases = new Collection<Alias>(aliases.ToList());
 
-            var namespaceForUnit = ParseNamespaceElement(unitElement, context);
-            return namespaceForUnit;
+            ParseNamespaceElement(unitElement, context);
         }
 
-        public override NamespaceDefinition ParseNamespaceElement(XElement namespaceElement, ParserContext context) {
+        public override void ParseNamespaceElement(XElement namespaceElement, ParserContext context) {
             var javaPackage = context.FileUnit.Elements(SRC.Package).FirstOrDefault();
             
             var definition = new NamespaceDefinition();
@@ -81,7 +80,7 @@ namespace ABB.SrcML.Data {
                 var namespaceName = string.Join(".", namespaceNames);
                 definition.Name = namespaceName;
             }
-            return definition;
+            context.Push(definition);
         }
 
         /// <summary>

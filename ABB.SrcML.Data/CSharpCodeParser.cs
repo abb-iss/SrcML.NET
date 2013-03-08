@@ -41,16 +41,16 @@ namespace ABB.SrcML.Data {
         /// <param name="typeElement">the type XML typeUseElement.</param>
         /// <param name="context">the parser context</param>
         /// <returns>A new TypeDefinition object</returns>
-        public override TypeDefinition ParseTypeElement(XElement typeElement, ParserContext context) {
-            var typeDef = base.ParseTypeElement(typeElement, context);
+        public override void ParseTypeElement(XElement typeElement, ParserContext context) {
+            base.ParseTypeElement(typeElement, context);
+
             var partials = from specifiers in typeElement.Elements(SRC.Specifier)
                            where specifiers.Value == "partial"
                            select specifiers;
-            typeDef.IsPartial = partials.Any();
-            return typeDef;
+            (context.CurrentScope as TypeDefinition).IsPartial = partials.Any();
         }
 
-        public override NamespaceDefinition ParseNamespaceElement(XElement namespaceElement, ParserContext context) {
+        public override void ParseNamespaceElement(XElement namespaceElement, ParserContext context) {
             if(namespaceElement == null) throw new ArgumentNullException("namespaceElement");
             if(!NamespaceElementNames.Contains(namespaceElement.Name)) throw new ArgumentException(string.Format("Not a valid namespace typeUseElement: {0}", namespaceElement.Name), "namespaceElement");
 
@@ -67,7 +67,7 @@ namespace ABB.SrcML.Data {
             if(prefix != null) {
                 namespaceDef.ParentScopeCandidates.Add(prefix);
             }
-            return namespaceDef;
+            context.Push(namespaceDef);
         }
 
         /// <summary>
