@@ -128,6 +128,7 @@ namespace ABB.SrcML.Data.Test {
                     } catch(Exception e) {
                         sw.Stop();
                         fileLog.WriteLine(" FAILED");
+                        fileLog.WriteLine(e.StackTrace);
                         var key = e.StackTrace.Split('\n')[0].Trim();
                         if(!errors.ContainsKey(key)) {
                             errors[key] = new List<string>();
@@ -138,7 +139,7 @@ namespace ABB.SrcML.Data.Test {
                     }
                 }
             }
-            Console.WriteLine("{0,5:N0} files completed in {1}", numberOfFiles, sw.Elapsed);
+            Console.WriteLine("{0,5:N0} files completed in {1} with {2,5:N0} failures", numberOfFiles, sw.Elapsed, numberOfFailures);
 
             Console.WriteLine("\nSummary");
             Console.WriteLine("===================");
