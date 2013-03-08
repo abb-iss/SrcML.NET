@@ -277,7 +277,7 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
 
-            var actual = codeParser.ParseAliasElement(xmlElement.Element(SRC.Import), new ParserContext() { FileUnit = xmlElement });
+            var actual = codeParser.ParseAliasElement(xmlElement.Element(SRC.Import), new ParserContext(xmlElement));
 
             Assert.AreEqual("x", actual.ImportedNamespace.Name);
             Assert.AreEqual("y", actual.ImportedNamespace.ChildScopeUse.Name);
@@ -294,7 +294,7 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
 
-            var actual = codeParser.ParseAliasElement(xmlElement.Element(SRC.Import), new ParserContext() { FileUnit = xmlElement });
+            var actual = codeParser.ParseAliasElement(xmlElement.Element(SRC.Import), new ParserContext(xmlElement));
 
             Assert.AreEqual("x", actual.ImportedNamespace.Name);
             Assert.AreEqual("y", actual.ImportedNamespace.ChildScopeUse.Name);

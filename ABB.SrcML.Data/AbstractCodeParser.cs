@@ -122,7 +122,7 @@ namespace ABB.SrcML.Data {
                 var childScope = ParseElement(childElement, context);
                 context.CurrentScope.AddChildScope(childScope);
             }
-            scope.AddSourceLocation(new SourceLocation(element, context.FileUnit, ContainerIsReference(element)));
+            scope.AddSourceLocation(context.CreateLocation(element, ContainerIsReference(element)));
             scope.ProgrammingLanguage = this.ParserLanguage;
 
             return context.ScopeStack.Pop();
@@ -207,7 +207,7 @@ namespace ABB.SrcML.Data {
 
                 alias.ImportedNamedScope = new NamedScopeUse() {
                     Name = lastNameElement.Value,
-                    Location = new SourceLocation(lastNameElement, context.FileUnit),
+                    Location = context.CreateLocation(lastNameElement),
                     ProgrammingLanguage = ParserLanguage,
                 };
             }
@@ -216,7 +216,7 @@ namespace ABB.SrcML.Data {
             foreach(var namespaceName in namespaceNames) {
                 var use = new NamespaceUse() {
                     Name = namespaceName.Value,
-                    Location = new SourceLocation(namespaceName, context.FileUnit),
+                    Location = context.CreateLocation(namespaceName),
                     ProgrammingLanguage = ParserLanguage,
                 };
 
@@ -259,7 +259,7 @@ namespace ABB.SrcML.Data {
                 IsConstructor = isConstructor,
                 IsDestructor = isDestructor,
                 ParentScope = context.CurrentScope,
-                Location = new SourceLocation(callElement, context.FileUnit),
+                Location = context.CreateLocation(callElement),
             };
 
             var arguments = from argument in callElement.Element(SRC.ArgumentList).Elements(SRC.Argument)
@@ -306,7 +306,7 @@ namespace ABB.SrcML.Data {
             var variableDeclaration = new VariableDeclaration() {
                 VariableType = ParseTypeUseElement(typeElement, context),
                 Name = name,
-                Location = new SourceLocation(declarationElement, context.FileUnit),
+                Location = context.CreateLocation(declarationElement),
                 Scope = context.CurrentScope,
             };
             return variableDeclaration;
@@ -332,8 +332,7 @@ namespace ABB.SrcML.Data {
                 Name = name,
                 Method = context.CurrentScope as MethodDefinition
             };
-            parameterDeclaration.Locations.Add(new SourceLocation(declElement, context.FileUnit));
-
+            parameterDeclaration.Locations.Add(context.CreateLocation(declElement));
             return parameterDeclaration;
         }
 
@@ -362,7 +361,7 @@ namespace ABB.SrcML.Data {
             var typeUse = new TypeUse() {
                 Name = (lastNameElement != null ? lastNameElement.Value : String.Empty),
                 ParentScope = context.CurrentScope,
-                Location = new SourceLocation((lastNameElement != null ? lastNameElement : typeUseElement), context.FileUnit),
+                Location = context.CreateLocation(lastNameElement != null ? lastNameElement : typeUseElement),
                 Prefix = prefix,
                 ProgrammingLanguage = this.ParserLanguage,
             };
@@ -382,7 +381,7 @@ namespace ABB.SrcML.Data {
                 foreach(var element in parentNameElements) {
                     var scopeUse = new NamedScopeUse() {
                         Name = element.Value,
-                        Location = new SourceLocation(element, context.FileUnit, true),
+                        Location = context.CreateLocation(element, true),
                         ProgrammingLanguage = this.ParserLanguage,
                     };
                     if(null == root) {
@@ -412,7 +411,7 @@ namespace ABB.SrcML.Data {
         // TODO make this fit in with the rest of the parse methods
         public virtual IResolvesToType CreateResolvableUse(XElement element, ParserContext context) {
             var use = new VariableUse() {
-                Location = new SourceLocation(element, context.FileUnit, true),
+                Location = context.CreateLocation(element, true),
                 ParentScope = context.CurrentScope,
                 ProgrammingLanguage = ParserLanguage,
             };
@@ -435,7 +434,7 @@ namespace ABB.SrcML.Data {
             var lastNameElement = NameHelper.GetLastNameElement(nameElement);
 
             var variableUse = new VariableUse() {
-                Location = new SourceLocation(lastNameElement, context.FileUnit, true),
+                Location = context.CreateLocation(lastNameElement, true),
                 Name = lastNameElement.Value,
                 ParentScope = context.CurrentScope,
                 ProgrammingLanguage = ParserLanguage,
@@ -687,7 +686,7 @@ namespace ABB.SrcML.Data {
 
             var use = new LiteralUse() {
                 Kind = kind,
-                Location = new SourceLocation(literalElement, context.FileUnit),
+                Location = context.CreateLocation(literalElement),
                 Name = GetTypeForLiteralValue(kind, literalElement.Value),
                 ParentScope = context.CurrentScope,
             };

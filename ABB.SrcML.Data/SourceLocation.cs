@@ -66,6 +66,27 @@ namespace ABB.SrcML.Data {
         /// Creates a new source location object
         /// </summary>
         /// <param name="element">The srcML element that this location refers to</param>
+        /// <param name="fileName">The filename</param>
+        /// <param name="isReferenceLocation">true if this is a reference location; false otherwise</param>
+        public SourceLocation(XElement element, string fileName, bool isReferenceLocation) {
+            this.SourceFileName = fileName;
+            this.SourceLineNumber = element.GetSrcLineNumber();
+            this.SourceColumnNumber = element.GetSrcLinePosition();
+            this.XPath = element.GetXPath(false);
+            this.IsReference = isReferenceLocation;
+        }
+
+        /// <summary>
+        /// Creates a new source location object
+        /// </summary>
+        /// <param name="element">The srcML element that this location refers to</param>
+        /// <param name="fileName">The filename</param>
+        public SourceLocation(XElement element, string fileName) : this(element, fileName, false) { }
+
+        /// <summary>
+        /// Creates a new source location object
+        /// </summary>
+        /// <param name="element">The srcML element that this location refers to</param>
         /// <param name="fileUnit">The file unit that contains <paramref name="element"/></param>
         /// <param name="isReferenceLocation">true if this is a reference location; false otherwise</param>
         public SourceLocation(XElement element, XElement fileUnit, bool isReferenceLocation) {
@@ -75,14 +96,13 @@ namespace ABB.SrcML.Data {
             this.XPath = element.GetXPath(false);
             this.IsReference = isReferenceLocation;
         }
+
         /// <summary>
         /// Creates a new source location object based on the given <see cref="System.Xml.Linq.XElement">XML element</see> and <see cref="ABB.SrcML.SRC.Unit">file unit</see>
         /// </summary>
         /// <param name="element">The element (should contain <see cref="ABB.SrcML.POS"/> attributes</param>
         /// <param name="fileUnit">The file unit (must be a <see cref="ABB.SrcML.SRC.Unit"/>)</param>
-        public SourceLocation(XElement element, XElement fileUnit)
-            : this(element, fileUnit, false) {
-        }
+        public SourceLocation(XElement element, XElement fileUnit) : this(element, fileUnit, false) { }
 
         /// <summary>
         /// Returns a string representation of the SourceLocation.

@@ -409,7 +409,7 @@ namespace ABB.SrcML.Data.Test {
             string xml = @"<using>using <name><name>x</name><op:operator>.</op:operator><name>y</name><op:operator>.</op:operator><name>z</name></name>;</using>";
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
 
-            var actual = codeParser.ParseAliasElement(xmlElement.Element(SRC.Using), new ParserContext() { FileUnit = xmlElement });
+            var actual = codeParser.ParseAliasElement(xmlElement.Element(SRC.Using), new ParserContext(xmlElement));
 
             Assert.IsNull(actual.ImportedNamedScope);
             Assert.That(actual.IsNamespaceAlias);

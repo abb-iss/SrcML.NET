@@ -217,7 +217,7 @@ namespace ABB.SrcML.Data {
                     var namespaceUse = new NamespaceUse
                                        {
                                            Name = element.Value,
-                                           Location = new SourceLocation(element, context.FileUnit, false),
+                                           Location = context.CreateLocation(element, false),
                                            ProgrammingLanguage = this.ParserLanguage,
                                        };
                     if(null == root) {
