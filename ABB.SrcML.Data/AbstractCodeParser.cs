@@ -93,6 +93,12 @@ namespace ABB.SrcML.Data {
             return globalScope;
         }
 
+        /// <summary>
+        /// This is the main function that parses srcML nodes. It selects the appropriate parse element to call and then adds declarations, method calls, and children to it
+        /// </summary>
+        /// <param name="element">The element to parse</param>
+        /// <param name="context">The parser context</param>
+        /// <returns>The scope representing <paramref name="element"/></returns>
         public virtual Scope ParseElement(XElement element, ParserContext context) {
             if(element.Name == SRC.Unit) {
                 ParseUnitElement(element, context);
@@ -125,11 +131,21 @@ namespace ABB.SrcML.Data {
             return context.Pop();
         }
 
+        /// <summary>
+        /// Creates a <see cref="Scope"/> object for <paramref name="element"/> and pushes it onto <paramref name="context"/>
+        /// </summary>
+        /// <param name="element">The element to parse</param>
+        /// <param name="context">the context to place the resulting scope on</param>
         public virtual void ParseContainerElement(XElement element, ParserContext context) {
             var scope = new Scope();
             context.Push(scope);
         }
 
+        /// <summary>
+        /// Creates a <see cref="MethodDefinition"/> object for <paramref name="methodElement"/> and pushes it onto <paramref name="context"/>
+        /// </summary>
+        /// <param name="methodElement">The element to parse</param>
+        /// <param name="context">The context to place the resulting method definition in</param>
         public virtual void ParseMethodElement(XElement methodElement, ParserContext context) {
             if(null == methodElement) throw new ArgumentNullException("methodElement");
             if(!MethodElementNames.Contains(methodElement.Name)) throw new ArgumentException("must be a method typeUseElement", "fileUnit");
@@ -148,6 +164,11 @@ namespace ABB.SrcML.Data {
             context.Push(methodDefinition);
         }
 
+        /// <summary>
+        /// Creates a <see cref="NamespaceDefinition"/> object for <paramref name="namespaceElement"/> and pushes it onto <paramref name="context"/>
+        /// </summary>
+        /// <param name="methodElement">The element to parse</param>
+        /// <param name="context">The context to place the resulting namespace definition in</param>
         public abstract void ParseNamespaceElement(XElement namespaceElement, ParserContext context);
 
         public virtual void ParseTypeElement(XElement typeElement, ParserContext context) {
@@ -165,6 +186,11 @@ namespace ABB.SrcML.Data {
             context.Push(typeDefinition);
         }
 
+        /// <summary>
+        /// Creates a global <see cref="NamespaceDefinition"/> object for <paramref name="unitElement"/> and pushes it onto <paramref name="context"/>
+        /// </summary>
+        /// <param name="methodElement">The element to parse</param>
+        /// <param name="context">The context to place the resulting namespace definition in</param>
         public virtual void ParseUnitElement(XElement unitElement, ParserContext context) {
             if(null == unitElement) throw new ArgumentNullException("unitElement");
             if(SRC.Unit != unitElement.Name) throw new ArgumentException("should be a SRC.Unit", "unitElement");
@@ -228,6 +254,12 @@ namespace ABB.SrcML.Data {
             return alias;
         }
 
+        /// <summary>
+        /// Creates a method call object
+        /// </summary>
+        /// <param name="callElement">The XML element to parse</param>
+        /// <param name="context">The parser context</param>
+        /// <returns>A method call for <paramref name="callElement"/></returns>
         public virtual MethodCall ParseCallElement(XElement callElement, ParserContext context) {
             string name = String.Empty;
             bool isConstructor = false;
@@ -284,6 +316,12 @@ namespace ABB.SrcML.Data {
             return methodCall;
         }
 
+        /// <summary>
+        /// Creates a variable declaration object 
+        /// </summary>
+        /// <param name="declarationElement">The variable declaration to parse. Must belong to <see cref="VariableDeclarationElementNames"/></param>
+        /// <param name="context">The parser context</param>
+        /// <returns>A variable declaration for <paramref name="declarationElement"/></returns>
         public virtual VariableDeclaration ParseDeclarationElement(XElement declarationElement, ParserContext context) {
             if(declarationElement == null) throw new ArgumentNullException("declaration");
             if(!VariableDeclarationElementNames.Contains(declarationElement.Name)) throw new ArgumentException("XElement.Name must be in VariableDeclarationElementNames");
@@ -311,9 +349,8 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Generates a parameter declaration for the given declaration
         /// </summary>
-        /// <param name="declElement">The declaration XElement from within the parameter element.</param>
-        /// <param name="fileUnit">The containing file unit</param>
-        /// <param name="method">The method that this parameter is part of.</param>
+        /// <param name="declElement">The declaration XElement from within the parameter element. Must be a <see cref="ABB.SrcML.SRC.Declaration"/> or <see cref="ABB.SrcML.SRC.FunctionDeclaration"/></param>
+        /// <param name="context">the parser context</param>
         /// <returns>A parameter declaration object</returns>
         public virtual ParameterDeclaration ParseMethodParameterElement(XElement declElement, ParserContext context) {
             if(declElement == null) throw new ArgumentNullException("declElement");
@@ -332,6 +369,12 @@ namespace ABB.SrcML.Data {
             return parameterDeclaration;
         }
 
+        /// <summary>
+        /// Creates a type use element
+        /// </summary>
+        /// <param name="typeUseElement">the element to parse. Must be of a <see cref="ABB.SrcML.SRC.Type"/> or <see cref="ABB.SrcML.SRC.Name"/></param>
+        /// <param name="context">the parser context</param>
+        /// <returns>A Type Use object</returns>
         public virtual TypeUse ParseTypeUseElement(XElement typeUseElement, ParserContext context) {
             if(typeUseElement == null) throw new ArgumentNullException("typeUseElement");
 
@@ -365,6 +408,11 @@ namespace ABB.SrcML.Data {
             return typeUse;
         }
 
+        /// <summary>
+        /// Gets the type use elements from a <see cref="TypeElementNames">type definition element</see>
+        /// </summary>
+        /// <param name="typeElement">The type element. Must belong to <see cref="TypeElementNames"/></param>
+        /// <returns>An enumerable of type uses that represent parent types</returns>
         public abstract IEnumerable<XElement> GetParentTypeUseElements(XElement typeElement);
 
         public NamedScopeUse ParseNamedScopeUsePrefix(XElement nameElement, ParserContext context) {
