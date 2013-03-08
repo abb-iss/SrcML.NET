@@ -109,7 +109,7 @@ namespace ABB.SrcML {
         /// <param name="sender">The caller</param>
         /// <param name="e">The event arguments</param>
         protected virtual void RespondToArchiveFileEvent(object sender, FileEventRaisedArgs e) {
-            SrcMLFileLogger.DefaultLogger.Info("AbstractFileMonitor.RespondToArchiveFileEvent() type = " + e.EventType + ", file = " + e.FilePath + ", oldfile = " + e.OldFilePath + ", HasSrcML = " + e.HasSrcML);
+            //SrcMLFileLogger.DefaultLogger.Info("AbstractFileMonitor.RespondToArchiveFileEvent() type = " + e.EventType + ", file = " + e.FilePath + ", oldfile = " + e.OldFilePath + ", HasSrcML = " + e.HasSrcML);
             FileInfo fi = new FileInfo(e.FilePath);
             OnFileChanged(e);
         }

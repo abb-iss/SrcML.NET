@@ -383,10 +383,9 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
             //srcMLService.StartMonitoring();
 
-            string srcMlArchiveFolder = "C:\\Data\\srcmlarchives";
             bool useExistingSrcML = true;
             string src2SrcmlDir = SrcMLHelper.GetSrcMLDefaultDirectory();
-            srcMLService.StartMonitoring(srcMlArchiveFolder, useExistingSrcML, src2SrcmlDir);
+            srcMLService.StartMonitoring(useExistingSrcML, src2SrcmlDir);
         }
 
         /// <summary>
