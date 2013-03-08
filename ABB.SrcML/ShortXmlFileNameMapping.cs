@@ -29,10 +29,11 @@ namespace ABB.SrcML {
             : base(xmlDirectory) {
             if(CheckIfDirectoryIsCaseInsensitive(xmlDirectory)) {
                 mapping = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase);
+                nameCount = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
             } else {
                 mapping = new Dictionary<string, string>();
+                nameCount = new Dictionary<string, int>();
             }
-            nameCount = new Dictionary<string, int>();
             ReadMapping();
         }
 
