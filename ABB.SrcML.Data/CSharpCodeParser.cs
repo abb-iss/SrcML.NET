@@ -38,11 +38,11 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Parses the given typeElement and returns a TypeDefinition object.
         /// </summary>
-        /// <param name="typeElement">the type XML element.</param>
-        /// <param name="fileUnit">The containing file unit</param>
+        /// <param name="typeElement">the type XML typeUseElement.</param>
+        /// <param name="context">the parser context</param>
         /// <returns>A new TypeDefinition object</returns>
-        public override TypeDefinition CreateTypeDefinition(XElement typeElement, XElement fileUnit) {
-            var typeDef = base.CreateTypeDefinition(typeElement, fileUnit);
+        public override TypeDefinition ParseTypeElement(XElement typeElement, ParserContext context) {
+            var typeDef = base.ParseTypeElement(typeElement, context);
             var partials = from specifiers in typeElement.Elements(SRC.Specifier)
                            where specifiers.Value == "partial"
                            select specifiers;
@@ -50,17 +50,9 @@ namespace ABB.SrcML.Data {
             return typeDef;
         }
 
-        /// <summary>
-        /// Creates a NamespaceDefinition object for the given namespace element. This must be one of the element types defined in NamespaceElementNames.
-        /// </summary>
-        /// <param name="namespaceElement">The namespace element</param>
-        /// <param name="fileUnit">The file unit</param>
-        /// <returns>A new NamespaceDefinition object</returns>
-        public override NamespaceDefinition CreateNamespaceDefinition(XElement namespaceElement, XElement fileUnit) {
-            if(namespaceElement == null)
-                throw new ArgumentNullException("namespaceElement");
-            if(!NamespaceElementNames.Contains(namespaceElement.Name))
-                throw new ArgumentException(string.Format("Not a valid namespace element: {0}", namespaceElement.Name), "namespaceElement");
+        public override NamespaceDefinition ParseNamespaceElement(XElement namespaceElement, ParserContext context) {
+            if(namespaceElement == null) throw new ArgumentNullException("namespaceElement");
+            if(!NamespaceElementNames.Contains(namespaceElement.Name)) throw new ArgumentException(string.Format("Not a valid namespace typeUseElement: {0}", namespaceElement.Name), "namespaceElement");
 
             var nameElement = namespaceElement.Element(SRC.Name);
             string namespaceName;
@@ -71,33 +63,23 @@ namespace ABB.SrcML.Data {
             }
             var namespaceDef = new NamespaceDefinition { Name = namespaceName };
 
-            var prefix = CreateNamespaceUsePrefix(nameElement, fileUnit);
+            var prefix = CreateNamespaceUsePrefix(nameElement, context);
             if(prefix != null) {
                 namespaceDef.ParentScopeCandidates.Add(prefix);
             }
             return namespaceDef;
         }
 
-        
         /// <summary>
-        /// Creates a global NamespaceDefinition for the file.
+        /// Gets the access modifier for this type typeUseElement
         /// </summary>
-        /// <param name="fileUnit">The file unit</param>
-        /// <returns>A global NamespaceDefinition object</returns>
-        public override Scope CreateScopeFromFile(XElement fileUnit) {
-            return new NamespaceDefinition();
-        }
-
-        /// <summary>
-        /// Gets the access modifier for this type element
-        /// </summary>
-        /// <param name="typeElement">The type element</param>
-        /// <returns>The access modifier for the given type element.</returns>
+        /// <param name="typeElement">The type typeUseElement</param>
+        /// <returns>The access modifier for the given type typeUseElement.</returns>
         public override AccessModifier GetAccessModifierForType(XElement typeElement) {
             if(typeElement == null)
                 throw new ArgumentNullException("typeElement");
             if(!TypeElementNames.Contains(typeElement.Name))
-                throw new ArgumentException(string.Format("Not a valid type element: {0}", typeElement.Name), "typeElement");
+                throw new ArgumentException(string.Format("Not a valid type typeUseElement: {0}", typeElement.Name), "typeElement");
 
             var accessModifierMap = new Dictionary<string, AccessModifier>()
                                     {
@@ -120,23 +102,12 @@ namespace ABB.SrcML.Data {
             return result;
         }
 
-        /// <summary>
-        /// Gets the parent types for this type, from the "super" element.
-        /// </summary>
-        /// <param name="typeElement">The type element</param>
-        /// <param name="fileUnit">The file unit that contains this type</param>
-        /// <param name="typeDefinition">The TypeDefinition object for the type element.</param>
-        /// <returns>A collection of type uses that represent the parent classes</returns>
-        public override Collection<TypeUse> GetParentTypeUses(XElement typeElement, XElement fileUnit, TypeDefinition typeDefinition) {
-            var parents = new Collection<TypeUse>();
+        public override IEnumerable<XElement> GetParentTypeUseElements(XElement typeElement) {
             var superElement = typeElement.Element(SRC.Super);
             if(superElement != null) {
-                var parentNameElements = superElement.Elements(SRC.Name);
-                foreach(var parentName in parentNameElements) {
-                    parents.Add(CreateTypeUse(parentName, fileUnit, typeDefinition));
-                }
+                return superElement.Elements(SRC.Name);
             }
-            return parents;
+            return Enumerable.Empty<XElement>();
         }
 
         public override bool AliasIsNamespaceImport(XElement aliasStatement) {
@@ -206,18 +177,18 @@ namespace ABB.SrcML.Data {
         //    if(container.Name != SRC.Using) {
         //        return base.GetVariableDeclarationsFromContainer(container, fileUnit, parentScope);
         //    }
-        //    //parse using element
+        //    //parse using typeUseElement
 
         //}
 
         /// <summary>
         /// Tests whether this container is a reference or whether it includes a definition.
         /// </summary>
-        /// <param name="element"></param>
+        /// <param name="typeUseElement"></param>
         /// <returns></returns>
         public override bool ContainerIsReference(XElement element) {
             if(element == null) {
-                throw new ArgumentNullException("element");
+                throw new ArgumentNullException("typeUseElement");
             }
 
             var functionNames = new[] {SRC.Function, SRC.Constructor, SRC.Destructor};
@@ -235,7 +206,7 @@ namespace ABB.SrcML.Data {
         }
 
         #region Private methods
-        private NamespaceUse CreateNamespaceUsePrefix(XElement nameElement, XElement fileUnit) {
+        private NamespaceUse CreateNamespaceUsePrefix(XElement nameElement, ParserContext context) {
             IEnumerable<XElement> parentNameElements = Enumerable.Empty<XElement>();
 
             parentNameElements = NameHelper.GetNameElementsExceptLast(nameElement);
@@ -246,7 +217,7 @@ namespace ABB.SrcML.Data {
                     var namespaceUse = new NamespaceUse
                                        {
                                            Name = element.Value,
-                                           Location = new SourceLocation(element, fileUnit, false),
+                                           Location = new SourceLocation(element, context.FileUnit, false),
                                            ProgrammingLanguage = this.ParserLanguage,
                                        };
                     if(null == root) {

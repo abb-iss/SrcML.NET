@@ -44,42 +44,32 @@ namespace ABB.SrcML.Data {
         public HashSet<XName> SpecifierContainerNames { get; set; }
 
         /// <summary>
-        /// Creates a NamespaceDefinition object for the given namespace element. This must be one of the element types defined in NamespaceElementNames.
+        /// Creates a NamespaceDefinition object for the given namespace typeUseElement. This must be one of the typeUseElement types defined in NamespaceElementNames.
         /// </summary>
-        /// <param name="namespaceElement">the element</param>
-        /// <param name="fileUnit">The file unit</param>
+        /// <param name="namespaceElement">the namespace element</param>
+        /// <param name="context">The parser context</param>
         /// <returns>a new NamespaceDefinition object</returns>
-        public override NamespaceDefinition CreateNamespaceDefinition(XElement namespaceElement, XElement fileUnit) {
+        public override NamespaceDefinition ParseNamespaceElement(XElement namespaceElement, ParserContext context) {
             if(namespaceElement == null)
                 throw new ArgumentNullException("namespaceElement");
             if(!NamespaceElementNames.Contains(namespaceElement.Name))
-                throw new ArgumentException(string.Format("Not a valid namespace element: {0}", namespaceElement.Name), "namespaceElement");
+                throw new ArgumentException(string.Format("Not a valid namespace typeUseElement: {0}", namespaceElement.Name), "namespaceElement");
 
             var nameElement = namespaceElement.Element(SRC.Name);
             var namespaceName = nameElement != null ? nameElement.Value : string.Empty;
 
-            return new NamespaceDefinition {Name = namespaceName};
-        }
-
-        /// <summary>
-        /// Creates a scope from the file. For C++, this means returning a global namespace object
-        /// </summary>
-        /// <param name="fileUnit">The file unit</param>
-        /// <returns>a global namespace object.</returns>
-        public override Scope CreateScopeFromFile(XElement fileUnit) {
-            var namespaceForFile = new NamespaceDefinition();
-            return namespaceForFile;
+            return new NamespaceDefinition { Name = namespaceName };
         }
 
         /// <summary>
         /// Creates a method definition object from <paramref name="methodElement"/>. For C++, it looks for
         /// <code>int A::B::Foo(){ }</code> and sets the <see cref="NamedScope.UnresolvedParentScope"/> property to "A->B".
         /// </summary>
-        /// <param name="methodElement">The method element</param>
-        /// <param name="fileUnit">The containing file unit</param>
+        /// <param name="methodElement">The method typeUseElement</param>
+        /// <param name="context">The parser context</param>
         /// <returns>the method definition object for <paramref name="methodElement"/></returns>
-        public override MethodDefinition CreateMethodDefinition(XElement methodElement, XElement fileUnit) {
-            var methodDefinition = base.CreateMethodDefinition(methodElement, fileUnit);
+        public override MethodDefinition ParseMethodElement(XElement methodElement, ParserContext context) {
+            var methodDefinition = base.ParseMethodElement(methodElement, context);
 
             var nameElement = methodElement.Element(SRC.Name);
             string methodName;
@@ -90,7 +80,7 @@ namespace ABB.SrcML.Data {
                 methodName = NameHelper.GetLastName(nameElement);
             }
 
-            var prefix = CreateNamedScopeUsePrefix(nameElement, fileUnit);
+            var prefix = ParseNamedScopeUsePrefix(nameElement, context);
             if(null != prefix) {
                 methodDefinition.ParentScopeCandidates.Add(prefix);
             }
@@ -98,14 +88,10 @@ namespace ABB.SrcML.Data {
             return methodDefinition;
         }
 
-        public override TypeUse CreateTypeUse(XElement element, XElement fileUnit, Scope parentScope) {
-
-            return base.CreateTypeUse(element, fileUnit, parentScope);
-        }
         /// <summary>
         /// Gets the name for a method. This is the unqualified name, not any class names that might be prepended to it.
         /// </summary>
-        /// <param name="methodElement">The method element</param>
+        /// <param name="methodElement">The method typeUseElement</param>
         /// <returns>a string with the method name</returns>
         public override string GetNameForMethod(XElement methodElement) {
             var nameElement = methodElement.Element(SRC.Name);
@@ -118,7 +104,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Gets the access modifiers for this method. In C++, methods are contained within "specifier" blocks
         /// </summary>
-        /// <param name="methodElement">The method element</param>
+        /// <param name="methodElement">The method typeUseElement</param>
         /// <returns>The access modifier for this method; if none, it returns <see cref="AccesModifier.None"/></returns>
         public override AccessModifier GetAccessModifierForMethod(XElement methodElement) {
             Dictionary<XName, AccessModifier> accessModifierMap = new Dictionary<XName, AccessModifier>() {
@@ -145,20 +131,15 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Gets the parent types for this type. It parses the C++ ":" operator that appears in type definitions.
         /// </summary>
-        /// <param name="typeElement">The type element</param>
-        /// <param name="fileUnit">The file unit that contains this type</param>
-        /// <returns>A collection of type uses that represent the parent classes</returns>
-        public override Collection<TypeUse> GetParentTypeUses(XElement typeElement, XElement fileUnit, TypeDefinition typeDefinition) {
-            Collection<TypeUse> parents = new Collection<TypeUse>();
+        /// <param name="typeElement">The type typeUseElement</param>
+        /// <returns>A collection of type use elements that represent the parent classes</returns>
+        public override IEnumerable<XElement> GetParentTypeUseElements(XElement typeElement) {
             var superTag = typeElement.Element(SRC.Super);
 
             if(null != superTag) {
-                var parentElements = superTag.Elements(SRC.Name);
-                foreach(var parentElement in parentElements) {
-                    parents.Add(CreateTypeUse(parentElement, fileUnit, typeDefinition));
-                }
+                return superTag.Elements(SRC.Name);
             }
-            return parents;
+            return Enumerable.Empty<XElement>();
         }
 
         /// <summary>
@@ -177,9 +158,9 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Gets the child containers for a C++ type element. This iterates over the public, private, and protected blocks that appear in C++ classes in srcML.
+        /// Gets the child containers for a C++ type typeUseElement. This iterates over the public, private, and protected blocks that appear in C++ classes in srcML.
         /// </summary>
-        /// <param name="container">the type element</param>
+        /// <param name="container">the type typeUseElement</param>
         /// <returns>the child elements of this C++ type</returns>
         public override IEnumerable<XElement> GetChildContainersFromType(XElement container) {
             foreach(var child in base.GetChildContainersFromType(container)) {
@@ -199,12 +180,12 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Gets the variables declared in this C++ type element. This iterates over the public, private, and protected blocks that appear in C++ classes in srcML.
+        /// Gets the variables declared in this C++ type typeUseElement. This iterates over the public, private, and protected blocks that appear in C++ classes in srcML.
         /// </summary>
-        /// <param name="container">the type element</param>
-        /// <returns>The decl elements for this type element</returns>
-        public override IEnumerable<XElement> GetDeclarationsFromType(XElement container) {
-            foreach(var decl in base.GetDeclarationsFromType(container)) {
+        /// <param name="container">the type typeUseElement</param>
+        /// <returns>The decl elements for this type typeUseElement</returns>
+        public override IEnumerable<XElement> GetDeclarationsFromTypeElement(XElement container) {
+            foreach(var decl in base.GetDeclarationsFromTypeElement(container)) {
                 yield return decl;
             }
 
@@ -214,7 +195,7 @@ namespace ABB.SrcML.Data {
                                     select child;
 
             foreach(var specifierElement in specifierElements) {
-                foreach(var declElement in GetDeclarationsFromBlock(specifierElement)) {
+                foreach(var declElement in GetDeclarationsFromBlockElement(specifierElement)) {
                     yield return declElement;
                 }
             }

@@ -64,6 +64,8 @@ namespace ABB.SrcML.Data.Test {
             globalScope = globalScope.Merge(CodeParser[Language.Java].ParseFileUnit(fileUnitB));
             globalScope = globalScope.Merge(CodeParser[Language.Java].ParseFileUnit(fileUnitC));
 
+            Assert.AreEqual(3, globalScope.ChildScopes.Count());
+
             var scopes = VariableScopeIterator.Visit(globalScope);
             var typeDefinitions = (from scope in scopes
                                    let typeDefinition = (scope as TypeDefinition)
@@ -75,20 +77,25 @@ namespace ABB.SrcML.Data.Test {
             var typeB = typeDefinitions[1];
             var typeC = typeDefinitions[2];
 
-            Assert.That(typeC.DeclaredVariables.First().VariableType.FindMatches().First(), Is.SameAs(typeA));
-            Assert.That(typeA.ParentTypes.First().FindMatches().First(), Is.SameAs(typeB));
+            Assert.AreEqual("B", typeB.Name);
+
+            var cDotA = typeC.DeclaredVariables.First();
+            var parentOfA = typeA.ParentTypes.First();
+
+            Assert.That(cDotA.VariableType.FindMatches().FirstOrDefault(), Is.SameAs(typeA));
+            Assert.That(parentOfA.FindMatches().FirstOrDefault(), Is.SameAs(typeB));
         }
 
         [Test]
         public void TestMethodCallFindMatches() {
             // # A.h
             // class A {
-            //     int state;
+            //     int context;
             //     public:
             //         A();
             // };
             string headerXml = @"<class>class <name>A</name> <block>{<private type=""default"">
-    <decl_stmt><decl><type><name>int</name></type> <name>state</name></decl>;</decl_stmt>
+    <decl_stmt><decl><type><name>int</name></type> <name>context</name></decl>;</decl_stmt>
     </private><public>public:
         <constructor_decl><name>A</name><parameter_list>()</parameter_list>;</constructor_decl>
 </public>}</block>;</class>";
@@ -153,12 +160,12 @@ namespace ABB.SrcML.Data.Test {
         public void TestMethodCallFindMatches_WithArguments() {
             // # A.h
             // class A {
-            //     int state;
+            //     int context;
             //     public:
             //         A(int value);
             // };
             string headerXml = @"<class>class <name>A</name> <block>{<private type=""default"">
-    <decl_stmt><decl><type><name>int</name></type> <name>state</name></decl>;</decl_stmt>
+    <decl_stmt><decl><type><name>int</name></type> <name>context</name></decl>;</decl_stmt>
 </private><public>public:
     <constructor_decl><name>A</name><parameter_list>(<param><decl><type><name>int</name></type> <name>value</name></decl></param>)</parameter_list>;</constructor_decl>
 </public>}</block>;</class>";
@@ -166,11 +173,11 @@ namespace ABB.SrcML.Data.Test {
             // # A.cpp
             // #include "A.h"
             // A::A(int value) {
-            //     state = value;
+            //     context = value;
             // }
             string implementationXml = @"<cpp:include>#<cpp:directive>include</cpp:directive> <cpp:file><lit:literal type=""string"">""A.h""</lit:literal></cpp:file></cpp:include>
 <constructor><name><name>A</name><op:operator>::</op:operator><name>A</name></name><parameter_list>(<param><decl><type><name>int</name></type> <name>value</name></decl></param>)</parameter_list> <block>{
-    <expr_stmt><expr><name>state</name> <op:operator>=</op:operator> <name>value</name></expr>;</expr_stmt>
+    <expr_stmt><expr><name>context</name> <op:operator>=</op:operator> <name>value</name></expr>;</expr_stmt>
 }</block></constructor>";
 
             // # main.cpp

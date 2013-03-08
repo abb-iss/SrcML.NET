@@ -276,10 +276,8 @@ namespace ABB.SrcML.Data.Test {
             string xml = @"<import>import <name>x</name> . <comment type=""block"">/*test */</comment> <name>y</name> . <name>z</name> . <comment type=""block"">/*test */</comment>  * <comment type=""block"">/*test*/</comment>;</import>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
-            
-            var aliases = codeParser.CreateAliasesForFile(xmlElement);
 
-            var actual = aliases.First();
+            var actual = codeParser.ParseAliasElement(xmlElement.Element(SRC.Import), new ParserContext() { FileUnit = xmlElement });
 
             Assert.AreEqual("x", actual.ImportedNamespace.Name);
             Assert.AreEqual("y", actual.ImportedNamespace.ChildScopeUse.Name);
@@ -296,9 +294,7 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
 
-            var aliases = codeParser.CreateAliasesForFile(xmlElement);
-
-            var actual = aliases.First();
+            var actual = codeParser.ParseAliasElement(xmlElement.Element(SRC.Import), new ParserContext() { FileUnit = xmlElement });
 
             Assert.AreEqual("x", actual.ImportedNamespace.Name);
             Assert.AreEqual("y", actual.ImportedNamespace.ChildScopeUse.Name);

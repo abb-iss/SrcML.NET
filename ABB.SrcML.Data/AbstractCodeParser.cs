@@ -89,47 +89,53 @@ namespace ABB.SrcML.Data {
             if(null == fileUnit) throw new ArgumentNullException("fileUnit");
             if(SRC.Unit != fileUnit.Name) throw new ArgumentException("should be a SRC.Unit", "fileUnit");
 
-            var globalScope = SrcMLElementVisitor.Visit(fileUnit, this) as NamespaceDefinition;
+            var globalScope = ParseElement(fileUnit, new ParserContext()) as NamespaceDefinition;
             return globalScope;
         }
 
-        /// <summary>
-        /// Looks at the name of the element and then creates a variablescope depending on the <see cref="System.Xml.Linq.XName"/>.
-        /// </summary>
-        /// <param name="element">The element to create a scope for</param>
-        /// <param name="fileUnit">The file unit that contains this element</param>
-        /// <returns>A variable scope for the element</returns>
-        public Scope CreateScope(XElement element, XElement fileUnit) {
+        public virtual Scope ParseElement(XElement element, ParserContext context) {
             Scope scope;
 
             if(element.Name == SRC.Unit) {
-                scope = CreateScopeFromFile(element);
-                fileUnit = element;
+                scope = ParseUnitElement(element, context);
             } else if(TypeElementNames.Contains(element.Name)) {
-                scope = CreateTypeDefinition(element, fileUnit);
+                scope = ParseTypeElement(element, context);
             } else if(NamespaceElementNames.Contains(element.Name)) {
-                scope = CreateNamespaceDefinition(element, fileUnit);
+                scope = ParseNamespaceElement(element, context);
             } else if(MethodElementNames.Contains(element.Name)) {
-                scope = CreateMethodDefinition(element, fileUnit);
+                scope = ParseMethodElement(element, context);
             } else {
-                scope = CreateScopeFromContainer(element, fileUnit);
+                scope = ParseContainerElement(element, context);
             }
-            scope.AddSourceLocation(new SourceLocation(element, fileUnit, ContainerIsReference(element)));
+
+            context.ScopeStack.Push(scope);
+            foreach(var declarationElement in GetDeclarationsFromElement(element)) {
+                var declaration = ParseDeclarationElement(declarationElement, context);
+                scope.AddDeclaredVariable(declaration);
+            }
+            foreach(var methodCallElement in GetMethodCallsFromElement(element)) {
+                var methodCall = ParseCallElement(methodCallElement, context);
+                scope.AddMethodCall(methodCall);
+            }
+
+            foreach(var childElement in GetChildContainers(element)) {
+                var childScope = ParseElement(childElement, context);
+                context.CurrentScope.AddChildScope(childScope);
+            }
+            scope.AddSourceLocation(new SourceLocation(element, context.FileUnit, ContainerIsReference(element)));
             scope.ProgrammingLanguage = this.ParserLanguage;
+
+            return context.ScopeStack.Pop();
+        }
+
+        public virtual Scope ParseContainerElement(XElement element, ParserContext context) {
+            var scope = new Scope();
             return scope;
         }
 
-        /// <summary>
-        /// Creates a MethodDefinition object for the given element.
-        /// </summary>
-        /// <param name="methodElement">The method element. <c>methodElement.Name</c> must belong to <c>Parser.MethodElementNames</c></param>
-        /// <param name="fileUnit">The file unit that contains <paramref name="methodElement"/>. It must be a <see cref="ABB.SrcML.SRC.Unit"/></param>
-        /// <returns>A method definition that represents <paramref name="methodElement"/></returns>
-        public virtual MethodDefinition CreateMethodDefinition(XElement methodElement, XElement fileUnit) {
+        public virtual MethodDefinition ParseMethodElement(XElement methodElement, ParserContext context) {
             if(null == methodElement) throw new ArgumentNullException("methodElement");
-            if(null == fileUnit) throw new ArgumentNullException("fileUnit");
-            if(fileUnit.Name != SRC.Unit) throw new ArgumentException("must be a SRC.unit", "fileUnit");
-            if(!MethodElementNames.Contains(methodElement.Name)) throw new ArgumentException("must be a method element", "fileUnit");
+            if(!MethodElementNames.Contains(methodElement.Name)) throw new ArgumentException("must be a method typeUseElement", "fileUnit");
 
             var methodDefinition = new MethodDefinition() {
                 Name = GetNameForMethod(methodElement),
@@ -137,215 +143,43 @@ namespace ABB.SrcML.Data {
                 IsDestructor = (methodElement.Name == SRC.Destructor || methodElement.Name == SRC.DestructorDeclaration),
                 Accessibility = GetAccessModifierForMethod(methodElement),
             };
-
-            var parameters = from paramElement in GetParametersFromMethod(methodElement)
-                             select CreateParameterDeclaration(paramElement, fileUnit, methodDefinition);
-            methodDefinition.Parameters = new Collection<ParameterDeclaration>(parameters.ToList());
+            var parameters = from paramElement in GetParametersFromMethodElement(methodElement)
+                             select ParseMethodParameterElement(paramElement, context);
+            foreach(var parameter in parameters) {
+                methodDefinition.Parameters.Add(parameter);
+            }
             return methodDefinition;
         }
 
-        /// <summary>
-        /// Creates a NamespaceDefinition object for the given namespace element. This must be one of the element types defined in NamespaceElementNames.
-        /// </summary>
-        /// <param name="namespaceElement">the element</param>
-        /// <param name="fileUnit">The file unit</param>
-        /// <returns>a new NamespaceDefinition object</returns>
-        public abstract NamespaceDefinition CreateNamespaceDefinition(XElement namespaceElement, XElement fileUnit);
+        public abstract NamespaceDefinition ParseNamespaceElement(XElement namespaceElement, ParserContext context);
 
-        /// <summary>
-        /// Creates a variable scope object for the given container. It adds all of the variables declared at this scope.
-        /// </summary>
-        /// <param name="container">The variable scope</param>
-        /// <param name="fileUnit">the file unit that contains this <paramref name="container"/></param>
-        /// <returns>A variable scope that represents <paramref name="container"/></returns>
-        public virtual Scope CreateScopeFromContainer(XElement container, XElement fileUnit) {
-            var currentScope = new Scope();
-            return currentScope;
-        }
-
-        /// <summary>
-        /// Creates a variable scope for the given file unit.
-        /// </summary>
-        /// <param name="fileUnit">The file unit</param>
-        /// <returns>A variable scope that represents the file.</returns>
-        public abstract Scope CreateScopeFromFile(XElement fileUnit);
-
-        /// <summary>
-        /// Parses the given typeElement and returns a TypeDefinition object.
-        /// </summary>
-        /// <param name="typeElement">the type XML element.</param>
-        /// <param name="fileUnit">The containing file unit</param>
-        /// <returns>A new TypeDefinition object</returns>
-        public virtual TypeDefinition CreateTypeDefinition(XElement typeElement, XElement fileUnit) {
-            if(null == typeElement)
-                throw new ArgumentNullException("typeElement");
-            if(null == fileUnit)
-                throw new ArgumentNullException("fileUnit");
-            if(fileUnit.Name != SRC.Unit)
-                throw new ArgumentException("must be a SRC.unit", "fileUnit");
+        public virtual TypeDefinition ParseTypeElement(XElement typeElement, ParserContext context) {
+            if(null == typeElement) throw new ArgumentNullException("typeElement");
 
             var typeDefinition = new TypeDefinition() {
-               Accessibility = GetAccessModifierForType(typeElement),
-               Kind = XNameMaps.GetKindForXElement(typeElement),
-               Name = GetNameForType(typeElement),
+                Accessibility = GetAccessModifierForType(typeElement),
+                Kind = XNameMaps.GetKindForXElement(typeElement),
+                Name = GetNameForType(typeElement),
             };
-            typeDefinition.ParentTypes = GetParentTypeUses(typeElement, fileUnit, typeDefinition);
+            foreach(var parentTypeElement in GetParentTypeUseElements(typeElement)) {
+                var parentTypeUse = ParseTypeUseElement(parentTypeElement, context);
+                typeDefinition.AddParentType(parentTypeUse);
+            }
             return typeDefinition;
         }
 
-        /// <summary>
-        /// Parses the type use and returns a TypeUse object
-        /// </summary>
-        /// <param name="element">An element naming the type. Must be a <see cref="ABB.SrcML.SRC.Type"/>or <see cref="ABB.SrcML.SRC.Name"/>.</param>
-        /// <param name="fileUnit">The file unit that contains the typeElement</param>
-        /// <param name="aliases">The aliases that apply to this type element (usually created from <paramref name="fileUnit"/>)</param>
-        /// <returns>A new TypeUse object</returns>
-        public virtual TypeUse CreateTypeUse(XElement element, XElement fileUnit, Scope parentScope) {
-            XElement typeNameElement;
+        public virtual NamespaceDefinition ParseUnitElement(XElement unitElement, ParserContext context) {
+            if(null == unitElement) throw new ArgumentNullException("unitElement");
+            if(SRC.Unit != unitElement.Name) throw new ArgumentException("should be a SRC.Unit", "unitElement");
+            context.FileUnit = unitElement;
+            var aliases = from aliasStatement in GetAliasElementsForFile(unitElement)
+                          select ParseAliasElement(aliasStatement, context);
 
-            if(element == null)
-                throw new ArgumentNullException("element");
-            if(null == fileUnit)
-                throw new ArgumentNullException("fileUnit");
-            if(fileUnit.Name != SRC.Unit)
-                throw new ArgumentException("must be a SRC.unit", "fileUnit");
+            context.Aliases = new Collection<Alias>(aliases.ToList());
 
-            // validate the type use element (must be a SRC.Name or SRC.Type)
-            if(element.Name == SRC.Type) {
-                typeNameElement = element.Element(SRC.Name);
-            } else if(element.Name == SRC.Name) {
-                typeNameElement = element;
-            } else {
-                throw new ArgumentException("element should be of type type or name", "element");
-            }
-
-            XElement lastNameElement = null;
-            NamedScopeUse prefix = null;
+            var namespaceForUnit = new NamespaceDefinition();
             
-            if(typeNameElement != null) {
-                lastNameElement = NameHelper.GetLastNameElement(typeNameElement);
-                prefix = CreateNamedScopeUsePrefix(typeNameElement, fileUnit);
-            }
-
-            var typeUse = new TypeUse() {
-                Name = (lastNameElement != null ? lastNameElement.Value : String.Empty),
-                ParentScope = parentScope,
-                Location = new SourceLocation((lastNameElement != null ? lastNameElement : element), fileUnit),
-                Prefix = prefix,
-                ProgrammingLanguage = this.ParserLanguage,
-            };
-
-            return typeUse;
-        }
-
-        public NamedScopeUse CreateNamedScopeUsePrefix(XElement nameElement, XElement fileUnit) {
-            IEnumerable<XElement> parentNameElements = Enumerable.Empty<XElement>();
-
-            parentNameElements = NameHelper.GetNameElementsExceptLast(nameElement);
-            NamedScopeUse current = null, root = null;
-
-            if(parentNameElements.Any()) {
-                foreach(var element in parentNameElements) {
-                    var scopeUse = new NamedScopeUse() {
-                        Name = element.Value,
-                        Location = new SourceLocation(element, fileUnit, true),
-                        ProgrammingLanguage = this.ParserLanguage,
-                    };
-                    if(null == root) {
-                        root = scopeUse;
-                    }
-                    if(current != null) {
-                        current.ChildScopeUse = scopeUse;
-                    }
-                    current = scopeUse;
-                }
-            }
-            return root;
-        }
-
-        /// <summary>
-        /// Checks to see if this element is a reference container
-        /// </summary>
-        /// <param name="element">The element to check</param>
-        /// <returns>True if this is a reference container; false otherwise</returns>
-        public virtual bool ContainerIsReference(XElement element) {
-            return (element != null && ContainerReferenceElementNames.Contains(element.Name));
-        }
-
-        /// <summary>
-        /// Gets the name for the type element
-        /// </summary>
-        /// <param name="typeElement">The type element to get the name for</param>
-        /// <returns>The name of the type</returns>
-        public virtual string GetNameForType(XElement typeElement) {
-            var name = typeElement.Element(SRC.Name);
-            if(null == name)
-                return string.Empty;
-            return name.Value;
-        }
-
-        /// <summary>
-        /// Gets the name for the method element
-        /// </summary>
-        /// <param name="methodElement">the method element to get the name for</param>
-        /// <returns>The name of the method</returns>
-        public virtual string GetNameForMethod(XElement methodElement) {
-            var name = methodElement.Element(SRC.Name);
-            if(null == name)
-                return string.Empty;
-            return name.Value;
-        }
-
-        /// <summary>
-        /// Gets the access modifier for this method. For Java & C#, a "specifier" tag is placed in either
-        /// the method element, or the type element in the method.
-        /// </summary>
-        /// <param name="methodElement">The method element</param>
-        /// <returns>The first specifier encountered. If none, it returns <see cref="AccessModifier.None"/></returns>
-        public virtual AccessModifier GetAccessModifierForMethod(XElement methodElement) {
-            Dictionary<string, AccessModifier> accessModifierMap = new Dictionary<string, AccessModifier>() {
-                { "public", AccessModifier.Public },
-                { "private", AccessModifier.Private },
-                { "protected", AccessModifier.Protected },
-                { "internal", AccessModifier.Internal },
-            };
-
-            var specifierContainer = methodElement.Element(SRC.Type);
-            if(null == specifierContainer) {
-                specifierContainer = methodElement;
-            }
-
-            var specifiers = from specifier in specifierContainer.Elements(SRC.Specifier)
-                             where accessModifierMap.ContainsKey(specifier.Value)
-                             select accessModifierMap[specifier.Value];
-
-            return (specifiers.Any() ? specifiers.First() : AccessModifier.None);
-        }
-
-        /// <summary>
-        /// Gets the access modifier for the given type
-        /// </summary>
-        /// <param name="typeElement">The type element</param>
-        /// <returns>The access modifier for the type.</returns>
-        public abstract AccessModifier GetAccessModifierForType(XElement typeElement);
-
-        /// <summary>
-        /// Gets the parents for the given type.
-        /// </summary>
-        /// <param name="typeElement">the type element to get the parents for</param>
-        /// <param name="fileUnit">the file unit that contains <paramref name="typeElement"/></param>
-        /// <returns>A collection of TypeUses that represent the parent classes of <paramref name="typeElement"/></returns>
-        public abstract Collection<TypeUse> GetParentTypeUses(XElement typeElement, XElement fileUnit, TypeDefinition typeDefinition);
-
-        /// <summary>
-        /// Get the aliases from the given file
-        /// </summary>
-        /// <param name="fileUnit">The file unit to find aliases in</param>
-        /// <returns>All of the aliases that are children if <paramref name="fileUnit"/></returns>
-        public virtual IEnumerable<Alias> CreateAliasesForFile(XElement fileUnit) {
-            var aliases = from aliasStatement in fileUnit.Elements(AliasElementName)
-                          select CreateAlias(aliasStatement, fileUnit);
-            return aliases;
+            return namespaceForUnit;
         }
 
         /// <summary>
@@ -354,14 +188,12 @@ namespace ABB.SrcML.Data {
         /// <param name="aliasStatement">The statement to parse. Should be of type <see cref="AliasElementName"/></param>
         /// <param name="fileUnit">The file unit that contains this element</param>
         /// <returns>a new alias object that represents this alias statement</returns>
-        public Alias CreateAlias(XElement aliasStatement, XElement fileUnit) {
-            if(null == aliasStatement)
-                throw new ArgumentNullException("aliasStatement");
-            if(aliasStatement.Name != AliasElementName)
-                throw new ArgumentException(String.Format("must be a {0} statement", AliasElementName), "usingStatement");
+        public Alias ParseAliasElement(XElement aliasStatement, ParserContext context) {
+            if(null == aliasStatement) throw new ArgumentNullException("aliasStatement");
+            if(aliasStatement.Name != AliasElementName) throw new ArgumentException(String.Format("must be a {0} statement", AliasElementName), "usingStatement");
 
             var alias = new Alias() {
-                Location = new SourceLocation(aliasStatement, fileUnit),
+                Location = new SourceLocation(aliasStatement, context.FileUnit),
                 ProgrammingLanguage = ParserLanguage,
             };
 
@@ -375,7 +207,7 @@ namespace ABB.SrcML.Data {
 
                 alias.ImportedNamedScope = new NamedScopeUse() {
                     Name = lastNameElement.Value,
-                    Location = new SourceLocation(lastNameElement, fileUnit),
+                    Location = new SourceLocation(lastNameElement, context.FileUnit),
                     ProgrammingLanguage = ParserLanguage,
                 };
             }
@@ -384,7 +216,7 @@ namespace ABB.SrcML.Data {
             foreach(var namespaceName in namespaceNames) {
                 var use = new NamespaceUse() {
                     Name = namespaceName.Value,
-                    Location = new SourceLocation(namespaceName, fileUnit),
+                    Location = new SourceLocation(namespaceName, context.FileUnit),
                     ProgrammingLanguage = ParserLanguage,
                 };
 
@@ -400,6 +232,218 @@ namespace ABB.SrcML.Data {
             return alias;
         }
 
+        public virtual MethodCall ParseCallElement(XElement callElement, ParserContext context) {
+            string name = String.Empty;
+            bool isConstructor = false;
+            bool isDestructor = false;
+            IEnumerable<XElement> callingObjectNames = Enumerable.Empty<XElement>();
+
+            var nameElement = callElement.Element(SRC.Name);
+            if(null != nameElement) {
+                name = NameHelper.GetLastName(nameElement);
+                callingObjectNames = NameHelper.GetNameElementsExceptLast(nameElement);
+            }
+
+            var precedingElements = callElement.ElementsBeforeSelf();
+
+            foreach(var pe in precedingElements) {
+                if(pe.Name == OP.Operator && pe.Value == "new") {
+                    isConstructor = true;
+                } else if(pe.Name == OP.Operator && pe.Value == "~") {
+                    isDestructor = true;
+                }
+            }
+
+            var methodCall = new MethodCall() {
+                Name = name,
+                IsConstructor = isConstructor,
+                IsDestructor = isDestructor,
+                ParentScope = context.CurrentScope,
+                Location = new SourceLocation(callElement, context.FileUnit),
+            };
+
+            var arguments = from argument in callElement.Element(SRC.ArgumentList).Elements(SRC.Argument)
+                            select CreateResolvableUse(argument, context);
+            methodCall.Arguments = new Collection<IResolvesToType>(arguments.ToList<IResolvesToType>());
+
+            IResolvesToType current = methodCall;
+            foreach(var callingObjectName in callingObjectNames.Reverse()) {
+                var callingObject = this.CreateVariableUse(callingObjectName, context);
+                current.CallingObject = callingObject;
+                current = callingObject;
+            }
+
+            var elementsBeforeCall = callElement.ElementsBeforeSelf().ToArray();
+            int i = elementsBeforeCall.Length - 1;
+
+            while(i > 0 && elementsBeforeCall[i].Name == OP.Operator &&
+                  (elementsBeforeCall[i].Value == "." || elementsBeforeCall[i].Value == "->")) {
+                i--;
+                if(i >= 0 && elementsBeforeCall[i].Name == SRC.Name) {
+                    var callingObject = CreateVariableUse(elementsBeforeCall[i], context);
+                    current.CallingObject = callingObject;
+                    current = callingObject;
+                }
+            }
+            return methodCall;
+        }
+
+        public virtual VariableDeclaration ParseDeclarationElement(XElement declarationElement, ParserContext context) {
+            if(declarationElement == null) throw new ArgumentNullException("declaration");
+            if(!VariableDeclarationElementNames.Contains(declarationElement.Name)) throw new ArgumentException("XElement.Name must be in VariableDeclarationElementNames");
+
+            XElement declElement;
+            if(declarationElement.Name == SRC.Declaration || declarationElement.Name == SRC.FunctionDeclaration) {
+                declElement = declarationElement;
+            } else {
+                declElement = declarationElement.Element(SRC.Declaration);
+            }
+
+            var typeElement = declElement.Element(SRC.Type);
+            var nameElement = declElement.Element(SRC.Name);
+            var name = (nameElement == null ? String.Empty : nameElement.Value);
+
+            var variableDeclaration = new VariableDeclaration() {
+                VariableType = ParseTypeUseElement(typeElement, context),
+                Name = name,
+                Location = new SourceLocation(declarationElement, context.FileUnit),
+                Scope = context.CurrentScope,
+            };
+            return variableDeclaration;
+        }
+
+        /// <summary>
+        /// Generates a parameter declaration for the given declaration
+        /// </summary>
+        /// <param name="declElement">The declaration XElement from within the parameter element.</param>
+        /// <param name="fileUnit">The containing file unit</param>
+        /// <param name="method">The method that this parameter is part of.</param>
+        /// <returns>A parameter declaration object</returns>
+        public virtual ParameterDeclaration ParseMethodParameterElement(XElement declElement, ParserContext context) {
+            if(declElement == null) throw new ArgumentNullException("declElement");
+            if(declElement.Name != SRC.Declaration && declElement.Name != SRC.FunctionDeclaration) throw new ArgumentException("must be of element type SRC.Declaration or SRC.FunctionDeclaration", "declElement");
+
+            var typeElement = declElement.Element(SRC.Type);
+            var nameElement = declElement.Element(SRC.Name);
+            var name = (nameElement == null ? String.Empty : nameElement.Value);
+
+            var parameterDeclaration = new ParameterDeclaration {
+                VariableType = ParseTypeUseElement(typeElement, context),
+                Name = name,
+                Method = context.CurrentScope as MethodDefinition
+            };
+            parameterDeclaration.Locations.Add(new SourceLocation(declElement, context.FileUnit));
+
+            return parameterDeclaration;
+        }
+
+        public virtual TypeUse ParseTypeUseElement(XElement typeUseElement, ParserContext context) {
+            if(typeUseElement == null) throw new ArgumentNullException("typeUseElement");
+
+            XElement typeNameElement;
+
+            // validate the type use typeUseElement (must be a SRC.Name or SRC.Type)
+            if(typeUseElement.Name == SRC.Type) {
+                typeNameElement = typeUseElement.Element(SRC.Name);
+            } else if(typeUseElement.Name == SRC.Name) {
+                typeNameElement = typeUseElement;
+            } else {
+                throw new ArgumentException("typeUseElement should be of type type or name", "typeUseElement");
+            }
+
+            XElement lastNameElement = null;
+            NamedScopeUse prefix = null;
+
+            if(typeNameElement != null) {
+                lastNameElement = NameHelper.GetLastNameElement(typeNameElement);
+                prefix = ParseNamedScopeUsePrefix(typeNameElement, context);
+            }
+
+            var typeUse = new TypeUse() {
+                Name = (lastNameElement != null ? lastNameElement.Value : String.Empty),
+                ParentScope = context.CurrentScope,
+                Location = new SourceLocation((lastNameElement != null ? lastNameElement : typeUseElement), context.FileUnit),
+                Prefix = prefix,
+                ProgrammingLanguage = this.ParserLanguage,
+            };
+
+            return typeUse;
+        }
+
+        public abstract IEnumerable<XElement> GetParentTypeUseElements(XElement typeElement);
+
+        public NamedScopeUse ParseNamedScopeUsePrefix(XElement nameElement, ParserContext context) {
+            IEnumerable<XElement> parentNameElements = Enumerable.Empty<XElement>();
+
+            parentNameElements = NameHelper.GetNameElementsExceptLast(nameElement);
+            NamedScopeUse current = null, root = null;
+
+            if(parentNameElements.Any()) {
+                foreach(var element in parentNameElements) {
+                    var scopeUse = new NamedScopeUse() {
+                        Name = element.Value,
+                        Location = new SourceLocation(element, context.FileUnit, true),
+                        ProgrammingLanguage = this.ParserLanguage,
+                    };
+                    if(null == root) {
+                        root = scopeUse;
+                    }
+                    if(current != null) {
+                        current.ChildScopeUse = scopeUse;
+                    }
+                    current = scopeUse;
+                }
+            }
+            return root;
+        }
+
+        /// <summary>
+        /// Gets all of the parameters for this method. It finds the variable declarations in parameter list.
+        /// </summary>
+        /// <param name="method">The method container</param>
+        /// <returns>An enumerable of all the declaration XElements.</returns>
+        public virtual IEnumerable<XElement> GetParametersFromMethodElement(XElement method) {
+            var parameters = from parameter in method.Element(SRC.ParameterList).Elements(SRC.Parameter)
+                             let declElement = parameter.Elements().First()
+                             select declElement;
+            return parameters;
+        }
+
+        // TODO make this fit in with the rest of the parse methods
+        public virtual IResolvesToType CreateResolvableUse(XElement element, ParserContext context) {
+            var use = new VariableUse() {
+                Location = new SourceLocation(element, context.FileUnit, true),
+                ParentScope = context.CurrentScope,
+                ProgrammingLanguage = ParserLanguage,
+            };
+            return use;
+        }
+        
+        // TODO make this fit in with the rest of the parse methods
+        public virtual VariableUse CreateVariableUse(XElement element, ParserContext context) {
+            XElement nameElement;
+            if(element.Name == SRC.Name) {
+                nameElement = element;
+            } else if(element.Name == SRC.Expression) {
+                nameElement = element.Element(SRC.Name);
+            } else if(element.Name == SRC.ExpressionStatement || element.Name == SRC.Argument) {
+                nameElement = element.Element(SRC.Expression).Element(SRC.Name);
+            } else {
+                throw new ArgumentException("element should be an expression, expression statement, argument, or name", "element");
+            }
+
+            var lastNameElement = NameHelper.GetLastNameElement(nameElement);
+
+            var variableUse = new VariableUse() {
+                Location = new SourceLocation(lastNameElement, context.FileUnit, true),
+                Name = lastNameElement.Value,
+                ParentScope = context.CurrentScope,
+                ProgrammingLanguage = ParserLanguage,
+            };
+            return variableUse;
+        }
+
+        #region aliases
         /// <summary>
         /// Checks if this alias statement is a namespace import or something more specific (such as a type or method)
         /// </summary>
@@ -421,39 +465,16 @@ namespace ABB.SrcML.Data {
                 return NameHelper.GetNameElementsFromName(nameElement);
             return Enumerable.Empty<XElement>();
         }
+        #endregion
+
+        public virtual IEnumerable<XElement> GetAliasElementsForFile(XElement fileUnit) {
+            if(null == fileUnit) throw new ArgumentNullException("fileUnit");
+            if(SRC.Unit != fileUnit.Name) throw new ArgumentException("must be a unit element", "fileUnit");
+
+            return fileUnit.Elements(AliasElementName);
+        }
         
-        /// <summary>
-        /// Gets the filename for the given file unit.
-        /// </summary>
-        /// <param name="fileUnit">The file unit. <c>fileUnit.Name</c> must be <c>SRC.Unit</c></param>
-        /// <returns>The file path represented by this <paramref name="fileUnit"/></returns>
-        public virtual string GetFileNameForUnit(XElement fileUnit) {
-            if(fileUnit == null)
-                throw new ArgumentNullException("fileUnit");
-            if(fileUnit.Name != SRC.Unit)
-                throw new ArgumentException("element must be a unit", "fileUnit");
-
-            var fileNameAttribute = fileUnit.Attribute("filename");
-
-            if(null != fileNameAttribute)
-                return fileNameAttribute.Value;
-            return String.Empty;
-        }
-
-        /// <summary>
-        /// Gets all of the text nodes that are children of the given element.
-        /// </summary>
-        /// <param name="element">The element</param>
-        /// <returns>An enumerable of the XText elements for <paramref name="element"/></returns>
-        public IEnumerable<XText> GetTextNodes(XElement element) {
-            var textNodes = from node in element.Nodes()
-                where node.NodeType == XmlNodeType.Text
-                let text = node as XText
-                select text;
-            return textNodes;
-        }
-
-        #region scope definition
+        #region get child containers from scope
         /// <summary>
         /// Gets all of the child containers for the given container
         /// </summary>
@@ -507,80 +528,168 @@ namespace ABB.SrcML.Data {
             var block = container.Element(SRC.Block);
             return GetChildContainers(block);
         }
+        #endregion
 
-        #endregion get child containers
-
-        #region create method calls
-        public virtual MethodCall CreateMethodCall(XElement element, XElement fileUnit, Scope parentScope) {
-            string name = String.Empty;
-            bool isConstructor = false;
-            bool isDestructor = false;
-            IEnumerable<XElement> callingObjectNames = Enumerable.Empty<XElement>();
-
-            var nameElement = element.Element(SRC.Name);
-            if(null != nameElement) {
-                name = NameHelper.GetLastName(nameElement);
-                callingObjectNames = NameHelper.GetNameElementsExceptLast(nameElement);
+        #region get method calls from scope
+        public virtual IEnumerable<XElement> GetMethodCallsFromElement(XElement element) {
+            if(MethodElementNames.Contains(element.Name) ||
+               NamespaceElementNames.Contains(element.Name) ||
+               TypeElementNames.Contains(element.Name)) {
+                return GetCallsFromBlockParent(element);
             }
-
-            var precedingElements = element.ElementsBeforeSelf();
-
-            foreach(var pe in precedingElements) {
-                if(pe.Name == OP.Operator && pe.Value == "new") {
-                    isConstructor = true;
-                } else if(pe.Name == OP.Operator && pe.Value == "~") {
-                    isDestructor = true;
-                }
-            }
-
-            var methodCall = new MethodCall() {
-                Name = name,
-                IsConstructor = isConstructor,
-                IsDestructor = isDestructor,
-                ParentScope = parentScope,
-                Location = new SourceLocation(element, fileUnit),
-            };
-            
-            var arguments = from argument in element.Element(SRC.ArgumentList).Elements(SRC.Argument)
-                            select CreateResolvableUse(argument, fileUnit, parentScope);
-            methodCall.Arguments = new Collection<IResolvesToType>(arguments.ToList<IResolvesToType>());
-
-            IResolvesToType current = methodCall;
-            foreach(var callingObjectName in callingObjectNames.Reverse()) {
-                var callingObject = this.CreateVariableUse(callingObjectName, fileUnit, parentScope);
-                current.CallingObject = callingObject;
-                current = callingObject;
-            }
-            
-            var elementsBeforeCall = element.ElementsBeforeSelf().ToArray();
-            int i = elementsBeforeCall.Length - 1;
-
-            while(i > 0 && elementsBeforeCall[i].Name == OP.Operator &&
-                  (elementsBeforeCall[i].Value == "." || elementsBeforeCall[i].Value == "->")) {
-                i--;
-                if(i >= 0 && elementsBeforeCall[i].Name == SRC.Name) {
-                    var callingObject = CreateVariableUse(elementsBeforeCall[i], fileUnit, parentScope);
-                    current.CallingObject = callingObject;
-                    current = callingObject;
-                }
-
-            }
-            return methodCall;
+            return GetMethodCallsFromBlockElement(element);
         }
 
-        public virtual LiteralUse CreateLiteralUse(XElement literalElement, XElement fileUnit, Scope parentScope) {
+        private IEnumerable<XElement> GetCallsFromBlockParent(XElement container) {
+            var block = container.Element(SRC.Block);
+            if(null == block)
+                return Enumerable.Empty<XElement>();
+            return GetMethodCallsFromBlockElement(block);
+        }
+
+        private IEnumerable<XElement> GetMethodCallsFromBlockElement(XElement container) {
+            var methodCalls = from child in container.Elements()
+                              where !ContainerElementNames.Contains(child.Name)
+                              from call in child.Descendants(SRC.Call)
+                              select call;
+            return methodCalls;
+        }
+
+        #endregion get method calls from scope
+
+        #region get declarations from scope
+        public virtual IEnumerable<XElement> GetDeclarationsFromElement(XElement element) {
+            if(null == element) return Enumerable.Empty<XElement>();
+
+            IEnumerable<XElement> declarationElements;
+            if(SRC.Block == element.Name) {
+                declarationElements = GetDeclarationsFromBlockElement(element);
+            } else if(SRC.Catch == element.Name) {
+                declarationElements = GetDeclarationsFromCatchElement(element);
+            } else if(SRC.For == element.Name) {
+                declarationElements = GetDeclarationsFromForElement(element);
+            } else if(MethodElementNames.Contains(element.Name)) {
+                declarationElements = GetDeclarationsFromMethodElement(element);
+            } else if(TypeElementNames.Contains(element.Name)) {
+                declarationElements = GetDeclarationsFromTypeElement(element);
+            }else {
+                declarationElements = Enumerable.Empty<XElement>();
+            }
+
+            return declarationElements;
+        }
+
+        /// <summary>
+        /// Gets all of the variable declarations for this catch block. It finds the variable declarations in <see cref="ABB.SrcML.SRC.ParameterList"/>.
+        /// </summary>
+        /// <param name="container">The catch container</param>
+        /// <returns>An enumerable of all the declaration XElements.</returns>
+        public virtual IEnumerable<XElement> GetDeclarationsFromCatchElement(XElement container) {
+            var declarations = from parameter in container.Elements(SRC.Parameter)
+                               let declElement = parameter.Element(SRC.Declaration)
+                               let typeElement = declElement.Element(SRC.Type)
+                               where typeElement != null
+                               where !typeElement.Elements(TYPE.Modifier).Any()
+                               select declElement;
+            return declarations;
+        }
+
+        /// <summary>
+        /// Gets all of the variable declarations for this block.
+        /// </summary>
+        /// <param name="container">The type container</param>
+        /// <returns>An enumerable of all the declaration XElements.</returns>
+        public virtual IEnumerable<XElement> GetDeclarationsFromBlockElement(XElement container) {
+            if(null == container) return Enumerable.Empty<XElement>();
+            var declarations = from stmtElement in container.Elements(SRC.DeclarationStatement)
+                               let declElement = stmtElement.Element(SRC.Declaration)
+                               select declElement;
+            return declarations;
+        }
+
+        /// <summary>
+        /// Gets all of the variable declarations for this for loop. It finds the variable declaration in the <see cref="ABB.SrcML.SRC.Init"/> statement.
+        /// </summary>
+        /// <param name="container">The type container</param>
+        /// <returns>An enumerable of all the declaration XElements.</returns>
+        public virtual IEnumerable<XElement> GetDeclarationsFromForElement(XElement container) {
+            var declarations = from declElement in container.Element(SRC.Init).Elements(SRC.Declaration)
+                               select declElement;
+            return declarations;
+        }
+
+        /// <summary>
+        /// Gets all of the variable declarations for this method. It finds the variable declarations in the child block.
+        /// </summary>
+        /// <param name="container">The method container</param>
+        /// <returns>An enumerable of all the declaration XElements.</returns>
+        public virtual IEnumerable<XElement> GetDeclarationsFromMethodElement(XElement container) {
+            var block = container.Element(SRC.Block);
+            return GetDeclarationsFromBlockElement(block);
+        }
+
+        /// <summary>
+        /// Gets all of the variable declarations for this type. It finds the variable declarations in the child block.
+        /// </summary>
+        /// <param name="container">The type container</param>
+        /// <returns>An enumerable of all the declaration XElements.</returns>
+        public virtual IEnumerable<XElement> GetDeclarationsFromTypeElement(XElement container) {
+            var block = container.Element(SRC.Block);
+            foreach(var declElement in GetDeclarationsFromBlockElement(block)) {
+                yield return declElement;
+            }
+        }
+        #endregion get declarations from scope
+
+        #region access modifiers
+        /// <summary>
+        /// Gets the access modifier for this method. For Java & C#, a "specifier" tag is placed in either
+        /// the method callElement, or the type callElement in the method.
+        /// </summary>
+        /// <param name="methodElement">The method callElement</param>
+        /// <returns>The first specifier encountered. If none, it returns <see cref="AccessModifier.None"/></returns>
+        public virtual AccessModifier GetAccessModifierForMethod(XElement methodElement) {
+            Dictionary<string, AccessModifier> accessModifierMap = new Dictionary<string, AccessModifier>() {
+                { "public", AccessModifier.Public },
+                { "private", AccessModifier.Private },
+                { "protected", AccessModifier.Protected },
+                { "internal", AccessModifier.Internal },
+            };
+
+            var specifierContainer = methodElement.Element(SRC.Type);
+            if(null == specifierContainer) {
+                specifierContainer = methodElement;
+            }
+
+            var specifiers = from specifier in specifierContainer.Elements(SRC.Specifier)
+                             where accessModifierMap.ContainsKey(specifier.Value)
+                             select accessModifierMap[specifier.Value];
+
+            return (specifiers.Any() ? specifiers.First() : AccessModifier.None);
+        }
+
+        /// <summary>
+        /// Gets the access modifier for the given type
+        /// </summary>
+        /// <param name="typeElement">The type callElement</param>
+        /// <returns>The access modifier for the type.</returns>
+        public abstract AccessModifier GetAccessModifierForType(XElement typeElement);
+        #endregion access modifiers
+
+        #region parse literal types
+        public virtual LiteralUse ParseLiteralElement(XElement literalElement, ParserContext context) {
             if(literalElement == null) throw new ArgumentNullException("literalElement");
             if(literalElement.Name != LIT.Literal) throw new ArgumentException("should be a literal", "literalElement");
 
             var kind = LiteralUse.GetLiteralKind(literalElement);
             string typeName = string.Empty;
-            
+
 
             var use = new LiteralUse() {
                 Kind = kind,
-                Location = new SourceLocation(literalElement, fileUnit),
+                Location = new SourceLocation(literalElement, context.FileUnit),
                 Name = GetTypeForLiteralValue(kind, literalElement.Value),
-                ParentScope = parentScope,
+                ParentScope = context.CurrentScope,
             };
 
             return use;
@@ -604,247 +713,73 @@ namespace ABB.SrcML.Data {
         public abstract string GetTypeForCharacterLiteral(string literalValue);
         public abstract string GetTypeForNumberLiteral(string literalValue);
         public abstract string GetTypeForStringLiteral(string literalValue);
+        #endregion
 
-        public virtual VariableUse CreateVariableUse(XElement element, XElement fileUnit, Scope parentScope) {
-            XElement nameElement;
-            if(element.Name == SRC.Name) {
-                nameElement = element;
-            } else if(element.Name == SRC.Expression) {
-                nameElement = element.Element(SRC.Name);
-            } else if(element.Name == SRC.ExpressionStatement || element.Name == SRC.Argument) {
-                nameElement = element.Element(SRC.Expression).Element(SRC.Name);
-            } else {
-                throw new ArgumentException("element should be an expression, expression statement, argument, or name", "element");
-            }
-
-            var lastNameElement = NameHelper.GetLastNameElement(nameElement);
-
-            var variableUse = new VariableUse() {
-                Location = new SourceLocation(lastNameElement, fileUnit, true),
-                Name = lastNameElement.Value,
-                ParentScope = parentScope,
-                ProgrammingLanguage = ParserLanguage,
-            };
-            return variableUse;
-        }
-
-        public virtual IResolvesToType CreateResolvableUse(XElement element, XElement fileUnit, Scope parentScope) {
-            var use = new VariableUse() {
-                Location = new SourceLocation(element, fileUnit, true),
-                ParentScope = parentScope,
-                ProgrammingLanguage = ParserLanguage,
-            };
-            return use;
-        }
-        public IEnumerable<MethodCall> GetMethodCallsFromContainer(XElement container, XElement fileUnit, Scope parentScope) {
-            if(null == container) return Enumerable.Empty<MethodCall>();
-
-            IEnumerable<XElement> methodCallElements;
-
-            if(MethodElementNames.Contains(container.Name) ||
-               NamespaceElementNames.Contains(container.Name) ||
-               TypeElementNames.Contains(container.Name)) {
-                methodCallElements = GetMethodCallsFromBlockParent(container);
-            } else {
-                methodCallElements = GetMethodCallsFromBlock(container);
-            }
-
-            var methodCalls = from call in methodCallElements
-                              select CreateMethodCall(call, fileUnit, parentScope);
-            return methodCalls;
-        }
-
-        private IEnumerable<XElement> GetMethodCallsFromBlockParent(XElement container)
-        {
- 	        var block = container.Element(SRC.Block);
-            if(null == block)
-                return Enumerable.Empty<XElement>();
-            return GetMethodCallsFromBlock(block);
-        }   
-
-        private IEnumerable<XElement> GetMethodCallsFromBlock(XElement container) {
-            var methodCalls = from child in container.Elements()
-                              where !ContainerElementNames.Contains(child.Name)
-                              from call in child.Descendants(SRC.Call)
-                              select call;
-            return methodCalls;
-        }
-
-
-        #endregion create method calls
-
-        #region create variable declarations
+        #region utilities
         /// <summary>
-        /// Generates a variable declaration for the given declaration
+        /// Checks to see if this callElement is a reference container
         /// </summary>
-        /// <param name="declaration">The declaration XElement. Can be of type <see cref="ABB.SrcML.SRC.Declaration"/>, <see cref="ABB.SrcML.SRC.DeclarationStatement"/>, or <see cref="ABB.SrcML.SRC.Parameter"/></param>
-        /// <param name="fileUnit">The containing file unit</param>
-        /// <returns>A variable declaration object</returns>
-        public virtual VariableDeclaration CreateVariableDeclaration(XElement declaration, XElement fileUnit, Scope parentScope) {
-            if(declaration == null)
-                throw new ArgumentNullException("declaration");
+        /// <param name="callElement">The callElement to check</param>
+        /// <returns>True if this is a reference container; false otherwise</returns>
+        public virtual bool ContainerIsReference(XElement element) {
+            return (element != null && ContainerReferenceElementNames.Contains(element.Name));
+        }
+
+        /// <summary>
+        /// Gets the filename for the given file unit.
+        /// </summary>
+        /// <param name="fileUnit">The file unit. <c>fileUnit.Name</c> must be <c>SRC.Unit</c></param>
+        /// <returns>The file path represented by this <paramref name="fileUnit"/></returns>
+        public virtual string GetFileNameForUnit(XElement fileUnit) {
             if(fileUnit == null)
                 throw new ArgumentNullException("fileUnit");
-            if(!VariableDeclarationElementNames.Contains(declaration.Name))
-                throw new ArgumentException("XElement.Name must be in VariableDeclarationElementNames");
             if(fileUnit.Name != SRC.Unit)
-                throw new ArgumentException("must be of type SRC.Unit", "fileUnit");
+                throw new ArgumentException("element must be a unit", "fileUnit");
 
-            XElement declElement;
-            if(declaration.Name == SRC.Declaration || declaration.Name == SRC.FunctionDeclaration) {
-                declElement = declaration;
-            } else {
-                declElement = declaration.Element(SRC.Declaration);
-            }
+            var fileNameAttribute = fileUnit.Attribute("filename");
 
-            var typeElement = declElement.Element(SRC.Type);
-            var nameElement = declElement.Element(SRC.Name);
-            var name = (nameElement == null ? String.Empty : nameElement.Value);
-
-            var variableDeclaration = new VariableDeclaration() {
-                VariableType = CreateTypeUse(typeElement, fileUnit, parentScope),
-                Name = name,
-                Location = new SourceLocation(declaration, fileUnit),
-            };
-            return variableDeclaration;
-        }
-        /// <summary>
-        /// Gets all of the variable declarations from a container
-        /// </summary>
-        /// <param name="container">the container</param>
-        /// <param name="fileUnit">the containing file unit</param>
-        /// <returns>An enumerable of variable declarations</returns>
-        public virtual IEnumerable<VariableDeclaration> GetVariableDeclarationsFromContainer(XElement container, XElement fileUnit, Scope parentScope) {
-            if(null == container) return Enumerable.Empty<VariableDeclaration>();
-
-            IEnumerable<XElement> declarationElements;
-            if(SRC.Block == container.Name) {
-                declarationElements = GetDeclarationsFromBlock(container);
-            } else if(SRC.Catch == container.Name) {
-                declarationElements = GetDeclarationsFromCatch(container);
-            } else if(SRC.For == container.Name) {
-                declarationElements = GetDeclarationsFromFor(container);
-            } else if(MethodElementNames.Contains(container.Name)) {
-                //declarationElements = GetParametersFromMethod(container);
-                //declarationElements = declarationElements.Concat(GetDeclarationsFromMethod(container));
-                declarationElements = GetDeclarationsFromMethod(container);
-            } else if(TypeElementNames.Contains(container.Name)) {
-                declarationElements = GetDeclarationsFromType(container);
-            }else {
-                declarationElements = Enumerable.Empty<XElement>();
-            }
-
-            var declarations = from decl in declarationElements
-                               select CreateVariableDeclaration(decl, fileUnit, parentScope);
-            return declarations;
+            if(null != fileNameAttribute)
+                return fileNameAttribute.Value;
+            return String.Empty;
         }
 
         /// <summary>
-        /// Gets all of the variable declarations for this catch block. It finds the variable declarations in <see cref="ABB.SrcML.SRC.ParameterList"/>.
+        /// Gets the name for the method callElement
         /// </summary>
-        /// <param name="container">The catch container</param>
-        /// <returns>An enumerable of all the declaration XElements.</returns>
-        public virtual IEnumerable<XElement> GetDeclarationsFromCatch(XElement container) {
-            var declarations = from parameter in container.Elements(SRC.Parameter)
-                               let declElement = parameter.Element(SRC.Declaration)
-                               let typeElement = declElement.Element(SRC.Type)
-                               where typeElement != null
-                               where !typeElement.Elements(TYPE.Modifier).Any()
-                               select declElement;
-            return declarations;
+        /// <param name="methodElement">the method callElement to get the name for</param>
+        /// <returns>The name of the method</returns>
+        public virtual string GetNameForMethod(XElement methodElement) {
+            var name = methodElement.Element(SRC.Name);
+            if(null == name)
+                return string.Empty;
+            return name.Value;
         }
 
         /// <summary>
-        /// Gets all of the variable declarations for this block.
+        /// Gets the name for the type callElement
         /// </summary>
-        /// <param name="container">The type container</param>
-        /// <returns>An enumerable of all the declaration XElements.</returns>
-        public virtual IEnumerable<XElement> GetDeclarationsFromBlock(XElement container) {
-            if(null == container) return Enumerable.Empty<XElement>();
-            var declarations = from stmtElement in container.Elements(SRC.DeclarationStatement)
-                               let declElement = stmtElement.Element(SRC.Declaration)
-                               select declElement;
-            return declarations;
+        /// <param name="typeElement">The type callElement to get the name for</param>
+        /// <returns>The name of the type</returns>
+        public virtual string GetNameForType(XElement typeElement) {
+            var name = typeElement.Element(SRC.Name);
+            if(null == name)
+                return string.Empty;
+            return name.Value;
         }
 
         /// <summary>
-        /// Gets all of the variable declarations for this for loop. It finds the variable declaration in the <see cref="ABB.SrcML.SRC.Init"/> statement.
+        /// Gets all of the text nodes that are children of the given element.
         /// </summary>
-        /// <param name="container">The type container</param>
-        /// <returns>An enumerable of all the declaration XElements.</returns>
-        public virtual IEnumerable<XElement> GetDeclarationsFromFor(XElement container) {
-            var declarations = from declElement in container.Element(SRC.Init).Elements(SRC.Declaration)
-                               select declElement;
-            return declarations;
+        /// <param name="element">The element</param>
+        /// <returns>An enumerable of the XText elements for <paramref name="element"/></returns>
+        public IEnumerable<XText> GetTextNodes(XElement element) {
+            var textNodes = from node in element.Nodes()
+                            where node.NodeType == XmlNodeType.Text
+                            let text = node as XText
+                            select text;
+            return textNodes;
         }
 
-        /// <summary>
-        /// Gets all of the parameters for this method. It finds the variable declarations in parameter list.
-        /// </summary>
-        /// <param name="method">The method container</param>
-        /// <returns>An enumerable of all the declaration XElements.</returns>
-        public virtual IEnumerable<XElement> GetParametersFromMethod(XElement method) {
-            var parameters = from parameter in method.Element(SRC.ParameterList).Elements(SRC.Parameter)
-                             let declElement = parameter.Elements().First()
-                             select declElement;
-            return parameters;
-        }
-
-        /// <summary>
-        /// Gets all of the variable declarations for this method. It finds the variable declarations in the child block.
-        /// </summary>
-        /// <param name="container">The method container</param>
-        /// <returns>An enumerable of all the declaration XElements.</returns>
-        public virtual IEnumerable<XElement> GetDeclarationsFromMethod(XElement container) {
-            var block = container.Element(SRC.Block);
-            return GetDeclarationsFromBlock(block);
-        }
-
-        /// <summary>
-        /// Gets all of the variable declarations for this type. It finds the variable declarations in the child block.
-        /// </summary>
-        /// <param name="container">The type container</param>
-        /// <returns>An enumerable of all the declaration XElements.</returns>
-        public virtual IEnumerable<XElement> GetDeclarationsFromType(XElement container) {
-            var block = container.Element(SRC.Block);
-            foreach(var declElement in GetDeclarationsFromBlock(block)) {
-                yield return declElement;
-            }
-        }
-
-        /// <summary>
-        /// Generates a parameter declaration for the given declaration
-        /// </summary>
-        /// <param name="declElement">The declaration XElement from within the parameter element.</param>
-        /// <param name="fileUnit">The containing file unit</param>
-        /// <param name="method">The method that this parameter is part of.</param>
-        /// <returns>A parameter declaration object</returns>
-        public virtual ParameterDeclaration CreateParameterDeclaration(XElement declElement, XElement fileUnit, MethodDefinition method) {
-            if(declElement == null)
-                throw new ArgumentNullException("declElement");
-            if(fileUnit == null)
-                throw new ArgumentNullException("fileUnit");
-            if(method == null)
-                throw new ArgumentNullException("method");
-            if(declElement.Name != SRC.Declaration && declElement.Name != SRC.FunctionDeclaration)
-                throw new ArgumentException("must be of element type SRC.Declaration or SRC.FunctionDeclaration", "declElement");
-            if(fileUnit.Name != SRC.Unit)
-                throw new ArgumentException("must be of type SRC.Unit", "fileUnit");
-
-            var typeElement = declElement.Element(SRC.Type);
-            var nameElement = declElement.Element(SRC.Name);
-            var name = (nameElement == null ? String.Empty : nameElement.Value);
-
-            var parameterDeclaration = new ParameterDeclaration
-                                       {
-                                           VariableType = CreateTypeUse(typeElement, fileUnit, method),
-                                           Name = name,
-                                           Method = method
-                                       };
-            parameterDeclaration.Locations.Add(new SourceLocation(declElement, fileUnit));
-
-            return parameterDeclaration;
-        }
-        #endregion create variable declarations
+        #endregion utilities
     }
 }

@@ -47,7 +47,8 @@ namespace ABB.SrcML.Data {
             if(null == fileUnit) throw new ArgumentNullException("fileUnit");
             if(SRC.Unit != fileUnit.Name) throw new ArgumentException("should be a SRC.Unit", "fileUnit");
 
-            var namespaceForFile = base.ParseFileUnit(fileUnit);
+            var namespaceForFile = ParseElement(fileUnit, new ParserContext()) as NamespaceDefinition;
+
             if(namespaceForFile.IsGlobal)
                 return namespaceForFile;
             var globalNamespace = new NamespaceDefinition();
@@ -55,20 +56,24 @@ namespace ABB.SrcML.Data {
             globalNamespace.AddChildScope(namespaceForFile);
             return globalNamespace;
         }
-        /// <summary>
-        /// Parses the java package statement from a file, and creates a NamespaceDefinition out of it.
-        /// </summary>
-        /// <param name="namespaceElement">This parameter is not used.</param>
-        /// <param name="fileUnit">The file unit</param>
-        /// <returns>The namespace definition for the file.</returns>
-        public override NamespaceDefinition CreateNamespaceDefinition(XElement namespaceElement, XElement fileUnit) {
-            if(fileUnit == null)
-                throw new ArgumentNullException("fileUnit");
-            if(fileUnit.Name != SRC.Unit)
-                throw new ArgumentException("must be a SRC.Unit", "fileUnit");
-            
-            var javaPackage = fileUnit.Descendants(SRC.Package).FirstOrDefault();
 
+        public override NamespaceDefinition ParseUnitElement(XElement unitElement, ParserContext context) {
+            if(null == unitElement) throw new ArgumentNullException("unitElement");
+            if(unitElement.Name != SRC.Unit) throw new ArgumentException("should be a unit", "unitElement");
+
+            context.FileUnit = unitElement;
+            var aliases = from aliasStatement in GetAliasElementsForFile(unitElement)
+                          select ParseAliasElement(aliasStatement, context);
+
+            context.Aliases = new Collection<Alias>(aliases.ToList());
+
+            var namespaceForUnit = ParseNamespaceElement(unitElement, context);
+            return namespaceForUnit;
+        }
+
+        public override NamespaceDefinition ParseNamespaceElement(XElement namespaceElement, ParserContext context) {
+            var javaPackage = context.FileUnit.Elements(SRC.Package).FirstOrDefault();
+            
             var definition = new NamespaceDefinition();
             if(null != javaPackage) {
                 var namespaceNames = from name in javaPackage.Elements(SRC.Name)
@@ -77,17 +82,6 @@ namespace ABB.SrcML.Data {
                 definition.Name = namespaceName;
             }
             return definition;
-        }
-
-        /// <summary>
-        /// Creates a scope object from a file unit element. For java, it checks for a <see cref="ABB.SrcML.SRC.Package"/> tag at the top of the file.
-        /// If it finds one, it returns a namespace definition for that package. Otherwise, it just returns a global namespace object.
-        /// </summary>
-        /// <param name="fileUnit"></param>
-        /// <returns></returns>
-        public override Scope CreateScopeFromFile(XElement fileUnit) {
-            var namespaceForFile = CreateNamespaceDefinition(fileUnit, fileUnit);
-            return namespaceForFile;
         }
 
         /// <summary>
@@ -108,35 +102,18 @@ namespace ABB.SrcML.Data {
             return (modifiers.Any() ? modifiers.First() : AccessModifier.None);
         }
 
-        /// <summary>
-        /// Gets the parent types for this type. It parses the java "extends" and "implements" statements.
-        /// </summary>
-        /// <param name="typeElement">The type element</param>
-        /// <param name="fileUnit">The file unit that contains this type</param>
-        /// <param name="typeDefinition">The TypeDefinition object for the type element.</param>
-        /// <returns>A collection of type uses that represent the parent classes</returns>
-        public override Collection<TypeUse> GetParentTypeUses(XElement typeElement, XElement fileUnit, TypeDefinition typeDefinition) {
-            Collection<TypeUse> parents = new Collection<TypeUse>();
+        public override IEnumerable<XElement> GetParentTypeUseElements(XElement typeElement) {
             var superTag = typeElement.Element(SRC.Super);
 
+            var parentElements = Enumerable.Empty<XElement>();
+            
             if(null != superTag) {
-                var extendsTag = superTag.Element(SRC.Extends);
-                if(null != extendsTag) {
-                    var parentElements = extendsTag.Elements(SRC.Name);
-                    foreach(var parentElement in parentElements) {
-                        parents.Add(CreateTypeUse(parentElement, fileUnit, typeDefinition));
-                    } 
-                }
-                var implementsTag = superTag.Element(SRC.Implements);
-                if(null != implementsTag) {
-                    var parentElements = implementsTag.Elements(SRC.Name);
-                    foreach(var parentElement in parentElements) {
-                        parents.Add(CreateTypeUse(parentElement, fileUnit, typeDefinition));
-                    }
-                }
-                
+                parentElements = from element in superTag.Elements()
+                                 where element.Name == SRC.Extends || element.Name == SRC.Implements
+                                 from name in element.Elements(SRC.Name)
+                                 select name;
             }
-            return parents;
+            return parentElements;
         }
 
         public override string GetTypeForBooleanLiteral(string literalValue) {

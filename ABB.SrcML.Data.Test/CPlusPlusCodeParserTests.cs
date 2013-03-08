@@ -269,9 +269,7 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
 
-            var aliases = codeParser.CreateAliasesForFile(xmlElement);
-
-            var actual = aliases.First();
+            var actual = codeParser.ParseAliasElement(xmlElement.Element(SRC.Using), new ParserContext() { FileUnit = xmlElement });
 
             Assert.AreEqual("Foo", actual.ImportedNamedScope.Name);
             Assert.AreEqual("A", actual.ImportedNamespace.Name);
@@ -285,9 +283,7 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
 
-            var aliases = codeParser.CreateAliasesForFile(xmlElement);
-
-            var actual = aliases.First();
+            var actual = codeParser.ParseAliasElement(xmlElement.Element(SRC.Using), new ParserContext() { FileUnit = xmlElement });
 
             Assert.IsNull(actual.ImportedNamedScope);
             Assert.That(actual.IsNamespaceAlias);

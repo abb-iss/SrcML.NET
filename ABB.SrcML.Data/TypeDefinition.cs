@@ -23,13 +23,17 @@ namespace ABB.SrcML.Data {
     /// Represents a type definition
     /// </summary>
     public class TypeDefinition : NamedScope {
+        private Collection<TypeUse> ParentTypeCollection;
+
         /// <summary>
         /// Creates a new type definition object
         /// </summary>
         public TypeDefinition()
             : base() {
-            this.ParentTypes = new Collection<TypeUse>();
+            // this.ParentTypes = new Collection<TypeUse>();
             this.IsPartial = false;
+            this.ParentTypeCollection = new Collection<TypeUse>();
+            this.ParentTypes = new ReadOnlyCollection<TypeUse>(ParentTypeCollection);
         }
 
         /// <summary>
@@ -41,10 +45,11 @@ namespace ABB.SrcML.Data {
             this.IsPartial = otherDefinition.IsPartial;
             this.Kind = otherDefinition.Kind;
 
-            this.ParentTypes = new Collection<TypeUse>();
+            this.ParentTypeCollection = new Collection<TypeUse>();
             foreach(var parent in otherDefinition.ParentTypes) {
-                this.ParentTypes.Add(parent);
+                this.AddParentType(parent);
             }
+            this.ParentTypes = new ReadOnlyCollection<TypeUse>(this.ParentTypeCollection);
         }
 
         /// <summary>
@@ -60,7 +65,14 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The parent types that this type inherits from
         /// </summary>
-        public Collection<TypeUse> ParentTypes { get; set; }
+        public ReadOnlyCollection<TypeUse> ParentTypes { get; protected set; }
+
+        public void AddParentType(TypeUse parentTypeUse) {
+            if(null == parentTypeUse) throw new ArgumentNullException("parentTypeUse");
+
+            parentTypeUse.ParentScope = this;
+            ParentTypeCollection.Add(parentTypeUse);
+        }
 
         /// <summary>
         /// Merges this type definition with <paramref name="otherScope"/>. This happens when <c>otherScope.CanBeMergedInto(this)</c> evaluates to true.
@@ -107,7 +119,7 @@ namespace ABB.SrcML.Data {
             var otherType = otherScope as TypeDefinition;
             if(otherType != null) {
                 foreach(var parent in otherType.ParentTypes) {
-                    this.ParentTypes.Add(parent);
+                    this.AddParentType(parent);
                 }
             }
             return base.AddFrom(otherScope);
@@ -151,7 +163,7 @@ namespace ABB.SrcML.Data {
                     //remove parent types
                     var parentsInFile = ParentTypes.Where(parent => parent.Location.SourceFileName == fileName).ToList();
                     foreach(var parent in parentsInFile) {
-                        ParentTypes.Remove(parent);
+                        ParentTypeCollection.Remove(parent);
                     }
                     //remove parent scope candidates
                     var candidatesInFile = ParentScopeCandidates.Where(psc => psc.Location.SourceFileName == fileName).ToList();

@@ -44,9 +44,9 @@ namespace ABB.SrcML.Data.Test {
             foreach(var builtIn in new string[] { "byte", "short", "int", "long", "float", "double", "boolean", "char" }) {
                 var aXml = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(String.Format(xmlFormat, builtIn), "a.java");
 
-                var variableA = CodeParser[Language.Java].CreateVariableDeclaration(aXml.Descendants(SRC.Declaration).First(), aXml, null);
-                var variableB = CodeParser[Language.Java].CreateVariableDeclaration(aXml.Descendants(SRC.Declaration).Last(), aXml, null);
-
+                var variableA = CodeParser[Language.Java].ParseDeclarationElement(aXml.Descendants(SRC.Declaration).First(), new ParserContext() { FileUnit = aXml });
+                var variableB = CodeParser[Language.Java].ParseDeclarationElement(aXml.Descendants(SRC.Declaration).Last(), new ParserContext() { FileUnit = aXml });
+                
                 Assert.AreEqual("a", variableA.Name);
                 Assert.AreEqual("b", variableB.Name);
                 Assert.AreEqual(builtIn, variableA.VariableType.Name);
@@ -69,8 +69,8 @@ namespace ABB.SrcML.Data.Test {
             foreach(var builtIn in new string[] { "char", "short", "int", "long", "bool", "float", "double", "wchar_t" }) {
                 var aXml = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(String.Format(xmlFormat, builtIn), "a.cpp");
 
-                var variableA = CodeParser[Language.CPlusPlus].CreateVariableDeclaration(aXml.Descendants(SRC.Declaration).First(), aXml, null);
-                var variableB = CodeParser[Language.CPlusPlus].CreateVariableDeclaration(aXml.Descendants(SRC.Declaration).Last(), aXml, null);
+                var variableA = CodeParser[Language.CPlusPlus].ParseDeclarationElement(aXml.Descendants(SRC.Declaration).First(), new ParserContext { FileUnit = aXml });
+                var variableB = CodeParser[Language.CPlusPlus].ParseDeclarationElement(aXml.Descendants(SRC.Declaration).Last(), new ParserContext { FileUnit = aXml });
 
                 Assert.AreEqual("a", variableA.Name);
                 Assert.AreEqual("b", variableB.Name);
@@ -95,8 +95,8 @@ namespace ABB.SrcML.Data.Test {
                 foreach(var builtIn in new string[] { "int", "double" }) {
                     var aXml = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(String.Format(xmlFormat, builtInModifier, builtIn), "a.cpp");
 
-                    var variableA = CodeParser[Language.CPlusPlus].CreateVariableDeclaration(aXml.Descendants(SRC.Declaration).First(), aXml, null);
-                    var variableB = CodeParser[Language.CPlusPlus].CreateVariableDeclaration(aXml.Descendants(SRC.Declaration).Last(), aXml, null);
+                    var variableA = CodeParser[Language.CPlusPlus].ParseDeclarationElement(aXml.Descendants(SRC.Declaration).First(), new ParserContext() { FileUnit = aXml });
+                    var variableB = CodeParser[Language.CPlusPlus].ParseDeclarationElement(aXml.Descendants(SRC.Declaration).Last(), new ParserContext() { FileUnit = aXml });
 
                     Assert.AreEqual("a", variableA.Name);
                     Assert.AreEqual("b", variableB.Name);

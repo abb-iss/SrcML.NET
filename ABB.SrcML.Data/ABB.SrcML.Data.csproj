@@ -61,8 +61,8 @@
     <Compile Include="NamedScopeUse.cs" />
     <Compile Include="NamespaceUse.cs" />
     <Compile Include="ParameterDeclaration.cs" />
+    <Compile Include="ParserContext.cs" />
     <Compile Include="SourceLocation.cs" />
-    <Compile Include="SrcMLElementVisitor.cs" />
     <Compile Include="DataArchive.cs" />
     <Compile Include="JavaCodeParser.cs" />
     <Compile Include="MethodDefinition.cs" />
