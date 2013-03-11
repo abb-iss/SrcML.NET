@@ -124,7 +124,7 @@ namespace ABB.SrcML.Data {
         /// Returns a string representation of the SourceLocation.
         /// </summary>
         public override string ToString() {
-            return string.Format("{0}: start({0},{1}) end({2},{3})", SourceFileName, StartingLineNumber, StartingColumnNumber, EndingLineNumber, EndingColumnNumber);
+            return string.Format("{0}: start({1},{2}) end({3},{4})", SourceFileName, StartingLineNumber, StartingColumnNumber, EndingLineNumber, EndingColumnNumber);
         }
 
         private void SetEndingLocation(XElement element) {
