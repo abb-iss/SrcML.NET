@@ -76,14 +76,24 @@ namespace ABB.SrcML.Data.Test {
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "D.java");
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
-            var packageABC = globalScope.ChildScopes.First() as NamespaceDefinition;
+            Assert.AreEqual(1, globalScope.ChildScopes.Count());
+
+            var packageA = globalScope.ChildScopes.First() as NamespaceDefinition;
+            Assert.AreEqual("A", packageA.Name);
+            Assert.AreEqual(1, packageA.ChildScopes.Count());
+
+            var packageAB = packageA.ChildScopes.First() as NamespaceDefinition;
+            Assert.AreEqual("B", packageAB.Name);
+            Assert.AreEqual(1, packageAB.ChildScopes.Count());
+
+            var packageABC = packageAB.ChildScopes.First() as NamespaceDefinition;
+            Assert.AreEqual("C", packageABC.Name);
+            Assert.IsFalse(packageABC.IsGlobal);
+            Assert.AreEqual(1, packageABC.ChildScopes.Count());
+
             var typeD = packageABC.ChildScopes.First() as TypeDefinition;
-
-            Assert.AreEqual("A.B.C", packageABC.Name);
-            Assert.IsFalse(packageABC.IsGlobal);
-
+            Assert.IsNotNull(typeD, "Type D is not a type definition");
             Assert.AreEqual("D", typeD.Name);
-            Assert.IsFalse(packageABC.IsGlobal);
         }
 
         [Test]

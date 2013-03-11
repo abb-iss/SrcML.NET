@@ -76,11 +76,21 @@ namespace ABB.SrcML.Data.Test {
 
             Assert.AreEqual(2, globalScope.ChildScopes.Count());
             
-            var packageABC = globalScope.ChildScopes.First() as NamespaceDefinition;
+            var packageA = globalScope.ChildScopes.First() as NamespaceDefinition;
             var packageD = globalScope.ChildScopes.Last() as NamespaceDefinition;
 
-            Assert.AreEqual("A.B.C", packageABC.Name);
+            Assert.AreEqual("A", packageA.Name);
             Assert.AreEqual("D", packageD.Name);
+
+            var packageAB = packageA.ChildScopes.First() as NamespaceDefinition;
+            Assert.AreEqual("B", packageAB.Name);
+            Assert.AreEqual("A.B", packageAB.FullName);
+
+            var packageABC = packageAB.ChildScopes.First() as NamespaceDefinition;
+            Assert.AreEqual("C", packageABC.Name);
+
+            Assert.AreEqual("C", packageABC.Name);
+            Assert.AreEqual("A.B.C", packageABC.FullName);
 
             var typeD = packageABC.ChildScopes.First() as TypeDefinition;
             var typeE = packageABC.ChildScopes.Last() as TypeDefinition;

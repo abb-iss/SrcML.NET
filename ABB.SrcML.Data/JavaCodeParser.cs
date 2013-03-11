@@ -49,12 +49,7 @@ namespace ABB.SrcML.Data {
 
             var namespaceForFile = ParseElement(fileUnit, new ParserContext()) as NamespaceDefinition;
 
-            if(namespaceForFile.IsGlobal)
-                return namespaceForFile;
-            var globalNamespace = new NamespaceDefinition();
-            globalNamespace.AddSourceLocation(new SourceLocation(fileUnit, fileUnit));
-            globalNamespace.AddChildScope(namespaceForFile);
-            return globalNamespace;
+            return namespaceForFile;
         }
 
         public override void ParseUnitElement(XElement unitElement, ParserContext context) {
@@ -72,15 +67,23 @@ namespace ABB.SrcML.Data {
 
         public override void ParseNamespaceElement(XElement namespaceElement, ParserContext context) {
             var javaPackage = context.FileUnit.Elements(SRC.Package).FirstOrDefault();
-            
-            var definition = new NamespaceDefinition();
+
+            // Add a global namespace definition
+            var globalNamespace = new NamespaceDefinition();
+            context.Push(globalNamespace);
+
             if(null != javaPackage) {
-                var namespaceNames = from name in javaPackage.Elements(SRC.Name)
-                                     select name.Value;
-                var namespaceName = string.Join(".", namespaceNames);
-                definition.Name = namespaceName;
+                var namespaceElements = from name in javaPackage.Elements(SRC.Name)
+                                        select name;
+                foreach(var name in namespaceElements) {
+                    var namespaceForName = new NamespaceDefinition() {
+                        Name = name.Value,
+                        ProgrammingLanguage = ParserLanguage,
+                    };
+                    namespaceForName.AddSourceLocation(context.CreateLocation(name));
+                    context.Push(namespaceForName, globalNamespace);
+                }
             }
-            context.Push(definition);
         }
 
         /// <summary>
