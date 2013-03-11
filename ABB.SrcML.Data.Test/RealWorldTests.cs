@@ -200,7 +200,7 @@ namespace ABB.SrcML.Data.Test {
                     numMethodCalls++;
                     if(null != match) {
                         numMatchedMethodCalls++;
-                        callLog.WriteLine("{0} ({1}:{2}) -> {3} ({4}:{5})", call.Name, call.Location.SourceFileName, call.Location.SourceLineNumber, match.Name, match.PrimaryLocation.SourceFileName, match.PrimaryLocation.SourceLineNumber);
+                        callLog.WriteLine("{0} ({1}:{2}) -> {3} ({4}:{5})", call.Name, call.Location.SourceFileName, call.Location.StartingLineNumber, match.Name, match.PrimaryLocation.SourceFileName, match.PrimaryLocation.StartingLineNumber);
                     }
                 }
             }

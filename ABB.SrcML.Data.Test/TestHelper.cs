@@ -97,9 +97,9 @@ namespace ABB.SrcML.Data.Test {
         public static bool LocationsAreEqual(SourceLocation a, SourceLocation b) {
             if(a == b) { return true; }
             return a.IsReference == b.IsReference &&
-                   a.SourceColumnNumber == b.SourceColumnNumber &&
+                   a.StartingColumnNumber == b.StartingColumnNumber &&
                    a.SourceFileName == b.SourceFileName &&
-                   a.SourceLineNumber == b.SourceLineNumber &&
+                   a.StartingLineNumber == b.StartingLineNumber &&
                    a.XPath == b.XPath;
         }
 
