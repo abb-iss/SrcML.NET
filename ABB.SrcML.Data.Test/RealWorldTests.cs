@@ -104,7 +104,7 @@ namespace ABB.SrcML.Data.Test {
             int numberOfSuccesses = 0;
             int numberOfFiles = 0;
             Dictionary<string, List<string>> errors = new Dictionary<string, List<string>>();
-
+            
             using(var fileLog = new StreamWriter(fileLogPath)) {
                 foreach(var unit in archive.FileUnits) {
                     if(++numberOfFiles % 100 == 0) {
@@ -204,11 +204,11 @@ namespace ABB.SrcML.Data.Test {
                     }
                 }
             }
-
+            
             Console.WriteLine("{0,10:N0} method calls", numMethodCalls);
             Console.WriteLine("{0,10:N0} matched method calls ({1,8:P2})", numMatchedMethodCalls, ((float)numMatchedMethodCalls) / numMethodCalls);
-            Console.WriteLine("{0} to match the method calls", sw.Elapsed);
-            Console.WriteLine("{0,10:N0} ms / match", ((float)sw.ElapsedMilliseconds) / numMethodCalls);
+            Console.WriteLine("{0,10} to match the method calls", sw.Elapsed);
+            Console.WriteLine("{0,10:N0} matches / millisecond ({1,7:N0} ms elapsed)", ((float) numMethodCalls) / sw.ElapsedMilliseconds, sw.ElapsedMilliseconds);
             Console.WriteLine("See matched method calls in {0}", callLogPath);
         }
 
