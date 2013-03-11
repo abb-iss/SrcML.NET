@@ -47,7 +47,7 @@ namespace ABB.SrcML {
         public AbstractFileMonitor(string baseDirectory, AbstractArchive defaultArchive) {
             this.MonitorStoragePath = baseDirectory;
             this.registeredArchives = new HashSet<AbstractArchive>();
-            this.archiveMap = new Dictionary<string, AbstractArchive>();
+            this.archiveMap = new Dictionary<string, AbstractArchive>(StringComparer.InvariantCultureIgnoreCase);
             this.registeredArchives.Add(defaultArchive);
             this.defaultArchive = defaultArchive;
             this.defaultArchive.FileChanged += RespondToArchiveFileEvent;
@@ -99,6 +99,9 @@ namespace ABB.SrcML {
             registeredArchives.Add(archive);
             archive.FileChanged += RespondToArchiveFileEvent;
             foreach(var extension in archive.SupportedExtensions) {
+                if(archiveMap.ContainsKey(extension)) {
+                    SrcMLFileLogger.DefaultLogger.WarnFormat("AbstractFileMonitor.RegisterNonDefaultArchive() - Archive already registered for extension {0}, will be replaced with the new archive.", extension);
+                }
                 archiveMap[extension] = archive;
             }
         }

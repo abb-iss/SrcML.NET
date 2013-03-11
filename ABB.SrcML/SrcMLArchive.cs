@@ -336,7 +336,7 @@ namespace ABB.SrcML {
         /// <param name="sourcePath"></param>
         /// <returns></returns>
         public string GetXmlPathForSourcePath(string sourcePath) {
-            return xmlFileNameMapping.GetXMLPath(sourcePath);
+            return xmlFileNameMapping.GetXmlPath(sourcePath);
         }
 
         /// <summary>

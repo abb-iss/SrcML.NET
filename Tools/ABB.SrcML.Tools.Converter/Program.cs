@@ -45,9 +45,10 @@ namespace ABB.SrcML.Tools.Converter
         All of the languages that are valid for the /language option are valid except for ""Any"".
 ")] string languageMapping,
                                      [Optional(null, Description=@"Folder with SrcML binaries. If this is not given, the following directories are checked: 
-        1. The current directory
+        1. %SRCMLBINDIR%
         2. c:\Program Files (x86)\SrcML\bin
-        3. c:\Program Files\SrcML\bin (only checked if c:\Program Files (x86) does not exist)")] string binaryFolder)
+        3. c:\Program Files\SrcML\bin (only checked if c:\Program Files (x86) does not exist)
+        4. The current directory")] string binaryFolder)
         {
 
 

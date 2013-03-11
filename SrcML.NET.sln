@@ -6,6 +6,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D4CB6CC1-0630-4FCA-BD07-C7E3DEF24AD6}"
 	ProjectSection(SolutionItems) = preProject
 		epl-v10.html = epl-v10.html
+		epl-v10.txt = epl-v10.txt
 		IntegrationTests.testsettings = IntegrationTests.testsettings
 		notice.html = notice.html
 		SolutionInfo.cs = SolutionInfo.cs
