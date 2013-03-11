@@ -43,6 +43,7 @@ namespace ABB.SrcML.Tools.Src2SrcMLPreview
         private Language _language;
         private Forms.FolderBrowserDialog directorySelector;
         private static Collection<string> _namespaceArguments = new Collection<string>() { LIT.ArgumentLabel, OP.ArgumentLabel, TYPE.ArgumentLabel };
+        private static Collection<string> _namespaceArgumentsWithPosition = new Collection<string>() { LIT.ArgumentLabel, OP.ArgumentLabel, TYPE.ArgumentLabel, POS.ArgumentLabel };
 
         public SrcMLGenerator XmlGenerator {
             get { return this._xmlGenerator;  }
@@ -154,6 +155,16 @@ namespace ABB.SrcML.Tools.Src2SrcMLPreview
             languageLabel.Content = "Error!";
             srcmlBox.Text = errorMessage;
             srcmlBox.Foreground = Brushes.Red;
+        }
+
+        private void ShowPositionCheckBox_Checked(object sender, RoutedEventArgs e) {
+            _xmlGenerator = new SrcMLGenerator(directorySelector.SelectedPath, _namespaceArgumentsWithPosition);
+            if(sourceBox.Text.Length > 0) sourceBox_TextChanged(sender, null);
+        }
+
+        private void ShowPositionCheckBox_Unchecked(object sender, RoutedEventArgs e) {
+            _xmlGenerator = new SrcMLGenerator(directorySelector.SelectedPath, _namespaceArguments);
+            if(sourceBox.Text.Length > 0) sourceBox_TextChanged(sender, null);
         }
     }
 }
