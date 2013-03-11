@@ -50,24 +50,34 @@ namespace ABB.SrcML.Data {
             (context.CurrentScope as TypeDefinition).IsPartial = partials.Any();
         }
 
+        /// <summary>
+        /// Parses a C# namespace block
+        /// </summary>
+        /// <param name="namespaceElement">the namespace element to parse</param>
+        /// <param name="context">the parser context</param>
         public override void ParseNamespaceElement(XElement namespaceElement, ParserContext context) {
             if(namespaceElement == null) throw new ArgumentNullException("namespaceElement");
-            if(!NamespaceElementNames.Contains(namespaceElement.Name)) throw new ArgumentException(string.Format("Not a valid namespace typeUseElement: {0}", namespaceElement.Name), "namespaceElement");
+            if(!NamespaceElementNames.Contains(namespaceElement.Name)) throw new ArgumentException(string.Format("Not a valid namespace element: {0}", namespaceElement.Name), "namespaceElement");
 
             var nameElement = namespaceElement.Element(SRC.Name);
             string namespaceName;
             if(nameElement == null) {
                 namespaceName = string.Empty;
             } else {
-                namespaceName = NameHelper.GetLastName(nameElement);
+                NamespaceDefinition root = null;
+                foreach(var name in NameHelper.GetNameElementsFromName(nameElement)) {
+                    var namespaceForName = new NamespaceDefinition() {
+                        Name = name.Value,
+                        ProgrammingLanguage = ParserLanguage,
+                    };
+                    if(root == null) {
+                        root = namespaceForName;
+                    } else {
+                        namespaceForName.AddSourceLocation(context.CreateLocation(name));
+                    }
+                    context.Push(namespaceForName, root);
+                }
             }
-            var namespaceDef = new NamespaceDefinition { Name = namespaceName };
-
-            var prefix = CreateNamespaceUsePrefix(nameElement, context);
-            if(prefix != null) {
-                namespaceDef.ParentScopeCandidates.Add(prefix);
-            }
-            context.Push(namespaceDef);
         }
 
         /// <summary>
