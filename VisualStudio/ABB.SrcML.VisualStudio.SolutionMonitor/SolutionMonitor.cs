@@ -345,7 +345,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// <param name="oldFilePath"></param>
         /// <param name="type"></param>
         public void RespondToVSFileChangedEvent(string filePath, string oldFilePath, FileEventType type) {
-            SrcMLFileLogger.DefaultLogger.Info("SolutionMonitor.RespondToVSFileChangedEvent(): filePath = " + filePath + ", oldFilePath = " + oldFilePath + ", type = " + type);
+            //SrcMLFileLogger.DefaultLogger.Info("SolutionMonitor.RespondToVSFileChangedEvent(): filePath = " + filePath + ", oldFilePath = " + oldFilePath + ", type = " + type);
             switch(type) {
                 case FileEventType.FileAdded:
                     AddFile(filePath);
@@ -730,32 +730,46 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// <param name="fAddedRemoved"></param>
         /// <param name="type"></param>
         public void NotifyProjectAddRemove(IVsHierarchy pHierarchy, int fAddedRemoved, FileEventType type) {
+            // In this method, the AllMonitoredFiles is actually the list of files whose srcML files should be deleted
             AllMonitoredFiles = new List<string>();
-
             string projectName;
             pHierarchy.GetCanonicalName(VSConstants.VSITEMID_ROOT, out projectName);
-            SrcMLFileLogger.DefaultLogger.Info("Project Name : [" + projectName + "]");
+            //SrcMLFileLogger.DefaultLogger.Info("Project Name: [" + projectName + "]");
 
+            // Find out this project in the solution tree
             var allProjects = OpenSolution.getProjects();
             var enumerator = allProjects.GetEnumerator();
             while(enumerator.MoveNext()) {
-                try {
-                    var project = enumerator.Current as Project;
-                    string fullName = project.FullName;
-                    //TODO: maybe need to check if projectName/fullName is null
-                    if(fullName.Equals(projectName) || fullName.ToLower().Contains(projectName)) {
-                        SrcMLFileLogger.DefaultLogger.Info("FullName: [" + project.FullName + "] [" + fullName.ToLower() + "] Name: [" + project.Name + "] FileName: [" + project.FileName + "]");
-                        ProcessProject(project, null);
+                    Project project = enumerator.Current as Project;
+                    string fullName = null;
+                    try {
+                        //SrcMLFileLogger.DefaultLogger.Info("FileName: [" + project.FileName + "]");
+                        fullName = project.FileName;
+                    } catch(Exception e) {
+                        // Ignore unloaded project. It would cause a Not Implemented Exception for an unloaded project.
+                        //SrcMLFileLogger.DefaultLogger.Error(SrcMLExceptionFormatter.CreateMessage(e, "Exception in SolutionMonitor.NotifyProjectAddRemove() - "));
+                        continue;
                     }
-                } catch(Exception e) {
-                    SrcMLFileLogger.DefaultLogger.Error(SrcMLExceptionFormatter.CreateMessage(e, "Exception in SolutionMonitor.NotifyProjectAddRemove()"));
-                }
+                    if(fullName != null && (fullName.Equals(projectName) || fullName.ToLower().Contains(projectName.ToLower()))) {
+                        SrcMLFileLogger.DefaultLogger.Info("Project: [" + projectName + "]");
+                        ProcessProject(project, null);
+                        break;
+                    }
             }
 
-            if(FileEventType.FileAdded.Equals(type)) {
-                base.BatchAddition(new Collection<string>(AllMonitoredFiles));
-            } else if(FileEventType.FileDeleted.Equals(type)) {
-                base.BatchDeletion(new Collection<string>(AllMonitoredFiles));
+            // Generate or delete srcML files for the source files in this project
+            try {
+                foreach(var filePath in AllMonitoredFiles) {
+                    if(FileEventType.FileAdded.Equals(type)) {
+                        //SrcMLFileLogger.DefaultLogger.Info(">>> AddFile(" + filePath + ")");
+                        AddFile(filePath);
+                    } else if(FileEventType.FileDeleted.Equals(type)) {
+                        //SrcMLFileLogger.DefaultLogger.Info(">>> DeleteFile(" + filePath + ")");
+                        DeleteFile(filePath);
+                    }
+                }
+            } catch(Exception e) {
+                SrcMLFileLogger.DefaultLogger.Error(SrcMLExceptionFormatter.CreateMessage(e, "Exception when batch adding or deleting srcML files for a specified project."));
             }
         }
         #endregion

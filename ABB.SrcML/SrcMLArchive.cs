@@ -234,7 +234,7 @@ namespace ABB.SrcML {
             var xmlPath = GetXmlPathForSourcePath(fileName);
             var xmlFileInfo = new FileInfo(xmlPath);
 
-            return !(sourceFileInfo.Exists == xmlFileInfo.Exists && sourceFileInfo.LastWriteTime <= xmlFileInfo.LastWriteTime);
+            return !(sourceFileInfo.Exists == xmlFileInfo.Exists && sourceFileInfo.LastWriteTime != xmlFileInfo.LastWriteTime);
         }
 
         /// <summary>
@@ -283,20 +283,6 @@ namespace ABB.SrcML {
         }
 
         /// <summary>
-        /// Generate both a srcML File and a string of the content of this file for a source code file.
-        /// </summary>
-        /// <param name="sourcePath">The full path of the source code file.</param>
-        /// <returns>The string of the content of the generated srcML file.</returns>
-        public string GenerateXmlAndStringForSource(string sourcePath) {
-            var xmlPath = GetXmlPathForSourcePath(sourcePath);
-            var directory = Path.GetDirectoryName(xmlPath);
-            if(!Directory.Exists(directory)) {
-                Directory.CreateDirectory(directory);
-            }
-            return this.XmlGenerator.GenerateSrcMLAndStringFromFile(sourcePath, xmlPath);
-        }
-
-        /// <summary>
         /// Generate a srcML File for a source code file. Now use this method instead of GenerateXmlAndXElementForSource()
         /// </summary>
         /// <param name="sourcePath"></param>
@@ -306,7 +292,14 @@ namespace ABB.SrcML {
             if(!Directory.Exists(directory)) {
                 Directory.CreateDirectory(directory);
             }
-            return this.XmlGenerator.GenerateSrcMLFromFile(sourcePath, xmlPath);
+
+            // Set the timestamp to the same as the source file
+            // Will be useful in the method of public override bool IsOutdated(string fileName)
+            SrcMLFile srcMLFile = this.XmlGenerator.GenerateSrcMLFromFile(sourcePath, xmlPath);
+            FileInfo srcFI = new FileInfo(sourcePath);
+            File.SetLastWriteTime(xmlPath, srcFI.LastWriteTime);
+
+            return srcMLFile;
         }
 
         /// <summary>
