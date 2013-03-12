@@ -19,7 +19,11 @@
             <TreeViewItem IsSelected="False" Header="{Binding Converter={StaticResource SrcMLConverter}}" />
         </HierarchicalDataTemplate>
     </Window.Resources>
-    <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+    <Window.CommandBindings>
+        <CommandBinding Command="{x:Static local:Src2SrcMLPreviewWindow.SelectSrcMLDirectoryCommand}" Executed="SelectSrcMLDirectory" />
+        <CommandBinding Command="{x:Static local:Src2SrcMLPreviewWindow.ToggleShowPositionCommand}" Executed="ToggleShowPosition" />
+    </Window.CommandBindings>
+        <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
         <Grid.RowDefinitions>
             <RowDefinition Height="23*" MinHeight="23" MaxHeight="23" />
             <RowDefinition Height="35*" MinHeight="35" MaxHeight="35" />
@@ -46,7 +50,9 @@
         <Label Name="languageLabel" Height="23" Margin="6,6,0,0" VerticalAlignment="Top" Grid.Row="3" Grid.Column="1" Padding="1" />
         <Menu Height="23" Margin="0,0,12,0" Name="menu1" VerticalAlignment="Top" Grid.ColumnSpan="3" IsMainMenu="True">
             <MenuItem Header="_File">
-                <MenuItem Name="MenuItemSrcMLSelect" Header="Select SrcML Directory..." Click="MenuItemSrcMLSelect_Click"/>
+                <MenuItem Name="MenuItemSrcMLSelect" Header="Select SrcML Directory..." Click="MenuItemSrcMLSelect_Click" InputGestureText="Alt-D"/>
+                <MenuItem Name="MenuItemShowPosition" Header="Show Position" IsChecked="False" IsCheckable="True" Checked="MenuItemShowPosition_Checked" Unchecked="MenuItemShowPosition_Unchecked" InputGestureText="Alt-P"/>
+                <Separator/>
                 <MenuItem Name="MenuItemExit" Header="Exit" Click="MenuItemExit_Click" />
             </MenuItem>
             <MenuItem Header="_Language" Name="MenuItemLanguage">
@@ -57,6 +63,5 @@
                 <MenuItem Name="MenuItemAspectJ" Header="AspectJ" IsCheckable="True" Click="MenuItemLanguage_Click" />
             </MenuItem>
         </Menu>
-        <CheckBox x:Name="ShowPositionCheckBox" Content="Show Position" Grid.Column="2" Margin="10,6,10,0" Grid.Row="3" VerticalAlignment="Center" Height="29" Checked="ShowPositionCheckBox_Checked" Unchecked="ShowPositionCheckBox_Unchecked"/>
     </Grid>
 </Window>
