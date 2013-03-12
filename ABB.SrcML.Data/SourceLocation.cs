@@ -121,6 +121,28 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
+        /// Determines whether the given source location occurs within this location.
+        /// </summary>
+        /// <param name="otherLoc">The SourceLocation to test</param>
+        /// <returns>True if this location subsumes the given location, False otherwise.</returns>
+        public bool Contains(SourceLocation otherLoc) {
+            if(string.Compare(this.SourceFileName, otherLoc.SourceFileName, StringComparison.InvariantCultureIgnoreCase) != 0) {
+                //files not equal
+                return false;
+            }
+
+            if((StartingLineNumber < otherLoc.StartingLineNumber ||
+                (StartingLineNumber == otherLoc.StartingLineNumber && StartingColumnNumber <= otherLoc.StartingColumnNumber))
+               &&
+               (otherLoc.EndingLineNumber < EndingLineNumber ||
+                (otherLoc.EndingLineNumber == EndingLineNumber && otherLoc.EndingColumnNumber <= EndingColumnNumber))) {
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Returns a string representation of the SourceLocation.
         /// </summary>
         public override string ToString() {
