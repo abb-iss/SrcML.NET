@@ -352,12 +352,14 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 SolutionEvents.BeforeClosing += SolutionBeforeClosing;
             }
 
+            /*  // maybe removed after completing project level IU
             // Queries listening clients as to whether the project can be unloaded.
             SolutionChangeListener = new SolutionChangeEventListener();
             SolutionChangeListener.OnQueryUnloadProject += () => {
                 SolutionBeforeClosing();
                 SolutionOpened();
             };
+            */
         }
 
         /// <summary>
