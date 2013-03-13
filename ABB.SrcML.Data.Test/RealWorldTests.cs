@@ -28,7 +28,7 @@ namespace ABB.SrcML.Data.Test {
             string npp62SourcePath = @"C:\Workspace\Source\Notepad++\6.2";
             string npp62DataPath = @"C:\Workspace\SrcMLData\NPP-6.2";
             
-            Console.WriteLine("\nReal world test: Notepad++ 6.2");
+            Console.WriteLine("\nReal world test: Notepad++ 6.2 (C++)");
             Console.WriteLine("=======================================");
             TestDataGeneration(npp62SourcePath, npp62DataPath, new CPlusPlusCodeParser());
         }
@@ -38,7 +38,7 @@ namespace ABB.SrcML.Data.Test {
             string bullet281SourcePath = @"C:\Workspace\Source\bullet\2.81\src";
             string bullet281DataPath = @"C:\Workspace\SrcMLData\bullet-2.81";
 
-            Console.WriteLine("\nReal World Test: Bullet 2.81 (src/ only)");
+            Console.WriteLine("\nReal World Test: Bullet 2.81 (C++, src/ only)");
             Console.WriteLine("=======================================");
             TestDataGeneration(bullet281SourcePath, bullet281DataPath, new CPlusPlusCodeParser());
         }
@@ -48,11 +48,20 @@ namespace ABB.SrcML.Data.Test {
             string eclipse422SourcePath = @"C:\Workspace\Source\eclipse\platform422";
             string eclipse422Datapath = @"C:\Workspace\SrcMLData\eclipse-4.2.2";
 
-            Console.WriteLine("\nReal World Test: Eclipse Platform 4.2.2");
+            Console.WriteLine("\nReal World Test: Eclipse Platform 4.2.2 (Java)");
             Console.WriteLine("=======================================");
             TestDataGeneration(eclipse422SourcePath, eclipse422Datapath, new JavaCodeParser());
         }
 
+        [Test]
+        public void TestFileUnitParsing_NDatabase() {
+            string ndatabase45SourcePath = @"C:\Workspace\Source\NDatabase\master45";
+            string ndatabase45DataPath = @"C:\Workspace\SrcMLData\ndatabase-4.5";
+
+            Console.WriteLine("\nReal World Test: NDatabase 4.5 (C#)");
+            Console.WriteLine("=======================================");
+            TestDataGeneration(ndatabase45SourcePath, ndatabase45DataPath, new CSharpCodeParser());
+        }
         private void TestDataGeneration(string sourcePath, string dataPath, AbstractCodeParser parser) {
             string fileLogPath = Path.Combine(dataPath, "parse.log");
             string callLogPath = Path.Combine(dataPath, "methodcalls.log");
@@ -207,7 +216,6 @@ namespace ABB.SrcML.Data.Test {
             
             Console.WriteLine("{0,10:N0} method calls", numMethodCalls);
             Console.WriteLine("{0,10:N0} matched method calls ({1,8:P2})", numMatchedMethodCalls, ((float)numMatchedMethodCalls) / numMethodCalls);
-            Console.WriteLine("{0,10} to match the method calls", sw.Elapsed);
             Console.WriteLine("{0,10:N0} matches / millisecond ({1,7:N0} ms elapsed)", ((float) numMethodCalls) / sw.ElapsedMilliseconds, sw.ElapsedMilliseconds);
             Console.WriteLine("See matched method calls in {0}", callLogPath);
         }
