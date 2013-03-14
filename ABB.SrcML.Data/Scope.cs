@@ -132,27 +132,57 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The parent scopes for this scope in reverse order (parent is returned first, followed by the grandparent, etc).
         /// </summary>
-        public IEnumerable<Scope> ParentScopes {
-            get {
-                var current = this.ParentScope;
-                while(null != current) {
-                    yield return current;
-                    current = current.ParentScope;
-                }
-            }
+        //public IEnumerable<Scope> ParentScopes {
+        //    get {
+        //        var current = this.ParentScope;
+        //        while(null != current) {
+        //            yield return current;
+        //            current = current.ParentScope;
+        //        }
+        //    }
+        //}
+
+        /// <summary>
+        /// Gets the first scope of type <typeparamref name="T"/> from <see cref="GetParentScopesAndSelf<T>()"/>
+        /// </summary>
+        /// <typeparam name="T">The type to look for</typeparam>
+        /// <returns>The first scope of type <typeparamref name="T"/></returns>
+        public T GetFirstScope<T>() where T : Scope {
+            return GetScopeChain<T>(this).FirstOrDefault();
         }
 
         /// <summary>
-        /// The namespace name for this scope. The namespace name is taken by iterating over all of the parents and selecting only the namespace definitions.
+        /// Gets all of the parent scopes of this scope
         /// </summary>
-        public string NamespaceName {
-            get {
-                var namespaceParents = from p in this.ParentScopes
-                                       let ns = (p as NamespaceDefinition)
-                                       where !(null == ns || ns.IsGlobal)
-                                       select ns.Name;
-                return String.Join(".", namespaceParents.Reverse());
-            }
+        /// <returns>An enumerable (in reverse order) of all of the parent scopes</returns>
+        public IEnumerable<Scope> GetParentScopes() {
+            return GetScopeChain(this.ParentScope);
+        }
+
+        /// <summary>
+        /// Gets all of the parent scopes of type <typeparamref name="T"/>
+        /// </summary>
+        /// <typeparam name="T">The type to look for</typeparam>
+        /// <returns>An enumerable (in reverse order) of all of the parent scopes of type <typeparamref name="T"/></returns>
+        public IEnumerable<T> GetParentScopes<T>() where T : Scope {
+            return GetScopeChain<T>(this.ParentScope);
+        }
+
+        /// <summary>
+        /// returns an enumerable consisting of this element and all of its parents
+        /// </summary>
+        /// <returns>An enumerable (in reverse order) of this element and all of its parents</returns>
+        public IEnumerable<Scope> GetParentScopesAndSelf() {
+            return GetScopeChain(this);
+        }
+
+        /// <summary>
+        /// Returns an enumerable consisting of this element and all of its parent scopes of type <typeparamref name="T"/>
+        /// </summary>
+        /// <typeparam name="T">The type to look for</typeparam>
+        /// <returns>An enumerable (in reverse order) of this element and all of its parents of type <typeparamref name="T"/></returns>
+        public IEnumerable<T> GetParentScopesAndSelf<T>() where T : Scope {
+            return GetScopeChain<T>(this);
         }
 
         /// <summary>
@@ -446,6 +476,21 @@ namespace ABB.SrcML.Data {
             }
             foreach(var methodCall in otherScope.MethodCalls) {
                 AddMethodCall(methodCall);
+            }
+        }
+
+        private static IEnumerable<T> GetScopeChain<T>(Scope startingPoint) where T : Scope {
+            var results = from scope in GetScopeChain(startingPoint)
+                          let scopeAsT = scope as T
+                          where scopeAsT != null
+                          select scopeAsT;
+            return results;
+        }
+        private static IEnumerable<Scope> GetScopeChain(Scope startingPoint) {
+            var current = startingPoint;
+            while(current != null) {
+                yield return current;
+                current = current.ParentScope;
             }
         }
     }

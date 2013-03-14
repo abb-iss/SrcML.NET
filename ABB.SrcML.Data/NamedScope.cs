@@ -57,10 +57,6 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public AccessModifier Accessibility { get; set; }
 
-        /// <summary>
-        /// The name of this scope
-        /// </summary>
-        public string Name { get; set; }
 
         /// <summary>
         /// This indicates which unresolved parent scope has been used to link this object with a parent object
@@ -73,22 +69,15 @@ namespace ABB.SrcML.Data {
         public Collection<NamedScopeUse> ParentScopeCandidates { get; set; }
 
         /// <summary>
-        /// The full name of this object (taken by finding all of the NamedScope objects that are ancestors of this
-        /// object.
+        /// The name of this scope
         /// </summary>
-        public string FullName {
-            get {
-                return GetFullName();
-            }
-        }
+        public string Name { get; set; }
 
-        /// <summary>
-        /// The unresolved name of this object (taken by finding all of the names rooted at <see cref="UnresolvedParentScope"/>
-        /// </summary>
-        public string UnresolvedName {
-            get {
-                return GetUnresolvedName();
-            }
+        public string GetFullName() {
+            var names = from scope in GetParentScopesAndSelf<NamedScope>()
+                        where !String.IsNullOrEmpty(scope.Name)
+                        select scope.Name;
+            return String.Join(".", names.Reverse()).TrimEnd('.');
         }
 
         /// <summary>
@@ -317,20 +306,6 @@ namespace ABB.SrcML.Data {
             }
 
             return sb.ToString().TrimEnd('.');
-        }
-
-        private string GetFullName() {
-            var scopes = from p in this.ParentScopes
-                         let namedScope = p as NamedScope
-                         where namedScope != null && namedScope.Name.Length > 0
-                         select namedScope.Name;
-            StringBuilder sb = new StringBuilder();
-            foreach(var scope in scopes.Reverse()) {
-                sb.Append(scope);
-                sb.Append(".");
-            }
-            sb.Append(this.Name);
-            return sb.ToString();
         }
     }
 }

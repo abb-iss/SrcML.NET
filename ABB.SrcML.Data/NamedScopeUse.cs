@@ -30,6 +30,20 @@ namespace ABB.SrcML.Data {
             return scope;
         }
 
+        public string GetFullName() {
+            StringBuilder sb = new StringBuilder();
+            var current = this;
+            while(current != null) {
+                sb.Append(current.Name);
+                current = current.ChildScopeUse;
+
+                if(null != current) {
+                    sb.Append('.');
+                }
+            }
+            return sb.ToString();
+        }
+
         public override bool Matches(NamedScope definition) {
             if(null == definition) return false;
             return definition.Name == this.Name;
