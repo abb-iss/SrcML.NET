@@ -139,8 +139,9 @@ namespace ABB.SrcML.Data.Test {
             var typeB = typeA.ChildScopes.First() as TypeDefinition;
 
             Assert.AreSame(typeA, typeB.ParentScope);
-            Assert.AreEqual("A", typeA.FullName);
-            Assert.AreEqual("A.B", typeB.FullName);
+            Assert.AreEqual("A", typeA.GetFullName());
+            
+            Assert.AreEqual("A.B", typeB.GetFullName());
         }
 
         [Test]
@@ -161,8 +162,8 @@ namespace ABB.SrcML.Data.Test {
 
             var typeA = mainMethod.ChildScopes.First() as TypeDefinition;
             Assert.AreEqual("A", typeA.Name);
-            Assert.AreEqual("main.A", typeA.FullName);
-            Assert.AreEqual(String.Empty, typeA.NamespaceName);
+            Assert.AreEqual("main.A", typeA.GetFullName());
+            Assert.AreEqual(String.Empty, typeA.GetFirstScope<NamespaceDefinition>().GetFullName());
         }
 
         [Test]
@@ -228,12 +229,12 @@ namespace ABB.SrcML.Data.Test {
             var inner = typeDefinitions.Last() as TypeDefinition;
 
             Assert.AreEqual("B", outer.Name);
-            Assert.AreEqual("A", outer.NamespaceName);
-            Assert.AreEqual("A.B", outer.FullName);
+            Assert.AreEqual("A", outer.GetFirstScope<NamespaceDefinition>().GetFullName());
+            Assert.AreEqual("A.B", outer.GetFullName());
 
             Assert.AreEqual("C", inner.Name);
-            Assert.AreEqual("A", inner.NamespaceName);
-            Assert.AreEqual("A.B.C", inner.FullName);
+            Assert.AreEqual("A", inner.GetFirstScope<NamespaceDefinition>().GetFullName());
+            Assert.AreEqual("A.B.C", inner.GetFullName());
         }
 
         [Test]
@@ -273,7 +274,7 @@ namespace ABB.SrcML.Data.Test {
 
             Assert.AreEqual("Foo", actual.ImportedNamedScope.Name);
             Assert.AreEqual("A", actual.ImportedNamespace.Name);
-            Assert.IsFalse(actual.IsNamespaceAlias);
+            Assert.IsFalse(actual.IsNamespaceImport);
         }
 
         [Test]
@@ -286,7 +287,7 @@ namespace ABB.SrcML.Data.Test {
             var actual = codeParser.ParseAliasElement(xmlElement.Element(SRC.Using), new ParserContext(xmlElement));
 
             Assert.IsNull(actual.ImportedNamedScope);
-            Assert.That(actual.IsNamespaceAlias);
+            Assert.That(actual.IsNamespaceImport);
             Assert.AreEqual("x", actual.ImportedNamespace.Name);
             Assert.AreEqual("y", actual.ImportedNamespace.ChildScopeUse.Name);
             Assert.AreEqual("z", actual.ImportedNamespace.ChildScopeUse.ChildScopeUse.Name);
@@ -318,9 +319,9 @@ namespace ABB.SrcML.Data.Test {
             var aDotBDotFoo = globalScope.ChildScopes.First().ChildScopes.Last().ChildScopes.First() as MethodDefinition;
             var aDotBDotBar = globalScope.ChildScopes.First().ChildScopes.Last().ChildScopes.Last() as MethodDefinition;
 
-            Assert.AreEqual("A.Bar", aDotBar.FullName);
-            Assert.AreEqual("A.B.Foo", aDotBDotFoo.FullName);
-            Assert.AreEqual("A.B.Bar", aDotBDotBar.FullName);
+            Assert.AreEqual("A.Bar", aDotBar.GetFullName());
+            Assert.AreEqual("A.B.Foo", aDotBDotFoo.GetFullName());
+            Assert.AreEqual("A.B.Bar", aDotBDotBar.GetFullName());
 
             Assert.AreSame(aDotBDotBar, aDotBDotFoo.MethodCalls.First().FindMatches().First());
             Assert.AreEqual(1, aDotBDotFoo.MethodCalls.First().FindMatches().Count());
@@ -381,8 +382,8 @@ namespace ABB.SrcML.Data.Test {
             var aDotContains = classA.ChildScopes.First() as MethodDefinition;
             var bDotContains = classB.ChildScopes.First() as MethodDefinition;
 
-            Assert.AreEqual("A.Contains", aDotContains.FullName);
-            Assert.AreEqual("B.Contains", bDotContains.FullName);
+            Assert.AreEqual("A.Contains", aDotContains.GetFullName());
+            Assert.AreEqual("B.Contains", bDotContains.GetFullName());
 
             var methodCall = aDotContains.MethodCalls.First();
             var variableB = classA.DeclaredVariables.First();

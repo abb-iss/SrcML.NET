@@ -267,8 +267,8 @@ namespace ABB.SrcML.Data.Test {
             Assert.IsNotNull(typeB);
 
             Assert.AreSame(typeA, typeB.ParentScope);
-            Assert.AreEqual("A", typeA.FullName);
-            Assert.AreEqual("A.B", typeB.FullName);
+            Assert.AreEqual("A", typeA.GetFullName());
+            Assert.AreEqual("A.B", typeB.GetFullName());
         }
 
         [Test]
@@ -298,12 +298,12 @@ namespace ABB.SrcML.Data.Test {
             Assert.IsNotNull(typeB);
 
             Assert.AreEqual("A", typeA.Name);
-            Assert.AreEqual("Foo", typeA.NamespaceName);
-            Assert.AreEqual("Foo.A", typeA.FullName);
+            Assert.AreEqual("Foo", typeA.GetFirstScope<NamespaceDefinition>().GetFullName());
+            Assert.AreEqual("Foo.A", typeA.GetFullName());
 
             Assert.AreEqual("B", typeB.Name);
-            Assert.AreEqual("Foo", typeB.NamespaceName);
-            Assert.AreEqual("Foo.A.B", typeB.FullName);
+            Assert.AreEqual("Foo", typeB.GetFirstScope<NamespaceDefinition>().GetFullName());
+            Assert.AreEqual("Foo.A.B", typeB.GetFullName());
         }
 
         [Test]
@@ -412,7 +412,7 @@ namespace ABB.SrcML.Data.Test {
             var actual = codeParser.ParseAliasElement(xmlElement.Element(SRC.Using), new ParserContext(xmlElement));
 
             Assert.IsNull(actual.ImportedNamedScope);
-            Assert.That(actual.IsNamespaceAlias);
+            Assert.That(actual.IsNamespaceImport);
             Assert.AreEqual("x", actual.ImportedNamespace.Name);
             Assert.AreEqual("y", actual.ImportedNamespace.ChildScopeUse.Name);
             Assert.AreEqual("z", actual.ImportedNamespace.ChildScopeUse.ChildScopeUse.Name);

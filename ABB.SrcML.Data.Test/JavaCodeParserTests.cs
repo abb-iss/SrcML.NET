@@ -212,8 +212,8 @@ namespace ABB.SrcML.Data.Test {
             var typeB = typeA.ChildScopes.First() as TypeDefinition;
 
             Assert.AreSame(typeA, typeB.ParentScope);
-            Assert.AreEqual("A", typeA.FullName);
-            Assert.AreEqual("A.B", typeB.FullName);
+            Assert.AreEqual("A", typeA.GetFullName());
+            Assert.AreEqual("A.B", typeB.GetFullName());
         }
 
         [Test]
@@ -242,12 +242,12 @@ namespace ABB.SrcML.Data.Test {
             var inner = typeDefinitions.Last() as TypeDefinition;
 
             Assert.AreEqual("B", outer.Name);
-            Assert.AreEqual("A", outer.NamespaceName);
-            Assert.AreEqual("A.B", outer.FullName);
+            Assert.AreEqual("A", outer.GetFirstScope<NamespaceDefinition>().GetFullName());
+            Assert.AreEqual("A.B", outer.GetFullName());
 
             Assert.AreEqual("C", inner.Name);
-            Assert.AreEqual("A", inner.NamespaceName);
-            Assert.AreEqual("A.B.C", inner.FullName);
+            Assert.AreEqual("A", inner.GetFirstScope<NamespaceDefinition>().GetFullName());
+            Assert.AreEqual("A.B.C", inner.GetFullName());
         }
 
         [Test]
@@ -273,11 +273,11 @@ namespace ABB.SrcML.Data.Test {
             var fooMethod = typeA.ChildScopes.First() as MethodDefinition;
             var typeB = fooMethod.ChildScopes.First() as TypeDefinition;
 
-            Assert.AreEqual("A", typeA.FullName);
+            Assert.AreEqual("A", typeA.GetFullName());
             Assert.AreSame(typeA, fooMethod.ParentScope);
-            Assert.AreEqual("A.foo", fooMethod.FullName);
+            Assert.AreEqual("A.foo", fooMethod.GetFullName());
             Assert.AreSame(fooMethod, typeB.ParentScope);
-            Assert.AreEqual("A.foo.B", typeB.FullName);
+            Assert.AreEqual("A.foo.B", typeB.GetFullName());
         }
 
         [Test]
@@ -294,7 +294,7 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("z", actual.ImportedNamespace.ChildScopeUse.ChildScopeUse.Name);
             Assert.IsNull(actual.ImportedNamespace.ChildScopeUse.ChildScopeUse.ChildScopeUse);
             Assert.IsNull(actual.ImportedNamedScope);
-            Assert.That(actual.IsNamespaceAlias);
+            Assert.That(actual.IsNamespaceImport);
         }
 
         [Test]
@@ -311,7 +311,7 @@ namespace ABB.SrcML.Data.Test {
             Assert.IsNull(actual.ImportedNamespace.ChildScopeUse.ChildScopeUse);
 
             Assert.AreEqual("z", actual.ImportedNamedScope.Name);
-            Assert.IsFalse(actual.IsNamespaceAlias);
+            Assert.IsFalse(actual.IsNamespaceImport);
         }
 
         [Test]
@@ -457,9 +457,9 @@ namespace ABB.SrcML.Data.Test {
             var aDotBDotFoo = globalScope.ChildScopes.First().ChildScopes.Last().ChildScopes.First() as MethodDefinition;
             var aDotBDotBar = globalScope.ChildScopes.First().ChildScopes.Last().ChildScopes.Last() as MethodDefinition;
 
-            Assert.AreEqual("A.Bar", aDotBar.FullName);
-            Assert.AreEqual("A.B.Foo", aDotBDotFoo.FullName);
-            Assert.AreEqual("A.B.Bar", aDotBDotBar.FullName);
+            Assert.AreEqual("A.Bar", aDotBar.GetFullName());
+            Assert.AreEqual("A.B.Foo", aDotBDotFoo.GetFullName());
+            Assert.AreEqual("A.B.Bar", aDotBDotBar.GetFullName());
 
             Assert.AreSame(aDotBDotBar, aDotBDotFoo.MethodCalls.First().FindMatches().First());
             Assert.AreEqual(1, aDotBDotFoo.MethodCalls.First().FindMatches().Count());
@@ -494,8 +494,8 @@ namespace ABB.SrcML.Data.Test {
             var aDotContains = globalScope.ChildScopes.First().ChildScopes.First() as MethodDefinition;
             var bDotContains = globalScope.ChildScopes.Last().ChildScopes.First() as MethodDefinition;
 
-            Assert.AreEqual("A.Contains", aDotContains.FullName);
-            Assert.AreEqual("B.Contains", bDotContains.FullName);
+            Assert.AreEqual("A.Contains", aDotContains.GetFullName());
+            Assert.AreEqual("B.Contains", bDotContains.GetFullName());
 
             Assert.AreSame(bDotContains, aDotContains.MethodCalls.First().FindMatches().First());
             Assert.AreNotSame(aDotContains, aDotContains.MethodCalls.First().FindMatches().First());
