@@ -68,6 +68,7 @@
     <Compile Include="NamespaceDefinition.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CPlusPlusCodeParser.cs" />
+    <Compile Include="SrcMLLocation.cs" />
     <Compile Include="TypeDefinition.cs" />
     <Compile Include="TypeInventory.cs" />
     <Compile Include="TypeKind.cs" />

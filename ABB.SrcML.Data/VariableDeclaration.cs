@@ -43,6 +43,6 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The location of this declaration in both the original source file and in XML.
         /// </summary>
-        public SourceLocation Location { get; set; }
+        public SrcMLLocation Location { get; set; }
     }
 }

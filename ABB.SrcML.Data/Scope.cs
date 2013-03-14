@@ -42,7 +42,7 @@ namespace ABB.SrcML.Data {
         /// Holds all of the source locations for this scope. The key is a filename.
         /// the value is a collection of sourcelocations in that file where this scope has been defined.
         /// </summary>
-        protected Dictionary<string, Collection<SourceLocation>> LocationDictionary;
+        protected Dictionary<string, Collection<SrcMLLocation>> LocationDictionary;
 
         /// <summary>
         /// Initializes an empty variable scope.
@@ -51,7 +51,7 @@ namespace ABB.SrcML.Data {
             DeclaredVariablesDictionary = new Dictionary<string, VariableDeclaration>();
             ChildScopeCollection = new Collection<Scope>();
             MethodCallCollection = new Collection<MethodCall>();
-            LocationDictionary = new Dictionary<string, Collection<SourceLocation>>();
+            LocationDictionary = new Dictionary<string, Collection<SrcMLLocation>>();
         }
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace ABB.SrcML.Data {
             ChildScopeCollection = new Collection<Scope>();
             DeclaredVariablesDictionary = new Dictionary<string, VariableDeclaration>(otherScope.DeclaredVariablesDictionary.Count);
             MethodCallCollection = new Collection<MethodCall>();
-            LocationDictionary = new Dictionary<string, Collection<SourceLocation>>(otherScope.LocationDictionary.Count);
+            LocationDictionary = new Dictionary<string, Collection<SrcMLLocation>>(otherScope.LocationDictionary.Count);
 
             CopyFromOtherScope(otherScope);
         }
@@ -99,7 +99,7 @@ namespace ABB.SrcML.Data {
         /// For Scope objects, the primary location is simply the first <see cref="SourceLocation.IsReference">non-reference</see>location that was added.
         /// if there are no <see cref="SourceLocation.IsReference">non-reference locations</see>, the first location is added.
         /// </summary>
-        public virtual SourceLocation PrimaryLocation {
+        public virtual SrcMLLocation PrimaryLocation {
             get {
                 if(DefinitionLocations.Any())
                     return DefinitionLocations.First();
@@ -110,7 +110,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// An enumerable of all the source location objects that this scope is defined at.
         /// </summary>
-        public IEnumerable<SourceLocation> Locations {
+        public IEnumerable<SrcMLLocation> Locations {
             get {
                 var locations = from locationsForFile in LocationDictionary.Values
                                 from location in locationsForFile
@@ -122,12 +122,12 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// An enumerable of all the locations where <see cref="SourceLocation.IsReference"/> is false
         /// </summary>
-        public IEnumerable<SourceLocation> DefinitionLocations { get { return Locations.Where(l => !l.IsReference); } }
+        public IEnumerable<SrcMLLocation> DefinitionLocations { get { return Locations.Where(l => !l.IsReference); } }
 
         /// <summary>
         /// An enumerable of all the locations where <see cref="SourceLocation.IsReference"/> is true
         /// </summary>
-        public IEnumerable<SourceLocation> ReferenceLocations { get { return Locations.Where(l => l.IsReference); } }
+        public IEnumerable<SrcMLLocation> ReferenceLocations { get { return Locations.Where(l => l.IsReference); } }
 
         /// <summary>
         /// The parent scopes for this scope in reverse order (parent is returned first, followed by the grandparent, etc).
@@ -227,13 +227,13 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Adds a new source location to this scope.
+        /// Adds a new srcML location to this scope.
         /// </summary>
         /// <param name="location">the location to add</param>
-        public virtual void AddSourceLocation(SourceLocation location) {
-            Collection<SourceLocation> locationsForFile;
+        public virtual void AddSourceLocation(SrcMLLocation location) {
+            Collection<SrcMLLocation> locationsForFile;
             if(!LocationDictionary.TryGetValue(location.SourceFileName, out locationsForFile)) {
-                locationsForFile = new Collection<SourceLocation>();
+                locationsForFile = new Collection<SrcMLLocation>();
                 LocationDictionary[location.SourceFileName] = locationsForFile;
             }
             locationsForFile.Add(location);
@@ -253,8 +253,8 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="fileName">The file name to get locations for</param>
         /// <returns>A collection of <see cref="SourceLocation"/> objects. If this scope was not defined in <paramref name="fileName"/>, null is returned.</returns>
-        public Collection<SourceLocation> GetLocationsInFile(string fileName) {
-            Collection<SourceLocation> locations;
+        public Collection<SrcMLLocation> GetLocationsInFile(string fileName) {
+            Collection<SrcMLLocation> locations;
             if(LocationDictionary.TryGetValue(fileName, out locations)) {
                 return locations;
             }
@@ -314,18 +314,16 @@ namespace ABB.SrcML.Data {
         /// <param name="xpath">The xpath to look for.</param>
         /// <returns>True if this is a container for the given xpath. False, otherwise.</returns>
         public virtual bool IsScopeFor(string xpath) {
-            return xpath.StartsWith(this.PrimaryLocation.XPath);
+            return Locations.Any(l => xpath.StartsWith(l.XPath));
         }
 
         /// <summary>
         /// Returns true if this scope surrounds the given source location. 
         /// </summary>
         /// <param name="loc">The source location to look for.</param>
-        /// <returns>True if this is a container for the given SourceLocation, False otherwise.</returns>
+        /// <returns>True if this is a container for the given location, False otherwise.</returns>
         public virtual bool IsScopeFor(SourceLocation loc) {
-            return (from fileLocations in LocationDictionary.Values
-                    from l in fileLocations
-                    select l.Contains(loc)).Any();
+            return Locations.Any(l => l.Contains(loc));
         }
 
         /// <summary>
@@ -367,22 +365,12 @@ namespace ABB.SrcML.Data {
         /// <returns>An enumerable of matching variable declarations.</returns>
         public IEnumerable<VariableDeclaration> GetDeclarationsForVariableName(string variableName, string xpath) {
             var lowestScope = GetScopeForPath(xpath);
-            for(var scope in lowestScope.GetParentsAndSelf())
-            {
+            foreach(var scope in lowestScope.GetParentScopesAndSelf()) {
                 VariableDeclaration declaration;
                 if(scope.DeclaredVariablesDictionary.TryGetValue(variableName, out declaration)) {
                     yield return declaration;
                 }
             }
-
-            
-            
-            //foreach(var scope in GetScopesForPath(xpath)) {
-            //    VariableDeclaration declaration;
-            //    if(scope.DeclaredVariablesDictionary.TryGetValue(variableName, out declaration)) {
-            //        yield return declaration;
-            //    }
-            //}
         }
 
         /// <summary>

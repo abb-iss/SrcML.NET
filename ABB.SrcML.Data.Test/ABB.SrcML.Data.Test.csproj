@@ -62,6 +62,7 @@
     <Compile Include="ScopeMergeTests.cs" />
     <Compile Include="JavaCodeParserTests.cs" />
     <Compile Include="SourceLocationTests.cs" />
+    <Compile Include="SrcMLLocationTests.cs" />
     <Compile Include="TestHelper.cs" />
     <Compile Include="SrcMLFileUnitSetup.cs" />
     <Compile Include="CPlusPlusCodeParserTests.cs" />

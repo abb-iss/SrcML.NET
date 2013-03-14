@@ -22,7 +22,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The location of this use in the original source file and in srcML
         /// </summary>
-        public SourceLocation Location { get; set; }
+        public SrcMLLocation Location { get; set; }
 
         /// <summary>
         /// The name being used

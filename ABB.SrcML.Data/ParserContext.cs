@@ -101,8 +101,8 @@ namespace ABB.SrcML.Data {
         /// <param name="element">The element to create a location for</param>
         /// <param name="isReference">whether or not this is a reference location</param>
         /// <returns>The new location object. The <see cref="SourceLocation.SourceFileName"/> will be set to <see cref="FileName"/></returns>
-        public SourceLocation CreateLocation(XElement element, bool isReference) {
-            var location = new SourceLocation(element, this.FileName, isReference);
+        public SrcMLLocation CreateLocation(XElement element, bool isReference) {
+            var location = new SrcMLLocation(element, this.FileName, isReference);
             return location;
         }
 
@@ -111,8 +111,8 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="element">The element to create a location for</param>
         /// <returns>The new location object. The <see cref="SourceLocation.SourceFileName"/> will be set to <see cref="FileName"/></returns>
-        public SourceLocation CreateLocation(XElement element) {
-            var location = new SourceLocation(element, this.FileName);
+        public SrcMLLocation CreateLocation(XElement element) {
+            var location = new SrcMLLocation(element, this.FileName);
             return location;
         }
 

@@ -33,7 +33,7 @@ namespace ABB.SrcML.Data.Test {
 <decl_stmt><decl><type><name pos:line=""2"" pos:column=""1"">int</name></type> <name pos:line=""2"" pos:column=""5"">foo</name> =<init pos:line=""2"" pos:column=""10""> <expr><lit:literal type=""number"" pos:line=""2"" pos:column=""11"">42</lit:literal></expr></init></decl>;</decl_stmt>";
             var unit = fileSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xml, "Example.cpp");
             var globalScope = parser[Language.CPlusPlus].ParseFileUnit(unit);
-            var actual = globalScope.GetScopeForLocation(new SourceLocation("Example.cpp", 2, 5, 2, 5, "", false));
+            var actual = globalScope.GetScopeForLocation(new SourceLocation("Example.cpp", 2, 5));
             Assert.AreEqual(globalScope, actual);
         }
 
@@ -53,7 +53,7 @@ namespace ABB.SrcML.Data.Test {
             var unit = fileSetup[Language.CSharp].GetFileUnitForXmlSnippet(xml, "Foo.cs");
             var globalScope = parser[Language.CSharp].ParseFileUnit(unit);
             var expected = globalScope.ChildScopes.First().ChildScopes.First();
-            var actual = globalScope.GetScopeForLocation(new SourceLocation("Foo.cs", 3, 14, 3, 14, "", true));
+            var actual = globalScope.GetScopeForLocation(new SourceLocation("Foo.cs", 3, 14));
             Assert.AreEqual(expected, actual);
         }
         
@@ -84,7 +84,7 @@ namespace ABB.SrcML.Data.Test {
 
             var bar = globalScope.ChildScopes.First().ChildScopes.OfType<MethodDefinition>().First();
             Assert.AreEqual("bar", bar.Name);
-            Assert.AreEqual(bar, globalScope.GetScopeForLocation(new SourceLocation("Foo.cpp", 3, 2, 3, 2, "", true)));
+            Assert.AreEqual(bar, globalScope.GetScopeForLocation(new SourceLocation("Foo.cpp", 3, 2)));
         }
     }
 }

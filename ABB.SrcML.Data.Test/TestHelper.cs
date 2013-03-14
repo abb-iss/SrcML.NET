@@ -94,7 +94,7 @@ namespace ABB.SrcML.Data.Test {
                    NamedScopeUsesAreEqual(a.ImportedNamespace, b.ImportedNamespace);
         }
 
-        public static bool LocationsAreEqual(SourceLocation a, SourceLocation b) {
+        public static bool LocationsAreEqual(SrcMLLocation a, SrcMLLocation b) {
             if(a == b) { return true; }
             return a.IsReference == b.IsReference &&
                    a.StartingColumnNumber == b.StartingColumnNumber &&

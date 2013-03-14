@@ -35,11 +35,11 @@ namespace ABB.SrcML.Data {
         /// The locations where this parameter is declared.
         /// There can be more than one in the case of C/C++ where both the method prototype and definition declare the parameter.
         /// </summary>
-        public Collection<SourceLocation> Locations { get; private set; }
+        public Collection<SrcMLLocation> Locations { get; private set; }
 
         /// <summary>Creates a new empty ParameterDeclaration.</summary>
         public ParameterDeclaration() {
-            Locations = new Collection<SourceLocation>();
+            Locations = new Collection<SrcMLLocation>();
         }
     }
 }

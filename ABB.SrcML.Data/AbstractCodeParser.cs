@@ -215,7 +215,7 @@ namespace ABB.SrcML.Data {
             if(aliasStatement.Name != AliasElementName) throw new ArgumentException(String.Format("must be a {0} statement", AliasElementName), "usingStatement");
 
             var alias = new Alias() {
-                Location = new SourceLocation(aliasStatement, context.FileUnit),
+                Location = context.CreateLocation(aliasStatement, true),
                 ProgrammingLanguage = ParserLanguage,
             };
 
@@ -686,7 +686,7 @@ namespace ABB.SrcML.Data {
 
         #region access modifiers
         /// <summary>
-        /// Gets the access modifier for this method. For Java & C#, a "specifier" tag is placed in either
+        /// Gets the access modifier for this method. For Java and C#, a "specifier" tag is placed in either
         /// the method callElement, or the type callElement in the method.
         /// </summary>
         /// <param name="methodElement">The method callElement</param>

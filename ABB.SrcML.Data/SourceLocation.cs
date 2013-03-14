@@ -37,24 +37,28 @@ namespace ABB.SrcML.Data {
         public int StartingColumnNumber { get; set; }
 
         /// <summary>
-        /// The ending line number for this location &mdash; this is the starting line number of this element's sibling.
+        /// The ending line number for this location -- this is the starting line number of this element's sibling.
         /// </summary>
         public int EndingLineNumber { get; set; }
 
         /// <summary>
-        /// The ending column number for this location &mdash; this is the starting starting position of this element's sibling.
+        /// The ending column number for this location -- this is the starting starting position of this element's sibling.
         /// </summary>
         public int EndingColumnNumber { get; set; }
 
         /// <summary>
-        /// The XPath query that identifies this scope
+        /// Creates a new empty SourceLocation
         /// </summary>
-        public string XPath { get; set; }
+        protected SourceLocation() {}
 
         /// <summary>
-        /// True if this location is a reference; false if it is a definition
+        /// Creates a new source location object
         /// </summary>
-        public bool IsReference { get; set; }
+        /// <param name="fileName">The file name</param>
+        /// <param name="startingLineNumber">The starting line number.</param>
+        /// <param name="startingColumnNumber">The starting column within <paramref name="startingLineNumber"/></param>
+        public SourceLocation(string fileName, int startingLineNumber, int startingColumnNumber)
+            : this(fileName, startingLineNumber, startingColumnNumber, startingLineNumber, startingColumnNumber) {}
 
         /// <summary>
         /// Creates a new source location object
@@ -64,60 +68,12 @@ namespace ABB.SrcML.Data {
         /// <param name="startingPosition">The starting position within <paramref name="startingLineNumber"/></param>
         /// <param name="endingLineNumber">the ending line number</param>
         /// <param name="endingPosition">The ending position with <paramref name="endingLineNumber"/></param>
-        /// <param name="xpath">The XPath that identifies this location</param>
-        /// <param name="isReferenceLocation">true if this is a reference location; false otherwise</param>
-        public SourceLocation(string fileName, int startingLineNumber, int startingPosition, int endingLineNumber, int endingPosition, string xpath, bool isReferenceLocation) {
+        public SourceLocation(string fileName, int startingLineNumber, int startingPosition, int endingLineNumber, int endingPosition) {
             this.SourceFileName = fileName;
             this.StartingLineNumber = startingLineNumber;
             this.StartingColumnNumber = startingPosition;
             this.EndingLineNumber = endingLineNumber;
             this.EndingColumnNumber = endingPosition;
-            this.XPath = xpath;
-            this.IsReference = isReferenceLocation;
-        }
-
-        /// <summary>
-        /// Creates a new source location object
-        /// </summary>
-        /// <param name="element">The srcML element that this location refers to</param>
-        /// <param name="fileName">The filename</param>
-        public SourceLocation(XElement element, string fileName) : this(element, fileName, false) { }
-
-        /// <summary>
-        /// Creates a new source location object based on the given <see cref="System.Xml.Linq.XElement">XML element</see> and <see cref="ABB.SrcML.SRC.Unit">file unit</see>
-        /// </summary>
-        /// <param name="element">The element (should contain <see cref="ABB.SrcML.POS"/> attributes</param>
-        /// <param name="fileUnit">The file unit (must be a <see cref="ABB.SrcML.SRC.Unit"/>)</param>
-        public SourceLocation(XElement element, XElement fileUnit) : this(element, fileUnit, false) { }
-
-        /// <summary>
-        /// Creates a new source location object
-        /// </summary>
-        /// <param name="element">The srcML element that this location refers to</param>
-        /// <param name="fileUnit">The file unit that contains <paramref name="element"/></param>
-        /// <param name="isReferenceLocation">true if this is a reference location; false otherwise</param>
-        public SourceLocation(XElement element, XElement fileUnit, bool isReferenceLocation) {
-            this.SourceFileName = SrcMLElement.GetFileNameForUnit(fileUnit);
-            this.StartingLineNumber = element.GetSrcLineNumber();
-            this.StartingColumnNumber = element.GetSrcLinePosition();
-            this.XPath = element.GetXPath(false);
-            this.IsReference = isReferenceLocation;
-            SetEndingLocation(element);
-        }
-
-        /// <summary>
-        /// Creates a new source location object
-        /// </summary>
-        /// <param name="element">The srcML element that this location refers to</param>
-        /// <param name="fileName">The filename</param>
-        /// <param name="isReferenceLocation">true if this is a reference location; false otherwise</param>
-        public SourceLocation(XElement element, string fileName, bool isReferenceLocation) {
-            this.SourceFileName = fileName;
-            this.StartingLineNumber = element.GetSrcLineNumber();
-            this.StartingColumnNumber = element.GetSrcLinePosition();
-            this.XPath = element.GetXPath(false);
-            this.IsReference = isReferenceLocation;
-            SetEndingLocation(element);
         }
 
         /// <summary>
@@ -125,12 +81,13 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="otherLoc">The SourceLocation to test</param>
         /// <returns>True if this location subsumes the given location, False otherwise.</returns>
-        public bool Contains(SourceLocation otherLoc) {
+        public virtual bool Contains(SourceLocation otherLoc) {
+            if(otherLoc == null) throw new ArgumentNullException("otherLoc");
+
             if(string.Compare(this.SourceFileName, otherLoc.SourceFileName, StringComparison.InvariantCultureIgnoreCase) != 0) {
                 //files not equal
                 return false;
             }
-
             if((StartingLineNumber < otherLoc.StartingLineNumber ||
                 (StartingLineNumber == otherLoc.StartingLineNumber && StartingColumnNumber <= otherLoc.StartingColumnNumber))
                &&
@@ -149,15 +106,5 @@ namespace ABB.SrcML.Data {
             return string.Format("{0}: start({1},{2}) end({3},{4})", SourceFileName, StartingLineNumber, StartingColumnNumber, EndingLineNumber, EndingColumnNumber);
         }
 
-        private void SetEndingLocation(XElement element) {
-            var nextSibling = element.ElementsAfterSelf().FirstOrDefault();
-            if(null != nextSibling) {
-                this.EndingLineNumber = nextSibling.GetSrcLineNumber();
-                this.EndingColumnNumber = nextSibling.GetSrcLinePosition();
-            } else {
-                this.EndingLineNumber = Int32.MaxValue;
-                this.EndingColumnNumber = Int32.MaxValue;
-            }
-        }
     }
 }

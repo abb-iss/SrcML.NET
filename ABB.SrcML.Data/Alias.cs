@@ -32,7 +32,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The location of this alias in both the source file and the XML.
         /// </summary>
-        public SourceLocation Location { get; set; }
+        public SrcMLLocation Location { get; set; }
 
         public Language ProgrammingLanguage { get; set; }
 
