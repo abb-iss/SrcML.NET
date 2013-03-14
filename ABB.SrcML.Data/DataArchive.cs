@@ -125,7 +125,7 @@ namespace ABB.SrcML.Data {
         /// <param name="element">The element to search for.</param>
         /// <returns>The innermost scope containing the element, or null if it is not found.</returns>
         public Scope FindScope(XElement element) {
-            return globalScope.GetScopeForPath(element.GetXPath());
+            return globalScope.GetScopeForLocation(element.GetXPath());
         }
 
         /// <summary>
@@ -134,7 +134,7 @@ namespace ABB.SrcML.Data {
         /// <param name="xpath">The XPath to search for.</param>
         /// <returns>The innermost scope containing the XPath, or null if it is not found.</returns>
         public Scope FindScope(string xpath) {
-            return globalScope.GetScopeForPath(xpath);
+            return globalScope.GetScopeForLocation(xpath);
         }
 
 

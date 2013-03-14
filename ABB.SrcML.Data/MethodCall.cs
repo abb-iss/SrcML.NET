@@ -47,7 +47,7 @@ namespace ABB.SrcML.Data {
         public bool IsDestructor { get; set; }
 
         /// <summary>
-        /// Finds matching <see cref="MethodDefinition">method definitions</see> from the <see cref="ParentScopes"/> of this usage.
+        /// Finds matching <see cref="MethodDefinition">method definitions</see> from the parent scopes of this usage.
         /// Because method calls can also be to constructors and destructors, this will also search for matching types and then constructors
         /// within those types
         /// </summary>

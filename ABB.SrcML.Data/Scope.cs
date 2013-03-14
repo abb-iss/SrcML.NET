@@ -96,8 +96,8 @@ namespace ABB.SrcML.Data {
 
         /// <summary>
         /// References the primary location where this location has been defined.
-        /// For Scope objects, the primary location is simply the first <see cref="SourceLocation.IsReference">non-reference</see>location that was added.
-        /// if there are no <see cref="SourceLocation.IsReference">non-reference locations</see>, the first location is added.
+        /// For Scope objects, the primary location is simply the first <see cref="SrcMLLocation.IsReference">non-reference</see>location that was added.
+        /// if there are no <see cref="SrcMLLocation.IsReference">non-reference locations</see>, the first location is added.
         /// </summary>
         public virtual SrcMLLocation PrimaryLocation {
             get {
@@ -120,30 +120,18 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// An enumerable of all the locations where <see cref="SourceLocation.IsReference"/> is false
+        /// An enumerable of all the locations where <see cref="SrcMLLocation.IsReference"/> is false
         /// </summary>
         public IEnumerable<SrcMLLocation> DefinitionLocations { get { return Locations.Where(l => !l.IsReference); } }
 
         /// <summary>
-        /// An enumerable of all the locations where <see cref="SourceLocation.IsReference"/> is true
+        /// An enumerable of all the locations where <see cref="SrcMLLocation.IsReference"/> is true
         /// </summary>
         public IEnumerable<SrcMLLocation> ReferenceLocations { get { return Locations.Where(l => l.IsReference); } }
 
-        /// <summary>
-        /// The parent scopes for this scope in reverse order (parent is returned first, followed by the grandparent, etc).
-        /// </summary>
-        //public IEnumerable<Scope> ParentScopes {
-        //    get {
-        //        var current = this.ParentScope;
-        //        while(null != current) {
-        //            yield return current;
-        //            current = current.ParentScope;
-        //        }
-        //    }
-        //}
 
         /// <summary>
-        /// Gets the first scope of type <typeparamref name="T"/> from <see cref="GetParentScopesAndSelf<T>()"/>
+        /// Gets the first scope of type <typeparamref name="T"/> from <see cref="GetParentScopesAndSelf&lt;T&gt;()"/>
         /// </summary>
         /// <typeparam name="T">The type to look for</typeparam>
         /// <returns>The first scope of type <typeparamref name="T"/></returns>
@@ -290,7 +278,7 @@ namespace ABB.SrcML.Data {
 
         /// <summary>
         /// Tests value equality between this scope and <paramref name="otherScope"/>.
-        /// Two scopes are equal if they have the same <see cref="SourceLocation.XPath"/>.
+        /// Two scopes are equal if they have the same <see cref="SrcMLLocation.XPath"/>.
         /// </summary>
         /// <param name="otherScope">The scope to compare to</param>
         /// <returns>True if the scopes are the same. False otherwise.</returns>
@@ -299,7 +287,7 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Returns true if this variable scope contains the given XElement. A variable scope contains an element if <see cref="SourceLocation.XPath"/> is a 
+        /// Returns true if this variable scope contains the given XElement. A variable scope contains an element if <see cref="SrcMLLocation.XPath"/> is a 
         /// prefix for the XPath for <paramref name="element"/>.
         /// </summary>
         /// <param name="element">The element to look for</param>
@@ -309,7 +297,7 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Returns true if this variable scope contains the given XPath. A variable scope contains an xpath if <see cref="SourceLocation.XPath"/> is a prefix for <paramref name="xpath"/>
+        /// Returns true if this variable scope contains the given XPath. A variable scope contains an xpath if <see cref="SrcMLLocation.XPath"/> is a prefix for <paramref name="xpath"/>
         /// </summary>
         /// <param name="xpath">The xpath to look for.</param>
         /// <returns>True if this is a container for the given xpath. False, otherwise.</returns>
@@ -331,9 +319,9 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="xpath">the xpath to find containers for.</param>
         /// <returns>The lowest child of this scope that contains the given xpath, or null if it cannot be found.</returns>
-        public Scope GetScopeForPath(string xpath) {
+        public Scope GetScopeForLocation(string xpath) {
             //first search in children
-            var foundScope = ChildScopeCollection.Select(c => c.GetScopeForPath(xpath)).FirstOrDefault(r => r != null);
+            var foundScope = ChildScopeCollection.Select(c => c.GetScopeForLocation(xpath)).FirstOrDefault(r => r != null);
             //if xpath not found, check ourselves
             if(foundScope == null && this.IsScopeFor(xpath)) {
                 foundScope = this;
@@ -364,7 +352,7 @@ namespace ABB.SrcML.Data {
         /// <param name="xpath">the xpath for the variable name</param>
         /// <returns>An enumerable of matching variable declarations.</returns>
         public IEnumerable<VariableDeclaration> GetDeclarationsForVariableName(string variableName, string xpath) {
-            var lowestScope = GetScopeForPath(xpath);
+            var lowestScope = GetScopeForLocation(xpath);
             foreach(var scope in lowestScope.GetParentScopesAndSelf()) {
                 VariableDeclaration declaration;
                 if(scope.DeclaredVariablesDictionary.TryGetValue(variableName, out declaration)) {
