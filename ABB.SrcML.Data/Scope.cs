@@ -335,6 +335,23 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
+        /// Returns the innermost scope that surrounds the given source location. 
+        /// </summary>
+        /// <param name="loc">The source location to search for.</param>
+        /// <returns>The lowest child of this scope that surrounds the given location, or null if it cannot be found.</returns>
+        public Scope GetScopeForLocation(SourceLocation loc) {
+            //first search in children
+            var foundScope = ChildScopeCollection.Select(c => c.GetScopeForLocation(loc)).FirstOrDefault(r => r != null);
+            //if loc not found, check ourselves
+            if(foundScope == null && (from locCollection in LocationDictionary.Values
+                                      from l in locCollection
+                                      select l.Contains(loc)).Any()) {
+                foundScope = this;
+            }
+            return foundScope;
+        }
+
+        /// <summary>
         /// Searches this scope and all of its children for variable declarations that match the given variable name and xpath.
         /// It finds all the scopes where the xpath is valid and all of the declarations in those scopes that match the variable name.
         /// </summary>

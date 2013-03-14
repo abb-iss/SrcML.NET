@@ -48,34 +48,50 @@ namespace ABB.SrcML.Data {
     /// </example>
     public class DataArchive {
         private Scope globalScope;
-        private Dictionary<Language, AbstractCodeParser> Parser;
+        private Dictionary<Language, AbstractCodeParser> parsers;
+
+        /// <summary>
+        /// The SrcMLArchive to extract the data from.
+        /// </summary>
         public SrcMLArchive Archive { get; private set; }
 
         /// <summary>
-        /// Create a data archive for the given srcML archive. It will subscribe to the <see cref="SrcMLArchive.SourceFileChanged"/> event.
+        /// Create a data archive for the given srcML archive. It will subscribe to the <see cref="AbstractArchive.FileChanged"/> event.
         /// </summary>
         /// <param name="archive">The archive to monitor for changes.</param>
         public DataArchive(SrcMLArchive archive) {
+            SetupParsers();
             this.Archive = archive;
             this.Archive.FileChanged += Archive_SourceFileChanged;
             InitializeData();
         }
 
+        /// <summary>
+        /// Removes any data from the archive.
+        /// </summary>
         public void Clear() {
             globalScope = null;
             //TODO: clear any other data structures as necessary
         }
 
+        /// <summary>
+        /// Adds the given file to the data archive.
+        /// </summary>
+        /// <param name="sourceFile">The path of the file to add.</param>
         public void AddFile(string sourceFile) {
             var unit = Archive.GetXElementForSourceFile(sourceFile);
             AddFile(unit);
         }
 
+        /// <summary>
+        /// Adds the given file to the data archive.
+        /// </summary>
+        /// <param name="fileUnitElement">The <see cref="SRC.Unit"/> XElement for the file to add.</param>
         public void AddFile(XElement fileUnitElement) {
             var fileLanguage = SrcMLElement.GetLanguageForUnit(fileUnitElement);
             Scope resultScope = null;
             AbstractCodeParser parserForUnit;
-            if(Parser.TryGetValue(fileLanguage, out parserForUnit)) {
+            if(parsers.TryGetValue(fileLanguage, out parserForUnit)) {
                 resultScope = parserForUnit.ParseFileUnit(fileUnitElement);
             }
             
@@ -85,21 +101,35 @@ namespace ABB.SrcML.Data {
             //TODO: update other data structures as necessary
         }
 
+        /// <summary>
+        /// Removes the given file from the data archive
+        /// </summary>
+        /// <param name="sourceFile">The path of the file to remove.</param>
         public void RemoveFile(string sourceFile) {
-            //globalScope.RemoveFile(sourceFile);
+            globalScope.RemoveFile(sourceFile);
+        }
+
+        /// <summary>
+        /// Finds the innermost scope that contains the given source location.
+        /// </summary>
+        /// <param name="loc">The source location to search for.</param>
+        /// <returns>The innermost scope containing the location, or null if it is not found.</returns>
+        public Scope FindScope(SourceLocation loc) {
+            return globalScope.GetScopeForLocation(loc);
+        }
+
+        public Scope FindScope(XElement element) {
             throw new NotImplementedException();
         }
 
-
-        public TypeDefinition ResolveType(XElement variableDeclarationElement) {
-            //var typeUse = new TypeUse(variableDeclarationElement);
-            //return ResolveType(typeUse);
+        public AbstractUse<TUse> FindUse<TUse>(SourceLocation loc) where TUse : class {
             throw new NotImplementedException();
         }
 
-        public TypeDefinition ResolveType(TypeUse typeUse) {
+        public AbstractUse<TUse> FindUse<TUse>(XElement element) where TUse : class {
             throw new NotImplementedException();
         }
+
 
 
         #region Private Methods
@@ -111,9 +141,10 @@ namespace ABB.SrcML.Data {
         }
 
         private void SetupParsers() {
-            Parser = new Dictionary<Language, AbstractCodeParser>() {
+            parsers = new Dictionary<Language, AbstractCodeParser>() {
                 { Language.CPlusPlus, new CPlusPlusCodeParser() },
                 { Language.Java, new JavaCodeParser() },
+                { Language.CSharp, new CSharpCodeParser() }
             };
         }
 
