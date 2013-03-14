@@ -223,9 +223,9 @@ namespace ABB.SrcML.Data.Test {
             var methodBar = scopeA.ChildScopes.Last() as MethodDefinition;
 
             Assert.AreEqual("Foo", methodFoo.Name);
-            Assert.AreEqual("A.Foo", methodFoo.FullName);
+            Assert.AreEqual("A.Foo", methodFoo.GetFullName());
             Assert.AreEqual("Bar", methodBar.Name);
-            Assert.AreEqual("A.Bar", methodBar.FullName);
+            Assert.AreEqual("A.Bar", methodBar.GetFullName());
 
             globalScope = globalScope.Merge(CodeParser[Language.CPlusPlus].ParseFileUnit(xmlHeader));
 
@@ -237,8 +237,8 @@ namespace ABB.SrcML.Data.Test {
             var aDotFoo = typeA.ChildScopes.First() as MethodDefinition;
             var aDotBar = typeA.ChildScopes.Last() as MethodDefinition;
 
-            Assert.AreEqual("A.Foo", aDotFoo.FullName);
-            Assert.AreEqual("A.Bar", aDotBar.FullName);
+            Assert.AreEqual("A.Foo", aDotFoo.GetFullName());
+            Assert.AreEqual("A.Bar", aDotBar.GetFullName());
 
             Assert.AreSame(methodFoo, aDotFoo);
             Assert.AreSame(methodBar, aDotBar);

@@ -78,11 +78,12 @@ namespace ABB.SrcML.Data {
         /// <param name="namedScope">The named scope to check</param>
         /// <returns>True if this alias can apply to the provided named scope; false otherwise</returns>
         public bool IsAliasFor(NamedScope namedScope) {
-            if(!namedScope.HasPrefix)
-                return false;
+            //if(!namedScope.HasPrefix)
+            //    return false;
             if(this.IsNamespaceImport)
                 return true;
-            return this.GetFullName().EndsWith(namedScope.Prefix.GetFullName());
+            return false;
+            //return this.GetFullName().EndsWith(namedScope.Prefix.GetFullName());
         }
 
         public string MakeQualifiedName(NamedScopeUse use) {
