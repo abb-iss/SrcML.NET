@@ -279,7 +279,7 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Returns true if this variable scope contains the given XPath. A variable scope contains an expath if <see cref="SourceLocation.XPath"/> is a prefix for <paramref name="xpath"/>
+        /// Returns true if this variable scope contains the given XPath. A variable scope contains an xpath if <see cref="SourceLocation.XPath"/> is a prefix for <paramref name="xpath"/>
         /// </summary>
         /// <param name="xpath">The xpath to look for.</param>
         /// <returns>True if this is a container for the given xpath. False, otherwise.</returns>
@@ -288,20 +288,29 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// returns an enumerable of all the scopes rooted here that are containers for this XPath. Includes the current scope.
+        /// Returns true if this scope surrounds the given source location. 
+        /// </summary>
+        /// <param name="loc">The source location to look for.</param>
+        /// <returns>True if this is a container for the given SourceLocation, False otherwise.</returns>
+        public virtual bool IsScopeFor(SourceLocation loc) {
+            return (from fileLocations in LocationDictionary.Values
+                    from l in fileLocations
+                    select l.Contains(loc)).Any();
+        }
+
+        /// <summary>
+        /// Returns the innermost scope that contains the given xpath. 
         /// </summary>
         /// <param name="xpath">the xpath to find containers for.</param>
-        /// <returns>an enumerable of all the scopes rooted here that are containers for this XPath. Includes the current scope.</returns>
-        public IEnumerable<Scope> GetScopesForPath(string xpath) {
-            if(IsScopeFor(xpath)) {
-                yield return this;
-
-                foreach(var child in this.ChildScopes) {
-                    foreach(var matchingScope in child.GetScopesForPath(xpath)) {
-                        yield return matchingScope;
-                    }
-                }
+        /// <returns>The lowest child of this scope that contains the given xpath, or null if it cannot be found.</returns>
+        public Scope GetScopeForPath(string xpath) {
+            //first search in children
+            var foundScope = ChildScopeCollection.Select(c => c.GetScopeForPath(xpath)).FirstOrDefault(r => r != null);
+            //if xpath not found, check ourselves
+            if(foundScope == null && this.IsScopeFor(xpath)) {
+                foundScope = this;
             }
+            return foundScope;
         }
 
         /// <summary>
@@ -313,9 +322,7 @@ namespace ABB.SrcML.Data {
             //first search in children
             var foundScope = ChildScopeCollection.Select(c => c.GetScopeForLocation(loc)).FirstOrDefault(r => r != null);
             //if loc not found, check ourselves
-            if(foundScope == null && (from locCollection in LocationDictionary.Values
-                                      from l in locCollection
-                                      select l.Contains(loc)).Any()) {
+            if(foundScope == null && this.IsScopeFor(loc)) {
                 foundScope = this;
             }
             return foundScope;
@@ -329,12 +336,23 @@ namespace ABB.SrcML.Data {
         /// <param name="xpath">the xpath for the variable name</param>
         /// <returns>An enumerable of matching variable declarations.</returns>
         public IEnumerable<VariableDeclaration> GetDeclarationsForVariableName(string variableName, string xpath) {
-            foreach(var scope in GetScopesForPath(xpath)) {
+            var lowestScope = GetScopeForPath(xpath);
+            for(var scope in lowestScope.GetParentsAndSelf())
+            {
                 VariableDeclaration declaration;
                 if(scope.DeclaredVariablesDictionary.TryGetValue(variableName, out declaration)) {
                     yield return declaration;
                 }
             }
+
+            
+            
+            //foreach(var scope in GetScopesForPath(xpath)) {
+            //    VariableDeclaration declaration;
+            //    if(scope.DeclaredVariablesDictionary.TryGetValue(variableName, out declaration)) {
+            //        yield return declaration;
+            //    }
+            //}
         }
 
         /// <summary>

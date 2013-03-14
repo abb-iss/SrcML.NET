@@ -16,6 +16,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace ABB.SrcML.Data {
@@ -118,9 +119,24 @@ namespace ABB.SrcML.Data {
             return globalScope.GetScopeForLocation(loc);
         }
 
+        /// <summary>
+        /// Finds the innermost scope that contains the given element.
+        /// </summary>
+        /// <param name="element">The element to search for.</param>
+        /// <returns>The innermost scope containing the element, or null if it is not found.</returns>
         public Scope FindScope(XElement element) {
-            throw new NotImplementedException();
+            return globalScope.GetScopeForPath(element.GetXPath());
         }
+
+        /// <summary>
+        /// Finds the innermost scope that contains the given XPath.
+        /// </summary>
+        /// <param name="xpath">The XPath to search for.</param>
+        /// <returns>The innermost scope containing the XPath, or null if it is not found.</returns>
+        public Scope FindScope(string xpath) {
+            return globalScope.GetScopeForPath(xpath);
+        }
+
 
         public AbstractUse<TUse> FindUse<TUse>(SourceLocation loc) where TUse : class {
             throw new NotImplementedException();
