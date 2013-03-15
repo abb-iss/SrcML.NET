@@ -129,12 +129,16 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public IEnumerable<SrcMLLocation> ReferenceLocations { get { return Locations.Where(l => l.IsReference); } }
 
+        public IEnumerable<T> GetChildScopes<T>() where T : Scope {
+            return GetScopesOfType<T>(this.ChildScopes);
+        }
+
         public IEnumerable<Scope> GetDescendantScopes() {
             return GetDescendants(this, false);
         }
 
         public IEnumerable<T> GetDescendantScopes<T>() where T : Scope {
-            return GetScopeChain<T>(GetDescendants(this, false));
+            return GetScopesOfType<T>(GetDescendants(this, false));
         }
 
         public IEnumerable<Scope> GetDescendantScopesAndSelf() {
@@ -142,7 +146,7 @@ namespace ABB.SrcML.Data {
         }
 
         public IEnumerable<T> GetDescendantScopesAndSelf<T>() where T : Scope {
-            return GetScopeChain<T>(GetDescendants(this, true));
+            return GetScopesOfType<T>(GetDescendants(this, true));
         }
 
         public T GetFirstDescendant<T>() where T : Scope {
@@ -172,7 +176,7 @@ namespace ABB.SrcML.Data {
         /// <typeparam name="T">The type to look for</typeparam>
         /// <returns>An enumerable (in reverse order) of all of the parent scopes of type <typeparamref name="T"/></returns>
         public IEnumerable<T> GetParentScopes<T>() where T : Scope {
-            return GetScopeChain<T>(GetParentsAndStartingPoint(this.ParentScope));
+            return GetScopesOfType<T>(GetParentsAndStartingPoint(this.ParentScope));
         }
 
         /// <summary>
@@ -189,7 +193,7 @@ namespace ABB.SrcML.Data {
         /// <typeparam name="T">The type to look for</typeparam>
         /// <returns>An enumerable (in reverse order) of this element and all of its parents of type <typeparamref name="T"/></returns>
         public IEnumerable<T> GetParentScopesAndSelf<T>() where T : Scope {
-            return GetScopeChain<T>(GetParentsAndStartingPoint(this));
+            return GetScopesOfType<T>(GetParentsAndStartingPoint(this));
         }
 
         /// <summary>
@@ -494,7 +498,7 @@ namespace ABB.SrcML.Data {
             }
         }
 
-        private static IEnumerable<T> GetScopeChain<T>(IEnumerable<Scope> scopes) where T : Scope {
+        private static IEnumerable<T> GetScopesOfType<T>(IEnumerable<Scope> scopes) where T : Scope {
             var results = from scope in scopes
                           let scopeAsT = scope as T
                           where scopeAsT != null
