@@ -19,6 +19,9 @@ namespace ABB.SrcML.Data {
     /// The variable use class represents a use of a variable.
     /// </summary>
     public class VariableUse : AbstractUse<VariableDeclaration>, IResolvesToType {
+        /// <summary>
+        /// The calling object for a use is used when you have <c>a.b</c> -- this variable use would refer to <c>b</c> and the calling object would be <c>a</c>.
+        /// </summary>
         public IResolvesToType CallingObject { get; set; }
 
         /// <summary>
@@ -74,6 +77,10 @@ namespace ABB.SrcML.Data {
             return typeDefinitions;
         }
 
+        /// <summary>
+        /// Gets the first result from <see cref="FindMatchingTypes()"/>
+        /// </summary>
+        /// <returns>The first matching variable type definition</returns>
         public TypeDefinition FindFirstMatchingType() {
             return FindMatchingTypes().FirstOrDefault();
         }

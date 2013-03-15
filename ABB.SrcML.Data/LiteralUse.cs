@@ -6,11 +6,19 @@ using System.Xml.Linq;
 
 namespace ABB.SrcML.Data {
     /// <summary>
-    /// TODO: explain what name is in this context
+    /// Literal use is a specific kind of type use that refers to a language's built-in types.
     /// </summary>
     public class LiteralUse : TypeUse {
+        /// <summary>
+        /// The kind of literal
+        /// </summary>
         public LiteralKind Kind { get; set; }
 
+        /// <summary>
+        /// Gets the literal kind from the <paramref name="literalElement"/>
+        /// </summary>
+        /// <param name="literalElement">The literal element</param>
+        /// <returns>The kind of element this is</returns>
         public static LiteralKind GetLiteralKind(XElement literalElement) {
             if(literalElement == null) throw new ArgumentNullException("literalElement");
             if(literalElement.Name != LIT.Literal) throw new ArgumentException("should be of type LIT.Literal", "literalElement");

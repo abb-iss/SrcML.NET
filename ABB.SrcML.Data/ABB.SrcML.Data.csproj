@@ -70,11 +70,9 @@
     <Compile Include="CPlusPlusCodeParser.cs" />
     <Compile Include="SrcMLLocation.cs" />
     <Compile Include="TypeDefinition.cs" />
-    <Compile Include="TypeInventory.cs" />
     <Compile Include="TypeKind.cs" />
     <Compile Include="TypeUse.cs" />
     <Compile Include="VariableDeclaration.cs" />
-    <Compile Include="VariableInventory.cs" />
     <Compile Include="Scope.cs" />
     <Compile Include="VariableScopeIterator.cs" />
     <Compile Include="VariableUse.cs" />

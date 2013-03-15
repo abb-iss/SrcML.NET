@@ -34,6 +34,9 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public Collection<IResolvesToType> Arguments { get; set; }
 
+        /// <summary>
+        /// The calling object for a use is used when you have <c>a.Foo()</c> -- this method call would refer to <c>Foo()</c> and the calling object would be <c>a</c>.
+        /// </summary>
         public IResolvesToType CallingObject { get; set; }
 
         /// <summary>
@@ -47,7 +50,7 @@ namespace ABB.SrcML.Data {
         public bool IsDestructor { get; set; }
 
         /// <summary>
-        /// Finds matching <see cref="MethodDefinition">method definitions</see> from the <see cref="ParentScopes"/> of this usage.
+        /// Finds matching <see cref="MethodDefinition">method definitions</see> from the <see cref="Scope.GetParentScopes()"/> of this usage.
         /// Because method calls can also be to constructors and destructors, this will also search for matching types and then constructors
         /// within those types
         /// </summary>
@@ -107,6 +110,10 @@ namespace ABB.SrcML.Data {
             return possibleReturnTypes;
         }
 
+        /// <summary>
+        /// Gets the first type definition that matches the return type for this method
+        /// </summary>
+        /// <returns>The first matching type definition</returns>
         public TypeDefinition FindFirstMatchingType() {
             return FindMatchingTypes().FirstOrDefault();
         }

@@ -22,6 +22,9 @@ namespace ABB.SrcML.Data {
     /// </summary>
     public class CSharpCodeParser : AbstractCodeParser {
 
+        /// <summary>
+        /// Constructs a C# code parser
+        /// </summary>
         public CSharpCodeParser() :base() {
             this.TypeElementNames = new HashSet<XName> {SRC.Class, SRC.Enum, SRC.Struct}; //SRC.Interface?
             this.AliasElementName = SRC.Using;
@@ -112,6 +115,11 @@ namespace ABB.SrcML.Data {
             return result;
         }
 
+        /// <summary>
+        /// Gets the parent type elements for a type element
+        /// </summary>
+        /// <param name="typeElement">The type element to parse</param>
+        /// <returns>The type use elements</returns>
         public override IEnumerable<XElement> GetParentTypeUseElements(XElement typeElement) {
             var superElement = typeElement.Element(SRC.Super);
             if(superElement != null) {
@@ -120,19 +128,39 @@ namespace ABB.SrcML.Data {
             return Enumerable.Empty<XElement>();
         }
 
+        /// <summary>
+        /// Checks if the using statement is a namespace import
+        /// </summary>
+        /// <param name="aliasStatement"></param>
+        /// <returns></returns>
         public override bool AliasIsNamespaceImport(XElement aliasStatement) {
             // TODO handle "using A = B.C"
             return true;
         }
 
+        /// <summary>
+        /// Parses a C# boolean literal
+        /// </summary>
+        /// <param name="literalValue">The literal value</param>
+        /// <returns>returns "bool"</returns>
         public override string GetTypeForBooleanLiteral(string literalValue) {
             return "bool";
         }
 
+        /// <summary>
+        /// Parses a C# character literal
+        /// </summary>
+        /// <param name="literalValue">The literal value</param>
+        /// <returns>returns "char"</returns>
         public override string GetTypeForCharacterLiteral(string literalValue) {
             return "char";
         }
 
+        /// <summary>
+        /// Parses a C# number literal based on C# 4.0 in a Nutshell by Joseph Albahari and Ben Albahari, page 22.
+        /// </summary>
+        /// <param name="literalValue">The literal value</param>
+        /// <returns>returns the appropriate numeric type</returns>
         public override string GetTypeForNumberLiteral(string literalValue) {
             //rules taken from C# 4.0 in a Nutshell by Joseph Albahari and Ben Albahari, page 22.
             bool isHex = literalValue.StartsWith("0x");
@@ -170,6 +198,11 @@ namespace ABB.SrcML.Data {
             return "int";
         }
 
+        /// <summary>
+        /// Parses a C# string literal
+        /// </summary>
+        /// <param name="literalValue">The literal value</param>
+        /// <returns>Returns "string"</returns>
         public override string GetTypeForStringLiteral(string literalValue) {
             return "string";
         }
@@ -194,8 +227,8 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Tests whether this container is a reference or whether it includes a definition.
         /// </summary>
-        /// <param name="typeUseElement"></param>
-        /// <returns></returns>
+        /// <param name="element">The element to test</param>
+        /// <returns>True if this is a reference element; false otherwise</returns>
         public override bool ContainerIsReference(XElement element) {
             if(element == null) {
                 throw new ArgumentNullException("typeUseElement");

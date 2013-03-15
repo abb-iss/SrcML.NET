@@ -96,8 +96,8 @@ namespace ABB.SrcML.Data {
 
         /// <summary>
         /// References the primary location where this location has been defined.
-        /// For Scope objects, the primary location is simply the first <see cref="SourceLocation.IsReference">non-reference</see>location that was added.
-        /// if there are no <see cref="SourceLocation.IsReference">non-reference locations</see>, the first location is added.
+        /// For Scope objects, the primary location is simply the first <see cref="SrcMLLocation.IsReference">non-reference</see>location that was added.
+        /// if there are no <see cref="SrcMLLocation.IsReference">non-reference locations</see>, the first location is added.
         /// </summary>
         public virtual SrcMLLocation PrimaryLocation {
             get {
@@ -120,41 +120,69 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// An enumerable of all the locations where <see cref="SourceLocation.IsReference"/> is false
+        /// An enumerable of all the locations where <see cref="SrcMLLocation.IsReference"/> is false
         /// </summary>
         public IEnumerable<SrcMLLocation> DefinitionLocations { get { return Locations.Where(l => !l.IsReference); } }
 
         /// <summary>
-        /// An enumerable of all the locations where <see cref="SourceLocation.IsReference"/> is true
+        /// An enumerable of all the locations where <see cref="SrcMLLocation.IsReference"/> is true
         /// </summary>
         public IEnumerable<SrcMLLocation> ReferenceLocations { get { return Locations.Where(l => l.IsReference); } }
 
+        /// <summary>
+        /// Gets all of the scopes from <see cref="ChildScopes"/> that match <typeparamref name="T"/>.
+        /// </summary>
+        /// <typeparam name="T">The type to filter child scopes with</typeparam>
+        /// <returns>An enumerable of child scopes of type <typeparamref name="T"/></returns>
         public IEnumerable<T> GetChildScopes<T>() where T : Scope {
             return GetScopesOfType<T>(this.ChildScopes);
         }
 
+        /// <summary>
+        /// Gets all of the descendants from this scope. This is every scope that is rooted at this scope.
+        /// </summary>
+        /// <returns>The descendants of this scope</returns>
         public IEnumerable<Scope> GetDescendantScopes() {
             return GetDescendants(this, false);
         }
 
+        /// <summary>
+        /// Gets all of the descendants from this scope where the type is <typeparamref name="T"/>.
+        /// </summary>
+        /// <typeparam name="T">The type to filter the descendant scopes by</typeparam>
+        /// <returns>An enumerable of descendants of type <typeparamref name="T"/></returns>
         public IEnumerable<T> GetDescendantScopes<T>() where T : Scope {
             return GetScopesOfType<T>(GetDescendants(this, false));
         }
 
+        /// <summary>
+        /// Gets all of the descendants from this scope as well as the scope itself.
+        /// </summary>
+        /// <returns>This scope, followed by all of it descendants</returns>
         public IEnumerable<Scope> GetDescendantScopesAndSelf() {
             return GetDescendants(this, true);
         }
 
+        /// <summary>
+        /// Gets all of the scopes of type <typeparamref name="T"/> from the set of this scope and its descendants.
+        /// </summary>
+        /// <typeparam name="T">the type to filter by</typeparam>
+        /// <returns>An enumerable of scopes of type <typeparamref name="T"/></returns>
         public IEnumerable<T> GetDescendantScopesAndSelf<T>() where T : Scope {
             return GetScopesOfType<T>(GetDescendants(this, true));
         }
 
+        /// <summary>
+        /// Gets the first descendant of this scope of type <typeparamref name="T"/>
+        /// </summary>
+        /// <typeparam name="T">the tyep to filter by</typeparam>
+        /// <returns>the first matching descendant of this scope</returns>
         public T GetFirstDescendant<T>() where T : Scope {
             return GetDescendantScopes<T>().FirstOrDefault();
         }
 
         /// <summary>
-        /// Gets the first scope of type <typeparamref name="T"/> from <see cref="GetParentScopesAndSelf<T>()"/>
+        /// Gets the first scope of type <typeparamref name="T"/> from <see cref="GetParentScopesAndSelf{T}()"/>
         /// </summary>
         /// <typeparam name="T">The type to look for</typeparam>
         /// <returns>The first scope of type <typeparamref name="T"/></returns>
@@ -301,7 +329,7 @@ namespace ABB.SrcML.Data {
 
         /// <summary>
         /// Tests value equality between this scope and <paramref name="otherScope"/>.
-        /// Two scopes are equal if they have the same <see cref="SourceLocation.XPath"/>.
+        /// Two scopes are equal if they have the same <see cref="SrcMLLocation.XPath"/>.
         /// </summary>
         /// <param name="otherScope">The scope to compare to</param>
         /// <returns>True if the scopes are the same. False otherwise.</returns>
@@ -310,7 +338,7 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Returns true if this variable scope contains the given XElement. A variable scope contains an element if <see cref="SourceLocation.XPath"/> is a 
+        /// Returns true if this variable scope contains the given XElement. A variable scope contains an element if <see cref="SrcMLLocation.XPath"/> is a 
         /// prefix for the XPath for <paramref name="element"/>.
         /// </summary>
         /// <param name="element">The element to look for</param>
@@ -320,7 +348,7 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Returns true if this variable scope contains the given XPath. A variable scope contains an xpath if <see cref="SourceLocation.XPath"/> is a prefix for <paramref name="xpath"/>
+        /// Returns true if this variable scope contains the given XPath. A variable scope contains an xpath if <see cref="SrcMLLocation.XPath"/> is a prefix for <paramref name="xpath"/>
         /// </summary>
         /// <param name="xpath">The xpath to look for.</param>
         /// <returns>True if this is a container for the given xpath. False, otherwise.</returns>

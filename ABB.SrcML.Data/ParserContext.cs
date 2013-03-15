@@ -62,7 +62,7 @@ namespace ABB.SrcML.Data {
         /// in this case is create three namespaces: <c>A</c>, <c>B</c>, and <c>C</c> and puts them all on <see cref="ScopeStack"/>. Because we have created
         /// three elements, we need a way to track how many need to be popped off. the <c>A</c> namespace will be put placed on <see cref="ParentScopeStack"/>.
         /// <see cref="AbstractCodeParser.ParseElement(XElement,ParserContext)"/> will see that ParentScopeStack and <see cref="ScopeStack"/> are not equal and 
-        /// it will <see cref="Stack.Pop()"/> elements off until they are.
+        /// it will <see cref="System.Collections.Stack.Pop()"/> elements off until they are.
         /// </summary>
         private Stack<Scope> ParentScopeStack { get; set; }
 

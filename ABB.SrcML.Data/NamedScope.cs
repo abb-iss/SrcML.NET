@@ -73,6 +73,10 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public string Name { get; set; }
 
+        /// <summary>
+        /// Gets the full name by finding all of the named scope ancestors and combining them.
+        /// </summary>
+        /// <returns>The full name for this scope</returns>
         public string GetFullName() {
             var names = from scope in GetParentScopesAndSelf<NamedScope>()
                         where !String.IsNullOrEmpty(scope.Name)
