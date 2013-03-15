@@ -86,7 +86,15 @@ namespace ABB.SrcML.Data {
 
 
         private void SetEndingLocation(XElement element) {
-            var nextSibling = element.ElementsAfterSelf().FirstOrDefault();
+            if(element == null) throw new ArgumentNullException("element");
+            var current = element;
+            XElement nextSibling = null;
+            //navigate up until we find a sibling (or the top of the file)
+            while(nextSibling == null && current != null) {
+                nextSibling = current.ElementsAfterSelf().FirstOrDefault();
+                current = current.Parent;
+            }
+
             if(null != nextSibling) {
                 this.EndingLineNumber = nextSibling.GetSrcLineNumber();
                 this.EndingColumnNumber = nextSibling.GetSrcLinePosition();

@@ -12,6 +12,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -55,6 +56,11 @@ namespace ABB.SrcML.Data {
         /// The SrcMLArchive to extract the data from.
         /// </summary>
         public SrcMLArchive Archive { get; private set; }
+
+        /// <summary>
+        /// The top-level Scope for the data in the archive.
+        /// </summary>
+        public Scope GlobalScope { get { return globalScope; } }
 
         /// <summary>
         /// Create a data archive for the given srcML archive. It will subscribe to the <see cref="AbstractArchive.FileChanged"/> event.
@@ -137,15 +143,46 @@ namespace ABB.SrcML.Data {
             return globalScope.GetScopeForLocation(xpath);
         }
 
-
-        public AbstractUse<TUse> FindUse<TUse>(SourceLocation loc) where TUse : class {
-            throw new NotImplementedException();
+        /// <summary>
+        /// Returns the method calls at the given source location. 
+        /// These are sorted with the calls closest to the location appearing first.
+        /// </summary>
+        /// <param name="loc">The source location to search for.</param>
+        /// <returns>A collection of the method calls at the given location.</returns>
+        public Collection<MethodCall> FindMethodCalls(SourceLocation loc) {
+            if(loc == null) throw new ArgumentNullException("loc");
+            var scope = globalScope.GetScopeForLocation(loc);
+            if(scope == null) {
+                Utilities.SrcMLFileLogger.DefaultLogger.InfoFormat("SourceLocation {0} not found in DataArchive", loc);
+                return new Collection<MethodCall>();
+            }
+            var calls = scope.MethodCalls.Where(mc => mc.Location.Contains(loc));
+            return new Collection<MethodCall>(calls.OrderByDescending(mc => mc.Location, new SourceLocationComparer()).ToList());
         }
 
-        public AbstractUse<TUse> FindUse<TUse>(XElement element) where TUse : class {
-            throw new NotImplementedException();
+        /// <summary>
+        /// Returns the method calls surrounding the given srcML element.
+        /// These are sorted with the calls closest to the element appearing first.
+        /// </summary>
+        /// <param name="element">The XElement to search for.</param>
+        /// <returns>A collection of the method calls at the given element.</returns>
+        public Collection<MethodCall> FindMethodCalls(XElement element) {
+            if(element == null) throw new ArgumentNullException("element");
+            return FindMethodCalls(element.GetXPath());
         }
 
+        /// <summary>
+        /// Returns the method calls at the given source location.
+        /// These are sorted with the calls closest to the location appearing first.
+        /// </summary>
+        /// <param name="xpath">The path to search for.</param>
+        /// <returns>A collection of the method calls at the given path.</returns>
+        public Collection<MethodCall> FindMethodCalls(string xpath) {
+            if(xpath == null) throw new ArgumentNullException("xpath");
+            var scope = globalScope.GetScopeForLocation(xpath);
+            var calls = scope.MethodCalls.Where(mc => xpath.StartsWith(mc.Location.XPath));
+            return new Collection<MethodCall>(calls.OrderByDescending(mc => mc.Location, new SourceLocationComparer()).ToList());
+        }
 
 
         #region Private Methods
@@ -186,5 +223,18 @@ namespace ABB.SrcML.Data {
 
         #endregion
 
+        class SourceLocationComparer : Comparer<SourceLocation> {
+            public override int Compare(SourceLocation x, SourceLocation y) {
+                if(object.Equals(x, y)) return 0;
+                if(x == null && y != null) return -1;
+                if(x != null && y == null) return 1;
+
+                var result = x.StartingLineNumber.CompareTo(y.StartingLineNumber);
+                if(result == 0) {
+                    result = x.StartingColumnNumber.CompareTo(y.StartingColumnNumber);
+                }
+                return result;
+            }
+        }
     }
 }
