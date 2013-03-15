@@ -67,6 +67,10 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public ReadOnlyCollection<TypeUse> ParentTypes { get; protected set; }
 
+        /// <summary>
+        /// Adds <paramref name="parentTypeUse"/> as a parent type for this type definition
+        /// </summary>
+        /// <param name="parentTypeUse">The parent type to add</param>
         public void AddParentType(TypeUse parentTypeUse) {
             if(null == parentTypeUse) throw new ArgumentNullException("parentTypeUse");
 

@@ -163,7 +163,7 @@ namespace ABB.SrcML.Data.Test {
             var typeA = mainMethod.ChildScopes.First() as TypeDefinition;
             Assert.AreEqual("A", typeA.Name);
             Assert.AreEqual("main.A", typeA.GetFullName());
-            Assert.AreEqual(String.Empty, typeA.GetFirstScope<NamespaceDefinition>().GetFullName());
+            Assert.AreEqual(String.Empty, typeA.GetFirstParent<NamespaceDefinition>().GetFullName());
         }
 
         [Test]
@@ -229,11 +229,11 @@ namespace ABB.SrcML.Data.Test {
             var inner = typeDefinitions.Last() as TypeDefinition;
 
             Assert.AreEqual("B", outer.Name);
-            Assert.AreEqual("A", outer.GetFirstScope<NamespaceDefinition>().GetFullName());
+            Assert.AreEqual("A", outer.GetFirstParent<NamespaceDefinition>().GetFullName());
             Assert.AreEqual("A.B", outer.GetFullName());
 
             Assert.AreEqual("C", inner.Name);
-            Assert.AreEqual("A", inner.GetFirstScope<NamespaceDefinition>().GetFullName());
+            Assert.AreEqual("A", inner.GetFirstParent<NamespaceDefinition>().GetFullName());
             Assert.AreEqual("A.B.C", inner.GetFullName());
         }
 

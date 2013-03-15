@@ -27,10 +27,12 @@ namespace ABB.SrcML.Data.Test {
         public void ClassSetup() {
             FileUnitSetup = new Dictionary<Language, SrcMLFileUnitSetup>() {
                 { Language.CPlusPlus, new SrcMLFileUnitSetup(Language.CPlusPlus) },
+                { Language.CSharp, new SrcMLFileUnitSetup(Language.CSharp) },
                 { Language.Java, new SrcMLFileUnitSetup(Language.Java) },
             };
             CodeParser = new Dictionary<Language, AbstractCodeParser>() {
                 { Language.CPlusPlus, new CPlusPlusCodeParser() },
+                { Language.CSharp, new CSharpCodeParser() },
                 { Language.Java, new JavaCodeParser() },
             };
         }
@@ -225,5 +227,198 @@ namespace ABB.SrcML.Data.Test {
             Assert.IsTrue(constructor.IsConstructor);
             Assert.AreSame(constructor, callInMain.FindMatches().First());
         }
+
+        [Test]
+        public void TestTypeUseForOtherNamespace_Java() {
+            //package A.B;
+            //class C {
+            //    int Foo();
+            //}
+            string c_xml = @"<package>package <name>A</name>.<name>B</name>;</package>
+<class>class <name>C</name> <block>{
+    <function_decl><type><name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list>;</function_decl>
+}</block></class>";
+
+            //package D;
+            //import A.B;
+            //class E {
+            //    public static void main() {
+            //        C c = new C();
+            //        c.Foo();
+            //    }
+            //}
+            string e_xml = @"<package>package <name>D</name>;</package>
+<import>import <name>A</name>.<name>B</name>.*;</import>
+<class>class <name>E</name> <block>{
+    <function><type><specifier>public</specifier> <specifier>static</specifier> <name>void</name></type> <name>main</name><parameter_list>()</parameter_list> <block>{
+        <decl_stmt><decl><type><name>C</name></type> <name>c</name> =<init> <expr><op:operator>new</op:operator> <call><name>C</name><argument_list>()</argument_list></call></expr></init></decl>;</decl_stmt>
+        <expr_stmt><expr><call><name><name>c</name><op:operator>.</op:operator><name>Foo</name></name><argument_list>()</argument_list></call></expr>;</expr_stmt>
+    }</block></function>
+}</block></class>";
+
+            var cUnit = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(c_xml, "C.java");
+            var eUnit = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(e_xml, "E.java");
+
+            var globalScope = CodeParser[Language.Java].ParseFileUnit(cUnit);
+            globalScope = globalScope.Merge(CodeParser[Language.Java].ParseFileUnit(eUnit)) as NamespaceDefinition;
+
+            var typeC = globalScope.GetDescendantScopes<TypeDefinition>().Where(t => t.Name == "C").FirstOrDefault();
+            var typeE = globalScope.GetDescendantScopes<TypeDefinition>().Where(t => t.Name == "E").FirstOrDefault();
+
+            var mainMethod = typeE.ChildScopes.First() as MethodDefinition;
+            Assert.IsNotNull(mainMethod, "is not a method definition");
+            Assert.AreEqual("main", mainMethod.Name);
+
+            var fooMethod = typeC.GetChildScopes<MethodDefinition>().FirstOrDefault();
+            Assert.IsNotNull(fooMethod, "no method foo found");
+            Assert.AreEqual("Foo", fooMethod.Name);
+
+            var cDeclaration = mainMethod.DeclaredVariables.FirstOrDefault();
+            Assert.IsNotNull(cDeclaration, "No declaration found");
+            Assert.AreSame(typeC, cDeclaration.VariableType.FindFirstMatchingType());
+
+            var callToCConstructor = mainMethod.MethodCalls.First();
+            var callToFoo = mainMethod.MethodCalls.Last();
+
+            Assert.AreEqual("C", callToCConstructor.Name);
+            Assert.That(callToCConstructor.IsConstructor);
+            Assert.IsNull(callToCConstructor.FindMatches().FirstOrDefault());
+
+            Assert.AreEqual("Foo", callToFoo.Name);
+            Assert.AreSame(fooMethod, callToFoo.FindMatches().FirstOrDefault());
+        }
+
+        [Test]
+        public void TestTypeUseForOtherNamespace_Cpp() {
+            //namespace A {
+            //    namespace B {
+            //        class C {
+            //            int Foo() { }
+            //        };
+            //    }
+            //}
+            string c_xml = @"<namespace>namespace <name>A</name> <block>{
+    <namespace>namespace <name>B</name> <block>{
+        <class>class <name>C</name> <block>{<private type=""default"">
+            <function><type><name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></function>
+        </private>}</block>;</class>
+    }</block></namespace>
+}</block></namespace>";
+
+            //using namespace A::B;
+            //namespace D {
+            //    class E {
+            //        void main() {
+            //            C c = new C();
+            //            c.Foo();
+            //        }
+            //    };
+            //}
+            string e_xml = @"<using>using namespace <name><name>A</name><op:operator>::</op:operator><name>B</name></name>;</using>
+<namespace>namespace <name>D</name> <block>{
+    <class>class <name>E</name> <block>{<private type=""default"">
+        <function><type><name>void</name></type> <name>main</name><parameter_list>()</parameter_list> <block>{
+            <decl_stmt><decl><type><name>C</name></type> <name>c</name> =<init> <expr><op:operator>new</op:operator> <call><name>C</name><argument_list>()</argument_list></call></expr></init></decl>;</decl_stmt>
+            <expr_stmt><expr><name>c</name><op:operator>.</op:operator><call><name>Foo</name><argument_list>()</argument_list></call></expr>;</expr_stmt>
+        }</block></function>
+    </private>}</block>;</class>
+}</block></namespace>";
+
+            var cUnit = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(c_xml, "C.cpp");
+            var eUnit = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(e_xml, "E.cpp");
+
+            var globalScope = CodeParser[Language.CPlusPlus].ParseFileUnit(cUnit);
+            globalScope = globalScope.Merge(CodeParser[Language.CPlusPlus].ParseFileUnit(eUnit)) as NamespaceDefinition;
+
+            var typeC = globalScope.GetDescendantScopes<TypeDefinition>().Where(t => t.Name == "C").FirstOrDefault();
+            var typeE = globalScope.GetDescendantScopes<TypeDefinition>().Where(t => t.Name == "E").FirstOrDefault();
+
+            var mainMethod = typeE.ChildScopes.First() as MethodDefinition;
+            Assert.IsNotNull(mainMethod, "is not a method definition");
+            Assert.AreEqual("main", mainMethod.Name);
+
+            var fooMethod = typeC.GetChildScopes<MethodDefinition>().FirstOrDefault();
+            Assert.IsNotNull(fooMethod, "no method foo found");
+            Assert.AreEqual("Foo", fooMethod.Name);
+
+            var cDeclaration = mainMethod.DeclaredVariables.FirstOrDefault();
+            Assert.IsNotNull(cDeclaration, "No declaration found");
+            Assert.AreSame(typeC, cDeclaration.VariableType.FindFirstMatchingType());
+
+            var callToCConstructor = mainMethod.MethodCalls.First();
+            var callToFoo = mainMethod.MethodCalls.Last();
+
+            Assert.AreEqual("C", callToCConstructor.Name);
+            Assert.That(callToCConstructor.IsConstructor);
+            Assert.IsNull(callToCConstructor.FindMatches().FirstOrDefault());
+
+            Assert.AreEqual("Foo", callToFoo.Name);
+            Assert.AreSame(fooMethod, callToFoo.FindMatches().FirstOrDefault());
+        }
+
+        [Test]
+        public void TestTypeUseForOtherNamespace_CSharp() {
+            //namespace A.B {
+            //    class C {
+            //        int Foo() { }
+            //    }
+            //}
+            string c_xml = @"<namespace>namespace <name><name>A</name><op:operator>.</op:operator><name>B</name></name> <block>{
+    <class>class <name>C</name> <block>{
+        <function><type><name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></function>
+    }</block></class>
+}</block></namespace>";
+
+            //using A.B;
+            //namespace D {
+            //    class E {
+            //        void main() {
+            //            C c = new C();
+            //            c.Foo();
+            //        }
+            //    }
+            //}
+            string e_xml = @"<using>using <name><name>A</name><op:operator>.</op:operator><name>B</name></name>;</using>
+<namespace>namespace <name>D</name> <block>{
+    <class>class <name>E</name> <block>{
+        <function><type><name>void</name></type> <name>main</name><parameter_list>()</parameter_list> <block>{
+            <decl_stmt><decl><type><name>C</name></type> <name>c</name> =<init> <expr><op:operator>new</op:operator> <call><name>C</name><argument_list>()</argument_list></call></expr></init></decl>;</decl_stmt>
+            <expr_stmt><expr><call><name><name>c</name><op:operator>.</op:operator><name>Foo</name></name><argument_list>()</argument_list></call></expr>;</expr_stmt>
+        }</block></function>
+    }</block></class>
+}</block></namespace>";
+
+            var cUnit = FileUnitSetup[Language.CSharp].GetFileUnitForXmlSnippet(c_xml, "C.cpp");
+            var eUnit = FileUnitSetup[Language.CSharp].GetFileUnitForXmlSnippet(e_xml, "E.cpp");
+
+            var globalScope = CodeParser[Language.CSharp].ParseFileUnit(cUnit);
+            globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(eUnit)) as NamespaceDefinition;
+
+            var typeC = globalScope.GetDescendantScopes<TypeDefinition>().Where(t => t.Name == "C").FirstOrDefault();
+            var typeE = globalScope.GetDescendantScopes<TypeDefinition>().Where(t => t.Name == "E").FirstOrDefault();
+
+            var mainMethod = typeE.ChildScopes.First() as MethodDefinition;
+            Assert.IsNotNull(mainMethod, "is not a method definition");
+            Assert.AreEqual("main", mainMethod.Name);
+
+            var fooMethod = typeC.GetChildScopes<MethodDefinition>().FirstOrDefault();
+            Assert.IsNotNull(fooMethod, "no method foo found");
+            Assert.AreEqual("Foo", fooMethod.Name);
+
+            var cDeclaration = mainMethod.DeclaredVariables.FirstOrDefault();
+            Assert.IsNotNull(cDeclaration, "No declaration found");
+            Assert.AreSame(typeC, cDeclaration.VariableType.FindFirstMatchingType());
+
+            var callToCConstructor = mainMethod.MethodCalls.First();
+            var callToFoo = mainMethod.MethodCalls.Last();
+
+            Assert.AreEqual("C", callToCConstructor.Name);
+            Assert.That(callToCConstructor.IsConstructor);
+            Assert.IsNull(callToCConstructor.FindMatches().FirstOrDefault());
+
+            Assert.AreEqual("Foo", callToFoo.Name);
+            Assert.AreSame(fooMethod, callToFoo.FindMatches().FirstOrDefault());
+        }
     }
 }
+

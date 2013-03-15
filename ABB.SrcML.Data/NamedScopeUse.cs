@@ -30,6 +30,10 @@ namespace ABB.SrcML.Data {
             return scope;
         }
 
+        /// <summary>
+        /// Constructs the full name for this named scope use by combining this scope with all of its <see cref="ChildScopeUse">children</see>
+        /// </summary>
+        /// <returns>The full name</returns>
         public string GetFullName() {
             StringBuilder sb = new StringBuilder();
             var current = this;
@@ -43,7 +47,11 @@ namespace ABB.SrcML.Data {
             }
             return sb.ToString();
         }
-
+        /// <summary>
+        /// Returns true if this scope matches <paramref name="definition"/>
+        /// </summary>
+        /// <param name="definition">The scope to check</param>
+        /// <returns>True if this and definition have the same name</returns>
         public override bool Matches(NamedScope definition) {
             if(null == definition) return false;
             return definition.Name == this.Name;

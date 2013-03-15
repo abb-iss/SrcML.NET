@@ -11,11 +11,17 @@ namespace ABB.SrcML.Data {
         private NamespaceUse namespaceRoot;
         private NamedScopeUse endPoint;
 
+        /// <summary>
+        /// The namespace root identified by this alias
+        /// </summary>
         public NamespaceUse ImportedNamespace {
             get { return namespaceRoot; }
             set { this.namespaceRoot = value; }
         }
 
+        /// <summary>
+        /// the specific object identified by this alias
+        /// </summary>
         public NamedScopeUse ImportedNamedScope {
             get { return endPoint; }
             set {
@@ -34,6 +40,9 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public SrcMLLocation Location { get; set; }
 
+        /// <summary>
+        /// The programming language this alias was produced from
+        /// </summary>
         public Language ProgrammingLanguage { get; set; }
 
         
@@ -45,18 +54,26 @@ namespace ABB.SrcML.Data {
             this.ImportedNamespace = null;
         }
 
+        /// <summary>
+        /// Constructs the namespace name for this alias
+        /// </summary>
+        /// <returns>the namespace name</returns>
         public string GetNamespaceName() {
             if(null == this.ImportedNamespace)
                 return String.Empty;
             return this.ImportedNamespace.GetFullName();
         }
 
+        /// <summary>
+        /// Gets the full name for this alias
+        /// </summary>
+        /// <returns>the full name for this alias</returns>
         public string GetFullName() {
             return String.Format("{0}.{1}", GetNamespaceName(), ImportedNamedScope.GetFullName()).TrimStart('.');
         }
         /// <summary>
         /// Checks if this is a valid alias for the given type use. Namespace prefixes are always valid.
-        /// Other prefixes must have <paramref name="Name"/> match <see cref="TypeUse.Name"/>
+        /// Other prefixes must have <see cref="ImportedNamedScope"/> match <see cref="AbstractUse{T}.Name"/>
         /// </summary>
         /// <param name="typeUse">the type use to check</param>
         /// <returns>true if this alias may represent this type use.</returns>
@@ -78,19 +95,9 @@ namespace ABB.SrcML.Data {
         /// <param name="namedScope">The named scope to check</param>
         /// <returns>True if this alias can apply to the provided named scope; false otherwise</returns>
         public bool IsAliasFor(NamedScope namedScope) {
-            //if(!namedScope.HasPrefix)
-            //    return false;
             if(this.IsNamespaceImport)
                 return true;
             return false;
-            //return this.GetFullName().EndsWith(namedScope.Prefix.GetFullName());
-        }
-
-        public string MakeQualifiedName(NamedScopeUse use) {
-            if(IsNamespaceImport) {
-                return String.Format("{0}.{1}", GetNamespaceName(), use.GetFullName()).Trim('.');
-            }
-            throw new NotImplementedException("this case is not implemented");
         }
     }
 }

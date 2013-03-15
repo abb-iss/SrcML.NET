@@ -20,7 +20,7 @@ using System.Xml.Linq;
 namespace ABB.SrcML.Data {
     /// <summary>
     /// <para>AbstractCodeParser is used to parse SrcML files and extract useful info from the elements. Implementations of this class provide language-specific functions to extract useful data from the class.</para>
-    /// <para>It contains two methods that wrap the language specific methods: <see cref="CreateTypeDefinition(XElement,XElement)"/> and <see cref="CreateTypeUse(XElement,XElement,IEnumerable{Alias})"/></para>
+    /// <para>The entry point for this class is the <see cref="ParseFileUnit(XElement)"/> method.</para>
     /// </summary>
     public abstract class AbstractCodeParser {
         /// <summary>
@@ -167,10 +167,15 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Creates a <see cref="NamespaceDefinition"/> object for <paramref name="namespaceElement"/> and pushes it onto <paramref name="context"/>
         /// </summary>
-        /// <param name="methodElement">The element to parse</param>
+        /// <param name="namespaceElement">The element to parse</param>
         /// <param name="context">The context to place the resulting namespace definition in</param>
         public abstract void ParseNamespaceElement(XElement namespaceElement, ParserContext context);
 
+        /// <summary>
+        /// Parses a type element and pushes a it onto the <paramref name="context"/>.
+        /// </summary>
+        /// <param name="typeElement">the type element to parse</param>
+        /// <param name="context">The parser context</param>
         public virtual void ParseTypeElement(XElement typeElement, ParserContext context) {
             if(null == typeElement) throw new ArgumentNullException("typeElement");
 
@@ -189,7 +194,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Creates a global <see cref="NamespaceDefinition"/> object for <paramref name="unitElement"/> and pushes it onto <paramref name="context"/>
         /// </summary>
-        /// <param name="methodElement">The element to parse</param>
+        /// <param name="unitElement">The element to parse</param>
         /// <param name="context">The context to place the resulting namespace definition in</param>
         public virtual void ParseUnitElement(XElement unitElement, ParserContext context) {
             if(null == unitElement) throw new ArgumentNullException("unitElement");
@@ -208,7 +213,7 @@ namespace ABB.SrcML.Data {
         /// Creates an <see cref="Alias"/> object from a using import (such as using in C++ and C# and import in Java).
         /// </summary>
         /// <param name="aliasStatement">The statement to parse. Should be of type <see cref="AliasElementName"/></param>
-        /// <param name="fileUnit">The file unit that contains this element</param>
+        /// <param name="context">The context to place the resulting alias in</param>
         /// <returns>a new alias object that represents this alias statement</returns>
         public Alias ParseAliasElement(XElement aliasStatement, ParserContext context) {
             if(null == aliasStatement) throw new ArgumentNullException("aliasStatement");
@@ -404,7 +409,7 @@ namespace ABB.SrcML.Data {
                 Prefix = prefix,
                 ProgrammingLanguage = this.ParserLanguage,
             };
-
+            typeUse.AddAliases(context.Aliases);
             return typeUse;
         }
 
@@ -415,6 +420,12 @@ namespace ABB.SrcML.Data {
         /// <returns>An enumerable of type uses that represent parent types</returns>
         public abstract IEnumerable<XElement> GetParentTypeUseElements(XElement typeElement);
 
+        /// <summary>
+        /// Creates a named scope use element
+        /// </summary>
+        /// <param name="nameElement">The name element to parse</param>
+        /// <param name="context">The parser context</param>
+        /// <returns>A named scope use for this element</returns>
         public NamedScopeUse ParseNamedScopeUsePrefix(XElement nameElement, ParserContext context) {
             IEnumerable<XElement> parentNameElements = Enumerable.Empty<XElement>();
 
@@ -452,7 +463,13 @@ namespace ABB.SrcML.Data {
             return parameters;
         }
 
-        // TODO make this fit in with the rest of the parse methods
+        /// <summary>
+        /// Creates a resolvable use from an expression
+        /// </summary>
+        /// <param name="element">The element to parse</param>
+        /// <param name="context">The parser context</param>
+        /// <returns>A resolvable use object</returns>
+        // TODO make this fit in with the rest of the parse methods (rename to parse)
         public virtual IResolvesToType CreateResolvableUse(XElement element, ParserContext context) {
             var use = new VariableUse() {
                 Location = context.CreateLocation(element, true),
@@ -462,6 +479,12 @@ namespace ABB.SrcML.Data {
             return use;
         }
         
+        /// <summary>
+        /// Creates a variable use from the given element. Must be a <see cref="ABB.SrcML.SRC.Expression"/>, <see cref="ABB.SrcML.SRC.Name"/>, or <see cref="ABB.SrcML.SRC.ExpressionStatement"/>
+        /// </summary>
+        /// <param name="element">The element to parse</param>
+        /// <param name="context">The parser context</param>
+        /// <returns>A variable use object</returns>
         // TODO make this fit in with the rest of the parse methods
         public virtual VariableUse CreateVariableUse(XElement element, ParserContext context) {
             XElement nameElement;
@@ -510,6 +533,12 @@ namespace ABB.SrcML.Data {
         }
         #endregion
 
+        /// <summary>
+        /// Gets the alias elements for this file. This only returns the aliases at the root of the file
+        /// </summary>
+        /// <param name="fileUnit">The file unit to get the aliases from</param>
+        /// <returns>The alias elements</returns>
+        // TODO handle alias elements in other parts of the file
         public virtual IEnumerable<XElement> GetAliasElementsForFile(XElement fileUnit) {
             if(null == fileUnit) throw new ArgumentNullException("fileUnit");
             if(SRC.Unit != fileUnit.Name) throw new ArgumentException("must be a unit element", "fileUnit");
@@ -574,6 +603,11 @@ namespace ABB.SrcML.Data {
         #endregion
 
         #region get method calls from scope
+        /// <summary>
+        /// Gets the method calls from an element
+        /// </summary>
+        /// <param name="element">The element to search</param>
+        /// <returns>All of the call elements from the element</returns>
         public virtual IEnumerable<XElement> GetMethodCallsFromElement(XElement element) {
             if(MethodElementNames.Contains(element.Name) ||
                NamespaceElementNames.Contains(element.Name) ||
@@ -601,6 +635,11 @@ namespace ABB.SrcML.Data {
         #endregion get method calls from scope
 
         #region get declarations from scope
+        /// <summary>
+        /// Gets the declaration elements from an element
+        /// </summary>
+        /// <param name="element">The element to search</param>
+        /// <returns>All of the declaration elements from an element</returns>
         public virtual IEnumerable<XElement> GetDeclarationsFromElement(XElement element) {
             if(null == element) return Enumerable.Empty<XElement>();
 
@@ -720,6 +759,12 @@ namespace ABB.SrcML.Data {
         #endregion access modifiers
 
         #region parse literal types
+        /// <summary>
+        /// Parses a literal use element
+        /// </summary>
+        /// <param name="literalElement">The literal element to parse</param>
+        /// <param name="context">The parser context</param>
+        /// <returns>A literal use object</returns>
         public virtual LiteralUse ParseLiteralElement(XElement literalElement, ParserContext context) {
             if(literalElement == null) throw new ArgumentNullException("literalElement");
             if(literalElement.Name != LIT.Literal) throw new ArgumentException("should be a literal", "literalElement");
@@ -738,6 +783,12 @@ namespace ABB.SrcML.Data {
             return use;
         }
 
+        /// <summary>
+        /// Gets the type of the literal element
+        /// </summary>
+        /// <param name="kind">The literal kind</param>
+        /// <param name="literalValue">The value</param>
+        /// <returns>The name of this type</returns>
         public virtual string GetTypeForLiteralValue(LiteralKind kind, string literalValue) {
             switch(kind) {
                 case LiteralKind.Boolean:
@@ -752,9 +803,32 @@ namespace ABB.SrcML.Data {
             return String.Empty;
         }
 
+        /// <summary>
+        /// Gets the type for a boolean literal
+        /// </summary>
+        /// <param name="literalValue">The literal value to parse</param>
+        /// <returns>The type name</returns>
         public abstract string GetTypeForBooleanLiteral(string literalValue);
+
+        /// <summary>
+        /// Gets the type for a character literal
+        /// </summary>
+        /// <param name="literalValue">the literal value to parse</param>
+        /// <returns>The type name</returns>
         public abstract string GetTypeForCharacterLiteral(string literalValue);
+
+        /// <summary>
+        /// Gets the type for a number literal
+        /// </summary>
+        /// <param name="literalValue">The literal value to parse</param>
+        /// <returns>The type name</returns>
         public abstract string GetTypeForNumberLiteral(string literalValue);
+
+        /// <summary>
+        /// Gets the type for a string literal
+        /// </summary>
+        /// <param name="literalValue">The literal value to parse</param>
+        /// <returns>The type name</returns>
         public abstract string GetTypeForStringLiteral(string literalValue);
         #endregion
 
@@ -762,7 +836,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Checks to see if this callElement is a reference container
         /// </summary>
-        /// <param name="callElement">The callElement to check</param>
+        /// <param name="element">The callElement to check</param>
         /// <returns>True if this is a reference container; false otherwise</returns>
         public virtual bool ContainerIsReference(XElement element) {
             return (element != null && ContainerReferenceElementNames.Contains(element.Name));
@@ -799,9 +873,9 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Gets the name for the type callElement
+        /// Gets the name for the type element
         /// </summary>
-        /// <param name="typeElement">The type callElement to get the name for</param>
+        /// <param name="typeElement">The type element to get the name for</param>
         /// <returns>The name of the type</returns>
         public virtual string GetNameForType(XElement typeElement) {
             var name = typeElement.Element(SRC.Name);

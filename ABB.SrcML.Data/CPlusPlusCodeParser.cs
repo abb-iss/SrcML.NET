@@ -64,7 +64,7 @@ namespace ABB.SrcML.Data {
 
         /// <summary>
         /// Creates a method definition object from <paramref name="methodElement"/>. For C++, it looks for
-        /// <code>int A::B::Foo(){ }</code> and sets the <see cref="NamedScope.UnresolvedParentScope"/> property to "A->B".
+        /// <code>int A::B::Foo(){ }</code> and adds "A->B" to <see cref="NamedScope.ParentScopeCandidates"/>
         /// </summary>
         /// <param name="methodElement">The method typeUseElement</param>
         /// <param name="context">The parser context</param>
@@ -97,7 +97,7 @@ namespace ABB.SrcML.Data {
         /// Gets the access modifiers for this method. In C++, methods are contained within "specifier" blocks
         /// </summary>
         /// <param name="methodElement">The method typeUseElement</param>
-        /// <returns>The access modifier for this method; if none, it returns <see cref="AccesModifier.None"/></returns>
+        /// <returns>The access modifier for this method; if none, it returns <see cref="AccessModifier.None"/></returns>
         public override AccessModifier GetAccessModifierForMethod(XElement methodElement) {
             Dictionary<XName, AccessModifier> accessModifierMap = new Dictionary<XName, AccessModifier>() {
                 { SRC.Public, AccessModifier.Public },
@@ -138,7 +138,7 @@ namespace ABB.SrcML.Data {
         /// Checks if this alias statement represents a namespace import or something more specific (such as a method or class alias).
         /// In C++, namespace aliases contain the "namespace" keyword (for instance, <c>using namespace std;</c>).
         /// </summary>
-        /// <param name="aliasStatement">The statement to parse. Should be of type <see cref="AliasElementName"/></param>
+        /// <param name="aliasStatement">The statement to parse. Should be of type <see cref="AbstractCodeParser.AliasElementName"/></param>
         /// <returns>True if this is a namespace import; false otherwise</returns>
         public override bool AliasIsNamespaceImport(XElement aliasStatement) {
             if(null == aliasStatement) throw new ArgumentNullException("aliasStatement");
@@ -193,14 +193,29 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        /// <summary>
+        /// Parses a C++ boolean literal
+        /// </summary>
+        /// <param name="literalValue">The literal value</param>
+        /// <returns>Returns "bool"</returns>
         public override string GetTypeForBooleanLiteral(string literalValue) {
             return "bool";
         }
 
+        /// <summary>
+        /// Parses a C++ character literal
+        /// </summary>
+        /// <param name="literalValue">The literal value</param>
+        /// <returns>Returns "char"</returns>
         public override string GetTypeForCharacterLiteral(string literalValue) {
             return "char";
         }
 
+        /// <summary>
+        /// Parses a C++ number literal
+        /// </summary>
+        /// <param name="literalValue">The literal value</param>
+        /// <returns>Uses <see href="http://www.cplusplus.com/doc/tutorial/constants/">C++ number rules</see> to determine the proper type</returns>
         public override string GetTypeForNumberLiteral(string literalValue) {
             // rules taken from: http://www.cplusplus.com/doc/tutorial/constants/
             // double rules: contains '.', 'e', 'E'
@@ -214,6 +229,11 @@ namespace ABB.SrcML.Data {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Parses a C++ string literal
+        /// </summary>
+        /// <param name="literalValue">The literal value</param>
+        /// <returns>Returns "char*"</returns>
         public override string GetTypeForStringLiteral(string literalValue) {
             return "char*";
         }

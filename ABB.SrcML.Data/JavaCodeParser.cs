@@ -52,6 +52,11 @@ namespace ABB.SrcML.Data {
             return namespaceForFile;
         }
 
+        /// <summary>
+        /// Parses a java file unit. This handles the "package" directive by calling <see cref="ParseNamespaceElement"/>
+        /// </summary>
+        /// <param name="unitElement">The file unit to parse</param>
+        /// <param name="context">The parser context to place the global scope in</param>
         public override void ParseUnitElement(XElement unitElement, ParserContext context) {
             if(null == unitElement) throw new ArgumentNullException("unitElement");
             if(unitElement.Name != SRC.Unit) throw new ArgumentException("should be a unit", "unitElement");
@@ -65,6 +70,11 @@ namespace ABB.SrcML.Data {
             ParseNamespaceElement(unitElement, context);
         }
 
+        /// <summary>
+        /// Parses a Java package directive
+        /// </summary>
+        /// <param name="namespaceElement">A file unit</param>
+        /// <param name="context">The parser context</param>
         public override void ParseNamespaceElement(XElement namespaceElement, ParserContext context) {
             var javaPackage = context.FileUnit.Elements(SRC.Package).FirstOrDefault();
 
@@ -104,6 +114,11 @@ namespace ABB.SrcML.Data {
             return (modifiers.Any() ? modifiers.First() : AccessModifier.None);
         }
 
+        /// <summary>
+        /// Gets the parent type from a java type
+        /// </summary>
+        /// <param name="typeElement">The type element</param>
+        /// <returns>The parent type elements for the class</returns>
         public override IEnumerable<XElement> GetParentTypeUseElements(XElement typeElement) {
             var superTag = typeElement.Element(SRC.Super);
 
@@ -118,18 +133,38 @@ namespace ABB.SrcML.Data {
             return parentElements;
         }
 
+        /// <summary>
+        /// Parses a java boolean literal
+        /// </summary>
+        /// <param name="literalValue">the literal value</param>
+        /// <returns>not implemented</returns>
         public override string GetTypeForBooleanLiteral(string literalValue) {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Parses a java character literal
+        /// </summary>
+        /// <param name="literalValue">the literal value</param>
+        /// <returns>not implemented</returns>
         public override string GetTypeForCharacterLiteral(string literalValue) {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Parses a java number literal
+        /// </summary>
+        /// <param name="literalValue">the literal value</param>
+        /// <returns>not implemented</returns>
         public override string GetTypeForNumberLiteral(string literalValue) {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Parses a java string
+        /// </summary>
+        /// <param name="literalValue">the literal value</param>
+        /// <returns>Not implemented</returns>
         public override string GetTypeForStringLiteral(string literalValue) {
             throw new NotImplementedException();
         }
@@ -137,7 +172,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Checks if this java import statement is a wild card (<c>import java.lang.*</c>) or for a specific class (<c>import java.lang.String</c>)
         /// </summary>
-        /// <param name="aliasStatement">The alias statement to check. Must be of type <see cref="AliasElementName"/></param>
+        /// <param name="aliasStatement">The alias statement to check. Must be of type <see cref="AbstractCodeParser.AliasElementName"/></param>
         /// <returns>True if this import statement ends with an asterisk; false otherwise</returns>
         public override bool AliasIsNamespaceImport(XElement aliasStatement) {
             if(null == aliasStatement) throw new ArgumentNullException("aliasStatement");
@@ -154,7 +189,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Gets all of the names for this alias
         /// </summary>
-        /// <param name="aliasStatement">The alias statement. Must be of type <see cref="AliasElementName"/></param>
+        /// <param name="aliasStatement">The alias statement. Must be of type <see cref="AbstractCodeParser.AliasElementName"/></param>
         /// <returns>An enumerable of all the <see cref="ABB.SrcML.SRC.Name">name elements</see> for this statement</returns>
         public override IEnumerable<XElement> GetNamesFromAlias(XElement aliasStatement) {
             if(null == aliasStatement) throw new ArgumentNullException("aliasStatement");

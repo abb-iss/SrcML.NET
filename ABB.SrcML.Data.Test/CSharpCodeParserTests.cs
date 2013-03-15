@@ -298,11 +298,11 @@ namespace ABB.SrcML.Data.Test {
             Assert.IsNotNull(typeB);
 
             Assert.AreEqual("A", typeA.Name);
-            Assert.AreEqual("Foo", typeA.GetFirstScope<NamespaceDefinition>().GetFullName());
+            Assert.AreEqual("Foo", typeA.GetFirstParent<NamespaceDefinition>().GetFullName());
             Assert.AreEqual("Foo.A", typeA.GetFullName());
 
             Assert.AreEqual("B", typeB.Name);
-            Assert.AreEqual("Foo", typeB.GetFirstScope<NamespaceDefinition>().GetFullName());
+            Assert.AreEqual("Foo", typeB.GetFirstParent<NamespaceDefinition>().GetFullName());
             Assert.AreEqual("Foo.A.B", typeB.GetFullName());
         }
 

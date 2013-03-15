@@ -16,7 +16,7 @@ using System.Text;
 
 namespace ABB.SrcML.Data {
     /// <summary>
-    /// This interface provides methods that <see cref="AbstractUse"/> objects should implement if they should resolve to a return type
+    /// This interface provides methods that <see cref="AbstractUse{T}"/> objects should implement if they should resolve to a return type
     /// <see cref="FindFirstMatchingType()"/> should be a call to <c><see cref="FindMatchingTypes()"/>.FirstOrDefault()</c>
     /// </summary>
     public interface IResolvesToType {
