@@ -109,8 +109,10 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// </summary>
         /// <param name="srcMLArchiveDirectory"></param>
         /// <param name="useExistingSrcML"></param>
-        public void StartMonitoring(string srcMLArchiveDirectory, bool useExistingSrcML, string srcMLBinaryDirectory) {
-            SrcMLFileLogger.DefaultLogger.Info("SrcMLGlobalService.StartMonitering(" + srcMLArchiveDirectory + ")");
+        public void StartMonitoring(bool useExistingSrcML, string srcMLBinaryDirectory) {
+            // Get the path of the folder that storing the srcML archives
+            string srcMLArchiveDirectory = GetSrcMLArchiveFolder(SolutionMonitorFactory.GetOpenSolution());
+            SrcMLFileLogger.DefaultLogger.Info("SrcMLGlobalService.StartMonitering( " + srcMLArchiveDirectory + " )");
 
             try {
                 // Create a new instance of SrcML.NET's LastModifiedArchive
@@ -138,8 +140,9 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// SrcML service starts to monitor the opened solution.
         /// </summary>
         public void StartMonitoring() {
-            string srcMLArchiveDirectory = GetSrcMLArchiveFolder(SolutionMonitorFactory.GetOpenSolution());
-            StartMonitoring(srcMLArchiveDirectory, true, SrcMLHelper.GetSrcMLDefaultDirectory());
+            SrcMLFileLogger.DefaultLogger.Info("SrcMLGlobalService.StartMonitering() - default");
+
+            StartMonitoring(true, SrcMLHelper.GetSrcMLDefaultDirectory());
         }
 
         /// <summary>
@@ -205,7 +208,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         private string GetName(Solution openSolution) {
             var fullName = openSolution.FullName;
             var split = fullName.Split('\\');
-            return split[split.Length - 1] + fullName.GetHashCode();
+            return split[split.Length - 1].Substring(0, split[split.Length - 1].Length - 4) + fullName.GetHashCode();
         }
 
         /// <summary>
@@ -214,7 +217,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="sender"></param>
         /// <param name="eventArgs"></param>
         private void RespondToFileChangedEvent(object sender, FileEventRaisedArgs eventArgs) {
-            SrcMLFileLogger.DefaultLogger.Info("SrcMLService: RespondToFileChangedEvent(), File = " + eventArgs.FilePath + ", EventType = " + eventArgs.EventType + ", HasSrcML = " + eventArgs.HasSrcML);
+            //SrcMLFileLogger.DefaultLogger.Info("SrcMLService: RespondToFileChangedEvent(), File = " + eventArgs.FilePath + ", EventType = " + eventArgs.EventType + ", HasSrcML = " + eventArgs.HasSrcML);
             OnFileChanged(eventArgs);
         }
 
