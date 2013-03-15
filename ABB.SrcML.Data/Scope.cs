@@ -129,26 +129,33 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public IEnumerable<SrcMLLocation> ReferenceLocations { get { return Locations.Where(l => l.IsReference); } }
 
-        /// <summary>
-        /// The parent scopes for this scope in reverse order (parent is returned first, followed by the grandparent, etc).
-        /// </summary>
-        //public IEnumerable<Scope> ParentScopes {
-        //    get {
-        //        var current = this.ParentScope;
-        //        while(null != current) {
-        //            yield return current;
-        //            current = current.ParentScope;
-        //        }
-        //    }
-        //}
+        public IEnumerable<Scope> GetDescendantScopes() {
+            return GetDescendants(this, false);
+        }
+
+        public IEnumerable<T> GetDescendantScopes<T>() where T : Scope {
+            return GetScopeChain<T>(GetDescendants(this, false));
+        }
+
+        public IEnumerable<Scope> GetDescendantScopesAndSelf() {
+            return GetDescendants(this, true);
+        }
+
+        public IEnumerable<T> GetDescendantScopesAndSelf<T>() where T : Scope {
+            return GetScopeChain<T>(GetDescendants(this, true));
+        }
+
+        public T GetFirstDescendant<T>() where T : Scope {
+            return GetDescendantScopes<T>().FirstOrDefault();
+        }
 
         /// <summary>
         /// Gets the first scope of type <typeparamref name="T"/> from <see cref="GetParentScopesAndSelf<T>()"/>
         /// </summary>
         /// <typeparam name="T">The type to look for</typeparam>
         /// <returns>The first scope of type <typeparamref name="T"/></returns>
-        public T GetFirstScope<T>() where T : Scope {
-            return GetScopeChain<T>(this).FirstOrDefault();
+        public T GetFirstParent<T>() where T : Scope {
+            return GetParentScopes<T>().FirstOrDefault();
         }
 
         /// <summary>
@@ -156,7 +163,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <returns>An enumerable (in reverse order) of all of the parent scopes</returns>
         public IEnumerable<Scope> GetParentScopes() {
-            return GetScopeChain(this.ParentScope);
+            return GetParentsAndStartingPoint(this.ParentScope);
         }
 
         /// <summary>
@@ -165,7 +172,7 @@ namespace ABB.SrcML.Data {
         /// <typeparam name="T">The type to look for</typeparam>
         /// <returns>An enumerable (in reverse order) of all of the parent scopes of type <typeparamref name="T"/></returns>
         public IEnumerable<T> GetParentScopes<T>() where T : Scope {
-            return GetScopeChain<T>(this.ParentScope);
+            return GetScopeChain<T>(GetParentsAndStartingPoint(this.ParentScope));
         }
 
         /// <summary>
@@ -173,7 +180,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <returns>An enumerable (in reverse order) of this element and all of its parents</returns>
         public IEnumerable<Scope> GetParentScopesAndSelf() {
-            return GetScopeChain(this);
+            return GetParentsAndStartingPoint(this);
         }
 
         /// <summary>
@@ -182,7 +189,7 @@ namespace ABB.SrcML.Data {
         /// <typeparam name="T">The type to look for</typeparam>
         /// <returns>An enumerable (in reverse order) of this element and all of its parents of type <typeparamref name="T"/></returns>
         public IEnumerable<T> GetParentScopesAndSelf<T>() where T : Scope {
-            return GetScopeChain<T>(this);
+            return GetScopeChain<T>(GetParentsAndStartingPoint(this));
         }
 
         /// <summary>
@@ -467,19 +474,32 @@ namespace ABB.SrcML.Data {
             }
         }
 
-        private static IEnumerable<T> GetScopeChain<T>(Scope startingPoint) where T : Scope {
-            var results = from scope in GetScopeChain(startingPoint)
-                          let scopeAsT = scope as T
-                          where scopeAsT != null
-                          select scopeAsT;
-            return results;
+        private static IEnumerable<Scope> GetDescendants(Scope startingPoint, bool returnSelf) {
+            if(returnSelf) {
+                yield return startingPoint;
+            }
+
+            foreach(var scope in startingPoint.ChildScopes) {
+                foreach(var descendant in GetDescendants(scope, true)) {
+                    yield return descendant;
+                }
+            }
         }
-        private static IEnumerable<Scope> GetScopeChain(Scope startingPoint) {
+
+        private static IEnumerable<Scope> GetParentsAndStartingPoint(Scope startingPoint) {
             var current = startingPoint;
             while(current != null) {
                 yield return current;
                 current = current.ParentScope;
             }
+        }
+
+        private static IEnumerable<T> GetScopeChain<T>(IEnumerable<Scope> scopes) where T : Scope {
+            var results = from scope in scopes
+                          let scopeAsT = scope as T
+                          where scopeAsT != null
+                          select scopeAsT;
+            return results;
         }
     }
 }
