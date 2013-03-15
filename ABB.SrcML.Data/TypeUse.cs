@@ -21,12 +21,18 @@ namespace ABB.SrcML.Data {
     /// Represents a use of a type. It is used in declarations and inheritance specifications.
     /// </summary>
     public class TypeUse : AbstractUse<TypeDefinition>, IResolvesToType {
+        private List<Alias> internalAliasCollection;
+
         /// <summary>
         /// Create a new type use object.
         /// </summary>
         public TypeUse() {
             this.Name = String.Empty;
+            this.internalAliasCollection = new List<Alias>();
+            this.Aliases = new ReadOnlyCollection<Alias>(internalAliasCollection);
         }
+
+        public ReadOnlyCollection<Alias> Aliases { get; private set; }
 
         public IResolvesToType CallingObject { get; set; }
 
@@ -35,12 +41,63 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public NamedScopeUse Prefix { get; set; }
 
+        public void AddAlias(Alias alias) {
+            if(alias.IsAliasFor(this)) {
+                internalAliasCollection.Add(alias);
+            }
+        }
+
+        public void AddAliases(IEnumerable<Alias> aliasesToAdd) {
+            if(aliasesToAdd != null) {
+                foreach(var alias in aliasesToAdd) {
+                    this.AddAlias(alias);
+                }
+            }
+        }
+
         public override IEnumerable<TypeDefinition> FindMatches() {
             if(BuiltInTypeFactory.IsBuiltIn(this)) {
                 yield return BuiltInTypeFactory.GetBuiltIn(this);
             } else {
                 foreach(var match in base.FindMatches()) {
                     yield return match;
+                }
+
+                if(Aliases.Count > 0) {
+                    var globalScope = (from ns in this.ParentScope.GetParentScopesAndSelf<NamespaceDefinition>()
+                                       where ns.IsGlobal
+                                       select ns).FirstOrDefault();
+                    if(globalScope != null) {
+                        foreach(var alias in this.Aliases) {
+                            if(alias.IsNamespaceImport) {
+                                var currentNsUse = alias.ImportedNamespace;
+
+                                List<Scope> scopes = new List<Scope>();
+                                scopes.Add(globalScope);
+                                
+                                while(currentNsUse != null) {
+                                    int currentLength = scopes.Count;
+                                    for(int i = 0; i < currentLength; i++) {
+                                        var matches = from scope in scopes[i].GetChildScopes<NamedScope>()
+                                                      where scope.Name == currentNsUse.Name
+                                                      select scope;
+                                        scopes.AddRange(matches);
+                                    }
+                                    scopes.RemoveRange(0, currentLength);
+                                    currentNsUse = currentNsUse.ChildScopeUse as NamespaceUse;
+                                }
+
+                                var answers = from scope in scopes
+                                              from typeDefinition in scope.GetChildScopes<TypeDefinition>()
+                                              where typeDefinition.Name == this.Name
+                                              select typeDefinition;
+
+                                foreach(var answer in answers) {
+                                    yield return answer;
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

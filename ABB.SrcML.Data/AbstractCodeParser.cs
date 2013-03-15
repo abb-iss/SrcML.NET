@@ -404,7 +404,7 @@ namespace ABB.SrcML.Data {
                 Prefix = prefix,
                 ProgrammingLanguage = this.ParserLanguage,
             };
-
+            typeUse.AddAliases(context.Aliases);
             return typeUse;
         }
 
