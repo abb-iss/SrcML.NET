@@ -38,7 +38,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
     /// Methods of this interface were implemented to handle project creation/change/deletion events in Visual Studio envinronment.
     /// This class also extends AbstractFileMonitor so that SrcMLService can subscribe events that are raised from solution monitor.
     /// </summary>
-    public class SolutionMonitor : AbstractFileMonitor, IVsTrackProjectDocumentsEvents2, IVsRunningDocTableEvents/*, IVsSolutionEvents*/ {
+    public class SolutionMonitor : AbstractFileMonitor, IVsTrackProjectDocumentsEvents2, IVsRunningDocTableEvents, IVsSolutionEvents {
 
         /*
         public string FullFolderPath { get; set; }
@@ -73,8 +73,8 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// IVsSolution: Provides top-level manipulation or maintenance of the solution.
         /// cookie is used in registering/unregistering events.
         /// </summary>
-        ////private IVsSolution solution;
-        ////private uint cookie = VSConstants.VSCOOKIE_NIL;
+        private IVsSolution solution;
+        private uint cookie = VSConstants.VSCOOKIE_NIL;
 
         /// <summary>
         /// Constructor.
@@ -126,11 +126,12 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// Register Solution events.
         /// </summary>
         public void RegisterSolutionEvents() {
-            //solution = Package.GetGlobalService(typeof(SVsSolution)) as IVsSolution;
-            //if(solution != null) {
-            //    int hr = this.solution.AdviseSolutionEvents(this, out cookie);
-            //    ErrorHandler.ThrowOnFailure(hr);
-            //}
+            SrcMLFileLogger.DefaultLogger.Info("SolutionMonitor: RegisterSolutionEvents()");
+            solution = Package.GetGlobalService(typeof(SVsSolution)) as IVsSolution;
+            if(solution != null) {
+                int hr = this.solution.AdviseSolutionEvents(this, out cookie);
+                ErrorHandler.ThrowOnFailure(hr);
+            }
         }
 
         /// <summary>
@@ -159,11 +160,12 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// Unregister Solution events.
         /// </summary>
         public void UnregisterSolutionEvents() {
-            //if(cookie != VSConstants.VSCOOKIE_NIL && solution != null) {
-            //    int hr = solution.UnadviseSolutionEvents(cookie);
-            //    ErrorHandler.Succeeded(hr);
-            //    cookie = VSConstants.VSCOOKIE_NIL;
-            //}
+            SrcMLFileLogger.DefaultLogger.Info("SolutionMonitor: UnregisterSolutionEvents()");
+            if(cookie != VSConstants.VSCOOKIE_NIL && solution != null) {
+                int hr = solution.UnadviseSolutionEvents(cookie);
+                ErrorHandler.Succeeded(hr);
+                cookie = VSConstants.VSCOOKIE_NIL;
+            }
         }
 
         /// <summary>
@@ -339,10 +341,11 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// <summary>
         /// Respond to events of file creation/change/deletion in the solution in Visual Studio
         /// </summary>
-        /// <param name="file"></param>
+        /// <param name="filePath"></param>
+        /// <param name="oldFilePath"></param>
         /// <param name="type"></param>
         public void RespondToVSFileChangedEvent(string filePath, string oldFilePath, FileEventType type) {
-            SrcMLFileLogger.DefaultLogger.Info("SolutionMonitor.RespondToVSFileChangedEvent(): filePath = " + filePath + ", oldFilePath = " + oldFilePath + ", type = " + type);
+            //SrcMLFileLogger.DefaultLogger.Info("SolutionMonitor.RespondToVSFileChangedEvent(): filePath = " + filePath + ", oldFilePath = " + oldFilePath + ", type = " + type);
             switch(type) {
                 case FileEventType.FileAdded:
                     AddFile(filePath);
@@ -648,67 +651,127 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
 
         #region IVsSolutionEvents
         public int OnAfterCloseSolution(object pUnkReserved) {
-            //SrcMLFileLogger.DefaultLogger.Info("==> Triggered IVsSolutionEvents.OnAfterCloseSolution()");
-            //////OnSolutionUnloaded();
+            //SrcMLFileLogger.DefaultLogger.Info("==> SolutionMonitor: Triggered IVsSolutionEvents.OnAfterCloseSolution()");
             return VSConstants.S_OK;
         }
         
+        // Only being triggered when reloading a project
         public int OnAfterLoadProject(IVsHierarchy pStubHierarchy, IVsHierarchy pRealHierarchy) {
-            SrcMLFileLogger.DefaultLogger.Info("==> Triggered IVsSolutionEvents.OnAfterLoadProject()");
-            var project = pRealHierarchy as IVsProject;
-            NotifyFileAddRemove(project, FileEventType.FileAdded);
+            //SrcMLFileLogger.DefaultLogger.Info("==> SolutionMonitor: Triggered IVsSolutionEvents.OnAfterLoadProject()");
             return VSConstants.S_OK;
         }
 
+        /// <summary>
+        /// Notifies listening clients that the project has been opened.
+        /// </summary>
+        /// <param name="pHierarchy"></param>
+        /// <param name="fAdded"></param>
+        /// <returns></returns>
         public int OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded) {
+            SrcMLFileLogger.DefaultLogger.Info("==> SolutionMonitor: Triggered IVsSolutionEvents.OnAfterOpenProject() [" + fAdded + "]");
+            NotifyProjectAddRemove(pHierarchy, fAdded, FileEventType.FileAdded);
             return VSConstants.S_OK;
         }
 
         public int OnAfterOpenSolution(object pUnkReserved, int fNewSolution) {
+            //SrcMLFileLogger.DefaultLogger.Info("==> SolutionMonitor: Triggered IVsSolutionEvents.OnAfterOpenSolution()");
             return VSConstants.S_OK;
         }
 
+        /// <summary>
+        /// Notifies listening clients that the project is about to be closed.
+        /// </summary>
+        /// <param name="pHierarchy"></param>
+        /// <param name="fRemoved"></param>
+        /// <returns></returns>
         public int OnBeforeCloseProject(IVsHierarchy pHierarchy, int fRemoved) {
+            SrcMLFileLogger.DefaultLogger.Info("==> SolutionMonitor: Triggered IVsSolutionEvents.OnBeforeCloseProject() [" + fRemoved + "]");
+            NotifyProjectAddRemove(pHierarchy, fRemoved, FileEventType.FileDeleted);
             return VSConstants.S_OK;
         }
 
         public int OnBeforeCloseSolution(object pUnkReserved) {
+            //SrcMLFileLogger.DefaultLogger.Info("==> SolutionMonitor: Triggered IVsSolutionEvents.OnBeforeCloseSolution()");
             return VSConstants.S_OK;
         }
 
         public int OnBeforeUnloadProject(IVsHierarchy pRealHierarchy, IVsHierarchy pStubHierarchy) {
-            SrcMLFileLogger.DefaultLogger.Info("==> Triggered IVsSolutionEvents.OnBeforeUnloadProject()");
-            var project = pRealHierarchy as IVsProject;
-            NotifyFileAddRemove(project, FileEventType.FileDeleted);
+            //SrcMLFileLogger.DefaultLogger.Info("==> SolutionMonitor: Triggered IVsSolutionEvents.OnBeforeUnloadProject()");
             return VSConstants.S_OK;
         }
 
         public int OnQueryCloseProject(IVsHierarchy pHierarchy, int fRemoving, ref int pfCancel) {
+            //SrcMLFileLogger.DefaultLogger.Info("==> SolutionMonitor: Triggered IVsSolutionEvents.OnQueryCloseProject()");
             return VSConstants.S_OK;
         }
 
         public int OnQueryCloseSolution(object pUnkReserved, ref int pfCancel) {
+            //SrcMLFileLogger.DefaultLogger.Info("==> SolutionMonitor: Triggered IVsSolutionEvents.OnQueryCloseSolution()");
             return VSConstants.S_OK;
         }
 
         public int OnQueryUnloadProject(IVsHierarchy pRealHierarchy, ref int pfCancel) {
+            //SrcMLFileLogger.DefaultLogger.Info("==> SolutionMonitor: Triggered IVsSolutionEvents.OnQueryUnloadProject()");
             return VSConstants.S_OK;
         }
 
-        public void NotifyFileAddRemove(IVsProject project, FileEventType type) {
-            SrcMLFileLogger.DefaultLogger.Info("==> Project: " + project.ToString() + ", type = " + type);
-            //////if(SolutionProjectChanged != null && project != null) {
-            //////    SolutionProjectChanged(this, new SolutionEventsListenerEventArgs(project, reason));
-            //////}
-        }
+        /// <summary>
+        /// Handle project addition/deletion cases.
+        /// The way these parameters work is:
+        /// pHierarchy: Pointer to the IVsHierarchy interface of the project being loaded or closed.
+        /// fAddedRemoved: For addition, true if the project is added to the solution after the solution is opened,
+        ///                false if the project is added to the solution while the solution is being opened.
+        ///                For deletion, true if the project was removed from the solution before the solution was closed,
+        ///                false if the project was removed from the solution while the solution was being closed.
+        /// type: FileEventType.FileAdded - project addition, FileEventType.FileDeleted - project deletion.
+        /// TODO: may process files in parallel
+        /// </summary>
+        /// <param name="pHierarchy"></param>
+        /// <param name="fAddedRemoved"></param>
+        /// <param name="type"></param>
+        public void NotifyProjectAddRemove(IVsHierarchy pHierarchy, int fAddedRemoved, FileEventType type) {
+            // In this method, the AllMonitoredFiles is actually the list of files whose srcML files should be deleted
+            AllMonitoredFiles = new List<string>();
+            string projectName;
+            pHierarchy.GetCanonicalName(VSConstants.VSITEMID_ROOT, out projectName);
+            //SrcMLFileLogger.DefaultLogger.Info("Project Name: [" + projectName + "]");
 
-        /*
-        public void OnSolutionUnloaded() {
-            if(SolutionUnloaded != null) {
-                SolutionUnloaded(this, new System.EventArgs());
+            // Find out this project in the solution tree
+            var allProjects = OpenSolution.getProjects();
+            var enumerator = allProjects.GetEnumerator();
+            while(enumerator.MoveNext()) {
+                    Project project = enumerator.Current as Project;
+                    string fullName = null;
+                    try {
+                        //SrcMLFileLogger.DefaultLogger.Info("FileName: [" + project.FileName + "]");
+                        fullName = project.FileName;
+                    } catch(Exception e) {
+                        // Ignore unloaded project. It would cause a Not Implemented Exception for an unloaded project.
+                        //SrcMLFileLogger.DefaultLogger.Error(SrcMLExceptionFormatter.CreateMessage(e, "Exception in SolutionMonitor.NotifyProjectAddRemove() - "));
+                        continue;
+                    }
+                    if(fullName != null && (fullName.Equals(projectName) || fullName.ToLower().Contains(projectName.ToLower()))) {
+                        SrcMLFileLogger.DefaultLogger.Info("Project: [" + projectName + "]");
+                        ProcessProject(project, null);
+                        break;
+                    }
+            }
+
+            // Generate or delete srcML files for the source files in this project
+            try {
+                foreach(var filePath in AllMonitoredFiles) {
+                    if(FileEventType.FileAdded.Equals(type)) {
+                        //SrcMLFileLogger.DefaultLogger.Info(">>> AddFile(" + filePath + ")");
+                        AddFile(filePath);
+                    } else if(FileEventType.FileDeleted.Equals(type)) {
+                        //SrcMLFileLogger.DefaultLogger.Info(">>> DeleteFile(" + filePath + ")");
+                        DeleteFile(filePath);
+                    }
+                }
+            } catch(Exception e) {
+                SrcMLFileLogger.DefaultLogger.Error(SrcMLExceptionFormatter.CreateMessage(e, "Exception when batch adding or deleting srcML files for a specified project."));
             }
         }
-        */
         #endregion
 
 

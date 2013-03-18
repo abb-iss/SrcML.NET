@@ -230,7 +230,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// Set up log4net logger.
         /// </summary>
         private void SetUpLogger() {
-            //var logFilePath = Path.Combine("D:\\Data\\", this.ToString() + ".log");
+            //var logFilePath = Path.Combine("C:\\Data\\", this.ToString() + ".log");
             //logger = SrcMLFileLogger.CreateFileLogger(this.ToString() + "Logger", logFilePath);
             var logFilePath = Path.Combine(extensionDirectory, "SrcML.NETService.log");
             logger = SrcMLFileLogger.CreateFileLogger("SrcMLServiceLogger", logFilePath);
@@ -352,12 +352,14 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 SolutionEvents.BeforeClosing += SolutionBeforeClosing;
             }
 
+            /*  // maybe removed after completing project level IU
             // Queries listening clients as to whether the project can be unloaded.
             SolutionChangeListener = new SolutionChangeEventListener();
             SolutionChangeListener.OnQueryUnloadProject += () => {
                 SolutionBeforeClosing();
                 SolutionOpened();
             };
+            */
         }
 
         /// <summary>
@@ -382,10 +384,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             SrcMLFileLogger.DefaultLogger.Info("> SrcML service starts monitoring the opened solution.");
 
             //srcMLService.StartMonitoring();
-
-            bool useExistingSrcML = true;
-            string src2SrcmlDir = SrcMLHelper.GetSrcMLDefaultDirectory();
-            srcMLService.StartMonitoring(useExistingSrcML, src2SrcmlDir);
+            srcMLService.StartMonitoring(true, SrcMLHelper.GetSrcMLDefaultDirectory());
         }
 
         /// <summary>

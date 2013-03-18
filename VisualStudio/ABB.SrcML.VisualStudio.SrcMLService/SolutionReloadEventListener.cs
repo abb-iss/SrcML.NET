@@ -35,6 +35,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// TODO
         /// </summary>
         public event Action OnQueryUnloadProject;
+        public event Action OnAfterOpenProject;
 
         /// <summary>
         /// Constructor.
@@ -54,6 +55,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// </summary>
         private void InitNullEvents() {
             OnQueryUnloadProject += () => { };
+
+            OnAfterOpenProject += () => { };
         }
 
         #region IVsSolutionEvents Members
@@ -63,7 +66,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="pUnkReserved"></param>
         /// <returns></returns>
         int IVsSolutionEvents.OnAfterCloseSolution(object pUnkReserved) {
-            SrcMLFileLogger.DefaultLogger.Info("=======> Triggered IVsSolutionEvents.OnAfterCloseSolution()");
+            ////SrcMLFileLogger.DefaultLogger.Info("=======> Triggered IVsSolutionEvents.OnAfterCloseSolution()");
             return VSConstants.S_OK;
         }
 
@@ -74,7 +77,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="pRealHierarchy"></param>
         /// <returns></returns>
         int IVsSolutionEvents.OnAfterLoadProject(IVsHierarchy pStubHierarchy, IVsHierarchy pRealHierarchy) {
-            SrcMLFileLogger.DefaultLogger.Info("=======> Triggered IVsSolutionEvents.OnAfterLoadProject()");
+            ////SrcMLFileLogger.DefaultLogger.Info("=======> Triggered IVsSolutionEvents.OnAfterLoadProject()");
             return VSConstants.S_OK;
         }
 
@@ -85,7 +88,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="fAdded"></param>
         /// <returns></returns>
         int IVsSolutionEvents.OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded) {
-            SrcMLFileLogger.DefaultLogger.Info("=======> Triggered IVsSolutionEvents.OnAfterOpenProject()");
+            ////SrcMLFileLogger.DefaultLogger.Info("=======> Triggered IVsSolutionEvents.OnAfterOpenProject()");
+            OnAfterOpenProject();
             return VSConstants.S_OK;
         }
 
@@ -96,7 +100,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="fNewSolution"></param>
         /// <returns></returns>
         int IVsSolutionEvents.OnAfterOpenSolution(object pUnkReserved, int fNewSolution) {
-            SrcMLFileLogger.DefaultLogger.Info("=======> Triggered IVsSolutionEvents.OnAfterOpenSolution()");
+            ////SrcMLFileLogger.DefaultLogger.Info("=======> Triggered IVsSolutionEvents.OnAfterOpenSolution()");
             return VSConstants.S_OK;
         }
 
@@ -107,7 +111,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="fRemoved"></param>
         /// <returns></returns>
         int IVsSolutionEvents.OnBeforeCloseProject(IVsHierarchy pHierarchy, int fRemoved) {
-            SrcMLFileLogger.DefaultLogger.Info("=======> Triggered IVsSolutionEvents.OnBeforeCloseProject()");
+            ////SrcMLFileLogger.DefaultLogger.Info("=======> Triggered IVsSolutionEvents.OnBeforeCloseProject()");
             return VSConstants.S_OK;
         }
 
@@ -117,7 +121,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="pUnkReserved"></param>
         /// <returns></returns>
         int IVsSolutionEvents.OnBeforeCloseSolution(object pUnkReserved) {
-            SrcMLFileLogger.DefaultLogger.Info("=======> Triggered IVsSolutionEvents.OnBeforeCloseSolution()");
+            ////SrcMLFileLogger.DefaultLogger.Info("=======> Triggered IVsSolutionEvents.OnBeforeCloseSolution()");
             return VSConstants.S_OK;
         }
 
@@ -128,7 +132,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="pStubHierarchy"></param>
         /// <returns></returns>
         int IVsSolutionEvents.OnBeforeUnloadProject(IVsHierarchy pRealHierarchy, IVsHierarchy pStubHierarchy) {
-            SrcMLFileLogger.DefaultLogger.Info("=======> Triggered IVsSolutionEvents.OnBeforeUnloadProject()");
+            ////SrcMLFileLogger.DefaultLogger.Info("=======> Triggered IVsSolutionEvents.OnBeforeUnloadProject()");
             return VSConstants.S_OK;
         }
 
@@ -178,6 +182,10 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 GC.SuppressFinalize(this);
                 solution.UnadviseSolutionEvents(solutionEventsCookie);
                 OnQueryUnloadProject = null;
+
+                OnAfterOpenProject = null;
+
+
                 solutionEventsCookie = 0;
                 solution = null;
             }
