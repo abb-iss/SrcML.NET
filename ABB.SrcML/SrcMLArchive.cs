@@ -16,6 +16,8 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using ABB.SrcML.Utilities;
 using System.Collections.ObjectModel;
@@ -228,13 +230,13 @@ namespace ABB.SrcML {
         /// If the file is not in the archive, it is outdated
         /// </summary>
         /// <param name="fileName">the file name to check</param>
-        /// <returns>true if the source file is newer than srcML file in the archive or the file is not in the archive.</returns>
+        /// <returns>true if the source file is newer OR older than its srcML file in the archive or the file is not in the archive.</returns>
         public override bool IsOutdated(string fileName) {
             var sourceFileInfo = new FileInfo(fileName);
             var xmlPath = GetXmlPathForSourcePath(fileName);
             var xmlFileInfo = new FileInfo(xmlPath);
 
-            return !(sourceFileInfo.Exists == xmlFileInfo.Exists && sourceFileInfo.LastWriteTime <= xmlFileInfo.LastWriteTime);
+            return sourceFileInfo.Exists != xmlFileInfo.Exists || sourceFileInfo.LastWriteTime != xmlFileInfo.LastWriteTime;
         }
 
         /// <summary>
@@ -283,20 +285,6 @@ namespace ABB.SrcML {
         }
 
         /// <summary>
-        /// Generate both a srcML File and a string of the content of this file for a source code file.
-        /// </summary>
-        /// <param name="sourcePath">The full path of the source code file.</param>
-        /// <returns>The string of the content of the generated srcML file.</returns>
-        public string GenerateXmlAndStringForSource(string sourcePath) {
-            var xmlPath = GetXmlPathForSourcePath(sourcePath);
-            var directory = Path.GetDirectoryName(xmlPath);
-            if(!Directory.Exists(directory)) {
-                Directory.CreateDirectory(directory);
-            }
-            return this.XmlGenerator.GenerateSrcMLAndStringFromFile(sourcePath, xmlPath);
-        }
-
-        /// <summary>
         /// Generate a srcML File for a source code file. Now use this method instead of GenerateXmlAndXElementForSource()
         /// </summary>
         /// <param name="sourcePath"></param>
@@ -306,8 +294,47 @@ namespace ABB.SrcML {
             if(!Directory.Exists(directory)) {
                 Directory.CreateDirectory(directory);
             }
-            return this.XmlGenerator.GenerateSrcMLFromFile(sourcePath, xmlPath);
+
+            // Set the timestamp to the same as the source file
+            // Will be useful in the method of public override bool IsOutdated(string fileName)
+            SrcMLFile srcMLFile = this.XmlGenerator.GenerateSrcMLFromFile(sourcePath, xmlPath);
+            FileInfo srcFI = new FileInfo(sourcePath);
+            File.SetLastWriteTime(xmlPath, srcFI.LastWriteTime);
+
+            return srcMLFile;
         }
+
+        
+        /// <summary>
+        /// Concurrency Generate SrcML from source file: ZL 03/11/2013
+        /// </summary>
+        /// <param name="listOfSourcePath"></param>
+        /// <param name="levelOfConcurrency"></param>
+        public void ConcurrentGenerateXmlForSource(List<string> listOfSourcePath, int levelOfConcurrency) {
+            List<string> missedFiles = new List<string>();
+
+            ParallelOptions option = new ParallelOptions();
+            option.MaxDegreeOfParallelism = levelOfConcurrency;
+
+            Parallel.ForEach(listOfSourcePath, option, currentFile => {
+                string fileName = currentFile;
+                try {
+                    GenerateXmlForSource(fileName);
+                } catch(Exception e) {
+                    Trace.WriteLine(fileName + " " + e.Message);
+                    missedFiles.Add(fileName);
+                }
+            });
+
+            Task.WaitAll();
+
+            //As a remedial action, regenerate the file missed in the last step
+            if(missedFiles.Count > 0) {
+                foreach(string fileName in missedFiles)
+                    GenerateXmlForSource(fileName);
+            }
+        }
+
 
         /// <summary>
         /// Delete the srcML file for a specified source file.
