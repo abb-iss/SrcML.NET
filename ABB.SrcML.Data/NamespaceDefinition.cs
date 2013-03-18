@@ -112,7 +112,7 @@ namespace ABB.SrcML.Data {
                     //this namespace is defined in more than one file, delete only the parts in the given file
                     //remove children
                     var unresolvedChildScopes = new List<Scope>();
-                    foreach(var child in ChildScopeCollection.ToList()) {
+                    foreach(var child in ChildScopes.ToList()) {
                         var result = child.RemoveFile(fileName);
                         if(result != null) {
                             unresolvedChildScopes.AddRange(result);
@@ -173,7 +173,7 @@ namespace ABB.SrcML.Data {
                             ParentScope.RemoveChild(this);
                             ParentScope = null;
                         }
-                        unresolvedChildScopes.AddRange(ChildScopeCollection);
+                        unresolvedChildScopes.AddRange(ChildScopes);
                         //reset the UnresolvedParentScopeInUse so the children will be re-resolved by our parent
                         foreach(var namedChild in unresolvedChildScopes.OfType<NamedScope>()) {
                             namedChild.UnresolvedParentScopeInUse = null;

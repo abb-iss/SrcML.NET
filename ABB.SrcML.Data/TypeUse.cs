@@ -109,10 +109,7 @@ namespace ABB.SrcML.Data {
                                     // on subsequent iterations, scopes will contain matches for the parent of currentNsUse
                                     int currentLength = scopes.Count;
                                     for(int i = 0; i < currentLength; i++) {
-                                        var matches = from scope in scopes[i].GetChildScopes<NamedScope>()
-                                                      where scope.Name == currentNsUse.Name
-                                                      select scope;
-                                        scopes.AddRange(matches);
+                                        scopes.AddRange(scopes[i].GetChildScopesWithId<NamedScope>(currentNsUse.Name));
                                     }
                                     // once we've found matches for currentNsUse, remove the previous scopes from the list
                                     // and set currentNsUse to its child
@@ -123,8 +120,7 @@ namespace ABB.SrcML.Data {
                                 // The answers identify namespaces that match this alias
                                 // now we look at each matching namespace and find the types that actually match this TypeUse.
                                 var answers = from scope in scopes
-                                              from typeDefinition in scope.GetChildScopes<TypeDefinition>()
-                                              where typeDefinition.Name == this.Name
+                                              from typeDefinition in scope.GetChildScopesWithId<TypeDefinition>(this.Name)
                                               select typeDefinition;
 
                                 foreach(var answer in answers) {

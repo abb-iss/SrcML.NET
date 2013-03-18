@@ -64,7 +64,7 @@ namespace ABB.SrcML.Data {
                     yield return definition;
                 }
 
-                var matchingChildren = from child in parent.ChildScopes
+                var matchingChildren = from child in parent.GetChildScopesWithId(this.Name)
                                        let castedChild = child as DEFINITION
                                        where Matches(castedChild)
                                        select castedChild;
