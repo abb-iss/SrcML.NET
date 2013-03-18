@@ -234,7 +234,7 @@ namespace ABB.SrcML {
             var xmlPath = GetXmlPathForSourcePath(fileName);
             var xmlFileInfo = new FileInfo(xmlPath);
 
-            return !(sourceFileInfo.Exists == xmlFileInfo.Exists && sourceFileInfo.LastWriteTime != xmlFileInfo.LastWriteTime);
+            return sourceFileInfo.Exists != xmlFileInfo.Exists || sourceFileInfo.LastWriteTime != xmlFileInfo.LastWriteTime;
         }
 
         /// <summary>
