@@ -73,7 +73,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         public event EventHandler<EventArgs> StartupCompleted;
         public event EventHandler<EventArgs> MonitoringStopped;
 
-        /*
         /// <summary>
         /// Implementation of the function that does not access the local service.
         /// </summary>
@@ -83,6 +82,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             HelperFunctions.WriteOnOutputWindow(serviceProvider, outputText);
         }
 
+        /*
         /// <summary>
         /// Implementation of the function that will call a method of the local service.
         /// Notice that this class will access the local service using as service provider the one

@@ -38,14 +38,12 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
         //// Implement the methods of ISrcMLLocalService here.
         #region ISrcMLLocalService Members
-        /*
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1303:DoNotPassLiteralsAsLocalizedParameters", MessageId = "Microsoft.Samples.VisualStudio.Services.HelperFunctions.WriteOnOutputWindow(System.IServiceProvider,System.String)")]
         public int LocalServiceFunction() {
             string outputText = "Local SrcML Service Function called.\n";
             HelperFunctions.WriteOnOutputWindow(provider, outputText);
             return 0;
         }
-        */
         #endregion
     }
 }

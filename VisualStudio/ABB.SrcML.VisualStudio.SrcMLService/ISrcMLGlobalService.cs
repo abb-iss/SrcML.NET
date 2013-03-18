@@ -33,7 +33,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         void StartMonitoring(bool useExistingSrcML, string srcMLBinaryDirectory);
         void StopMonitoring();
         SrcMLArchive GetSrcMLArchive();
-        XElement GetXElementForSourceFile(string sourceFilePath); 
+        XElement GetXElementForSourceFile(string sourceFilePath);
 
     }
 

@@ -1,15 +1,4 @@
-﻿/***************************************************************************
-
-Copyright (c) Microsoft Corporation. All rights reserved.
-This code is licensed under the Visual Studio SDK license terms.
-THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF
-ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY
-IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR
-PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
-
-***************************************************************************/
-
-using System;
+﻿using System;
 using System.Collections;
 using System.Text;
 using System.Reflection;
@@ -29,7 +18,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.UnitTests.MenuItemTests {
         /// </summary>
         [TestMethod]
         public void InitializeMenuCommand() {
-            /* temporarily comment out
             // Create the package
             IVsPackage package = new SrcMLServicePackage() as IVsPackage;
             Assert.IsNotNull(package, "The object does not implement IVsPackage");
@@ -46,12 +34,10 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.UnitTests.MenuItemTests {
             Assert.IsNotNull(info);
             OleMenuCommandService mcs = info.Invoke(package, new object[] { (typeof(IMenuCommandService)) }) as OleMenuCommandService;
             ////Assert.IsNotNull(mcs.FindCommand(menuCommandID));
-            */
         }
 
         [TestMethod]
         public void MenuItemCallback() {
-            /* temporarily comment out
             // Create the package
             IVsPackage package = new SrcMLServicePackage() as IVsPackage;
             Assert.IsNotNull(package, "The object does not implement IVsPackage");
@@ -73,7 +59,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.UnitTests.MenuItemTests {
 
             //Clean up services
             serviceProvider.RemoveService(typeof(SVsUIShell));
-            */
         }
     }
 }

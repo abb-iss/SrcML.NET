@@ -42,11 +42,11 @@
     <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ABB.SrcML.VisualStudio.SrcMLService, Version=1.0.0.0, Culture=neutral, PublicKeyToken=888b27a1de876c83, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Build\Debug\ABB.SrcML.VisualStudio.SrcMLService.dll</HintPath>
-    </Reference>
     <!---->
+    <Reference Include="EnvDTE, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.ComponentModelHost, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.VisualStudio.OLE.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\External\VisualStudio\VSSDK\Microsoft.VisualStudio.OLE.Interop.dll</HintPath>
@@ -99,13 +99,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="PackageTest.cs" />
+    <Compile Include="SrcMLServicePackageTests.cs" />
     <!---->
     <Compile Include="MenuItemTests\MenuItemCallback.cs" />
     <Compile Include="MenuItemTests\UIShellServiceMock.cs" />
+    <Compile Include="SrcMLGlobalServiceTests.cs" />
     <!---->
     <!---->
     <!---->
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ABB.SrcML.VisualStudio.SrcMLService\ABB.SrcML.VisualStudio.SrcMLService.csproj">
+      <Project>{c3fc3845-b74f-498e-a8e5-80f5ae013da0}</Project>
+      <Name>ABB.SrcML.VisualStudio.SrcMLService</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

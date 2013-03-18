@@ -20,7 +20,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
     [Guid("04079195-ce4d-4683-aec3-e2f2be23b935")]
     [ComVisible(true)]
     public interface ISrcMLLocalService {
-        //int LocalServiceFunction();
+        int LocalServiceFunction();
     }
 
     /// <summary>

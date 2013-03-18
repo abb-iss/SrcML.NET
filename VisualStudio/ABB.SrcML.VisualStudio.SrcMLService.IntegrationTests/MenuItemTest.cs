@@ -31,6 +31,9 @@ namespace SrcMLService_IntegrationTests {
 
         /// <summary>
         ///A test for lauching the command and closing the associated dialogbox
+        ///
+        /// NOTE: SrcMLService does not have any command, so this test is skipped.
+        /// 
         ///</summary>
         [TestMethod()]
         [HostType("VS IDE")]
@@ -48,7 +51,7 @@ namespace SrcMLService_IntegrationTests {
                     TestUtils testUtils = new TestUtils();
                     ////testUtils.ExecuteCommand(menuItemCmd);
                 } finally {
-                    Assert.IsTrue(purger.WaitForDialogThreadToTerminate(), "The dialog box has not shown");
+                    ////Assert.IsTrue(purger.WaitForDialogThreadToTerminate(), "The dialog box has not shown");
                 }
             });
         }
