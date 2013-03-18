@@ -80,7 +80,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             DeleteCSharpProjectItem(saveAsFileName);
             System.Threading.Thread.Sleep(1000);
             CloseSolution();
-
             // CPP
             /*
             OpenSolution(testCPPSolutionFilePath);
