@@ -16,6 +16,8 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using ABB.SrcML.Utilities;
 using System.Collections.ObjectModel;
@@ -301,6 +303,38 @@ namespace ABB.SrcML {
 
             return srcMLFile;
         }
+
+        
+        /// <summary>
+        /// Concurrency Generate SrcML from source file: ZL 03/11/2013
+        /// </summary>
+        /// <param name="listOfSourcePath"></param>
+        /// <param name="levelOfConcurrency"></param>
+        public void ConcurrentGenerateXmlForSource(List<string> listOfSourcePath, int levelOfConcurrency) {
+            List<string> missedFiles = new List<string>();
+
+            ParallelOptions option = new ParallelOptions();
+            option.MaxDegreeOfParallelism = levelOfConcurrency;
+
+            Parallel.ForEach(listOfSourcePath, option, currentFile => {
+                string fileName = currentFile;
+                try {
+                    GenerateXmlForSource(fileName);
+                } catch(Exception e) {
+                    Trace.WriteLine(fileName + " " + e.Message);
+                    missedFiles.Add(fileName);
+                }
+            });
+
+            Task.WaitAll();
+
+            //As a remedial action, regenerate the file missed in the last step
+            if(missedFiles.Count > 0) {
+                foreach(string fileName in missedFiles)
+                    GenerateXmlForSource(fileName);
+            }
+        }
+
 
         /// <summary>
         /// Delete the srcML file for a specified source file.
