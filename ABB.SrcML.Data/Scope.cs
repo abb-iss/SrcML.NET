@@ -471,6 +471,9 @@ namespace ABB.SrcML.Data {
             if(ChildScopeMap.ContainsKey(childScope.Id)) {
                 ChildScopeMap[childScope.Id].Remove(childScope);
 
+                if(ChildScopeMap[childScope.Id].Count == 0) {
+                    ChildScopeMap.Remove(childScope.Id);
+                }
                 //update locations
                 foreach(var childKvp in childScope.LocationDictionary) {
                     var fileName = childKvp.Key;
