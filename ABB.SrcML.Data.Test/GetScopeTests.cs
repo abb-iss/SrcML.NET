@@ -86,5 +86,42 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("bar", bar.Name);
             Assert.AreEqual(bar, globalScope.GetScopeForLocation(new SourceLocation("Foo.cpp", 3, 2)));
         }
+
+        [Test]
+        public void TestLocationInMain_Cpp() {
+            //#include <iostream>
+            //
+            //char* MyFunction(int foo) {
+            //    if(foo > 0) {
+            //        return "Hello world!";
+            //    } else {
+            //        return "Goodbye cruel world!";
+            //    }
+            //}
+            //
+            //int main(int argc, char* argv[]) {
+            //    std::cout<<MyFunction(42);
+            //    return 0;
+            //}
+            var xml = @"<cpp:include pos:line=""1"" pos:column=""1"">#<cpp:directive pos:line=""1"" pos:column=""2"">include</cpp:directive> <cpp:file pos:line=""1"" pos:column=""10"">&lt;iostream&gt;</cpp:file></cpp:include>
+
+<function><type><name pos:line=""3"" pos:column=""1"">char</name><type:modifier pos:line=""3"" pos:column=""5"">*</type:modifier></type> <name pos:line=""3"" pos:column=""7"">MyFunction</name><parameter_list pos:line=""3"" pos:column=""17"">(<param><decl><type><name pos:line=""3"" pos:column=""18"">int</name></type> <name pos:line=""3"" pos:column=""22"">foo</name></decl></param>)</parameter_list> <block pos:line=""3"" pos:column=""27"">{
+    <if pos:line=""4"" pos:column=""5"">if<condition pos:line=""4"" pos:column=""7"">(<expr><name pos:line=""4"" pos:column=""8"">foo</name> <op:operator pos:line=""4"" pos:column=""12"">&gt;</op:operator> <lit:literal type=""number"" pos:line=""4"" pos:column=""14"">0</lit:literal></expr>)</condition><then pos:line=""4"" pos:column=""16""> <block pos:line=""4"" pos:column=""17"">{
+        <return pos:line=""5"" pos:column=""9"">return <expr><lit:literal type=""string"" pos:line=""5"" pos:column=""16"">""Hello world!""</lit:literal></expr>;</return>
+    }</block></then> <else pos:line=""6"" pos:column=""7"">else <block pos:line=""6"" pos:column=""12"">{
+        <return pos:line=""7"" pos:column=""9"">return <expr><lit:literal type=""string"" pos:line=""7"" pos:column=""16"">""Goodbye cruel world!""</lit:literal></expr>;</return>
+    }</block></else></if>
+}</block></function>
+
+<function><type><name pos:line=""11"" pos:column=""1"">int</name></type> <name pos:line=""11"" pos:column=""5"">main</name><parameter_list pos:line=""11"" pos:column=""9"">(<param><decl><type><name pos:line=""11"" pos:column=""10"">int</name></type> <name pos:line=""11"" pos:column=""14"">argc</name></decl></param>, <param><decl><type><name pos:line=""11"" pos:column=""20"">char</name><type:modifier pos:line=""11"" pos:column=""24"">*</type:modifier></type> <name><name pos:line=""11"" pos:column=""26"">argv</name><index pos:line=""11"" pos:column=""30"">[]</index></name></decl></param>)</parameter_list> <block pos:line=""11"" pos:column=""34"">{
+    <expr_stmt><expr><name><name pos:line=""12"" pos:column=""5"">std</name><op:operator pos:line=""12"" pos:column=""8"">::</op:operator><name pos:line=""12"" pos:column=""10"">cout</name></name><op:operator pos:line=""12"" pos:column=""14"">&lt;&lt;</op:operator><call><name pos:line=""12"" pos:column=""16"">MyFunction</name><argument_list pos:line=""12"" pos:column=""26"">(<argument><expr><lit:literal type=""number"" pos:line=""12"" pos:column=""27"">42</lit:literal></expr></argument>)</argument_list></call></expr>;</expr_stmt>
+    <return pos:line=""13"" pos:column=""5"">return <expr><lit:literal type=""number"" pos:line=""13"" pos:column=""12"">0</lit:literal></expr>;</return>
+}</block></function>";
+            var fileUnit = fileSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xml, "function_def.cpp");
+            var globalScope = parser[Language.CPlusPlus].ParseFileUnit(fileUnit);
+
+            var main = globalScope.ChildScopes.OfType<MethodDefinition>().First(md => md.Name == "main");
+            Assert.AreEqual(main, globalScope.GetScopeForLocation(new SourceLocation("function_def.cpp", 12, 20)));
+        }
     }
 }
