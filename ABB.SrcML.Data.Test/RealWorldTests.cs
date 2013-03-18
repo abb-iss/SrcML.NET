@@ -22,6 +22,16 @@ namespace ABB.SrcML.Data.Test {
     [TestFixture]
     class RealWorldTests {
         private bool shouldRegenerateSrcML = false;
+        private Dictionary<Language, AbstractCodeParser> CodeParser;
+
+        [TestFixtureSetUp]
+        public void ClassSetup() {
+            CodeParser = new Dictionary<Language, AbstractCodeParser>() {
+                { Language.CPlusPlus, new CPlusPlusCodeParser() },
+                { Language.Java, new JavaCodeParser() },
+                { Language.CSharp, new CSharpCodeParser() }
+            };
+        }
 
         [Test]
         public void TestFileUnitParsing_NotepadPlusPlus() {
@@ -133,11 +143,13 @@ namespace ABB.SrcML.Data.Test {
                     }
                     
                     var fileName = parser.GetFileNameForUnit(unit);
+                    var language = SrcMLElement.GetLanguageForUnit(unit);
+
                     fileLog.Write("Parsing {0}", fileName);
                     try {
                         sw.Start();
-                        var scopeForUnit = parser.ParseFileUnit(unit);
-
+                        var scopeForUnit = CodeParser[language].ParseFileUnit(unit);
+                        
                         if(null == globalScope) {
                             globalScope = scopeForUnit;
                         } else {
