@@ -40,6 +40,18 @@
   <PropertyGroup>
     <SignAssembly>false</SignAssembly>
   </PropertyGroup>
+  <Choose>
+	  <When Condition="Exists('$(VSSDK110Install)')">
+		<PropertyGroup>
+			<VSSDK>$(VSSDK110Install)VisualStudioIntegration\Common\Assemblies\v4.0</VSSDK>
+		</PropertyGroup>
+	  </When>
+	  <Otherwise>
+		<PropertyGroup>
+			<VSSDK>..\..\External\VisualStudio\VSSDK</VSSDK>
+		</PropertyGroup>
+	  </Otherwise>
+  </Choose>
   <ItemGroup>
     <Reference Include="EnvDTE, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <EmbedInteropTypes>True</EmbedInteropTypes>
@@ -66,13 +78,11 @@
     <Reference Include="Microsoft.VisualStudio.Shell.Interop.9.0, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="Microsoft.VSSDK.TestHostFramework, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\External\VisualStudio\VSSDK\Microsoft.VSSDK.TestHostFramework.dll</HintPath>
-	  <HintPath>$(VSSDK110Install)VisualStudioIntegration\Common\Assemblies\v4.0\Microsoft.VSSDK.TestHostFramework.dll</HintPath>
+      <HintPath>$(VSSDK)\Microsoft.VSSDK.TestHostFramework.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VSSDK.UnitTestLibrary, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\External\VisualStudio\VSSDK\Microsoft.VSSDK.UnitTestLibrary.dll</HintPath>
-	  <HintPath>$(VSSDK110Install)VisualStudioIntegration\Common\Assemblies\v4.0\Microsoft.VSSDK.UnitTestLibrary.dll</HintPath>
+	  <HintPath>$(VSSDK)\Microsoft.VSSDK.UnitTestLibrary.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
