@@ -107,11 +107,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         private SolutionEvents SolutionEvents;
 
         /// <summary>
-        /// Listening interface that monitors any notifications of changes to the solution.
-        /// </summary>
-        private SolutionChangeEventListener SolutionChangeListener;
-
-        /// <summary>
         /// Visual Studio's Activity Logger.
         /// </summary>
         private IVsActivityLog ActivityLog;
