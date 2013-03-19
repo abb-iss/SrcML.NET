@@ -420,9 +420,9 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="xpath">the xpath to find containers for.</param>
         /// <returns>The lowest child of this scope that contains the given xpath, or null if it cannot be found.</returns>
-        public Scope GetScopeForPath(string xpath) {
+        public Scope GetScopeForLocation(string xpath) {
             //first search in children
-            var foundScope = ChildScopes.Select(c => c.GetScopeForPath(xpath)).FirstOrDefault(r => r != null);
+            var foundScope = ChildScopes.Select(c => c.GetScopeForLocation(xpath)).FirstOrDefault(r => r != null);
             //if xpath not found, check ourselves
             if(foundScope == null && this.IsScopeFor(xpath)) {
                 foundScope = this;
@@ -453,7 +453,7 @@ namespace ABB.SrcML.Data {
         /// <param name="xpath">the xpath for the variable name</param>
         /// <returns>An enumerable of matching variable declarations.</returns>
         public IEnumerable<VariableDeclaration> GetDeclarationsForVariableName(string variableName, string xpath) {
-            var lowestScope = GetScopeForPath(xpath);
+            var lowestScope = GetScopeForLocation(xpath);
             foreach(var scope in lowestScope.GetParentScopesAndSelf()) {
                 VariableDeclaration declaration;
                 if(scope.DeclaredVariablesDictionary.TryGetValue(variableName, out declaration)) {
