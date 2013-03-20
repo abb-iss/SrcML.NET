@@ -21,7 +21,7 @@ namespace ABB.SrcML.Data {
     /// <summary>
     /// A method definition object.
     /// </summary>
-    [DebuggerTypeProxy(typeof(ScopeDebugView))]
+    [DebuggerTypeProxy(typeof(MethodDebugView))]
     public class MethodDefinition : NamedScope {
         //private Collection<VariableDeclaration> _parameters;
         //private Collection<ParameterDeclaration> _parameters;
@@ -214,6 +214,32 @@ namespace ABB.SrcML.Data {
                 typeName = "Method";
             }
             return ToString(typeName);
+        }
+
+        internal class MethodDebugView {
+            private MethodDefinition method;
+
+            public MethodDebugView(MethodDefinition method) {
+                this.method = method;
+            }
+
+            [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+            public Scope[] ChildScopes {
+                get { return this.method.ChildScopes.ToArray(); }
+            }
+
+            [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+            public MethodCall[] MethodCalls { get { return this.method.MethodCalls.ToArray(); } }
+
+            [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+            public VariableDeclaration[] Variables { get { return this.method.DeclaredVariables.ToArray(); } }
+
+            [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+            public ParameterDeclaration[] Parameters { get { return method.Parameters.ToArray(); } }
+
+            public override string ToString() {
+                return method.ToString();
+            }
         }
     }
 }
