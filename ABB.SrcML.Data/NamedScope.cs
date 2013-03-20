@@ -25,6 +25,7 @@ namespace ABB.SrcML.Data {
     /// <para>Sub-classes of this include <see cref="TypeDefinition"/>, <see cref="NamespaceDefinition"/>,
     /// and <see cref="MethodDefinition"/></para>
     /// </summary>
+    [DebuggerTypeProxy(typeof(ScopeDebugView))]
     public class NamedScope : Scope {
         /// <summary>
         /// Create a new object
@@ -318,6 +319,10 @@ namespace ABB.SrcML.Data {
             }
 
             return sb.ToString().TrimEnd('.');
+        }
+
+        public override string ToString() {
+            return ToString("Named Scope");
         }
     }
 }

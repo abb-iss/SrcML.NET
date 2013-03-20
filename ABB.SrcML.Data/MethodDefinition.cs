@@ -21,6 +21,7 @@ namespace ABB.SrcML.Data {
     /// <summary>
     /// A method definition object.
     /// </summary>
+    [DebuggerTypeProxy(typeof(ScopeDebugView))]
     public class MethodDefinition : NamedScope {
         //private Collection<VariableDeclaration> _parameters;
         //private Collection<ParameterDeclaration> _parameters;
@@ -202,6 +203,17 @@ namespace ABB.SrcML.Data {
             }
             return null;
         }
-        
+
+        public override string ToString() {
+            string typeName;
+            if(IsConstructor) {
+                typeName = "Constructor";
+            } else if(IsDestructor) {
+                typeName = "Destructor";
+            } else {
+                typeName = "Method";
+            }
+            return ToString(typeName);
+        }
     }
 }

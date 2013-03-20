@@ -22,6 +22,7 @@ namespace ABB.SrcML.Data {
     /// The Scope class is the base class for variable scope objects. It encapsulates the basics of the type hierarchy (parent-child relationships)
     /// and contains methods for adding child scopes and variable declarations.
     /// </summary>
+    [DebuggerTypeProxy(typeof(ScopeDebugView))]
     public class Scope {
         /// <summary>
         /// Holds all of the children for this scope.
@@ -94,6 +95,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Iterates over all of the child scopes of this scope
         /// </summary>
+        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
         public IEnumerable<Scope> ChildScopes {
             get {
                 foreach(var childList in this.ChildScopeMap.Values) {
@@ -590,6 +592,16 @@ namespace ABB.SrcML.Data {
                           where scopeAsT != null
                           select scopeAsT;
             return results;
+        }
+
+        public override string ToString() {
+            return ToString("Scope");
+        }
+
+        protected string ToString(string typeName) { return ToString(typeName, this.Id); }
+
+        protected string ToString(string typeName, string identifier) {
+            return String.Format("{0}: {1}", typeName, identifier);
         }
     }
 }

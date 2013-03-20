@@ -21,6 +21,7 @@ namespace ABB.SrcML.Data {
     /// <summary>
     /// Represents a namespace definition
     /// </summary>
+    [DebuggerTypeProxy(typeof(ScopeDebugView))]
     public class NamespaceDefinition : NamedScope {
         /// <summary>
         /// Creates a new namespace definition object
@@ -183,6 +184,11 @@ namespace ABB.SrcML.Data {
                 }
             }
             return unresolvedScopes;
+        }
+
+        public override string ToString() {
+            if(IsGlobal) return ToString("Namespace", "Global");
+            return ToString("Namespace");
         }
     }
 }

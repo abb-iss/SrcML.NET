@@ -22,6 +22,7 @@ namespace ABB.SrcML.Data {
     /// <summary>
     /// Represents a type definition
     /// </summary>
+    [DebuggerTypeProxy(typeof(ScopeDebugView))]
     public class TypeDefinition : NamedScope {
         private Collection<TypeUse> ParentTypeCollection;
 
@@ -225,6 +226,10 @@ namespace ABB.SrcML.Data {
                 }
             }
             return unresolvedScopes;
+        }
+
+        public override string ToString() {
+            return ToString(this.Kind.ToString());
         }
     }
 }

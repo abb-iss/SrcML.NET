@@ -68,6 +68,7 @@
     <Compile Include="NamespaceUse.cs" />
     <Compile Include="ParameterDeclaration.cs" />
     <Compile Include="ParserContext.cs" />
+    <Compile Include="ScopeDebugView.cs" />
     <Compile Include="SourceLocation.cs" />
     <Compile Include="DataArchive.cs" />
     <Compile Include="JavaCodeParser.cs" />
