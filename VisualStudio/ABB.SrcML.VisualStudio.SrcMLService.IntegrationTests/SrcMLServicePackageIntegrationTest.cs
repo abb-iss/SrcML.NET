@@ -3,6 +3,7 @@ using System.Text;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Xml.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VSSDK.Tools.VsIdeTesting;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -110,7 +111,35 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             System.Threading.Thread.Sleep(1000);
             CloseSolution();
         }
-        
+
+        [TestMethod]
+        [HostType("VS IDE")]
+        public void ProjectLevelIncrementalUpdateTest() {
+            // CSharp
+            OpenSolution(testCSharpSolutionFilePath);
+            CheckCSharpSolutionStartup();
+
+            // http://msdn.microsoft.com/en-us/library/envdte.solution(v=vs.100).aspx
+            // Add a project            AddFromTemplate
+            // Add an existing project  AddFromFile
+            // Unload a project         ?
+            // Reload a project         ?
+            // Remove a project         Remove
+            
+            CloseSolution();
+
+            /*
+            // CPP
+            OpenSolution(testCPPSolutionFilePath);
+            // Add a project
+            // Add an existing project
+            // Unload a project
+            // Reload a project
+            // Remove a project
+            CloseSolution();
+            */
+        }
+
         [TestCleanup]
         public void TestCleanup() {
         }
@@ -137,17 +166,22 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
 
         public void CheckCSharpSolutionStartup() {
             SrcMLArchive archive = srcMLService.GetSrcMLArchive();
-            Assert.IsNotNull(archive, "GetSrcMLArchive reuturned null.");
+            Assert.IsNotNull(archive, "GetSrcMLArchive returned null.");
             string sourcePath = Path.Combine(testCSharpProjectFolder, "Class1.cs");
             string srcMLPath = archive.GetXmlPathForSourcePath(sourcePath);
             Assert.IsTrue(File.Exists(sourcePath), "The source file [" + sourcePath + "] does not exist.");
             Assert.IsTrue(File.Exists(srcMLPath), "The srcML file [" + srcMLPath + "] does not exist.");
             Assert.AreEqual(new FileInfo(sourcePath).LastWriteTime, new FileInfo(srcMLPath).LastWriteTime);
+            XElement xelement = srcMLService.GetXElementForSourceFile(sourcePath);
+            Assert.IsNotNull(xelement, "GetXElementForSourceFile returned null.");
+            string sourcePathX = Path.Combine(testCSharpProjectFolder, "AlreadyDeletedClass1.cs");
+            XElement xelementX = srcMLService.GetXElementForSourceFile(sourcePathX);
+            Assert.IsNull(xelementX, "GetXElementForSourceFile returned not null.");
         }
 
         public void CheckCPPSolutionStartup() {
             SrcMLArchive archive = srcMLService.GetSrcMLArchive();
-            Assert.IsNotNull(archive, "GetSrcMLArchive reuturned null.");
+            Assert.IsNotNull(archive, "GetSrcMLArchive returned null.");
             string sourcePath1 = Path.Combine(testCPPProjectFolder, "stdafx.cpp");
             string sourcePath2 = Path.Combine(testCPPProjectFolder, "stdafx.h");
             string sourcePath3 = Path.Combine(testCPPProjectFolder, "targetver.h");
@@ -168,6 +202,17 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             Assert.AreEqual(new FileInfo(sourcePath2).LastWriteTime, new FileInfo(srcMLPath2).LastWriteTime);
             Assert.AreEqual(new FileInfo(sourcePath3).LastWriteTime, new FileInfo(srcMLPath3).LastWriteTime);
             Assert.AreEqual(new FileInfo(sourcePath4).LastWriteTime, new FileInfo(srcMLPath4).LastWriteTime);
+            XElement xelement1 = srcMLService.GetXElementForSourceFile(sourcePath1);
+            XElement xelement2 = srcMLService.GetXElementForSourceFile(sourcePath2);
+            XElement xelement3 = srcMLService.GetXElementForSourceFile(sourcePath3);
+            XElement xelement4 = srcMLService.GetXElementForSourceFile(sourcePath4);
+            Assert.IsNotNull(xelement1, "GetXElementForSourceFile returned null.");
+            Assert.IsNotNull(xelement2, "GetXElementForSourceFile returned null.");
+            Assert.IsNotNull(xelement3, "GetXElementForSourceFile returned null.");
+            Assert.IsNotNull(xelement4, "GetXElementForSourceFile returned null.");
+            string sourcePathX = Path.Combine(testCSharpProjectFolder, "AlreadyDeletedClass1.cpp");
+            XElement xelementX = srcMLService.GetXElementForSourceFile(sourcePathX);
+            Assert.IsNull(xelementX, "GetXElementForSourceFile returned not null.");
         }
 
         public static void SourceFileChanged(object sender, FileEventRaisedArgs args) {
@@ -194,19 +239,23 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
                 Assert.IsTrue((receivedFileAdded || receivedFileUpdated));
                 if(hasSrcML) {
                     SrcMLArchive archive = srcMLService.GetSrcMLArchive();
-                    Assert.IsNotNull(archive, "GetSrcMLArchive reuturned null.");
+                    Assert.IsNotNull(archive, "GetSrcMLArchive returned null.");
                     string srcMLPath = archive.GetXmlPathForSourcePath(sourcePath);
                     ////WriteLog(logFilePath, "Adding/Updating srcMLPath = " + srcMLPath);
                     Assert.IsTrue(File.Exists(srcMLPath), "The srcML file [" + srcMLPath + "] does not exist.");
                     Assert.AreEqual(new FileInfo(sourcePath).LastWriteTime, new FileInfo(srcMLPath).LastWriteTime);
+                    XElement xelement = srcMLService.GetXElementForSourceFile(sourcePath);
+                    Assert.IsNotNull(xelement, "GetXElementForSourceFile returned null.");
                 }
             } else if(type == FileEventType.FileDeleted) {
                 Assert.IsTrue(receivedFileDeleted);
                 SrcMLArchive archive = srcMLService.GetSrcMLArchive();
-                Assert.IsNotNull(archive, "GetSrcMLArchive reuturned null.");
+                Assert.IsNotNull(archive, "GetSrcMLArchive returned null.");
                 string srcMLPath = archive.GetXmlPathForSourcePath(sourcePath);
                 ////WriteLog(logFilePath, "Deleting srcMLPath = " + srcMLPath);
                 Assert.IsFalse(File.Exists(srcMLPath), "The srcML file [" + srcMLPath + "] still exists.");
+                XElement xelementX = srcMLService.GetXElementForSourceFile(sourcePath);
+                Assert.IsNull(xelementX, "GetXElementForSourceFile returned not null.");
             }
             receivedFileAdded = receivedFileUpdated = receivedFileDeleted = false;
             fera = null;

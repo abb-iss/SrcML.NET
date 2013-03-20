@@ -346,8 +346,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 // Register the Visual Studio event that occurs when a solution is about to close.
                 SolutionEvents.BeforeClosing += SolutionBeforeClosing;
             }
-
-            /*  // maybe removed after completing project level IU
+            /*
+            // maybe removed after completing project level IU
             // Queries listening clients as to whether the project can be unloaded.
             SolutionChangeListener = new SolutionChangeEventListener();
             SolutionChangeListener.OnQueryUnloadProject += () => {
