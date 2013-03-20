@@ -125,10 +125,11 @@ namespace ABB.SrcML.Data {
                 var childScope = ParseElement(childElement, context);
                 context.CurrentScope.AddChildScope(childScope);
             }
-            context.CurrentScope.AddSourceLocation(context.CreateLocation(element, ContainerIsReference(element)));
-            context.CurrentScope.ProgrammingLanguage = ParserLanguage;
+            var currentScope = context.Pop();
+            currentScope.AddSourceLocation(context.CreateLocation(element, ContainerIsReference(element)));
+            currentScope.ProgrammingLanguage = ParserLanguage;
 
-            return context.Pop();
+            return currentScope;
         }
 
         /// <summary>

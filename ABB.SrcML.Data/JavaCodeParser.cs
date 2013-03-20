@@ -43,14 +43,14 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="fileUnit">the java file unit to parse</param>
         /// <returns>A global namespace object for <paramref name="fileUnit"/></returns>
-        public override NamespaceDefinition ParseFileUnit(XElement fileUnit) {
-            if(null == fileUnit) throw new ArgumentNullException("fileUnit");
-            if(SRC.Unit != fileUnit.Name) throw new ArgumentException("should be a SRC.Unit", "fileUnit");
+        //public override NamespaceDefinition ParseFileUnit(XElement fileUnit) {
+        //    if(null == fileUnit) throw new ArgumentNullException("fileUnit");
+        //    if(SRC.Unit != fileUnit.Name) throw new ArgumentException("should be a SRC.Unit", "fileUnit");
 
-            var namespaceForFile = ParseElement(fileUnit, new ParserContext()) as NamespaceDefinition;
+        //    var namespaceForFile = ParseElement(fileUnit, new ParserContext()) as NamespaceDefinition;
 
-            return namespaceForFile;
-        }
+        //    return namespaceForFile;
+        //}
 
         /// <summary>
         /// Parses a java file unit. This handles the "package" directive by calling <see cref="ParseNamespaceElement"/>
