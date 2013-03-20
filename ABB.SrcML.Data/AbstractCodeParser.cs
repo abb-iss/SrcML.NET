@@ -300,12 +300,18 @@ namespace ABB.SrcML.Data {
             methodCall.Arguments = new Collection<IResolvesToType>(arguments.ToList<IResolvesToType>());
 
             IResolvesToType current = methodCall;
+            // This foreach block gets all of the name elements included in the actual <call> element
+            // this is done primarily in C# and Java where they can reliably be included there
             foreach(var callingObjectName in callingObjectNames.Reverse()) {
                 var callingObject = this.CreateVariableUse(callingObjectName, context);
                 current.CallingObject = callingObject;
                 current = callingObject;
             }
 
+            // after getting those, we look at the name elements that appear *before* a call
+            // we keep taking name elements as long as they are preceded by "." or "->"
+            // we want to accept get 'a', 'b', and 'c' from "a.b->c" only 'b' and 'c' from
+            // "a + b->c"
             var elementsBeforeCall = callElement.ElementsBeforeSelf().ToArray();
             int i = elementsBeforeCall.Length - 1;
 
@@ -318,6 +324,10 @@ namespace ABB.SrcML.Data {
                     current = callingObject;
                 }
             }
+            if(methodCall.CallingObject == null) {
+                methodCall.AddAliases(context.Aliases);
+            }
+            // TODO can we add aliases to calling object?
             return methodCall;
         }
 

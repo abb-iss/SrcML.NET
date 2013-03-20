@@ -19,7 +19,7 @@ namespace ABB.SrcML.Data {
     /// <summary>
     /// Represents a method call
     /// </summary>
-    public class MethodCall : AbstractUse<MethodDefinition>, IResolvesToType {
+    public class MethodCall : AbstractScopeUse<MethodDefinition>, IResolvesToType {
         /// <summary>
         /// Creates a new MethodCall object
         /// </summary>
@@ -61,10 +61,10 @@ namespace ABB.SrcML.Data {
                     Name = this.Name,
                     ParentScope = this.ParentScope,
                 };
+                tempTypeUse.AddAliases(this.Aliases);
 
                 var matchingMethods = from typeDefinition in tempTypeUse.FindMatches()
-                                      from child in typeDefinition.ChildScopes
-                                      let method = child as MethodDefinition
+                                      from method in typeDefinition.GetChildScopesWithId<MethodDefinition>(this.Name)
                                       where Matches(method)
                                       select method;
                 return matchingMethods;
@@ -88,8 +88,8 @@ namespace ABB.SrcML.Data {
         public override bool Matches(MethodDefinition definition) {
             if(null == definition) return false;
 
-            var argumentsMatchParameters = Enumerable.Zip(this.Arguments, definition.Parameters,
-                                                          (a,p) => ArgumentMatchesDefinition(a,p));
+            //var argumentsMatchParameters = Enumerable.Zip(this.Arguments, definition.Parameters,
+            //                                              (a,p) => ArgumentMatchesDefinition(a,p));
 
             return this.IsConstructor == definition.IsConstructor &&
                    this.IsDestructor == definition.IsDestructor &&

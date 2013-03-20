@@ -240,7 +240,7 @@ namespace ABB.SrcML.Data.Test {
 }</block></class>";
 
             //package D;
-            //import A.B;
+            //import A.B.*;
             //class E {
             //    public static void main() {
             //        C c = new C();
@@ -418,6 +418,70 @@ namespace ABB.SrcML.Data.Test {
 
             Assert.AreEqual("Foo", callToFoo.Name);
             Assert.AreSame(fooMethod, callToFoo.FindMatches().FirstOrDefault());
+        }
+
+        [Test]
+        public void TestConstructorFromOtherNamespace_Java() {
+            //package A.B;
+            //class C {
+            //	public C() { }
+            //}
+            string c_xml = @"<package>package <name>A</name>.<name>B</name>;</package>
+<class>class <name>C</name> <block>{
+	<constructor><specifier>public</specifier> <name>C</name><parameter_list>()</parameter_list> <block>{ }</block></constructor>
+}</block></class>";
+
+            //package A.D;
+            //import A.B.*;
+            //class E {
+            //	public void main() {
+            //		C c = new C();
+            //	}
+            //}
+            string e_xml = @"<package>package <name>A</name>.<name>D</name>;</package>
+<import>import <name>A</name>.<name>B</name>.*;</import>
+<class>class <name>E</name> <block>{
+	<function><type><specifier>public</specifier> <name>void</name></type> <name>main</name><parameter_list>()</parameter_list> <block>{
+		<decl_stmt><decl><type><name>C</name></type> <name>c</name> =<init> <expr><op:operator>new</op:operator> <call><name>C</name><argument_list>()</argument_list></call></expr></init></decl>;</decl_stmt>
+	}</block></function>
+}</block></class>";
+
+            var cUnit = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(c_xml, "C.java");
+            var eUnit = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(e_xml, "E.java");
+
+            var cScope = CodeParser[Language.Java].ParseFileUnit(cUnit);
+            var eScope = CodeParser[Language.Java].ParseFileUnit(eUnit);
+
+            var globalScope = cScope.Merge(eScope);
+
+            var typeC = (from typeDefinition in globalScope.GetDescendantScopesAndSelf<TypeDefinition>()
+                         where typeDefinition.Name == "C"
+                         select typeDefinition).First();
+
+            var typeE = (from typeDefinition in globalScope.GetDescendantScopesAndSelf<TypeDefinition>()
+                         where typeDefinition.Name == "E"
+                         select typeDefinition).First();
+
+            Assert.IsNotNull(typeC, "Could not find class C");
+            Assert.IsNotNull(typeE, "Could not find class E");
+
+            var constructorForC = typeC.GetChildScopes<MethodDefinition>().FirstOrDefault();
+
+            Assert.IsNotNull(constructorForC, "C has no methods");
+            Assert.AreEqual("C", constructorForC.Name);
+            Assert.That(constructorForC.IsConstructor);
+
+            var eDotMain = typeE.GetChildScopesWithId<MethodDefinition>("main").FirstOrDefault();
+
+            Assert.IsNotNull(eDotMain, "could not find main method in E");
+            Assert.AreEqual("main", eDotMain.Name);
+
+            var callToC = eDotMain.MethodCalls.First();
+            Assert.IsNotNull(callToC, "main contains no calls");
+            Assert.AreEqual("C", callToC.Name);
+            Assert.That(callToC.IsConstructor);
+
+            Assert.AreEqual(constructorForC, callToC.FindMatches().FirstOrDefault());
         }
     }
 }

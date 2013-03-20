@@ -62,10 +62,7 @@ namespace ABB.SrcML.Data {
         public IEnumerable<TypeDefinition> FindMatchingTypes() {
             IEnumerable<TypeDefinition> typeDefinitions;
             if(this.Name == "this") {
-                typeDefinitions = (from parent in ParentScopes
-                                   let parentAsType = parent as TypeDefinition
-                                   where parentAsType != null
-                                   select parentAsType).Take(1);
+                typeDefinitions = ParentScopes.OfType<TypeDefinition>().Take(1);
             } else if(this.CallingObject != null) {
                 typeDefinitions = this.CallingObject.FindMatchingTypes();
             } else {

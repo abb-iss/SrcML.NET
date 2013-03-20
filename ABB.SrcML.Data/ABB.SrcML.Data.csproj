@@ -52,6 +52,7 @@
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
     <Compile Include="AbstractCodeParser.cs" />
+    <Compile Include="AbstractScopeUse.cs" />
     <Compile Include="AbstractUse.cs" />
     <Compile Include="AccessModifier.cs" />
     <Compile Include="Alias.cs" />
