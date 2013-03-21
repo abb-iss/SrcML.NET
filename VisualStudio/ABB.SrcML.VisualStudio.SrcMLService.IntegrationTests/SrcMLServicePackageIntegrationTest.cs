@@ -115,34 +115,34 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
         [TestMethod]
         [HostType("VS IDE")]
         public void ProjectLevelIncrementalUpdateTest() {
+            /*
             // CSharp
             OpenSolution(testCSharpSolutionFilePath);
-            // http://msdn.microsoft.com/en-us/library/envdte.solution(v=vs.100).aspx
             CheckCSharpSolutionStartup();
-            string newProjectFileName = "NewCSharpClass1.cs";
-            string saveAsProjectFileName = "NewCSharpClass111111.cs";
+            string newProjectFileName = @"ClassLibrary1\ClassLibrary1\ClassLibrary1.csproj";
             string templateProjectFilePath = Path.Combine(testFileTemplateFolder, newProjectFileName);
-            string newProjectFilePath = Path.Combine(testCSharpProjectFolder, newProjectFileName);
-            string saveAsProjectFilePath = Path.Combine(testCSharpProjectFolder, saveAsProjectFileName);
-            //AddCSharpProject();
-            // Add a project            AddFromTemplate
-            // Add an existing project  AddFromFile
-            // Unload a project         ?
-            // Reload a project         ?
-            // Remove a project         Remove
-            
-            CloseSolution();
-
-            /*
-            // CPP
-            OpenSolution(testCPPSolutionFilePath);
-            // Add a project
-            // Add an existing project
-            // Unload a project
-            // Reload a project
-            // Remove a project
+            WriteLog(logFilePath, "C# templateProjectFilePath: [" + templateProjectFilePath + "]");
+            AddCSharpProject(templateProjectFilePath);
+            CheckSrcMLFilesForNewCSharpProject(true);
+            System.Threading.Thread.Sleep(1000);
+            RemoveCSharpProject(templateProjectFilePath);
+            CheckSrcMLFilesForNewCSharpProject(false);
+            System.Threading.Thread.Sleep(1000);
             CloseSolution();
             */
+
+            // CPP
+            OpenSolution(testCPPSolutionFilePath);
+            CheckCPPSolutionStartup();
+            string templateProjectFilePath = Path.GetFullPath(Path.Combine(testFileTemplateFolder, @"ConsoleApplication1\ConsoleApplication1\ConsoleApplication1.vcxproj"));
+            //WriteLog(logFilePath, "templateProjectFilePath: [" + templateProjectFilePath + "]");
+            AddCPPProject(templateProjectFilePath);
+            CheckSrcMLFilesForNewCPPProject(true);
+            System.Threading.Thread.Sleep(1000);
+            RemoveCPPProject(templateProjectFilePath);
+            CheckSrcMLFilesForNewCPPProject(false);
+            System.Threading.Thread.Sleep(1000);
+            CloseSolution();
         }
 
         [TestCleanup]
@@ -266,6 +266,64 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             fera = null;
         }
 
+        public void CheckSrcMLFilesForNewCSharpProject(bool flag) {
+            SrcMLArchive archive = srcMLService.GetSrcMLArchive();
+            Assert.IsNotNull(archive, "GetSrcMLArchive returned null.");
+            string addedCSharpProjectFolder = Path.Combine(testFileTemplateFolder, @"ClassLibrary1\ClassLibrary1");
+            string sourcePath1 = Path.Combine(addedCSharpProjectFolder, "Class1.cs");
+            string srcMLPath1 = archive.GetXmlPathForSourcePath(sourcePath1);
+            if(flag) {  //add
+                Assert.IsTrue(File.Exists(sourcePath1), "The source file [" + sourcePath1 + "] does not exist.");
+                Assert.IsTrue(File.Exists(srcMLPath1), "The srcML file [" + srcMLPath1 + "] does not exist.");
+                Assert.AreEqual(new FileInfo(sourcePath1).LastWriteTime, new FileInfo(srcMLPath1).LastWriteTime);
+                XElement xelement1 = srcMLService.GetXElementForSourceFile(sourcePath1);
+                Assert.IsNotNull(xelement1, "GetXElementForSourceFile returned null.");
+            } else {    //remove
+                Assert.IsFalse(File.Exists(srcMLPath1), "The srcML file [" + srcMLPath1 + "] still exists.");
+            }
+        }
+
+        public void CheckSrcMLFilesForNewCPPProject(bool flag) {
+            SrcMLArchive archive = srcMLService.GetSrcMLArchive();
+            Assert.IsNotNull(archive, "GetSrcMLArchive returned null.");
+            string addedCPPProjectFolder = Path.Combine(testFileTemplateFolder, @"ConsoleApplication1\ConsoleApplication1");
+            string sourcePath1 = Path.Combine(addedCPPProjectFolder, "stdafx.cpp");
+            string sourcePath2 = Path.Combine(addedCPPProjectFolder, "stdafx.h");
+            string sourcePath3 = Path.Combine(addedCPPProjectFolder, "targetver.h");
+            string sourcePath4 = Path.Combine(addedCPPProjectFolder, "ConsoleApplication1.cpp");
+            string srcMLPath1 = archive.GetXmlPathForSourcePath(sourcePath1);
+            string srcMLPath2 = archive.GetXmlPathForSourcePath(sourcePath2);
+            string srcMLPath3 = archive.GetXmlPathForSourcePath(sourcePath3);
+            string srcMLPath4 = archive.GetXmlPathForSourcePath(sourcePath4);
+            if(flag) {  //add
+                Assert.IsTrue(File.Exists(sourcePath1), "The source file [" + sourcePath1 + "] does not exist.");
+                Assert.IsTrue(File.Exists(sourcePath2), "The source file [" + sourcePath2 + "] does not exist.");
+                Assert.IsTrue(File.Exists(sourcePath3), "The source file [" + sourcePath3 + "] does not exist.");
+                Assert.IsTrue(File.Exists(sourcePath4), "The source file [" + sourcePath4 + "] does not exist.");
+                Assert.IsTrue(File.Exists(srcMLPath1), "The srcML file [" + srcMLPath1 + "] does not exist.");
+                Assert.IsTrue(File.Exists(srcMLPath2), "The srcML file [" + srcMLPath2 + "] does not exist.");
+                Assert.IsTrue(File.Exists(srcMLPath3), "The srcML file [" + srcMLPath3 + "] does not exist.");
+                Assert.IsTrue(File.Exists(srcMLPath4), "The srcML file [" + srcMLPath4 + "] does not exist.");
+                Assert.AreEqual(new FileInfo(sourcePath1).LastWriteTime, new FileInfo(srcMLPath1).LastWriteTime);
+                Assert.AreEqual(new FileInfo(sourcePath2).LastWriteTime, new FileInfo(srcMLPath2).LastWriteTime);
+                Assert.AreEqual(new FileInfo(sourcePath3).LastWriteTime, new FileInfo(srcMLPath3).LastWriteTime);
+                Assert.AreEqual(new FileInfo(sourcePath4).LastWriteTime, new FileInfo(srcMLPath4).LastWriteTime);
+                XElement xelement1 = srcMLService.GetXElementForSourceFile(sourcePath1);
+                XElement xelement2 = srcMLService.GetXElementForSourceFile(sourcePath2);
+                XElement xelement3 = srcMLService.GetXElementForSourceFile(sourcePath3);
+                XElement xelement4 = srcMLService.GetXElementForSourceFile(sourcePath4);
+                Assert.IsNotNull(xelement1, "GetXElementForSourceFile returned null.");
+                Assert.IsNotNull(xelement2, "GetXElementForSourceFile returned null.");
+                Assert.IsNotNull(xelement3, "GetXElementForSourceFile returned null.");
+                Assert.IsNotNull(xelement4, "GetXElementForSourceFile returned null.");
+            } else {    //remove
+                Assert.IsFalse(File.Exists(srcMLPath1), "The srcML file [" + srcMLPath1 + "] still exists.");
+                Assert.IsFalse(File.Exists(srcMLPath2), "The srcML file [" + srcMLPath2 + "] still exists.");
+                Assert.IsFalse(File.Exists(srcMLPath3), "The srcML file [" + srcMLPath3 + "] still exists.");
+                Assert.IsFalse(File.Exists(srcMLPath4), "The srcML file [" + srcMLPath4 + "] still exists.");
+            }
+        }
+
         public static void StartupCompleted(object sender, EventArgs args) {
         }
 
@@ -363,6 +421,40 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             }
         }
 
+        public void AddCPPProject(string templateProjectFilePath) {
+            ModelSolution.AddFromFile(templateProjectFilePath);
+        }
+
+        public void AddCSharpProject(string templateProjectFilePath) {
+            ModelSolution.AddFromFile(templateProjectFilePath);
+        }
+
+        public void RemoveCPPProject(string projectFilePath) {
+            var allProjects = ModelSolution.Projects;
+            var enumerator = allProjects.GetEnumerator();
+            while(enumerator.MoveNext()) {
+                Project project = enumerator.Current as Project;
+                if(project != null && projectFilePath.Equals(project.FullName)) {
+                    //WriteLog(logFilePath, "Project to be removed: [" + project.FullName + "]");
+                    ModelSolution.Remove(project);
+                    break;
+                }
+            }
+        }
+
+        public void RemoveCSharpProject(string projectFilePath) {
+            var allProjects = ModelSolution.Projects;
+            var enumerator = allProjects.GetEnumerator();
+            while(enumerator.MoveNext()) {
+                Project project = enumerator.Current as Project;
+                if(project != null && projectFilePath.Equals(project.FullName)) {
+                    //WriteLog(logFilePath, "C# Project to be removed: [" + project.FullName + "]");
+                    ModelSolution.Remove(project);
+                    break;
+                }
+            }
+        }
+
         public void CloseSolution() {
             // Stop monitoring
             srcMLService.StopMonitoring();
@@ -379,6 +471,14 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
         public void Invoke(MethodInvoker globalSystemWindowsFormsMethodInvoker) {
             UIThreadInvoker.Invoke(globalSystemWindowsFormsMethodInvoker);
         }
+
+        /*
+        private static void WriteLog(string logFile, string str) {
+            StreamWriter sw = new StreamWriter(logFile, true, System.Text.Encoding.ASCII);
+            sw.WriteLine(str);
+            sw.Close();
+        }
+        */
     }
 
     /* // The following code is generated by VS template, but does not work. 
@@ -436,13 +536,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             });
         }
     }
-    */
-    /*
-        private static void WriteLog(string logFile, string str) {
-            StreamWriter sw = new StreamWriter(logFile, true, System.Text.Encoding.ASCII);
-            sw.WriteLine(str);
-            sw.Close();
-        }
     */
 }
 
