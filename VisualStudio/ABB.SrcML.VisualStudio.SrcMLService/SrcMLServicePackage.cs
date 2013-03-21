@@ -107,11 +107,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         private SolutionEvents SolutionEvents;
 
         /// <summary>
-        /// Listening interface that monitors any notifications of changes to the solution.
-        /// </summary>
-        private SolutionChangeEventListener SolutionChangeListener;
-
-        /// <summary>
         /// Visual Studio's Activity Logger.
         /// </summary>
         private IVsActivityLog ActivityLog;
@@ -351,8 +346,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 // Register the Visual Studio event that occurs when a solution is about to close.
                 SolutionEvents.BeforeClosing += SolutionBeforeClosing;
             }
-
-            /*  // maybe removed after completing project level IU
+            /*
+            // maybe removed after completing project level IU
             // Queries listening clients as to whether the project can be unloaded.
             SolutionChangeListener = new SolutionChangeEventListener();
             SolutionChangeListener.OnQueryUnloadProject += () => {
@@ -366,6 +361,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// Respond to the Visual Studio event that occurs when a solution is being opened.
         /// </summary>
         private void SolutionOpened() {
+            srcMLService.SourceFileChanged += WriteToOutput;
             SrcMLFileLogger.DefaultLogger.Info("Respond to the Visual Studio event that occurs when a solution is being opened.");
 
             BackgroundWorker bw = new BackgroundWorker();
@@ -373,6 +369,12 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             bw.WorkerSupportsCancellation = false;
             bw.DoWork += new DoWorkEventHandler(RespondToSolutionOpened);
             bw.RunWorkerAsync();
+        }
+
+        private void WriteToOutput(object sender, FileEventRaisedArgs e)
+        {
+            if (e.EventType.Equals(FileEventType.FileDeleted))
+                Debug.WriteLine("Deleted: " + e.FilePath);
         }
 
         /// <summary>
@@ -384,7 +386,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             SrcMLFileLogger.DefaultLogger.Info("> SrcML service starts monitoring the opened solution.");
 
             //srcMLService.StartMonitoring();
-            srcMLService.StartMonitoring(true, SrcMLHelper.GetSrcMLDefaultDirectory());
+            srcMLService.StartMonitoring(true, SrcMLHelper.GetSrcMLDefaultDirectory(extensionDirectory));
         }
 
         /// <summary>

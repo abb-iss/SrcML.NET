@@ -142,7 +142,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         public void StartMonitoring() {
             SrcMLFileLogger.DefaultLogger.Info("SrcMLGlobalService.StartMonitering() - default");
 
-            StartMonitoring(true, SrcMLHelper.GetSrcMLDefaultDirectory());
+            StartMonitoring(true, SrcMLHelper.GetSrcMLDefaultDirectory(SrcMLServiceDirectory));
         }
 
         /// <summary>
