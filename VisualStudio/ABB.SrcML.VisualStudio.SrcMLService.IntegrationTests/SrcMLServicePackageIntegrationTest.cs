@@ -117,9 +117,14 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
         public void ProjectLevelIncrementalUpdateTest() {
             // CSharp
             OpenSolution(testCSharpSolutionFilePath);
-            CheckCSharpSolutionStartup();
-
             // http://msdn.microsoft.com/en-us/library/envdte.solution(v=vs.100).aspx
+            CheckCSharpSolutionStartup();
+            string newProjectFileName = "NewCSharpClass1.cs";
+            string saveAsProjectFileName = "NewCSharpClass111111.cs";
+            string templateProjectFilePath = Path.Combine(testFileTemplateFolder, newProjectFileName);
+            string newProjectFilePath = Path.Combine(testCSharpProjectFolder, newProjectFileName);
+            string saveAsProjectFilePath = Path.Combine(testCSharpProjectFolder, saveAsProjectFileName);
+            //AddCSharpProject();
             // Add a project            AddFromTemplate
             // Add an existing project  AddFromFile
             // Unload a project         ?
