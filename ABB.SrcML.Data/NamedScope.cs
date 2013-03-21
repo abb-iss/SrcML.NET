@@ -25,6 +25,7 @@ namespace ABB.SrcML.Data {
     /// <para>Sub-classes of this include <see cref="TypeDefinition"/>, <see cref="NamespaceDefinition"/>,
     /// and <see cref="MethodDefinition"/></para>
     /// </summary>
+    [DebuggerTypeProxy(typeof(ScopeDebugView))]
     public class NamedScope : Scope {
         /// <summary>
         /// Create a new object
@@ -57,6 +58,14 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public AccessModifier Accessibility { get; set; }
 
+        /// <summary>
+        /// The identifier for named scopes is the <see cref="Name"/>.
+        /// </summary>
+        public override string Id {
+            get {
+                return this.Name;
+            }
+        }
 
         /// <summary>
         /// This indicates which unresolved parent scope has been used to link this object with a parent object
@@ -225,7 +234,7 @@ namespace ABB.SrcML.Data {
                     //this NamedScope is defined in more than one file, delete only the parts in the given file
                     //Remove the file from the children
                     var unresolvedChildScopes = new List<Scope>();
-                    foreach(var child in ChildScopeCollection.ToList()) {
+                    foreach(var child in ChildScopes.ToList()) {
                         var result = child.RemoveFile(fileName);
                         if(result != null) {
                             unresolvedChildScopes.AddRange(result);
@@ -286,7 +295,7 @@ namespace ABB.SrcML.Data {
                             ParentScope.RemoveChild(this);
                             ParentScope = null;
                         }
-                        unresolvedChildScopes.AddRange(ChildScopeCollection);
+                        unresolvedChildScopes.AddRange(ChildScopes);
                         //reset the UnresolvedParentScopeInUse so the children will be re-resolved by our parent
                         foreach(var namedChild in unresolvedChildScopes.OfType<NamedScope>()) {
                             namedChild.UnresolvedParentScopeInUse = null;
@@ -310,6 +319,10 @@ namespace ABB.SrcML.Data {
             }
 
             return sb.ToString().TrimEnd('.');
+        }
+
+        public override string ToString() {
+            return ToString("Named Scope");
         }
     }
 }

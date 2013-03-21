@@ -172,7 +172,7 @@ namespace ABB.SrcML.Data.Test {
 
             var namespaceC = namespaceB.ChildScopes.First() as NamespaceDefinition;
             Assert.AreEqual("C", namespaceC.Name);
-            Assert.AreEqual("A.B.C", namespaceC.GetFirstParent<NamespaceDefinition>().GetFullName());
+            Assert.AreEqual("A.B", namespaceC.GetFirstParent<NamespaceDefinition>().GetFullName());
             Assert.AreEqual(2, namespaceC.ChildScopes.Count());
             var typeD = namespaceC.ChildScopes.First() as TypeDefinition;
             var typeE = namespaceC.ChildScopes.Last() as TypeDefinition;
