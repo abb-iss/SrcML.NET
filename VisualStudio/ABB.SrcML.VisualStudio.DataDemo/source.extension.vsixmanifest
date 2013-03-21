@@ -1,17 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="ABB.SrcML.VisualStudio.DataDemo.Microsoft.812c736d-691b-451f-8b49-a9da1a2bfa15" Version="1.0" Language="en-US" Publisher="Microsoft" />
-    <DisplayName>ABB.SrcML.VisualStudio.DataDemo</DisplayName>
-    <Description>This is a sample text-relative adornment extension to the Visual Studio Editor.</Description>
+    <Identity Id="3b5af89b-e548-461a-a4c9-3b648b2640f7" Version="1.0" Language="en-US" Publisher="ABB" />
+    <DisplayName>DataDemo</DisplayName>
+    <Description>Demo package for ABB.SrcML.Data</Description>
   </Metadata>
-  <Installation>
+  <Installation InstalledByMsi="false">
     <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="11.0" />
   </Installation>
   <Dependencies>
     <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="4.5" />
+    <Dependency Id="Microsoft.VisualStudio.MPF.11.0" DisplayName="Visual Studio MPF 11.0" d:Source="Installed" Version="11.0" />
   </Dependencies>
   <Assets>
-    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
+    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
+    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="ABB.SrcML.VisualStudio.SrcMLService" Path="|ABB.SrcML.VisualStudio.SrcMLService;PkgdefProjectOutputGroup|" />
   </Assets>
 </PackageManifest>
