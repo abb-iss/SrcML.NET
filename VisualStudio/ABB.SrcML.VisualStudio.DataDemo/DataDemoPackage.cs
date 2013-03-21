@@ -86,7 +86,9 @@ namespace ABB.SrcML.VisualStudio.DataDemo {
                 return;
             }
             srcMLService.StartupCompleted += srcMLService_StartupCompleted;
-            
+            if(srcMLService.IsStartupCompleted) {
+                InitializeDataArchive(srcMLService.GetSrcMLArchive());
+            }
         }
 
         #endregion
@@ -94,8 +96,12 @@ namespace ABB.SrcML.VisualStudio.DataDemo {
         void srcMLService_StartupCompleted(object sender, EventArgs e) {
             var service = sender as ISrcMLGlobalService;
             if(service != null) {
-                dataArchive = new DataArchive(service.GetSrcMLArchive());
+                InitializeDataArchive(service.GetSrcMLArchive());
             }
+        }
+
+        private void InitializeDataArchive(SrcMLArchive srcMLArchive) {
+            dataArchive = new DataArchive(srcMLArchive);
         }
 
         /// <summary>
@@ -120,7 +126,8 @@ namespace ABB.SrcML.VisualStudio.DataDemo {
             if(doc != null) {
                 var sel = doc.Selection;
                 var cursor = ((TextSelection)sel).ActivePoint;
-                PrintOutputLine(string.Format("Cursor at: {0}:{1},{2}", dte.ActiveDocument.FullName, cursor.Line, cursor.LineCharOffset));
+                //PrintOutputLine(string.Format("Cursor at: {0}:{1},{2}", dte.ActiveDocument.FullName, cursor.Line, cursor.LineCharOffset));
+                PrintOutputLine("{0}({1},{2}) : cursor position", dte.ActiveDocument.FullName, cursor.Line, cursor.LineCharOffset);
 
                 var scope = dataArchive.FindScope(new SourceLocation(dte.ActiveDocument.FullName, cursor.Line, cursor.LineCharOffset));
                 PrintOutputLine(scope.ToString());
@@ -148,6 +155,10 @@ namespace ABB.SrcML.VisualStudio.DataDemo {
                 SetupOutputPane();
             }
             outputPane.OutputString(text + Environment.NewLine);
+        }
+
+        private void PrintOutputLine(string format, params object[] args) {
+            PrintOutput(string.Format(format, args) + Environment.NewLine);
         }
     }
 }
