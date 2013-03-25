@@ -264,6 +264,28 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
+        public void TestCreateTypeDefinition_StaticMethod() {
+            //class Example {
+            //public:
+            //    static int Example::Foo(int bar) { return bar+1; }
+            //};
+            string xml = @"<class>class <name>Example</name> <block>{<private type=""default"">
+</private><public>public:
+    <function><type><name>static</name> <name>int</name></type> <name><name>Example</name><op:operator>::</op:operator><name>Foo</name></name><parameter_list>(<param><decl><type><name>int</name></type> <name>bar</name></decl></param>)</parameter_list> <block>{ <return>return <expr><name>bar</name><op:operator>+</op:operator><lit:literal type=""number"">1</lit:literal></expr>;</return> }</block></function>
+</public>}</block>;</class>";
+            var fileUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "static_method.h");
+            var globalScope = codeParser.ParseFileUnit(fileUnit);
+
+            var example = globalScope.ChildScopes.OfType<TypeDefinition>().FirstOrDefault();
+            Assert.IsNotNull(example);
+            Assert.AreEqual("Example", example.Name);
+            Assert.AreEqual(1, example.ChildScopes.Count());
+            var foo = example.ChildScopes.OfType<MethodDefinition>().FirstOrDefault();
+            Assert.IsNotNull(foo);
+            Assert.AreEqual("Foo", foo.Name);
+        }
+
+        [Test]
         public void TestCreateAliasesForFiles_ImportClass() {
             // using A::Foo;
             string xml = @"<using>using <name><name>A</name><op:operator>::</op:operator><name>Foo</name></name>;</using>";
@@ -326,6 +348,8 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreSame(aDotBDotBar, aDotBDotFoo.MethodCalls.First().FindMatches().First());
             Assert.AreEqual(1, aDotBDotFoo.MethodCalls.First().FindMatches().Count());
         }
+
+        
 
         [Test]
         public void TestClassWithDeclaredVariable() {

@@ -33,4 +33,31 @@ namespace ABB.SrcML.Data {
         /// <summary>Private</summary>
         Private
     }
+
+    /// <summary>
+    /// Contains extension methods for the AccessModifier enum.
+    /// </summary>
+    public static class AccessModifierExtensions {
+        /// <summary>
+        /// Converts the enum value to its programming language keyword equivalent.
+        /// </summary>
+        public static string ToKeywordString(this AccessModifier am) {
+            switch(am) {
+                case AccessModifier.None:
+                    return string.Empty;
+                case AccessModifier.Public:
+                    return "public";
+                case AccessModifier.ProtectedInternal:
+                    return "protected internal";
+                case AccessModifier.Protected:
+                    return "protected";
+                case AccessModifier.Internal:
+                    return "internal";
+                case AccessModifier.Private:
+                    return "private";
+                default:
+                    return am.ToString();
+            }
+        }
+    }
 }

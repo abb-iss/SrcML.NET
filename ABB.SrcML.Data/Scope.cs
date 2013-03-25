@@ -95,7 +95,6 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Iterates over all of the child scopes of this scope
         /// </summary>
-        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
         public IEnumerable<Scope> ChildScopes {
             get {
                 foreach(var childList in this.ChildScopeMap.Values) {
