@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.ComponentModel.Design;
 using ABB.SrcML;
@@ -101,7 +102,9 @@ namespace ABB.SrcML.VisualStudio.DataDemo {
         }
 
         private void InitializeDataArchive(SrcMLArchive srcMLArchive) {
+            PrintOutputLine("Initializing DataArchive...");
             dataArchive = new DataArchive(srcMLArchive);
+            PrintOutputLine("Initialization complete.");
         }
 
         /// <summary>
@@ -127,10 +130,39 @@ namespace ABB.SrcML.VisualStudio.DataDemo {
                 var sel = doc.Selection;
                 var cursor = ((TextSelection)sel).ActivePoint;
                 //PrintOutputLine(string.Format("Cursor at: {0}:{1},{2}", dte.ActiveDocument.FullName, cursor.Line, cursor.LineCharOffset));
+                outputPane.Clear();
                 PrintOutputLine("{0}({1},{2}) : cursor position", dte.ActiveDocument.FullName, cursor.Line, cursor.LineCharOffset);
 
                 var scope = dataArchive.FindScope(new SourceLocation(dte.ActiveDocument.FullName, cursor.Line, cursor.LineCharOffset));
-                PrintOutputLine(scope.ToString());
+                if(scope == null) {
+                    PrintOutputLine("Scope not found!");
+                } else {
+                    PrintOutputLine(scope.ToString());
+                    PrintOutputLine("Children:");
+                    foreach(var child in scope.ChildScopes) {
+                        PrintOutputLine(">> {0}", child.ToString());
+                    }
+                    PrintOutputLine("Parent:");
+                    PrintOutputLine(">> {0}", scope.ParentScope != null ? scope.ParentScope.ToString() : "None");
+                    PrintOutputLine("Declared Variables:");
+                    foreach(var vd in scope.DeclaredVariables) {
+                        PrintOutputLine(">> {0}", vd.ToString());
+                    }
+                    PrintOutputLine("Method Calls:");
+                    foreach(var mc in scope.MethodCalls) {
+                        PrintOutputLine("Call {0}, matches:", mc.ToString());
+                        foreach(var match in mc.FindMatches()) {
+                            //PrintOutputLine(">> matches {0}", match.ToString());
+                            SrcMLLocation loc;
+                            if(match.DefinitionLocations.Any()) {
+                                loc = match.DefinitionLocations.First();
+                            } else {
+                                loc = match.Locations.First();
+                            }
+                            PrintOutputLine("{0}({1},{2}) : {3}", loc.SourceFileName, loc.StartingLineNumber, loc.StartingColumnNumber, match.ToString());
+                        }
+                    }
+                }
             }
 
             
