@@ -22,11 +22,12 @@ namespace ABB.SrcML.Data {
     /// The Scope class is the base class for variable scope objects. It encapsulates the basics of the type hierarchy (parent-child relationships)
     /// and contains methods for adding child scopes and variable declarations.
     /// </summary>
+    [DebuggerTypeProxy(typeof(ScopeDebugView))]
     public class Scope {
         /// <summary>
         /// Holds all of the children for this scope.
         /// </summary>
-        protected Collection<Scope> ChildScopeCollection;
+        protected Dictionary<string, List<Scope>> ChildScopeMap;
 
         /// <summary>
         /// Holds all of the variable declarations declared here. The key is the variable name.
@@ -49,7 +50,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public Scope() {
             DeclaredVariablesDictionary = new Dictionary<string, VariableDeclaration>();
-            ChildScopeCollection = new Collection<Scope>();
+            ChildScopeMap = new Dictionary<string, List<Scope>>();
             MethodCallCollection = new Collection<MethodCall>();
             LocationDictionary = new Dictionary<string, Collection<SrcMLLocation>>();
         }
@@ -61,12 +62,24 @@ namespace ABB.SrcML.Data {
         public Scope(Scope otherScope) {
             ProgrammingLanguage = otherScope.ProgrammingLanguage;
 
-            ChildScopeCollection = new Collection<Scope>();
+            ChildScopeMap = new Dictionary<string, List<Scope>>(otherScope.ChildScopeMap.Count);
             DeclaredVariablesDictionary = new Dictionary<string, VariableDeclaration>(otherScope.DeclaredVariablesDictionary.Count);
             MethodCallCollection = new Collection<MethodCall>();
             LocationDictionary = new Dictionary<string, Collection<SrcMLLocation>>(otherScope.LocationDictionary.Count);
 
             CopyFromOtherScope(otherScope);
+        }
+
+        /// <summary>
+        /// <para>Gets an identifier for this scope. Identifiers do not have to be unique.
+        /// They are used to collect scopes with the same ID into buckets in <see cref="ChildScopeMap"/></para>
+        /// <para>For Scopes, the identifier is the <see cref="PrimaryLocation">primary XPath</see>. In practice, this means that 
+        /// each scope will always be sorted into its own lists.</para>
+        /// </summary>
+        public virtual string Id {
+            get {
+                return this.PrimaryLocation.XPath;
+            }
         }
 
         /// <summary>
@@ -82,7 +95,15 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Iterates over all of the child scopes of this scope
         /// </summary>
-        public IEnumerable<Scope> ChildScopes { get { return this.ChildScopeCollection.AsEnumerable(); } }
+        public IEnumerable<Scope> ChildScopes {
+            get {
+                foreach(var childList in this.ChildScopeMap.Values) {
+                    foreach(var child in childList) {
+                        yield return child;
+                    }
+                }
+            }
+        }
 
         /// <summary>
         /// Iterates over all of the variable declarations for this scope
@@ -231,18 +252,23 @@ namespace ABB.SrcML.Data {
         public virtual void AddChildScope(Scope childScope) {
             int i;
             Scope mergedScope = null;
-            
-            for(i = 0; i < this.ChildScopeCollection.Count; i++) {
-                mergedScope = this.ChildScopeCollection.ElementAt(i).Merge(childScope);
-                if(null != mergedScope) {
-                    this.ChildScopeCollection[i] = mergedScope;
-                    mergedScope.ParentScope = this;
-                    break;
+            List<Scope> listForChild;
+            if(ChildScopeMap.TryGetValue(childScope.Id, out listForChild)) {
+                for(i = 0; i < listForChild.Count; i++) {
+                    mergedScope = listForChild[i].Merge(childScope);
+                    if(null != mergedScope) {
+                        listForChild[i] = mergedScope;
+                        mergedScope.ParentScope = this;
+                        break;
+                    }
                 }
-            }
-
-            if(null == mergedScope) {
-                ChildScopeCollection.Add(childScope);
+                if(null == mergedScope) {
+                    listForChild.Add(childScope);
+                    childScope.ParentScope = this;
+                }
+            } else {
+                ChildScopeMap[childScope.Id] = new List<Scope>(1);
+                ChildScopeMap[childScope.Id].Add(childScope);
                 childScope.ParentScope = this;
             }
         }
@@ -276,6 +302,31 @@ namespace ABB.SrcML.Data {
                 LocationDictionary[location.SourceFileName] = locationsForFile;
             }
             locationsForFile.Add(location);
+        }
+
+        /// <summary>
+        /// Gets all of the child scopes that match <paramref name="id"/>. This works by simply returning the matching list in <see cref="ChildScopeMap"/>.
+        /// </summary>
+        /// <param name="id">The id to look for</param>
+        /// <returns>All of the child scopes with the given id -- if there are none, it returns <see cref="Enumerable.Empty{T}()"/></returns>
+        public IEnumerable<Scope> GetChildScopesWithId(string id) {
+            if(ChildScopeMap.ContainsKey(id)) {
+                return ChildScopeMap[id];
+            } else {
+                return Enumerable.Empty<Scope>();
+            }
+        }
+
+        /// <summary>
+        /// Gets all of the child scopes that match <paramref name="id"/> and have type <typeparamref name="T"/>.
+        /// This works by simply returning the matching list in <see cref="ChildScopeMap"/>.
+        /// </summary>
+        /// <typeparam name="T">The type to filter by</typeparam>
+        /// <param name="id">The id to look for</param>
+        /// <returns>All of the child scopes with the matching <paramref name="id"/> and type <typeparamref name="T"/> --
+        /// if there are none, it returns <see cref="Enumerable.Empty{T}()"/></returns>
+        public IEnumerable<T> GetChildScopesWithId<T>(string id) where T : Scope {
+            return GetScopesOfType<T>(GetChildScopesWithId(id));
         }
 
         /// <summary>
@@ -372,7 +423,7 @@ namespace ABB.SrcML.Data {
         /// <returns>The lowest child of this scope that contains the given xpath, or null if it cannot be found.</returns>
         public Scope GetScopeForLocation(string xpath) {
             //first search in children
-            var foundScope = ChildScopeCollection.Select(c => c.GetScopeForLocation(xpath)).FirstOrDefault(r => r != null);
+            var foundScope = ChildScopes.Select(c => c.GetScopeForLocation(xpath)).FirstOrDefault(r => r != null);
             //if xpath not found, check ourselves
             if(foundScope == null && this.IsScopeFor(xpath)) {
                 foundScope = this;
@@ -387,7 +438,7 @@ namespace ABB.SrcML.Data {
         /// <returns>The lowest child of this scope that surrounds the given location, or null if it cannot be found.</returns>
         public Scope GetScopeForLocation(SourceLocation loc) {
             //first search in children
-            var foundScope = ChildScopeCollection.Select(c => c.GetScopeForLocation(loc)).FirstOrDefault(r => r != null);
+            var foundScope = ChildScopes.Select(c => c.GetScopeForLocation(loc)).FirstOrDefault(r => r != null);
             //if loc not found, check ourselves
             if(foundScope == null && this.IsScopeFor(loc)) {
                 foundScope = this;
@@ -418,20 +469,28 @@ namespace ABB.SrcML.Data {
         /// <param name="childScope">The child scope to remove.</param>
         public virtual void RemoveChild(Scope childScope) {
             //remove child
-            ChildScopeCollection.Remove(childScope);
-            //update locations
-            foreach(var childKvp in childScope.LocationDictionary) {
-                var fileName = childKvp.Key;
-                if(LocationDictionary.ContainsKey(fileName)) {
-                    var fileLocations = LocationDictionary[fileName];
-                    foreach(var childLoc in childKvp.Value) {
-                        fileLocations.Remove(childLoc);
-                    }
-                    if(fileLocations.Count == 0) {
-                        LocationDictionary.Remove(fileName);
+            if(ChildScopeMap.ContainsKey(childScope.Id)) {
+                ChildScopeMap[childScope.Id].Remove(childScope);
+
+                if(ChildScopeMap[childScope.Id].Count == 0) {
+                    ChildScopeMap.Remove(childScope.Id);
+                }
+                //update locations
+                foreach(var childKvp in childScope.LocationDictionary) {
+                    var fileName = childKvp.Key;
+                    if(LocationDictionary.ContainsKey(fileName)) {
+                        var fileLocations = LocationDictionary[fileName];
+                        foreach(var childLoc in childKvp.Value) {
+                            fileLocations.Remove(childLoc);
+                        }
+                        if(fileLocations.Count == 0) {
+                            LocationDictionary.Remove(fileName);
+                        }
                     }
                 }
             }
+
+            
         }
 
         /// <summary>
@@ -456,7 +515,7 @@ namespace ABB.SrcML.Data {
 
                     //Remove the file from the children
                     var unresolvedChildScopes = new List<Scope>();
-                    foreach(var child in ChildScopeCollection.ToList()) {
+                    foreach(var child in ChildScopes.ToList()) {
                         var result = child.RemoveFile(fileName);
                         if(result != null) {
                             unresolvedChildScopes.AddRange(result);
@@ -532,6 +591,16 @@ namespace ABB.SrcML.Data {
                           where scopeAsT != null
                           select scopeAsT;
             return results;
+        }
+
+        public override string ToString() {
+            return ToString("Scope");
+        }
+
+        protected string ToString(string typeName) { return ToString(typeName, this.Id); }
+
+        protected string ToString(string typeName, string identifier) {
+            return String.Format("{0}: {1}", typeName, identifier);
         }
     }
 }

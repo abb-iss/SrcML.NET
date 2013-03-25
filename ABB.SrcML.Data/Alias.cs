@@ -55,6 +55,34 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
+        /// Finds a namespace that matches the <see cref="ImportedNamespace"/> portion of this alias.
+        /// </summary>
+        /// <param name="rootScope">the global scope to search from</param>
+        /// <returns>namespace definitions rooted at <paramref name="rootScope"/> that match <see cref="ImportedNamespace"/></returns>
+        public IEnumerable<NamespaceDefinition> FindMatchingNamespace(NamespaceDefinition rootScope) {
+            var currentNsUse = this.ImportedNamespace;
+
+            List<NamespaceDefinition> scopes = new List<NamespaceDefinition>();
+            scopes.Add(rootScope);
+
+            // we will go through each namespace referenced by the alias
+            while(currentNsUse != null) {
+                // go through all of the scopes and get the children that match currentNsUse
+                // on the first iteration, the only thing in scopes will be the global scope
+                // on subsequent iterations, scopes will contain matches for the parent of currentNsUse
+                int currentLength = scopes.Count;
+                for(int i = 0; i < currentLength; i++) {
+                    scopes.AddRange(scopes[i].GetChildScopesWithId<NamespaceDefinition>(currentNsUse.Name));
+                }
+                // once we've found matches for currentNsUse, remove the previous scopes from the list
+                // and set currentNsUse to its child
+                scopes.RemoveRange(0, currentLength);
+                currentNsUse = currentNsUse.ChildScopeUse as NamespaceUse;
+            }
+
+            return scopes;
+        }
+        /// <summary>
         /// Constructs the namespace name for this alias
         /// </summary>
         /// <returns>the namespace name</returns>
@@ -75,16 +103,16 @@ namespace ABB.SrcML.Data {
         /// Checks if this is a valid alias for the given type use. Namespace prefixes are always valid.
         /// Other prefixes must have <see cref="ImportedNamedScope"/> match <see cref="AbstractUse{T}.Name"/>
         /// </summary>
-        /// <param name="typeUse">the type use to check</param>
+        /// <param name="use">the type use to check</param>
         /// <returns>true if this alias may represent this type use.</returns>
-        public bool IsAliasFor(TypeUse typeUse) {
-            if(null == typeUse)
-                throw new ArgumentNullException("typeUse");
+        public bool IsAliasFor<DEFINITION>(AbstractUse<DEFINITION> use) where DEFINITION : class {
+            if(null == use)
+                throw new ArgumentNullException("use");
 
             if(IsNamespaceImport)
                 return true;
 
-            if(typeUse.Name == this.ImportedNamedScope.Name)
+            if(use.Name == this.ImportedNamedScope.Name)
                 return true;
             return false;
         }

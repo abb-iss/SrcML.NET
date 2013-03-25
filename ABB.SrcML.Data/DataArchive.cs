@@ -131,7 +131,7 @@ namespace ABB.SrcML.Data {
         /// <param name="element">The element to search for.</param>
         /// <returns>The innermost scope containing the element, or null if it is not found.</returns>
         public Scope FindScope(XElement element) {
-            return globalScope.GetScopeForLocation(element.GetXPath());
+            return globalScope.GetScopeForLocation(element.GetXPath(false));
         }
 
         /// <summary>
@@ -168,7 +168,7 @@ namespace ABB.SrcML.Data {
         /// <returns>A collection of the method calls at the given element.</returns>
         public Collection<MethodCall> FindMethodCalls(XElement element) {
             if(element == null) throw new ArgumentNullException("element");
-            return FindMethodCalls(element.GetXPath());
+            return FindMethodCalls(element.GetXPath(false));
         }
 
         /// <summary>

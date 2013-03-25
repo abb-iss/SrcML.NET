@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 
@@ -19,6 +20,20 @@ namespace ABB.SrcML.Data {
     /// The base classes for use objects. Use objects represent a use of a <see cref="NamedScope"/>.
     /// </summary>
     public abstract class AbstractUse<DEFINITION> where DEFINITION : class {
+        private List<Alias> internalAliasCollection;
+
+        /// <summary>
+        /// Sets up the an abstract use object
+        /// </summary>
+        protected AbstractUse() {
+            internalAliasCollection = new List<Alias>();
+            Aliases = new ReadOnlyCollection<Alias>(internalAliasCollection);
+        }
+        /// <summary>
+        /// The aliases for this type use
+        /// </summary>
+        public ReadOnlyCollection<Alias> Aliases { get; private set; }
+
         /// <summary>
         /// The location of this use in the original source file and in srcML
         /// </summary>
@@ -46,34 +61,39 @@ namespace ABB.SrcML.Data {
                 }
             }
         }
+
         /// <summary>
         /// The programming language for this scope
         /// </summary>
         public Language ProgrammingLanguage { get; set; }
 
         /// <summary>
-        /// Finds matching <typeparamref name="DEFINITION"/> from the <see cref="ParentScopes"/> of this usage.
+        /// Adds an alias. If <see cref="Alias.IsAliasFor{T}(AbstractUse{T})"/> returns false, then the alias is not added.
         /// </summary>
-        /// <returns>An enumerable of <typeparamref name="DEFINITION"/> objects that <see cref="Matches">matches</see> this usage.</returns>
-        public virtual IEnumerable<DEFINITION> FindMatches() {
-            DEFINITION definition = null;
-            foreach(var parent in this.ParentScopes) {
-                definition = parent as DEFINITION;
+        /// <param name="alias">The alias to add</param>
+        public void AddAlias(Alias alias) {
+            if(alias.IsAliasFor(this)) {
+                internalAliasCollection.Add(alias);
+            }
+        }
 
-                if(Matches(definition)) {
-                    yield return definition;
-                }
-
-                var matchingChildren = from child in parent.ChildScopes
-                                       let castedChild = child as DEFINITION
-                                       where Matches(castedChild)
-                                       select castedChild;
-
-                foreach(var match in matchingChildren) {
-                    yield return match;
+        /// <summary>
+        /// Adds an enumerable of aliases to this scope.
+        /// </summary>
+        /// <param name="aliasesToAdd">The aliases to add</param>
+        public void AddAliases(IEnumerable<Alias> aliasesToAdd) {
+            if(aliasesToAdd != null) {
+                foreach(var alias in aliasesToAdd) {
+                    this.AddAlias(alias);
                 }
             }
         }
+
+        /// <summary>
+        /// Finds matching <typeparamref name="DEFINITION"/> from the <see cref="ParentScopes"/> of this usage.
+        /// </summary>
+        /// <returns>An enumerable of <typeparamref name="DEFINITION"/> objects that <see cref="Matches">matches</see> this usage.</returns>
+        public abstract IEnumerable<DEFINITION> FindMatches();
 
         /// <summary>
         /// Tests if this usage matches the provided <paramref name="definition"/>
