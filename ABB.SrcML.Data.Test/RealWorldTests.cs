@@ -70,7 +70,7 @@ namespace ABB.SrcML.Data.Test {
 
             Console.WriteLine("\nReal World Test: Bullet 2.81 (C++, All Files)");
             Console.WriteLine("=======================================");
-            TestDataGeneration(bullet281SourcePath, bullet281DataPath, new CPlusPlusCodeParser());
+            TestDataGeneration(bullet281SourcePath, bullet281DataPath);
         }
 
         [Test]
