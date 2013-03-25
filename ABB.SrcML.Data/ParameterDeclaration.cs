@@ -41,5 +41,10 @@ namespace ABB.SrcML.Data {
         public ParameterDeclaration() {
             Locations = new Collection<SrcMLLocation>();
         }
+
+        /// <summary>Returns a string representation of this object.</summary>
+        public override string ToString() {
+            return string.Format("{0} {1}", VariableType, Name);
+        }
     }
 }

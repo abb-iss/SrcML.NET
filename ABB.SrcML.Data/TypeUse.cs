@@ -161,5 +161,16 @@ namespace ABB.SrcML.Data {
         public TypeDefinition FindFirstMatchingType() {
             return this.FindMatches().FirstOrDefault();
         }
+
+        /// <summary>
+        /// Returns a string representation of this object.
+        /// </summary>
+        public override string ToString() {
+            if(Prefix != null) {
+                return string.Format("{0}.{1}", Prefix, Name);
+            } else {
+                return Name;
+            }
+        }
     }
 }

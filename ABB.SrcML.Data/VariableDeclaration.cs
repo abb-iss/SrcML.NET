@@ -44,5 +44,16 @@ namespace ABB.SrcML.Data {
         /// The location of this declaration in both the original source file and in XML.
         /// </summary>
         public SrcMLLocation Location { get; set; }
+
+        /// <summary>
+        /// Returns a string representation of this object.
+        /// </summary>
+        public override string ToString() {
+            if(Accessibility != AccessModifier.None) {
+                return string.Format("{0} {1} {2}", Accessibility.ToKeywordString(), VariableType, Name);
+            } else {
+                return string.Format("{0} {1}", VariableType, Name);
+            }
+        }
     }
 }

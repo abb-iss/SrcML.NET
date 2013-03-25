@@ -81,5 +81,12 @@ namespace ABB.SrcML.Data {
         /// <param name="definition">The definition to compare to</param>
         /// <returns>true if they are a match; false otherwise</returns>
         public abstract bool Matches(DEFINITION definition);
+
+        /// <summary>
+        /// Returns a string representation of this object.
+        /// </summary>
+        public override string ToString() {
+            return Name;
+        }
     }
 }

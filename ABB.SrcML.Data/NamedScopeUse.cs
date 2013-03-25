@@ -56,5 +56,12 @@ namespace ABB.SrcML.Data {
             if(null == definition) return false;
             return definition.Name == this.Name;
         }
+
+        /// <summary>
+        /// Returns a string representation of this object.
+        /// </summary>
+        public override string ToString() {
+            return GetFullName();
+        }
     }
 }

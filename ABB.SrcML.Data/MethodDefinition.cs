@@ -202,6 +202,59 @@ namespace ABB.SrcML.Data {
             }
             return null;
         }
-        
+
+        /// <summary>Returns a string representation of this object.</summary>
+        public override string ToString() {
+            var sig = new StringBuilder();
+            if(IsConstructor) {
+                sig.Append("Constructor: ");
+            } else if(IsDestructor) {
+                sig.Append("Destructor: ");
+            } else {
+                sig.Append("Method: ");
+            }
+            if(Accessibility != AccessModifier.None) {
+                sig.Append(Accessibility.ToKeywordString() + " ");
+            }
+            if(ReturnType != null) {
+                var retString = ReturnType.ToString();
+                if(!string.IsNullOrWhiteSpace(retString)) {
+                    sig.Append(retString + " ");
+                }
+            }
+            if(!string.IsNullOrWhiteSpace(Name)) {
+                sig.Append(Name);
+            }
+            string paramString = Parameters != null ? string.Join(", ", Parameters) : string.Empty;
+            sig.AppendFormat("({0})", paramString);
+
+            return sig.ToString();
+        }
+
+        internal class MethodDebugView {
+            private MethodDefinition method;
+
+            public MethodDebugView(MethodDefinition method) {
+                this.method = method;
+            }
+
+            [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+            public Scope[] ChildScopes {
+                get { return this.method.ChildScopes.ToArray(); }
+            }
+
+            [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+            public MethodCall[] MethodCalls { get { return this.method.MethodCalls.ToArray(); } }
+
+            [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+            public VariableDeclaration[] Variables { get { return this.method.DeclaredVariables.ToArray(); } }
+
+            [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+            public ParameterDeclaration[] Parameters { get { return method.Parameters.ToArray(); } }
+
+            public override string ToString() {
+                return method.ToString();
+            }
+        }
     }
 }
