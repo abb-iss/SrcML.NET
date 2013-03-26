@@ -281,7 +281,7 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("Example", example.Name);
             Assert.AreEqual(1, example.ChildScopes.Count());
             var foo = example.ChildScopes.OfType<MethodDefinition>().FirstOrDefault();
-            Assert.IsNotNull(foo);
+            Assert.IsNotNull(foo, "TODO fix static methods");
             Assert.AreEqual("Foo", foo.Name);
         }
 
@@ -436,7 +436,7 @@ namespace ABB.SrcML.Data.Test {
 
             var globalScope = headerScope.Merge(implementationScope);
 
-            Assert.AreEqual(1, globalScope.ChildScopes.Count());
+            Assert.AreEqual(1, globalScope.ChildScopes.Count(), "TODO implement using statements in C++");
             
             var namespaceA = globalScope.ChildScopes.First() as NamespaceDefinition;
             Assert.AreEqual("A", namespaceA.Name);

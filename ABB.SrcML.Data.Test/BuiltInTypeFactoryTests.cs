@@ -100,7 +100,7 @@ namespace ABB.SrcML.Data.Test {
 
                     Assert.AreEqual("a", variableA.Name);
                     Assert.AreEqual("b", variableB.Name);
-                    Assert.AreEqual(String.Format("{0} {1}", builtInModifier, builtIn), variableA.VariableType.Name);
+                    Assert.AreEqual(String.Format("{0} {1}", builtInModifier, builtIn), variableA.VariableType.Name, "TODO: Fix compound types");
                     var typeOfA = variableA.VariableType.FindMatches().First();
                     var typeOfB = variableB.VariableType.FindMatches().First();
                     Assert.AreSame(typeOfA, typeOfB);

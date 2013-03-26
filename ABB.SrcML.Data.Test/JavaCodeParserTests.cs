@@ -133,7 +133,7 @@ namespace ABB.SrcML.Data.Test {
             var globalNamespace = actual.ParentScope as NamespaceDefinition;
 
             Assert.AreEqual("D", actual.Name);
-            Assert.AreEqual(1, actual.ParentTypes.Count);
+            Assert.AreEqual(1, actual.ParentTypes.Count, "TODO fix qualified parents in Java");
             Assert.That(globalNamespace.IsGlobal);
 
             var parent = actual.ParentTypes.First();
