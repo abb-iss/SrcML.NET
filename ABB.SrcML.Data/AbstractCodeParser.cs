@@ -742,36 +742,73 @@ namespace ABB.SrcML.Data {
         #region access modifiers
         /// <summary>
         /// Gets the access modifier for this method. For Java and C#, a "specifier" tag is placed in either
-        /// the method callElement, or the type callElement in the method.
+        /// the methodElement, or the typeElement in the method.
         /// </summary>
-        /// <param name="methodElement">The method callElement</param>
+        /// <param name="methodElement">The methodElement</param>
         /// <returns>The first specifier encountered. If none, it returns <see cref="AccessModifier.None"/></returns>
         public virtual AccessModifier GetAccessModifierForMethod(XElement methodElement) {
-            Dictionary<string, AccessModifier> accessModifierMap = new Dictionary<string, AccessModifier>() {
-                { "public", AccessModifier.Public },
-                { "private", AccessModifier.Private },
-                { "protected", AccessModifier.Protected },
-                { "internal", AccessModifier.Internal },
-            };
+            if(methodElement == null) 
+                throw new ArgumentNullException("methodElement");
+            if(!MethodElementNames.Contains(methodElement.Name)) 
+                throw new ArgumentException(string.Format("Not a valid methodElement: {0}", methodElement.Name), "methodElement");
+            
+            var accessModifierMap = new Dictionary<string, AccessModifier>()
+                                    {
+                                        {"public", AccessModifier.Public},
+                                        {"private", AccessModifier.Private},
+                                        {"protected", AccessModifier.Protected},
+                                        {"internal", AccessModifier.Internal},
+                                    };
 
             var specifierContainer = methodElement.Element(SRC.Type);
             if(null == specifierContainer) {
                 specifierContainer = methodElement;
             }
-
-            var specifiers = from specifier in specifierContainer.Elements(SRC.Specifier)
-                             where accessModifierMap.ContainsKey(specifier.Value)
-                             select accessModifierMap[specifier.Value];
-
-            return (specifiers.Any() ? specifiers.First() : AccessModifier.None);
+            //specifiers might include non-access keywords like "partial" or "static"
+            //get only specifiers that are in the accessModiferMap
+            var accessSpecifiers = specifierContainer.Elements(SRC.Specifier).Select(e => e.Value).Where(s => accessModifierMap.ContainsKey(s)).ToList();
+            AccessModifier result;
+            if(!accessSpecifiers.Any()) {
+                result = AccessModifier.None;
+            } else if(accessSpecifiers.Count == 2 && accessSpecifiers.Contains("protected") && accessSpecifiers.Contains("internal")) {
+                result = AccessModifier.ProtectedInternal;
+            } else {
+                result = accessModifierMap[accessSpecifiers.First()];
+            }
+            return result;
         }
 
         /// <summary>
         /// Gets the access modifier for the given type
         /// </summary>
-        /// <param name="typeElement">The type callElement</param>
+        /// <param name="typeElement">The type XElement</param>
         /// <returns>The access modifier for the type.</returns>
-        public abstract AccessModifier GetAccessModifierForType(XElement typeElement);
+        public virtual AccessModifier GetAccessModifierForType(XElement typeElement) {
+            if(typeElement == null)
+                throw new ArgumentNullException("typeElement");
+            if(!TypeElementNames.Contains(typeElement.Name))
+                throw new ArgumentException(string.Format("Not a valid typeElement: {0}", typeElement.Name), "typeElement");
+
+            var accessModifierMap = new Dictionary<string, AccessModifier>()
+                                    {
+                                        {"public", AccessModifier.Public},
+                                        {"private", AccessModifier.Private},
+                                        {"protected", AccessModifier.Protected},
+                                        {"internal", AccessModifier.Internal}
+                                    };
+            //specifiers might include non-access keywords like "partial" or "static"
+            //get only specifiers that are in the accessModiferMap
+            var accessSpecifiers = typeElement.Elements(SRC.Specifier).Select(e => e.Value).Where(s => accessModifierMap.ContainsKey(s)).ToList();
+            AccessModifier result;
+            if(!accessSpecifiers.Any()) {
+                result = AccessModifier.None;
+            } else if(accessSpecifiers.Count == 2 && accessSpecifiers.Contains("protected") && accessSpecifiers.Contains("internal")) {
+                result = AccessModifier.ProtectedInternal;
+            } else {
+                result = accessModifierMap[accessSpecifiers.First()];
+            }
+            return result;
+        }
         #endregion access modifiers
 
         #region parse literal types

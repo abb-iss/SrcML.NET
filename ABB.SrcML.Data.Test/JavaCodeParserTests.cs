@@ -502,6 +502,66 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
+        public void TestGetAccessModifierForType_Normal() {
+            //public class Foo {}
+            string xml = @"<class><specifier>public</specifier> class <name>Foo</name> <block>{}</block></class>";
+            var element = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.java").Descendants(SRC.Class).FirstOrDefault();
+            Assert.AreEqual(AccessModifier.Public, codeParser.GetAccessModifierForType(element));
+        }
+
+        [Test]
+        public void TestGetAccessModifierForType_None() {
+            //class Foo {}
+            string xml = @"<class>class <name>Foo</name> <block>{}</block></class>";
+            var element = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.java").Descendants(SRC.Class).FirstOrDefault();
+            Assert.AreEqual(AccessModifier.None, codeParser.GetAccessModifierForType(element));
+        }
+
+        [Test]
+        public void TestGetAccessModifierForType_Static() {
+            //static public class Foo {}
+            string xml = @"<class><specifier>static</specifier> <specifier>public</specifier> class <name>Foo</name> <block>{}</block></class>";
+            var element = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.java").Descendants(SRC.Class).FirstOrDefault();
+            Assert.AreEqual(AccessModifier.Public, codeParser.GetAccessModifierForType(element));
+        }
+
+        [Test]
+        public void TestGetAccessModifierForMethod_Normal() {
+            //public class Foo {
+            //    public bool Bar() { return true; }
+            //}
+            string xml = @"<class><specifier>public</specifier> class <name>Foo</name> <block>{
+    <function><type><specifier>public</specifier> <name>bool</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><name>true</name></expr>;</return> }</block></function>
+}</block></class>";
+            var element = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.java").Descendants(SRC.Function).FirstOrDefault();
+            Assert.AreEqual(AccessModifier.Public, codeParser.GetAccessModifierForMethod(element));
+        }
+
+        [Test]
+        public void TestGetAccessModifierForMethod_None() {
+            //public class Foo {
+            //    bool Bar() { return true; }
+            //}
+            string xml = @"<class><specifier>public</specifier> class <name>Foo</name> <block>{
+    <function><type><name>bool</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><name>true</name></expr>;</return> }</block></function>
+}</block></class>";
+            var element = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.java").Descendants(SRC.Function).FirstOrDefault();
+            Assert.AreEqual(AccessModifier.None, codeParser.GetAccessModifierForMethod(element));
+        }
+
+        [Test]
+        public void TestGetAccessModifierForMethod_Static() {
+            //public class Foo {
+            //    static public bool Bar() { return true; }
+            //}
+            string xml = @"<class><specifier>public</specifier> class <name>Foo</name> <block>{
+    <function><type><specifier>static</specifier> <specifier>public</specifier> <name>bool</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><name>true</name></expr>;</return> }</block></function>
+}</block></class>";
+            var element = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.java").Descendants(SRC.Function).FirstOrDefault();
+            Assert.AreEqual(AccessModifier.Public, codeParser.GetAccessModifierForMethod(element));
+        }
+
+        [Test]
         public void TestMultiVariableDeclarations() {
             //int a,b,c;
             string testXml = @"<decl_stmt><decl><type><name>int</name></type> <name>a</name>,<name>b</name>,<name>c</name></decl>;</decl_stmt>";

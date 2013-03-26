@@ -82,24 +82,6 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Gets the access modifier for this type
-        /// </summary>
-        /// <param name="typeElement">The type</param>
-        /// <returns>the access modifier for this type.</returns>
-        public override AccessModifier GetAccessModifierForType(XElement typeElement) {
-            Dictionary<string, AccessModifier> accessModifierMap = new Dictionary<string, AccessModifier>() {
-                { "public", AccessModifier.Public },
-                { "private", AccessModifier.Private },
-                { "protected", AccessModifier.Protected },
-            };
-
-            var modifiers = from specifier in typeElement.Elements(SRC.Specifier)
-                            where accessModifierMap.ContainsKey(specifier.Value)
-                            select accessModifierMap[specifier.Value];
-            return (modifiers.Any() ? modifiers.First() : AccessModifier.None);
-        }
-
-        /// <summary>
         /// Gets the parent type from a java type
         /// </summary>
         /// <param name="typeElement">The type element</param>
