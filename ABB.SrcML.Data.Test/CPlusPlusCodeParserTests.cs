@@ -454,5 +454,22 @@ namespace ABB.SrcML.Data.Test {
 
             TestHelper.ScopesAreEqual(globalScope, globalScope_implementationFirst);
         }
+
+        [Test]
+        public void TestMultiVariableDeclarations() {
+            //int a,b,c;
+            string testXml = @"<decl_stmt><decl><type><name>int</name></type> <name>a</name>,<name>b</name>,<name>c</name></decl>;</decl_stmt>";
+
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(testXml, "test.cpp");
+
+            var globalScope = codeParser.ParseFileUnit(testUnit);
+
+            Assert.AreEqual(3, globalScope.DeclaredVariables.Count());
+
+            var declaredVariableNames = from variable in globalScope.DeclaredVariables select variable.Name;
+            var expectedVariableNames = new string[] { "a", "b", "c" };
+
+            CollectionAssert.AreEquivalent(expectedVariableNames, declaredVariableNames);
+        }
     }
 }

@@ -417,5 +417,22 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("y", actual.ImportedNamespace.ChildScopeUse.Name);
             Assert.AreEqual("z", actual.ImportedNamespace.ChildScopeUse.ChildScopeUse.Name);
         }
+
+        [Test]
+        public void TestMultiVariableDeclarations() {
+            //int a,b,c;
+            string testXml = @"<decl_stmt><decl><type><name>int</name></type> <name>a</name><op:operator>,</op:operator><name>b</name><op:operator>,</op:operator><name>c</name></decl>;</decl_stmt>";
+
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(testXml, "test.cs");
+
+            var globalScope = codeParser.ParseFileUnit(testUnit);
+
+            Assert.AreEqual(3, globalScope.DeclaredVariables.Count());
+
+            var declaredVariableNames = from variable in globalScope.DeclaredVariables select variable.Name;
+            var expectedVariableNames = new string[] { "a", "b", "c" };
+
+            CollectionAssert.AreEquivalent(expectedVariableNames, declaredVariableNames);
+        }
     }
 }
