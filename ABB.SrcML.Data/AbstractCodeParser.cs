@@ -401,7 +401,7 @@ namespace ABB.SrcML.Data {
 
             // validate the type use typeUseElement (must be a SRC.Name or SRC.Type)
             if(typeUseElement.Name == SRC.Type) {
-                typeNameElement = typeUseElement.Element(SRC.Name);
+                typeNameElement = typeUseElement.Elements(SRC.Name).LastOrDefault();
             } else if(typeUseElement.Name == SRC.Name) {
                 typeNameElement = typeUseElement;
             } else {

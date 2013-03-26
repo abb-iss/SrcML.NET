@@ -471,5 +471,32 @@ namespace ABB.SrcML.Data.Test {
 
             CollectionAssert.AreEquivalent(expectedVariableNames, declaredVariableNames);
         }
+
+        [Test]
+        public void TestVariablesWithSpecifiers() {
+            //const int A;
+            //static int B;
+            //static const Foo C;
+            //extern Foo D;
+            string testXml = @"<decl_stmt><decl><type><name>const</name> <name>int</name></type> <name>A</name></decl>;</decl_stmt>
+<decl_stmt><decl><type><name>static</name> <name>int</name></type> <name>B</name></decl>;</decl_stmt>
+<decl_stmt><decl><type><name>static</name> <name>const</name> <name>Foo</name></type> <name>C</name></decl>;</decl_stmt>
+<decl_stmt><decl><type><name>extern</name> <name>Foo</name></type> <name>D</name></decl>;</decl_stmt>";
+
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(testXml, "test.cpp");
+
+            var globalScope = codeParser.ParseFileUnit(testUnit);
+
+            var declaredVariableNames = from variable in globalScope.DeclaredVariables select variable.Name;
+            var declaredVariableTypes = from variable in globalScope.DeclaredVariables select variable.VariableType.Name;
+
+            var expectedVariableNames = new string[] { "A", "B", "C", "D"};
+            var expectedVariableTypes = new string[] { "int", "Foo" };
+
+            CollectionAssert.AreEquivalent(expectedVariableNames, declaredVariableNames);
+            foreach(var declaration in globalScope.DeclaredVariables) {
+                CollectionAssert.Contains(expectedVariableTypes, declaration.VariableType.Name);
+            }
+        }
     }
 }

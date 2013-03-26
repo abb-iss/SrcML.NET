@@ -517,5 +517,31 @@ namespace ABB.SrcML.Data.Test {
 
             CollectionAssert.AreEquivalent(expectedVariableNames, declaredVariableNames);
         }
+
+        [Test]
+        public void TestVariablesWithSpecifiers() {
+            //public static int A;
+            //public final int B;
+            //private static final Foo C;
+
+            string testXml = @"<decl_stmt><decl><type><specifier>public</specifier> <specifier>static</specifier> <name>int</name></type> <name>A</name></decl>;</decl_stmt>
+<decl_stmt><decl><type><specifier>public</specifier> <specifier>final</specifier> <name>int</name></type> <name>B</name></decl>;</decl_stmt>
+<decl_stmt><decl><type><specifier>private</specifier> <specifier>static</specifier> <specifier>final</specifier> <name>Foo</name></type> <name>C</name></decl>;</decl_stmt>";
+
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(testXml, "test.java");
+
+            var globalScope = codeParser.ParseFileUnit(testUnit);
+
+            var declaredVariableNames = from variable in globalScope.DeclaredVariables select variable.Name;
+            var declaredVariableTypes = from variable in globalScope.DeclaredVariables select variable.VariableType.Name;
+
+            var expectedVariableNames = new string[] { "A", "B", "C" };
+            var expectedVariableTypes = new string[] { "int", "Foo" };
+
+            CollectionAssert.AreEquivalent(expectedVariableNames, declaredVariableNames);
+            foreach(var declaration in globalScope.DeclaredVariables) {
+                CollectionAssert.Contains(expectedVariableTypes, declaration.VariableType.Name);
+            }
+        }
     }
 }
