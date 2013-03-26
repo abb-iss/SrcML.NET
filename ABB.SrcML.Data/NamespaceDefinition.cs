@@ -186,6 +186,10 @@ namespace ABB.SrcML.Data {
             return unresolvedScopes;
         }
 
+        /// <summary>
+        /// Creates a string representation of this namespace
+        /// </summary>
+        /// <returns>A string that describes this namespace definition</returns>
         public override string ToString() {
             if(IsGlobal) return ToString("Namespace", "Global");
             return ToString("Namespace");

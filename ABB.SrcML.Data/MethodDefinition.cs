@@ -204,6 +204,10 @@ namespace ABB.SrcML.Data {
             return null;
         }
 
+        /// <summary>
+        /// Creates string representation for this method definition
+        /// </summary>
+        /// <returns>String that describes this method</returns>
         public override string ToString() {
             string typeName;
             if(IsConstructor) {
