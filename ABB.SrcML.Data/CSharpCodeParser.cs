@@ -84,38 +84,6 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Gets the access modifier for this type typeUseElement
-        /// </summary>
-        /// <param name="typeElement">The type typeUseElement</param>
-        /// <returns>The access modifier for the given type typeUseElement.</returns>
-        public override AccessModifier GetAccessModifierForType(XElement typeElement) {
-            if(typeElement == null)
-                throw new ArgumentNullException("typeElement");
-            if(!TypeElementNames.Contains(typeElement.Name))
-                throw new ArgumentException(string.Format("Not a valid type typeUseElement: {0}", typeElement.Name), "typeElement");
-
-            var accessModifierMap = new Dictionary<string, AccessModifier>()
-                                    {
-                                        {"public", AccessModifier.Public},
-                                        {"private", AccessModifier.Private},
-                                        {"protected", AccessModifier.Protected},
-                                        {"internal", AccessModifier.Internal}
-                                    };
-            var specifiers = typeElement.Elements(SRC.Specifier).ToList();
-            AccessModifier result;
-            if(!specifiers.Any()) {
-                result = AccessModifier.None;
-            } else if(specifiers.Count == 2 && specifiers[0].Value == "protected" && specifiers[1].Value == "internal") {
-                result = AccessModifier.ProtectedInternal;
-            } else {
-                //specifiers might include non-access keywords like "partial"
-                //get first specifier that is in the access modifier map
-                result = accessModifierMap[specifiers.First(spec => accessModifierMap.ContainsKey(spec.Value)).Value];
-            }
-            return result;
-        }
-
-        /// <summary>
         /// Gets the parent type elements for a type element
         /// </summary>
         /// <param name="typeElement">The type element to parse</param>
