@@ -21,6 +21,7 @@ namespace ABB.SrcML.Data {
     /// </summary>
     public abstract class AbstractUse<DEFINITION> where DEFINITION : class {
         private List<Alias> internalAliasCollection;
+        private Scope parentScope;
 
         /// <summary>
         /// Sets up the an abstract use object
@@ -47,7 +48,10 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The scope that contains this use
         /// </summary>
-        public Scope ParentScope { get; set; }
+        public virtual Scope ParentScope {
+            get { return this.parentScope; }
+            set { this.parentScope = value; }
+        }
 
         /// <summary>
         /// All of the parent scopes of this usage (from closest to farthest)

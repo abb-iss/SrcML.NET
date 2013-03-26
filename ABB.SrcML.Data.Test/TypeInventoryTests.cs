@@ -483,6 +483,55 @@ namespace ABB.SrcML.Data.Test {
 
             Assert.AreEqual(constructorForC, callToC.FindMatches().FirstOrDefault());
         }
+
+        [Test]
+        public void TestGlobalVariableUsedInFunction() {
+
+        //class A {
+        //	public:
+        //		void Foo() { cout << "A.Foo"; }
+        //};
+            string headerXml = @"<class>class <name>A</name> <block>{<private type=""default"">
+	</private><public>public:
+		<function><type><name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ <expr_stmt><expr><name>cout</name> <op:operator>&lt;&lt;</op:operator> <lit:literal type=""string"">""A.Foo""</lit:literal></expr>;</expr_stmt> }</block></function>
+</public>}</block>;</class>";
+
+            //#include "A.h"
+            //A a;
+            //int main() { a.Foo(); return 0; }
+            string mainXml = @"<cpp:include>#<cpp:directive>include</cpp:directive> <cpp:file><lit:literal type=""string"">""A.h""</lit:literal></cpp:file></cpp:include>
+<decl_stmt><decl><type><name>A</name></type> <name>a</name></decl>;</decl_stmt>
+<function><type><name>int</name></type> <name>main</name><parameter_list>()</parameter_list> <block>{ <expr_stmt><expr><name>a</name><op:operator>.</op:operator><call><name>Foo</name><argument_list>()</argument_list></call></expr>;</expr_stmt> <return>return <expr><lit:literal type=""number"">0</lit:literal></expr>;</return> }</block></function>";
+
+            var headerUnit = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(headerXml, "A.h");
+            var mainUnit = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(mainXml, "main.cpp");
+
+            var headerScope = CodeParser[Language.CPlusPlus].ParseFileUnit(headerUnit);
+            var mainScope = CodeParser[Language.CPlusPlus].ParseFileUnit(mainUnit);
+
+            var globalScope = headerScope.Merge(mainScope);
+
+            var typeA = globalScope.GetChildScopesWithId<TypeDefinition>("A").FirstOrDefault();
+            Assert.IsNotNull(typeA, "could not find class A");
+
+            var globalAObject = globalScope.DeclaredVariables.FirstOrDefault();
+            Assert.IsNotNull(globalAObject, "could not find any global variables");
+            Assert.AreEqual("a", globalAObject.Name);
+            Assert.AreEqual("A", globalAObject.VariableType.Name);
+            Assert.AreEqual(typeA, globalAObject.VariableType.FindFirstMatchingType());
+
+            var mainFunction = globalScope.GetChildScopesWithId<MethodDefinition>("main").FirstOrDefault();
+
+            Assert.IsNotNull(mainFunction, "could not find main function");
+
+            var callToADotFoo = mainFunction.MethodCalls.FirstOrDefault();
+            Assert.IsNotNull(callToADotFoo, "could not find call to a.Foo()");
+
+            Assert.AreEqual("Foo", callToADotFoo.Name);
+            
+
+
+        }
     }
 }
 

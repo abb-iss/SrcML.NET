@@ -26,6 +26,11 @@ namespace ABB.SrcML.Data {
         IResolvesToType CallingObject { get; set; }
 
         /// <summary>
+        /// The parent scope for this calling object
+        /// </summary>
+        Scope ParentScope { get; set; }
+
+        /// <summary>
         /// Finds all of the possible matching types for this usage
         /// </summary>
         /// <returns>An enumerable of type definition objects</returns>
