@@ -622,7 +622,8 @@ namespace ABB.SrcML.Data {
         public virtual IEnumerable<XElement> GetMethodCallsFromElement(XElement element) {
             if(MethodElementNames.Contains(element.Name) ||
                NamespaceElementNames.Contains(element.Name) ||
-               TypeElementNames.Contains(element.Name)) {
+               TypeElementNames.Contains(element.Name) ||
+                element.Name == SRC.Unit) {
                 return GetCallsFromBlockParent(element);
             }
             return GetMethodCallsFromBlockElement(element);
@@ -655,7 +656,8 @@ namespace ABB.SrcML.Data {
             if(null == element) return Enumerable.Empty<XElement>();
 
             IEnumerable<XElement> declarationElements;
-            if(SRC.Block == element.Name) {
+
+            if(SRC.Block == element.Name || SRC.Unit == element.Name) {
                 declarationElements = GetDeclarationsFromBlockElement(element);
             } else if(SRC.Catch == element.Name) {
                 declarationElements = GetDeclarationsFromCatchElement(element);
