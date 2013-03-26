@@ -8,7 +8,7 @@ using System.Collections.ObjectModel;
 
 namespace ABB.SrcML {
     /// <summary>
-    /// An implementation of <see cref="AbstractFileMontor"/> that responds to file system events.
+    /// An implementation of <see cref="AbstractFileMonitor"/> that responds to file system events.
     /// </summary>
     public class FileSystemFolderMonitor : AbstractFileMonitor {
         private DirectoryInfo _folderInfo;
@@ -43,14 +43,24 @@ namespace ABB.SrcML {
 
         #region AbstractArchive Members
 
+        /// <summary>
+        /// Start monitoring
+        /// </summary>
         public override void StartMonitoring() {
             this._directoryWatcher.EnableRaisingEvents = true;
         }
 
+        /// <summary>
+        /// Stop monitoring
+        /// </summary>
         public override void StopMonitoring() {
             this._directoryWatcher.EnableRaisingEvents = false;
         }
 
+        /// <summary>
+        /// Get files from folder
+        /// </summary>
+        /// <returns></returns>
         public override Collection<string> GetFilesFromSource() {
             var filePaths = from file in this._folderInfo.GetFiles("*", SearchOption.AllDirectories)
                             select file.FullName;

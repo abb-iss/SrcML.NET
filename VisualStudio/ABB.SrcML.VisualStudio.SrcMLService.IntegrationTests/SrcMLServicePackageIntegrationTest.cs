@@ -115,22 +115,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
         [TestMethod]
         [HostType("VS IDE")]
         public void ProjectLevelIncrementalUpdateTest() {
-            /*
-            // CSharp
-            OpenSolution(testCSharpSolutionFilePath);
-            CheckCSharpSolutionStartup();
-            string newProjectFileName = @"ClassLibrary1\ClassLibrary1\ClassLibrary1.csproj";
-            string templateProjectFilePath = Path.Combine(testFileTemplateFolder, newProjectFileName);
-            WriteLog(logFilePath, "C# templateProjectFilePath: [" + templateProjectFilePath + "]");
-            AddCSharpProject(templateProjectFilePath);
-            CheckSrcMLFilesForNewCSharpProject(true);
-            System.Threading.Thread.Sleep(1000);
-            RemoveCSharpProject(templateProjectFilePath);
-            CheckSrcMLFilesForNewCSharpProject(false);
-            System.Threading.Thread.Sleep(1000);
-            CloseSolution();
-            */
-
             // CPP
             OpenSolution(testCPPSolutionFilePath);
             CheckCPPSolutionStartup();
@@ -141,8 +125,23 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             System.Threading.Thread.Sleep(1000);
             RemoveCPPProject(templateProjectFilePath);
             CheckSrcMLFilesForNewCPPProject(false);
+            //System.Threading.Thread.Sleep(1000);
+            CloseSolution();
+
+            /*
+            // CSharp
+            OpenSolution(testCSharpSolutionFilePath);
+            CheckCSharpSolutionStartup();
+            templateProjectFilePath = Path.Combine(testFileTemplateFolder, @"ClassLibrary1\ClassLibrary1\ClassLibrary1.csproj");
+            //WriteLog(logFilePath, "C# templateProjectFilePath: [" + templateProjectFilePath + "]");
+            AddCSharpProject(templateProjectFilePath);
+            CheckSrcMLFilesForNewCSharpProject(true);
+            System.Threading.Thread.Sleep(1000);
+            RemoveCSharpProject(templateProjectFilePath);
+            CheckSrcMLFilesForNewCSharpProject(false);
             System.Threading.Thread.Sleep(1000);
             CloseSolution();
+            */
         }
 
         [TestCleanup]
