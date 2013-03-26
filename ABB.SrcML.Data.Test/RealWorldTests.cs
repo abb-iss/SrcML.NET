@@ -64,16 +64,6 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestFileUnitParsing_Bullet_All() {
-            string bullet281SourcePath = @"C:\Workspace\Source\bullet\2.81";
-            string bullet281DataPath = @"C:\Workspace\SrcMLData\bullet-2.81-all";
-
-            Console.WriteLine("\nReal World Test: Bullet 2.81 (C++, All Files)");
-            Console.WriteLine("=======================================");
-            TestDataGeneration(bullet281SourcePath, bullet281DataPath);
-        }
-
-        [Test]
         public void TestFileUnitParsing_Eclipse() {
             string eclipse422SourcePath = @"C:\Workspace\Source\eclipse\platform422";
             string eclipse422Datapath = @"C:\Workspace\SrcMLData\eclipse-4.2.2";
