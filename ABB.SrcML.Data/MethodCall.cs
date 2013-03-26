@@ -30,6 +30,24 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
+        /// The parent scope for this method call. When you update the parent scope, the object also updates the parent scope of <see cref="CallingObject"/> and all of the <see cref="Arguments"/>
+        /// </summary>
+        public override Scope ParentScope {
+            get {
+                return base.ParentScope;
+            }
+            set {
+                base.ParentScope = value;
+                if(this.CallingObject != null) {
+                    this.CallingObject.ParentScope = this.ParentScope;
+                }
+                foreach(var argument in this.Arguments) {
+                    argument.ParentScope = this.ParentScope;
+                }
+            }
+        }
+
+        /// <summary>
         /// The arguments to this call
         /// </summary>
         public Collection<IResolvesToType> Arguments { get; set; }

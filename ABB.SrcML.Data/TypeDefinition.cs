@@ -228,6 +228,10 @@ namespace ABB.SrcML.Data {
             return unresolvedScopes;
         }
 
+        /// <summary>
+        /// Creates a string representation for this type
+        /// </summary>
+        /// <returns>A string that describes this type</returns>
         public override string ToString() {
             return ToString(this.Kind.ToString());
         }

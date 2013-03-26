@@ -321,6 +321,10 @@ namespace ABB.SrcML.Data {
             return sb.ToString().TrimEnd('.');
         }
 
+        /// <summary>
+        /// Creates a string representation of this named scope
+        /// </summary>
+        /// <returns>String that describes this named scope</returns>
         public override string ToString() {
             return ToString("Named Scope");
         }

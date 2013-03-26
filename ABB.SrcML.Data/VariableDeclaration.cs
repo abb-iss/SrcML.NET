@@ -20,6 +20,8 @@ namespace ABB.SrcML.Data {
     /// Represents a variable declaration
     /// </summary>
     public class VariableDeclaration {
+        private Scope parentScope;
+
         /// <summary>
         /// The name of the variable
         /// </summary>
@@ -38,7 +40,16 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The scope where this variable is declared
         /// </summary>
-        public Scope Scope { get; set; }
+        public Scope Scope
+        {
+            get { return this.parentScope; }
+            set {
+                this.parentScope = value;
+                if(null != VariableType) {
+                    this.VariableType.ParentScope = this.parentScope;
+                }
+            }
+        }
 
         /// <summary>
         /// The location of this declaration in both the original source file and in XML.

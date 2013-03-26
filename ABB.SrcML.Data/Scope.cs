@@ -593,12 +593,27 @@ namespace ABB.SrcML.Data {
             return results;
         }
 
+        /// <summary>
+        /// Creates a string representation for this scope
+        /// </summary>
+        /// <returns>A string that describes this scope</returns>
         public override string ToString() {
             return ToString("Scope");
         }
 
+        /// <summary>
+        /// Creates a string representation for this scope
+        /// </summary>
+        /// <param name="typeName">The type of scope</param>
+        /// <returns>A string that describes this scope</returns>
         protected string ToString(string typeName) { return ToString(typeName, this.Id); }
 
+        /// <summary>
+        /// Creates a string representation for this scope
+        /// </summary>
+        /// <param name="typeName">The type of scope</param>
+        /// <param name="identifier">An identifier for this scope (does not have to be unique)</param>
+        /// <returns>A string that describes this scope</returns>
         protected string ToString(string typeName, string identifier) {
             return String.Format("{0}: {1}", typeName, identifier);
         }

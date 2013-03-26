@@ -204,32 +204,20 @@ namespace ABB.SrcML.Data {
             return null;
         }
 
-        /// <summary>Returns a string representation of this object.</summary>
+        /// <summary>
+        /// Creates string representation for this method definition
+        /// </summary>
+        /// <returns>String that describes this method</returns>
         public override string ToString() {
-            var sig = new StringBuilder();
+            string typeName;
             if(IsConstructor) {
-                sig.Append("Constructor: ");
+                typeName = "Constructor";
             } else if(IsDestructor) {
-                sig.Append("Destructor: ");
+                typeName = "Destructor";
             } else {
-                sig.Append("Method: ");
+                typeName = "Method";
             }
-            if(Accessibility != AccessModifier.None) {
-                sig.Append(Accessibility.ToKeywordString() + " ");
-            }
-            if(ReturnType != null) {
-                var retString = ReturnType.ToString();
-                if(!string.IsNullOrWhiteSpace(retString)) {
-                    sig.Append(retString + " ");
-                }
-            }
-            if(!string.IsNullOrWhiteSpace(Name)) {
-                sig.Append(Name);
-            }
-            string paramString = Parameters != null ? string.Join(", ", Parameters) : string.Empty;
-            sig.AppendFormat("({0})", paramString);
-
-            return sig.ToString();
+            return ToString(typeName);
         }
 
         internal class MethodDebugView {

@@ -25,6 +25,20 @@ namespace ABB.SrcML.Data {
         public IResolvesToType CallingObject { get; set; }
 
         /// <summary>
+        /// The scope that contains this variable use. If the parent scope is updated, then the parent scope of the calling object is also updated.
+        /// </summary>
+        public override Scope ParentScope {
+            get {
+                return base.ParentScope;
+            }
+            set {
+                base.ParentScope = value;
+                if(this.CallingObject != null) {
+                    this.CallingObject.ParentScope = this.ParentScope;
+                }
+            }
+        }
+        /// <summary>
         /// Searches through the <see cref="Scope.DeclaredVariables"/> to see if any of them <see cref="Matches(VariableDeclaration)">matches</see>
         /// </summary>
         /// <returns>An enumerable of matching variable declarations.</returns>
