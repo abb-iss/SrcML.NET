@@ -13,20 +13,23 @@ using Newtonsoft.Json.Linq;
 namespace ABB.SrcML.Tools.DataTester {
     class Program {
         static void Main(string[] args) {
-            var projects = new Dictionary<string, string>() {
-                { @"C:\Workspace\Source\bullet\2.81", @"C:\Workspace\SrcMLData\bullet-2.81" },
-                { @"C:\Workspace\Source\Notepad++\6.2", @"C:\Workspace\SrcMLData\NPP-6.2" },
-                { @"C:\Workspace\Source\Subversion\1.7.8", @"C:\Workspace\SrcMLData\subversion-1.7.8" },
-                { @"C:\Workspace\Source\eclipse\platform422", @"C:\Workspace\SrcMLData\eclipse-4.2.2" },
-                { @"C:\Workspace\Source\NDatabase\master45", @"C:\Workspace\SrcMLData\ndatabase-4.5" },
-                { @"C:\Workspace\Source\JavaDIS", @"C:\Workspace\SrcMLData\JavaDIS" },
-                { @"C:\Workspace\Source\Robotware-5.14", @"C:\Workspace\SrcMLData\Robotware-5.14" },
-                { @"C:\Workspace\Source\Python\2.6.5", @"C:\Workspace\SrcMLData\Python-2.6.5" },
-            };
 
+            var projects = ReadMapping(@"C:\Workspace\source-srcmldata-mapping.txt");
             foreach(var project in projects) {
                 GenerateData(project.Key, project.Value, @"c:\Workspace\SrcMLData");
             }
+        }
+
+        private static Dictionary<string, string> ReadMapping(string mappingFilePath) {
+            var pairs = from line in File.ReadAllLines(mappingFilePath)
+                        let parts = line.Split('|')
+                        where parts.Length == 2
+                        select new { Key = parts[0], Value = parts[1] };
+            var mapping = new Dictionary<string, string>(pairs.Count());
+            foreach(var pair in pairs) {
+                mapping.Add(pair.Key, pair.Value);
+            }
+            return mapping;
         }
 
         private static void GenerateData(string sourcePath, string dataPath, string csvDirectory) {

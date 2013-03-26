@@ -417,5 +417,145 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("y", actual.ImportedNamespace.ChildScopeUse.Name);
             Assert.AreEqual("z", actual.ImportedNamespace.ChildScopeUse.ChildScopeUse.Name);
         }
+
+        [Test]
+        public void TestGetAccessModifierForType_Normal() {
+            //namespace Example {
+            //    public class Foo {}
+            //}
+            string xml = @"<namespace>namespace <name>Example</name> <block>{
+    <class><specifier>public</specifier> class <name>Foo</name> <block>{}</block></class>
+}</block></namespace>";
+            var element = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.cs").Descendants(SRC.Class).FirstOrDefault();
+            Assert.AreEqual(AccessModifier.Public, codeParser.GetAccessModifierForType(element));
+        }
+
+        [Test]
+        public void TestGetAccessModifierForType_None() {
+            //namespace Example {
+            //    class Foo {}
+            //}
+            string xml = @"<namespace>namespace <name>Example</name> <block>{
+    <class>class <name>Foo</name> <block>{}</block></class>
+}</block></namespace>";
+            var element = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.cs").Descendants(SRC.Class).FirstOrDefault();
+            Assert.AreEqual(AccessModifier.None, codeParser.GetAccessModifierForType(element));
+        }
+
+        [Test]
+        public void TestGetAccessModifierForType_ProtectedInternal() {
+            //namespace Example {
+            //    protected internal class Foo {}
+            //}
+            string xml = @"<namespace>namespace <name>Example</name> <block>{
+    <class><specifier>protected</specifier> <specifier>internal</specifier> class <name>Foo</name> <block>{}</block></class>
+}</block></namespace>";
+            var element = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.cs").Descendants(SRC.Class).FirstOrDefault();
+            Assert.AreEqual(AccessModifier.ProtectedInternal, codeParser.GetAccessModifierForType(element));
+        }
+
+        [Test]
+        public void TestGetAccessModifierForType_InternalProtected() {
+            //namespace Example {
+            //    internal protected class Foo {}
+            //}
+            string xml = @"<namespace>namespace <name>Example</name> <block>{
+    <class><specifier>internal</specifier> <specifier>protected</specifier> class <name>Foo</name> <block>{}</block></class>
+}</block></namespace>";
+            var element = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.cs").Descendants(SRC.Class).FirstOrDefault();
+            Assert.AreEqual(AccessModifier.ProtectedInternal, codeParser.GetAccessModifierForType(element));
+        }
+
+        [Test]
+        public void TestGetAccessModifierForType_ProtectedInternalStatic() {
+            //namespace Example {
+            //    protected static internal class Foo {}
+            //}
+            string xml = @"<namespace>namespace <name>Example</name> <block>{
+    <class><specifier>protected</specifier> <specifier>static</specifier> <specifier>internal</specifier> class <name>Foo</name> <block>{}</block></class>
+}</block></namespace>";
+            var element = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.cs").Descendants(SRC.Class).FirstOrDefault();
+            Assert.AreEqual(AccessModifier.ProtectedInternal, codeParser.GetAccessModifierForType(element));
+        }
+
+        [Test]
+        public void TestGetAccessModifierForMethod_Normal() {
+            //namespace Example {
+            //    public class Foo {
+            //        public bool Bar() { return true; }
+            //    }
+            //}
+            string xml = @"<namespace>namespace <name>Example</name> <block>{
+    <class><specifier>public</specifier> class <name>Foo</name> <block>{
+        <function><type><specifier>public</specifier> <name>bool</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><lit:literal type=""boolean"">true</lit:literal></expr>;</return> }</block></function>
+    }</block></class>
+}</block></namespace>";
+            var element = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.cs").Descendants(SRC.Function).FirstOrDefault();
+            Assert.AreEqual(AccessModifier.Public, codeParser.GetAccessModifierForMethod(element));
+        }
+
+        [Test]
+        public void TestGetAccessModifierForMethod_None() {
+            //namespace Example {
+            //    public class Foo {
+            //        bool Bar() { return true; }
+            //    }
+            //}
+            string xml = @"<namespace>namespace <name>Example</name> <block>{
+    <class><specifier>public</specifier> class <name>Foo</name> <block>{
+        <function><type><name>bool</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><lit:literal type=""boolean"">true</lit:literal></expr>;</return> }</block></function>
+    }</block></class>
+}</block></namespace>";
+            var element = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.cs").Descendants(SRC.Function).FirstOrDefault();
+            Assert.AreEqual(AccessModifier.None, codeParser.GetAccessModifierForMethod(element));
+        }
+
+        [Test]
+        public void TestGetAccessModifierForMethod_ProtectedInternal() {
+            //namespace Example {
+            //    public class Foo {
+            //        protected internal bool Bar() { return true; }
+            //    }
+            //}
+            string xml = @"<namespace>namespace <name>Example</name> <block>{
+    <class><specifier>public</specifier> class <name>Foo</name> <block>{
+        <function><type><specifier>protected</specifier> <specifier>internal</specifier> <name>bool</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><lit:literal type=""boolean"">true</lit:literal></expr>;</return> }</block></function>
+    }</block></class>
+}</block></namespace>";
+            var element = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.cs").Descendants(SRC.Function).FirstOrDefault();
+            Assert.AreEqual(AccessModifier.ProtectedInternal, codeParser.GetAccessModifierForMethod(element));
+        }
+
+        [Test]
+        public void TestGetAccessModifierForMethod_InternalProtected() {
+            //namespace Example {
+            //    public class Foo {
+            //        internal protected bool Bar() { return true; }
+            //    }
+            //}
+            string xml = @"<namespace>namespace <name>Example</name> <block>{
+    <class><specifier>public</specifier> class <name>Foo</name> <block>{
+        <function><type><specifier>internal</specifier> <specifier>protected</specifier> <name>bool</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><lit:literal type=""boolean"">true</lit:literal></expr>;</return> }</block></function>
+    }</block></class>
+}</block></namespace>";
+            var element = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.cs").Descendants(SRC.Function).FirstOrDefault();
+            Assert.AreEqual(AccessModifier.ProtectedInternal, codeParser.GetAccessModifierForMethod(element));
+        }
+
+        [Test]
+        public void TestGetAccessModifierForMethod_ProtectedInternalStatic() {
+            //namespace Example {
+            //    public class Foo {
+            //        protected static internal bool Bar() { return true; }
+            //    }
+            //}
+            string xml = @"<namespace>namespace <name>Example</name> <block>{
+    <class><specifier>public</specifier> class <name>Foo</name> <block>{
+        <function><type><specifier>protected</specifier> <specifier>static</specifier> <specifier>internal</specifier> <name>bool</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><lit:literal type=""boolean"">true</lit:literal></expr>;</return> }</block></function>
+    }</block></class>
+}</block></namespace>";
+            var element = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.cs").Descendants(SRC.Function).FirstOrDefault();
+            Assert.AreEqual(AccessModifier.ProtectedInternal, codeParser.GetAccessModifierForMethod(element));
+        }
     }
 }
