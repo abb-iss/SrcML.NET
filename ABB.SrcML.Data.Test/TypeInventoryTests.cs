@@ -616,6 +616,106 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual(typeB, callToFooFromC.CallingObject.FindFirstMatchingType());
             Assert.AreEqual(aDotFoo, callToFooFromC.FindMatches().FirstOrDefault());
         }
+
+        [Test]
+        public void TestVariableDeclaredInParentClass() {
+            //class A { void Foo() { } }
+            string a_xml = @"<class>class <name>A</name> <block>{ <function><type><name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></function> }</block></class>";
+
+            //class B { protected A a; }
+            string b_xml = @"<class>class <name>B</name> <block>{ <decl_stmt><decl><type><specifier>protected</specifier> <name>A</name></type> <name>a</name></decl>;</decl_stmt> }</block></class>";
+
+            //class C : B { void Bar() { a.Foo(); } }
+            string c_xml = @"<class>class <name>C</name> <super>: <name>B</name></super> <block>{ <function><type><name>void</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ <expr_stmt><expr><call><name><name>a</name><op:operator>.</op:operator><name>Foo</name></name><argument_list>()</argument_list></call></expr>;</expr_stmt> }</block></function> }</block></class>";
+
+            var aUnit = FileUnitSetup[Language.CSharp].GetFileUnitForXmlSnippet(a_xml, "A.cs");
+            var bUnit = FileUnitSetup[Language.CSharp].GetFileUnitForXmlSnippet(b_xml, "B.cs");
+            var cUnit = FileUnitSetup[Language.CSharp].GetFileUnitForXmlSnippet(c_xml, "C.cs");
+
+            var globalScope = CodeParser[Language.CSharp].ParseFileUnit(aUnit);
+            globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(bUnit)) as NamespaceDefinition;
+            globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(cUnit)) as NamespaceDefinition;
+
+            var typeA = globalScope.GetChildScopesWithId<TypeDefinition>("A").FirstOrDefault();
+            var typeB = globalScope.GetChildScopesWithId<TypeDefinition>("B").FirstOrDefault();
+            var typeC = globalScope.GetChildScopesWithId<TypeDefinition>("C").FirstOrDefault();
+
+            Assert.IsNotNull(typeA, "could not find class A");
+            Assert.IsNotNull(typeB, "could not find class B");
+            Assert.IsNotNull(typeC, "could not find class C");
+
+            var aDotFoo = typeA.GetChildScopesWithId<MethodDefinition>("Foo").FirstOrDefault();
+            Assert.IsNotNull(aDotFoo, "could not find method A.Foo()");
+
+            var cDotBar = typeC.GetChildScopesWithId<MethodDefinition>("Bar").FirstOrDefault();
+            Assert.IsNotNull(cDotBar, "could not find method C.Bar()");
+
+            var bDotA = typeB.DeclaredVariables.FirstOrDefault();
+            Assert.IsNotNull(bDotA, "could not find variable B.a");
+            Assert.AreEqual("a", bDotA.Name);
+
+            var callToFoo = cDotBar.MethodCalls.FirstOrDefault();
+            Assert.IsNotNull(callToFoo, "could not find any method calls in C.Bar()");
+            Assert.AreEqual("Foo", callToFoo.Name);
+
+            Assert.AreEqual(aDotFoo, callToFoo.FindMatches().FirstOrDefault());
+        }
+
+        [Test]
+        public void TestVariableDeclaredInCallingObjectWithParentClass() {
+            //class A { B b; }
+            string a_xml = @"<class>class <name>A</name> <block>{ <decl_stmt><decl><type><name>B</name></type> <name>b</name></decl>;</decl_stmt> }</block></class>";
+
+            //class B { void Foo() { } }
+            string b_xml = @"<class>class <name>B</name> <block>{ <function><type><name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></function> }</block></class>";
+
+            //class C : A { }
+            string c_xml = @"<class>class <name>C</name> <super>: <name>A</name></super> <block>{ }</block></class>";
+
+            //class D {
+            //	C c;
+            //	void Bar() { c.b.Foo(); }
+            //}
+            string d_xml = @"<class>class <name>D</name> <block>{
+	<decl_stmt><decl><type><name>C</name></type> <name>c</name></decl>;</decl_stmt>
+	<function><type><name>void</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ <expr_stmt><expr><call><name><name>c</name><op:operator>.</op:operator><name>b</name><op:operator>.</op:operator><name>Foo</name></name><argument_list>()</argument_list></call></expr>;</expr_stmt> }</block></function>
+}</block></class>";
+
+            var aUnit = FileUnitSetup[Language.CSharp].GetFileUnitForXmlSnippet(a_xml, "A.cs");
+            var bUnit = FileUnitSetup[Language.CSharp].GetFileUnitForXmlSnippet(b_xml, "B.cs");
+            var cUnit = FileUnitSetup[Language.CSharp].GetFileUnitForXmlSnippet(c_xml, "C.cs");
+            var dUnit = FileUnitSetup[Language.CSharp].GetFileUnitForXmlSnippet(d_xml, "D.cs");
+
+            var globalScope = CodeParser[Language.CSharp].ParseFileUnit(aUnit);
+            globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(bUnit)) as NamespaceDefinition;
+            globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(cUnit)) as NamespaceDefinition;
+            globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(dUnit)) as NamespaceDefinition;
+
+            var typeA = globalScope.GetChildScopesWithId<TypeDefinition>("A").FirstOrDefault();
+            var typeB = globalScope.GetChildScopesWithId<TypeDefinition>("B").FirstOrDefault();
+            var typeC = globalScope.GetChildScopesWithId<TypeDefinition>("C").FirstOrDefault();
+            var typeD = globalScope.GetChildScopesWithId<TypeDefinition>("D").FirstOrDefault();
+
+            Assert.IsNotNull(typeA, "could not find class A");
+            Assert.IsNotNull(typeB, "could not find class B");
+            Assert.IsNotNull(typeC, "could not find class C");
+            Assert.IsNotNull(typeD, "could not find class D");
+
+            var adotB = typeA.DeclaredVariables.FirstOrDefault();
+            Assert.IsNotNull(adotB, "could not find variable A.b");
+            Assert.AreEqual("b", adotB.Name);
+
+            var bDotFoo = typeB.GetChildScopesWithId<MethodDefinition>("Foo").FirstOrDefault();
+            Assert.IsNotNull(bDotFoo, "could not method B.Foo()");
+
+            var dDotBar = typeD.GetChildScopesWithId<MethodDefinition>("Bar").FirstOrDefault();
+            Assert.IsNotNull(dDotBar, "could not find method D.Bar()");
+
+            var callToFoo = dDotBar.MethodCalls.FirstOrDefault();
+            Assert.IsNotNull(callToFoo, "could not find any method calls in D.Bar()");
+
+            Assert.AreEqual(bDotFoo, callToFoo.FindMatches().FirstOrDefault());
+        }
     }
 }
 
