@@ -498,5 +498,23 @@ namespace ABB.SrcML.Data.Test {
                 CollectionAssert.Contains(expectedVariableTypes, declaration.VariableType.Name);
             }
         }
+
+        [Test]
+        public void TestLengthyCallingObjectChain() {
+            //a->b.Foo();
+            string xml = @"<expr_stmt><expr><name>a</name><op:operator>-&gt;</op:operator><name>b</name><op:operator>.</op:operator><call><name>Foo</name><argument_list>()</argument_list></call></expr>;</expr_stmt>";
+
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cpp");
+
+            var testScope = codeParser.ParseFileUnit(testUnit);
+
+            var testCall = testScope.MethodCalls.FirstOrDefault();
+            Assert.IsNotNull(testCall, "could not find any test calls");
+            Assert.AreEqual("Foo", testCall.Name);
+            Assert.AreEqual("b", (testCall.CallingObject as VariableUse).Name);
+            Assert.AreEqual("a", (testCall.CallingObject.CallingObject as VariableUse).Name);
+            Assert.IsNull(testCall.CallingObject.CallingObject.CallingObject);
+
+        }
     }
 }
