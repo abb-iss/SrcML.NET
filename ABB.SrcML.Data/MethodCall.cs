@@ -74,6 +74,8 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <returns>An enumerable of method definitions that match this method call</returns>
         public override IEnumerable<MethodDefinition> FindMatches() {
+            IEnumerable<MethodDefinition> matchingMethods = Enumerable.Empty<MethodDefinition>();
+
             if(IsConstructor || IsDestructor) {
                 TypeUse tempTypeUse = new TypeUse() {
                     Name = this.Name,
@@ -81,20 +83,27 @@ namespace ABB.SrcML.Data {
                 };
                 tempTypeUse.AddAliases(this.Aliases);
 
-                var matchingMethods = from typeDefinition in tempTypeUse.FindMatches()
-                                      from method in typeDefinition.GetChildScopesWithId<MethodDefinition>(this.Name)
-                                      where Matches(method)
-                                      select method;
-                return matchingMethods;
+                matchingMethods = from typeDefinition in tempTypeUse.FindMatches()
+                                  from method in typeDefinition.GetChildScopesWithId<MethodDefinition>(this.Name)
+                                  where Matches(method)
+                                  select method;
             } else if(CallingObject != null) {
-                var matchingMethods = from typeDefinition in CallingObject.FindMatchingTypes()
-                                      from child in typeDefinition.ChildScopes
-                                      let method = child as MethodDefinition
-                                      where Matches(method)
-                                      select method;
-                return matchingMethods;
+                matchingMethods = from matchingType in CallingObject.FindMatchingTypes()
+                                  from typeDefinition in matchingType.GetParentTypesAndSelf()
+                                  from method in typeDefinition.GetChildScopesWithId<MethodDefinition>(this.Name)
+                                  where Matches(method)
+                                  select method;
             } else {
-                return base.FindMatches();
+                var matches = base.FindMatches();
+                var matchingTypeMethods = from containingType in ParentScope.GetParentScopesAndSelf<TypeDefinition>()
+                                          from typeDefinition in containingType.GetParentTypesAndSelf()
+                                          from method in typeDefinition.GetChildScopesWithId<MethodDefinition>(this.Name)
+                                          where Matches(method)
+                                          select method;
+                matchingMethods = matches.Union(matchingTypeMethods);
+            }
+            foreach(var method in matchingMethods) {
+                yield return method;
             }
         }
 
