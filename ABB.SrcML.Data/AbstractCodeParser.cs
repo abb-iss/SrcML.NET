@@ -113,8 +113,9 @@ namespace ABB.SrcML.Data {
             }
 
             foreach(var declarationElement in GetDeclarationsFromElement(element)) {
-                var declaration = ParseDeclarationElement(declarationElement, context);
-                context.CurrentScope.AddDeclaredVariable(declaration);
+                foreach(var declaration in ParseDeclarationElement(declarationElement, context)) {
+                    context.CurrentScope.AddDeclaredVariable(declaration);
+                }
             }
             foreach(var methodCallElement in GetMethodCallsFromElement(element)) {
                 var methodCall = ParseCallElement(methodCallElement, context);
@@ -333,12 +334,12 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Creates a variable declaration object 
+        /// Creates variable declaration objects from the given declaration element 
         /// </summary>
         /// <param name="declarationElement">The variable declaration to parse. Must belong to <see cref="VariableDeclarationElementNames"/></param>
         /// <param name="context">The parser context</param>
-        /// <returns>A variable declaration for <paramref name="declarationElement"/></returns>
-        public virtual VariableDeclaration ParseDeclarationElement(XElement declarationElement, ParserContext context) {
+        /// <returns>One variable declaration object for each declaration in <paramref name="declarationElement"/></returns>
+        public virtual IEnumerable<VariableDeclaration> ParseDeclarationElement(XElement declarationElement, ParserContext context) {
             if(declarationElement == null) throw new ArgumentNullException("declaration");
             if(!VariableDeclarationElementNames.Contains(declarationElement.Name)) throw new ArgumentException("XElement.Name must be in VariableDeclarationElementNames");
 
@@ -350,16 +351,18 @@ namespace ABB.SrcML.Data {
             }
 
             var typeElement = declElement.Element(SRC.Type);
-            var nameElement = declElement.Element(SRC.Name);
-            var name = (nameElement == null ? String.Empty : nameElement.Value);
 
-            var variableDeclaration = new VariableDeclaration() {
-                VariableType = ParseTypeUseElement(typeElement, context),
-                Name = name,
-                Location = context.CreateLocation(declarationElement),
-                Scope = context.CurrentScope,
-            };
-            return variableDeclaration;
+            var declarationType = ParseTypeUseElement(typeElement, context);
+
+            foreach(var nameElement in declElement.Elements(SRC.Name)) {
+                var variableDeclaration = new VariableDeclaration() {
+                    VariableType = declarationType,
+                    Name = nameElement.Value,
+                    Location = context.CreateLocation(nameElement),
+                    Scope = context.CurrentScope,
+                };
+                yield return variableDeclaration;
+            }
         }
 
         /// <summary>
@@ -398,7 +401,7 @@ namespace ABB.SrcML.Data {
 
             // validate the type use typeUseElement (must be a SRC.Name or SRC.Type)
             if(typeUseElement.Name == SRC.Type) {
-                typeNameElement = typeUseElement.Element(SRC.Name);
+                typeNameElement = typeUseElement.Elements(SRC.Name).LastOrDefault();
             } else if(typeUseElement.Name == SRC.Name) {
                 typeNameElement = typeUseElement;
             } else {

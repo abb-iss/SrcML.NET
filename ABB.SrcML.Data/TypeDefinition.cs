@@ -131,6 +131,29 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
+        /// Resolves all of the parent type uses for this type definition
+        /// </summary>
+        /// <returns>Matching parent types for this type</returns>
+        public IEnumerable<TypeDefinition> GetParentTypes() {
+            foreach(var parentTypeUse in this.ParentTypes) {
+                foreach(var match in parentTypeUse.FindMatchingTypes()) {
+                    yield return match;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns this class followed by all of its parent classes (via a call to <see cref="GetParentTypes()"/>
+        /// </summary>
+        /// <returns>An enumerable consisting of this object followed by the results of <see cref="GetParentTypes()"/></returns>
+        public IEnumerable<TypeDefinition> GetParentTypesAndSelf() {
+            yield return this;
+            foreach(var parentType in GetParentTypes()) {
+                yield return parentType;
+            }
+        }
+
+        /// <summary>
         /// Removes any program elements defined in the given file.
         /// If the scope is defined entirely within the given file, then it removes itself from its parent.
         /// </summary>

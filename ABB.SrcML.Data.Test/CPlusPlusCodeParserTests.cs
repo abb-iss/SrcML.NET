@@ -281,7 +281,7 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("Example", example.Name);
             Assert.AreEqual(1, example.ChildScopes.Count());
             var foo = example.ChildScopes.OfType<MethodDefinition>().FirstOrDefault();
-            Assert.IsNotNull(foo);
+            Assert.IsNotNull(foo, "TODO fix static methods");
             Assert.AreEqual("Foo", foo.Name);
         }
 
@@ -436,7 +436,7 @@ namespace ABB.SrcML.Data.Test {
 
             var globalScope = headerScope.Merge(implementationScope);
 
-            Assert.AreEqual(1, globalScope.ChildScopes.Count());
+            Assert.AreEqual(1, globalScope.ChildScopes.Count(), "TODO implement using statements in C++");
             
             var namespaceA = globalScope.ChildScopes.First() as NamespaceDefinition;
             Assert.AreEqual("A", namespaceA.Name);
@@ -453,6 +453,50 @@ namespace ABB.SrcML.Data.Test {
             var globalScope_implementationFirst = implementationScope.Merge(headerScope);
 
             TestHelper.ScopesAreEqual(globalScope, globalScope_implementationFirst);
+        }
+
+        [Test]
+        public void TestMultiVariableDeclarations() {
+            //int a,b,c;
+            string testXml = @"<decl_stmt><decl><type><name>int</name></type> <name>a</name>,<name>b</name>,<name>c</name></decl>;</decl_stmt>";
+
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(testXml, "test.cpp");
+
+            var globalScope = codeParser.ParseFileUnit(testUnit);
+
+            Assert.AreEqual(3, globalScope.DeclaredVariables.Count());
+
+            var declaredVariableNames = from variable in globalScope.DeclaredVariables select variable.Name;
+            var expectedVariableNames = new string[] { "a", "b", "c" };
+
+            CollectionAssert.AreEquivalent(expectedVariableNames, declaredVariableNames);
+        }
+
+        [Test]
+        public void TestVariablesWithSpecifiers() {
+            //const int A;
+            //static int B;
+            //static const Foo C;
+            //extern Foo D;
+            string testXml = @"<decl_stmt><decl><type><name>const</name> <name>int</name></type> <name>A</name></decl>;</decl_stmt>
+<decl_stmt><decl><type><name>static</name> <name>int</name></type> <name>B</name></decl>;</decl_stmt>
+<decl_stmt><decl><type><name>static</name> <name>const</name> <name>Foo</name></type> <name>C</name></decl>;</decl_stmt>
+<decl_stmt><decl><type><name>extern</name> <name>Foo</name></type> <name>D</name></decl>;</decl_stmt>";
+
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(testXml, "test.cpp");
+
+            var globalScope = codeParser.ParseFileUnit(testUnit);
+
+            var declaredVariableNames = from variable in globalScope.DeclaredVariables select variable.Name;
+            var declaredVariableTypes = from variable in globalScope.DeclaredVariables select variable.VariableType.Name;
+
+            var expectedVariableNames = new string[] { "A", "B", "C", "D"};
+            var expectedVariableTypes = new string[] { "int", "Foo" };
+
+            CollectionAssert.AreEquivalent(expectedVariableNames, declaredVariableNames);
+            foreach(var declaration in globalScope.DeclaredVariables) {
+                CollectionAssert.Contains(expectedVariableTypes, declaration.VariableType.Name);
+            }
         }
     }
 }

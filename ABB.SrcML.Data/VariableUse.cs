@@ -43,21 +43,28 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <returns>An enumerable of matching variable declarations.</returns>
         public override IEnumerable<VariableDeclaration> FindMatches() {
-            if(CallingObject == null) {
-                var currentScope = this.ParentScope;
+            IEnumerable<VariableDeclaration> matchingVariables = Enumerable.Empty<VariableDeclaration>();
 
-                var matchingVariables = from scope in ParentScopes
-                                        from variable in scope.DeclaredVariables
-                                        where Matches(variable)
-                                        select variable;
-                return matchingVariables;
+            if(CallingObject != null) {
+                matchingVariables = from matchingType in CallingObject.FindMatchingTypes()
+                                    from typeDefinition in matchingType.GetParentTypesAndSelf()
+                                    from variable in typeDefinition.DeclaredVariables
+                                    where Matches(variable)
+                                    select variable;
             } else {
-                var parentType = CallingObject.FindFirstMatchingType();
-                var matchingVariables = from variable in parentType.DeclaredVariables
-                                        where Matches(variable)
-                                        select variable;
-                return matchingVariables;
+                var matches = from scope in ParentScopes
+                              from variable in scope.DeclaredVariables
+                              where Matches(variable)
+                              select variable;
+
+                var matchingParentVariables = from containingType in ParentScope.GetParentScopesAndSelf<TypeDefinition>()
+                                              from typeDefinition in containingType.GetParentTypes()
+                                              from variable in typeDefinition.DeclaredVariables
+                                              where Matches(variable)
+                                              select variable;
+                matchingVariables = matches.Concat(matchingParentVariables);
             }
+            return matchingVariables;
         }
 
         /// <summary>
@@ -78,7 +85,13 @@ namespace ABB.SrcML.Data {
             if(this.Name == "this") {
                 typeDefinitions = ParentScopes.OfType<TypeDefinition>().Take(1);
             } else if(this.CallingObject != null) {
-                typeDefinitions = this.CallingObject.FindMatchingTypes();
+                typeDefinitions = from typeForCallingObject in this.CallingObject.FindMatchingTypes()
+                                  from typeDefinition in typeForCallingObject.GetParentTypesAndSelf()
+                                  from variableDeclaration in typeDefinition.DeclaredVariables
+                                  where Matches(variableDeclaration)
+                                  where variableDeclaration.VariableType != null
+                                  from matchingType in variableDeclaration.VariableType.FindMatchingTypes()
+                                  select matchingType;
             } else {
                 typeDefinitions = from declaration in FindMatches()
                                   where declaration.VariableType != null

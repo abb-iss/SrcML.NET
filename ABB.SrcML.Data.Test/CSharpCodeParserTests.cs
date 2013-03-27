@@ -557,5 +557,49 @@ namespace ABB.SrcML.Data.Test {
             var element = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.cs").Descendants(SRC.Function).FirstOrDefault();
             Assert.AreEqual(AccessModifier.ProtectedInternal, codeParser.GetAccessModifierForMethod(element));
         }
+
+        [Test]
+        public void TestMultiVariableDeclarations() {
+            //int a,b,c;
+            string testXml = @"<decl_stmt><decl><type><name>int</name></type> <name>a</name><op:operator>,</op:operator><name>b</name><op:operator>,</op:operator><name>c</name></decl>;</decl_stmt>";
+
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(testXml, "test.cs");
+
+            var globalScope = codeParser.ParseFileUnit(testUnit);
+
+            Assert.AreEqual(3, globalScope.DeclaredVariables.Count());
+
+            var declaredVariableNames = from variable in globalScope.DeclaredVariables select variable.Name;
+            var expectedVariableNames = new string[] { "a", "b", "c" };
+
+            CollectionAssert.AreEquivalent(expectedVariableNames, declaredVariableNames);
+        }
+
+        [Test]
+        public void TestVariablesWithSpecifiers() {
+            //static int A;
+            //public const int B;
+            //public static readonly Foo C;
+            //volatile  int D;
+            string testXml = @"<decl_stmt><decl><type><specifier>static</specifier> <name>int</name></type> <name>A</name></decl>;</decl_stmt>
+<decl_stmt><decl><type><specifier>public</specifier> <name>const</name> <name>int</name></type> <name>B</name></decl>;</decl_stmt>
+<decl_stmt><decl><type><specifier>public</specifier> <specifier>static</specifier> <specifier>readonly</specifier> <name>Foo</name></type> <name>C</name></decl>;</decl_stmt>
+<decl_stmt><decl><type><specifier>volatile</specifier>  <name>int</name></type> <name>D</name></decl>;</decl_stmt>";
+
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(testXml, "test.cs");
+
+            var globalScope = codeParser.ParseFileUnit(testUnit);
+
+            var declaredVariableNames = from variable in globalScope.DeclaredVariables select variable.Name;
+            var declaredVariableTypes = from variable in globalScope.DeclaredVariables select variable.VariableType.Name;
+
+            var expectedVariableNames = new string[] { "A", "B", "C", "D" };
+            var expectedVariableTypes = new string[] { "int", "Foo" };
+
+            CollectionAssert.AreEquivalent(expectedVariableNames, declaredVariableNames);
+            foreach(var declaration in globalScope.DeclaredVariables) {
+                CollectionAssert.Contains(expectedVariableTypes, declaration.VariableType.Name);
+            }
+        }
     }
 }
