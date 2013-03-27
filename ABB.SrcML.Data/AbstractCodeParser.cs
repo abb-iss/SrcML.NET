@@ -325,6 +325,7 @@ namespace ABB.SrcML.Data {
                     current.CallingObject = callingObject;
                     current = callingObject;
                 }
+                i--;
             }
             if(methodCall.CallingObject == null) {
                 methodCall.AddAliases(context.Aliases);
@@ -625,8 +626,7 @@ namespace ABB.SrcML.Data {
         public virtual IEnumerable<XElement> GetMethodCallsFromElement(XElement element) {
             if(MethodElementNames.Contains(element.Name) ||
                NamespaceElementNames.Contains(element.Name) ||
-               TypeElementNames.Contains(element.Name) ||
-                element.Name == SRC.Unit) {
+               TypeElementNames.Contains(element.Name)) {
                 return GetCallsFromBlockParent(element);
             }
             return GetMethodCallsFromBlockElement(element);
