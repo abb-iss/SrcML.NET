@@ -96,11 +96,11 @@ namespace ABB.SrcML.Data {
             } else {
                 var matches = base.FindMatches();
                 var matchingTypeMethods = from containingType in ParentScope.GetParentScopesAndSelf<TypeDefinition>()
-                                          from typeDefinition in containingType.GetParentTypesAndSelf()
+                                          from typeDefinition in containingType.GetParentTypes()
                                           from method in typeDefinition.GetChildScopesWithId<MethodDefinition>(this.Name)
                                           where Matches(method)
                                           select method;
-                matchingMethods = matches.Union(matchingTypeMethods);
+                matchingMethods = matches.Concat(matchingTypeMethods);
             }
             foreach(var method in matchingMethods) {
                 yield return method;
