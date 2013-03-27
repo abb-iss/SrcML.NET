@@ -102,9 +102,12 @@ namespace ABB.SrcML.VisualStudio.DataDemo {
         }
 
         private void InitializeDataArchive(SrcMLArchive srcMLArchive) {
+            PrintOutputLine(String.Format("Generated srcML for {0} files in {1:mm\\:ss\\.ff}", srcMLArchive.FileUnits.Count(), this.srcMLService.StartupElapsed));
             PrintOutputLine("Initializing DataArchive...");
+            var sw = Stopwatch.StartNew();
             dataArchive = new DataArchive(srcMLArchive);
-            PrintOutputLine("Initialization complete.");
+            sw.Stop();
+            PrintOutputLine(String.Format("Initialization completed in {0:mm\\:ss\\.ff} seconds", sw.Elapsed));
         }
 
         /// <summary>

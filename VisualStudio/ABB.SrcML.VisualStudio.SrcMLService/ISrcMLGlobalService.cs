@@ -26,6 +26,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         //int CallLocalService();
 
         bool IsStartupCompleted { get; }
+        TimeSpan StartupElapsed { get; }
 
         event EventHandler<FileEventRaisedArgs> SourceFileChanged;
         event EventHandler<EventArgs> StartupCompleted;

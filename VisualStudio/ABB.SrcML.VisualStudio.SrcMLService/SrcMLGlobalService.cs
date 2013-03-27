@@ -28,7 +28,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
     /// package that it is actually implementing this service.
     /// </summary>
     public class SrcMLGlobalService : ISrcMLGlobalService, SSrcMLGlobalService {
-
+        
         /// <summary>
         /// SrcML.NET's Solution Monitor.
         /// </summary>
@@ -67,10 +67,14 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             IsStartupCompleted = false;
         }
 
+        private Stopwatch startupTimer;
+
         // Implement the methods of ISrcMLLocalService here.
         #region ISrcMLGlobalService Members
         
         public bool IsStartupCompleted { get; protected set; }
+
+        public TimeSpan StartupElapsed { get; protected set; }
 
         public event EventHandler<FileEventRaisedArgs> SourceFileChanged;
         public event EventHandler<EventArgs> StartupCompleted;
@@ -113,6 +117,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="srcMLArchiveDirectory"></param>
         /// <param name="useExistingSrcML"></param>
         public void StartMonitoring(bool useExistingSrcML, string srcMLBinaryDirectory) {
+            startupTimer = Stopwatch.StartNew();
             IsStartupCompleted = false;
             
             // Get the path of the folder that storing the srcML archives
@@ -233,6 +238,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="eventArgs"></param>
         private void RespondToStartupCompletedEvent(object sender, EventArgs eventArgs) {
             SrcMLFileLogger.DefaultLogger.Info("SrcMLService: RespondToStartupCompletedEvent()");
+            startupTimer.Stop();
+            StartupElapsed = startupTimer.Elapsed;
             OnStartupCompleted(eventArgs);
         }
 
