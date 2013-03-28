@@ -514,7 +514,43 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("b", (testCall.CallingObject as VariableUse).Name);
             Assert.AreEqual("a", (testCall.CallingObject.CallingObject as VariableUse).Name);
             Assert.IsNull(testCall.CallingObject.CallingObject.CallingObject);
+        }
 
+        [Test]
+        public void TestGenericVariableDeclaration() {
+            //vector<int> a;
+            string xml = @"<decl_stmt><decl><type><name><name>vector</name><argument_list>&lt;<argument><name>int</name></argument>&gt;</argument_list></name></type> <name>a</name></decl>;</decl_stmt>";
+
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cpp");
+
+            var testScope = codeParser.ParseFileUnit(testUnit);
+
+            var testDeclaration = testScope.DeclaredVariables.First();
+            Assert.IsNotNull(testDeclaration, "could not find the test declaration");
+            Assert.AreEqual("a", testDeclaration.Name);
+            Assert.AreEqual("vector", testDeclaration.VariableType.Name);
+            Assert.That(testDeclaration.VariableType.IsGeneric);
+            Assert.AreEqual(1, testDeclaration.VariableType.TypeParameters.Count);
+            Assert.AreEqual("int", testDeclaration.VariableType.TypeParameters.First().Name);
+        }
+
+        [Test]
+        public void TestGenericVariableDeclarationWithPrefix() {
+            //std::vector<int> a;
+            string xml = @"<decl_stmt><decl><type><name><name>std</name><op:operator>::</op:operator><name><name>vector</name><argument_list>&lt;<argument><name>int</name></argument>&gt;</argument_list></name></name></type> <name>a</name></decl>;</decl_stmt>";
+
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cpp");
+
+            var testScope = codeParser.ParseFileUnit(testUnit);
+
+            var testDeclaration = testScope.DeclaredVariables.First();
+            Assert.IsNotNull(testDeclaration, "could not find the test declaration");
+            Assert.AreEqual("a", testDeclaration.Name);
+            Assert.AreEqual("vector", testDeclaration.VariableType.Name);
+            Assert.AreEqual("std", testDeclaration.VariableType.Prefix.Name);
+            Assert.That(testDeclaration.VariableType.IsGeneric);
+            Assert.AreEqual(1, testDeclaration.VariableType.TypeParameters.Count);
+            Assert.AreEqual("int", testDeclaration.VariableType.TypeParameters.First().Name);
         }
     }
 }

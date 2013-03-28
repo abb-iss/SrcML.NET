@@ -21,13 +21,31 @@ namespace ABB.SrcML.Data {
     /// Represents a use of a type. It is used in declarations and inheritance specifications.
     /// </summary>
     public class TypeUse : AbstractScopeUse<TypeDefinition>, IResolvesToType {
+        private List<TypeUse> internalTypeParameters;
+
         /// <summary>
         /// Create a new type use object.
         /// </summary>
         public TypeUse() {
             this.Name = String.Empty;
+            this.internalTypeParameters = new List<TypeUse>();
+            this.TypeParameters = new ReadOnlyCollection<TypeUse>(this.internalTypeParameters);
         }
 
+        public override Scope ParentScope {
+            get {
+                return base.ParentScope;
+            }
+            set {
+                base.ParentScope = value;
+                if(null != Prefix) {
+                    Prefix.ParentScope = this.ParentScope;
+                }
+                foreach(var parameter in internalTypeParameters) {
+                    parameter.ParentScope = this.ParentScope;
+                }
+            }
+        }
         /// <summary>
         /// The calling object for this type (should be unused)
         /// </summary>
@@ -37,6 +55,32 @@ namespace ABB.SrcML.Data {
         /// The prefix for this type use object
         /// </summary>
         public NamedScopeUse Prefix { get; set; }
+
+        /// <summary>
+        /// Returns true if <see cref="TypeParameters"/> has any elements
+        /// </summary>
+        public bool IsGeneric { get { return this.internalTypeParameters.Count > 0; } }
+
+        /// <summary>
+        /// Parameters for the type use (indicates that this is a generic type use)
+        /// </summary>
+        public ReadOnlyCollection<TypeUse> TypeParameters { get; private set; }
+
+        /// <summary>
+        /// Adds a generic type parameter to this type use
+        /// </summary>
+        /// <param name="typeParameter">The type parameter to add</param>
+        public void AddTypeParameter(TypeUse typeParameter) {
+            this.internalTypeParameters.Add(typeParameter);
+        }
+
+        /// <summary>
+        /// Adds all of the type parameters to this type use element
+        /// </summary>
+        /// <param name="typeParameters">An enumerable of type use elements to add</param>
+        public void AddTypeParameters(IEnumerable<TypeUse> typeParameters) {
+            this.internalTypeParameters.AddRange(typeParameters);
+        }
 
         /// <summary>
         /// Finds all of the matches for this type
@@ -85,11 +129,18 @@ namespace ABB.SrcML.Data {
         /// Returns a string representation of this object.
         /// </summary>
         public override string ToString() {
+            StringBuilder sb = new StringBuilder();
             if(Prefix != null) {
-                return string.Format("{0}.{1}", Prefix, Name);
-            } else {
-                return Name;
+                sb.Append(Prefix);
+                sb.Append('.');
             }
+
+            sb.Append(Name);
+
+            if(IsGeneric) {
+                sb.AppendFormat("<{0}>", String.Join(",", TypeParameters));
+            }
+            return sb.ToString();
         }
     }
 }
