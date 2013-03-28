@@ -14,7 +14,6 @@ using System.Diagnostics.Contracts;
 namespace ABB.SrcML.VisualStudio.SolutionMonitor
 {
     /// <summary>
-    /// This class was from Sando.
     /// Now most likely this class would not be needed any more in SrcML.NET. Sando would maintain its own SolutionKey class.
     /// </summary>
     public class SolutionKey
@@ -49,6 +48,10 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         }
         */
 
+        /// <summary>
+        /// Return the solution ID.
+        /// </summary>
+        /// <returns></returns>
         public Guid GetSolutionId()
         {
             return this.solutionId;
@@ -61,6 +64,10 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor
         }
         */
 
+        /// <summary>
+        /// Return the solution path
+        /// </summary>
+        /// <returns></returns>
         public string GetSolutionPath()
         {
             return solutionPath;

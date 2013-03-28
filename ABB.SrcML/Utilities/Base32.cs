@@ -16,11 +16,19 @@ using System.Text;
 
 namespace ABB.SrcML.Utilities
 {
+    /// <summary>
+    /// Base32 encoding and decoding.
+    /// </summary>
     public sealed class Base32
     {
         // the valid chars for the encoding
         private static string ValidChars = "QAZ2WSX3" + "EDC4RFV5" + "TGB6YHN7" + "UJM8K9LP";
 
+        /// <summary>
+        /// Converts a string of bytes to a Base32-k string.
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
         public static string ToBase32String(string str)
         {
             return ToBase32String(Encoding.ASCII.GetBytes(str));
@@ -76,7 +84,7 @@ namespace ABB.SrcML.Utilities
         /// Converts a Base32-k string into an array of bytes.
         /// </summary>
         /// <exception cref="System.ArgumentException">
-        /// Input string <paramref name="s">s</paramref> contains invalid Base32-k characters.
+        /// Input string <paramref name="str">str</paramref> contains invalid Base32-k characters.
         /// </exception>
         public static string FromBase32String(string str)
         {

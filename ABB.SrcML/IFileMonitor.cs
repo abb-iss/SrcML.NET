@@ -19,10 +19,26 @@ namespace ABB.SrcML {
     /// This interface is designed for all events that can be raised from SrcML.NET.
     /// </summary>
     public interface IFileMonitor {
+        /// <summary>
+        /// File changed event
+        /// </summary>
         event EventHandler<FileEventRaisedArgs> FileEventRaised;
 
+        /// <summary>
+        /// Start monitoring files
+        /// </summary>
         void StartMonitoring();
+
+        /// <summary>
+        /// Stop monitoring files
+        /// </summary>
         void StopMonitoring();
+
+        /// <summary>
+        /// Get all monitored files
+        /// </summary>
+        /// <param name="worker"></param>
+        /// <returns></returns>
         List<string> GetMonitoredFiles(System.ComponentModel.BackgroundWorker worker);
     }
 
@@ -30,31 +46,73 @@ namespace ABB.SrcML {
     /// Event type enumeration.
     /// </summary>
     public enum FileEventType {
-        FileAdded,    // Raised when a file is added
-        FileChanged,  // Raised when a file is changed
-        FileDeleted,  // Raised when a file is deleted
-        FileRenamed,  // Raised when a file is renamed
+        /// <summary>
+        /// Raised when a file is added
+        /// </summary>
+        FileAdded,
+        
+        /// <summary>
+        /// Raised when a file is changed
+        /// </summary>
+        FileChanged,
+        
+        /// <summary>
+        /// Raised when a file is deleted
+        /// </summary>
+        FileDeleted,
+
+        /// <summary>
+        /// Raised when a file is renamed
+        /// </summary>
+        FileRenamed,
     }
 
     /// <summary>
     /// Event data of SrcML.NET events.
     /// </summary>
     public class FileEventRaisedArgs : System.EventArgs {
+        /// <summary>
+        /// Constructor.
+        /// </summary>
         protected FileEventRaisedArgs() {
         }
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="eventType"></param>
+        /// <param name="pathToFile"></param>
         public FileEventRaisedArgs(FileEventType eventType, string pathToFile)
             : this(eventType, pathToFile, pathToFile, false) {
         }
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="eventType"></param>
+        /// <param name="pathToFile"></param>
+        /// <param name="hasSrcML"></param>
         public FileEventRaisedArgs(FileEventType eventType, string pathToFile, bool hasSrcML)
             : this(eventType, pathToFile, pathToFile, hasSrcML) {
         }
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="eventType"></param>
+        /// <param name="pathToFile"></param>
+        /// <param name="oldPathToFile"></param>
         public FileEventRaisedArgs(FileEventType eventType, string pathToFile, string oldPathToFile)
             : this(eventType, pathToFile, oldPathToFile, false) {
         }
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="eventType"></param>
+        /// <param name="pathToFile"></param>
+        /// <param name="oldPathToFile"></param>
+        /// <param name="hasSrcML"></param>
         public FileEventRaisedArgs(FileEventType eventType, string pathToFile, string oldPathToFile, bool hasSrcML) {
             this.EventType = eventType;
             this.FilePath = pathToFile;
@@ -62,21 +120,33 @@ namespace ABB.SrcML {
             this.HasSrcML = hasSrcML;
         }
 
+        /// <summary>
+        /// Type of the file event
+        /// </summary>
         public FileEventType EventType {
             get;
             set;
         }
 
+        /// <summary>
+        /// Old file path
+        /// </summary>
         public string OldFilePath {
             get;
             set;
         }
 
+        /// <summary>
+        /// File path
+        /// </summary>
         public string FilePath {
             get;
             set;
         }
 
+        /// <summary>
+        /// Whether has a corresponding srcML file
+        /// </summary>
         public bool HasSrcML { get; set; }
     }
 }
