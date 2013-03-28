@@ -61,6 +61,14 @@
               <CommandFlag>DynamicVisibility</CommandFlag>
           If you do not want an image next to your command, remove the Icon node /> -->
 
+      <Button guid="guidDataDemoCmdSet" id="cmdidSrcMLDataInitialize" priority="0x0100" type="Button">
+        <Parent guid="guidDataDemoCmdSet" id="MyMenuGroup" />
+        <Icon guid="guidImages" id="bmpPic1" />
+        <Strings>
+          <ButtonText>Initialize SrcML Data Archive</ButtonText>
+        </Strings>
+      </Button>
+      
       <Button guid="guidDataDemoCmdSet" id="cmdidSrcMLData" priority="0x0100" type="Button">
         <Parent guid="guidDataDemoCmdSet" id="MyMenuGroup" />
         <Icon guid="guidImages" id="bmpPic1" />
@@ -68,8 +76,6 @@
           <ButtonText>Show SrcML Data</ButtonText>
         </Strings>
       </Button>
-
-
 
     </Buttons>
    
@@ -101,7 +107,8 @@
     <GuidSymbol name="guidDataDemoCmdSet" value="{7e4f523c-7466-4c40-b1d9-c7ea50f09c3a}">
 
       <IDSymbol name="MyMenuGroup" value="0x1020" />
-      <IDSymbol name="cmdidSrcMLData" value="0x0100" />
+      <IDSymbol name="cmdidSrcMLData" value="0x0101" />
+      <IDSymbol name="cmdidSrcMLDataInitialize" value="0x100"/>
     </GuidSymbol>
     
     

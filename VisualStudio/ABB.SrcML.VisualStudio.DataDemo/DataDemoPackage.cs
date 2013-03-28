@@ -79,6 +79,10 @@ namespace ABB.SrcML.VisualStudio.DataDemo {
                 CommandID menuCommandID = new CommandID(GuidList.guidDataDemoCmdSet, (int)PkgCmdIDList.cmdidSrcMLData);
                 MenuCommand menuItem = new MenuCommand(MenuItemCallback, menuCommandID);
                 mcs.AddCommand(menuItem);
+
+                var initMenuCommandID = new CommandID(GuidList.guidDataDemoCmdSet, (int)PkgCmdIDList.cmdidSrcMLDataInitialize);
+                var initMenuItem = new MenuCommand(InitializeMenuItemCallback, initMenuCommandID);
+                mcs.AddCommand(initMenuItem);
             }
 
             srcMLService = GetService(typeof(SSrcMLGlobalService)) as ISrcMLGlobalService;
@@ -91,6 +95,8 @@ namespace ABB.SrcML.VisualStudio.DataDemo {
                 InitializeDataArchive(srcMLService.GetSrcMLArchive());
             }
         }
+
+        
 
         #endregion
 
@@ -108,6 +114,11 @@ namespace ABB.SrcML.VisualStudio.DataDemo {
             dataArchive = new DataArchive(srcMLArchive);
             sw.Stop();
             PrintOutputLine(String.Format("Initialization completed in {0:mm\\:ss\\.ff} seconds", sw.Elapsed));
+        }
+
+        private void InitializeMenuItemCallback(object sender, EventArgs e) {
+            //we do nothing here. This exists only to initialize the Package without searching for a given scope.
+            return;
         }
 
         /// <summary>

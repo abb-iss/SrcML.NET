@@ -6,8 +6,7 @@ namespace ABB.SrcML.VisualStudio.DataDemo
 {
     static class PkgCmdIDList
     {
-        public const uint cmdidSrcMLData =        0x100;
-
-
+        public const uint cmdidSrcMLDataInitialize = 0x100;
+        public const uint cmdidSrcMLData =           0x101;
     };
 }
