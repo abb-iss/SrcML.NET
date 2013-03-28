@@ -182,7 +182,7 @@ namespace ABB.SrcML.Data.Test {
             Console.WriteLine("{0,10:N0} failures  ({1,8:P2})", numberOfFailures, ((float)numberOfFailures) / numberOfFiles);
             Console.WriteLine("{0,10:N0} successes ({1,8:P2})", numberOfSuccesses, ((float)numberOfSuccesses) / numberOfFiles);
             Console.WriteLine("{0} to generate data", sw.Elapsed);
-            Console.WriteLine("See parse log at {0}", fileLogPath);
+            Console.WriteLine(fileLogPath);
 
             PrintScopeReport(globalScope);
             PrintMethodCallReport(globalScope, callLogPath);
@@ -243,7 +243,7 @@ namespace ABB.SrcML.Data.Test {
             Console.WriteLine("{0,10:N0} method calls", numMethodCalls);
             Console.WriteLine("{0,10:N0} matched method calls ({1,8:P2})", numMatchedMethodCalls, ((float)numMatchedMethodCalls) / numMethodCalls);
             Console.WriteLine("{0,10:N0} matches / millisecond ({1,7:N0} ms elapsed)", ((float) numMethodCalls) / sw.ElapsedMilliseconds, sw.ElapsedMilliseconds);
-            Console.WriteLine("See matched method calls in {0}", callLogPath);
+            Console.WriteLine(callLogPath);
         }
 
         private void PrintErrorReport(Dictionary<string, List<string>> errors) {
@@ -255,9 +255,15 @@ namespace ABB.SrcML.Data.Test {
 
             if(sortedErrors.Any()) {
                 foreach(var kvp in sortedErrors) {
-                    Console.WriteLine("{0} exceptions {1}", kvp.Value.Count, kvp.Key);
-                    foreach(var fileName in kvp.Value) {
-                        Console.WriteLine("\t{0}", fileName);
+                    var indexOfIn = kvp.Key.IndexOf(" in ");
+                    var indexOfColon = kvp.Key.LastIndexOf(":");
+                    var fileName = kvp.Key.Substring(indexOfIn + 4, indexOfColon - indexOfIn - 4);
+                    var lineNumber = kvp.Key.Substring(indexOfColon + 6);
+                    string method = kvp.Key.Substring(0, indexOfIn);
+
+                    Console.WriteLine("{0}({1}) : {2} exception{3} {4}", fileName, lineNumber, kvp.Value.Count, (kvp.Value.Count > 1 ? "s" : String.Empty), method);
+                    foreach(var sourceFile in kvp.Value) {
+                        Console.WriteLine("\t{0}", sourceFile);
                     }
                 }
             } else {
