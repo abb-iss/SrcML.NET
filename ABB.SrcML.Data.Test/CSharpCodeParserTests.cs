@@ -601,5 +601,44 @@ namespace ABB.SrcML.Data.Test {
                 CollectionAssert.Contains(expectedVariableTypes, declaration.VariableType.Name);
             }
         }
+
+        [Test]
+        public void TestGenericVariableDeclaration() {
+            //Dictionary<string,int> map;
+            string xml = @"<decl_stmt><decl><type><name><name>Dictionary</name><argument_list>&lt;<argument><name>string</name></argument>,<argument><name>int</name></argument>&gt;</argument_list></name></type> <name>map</name></decl>;</decl_stmt>";
+
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cs");
+
+            var testScope = codeParser.ParseFileUnit(testUnit);
+
+            var testDeclaration = testScope.DeclaredVariables.First();
+            Assert.IsNotNull(testDeclaration, "could not find the test declaration");
+            Assert.AreEqual("map", testDeclaration.Name);
+            Assert.AreEqual("Dictionary", testDeclaration.VariableType.Name);
+            Assert.That(testDeclaration.VariableType.IsGeneric);
+            Assert.AreEqual(2, testDeclaration.VariableType.TypeParameters.Count);
+            Assert.AreEqual("string", testDeclaration.VariableType.TypeParameters.First().Name);
+            Assert.AreEqual("int", testDeclaration.VariableType.TypeParameters.Last().Name);
+        }
+
+        [Test]
+        public void TestGenericVariableDeclarationWithPrefix() {
+            //System.Collection.Dictionary<string,int> map;
+            string xml = @"<decl_stmt><decl><type><name><name>System</name><op:operator>.</op:operator><name>Collection</name><op:operator>.</op:operator><name><name>Dictionary</name><argument_list>&lt;<argument><name>string</name></argument>,<argument><name>int</name></argument>&gt;</argument_list></name></name></type> <name>map</name></decl>;</decl_stmt>";
+
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cs");
+
+            var testScope = codeParser.ParseFileUnit(testUnit);
+
+            var testDeclaration = testScope.DeclaredVariables.First();
+            Assert.IsNotNull(testDeclaration, "could not find the test declaration");
+            Assert.AreEqual("map", testDeclaration.Name);
+            Assert.AreEqual("Dictionary", testDeclaration.VariableType.Name);
+            Assert.AreEqual("System.Collection", testDeclaration.VariableType.Prefix.ToString());
+            Assert.That(testDeclaration.VariableType.IsGeneric);
+            Assert.AreEqual(2, testDeclaration.VariableType.TypeParameters.Count);
+            Assert.AreEqual("string", testDeclaration.VariableType.TypeParameters.First().Name);
+            Assert.AreEqual("int", testDeclaration.VariableType.TypeParameters.Last().Name);
+        }
     }
 }
