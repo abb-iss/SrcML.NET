@@ -158,6 +158,17 @@ namespace ABB.SrcML.Data {
                 IsDestructor = (methodElement.Name == SRC.Destructor || methodElement.Name == SRC.DestructorDeclaration),
                 Accessibility = GetAccessModifierForMethod(methodElement),
             };
+
+            // get the return type for the method
+            var returnTypeElement = methodElement.Element(SRC.Type);
+            if(returnTypeElement != null) {
+                // construct the return type
+                // however, if the Name of the return type is "void", don't use it because it means the return type is void
+                var returnTypeUse = ParseTypeUseElement(returnTypeElement, context);
+                if(returnTypeUse.Name != "void") {
+                    methodDefinition.ReturnType = ParseTypeUseElement(returnTypeElement, context);
+                }
+            }
             var parameters = from paramElement in GetParametersFromMethodElement(methodElement)
                              select ParseMethodParameterElement(paramElement, context);
             foreach(var parameter in parameters) {

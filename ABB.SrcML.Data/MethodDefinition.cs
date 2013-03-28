@@ -222,6 +222,8 @@ namespace ABB.SrcML.Data {
                 if(!string.IsNullOrWhiteSpace(retString)) {
                     sig.Append(retString + " ");
                 }
+            } else if(!(IsConstructor || IsDestructor)) {
+                sig.Append("void ");
             }
             if(!string.IsNullOrWhiteSpace(Name)) {
                 sig.Append(Name);
