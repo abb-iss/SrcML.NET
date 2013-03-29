@@ -92,7 +92,7 @@ namespace ABB.SrcML.Data {
             if(BuiltInTypeFactory.IsBuiltIn(this)) {
                 yield return BuiltInTypeFactory.GetBuiltIn(this);
             } else {
-                // First, jsut call AbstractUse.FindMatches() this will search everything in ParentScope.GetParentScopesAndSelf<TypeDefinition>()
+                // First, just call AbstractUse.FindMatches() this will search everything in ParentScope.GetParentScopesAndSelf<TypeDefinition>()
                 // for a matching type and return it
                 foreach(var match in base.FindMatches()) {
                     yield return match;
