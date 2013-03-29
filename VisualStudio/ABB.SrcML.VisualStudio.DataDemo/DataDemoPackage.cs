@@ -37,8 +37,10 @@ namespace ABB.SrcML.VisualStudio.DataDemo {
     [Guid(GuidList.guidDataDemoPkgString)]
     //Autoload on UICONTEXT_SolutionExists
     //[ProvideAutoLoad("f1536ef8-92ec-443c-9ed7-fdadf150da82")]
+    [ProvideAutoLoad(VSConstants.UICONTEXT.NoSolution_string)]
     public sealed class DataDemoPackage : Package {
         private DTE2 dte;
+        private SolutionEvents solutionEvents;
         private ISrcMLGlobalService srcMLService;
         
         private DataArchive dataArchive;
@@ -85,35 +87,79 @@ namespace ABB.SrcML.VisualStudio.DataDemo {
                 mcs.AddCommand(initMenuItem);
             }
 
-            srcMLService = GetService(typeof(SSrcMLGlobalService)) as ISrcMLGlobalService;
-            if(srcMLService == null) {
-                PrintOutputLine("Could not get SrcMLGlobalService!");
-                return;
+            if(dte == null) {
+                dte = GetService(typeof(DTE)) as DTE2;
+                if(dte == null) {
+                    PrintOutputLine("Could not get DTE!");
+                    return;
+                }
+                //subscribe to solution events
+                solutionEvents = dte.Events.SolutionEvents;
+                solutionEvents.Opened += SolutionEvents_Opened;
+                solutionEvents.AfterClosing += SolutionEvents_AfterClosing;
             }
-            srcMLService.StartupCompleted += srcMLService_StartupCompleted;
-            if(srcMLService.IsStartupCompleted) {
-                InitializeDataArchive(srcMLService.GetSrcMLArchive());
-            }
+
+            //GetSrcMLService();
+            //if(srcMLService != null) {
+            //    srcMLService.StartupCompleted += srcMLService_StartupCompleted;
+            //    if(srcMLService.IsStartupCompleted) {
+            //        srcMLService_StartupCompleted(srcMLService, null);
+            //    }
+            //}
         }
 
         
-
         #endregion
+
+        
+        private void SolutionEvents_Opened() {
+            if(srcMLService == null) {
+                GetSrcMLService();
+                if(srcMLService != null) {
+                    srcMLService.StartupCompleted += srcMLService_StartupCompleted;
+                }
+            }
+            srcMLService.StartMonitoring();
+        }
+
+        private void SolutionEvents_AfterClosing() {
+            GetSrcMLService();
+            srcMLService.StopMonitoring();
+            dataArchive = null;
+        }
+
+        /// <summary>
+        /// Gets the global SrcMLService and stores it in the field srcMLService.
+        /// If the service has already been gotten, it won't be gotten again.
+        /// </summary>
+        /// <returns>False if the service could not be gotten, True otherwise.</returns>
+        private bool GetSrcMLService() {
+            if(srcMLService != null) {
+                return true;
+            }
+            srcMLService = GetService(typeof(SSrcMLGlobalService)) as ISrcMLGlobalService;
+            if(srcMLService == null) {
+                PrintOutputLine("Could not get SrcMLGlobalService!");
+                return false;
+            }
+            return true;
+        }
 
         void srcMLService_StartupCompleted(object sender, EventArgs e) {
             var service = sender as ISrcMLGlobalService;
             if(service != null) {
-                InitializeDataArchive(service.GetSrcMLArchive());
+                var archive = service.GetSrcMLArchive();
+                PrintOutputLine("Generated srcML for {0} files in {1:mm\\:ss\\.ff}", archive.GetFiles().Count, service.StartupElapsed);
+                InitializeDataArchive(archive);
             }
         }
 
         private void InitializeDataArchive(SrcMLArchive srcMLArchive) {
-            PrintOutputLine(String.Format("Generated srcML for {0} files in {1:mm\\:ss\\.ff}", srcMLArchive.GetFiles().Count, this.srcMLService.StartupElapsed));
             PrintOutputLine("Initializing DataArchive...");
             var sw = Stopwatch.StartNew();
             dataArchive = new DataArchive(srcMLArchive);
             sw.Stop();
-            PrintOutputLine(String.Format("Initialization completed in {0:mm\\:ss\\.ff} seconds", sw.Elapsed));
+            PrintOutputLine("Initialization completed in {0:mm\\:ss\\.ff} seconds", sw.Elapsed);
         }
 
         private void InitializeMenuItemCallback(object sender, EventArgs e) {
@@ -135,7 +181,7 @@ namespace ABB.SrcML.VisualStudio.DataDemo {
                 }
             }
             if(dataArchive == null) {
-                PrintOutputLine("SrcML.NET is still processing the solution. Please try again in a few moments.");
+                PrintOutputLine("DataArchive not available. Please try again in a few moments?");
                 return;
             }
 

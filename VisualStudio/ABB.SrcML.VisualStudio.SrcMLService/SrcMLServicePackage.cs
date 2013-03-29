@@ -385,21 +385,21 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="sender"></param>
         /// <param name="eventArgs"></param>
         private void RespondToSolutionOpened(object sender, DoWorkEventArgs eventArgs) {
-            SrcMLFileLogger.DefaultLogger.Info("> SrcML service starts monitoring the opened solution.");
+            //SrcMLFileLogger.DefaultLogger.Info("> SrcML service starts monitoring the opened solution.");
 
             // This statement should be commented out when releasing SrcML.NET for Sando
-            srcMLService.StartMonitoring(true, SrcMLHelper.GetSrcMLDefaultDirectory(extensionDirectory));
+            //srcMLService.StartMonitoring(true, SrcMLHelper.GetSrcMLDefaultDirectory(extensionDirectory));
         }
 
         /// <summary>
         /// Respond to the Visual Studio event that occurs when a solution is about to close.
         /// </summary>
         private void SolutionBeforeClosing() {
-            SrcMLFileLogger.DefaultLogger.Info("Respond to the Visual Studio event that occurs when a solution is about to close.");
-            SrcMLFileLogger.DefaultLogger.Info("> SrcML service stops monitoring the opened solution.");
+            //SrcMLFileLogger.DefaultLogger.Info("Respond to the Visual Studio event that occurs when a solution is about to close.");
+            //SrcMLFileLogger.DefaultLogger.Info("> SrcML service stops monitoring the opened solution.");
 
             // This statement should be commented out when releasing SrcML.NET for Sando
-            srcMLService.StopMonitoring();
+            //srcMLService.StopMonitoring();
         }
 
         /// <summary>
