@@ -237,5 +237,22 @@ namespace ABB.SrcML.Data {
         public override string GetTypeForStringLiteral(string literalValue) {
             return "char*";
         }
+
+        /// <summary>
+        /// Checks if the method element has only one parameter "void" (which is really zero parameters in C/C++). If not, it just calls <see cref="AbstractCodeParser.GetParametersFromMethodElement(XElement)"/>
+        /// </summary>
+        /// <param name="method">The method to get parameter elements for</param>
+        /// <returns>An enumerable of method parameter elements</returns>
+        public override IEnumerable<XElement> GetParametersFromMethodElement(XElement method) {
+            bool singleVoidParameter = false;
+            if(method.Element(SRC.ParameterList).Elements(SRC.Parameter).Count() == 1) {
+                singleVoidParameter = method.Element(SRC.ParameterList).Element(SRC.Parameter).Value == "void";
+            }
+
+            if(singleVoidParameter) {
+                return Enumerable.Empty<XElement>();
+            }
+            return base.GetParametersFromMethodElement(method);
+        }
     }
 }
