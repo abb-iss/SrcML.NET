@@ -171,9 +171,8 @@ namespace ABB.SrcML.Data {
             }
             var parameters = from paramElement in GetParametersFromMethodElement(methodElement)
                              select ParseMethodParameterElement(paramElement, context);
-            foreach(var parameter in parameters) {
-                methodDefinition.Parameters.Add(parameter);
-            }
+            methodDefinition.AddMethodParameters(parameters);
+            
             context.Push(methodDefinition);
         }
 
