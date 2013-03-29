@@ -640,5 +640,50 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("string", testDeclaration.VariableType.TypeParameters.First().Name);
             Assert.AreEqual("int", testDeclaration.VariableType.TypeParameters.Last().Name);
         }
+
+        [Test]
+        public void TestMethodDefinitionWithReturnType() {
+            //int Foo() { }
+            string xml = @"<function><type><name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></function>";
+
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cpp");
+
+            var testScope = codeParser.ParseFileUnit(testUnit);
+
+            var method = testScope.GetChildScopesWithId<MethodDefinition>("Foo").FirstOrDefault();
+            Assert.IsNotNull(method, "could not find the test method");
+
+            Assert.AreEqual("int", method.ReturnType.Name);
+        }
+
+        [Test]
+        public void TestMethodDefinitionWithVoidReturn() {
+            //void Foo() { }
+            string xml = @"<function><type><name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></function>";
+
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cpp");
+
+            var testScope = codeParser.ParseFileUnit(testUnit);
+
+            var method = testScope.GetChildScopesWithId<MethodDefinition>("Foo").FirstOrDefault();
+            Assert.IsNotNull(method, "could not find the test method");
+
+            Assert.IsNull(method.ReturnType, "return type should be null");
+        }
+
+        [Test]
+        public void TestMethodDefinitionWithReturnTypeAndWithSpecifier() {
+            //static int Foo() { }
+            string xml = @"<function><type><specifier>static</specifier> <name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></function>";
+
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cpp");
+
+            var testScope = codeParser.ParseFileUnit(testUnit);
+
+            var method = testScope.GetChildScopesWithId<MethodDefinition>("Foo").FirstOrDefault();
+            Assert.IsNotNull(method, "could not find the test method");
+
+            Assert.AreEqual("int", method.ReturnType.Name);
+        }
     }
 }

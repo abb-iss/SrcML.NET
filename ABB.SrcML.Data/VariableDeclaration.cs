@@ -54,7 +54,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The location of this declaration in both the original source file and in XML.
         /// </summary>
-        public SrcMLLocation Location { get; set; }
+        public virtual SrcMLLocation Location { get; set; }
 
         /// <summary>
         /// Returns a string representation of this object.

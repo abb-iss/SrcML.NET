@@ -772,6 +772,32 @@ namespace ABB.SrcML.Data.Test {
 
             Assert.AreEqual(bDotFoo, callToFoo.FindMatches().FirstOrDefault());
         }
+
+        [Test]
+        public void TestMethodCallMatchToParameter() {
+            //void CallFoo(B b) { b.Foo(); }
+            //class B { void Foo() { } }
+            string xml = @"<function><type><name>void</name></type> <name>CallFoo</name><parameter_list>(<param><decl><type><name>B</name></type> <name>b</name></decl></param>)</parameter_list> <block>{ <expr_stmt><expr><name>b</name><op:operator>.</op:operator><call><name>Foo</name><argument_list>()</argument_list></call></expr>;</expr_stmt> }</block></function>
+<class>class <name>B</name> <block>{<private type=""default""> <function><type><name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></function> </private>}</block>;</class>";
+
+            var testUnit = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xml, "test.cpp");
+
+            var testScope = CodeParser[Language.CPlusPlus].ParseFileUnit(testUnit);
+
+            var methodCallFoo = testScope.GetChildScopesWithId<MethodDefinition>("CallFoo").FirstOrDefault();
+            var classB = testScope.GetChildScopesWithId<TypeDefinition>("B").FirstOrDefault();
+
+            Assert.IsNotNull(methodCallFoo, "can't find CallFoo");
+            Assert.IsNotNull(classB, "can't find class B");
+
+            var bDotFoo = classB.GetChildScopesWithId<MethodDefinition>("Foo").FirstOrDefault();
+            Assert.IsNotNull(bDotFoo, "can't find B.Foo()");
+
+            var callToFoo = methodCallFoo.MethodCalls.FirstOrDefault();
+            Assert.IsNotNull(callToFoo, "could not find a call to Foo()");
+
+            Assert.AreEqual(bDotFoo, callToFoo.FindMatches().FirstOrDefault());
+        }
     }
 }
 

@@ -23,15 +23,15 @@ namespace ABB.SrcML.Data {
     /// </summary>
     [DebuggerTypeProxy(typeof(MethodDebugView))]
     public class MethodDefinition : NamedScope {
-        //private Collection<VariableDeclaration> _parameters;
-        //private Collection<ParameterDeclaration> _parameters;
+        private List<ParameterDeclaration> _parameters;
 
         /// <summary>
         /// Creates a new method definition object
         /// </summary>
         public MethodDefinition()
             : base() {
-            Parameters = new Collection<ParameterDeclaration>();
+            _parameters = new List<ParameterDeclaration>();
+            Parameters = new ReadOnlyCollection<ParameterDeclaration>(_parameters);
         }
 
         /// <summary>
@@ -42,10 +42,10 @@ namespace ABB.SrcML.Data {
             : base(otherDefinition) {
             IsConstructor = otherDefinition.IsConstructor;
             IsDestructor = otherDefinition.IsDestructor;
-            Parameters = new Collection<ParameterDeclaration>();
-            foreach(var parameter in otherDefinition.Parameters) {
-                Parameters.Add(parameter);
-            }
+            _parameters = new List<ParameterDeclaration>();
+            Parameters = new ReadOnlyCollection<ParameterDeclaration>(_parameters);
+
+            AddMethodParameters(otherDefinition.Parameters);
         }
 
         /// <summary>
@@ -66,7 +66,26 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The parameters for this method.
         /// </summary>
-        public Collection<ParameterDeclaration> Parameters { get; set; }
+        public ReadOnlyCollection<ParameterDeclaration> Parameters { get; private set; }
+
+        /// <summary>
+        /// Adds a method parameter to this method
+        /// </summary>
+        /// <param name="parameter">The parameter to add</param>
+        public void AddMethodParameter(ParameterDeclaration parameter) {
+            parameter.Scope = this;
+            _parameters.Add(parameter);
+        }
+
+        /// <summary>
+        /// Adds an enumerable of method parameters to this method.
+        /// </summary>
+        /// <param name="parameters">The parameters to add</param>
+        public void AddMethodParameters(IEnumerable<ParameterDeclaration> parameters) {
+            foreach(var parameter in parameters) {
+                AddMethodParameter(parameter);
+            }
+        }
 
         /// <summary>
         /// Merges this method definition with <paramref name="otherScope"/>. This happens when <c>otherScope.CanBeMergedInto(this)</c> evaluates to true.
@@ -222,6 +241,8 @@ namespace ABB.SrcML.Data {
                 if(!string.IsNullOrWhiteSpace(retString)) {
                     sig.Append(retString + " ");
                 }
+            } else if(!(IsConstructor || IsDestructor)) {
+                sig.Append("void ");
             }
             if(!string.IsNullOrWhiteSpace(Name)) {
                 sig.Append(Name);

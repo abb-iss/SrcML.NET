@@ -140,7 +140,7 @@ namespace ABB.SrcML.Data.Test {
 
             Assert.AreSame(typeA, typeB.ParentScope);
             Assert.AreEqual("A", typeA.GetFullName());
-            
+
             Assert.AreEqual("A.B", typeB.GetFullName());
         }
 
@@ -349,7 +349,7 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual(1, aDotBDotFoo.MethodCalls.First().FindMatches().Count());
         }
 
-        
+
 
         [Test]
         public void TestClassWithDeclaredVariable() {
@@ -437,11 +437,11 @@ namespace ABB.SrcML.Data.Test {
             var globalScope = headerScope.Merge(implementationScope);
 
             Assert.AreEqual(1, globalScope.ChildScopes.Count(), "TODO implement using statements in C++");
-            
+
             var namespaceA = globalScope.ChildScopes.First() as NamespaceDefinition;
             Assert.AreEqual("A", namespaceA.Name);
             Assert.AreEqual(1, namespaceA.ChildScopes.Count());
-            
+
             var typeB = namespaceA.ChildScopes.First() as TypeDefinition;
             Assert.AreEqual("B", typeB.Name);
             Assert.AreEqual(1, typeB.ChildScopes.Count());
@@ -490,7 +490,7 @@ namespace ABB.SrcML.Data.Test {
             var declaredVariableNames = from variable in globalScope.DeclaredVariables select variable.Name;
             var declaredVariableTypes = from variable in globalScope.DeclaredVariables select variable.VariableType.Name;
 
-            var expectedVariableNames = new string[] { "A", "B", "C", "D"};
+            var expectedVariableNames = new string[] { "A", "B", "C", "D" };
             var expectedVariableTypes = new string[] { "int", "Foo" };
 
             CollectionAssert.AreEquivalent(expectedVariableNames, declaredVariableNames);
@@ -551,6 +551,69 @@ namespace ABB.SrcML.Data.Test {
             Assert.That(testDeclaration.VariableType.IsGeneric);
             Assert.AreEqual(1, testDeclaration.VariableType.TypeParameters.Count);
             Assert.AreEqual("int", testDeclaration.VariableType.TypeParameters.First().Name);
+        }
+
+        [Test]
+        public void TestMethodDefinitionWithReturnType() {
+            //int Foo() { }
+            string xml = @"<function><type><name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></function>";
+
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cpp");
+
+            var testScope = codeParser.ParseFileUnit(testUnit);
+
+            var method = testScope.GetChildScopesWithId<MethodDefinition>("Foo").FirstOrDefault();
+            Assert.IsNotNull(method, "could not find the test method");
+
+            Assert.AreEqual("int", method.ReturnType.Name);
+            Assert.AreEqual("Method: int Foo()", method.ToString());
+        }
+
+        [Test]
+        public void TestMethodDefinitionWithVoidReturn() {
+            //void Foo() { }
+            string xml = @"<function><type><name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></function>";
+
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cpp");
+
+            var testScope = codeParser.ParseFileUnit(testUnit);
+
+            var method = testScope.GetChildScopesWithId<MethodDefinition>("Foo").FirstOrDefault();
+            Assert.IsNotNull(method, "could not find the test method");
+
+            Assert.IsNull(method.ReturnType, "return type should be null");
+            Assert.AreEqual("Method: void Foo()", method.ToString());
+        }
+
+        [Test]
+        public void TestMethodDefinitionWithReturnTypeAndWithSpecifier() {
+            //static int Foo() { }
+            string xml = @"<function><type><name>static</name> <name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></function>";
+
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cpp");
+
+            var testScope = codeParser.ParseFileUnit(testUnit);
+
+            var method = testScope.GetChildScopesWithId<MethodDefinition>("Foo").FirstOrDefault();
+            Assert.IsNotNull(method, "could not find the test method");
+
+            Assert.AreEqual("int", method.ReturnType.Name);
+        }
+
+        [Test]
+        public void TestMethodDefinitionWithVoidParameter() {
+            //void Foo(void) { }
+            string xml = @"<function><type><name>void</name></type> <name>Foo</name><parameter_list>(<param><decl><type><name>void</name></type></decl></param>)</parameter_list> <block>{ }</block></function>";
+
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cpp");
+
+            var testScope = codeParser.ParseFileUnit(testUnit);
+
+            var method = testScope.GetChildScopesWithId<MethodDefinition>("Foo").FirstOrDefault();
+            Assert.IsNotNull(method, "could not find the test method");
+
+            Assert.AreEqual(0, method.Parameters.Count);
+
         }
     }
 }
