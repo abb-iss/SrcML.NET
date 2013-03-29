@@ -57,12 +57,17 @@ namespace ABB.SrcML.Data {
                               where Matches(variable)
                               select variable;
 
+                var parameterMatches = from method in ParentScope.GetParentScopesAndSelf<MethodDefinition>()
+                                       from parameter in method.Parameters
+                                       where Matches(parameter)
+                                       select parameter;
+
                 var matchingParentVariables = from containingType in ParentScope.GetParentScopesAndSelf<TypeDefinition>()
                                               from typeDefinition in containingType.GetParentTypes()
                                               from variable in typeDefinition.DeclaredVariables
                                               where Matches(variable)
                                               select variable;
-                matchingVariables = matches.Concat(matchingParentVariables);
+                matchingVariables = matches.Concat(matchingParentVariables).Concat(parameterMatches);
             }
             return matchingVariables;
         }

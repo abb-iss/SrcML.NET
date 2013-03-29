@@ -108,7 +108,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Iterates over all of the variable declarations for this scope
         /// </summary>
-        public IEnumerable<VariableDeclaration> DeclaredVariables { get { return this.DeclaredVariablesDictionary.Values.AsEnumerable(); } }
+        public virtual IEnumerable<VariableDeclaration> DeclaredVariables { get { return this.DeclaredVariablesDictionary.Values.AsEnumerable(); } }
 
         /// <summary>
         /// Iterates over all of the method calls in this scope
@@ -551,7 +551,7 @@ namespace ABB.SrcML.Data {
         private void CopyFromOtherScope(Scope otherScope) {
             if(otherScope == null) { return; }
 
-            foreach(var declaration in otherScope.DeclaredVariables) {
+            foreach(var declaration in otherScope.DeclaredVariablesDictionary.Values) {
                 this.AddDeclaredVariable(declaration);
             }
             foreach(var location in otherScope.Locations) {

@@ -19,28 +19,20 @@ namespace ABB.SrcML.Data {
     /// <summary>
     /// Represents a parameter declaration in a method.
     /// </summary>
-    public class ParameterDeclaration {
-        /// <summary>The name of the parameter.</summary>
-        public string Name { get; set; }
+    public class ParameterDeclaration : VariableDeclaration {
+        public ParameterDeclaration() {
+            Locations = new Collection<SrcMLLocation>();
+        }
 
-        /// <summary>Description of the type for this parameter.</summary>
-        public TypeUse VariableType { get; set; }
-
-        //TODO: account for modifiers that can exist on a parameter. E.g. ref, out, etc.
-
-        /// <summary>The method where this parameter is declared.</summary>
-        public MethodDefinition Method { get; set; }
-
+        public override SrcMLLocation Location {
+            get { return Locations.FirstOrDefault(); }
+            set { throw new NotImplementedException(); }
+        }
         /// <summary>
         /// The locations where this parameter is declared.
         /// There can be more than one in the case of C/C++ where both the method prototype and definition declare the parameter.
         /// </summary>
         public Collection<SrcMLLocation> Locations { get; private set; }
-
-        /// <summary>Creates a new empty ParameterDeclaration.</summary>
-        public ParameterDeclaration() {
-            Locations = new Collection<SrcMLLocation>();
-        }
 
         /// <summary>Returns a string representation of this object.</summary>
         public override string ToString() {

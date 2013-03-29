@@ -73,7 +73,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="parameter">The parameter to add</param>
         public void AddMethodParameter(ParameterDeclaration parameter) {
-            parameter.Method = this;
+            parameter.Scope = this;
             _parameters.Add(parameter);
         }
 

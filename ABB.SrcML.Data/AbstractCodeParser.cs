@@ -393,7 +393,7 @@ namespace ABB.SrcML.Data {
             var parameterDeclaration = new ParameterDeclaration {
                 VariableType = ParseTypeUseElement(typeElement, context),
                 Name = name,
-                Method = context.CurrentScope as MethodDefinition
+                Scope = context.CurrentScope
             };
             parameterDeclaration.Locations.Add(context.CreateLocation(declElement));
             return parameterDeclaration;
