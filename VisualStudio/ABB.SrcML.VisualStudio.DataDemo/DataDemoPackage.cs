@@ -189,7 +189,6 @@ namespace ABB.SrcML.VisualStudio.DataDemo {
             if(doc != null) {
                 var sel = doc.Selection;
                 var cursor = ((TextSelection)sel).ActivePoint;
-                //PrintOutputLine(string.Format("Cursor at: {0}:{1},{2}", dte.ActiveDocument.FullName, cursor.Line, cursor.LineCharOffset));
                 outputPane.Clear();
                 PrintOutputLine("{0}({1},{2}) : cursor position", dte.ActiveDocument.FullName, cursor.Line, cursor.LineCharOffset);
 
@@ -198,21 +197,21 @@ namespace ABB.SrcML.VisualStudio.DataDemo {
                     PrintOutputLine("Scope not found!");
                 } else {
                     PrintOutputLine(scope.ToString());
-                    PrintOutputLine("Children:");
+                    PrintOutputLine(Environment.NewLine + "** Children **");
                     foreach(var child in scope.ChildScopes) {
                         PrintOutputLine(">> {0}", child.ToString());
                     }
-                    PrintOutputLine("Parent:");
+                    PrintOutputLine(Environment.NewLine + "** Parent **");
                     PrintOutputLine(">> {0}", scope.ParentScope != null ? scope.ParentScope.ToString() : "None");
-                    PrintOutputLine("Declared Variables:");
+                    PrintOutputLine(Environment.NewLine + "** Declared Variables **");
                     foreach(var vd in scope.DeclaredVariables) {
                         PrintOutputLine(">> {0}", vd.ToString());
                     }
-                    PrintOutputLine("Method Calls:");
+                    PrintOutputLine(Environment.NewLine + "** Method Calls **");
                     foreach(var mc in scope.MethodCalls) {
-                        PrintOutputLine("Call {0}, matches:", mc.ToString());
-                        foreach(var match in mc.FindMatches()) {
-                            //PrintOutputLine(">> matches {0}", match.ToString());
+                        var methodMatches = mc.FindMatches().Distinct().ToList();
+                        PrintOutputLine(">> Call {0}, matches: {1}", mc.ToString(), methodMatches.Any() ? "" : "No matches");
+                        foreach(var match in methodMatches) {
                             SrcMLLocation loc;
                             if(match.DefinitionLocations.Any()) {
                                 loc = match.DefinitionLocations.First();
