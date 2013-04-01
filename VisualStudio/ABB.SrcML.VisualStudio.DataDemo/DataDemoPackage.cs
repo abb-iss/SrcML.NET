@@ -201,12 +201,24 @@ namespace ABB.SrcML.VisualStudio.DataDemo {
                     foreach(var child in scope.ChildScopes) {
                         PrintOutputLine(">> {0}", child.ToString());
                     }
+
                     PrintOutputLine(Environment.NewLine + "** Parent **");
-                    PrintOutputLine(">> {0}", scope.ParentScope != null ? scope.ParentScope.ToString() : "None");
+                    var parent = scope.ParentScope;
+                    string parentString;
+                    if(parent == null) {
+                        parentString = "None";
+                    } else if(parent is NamespaceDefinition) {
+                        parentString = "Namespace: " + ((NamespaceDefinition)parent).GetFullName();
+                    } else {
+                        parentString = parent.ToString();
+                    }
+                    PrintOutputLine(">> {0}", parentString);
+
                     PrintOutputLine(Environment.NewLine + "** Declared Variables **");
                     foreach(var vd in scope.DeclaredVariables) {
                         PrintOutputLine(">> {0}", vd.ToString());
                     }
+
                     PrintOutputLine(Environment.NewLine + "** Method Calls **");
                     foreach(var mc in scope.MethodCalls) {
                         var methodMatches = mc.FindMatches().Distinct().ToList();
