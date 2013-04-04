@@ -76,6 +76,8 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         private IVsSolution solution;
         private uint cookie = VSConstants.VSCOOKIE_NIL;
 
+        private bool isAboutToStopMonitoring = false;
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -106,6 +108,8 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// </summary>
         public override void StopMonitoring() {
             SrcMLFileLogger.DefaultLogger.Info("======= SolutionMonitor: STOP MONITORING =======");
+            isAboutToStopMonitoring = true;
+
             UnregisterRunningDocumentTableEvents();
             UnregisterTrackProjectDocumentsEvents2();
             UnregisterSolutionEvents();
@@ -678,7 +682,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// <param name="fAdded"></param>
         /// <returns></returns>
         public int OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded) {
-            //////SrcMLFileLogger.DefaultLogger.Info("==> SolutionMonitor: Triggered IVsSolutionEvents.OnAfterOpenProject() [" + fAdded + "]");
+            SrcMLFileLogger.DefaultLogger.Info("====> SolutionMonitor: Triggered IVsSolutionEvents.OnAfterOpenProject() [" + fAdded + "]");
             NotifyProjectAddRemove(pHierarchy, fAdded, FileEventType.FileAdded);
             return VSConstants.S_OK;
         }
@@ -701,8 +705,11 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// <param name="fRemoved"></param>
         /// <returns></returns>
         public int OnBeforeCloseProject(IVsHierarchy pHierarchy, int fRemoved) {
-            //////SrcMLFileLogger.DefaultLogger.Info("==> SolutionMonitor: Triggered IVsSolutionEvents.OnBeforeCloseProject() [" + fRemoved + "]");
-            NotifyProjectAddRemove(pHierarchy, fRemoved, FileEventType.FileDeleted);
+            SrcMLFileLogger.DefaultLogger.Info("====> SolutionMonitor: Triggered IVsSolutionEvents.OnBeforeCloseProject() [" + fRemoved + "]");
+            // If it is about to stop monitoring, skip this call and do not delete any srcML files
+            if(!isAboutToStopMonitoring) {
+                NotifyProjectAddRemove(pHierarchy, fRemoved, FileEventType.FileDeleted);
+            }
             return VSConstants.S_OK;
         }
 
@@ -712,7 +719,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// <param name="pUnkReserved"></param>
         /// <returns></returns>
         public int OnBeforeCloseSolution(object pUnkReserved) {
-            //SrcMLFileLogger.DefaultLogger.Info("==> SolutionMonitor: Triggered IVsSolutionEvents.OnBeforeCloseSolution()");
+            //SrcMLFileLogger.DefaultLogger.Info("=> SolutionMonitor: Triggered IVsSolutionEvents.OnBeforeCloseSolution()");
             return VSConstants.S_OK;
         }
 
