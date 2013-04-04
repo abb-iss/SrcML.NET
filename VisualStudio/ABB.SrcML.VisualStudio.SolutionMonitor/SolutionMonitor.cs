@@ -702,7 +702,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// <returns></returns>
         public int OnBeforeCloseProject(IVsHierarchy pHierarchy, int fRemoved) {
             //////SrcMLFileLogger.DefaultLogger.Info("==> SolutionMonitor: Triggered IVsSolutionEvents.OnBeforeCloseProject() [" + fRemoved + "]");
-            NotifyProjectAddRemove(pHierarchy, fRemoved, FileEventType.FileDeleted);
+            //NotifyProjectAddRemove(pHierarchy, fRemoved, FileEventType.FileDeleted);
             return VSConstants.S_OK;
         }
 
