@@ -11,12 +11,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
 using NUnit.Framework;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace ABB.SrcML.Data.Test {
     [TestFixture]
@@ -121,7 +124,15 @@ namespace ABB.SrcML.Data.Test {
             };
 
             sw.Start();
-            monitor.Startup();
+
+            //add the concurrency test: ZL
+            bool isParallel = true;
+            if(!isParallel) {
+                monitor.Startup();
+            } else {
+                monitor.Startup_Concurrent();
+            }
+
             startupCompleted = mre.WaitOne(60000);
             if(sw.IsRunning) {
                 sw.Stop();
@@ -137,43 +148,196 @@ namespace ABB.SrcML.Data.Test {
             int numberOfSuccesses = 0;
             int numberOfFiles = 0;
             Dictionary<string, List<string>> errors = new Dictionary<string, List<string>>();
-            
-            using(var fileLog = new StreamWriter(fileLogPath)) {
-                foreach(var unit in archive.FileUnits) {
-                    if(++numberOfFiles % 100 == 0) {
-                        Console.WriteLine("{0,5:N0} files completed in {1} with {2,5:N0} failures", numberOfFiles, sw.Elapsed, numberOfFailures);
-                    }
 
-                    var fileName = SrcMLElement.GetFileNameForUnit(unit);
-                    var language = SrcMLElement.GetLanguageForUnit(unit);
+            List<string> xmlFiles = archive.ArchivedXmlFiles();
+            Scope[] globalScope_Results = new Scope[12];
 
-                    fileLog.Write("Parsing {0}", fileName);
-                    try {
-                        sw.Start();
-                        var scopeForUnit = CodeParser[language].ParseFileUnit(unit);
-                        
-                        if(null == globalScope) {
-                            globalScope = scopeForUnit;
-                        } else {
-                            globalScope = globalScope.Merge(scopeForUnit);
-                        }
-                        sw.Stop();
-                        fileLog.WriteLine(" PASSED");
-                        numberOfSuccesses++;
-                    } catch(Exception e) {
-                        sw.Stop();
-                        fileLog.WriteLine(" FAILED");
-                        fileLog.WriteLine(e.StackTrace);
-                        var key = e.StackTrace.Split('\n')[0].Trim();
-                        if(!errors.ContainsKey(key)) {
-                            errors[key] = new List<string>();
-                        }
-                        errors[key].Add(fileName);
+            sw.Start();
 
-                        numberOfFailures++;
-                    }
-                }
+            //12 is the number of cores
+            Task[] tasks = new Task[12];
+            List<string> xmlFiles_temp = null;
+            //for(int i = 0; i < 11; i++) {
+            //    xmlFiles_temp = xmlFiles.GetRange(i * 100, 100);
+            //    globalScope_Results[i] = MergeSeg(xmlFiles_temp, errors);
+            //}
+
+            //xmlFiles_temp = xmlFiles.GetRange(1100, (xmlFiles.Count - 1100));
+            //globalScope_Results[11] = MergeSeg(xmlFiles_temp, errors);
+
+            //for(int i = 0; i < 11; i++) {
+            //    xmlFiles_temp = xmlFiles.GetRange(i * 100, 100);
+            //    tasks[i] = new Task(() => {
+            //        globalScope_Results[i] = MergeSeg(xmlFiles_temp, errors);
+            //    });
+            //}
+
+            tasks[0] = new Task(() => {
+                globalScope_Results[0] = MergeSeg(xmlFiles.GetRange(0,100), errors);
+            });
+            tasks[1] = new Task(() => {
+                globalScope_Results[1] = MergeSeg(xmlFiles.GetRange(100,100), errors);
+            });
+            tasks[2] = new Task(() => {
+                globalScope_Results[2] = MergeSeg(xmlFiles.GetRange(200,100), errors);
+            });
+            tasks[3] = new Task(() => {
+                globalScope_Results[3] = MergeSeg(xmlFiles.GetRange(300,100), errors);
+            });
+            tasks[4] = new Task(() => {
+                globalScope_Results[4] = MergeSeg(xmlFiles.GetRange(400,100), errors);
+            });
+            tasks[5] = new Task(() => {
+                globalScope_Results[5] = MergeSeg(xmlFiles.GetRange(500,100), errors);
+            });
+            tasks[6] = new Task(() => {
+                globalScope_Results[6] = MergeSeg(xmlFiles.GetRange(600,100), errors);
+            });
+            tasks[7] = new Task(() => {
+                globalScope_Results[7] = MergeSeg(xmlFiles.GetRange(700,100), errors);
+            });
+            tasks[8] = new Task(() => {
+                globalScope_Results[8] = MergeSeg(xmlFiles.GetRange(800,100), errors);
+            });
+            tasks[9] = new Task(() => {
+                globalScope_Results[9] = MergeSeg(xmlFiles.GetRange(900,100), errors);
+            });
+            tasks[10] = new Task(() => {
+                globalScope_Results[10] = MergeSeg(xmlFiles.GetRange(1000,100), errors);
+            });
+
+            xmlFiles_temp = xmlFiles.GetRange(1100, (xmlFiles.Count - 1100));
+            tasks[11] = new Task(() => {
+                globalScope_Results[11] = MergeSeg(xmlFiles_temp, errors);
+            });
+
+            tasks[0].Start();
+            tasks[1].Start();
+            tasks[2].Start();
+            tasks[3].Start();
+            tasks[4].Start();
+            tasks[5].Start();
+            tasks[6].Start();
+            tasks[7].Start();
+            tasks[8].Start();
+            tasks[9].Start();
+            tasks[10].Start();
+            tasks[11].Start();
+
+            Task.WaitAll(tasks);
+            Console.WriteLine("Finishing parsing");
+
+            ////Test Concurrently merging and parsing
+            //Task task0 = new Task(() => {
+            //    globalScope_Results[0] = MergeSeg(0, 100, xmlFiles, errors);
+            //}, TaskCreationOptions.LongRunning);
+            //task0.Start();
+
+            //Task task1 = new Task(() => {
+            //    globalScope_Results[1] = MergeSeg(100, 200, xmlFiles, errors);
+            //}, TaskCreationOptions.LongRunning);
+            //task1.Start();
+
+            //Task task2 = new Task(() => {
+            //    globalScope_Results[2] = MergeSeg(200, 300, xmlFiles, errors);
+            //}, TaskCreationOptions.LongRunning);
+            //task2.Start();
+
+            //Task task3 = new Task(() => {
+            //    globalScope_Results[3] = MergeSeg(300, 400, xmlFiles, errors);
+            //}, TaskCreationOptions.LongRunning);
+            //task3.Start();
+
+            //Task task4 = new Task(() => {
+            //    globalScope_Results[4] = MergeSeg(400, 500, xmlFiles, errors);
+            //}, TaskCreationOptions.LongRunning);
+            //task4.Start();
+
+            //Task task5 = new Task(() => {
+            //    globalScope_Results[5] = MergeSeg(500, 600, xmlFiles, errors);
+            //}, TaskCreationOptions.LongRunning);
+            //task5.Start();
+
+            //Task task6 = new Task(() => {
+            //    globalScope_Results[6] = MergeSeg(600, 700, xmlFiles, errors);
+            //}, TaskCreationOptions.LongRunning);
+            //task6.Start();
+
+            //Task task7 = new Task(() => {
+            //    globalScope_Results[7] = MergeSeg(700, 800, xmlFiles, errors);
+            //}, TaskCreationOptions.LongRunning);
+            //task7.Start();
+
+            //Task task8 = new Task(() => {
+            //    globalScope_Results[8] = MergeSeg(800, 900, xmlFiles, errors);
+            //}, TaskCreationOptions.LongRunning);
+            //task8.Start();
+
+            //Task task9 = new Task(() => {
+            //    globalScope_Results[9] = MergeSeg(900, 1000, xmlFiles, errors);
+            //}, TaskCreationOptions.LongRunning);
+            //task9.Start();
+
+            //Task task10 = new Task(() => {
+            //    globalScope_Results[10] = MergeSeg(1000, 1100, xmlFiles, errors);
+            //}, TaskCreationOptions.LongRunning);
+            //task10.Start();
+
+            //Task task11 = new Task(() => {
+            //    globalScope_Results[11] = MergeSeg(1100, xmlFiles.Count, xmlFiles, errors);
+            //}, TaskCreationOptions.LongRunning);
+            //task11.Start();
+
+            //Task.WaitAll(task0, task1, task2, task3, task4, task5, task6, task7, task8, task9, task10, task11);
+
+            sw.Stop();
+
+            Console.WriteLine("Finishing Parsing " + sw.Elapsed);
+            sw.Start();
+
+            globalScope = globalScope_Results[0];
+            for(int i = 1; i < 12; i++) {
+                globalScope = globalScope.Merge(globalScope_Results[i]);
             }
+            Console.WriteLine("Finishing Merging");
+
+            //using(var fileLog = new StreamWriter(fileLogPath)) {
+            //    foreach(var unit in archive.FileUnits) {
+            //        if(++numberOfFiles % 100 == 0) {
+            //            Console.WriteLine("{0,5:N0} files completed in {1} with {2,5:N0} failures", numberOfFiles, sw.Elapsed, numberOfFailures);
+            //        }
+
+            //        var fileName = SrcMLElement.GetFileNameForUnit(unit);
+            //        var language = SrcMLElement.GetLanguageForUnit(unit);
+
+            //        fileLog.Write("Parsing {0}", fileName);
+            //        try {
+            //            sw.Start();
+            //            var scopeForUnit = CodeParser[language].ParseFileUnit(unit);
+
+            //            if(null == globalScope) {
+            //                globalScope = scopeForUnit;
+            //            } else {
+            //                globalScope = globalScope.Merge(scopeForUnit);
+            //            }
+            //            sw.Stop();
+            //            fileLog.WriteLine(" PASSED");
+            //            numberOfSuccesses++;
+            //        } catch(Exception e) {
+            //            sw.Stop();
+            //            fileLog.WriteLine(" FAILED");
+            //            fileLog.WriteLine(e.StackTrace);
+            //            var key = e.StackTrace.Split('\n')[0].Trim();
+            //            if(!errors.ContainsKey(key)) {
+            //                errors[key] = new List<string>();
+            //            }
+            //            errors[key].Add(fileName);
+
+            //            numberOfFailures++;
+            //        }
+            //    }
+            //}
+
             Console.WriteLine("{0,5:N0} files completed in {1} with {2,5:N0} failures", numberOfFiles, sw.Elapsed, numberOfFailures);
 
             Console.WriteLine("\nSummary");
@@ -188,10 +352,75 @@ namespace ABB.SrcML.Data.Test {
             PrintMethodCallReport(globalScope, callLogPath);
             PrintErrorReport(errors);
 
-            monitor.Dispose();
+            monitor.Dispose(); 
             //Assert.AreEqual(numberOfFailures, (from e in errors.Values select e.Count).Sum());
             //Assert.AreEqual(0, numberOfFailures);
         }
+
+        private Scope MergeSeg(List<string> xmlFiles, Dictionary<string, List<string>> errors) {
+            Scope globalScope = null;
+
+            for(int i = 0; i < xmlFiles.Count; i++) {
+                string fileName = xmlFiles[i];
+                var unit = XElement.Load(fileName, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo);
+                var language = SrcMLElement.GetLanguageForUnit(unit);
+                try {
+
+                    var scopeForUnit = CodeParser[language].ParseFileUnit(unit);
+
+                    if(null == globalScope) {
+                        globalScope = scopeForUnit;
+                    } else {
+                        globalScope = globalScope.Merge(scopeForUnit);
+                    }
+
+                } catch(Exception e) {
+                    var key = e.StackTrace.Split('\n')[0].Trim();
+                    if(!errors.ContainsKey(key)) {
+                        errors[key] = new List<string>();
+                    }
+                    errors[key].Add(fileName);
+                }
+
+            }
+
+            return globalScope;
+        }
+
+        private Scope MergeSeg_current(List<string> xmlFiles, Dictionary<string, List<string>> errors) {
+            Scope globalScope = null;
+
+            using(BlockingCollection<NamespaceDefinition> bc = new BlockingCollection<NamespaceDefinition>()) {
+                for(int i = 0; i < xmlFiles.Count; i++) {
+                    string fileName = xmlFiles[i];
+                    var unit = XElement.Load(fileName, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo);
+                    var language = SrcMLElement.GetLanguageForUnit(unit);
+                    try {
+
+                        var scopeForUnit = CodeParser[language].ParseFileUnit(unit);
+                        bc.Add(scopeForUnit);
+
+                    } catch(Exception e) {
+                        var key = e.StackTrace.Split('\n')[0].Trim();
+                        if(!errors.ContainsKey(key)) {
+                            errors[key] = new List<string>();
+                        }
+                        errors[key].Add(fileName);
+                    }
+                }
+
+
+                foreach(var item in bc.GetConsumingEnumerable()) {
+                    if(null == globalScope) {
+                        globalScope = item;
+                    } else {
+                        globalScope = globalScope.Merge(item);
+                    }
+                }
+            }
+            return globalScope;
+        }
+
 
         private void PrintScopeReport(Scope globalScope) {
             Console.WriteLine("\nScope Report");

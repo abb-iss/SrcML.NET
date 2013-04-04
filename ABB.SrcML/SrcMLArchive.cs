@@ -140,6 +140,15 @@ namespace ABB.SrcML {
             }
         }
 
+        /// <summary>
+        /// Enumerates over each file in the archive and returns a file list
+        /// </summary>        
+        public List<string> ArchivedXmlFiles() {
+            var xmlFiles = Directory.EnumerateFiles(this.ArchivePath, "*.xml", SearchOption.AllDirectories);
+            List<string> xmlFiles_list = new List<string>(xmlFiles.ToArray());
+            return xmlFiles_list;
+        }
+
 
 
         #region IDisposable Members
