@@ -216,7 +216,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
                 var enumerator = allProjects.GetEnumerator();
                 while(enumerator.MoveNext()) {
                     var project = enumerator.Current as Project;
-                    ProcessProject(project, worker);
+                    ProcessProject(project, worker, AllMonitoredFiles);
                     if(worker != null && worker.CancellationPending) {
                         return;
                     }
@@ -231,11 +231,11 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// </summary>
         /// <param name="project"></param>
         /// <param name="worker"></param>
-        private void ProcessProject(Project project, BackgroundWorker worker) {
+        private void ProcessProject(Project project, BackgroundWorker worker, List<string> list) {
             if(project != null) {
                 if(project.ProjectItems != null) {
                     try {
-                        ProcessItems(project.ProjectItems.GetEnumerator(), worker);
+                        ProcessItems(project.ProjectItems.GetEnumerator(), worker, list);
                     } catch(Exception e) {
                         Console.WriteLine("Problem parsing files:" + e.Message);
                     }
@@ -248,13 +248,13 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// </summary>
         /// <param name="items"></param>
         /// <param name="worker"></param>
-        private void ProcessItems(IEnumerator items, BackgroundWorker worker) {
+        private void ProcessItems(IEnumerator items, BackgroundWorker worker, List<string> list) {
             while(items.MoveNext()) {
                 if(worker != null && worker.CancellationPending) {
                     return;
                 }
                 var item = (ProjectItem)items.Current;
-                ProcessItem(item, worker);
+                ProcessItem(item, worker, list);
             }
         }
 
@@ -263,9 +263,9 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// </summary>
         /// <param name="item"></param>
         /// <param name="worker"></param>
-        private void ProcessItem(ProjectItem item, BackgroundWorker worker) {
-            ProcessSingleFile(item, worker);
-            ProcessChildren(item, worker);
+        private void ProcessItem(ProjectItem item, BackgroundWorker worker, List<string> list) {
+            ProcessSingleFile(item, worker, list);
+            ProcessChildren(item, worker, list);
         }
 
         /// <summary>
@@ -273,12 +273,12 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// </summary>
         /// <param name="item"></param>
         /// <param name="worker"></param>
-        private void ProcessChildren(ProjectItem item, BackgroundWorker worker) {
+        private void ProcessChildren(ProjectItem item, BackgroundWorker worker, List<string> list) {
             if(item != null && item.ProjectItems != null) {
-                ProcessItems(item.ProjectItems.GetEnumerator(), worker);
+                ProcessItems(item.ProjectItems.GetEnumerator(), worker, list);
             } else {
                 var proj = item.SubProject as Project;
-                ProcessProject(proj, worker);
+                ProcessProject(proj, worker, list);
             }
         }
 
@@ -287,7 +287,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// </summary>
         /// <param name="item"></param>
         /// <param name="worker"></param>
-        private void ProcessSingleFile(ProjectItem item, BackgroundWorker worker) {
+        private void ProcessSingleFile(ProjectItem item, BackgroundWorker worker, List<string> list) {
             string path = "";
             try {
                 if(item != null && item.Name != null) {
@@ -299,7 +299,8 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
                     }
 
                     if(File.Exists(path)) {
-                        AllMonitoredFiles.Add(path);
+                        ////AllMonitoredFiles.Add(path);
+                        list.Add(path);
                     }
                 }
             } catch(Exception e) {
@@ -783,8 +784,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// <param name="fAddedRemoved"></param>
         /// <param name="type"></param>
         public void NotifyProjectAddRemove(IVsHierarchy pHierarchy, int fAddedRemoved, FileEventType type) {
-            // In this method, the AllMonitoredFiles is actually the list of files whose srcML files should be deleted
-            AllMonitoredFiles = new List<string>();
+            List<string> fileList = new List<string>();
             string projectName;
             pHierarchy.GetCanonicalName(VSConstants.VSITEMID_ROOT, out projectName);
             //SrcMLFileLogger.DefaultLogger.Info("Project Name: [" + projectName + "]");
@@ -805,14 +805,14 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
                     }
                     if(fullName != null && (fullName.Equals(projectName) || fullName.ToLower().Contains(projectName.ToLower()))) {
                         SrcMLFileLogger.DefaultLogger.Info("Project: [" + projectName + "]");
-                        ProcessProject(project, null);
+                        ProcessProject(project, null, fileList);
                         break;
                     }
             }
 
             // Generate or delete srcML files for the source files in this project
             try {
-                foreach(var filePath in AllMonitoredFiles) {
+                foreach(var filePath in fileList) {
                     if(FileEventType.FileAdded.Equals(type)) {
                         //SrcMLFileLogger.DefaultLogger.Info(">>> AddFile(" + filePath + ")");
                         AddFile(filePath);
