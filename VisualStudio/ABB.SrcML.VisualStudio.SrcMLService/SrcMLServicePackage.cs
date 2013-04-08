@@ -388,7 +388,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             //SrcMLFileLogger.DefaultLogger.Info("> SrcML service starts monitoring the opened solution.");
 
             // This statement should be commented out when releasing SrcML.NET for Sando
-            //srcMLService.StartMonitoring(true, SrcMLHelper.GetSrcMLDefaultDirectory(extensionDirectory));
+            srcMLService.StartMonitoring(true, SrcMLHelper.GetSrcMLDefaultDirectory(extensionDirectory));
         }
 
         /// <summary>
@@ -399,7 +399,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             //SrcMLFileLogger.DefaultLogger.Info("> SrcML service stops monitoring the opened solution.");
 
             // This statement should be commented out when releasing SrcML.NET for Sando
-            //srcMLService.StopMonitoring();
+            srcMLService.StopMonitoring();
         }
 
         /// <summary>

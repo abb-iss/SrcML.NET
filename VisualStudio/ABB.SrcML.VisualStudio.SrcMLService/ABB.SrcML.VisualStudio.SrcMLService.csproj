@@ -38,8 +38,7 @@
     <DeployExtension>True</DeployExtension>
     <CreateVsixContainer>True</CreateVsixContainer>
     <CopyVsixExtensionFiles>False</CopyVsixExtensionFiles>
-    <CopyVsixExtensionLocation>
-    </CopyVsixExtensionLocation>
+    <CopyVsixExtensionLocation>C:\Users\USJIZHE\AppData\Local\Microsoft\VisualStudio\11.0Exp\Extensions\ABB\SrcMLService\1.0</CopyVsixExtensionLocation>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
