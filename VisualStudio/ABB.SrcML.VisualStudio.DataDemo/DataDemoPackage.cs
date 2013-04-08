@@ -96,7 +96,7 @@ namespace ABB.SrcML.VisualStudio.DataDemo {
                 //subscribe to solution events
                 solutionEvents = dte.Events.SolutionEvents;
                 solutionEvents.Opened += SolutionEvents_Opened;
-                solutionEvents.AfterClosing += SolutionEvents_AfterClosing;
+                solutionEvents.BeforeClosing += solutionEvents_BeforeClosing;
             }
 
             //GetSrcMLService();
@@ -107,7 +107,6 @@ namespace ABB.SrcML.VisualStudio.DataDemo {
             //    }
             //}
         }
-
         
         #endregion
 
@@ -122,7 +121,7 @@ namespace ABB.SrcML.VisualStudio.DataDemo {
             srcMLService.StartMonitoring();
         }
 
-        private void SolutionEvents_AfterClosing() {
+        private void solutionEvents_BeforeClosing() {
             GetSrcMLService();
             srcMLService.StopMonitoring();
             dataArchive = null;
