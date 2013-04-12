@@ -91,7 +91,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         public void StartMonitoring(bool useExistingSrcML, string srcMLBinaryDirectory) {
             // Get the path of the folder that storing the srcML archives
             string srcMLArchiveDirectory = GetSrcMLArchiveFolder(SolutionMonitorFactory.GetOpenSolution());
-            SrcMLFileLogger.DefaultLogger.Info("SrcMLGlobalService.StartMonitering( " + srcMLArchiveDirectory + " )");
+            SrcMLFileLogger.DefaultLogger.Info("SrcMLGlobalService.StartMonitoring( " + srcMLArchiveDirectory + " )");
             try {
                 // Create a new instance of SrcML.NET's LastModifiedArchive
                 LastModifiedArchive lastModifiedArchive = new LastModifiedArchive(srcMLArchiveDirectory);
@@ -116,7 +116,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 duringStartup = true;
                 CurrentMonitor.StartMonitoring();
             } catch(Exception e) {
-                SrcMLFileLogger.DefaultLogger.Error(SrcMLExceptionFormatter.CreateMessage(e, "Exception in SrcMLGlobalService.StartMonitering()"));
+                SrcMLFileLogger.DefaultLogger.Error(SrcMLExceptionFormatter.CreateMessage(e, "Exception in SrcMLGlobalService.StartMonitoring()"));
             }
         }
 
@@ -124,7 +124,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// SrcML service starts to monitor the opened solution.
         /// </summary>
         public void StartMonitoring() {
-            SrcMLFileLogger.DefaultLogger.Info("SrcMLGlobalService.StartMonitering() - default");
+            SrcMLFileLogger.DefaultLogger.Info("SrcMLGlobalService.StartMonitoring() - default");
             StartMonitoring(true, SrcMLHelper.GetSrcMLDefaultDirectory(SrcMLServiceDirectory));
         }
 
