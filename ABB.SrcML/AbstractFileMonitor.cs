@@ -78,6 +78,11 @@ namespace ABB.SrcML {
         /// </summary>
         /// <returns>An enumerable of files to be monitored</returns>
         public abstract Collection<string> GetFilesFromSource();
+        
+        /// <summary>
+        /// Number of the elements in the returned collection from GetFilesFromSource()
+        /// </summary>
+        public int NumberOfAllMonitoredFiles;
 
         /// <summary>
         /// Gets the list of files already present in this archive
@@ -220,6 +225,7 @@ namespace ABB.SrcML {
                     // TODO log exception
                 }
             }
+            
             OnStartupCompleted(new EventArgs());
         }
 

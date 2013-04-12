@@ -12,6 +12,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Xml.Linq;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using EnvDTE;
 using ABB.SrcML;
@@ -55,6 +56,15 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         private IServiceProvider serviceProvider;
 
         /// <summary>
+        /// Status bar service.
+        /// </summary>
+        private IVsStatusbar statusBar;
+        private int frozen;
+        private uint cookie = 0;
+        private uint amountCompleted = 0;
+        private bool duringStartup;
+
+        /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="sp"></param>
@@ -63,6 +73,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             SrcMLFileLogger.DefaultLogger.Info("Constructing a new instance of SrcMLGlobalService");
             serviceProvider = sp;
             SrcMLServiceDirectory = extensionDirectory;
+            statusBar = (IVsStatusbar)Package.GetGlobalService(typeof(SVsStatusbar));
         }
 
         // Implement the methods of ISrcMLLocalService here.
@@ -96,7 +107,13 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 CurrentMonitor.StartupCompleted += RespondToStartupCompletedEvent;
                 CurrentMonitor.MonitoringStopped += RespondToMonitoringStoppedEvent;
 
+                // Initialize the progress bar.
+                if(statusBar != null) {
+                    statusBar.Progress(ref cookie, 1, "", 0, 0);
+                }
+
                 // Start monitoring
+                duringStartup = true;
                 CurrentMonitor.StartMonitoring();
             } catch(Exception e) {
                 SrcMLFileLogger.DefaultLogger.Error(SrcMLExceptionFormatter.CreateMessage(e, "Exception in SrcMLGlobalService.StartMonitering()"));
@@ -215,6 +232,11 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="eventArgs"></param>
         private void RespondToFileChangedEvent(object sender, FileEventRaisedArgs eventArgs) {
             //SrcMLFileLogger.DefaultLogger.Info("SrcMLService: RespondToFileChangedEvent(), File = " + eventArgs.FilePath + ", EventType = " + eventArgs.EventType + ", HasSrcML = " + eventArgs.HasSrcML);
+            // Show progress on the status bar.
+            if(duringStartup) {
+                amountCompleted++;
+                ShowProgressOnStatusBar("SrcML Service is processing " + eventArgs.FilePath);
+            }
             OnFileChanged(eventArgs);
         }
 
@@ -225,6 +247,13 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="eventArgs"></param>
         private void RespondToStartupCompletedEvent(object sender, EventArgs eventArgs) {
             SrcMLFileLogger.DefaultLogger.Info("SrcMLService: RespondToStartupCompletedEvent()");
+            // Clear the progress bar.
+            amountCompleted = 0;
+            if(statusBar != null) {
+                statusBar.Progress(ref cookie, 0, "", 0, 0);
+            }
+            DisplayTextOnStatusBar("SrcML Service has completed the startup process.");
+            duringStartup = false;
             OnStartupCompleted(eventArgs);
         }
 
@@ -258,5 +287,34 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 handler(this, e);
             }
         }
+
+        /// <summary>
+        /// Display text on the Visual Studio status bar.
+        /// </summary>
+        /// <param name="text"></param>
+        void DisplayTextOnStatusBar(string text) {
+            if(statusBar != null) {
+                statusBar.IsFrozen(out frozen);
+                if(frozen == 0) {
+                    // Set the status bar text and make its display static.
+                    statusBar.SetText(text);
+                    statusBar.FreezeOutput(1);
+                    // Clear the status bar text.
+                    statusBar.FreezeOutput(0);
+                    statusBar.Clear();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Display incremental progress on the Visual Studio status bar.
+        /// </summary>
+        /// <param name="label"></param>
+        void ShowProgressOnStatusBar(string label) {
+            if(statusBar != null) {
+                statusBar.Progress(ref cookie, 1, label, amountCompleted, (uint)CurrentMonitor.NumberOfAllMonitoredFiles);
+            }
+        }
+
     }
 }

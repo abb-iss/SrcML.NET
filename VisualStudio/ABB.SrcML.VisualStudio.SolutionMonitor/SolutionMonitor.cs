@@ -76,6 +76,9 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         private IVsSolution solution;
         private uint cookie = VSConstants.VSCOOKIE_NIL;
 
+        /// <summary>
+        /// A bool flag indicating whether Solution Monitor is about to stop monitoring.
+        /// </summary>
         private bool isAboutToStopMonitoring = false;
 
         /// <summary>
@@ -201,6 +204,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         public List<string> GetMonitoredFiles(BackgroundWorker worker) {
             AllMonitoredFiles = new List<string>();
             WalkSolutionTree(worker);
+            NumberOfAllMonitoredFiles = AllMonitoredFiles.Count;    // For progress bar purpose
             return AllMonitoredFiles;
         }
 
@@ -826,7 +830,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
             }
         }
         #endregion
-        
+
         /// <summary>
         /// Get a list of all files in the Running Docuement Table.
         /// </summary>
