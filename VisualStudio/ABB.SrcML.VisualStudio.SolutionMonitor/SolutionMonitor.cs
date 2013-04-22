@@ -77,6 +77,11 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         private uint cookie = VSConstants.VSCOOKIE_NIL;
 
         /// <summary>
+        /// A bool flag indicating whether Solution Monitor is about to stop monitoring.
+        /// </summary>
+        private bool isAboutToStopMonitoring = false;
+
+        /// <summary>
         /// Constructor.
         /// </summary>
         /// <param name="openSolution"></param>
@@ -106,6 +111,8 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// </summary>
         public override void StopMonitoring() {
             SrcMLFileLogger.DefaultLogger.Info("======= SolutionMonitor: STOP MONITORING =======");
+            isAboutToStopMonitoring = true;
+
             UnregisterRunningDocumentTableEvents();
             UnregisterTrackProjectDocumentsEvents2();
             UnregisterSolutionEvents();
@@ -126,7 +133,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// Register Solution events.
         /// </summary>
         public void RegisterSolutionEvents() {
-            SrcMLFileLogger.DefaultLogger.Info("SolutionMonitor: RegisterSolutionEvents()");
+            //SrcMLFileLogger.DefaultLogger.Info("SolutionMonitor: RegisterSolutionEvents()");
             solution = Package.GetGlobalService(typeof(SVsSolution)) as IVsSolution;
             if(solution != null) {
                 int hr = this.solution.AdviseSolutionEvents(this, out cookie);
@@ -160,7 +167,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// Unregister Solution events.
         /// </summary>
         public void UnregisterSolutionEvents() {
-            SrcMLFileLogger.DefaultLogger.Info("SolutionMonitor: UnregisterSolutionEvents()");
+            //SrcMLFileLogger.DefaultLogger.Info("SolutionMonitor: UnregisterSolutionEvents()");
             if(cookie != VSConstants.VSCOOKIE_NIL && solution != null) {
                 int hr = solution.UnadviseSolutionEvents(cookie);
                 ErrorHandler.Succeeded(hr);
@@ -197,6 +204,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         public List<string> GetMonitoredFiles(BackgroundWorker worker) {
             AllMonitoredFiles = new List<string>();
             WalkSolutionTree(worker);
+            NumberOfAllMonitoredFiles = AllMonitoredFiles.Count;    // For progress bar purpose
             return AllMonitoredFiles;
         }
 
@@ -212,7 +220,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
                 var enumerator = allProjects.GetEnumerator();
                 while(enumerator.MoveNext()) {
                     var project = enumerator.Current as Project;
-                    ProcessProject(project, worker);
+                    ProcessProject(project, worker, AllMonitoredFiles);
                     if(worker != null && worker.CancellationPending) {
                         return;
                     }
@@ -227,11 +235,11 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// </summary>
         /// <param name="project"></param>
         /// <param name="worker"></param>
-        private void ProcessProject(Project project, BackgroundWorker worker) {
+        private void ProcessProject(Project project, BackgroundWorker worker, List<string> list) {
             if(project != null) {
                 if(project.ProjectItems != null) {
                     try {
-                        ProcessItems(project.ProjectItems.GetEnumerator(), worker);
+                        ProcessItems(project.ProjectItems.GetEnumerator(), worker, list);
                     } catch(Exception e) {
                         Console.WriteLine("Problem parsing files:" + e.Message);
                     }
@@ -244,13 +252,13 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// </summary>
         /// <param name="items"></param>
         /// <param name="worker"></param>
-        private void ProcessItems(IEnumerator items, BackgroundWorker worker) {
+        private void ProcessItems(IEnumerator items, BackgroundWorker worker, List<string> list) {
             while(items.MoveNext()) {
                 if(worker != null && worker.CancellationPending) {
                     return;
                 }
                 var item = (ProjectItem)items.Current;
-                ProcessItem(item, worker);
+                ProcessItem(item, worker, list);
             }
         }
 
@@ -259,9 +267,9 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// </summary>
         /// <param name="item"></param>
         /// <param name="worker"></param>
-        private void ProcessItem(ProjectItem item, BackgroundWorker worker) {
-            ProcessSingleFile(item, worker);
-            ProcessChildren(item, worker);
+        private void ProcessItem(ProjectItem item, BackgroundWorker worker, List<string> list) {
+            ProcessSingleFile(item, worker, list);
+            ProcessChildren(item, worker, list);
         }
 
         /// <summary>
@@ -269,12 +277,12 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// </summary>
         /// <param name="item"></param>
         /// <param name="worker"></param>
-        private void ProcessChildren(ProjectItem item, BackgroundWorker worker) {
+        private void ProcessChildren(ProjectItem item, BackgroundWorker worker, List<string> list) {
             if(item != null && item.ProjectItems != null) {
-                ProcessItems(item.ProjectItems.GetEnumerator(), worker);
+                ProcessItems(item.ProjectItems.GetEnumerator(), worker, list);
             } else {
                 var proj = item.SubProject as Project;
-                ProcessProject(proj, worker);
+                ProcessProject(proj, worker, list);
             }
         }
 
@@ -283,7 +291,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// </summary>
         /// <param name="item"></param>
         /// <param name="worker"></param>
-        private void ProcessSingleFile(ProjectItem item, BackgroundWorker worker) {
+        private void ProcessSingleFile(ProjectItem item, BackgroundWorker worker, List<string> list) {
             string path = "";
             try {
                 if(item != null && item.Name != null) {
@@ -294,9 +302,9 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
                         path = item.FileNames[1];
                     }
 
-                    // TODO: exclude directories?
                     if(File.Exists(path)) {
-                        AllMonitoredFiles.Add(path);
+                        ////AllMonitoredFiles.Add(path);
+                        list.Add(path);
                     }
                 }
             } catch(Exception e) {
@@ -380,7 +388,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
                                                       int[] rgFirstIndices,
                                                       string[] rgpszMkDocuments,
                                                       VSADDFILEFLAGS[] rgFlags) {
-            SrcMLFileLogger.DefaultLogger.Info("==> Triggered IVsTrackProjectDocumentsEvents2.OnAfterAddFilesEx()");
+            //////SrcMLFileLogger.DefaultLogger.Info("==> Triggered IVsTrackProjectDocumentsEvents2.OnAfterAddFilesEx()");
             return OnNotifyFileAddRemove(cProjects, cFiles, rgpProjects, rgFirstIndices, rgpszMkDocuments, FileEventType.FileAdded);
         }
 
@@ -400,7 +408,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
                                                                int[] rgFirstIndices,
                                                                string[] rgpszMkDocuments,
                                                                VSREMOVEFILEFLAGS[] rgFlags) {
-            SrcMLFileLogger.DefaultLogger.Info("==> Triggered IVsTrackProjectDocumentsEvents2.OnAfterRemoveFiles()");
+            //////SrcMLFileLogger.DefaultLogger.Info("==> Triggered IVsTrackProjectDocumentsEvents2.OnAfterRemoveFiles()");
             return OnNotifyFileAddRemove(cProjects, cFiles, rgpProjects, rgFirstIndices, rgpszMkDocuments, FileEventType.FileDeleted);
         }
 
@@ -422,7 +430,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
                                                                string[] rgszMkOldNames,
                                                                string[] rgszMkNewNames,
                                                                VSRENAMEFILEFLAGS[] rgFlags) {
-            SrcMLFileLogger.DefaultLogger.Info("==> Triggered IVsTrackProjectDocumentsEvents2.OnAfterRenameFiles()");
+            //////SrcMLFileLogger.DefaultLogger.Info("==> Triggered IVsTrackProjectDocumentsEvents2.OnAfterRenameFiles()");
             OnNotifyFileAddRemove(cProjects, cFiles, rgpProjects, rgFirstIndices, rgszMkOldNames, FileEventType.FileDeleted);
             return OnNotifyFileAddRemove(cProjects, cFiles, rgpProjects, rgFirstIndices, rgszMkNewNames, FileEventType.FileAdded);
         }
@@ -579,7 +587,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// <param name="cookie"></param>
         /// <returns></returns>
         public int OnAfterSave(uint cookie) {
-            SrcMLFileLogger.DefaultLogger.Info("==> Triggered IVsRunningDocTableEvents.OnAfterSave()");
+            //////SrcMLFileLogger.DefaultLogger.Info("==> Triggered IVsRunningDocTableEvents.OnAfterSave()");
             uint flags;
             uint readingLocks;
             uint edittingLocks;
@@ -650,12 +658,23 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         #endregion
 
         #region IVsSolutionEvents
+        /// <summary>
+        /// Notifies listening clients that a solution has been closed.
+        /// </summary>
+        /// <param name="pUnkReserved"></param>
+        /// <returns></returns>
         public int OnAfterCloseSolution(object pUnkReserved) {
             //SrcMLFileLogger.DefaultLogger.Info("==> SolutionMonitor: Triggered IVsSolutionEvents.OnAfterCloseSolution()");
             return VSConstants.S_OK;
         }
         
-        // Only being triggered when reloading a project
+        /// <summary>
+        /// Notifies listening clients that the project has been loaded.
+        /// Only being triggered when reloading a project.
+        /// </summary>
+        /// <param name="pStubHierarchy"></param>
+        /// <param name="pRealHierarchy"></param>
+        /// <returns></returns>
         public int OnAfterLoadProject(IVsHierarchy pStubHierarchy, IVsHierarchy pRealHierarchy) {
             //SrcMLFileLogger.DefaultLogger.Info("==> SolutionMonitor: Triggered IVsSolutionEvents.OnAfterLoadProject()");
             return VSConstants.S_OK;
@@ -668,11 +687,17 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// <param name="fAdded"></param>
         /// <returns></returns>
         public int OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded) {
-            SrcMLFileLogger.DefaultLogger.Info("==> SolutionMonitor: Triggered IVsSolutionEvents.OnAfterOpenProject() [" + fAdded + "]");
+            SrcMLFileLogger.DefaultLogger.Info("====> SolutionMonitor: Triggered IVsSolutionEvents.OnAfterOpenProject() [" + fAdded + "]");
             NotifyProjectAddRemove(pHierarchy, fAdded, FileEventType.FileAdded);
             return VSConstants.S_OK;
         }
 
+        /// <summary>
+        /// Notifies listening clients that the solution has been opened.
+        /// </summary>
+        /// <param name="pUnkReserved"></param>
+        /// <param name="fNewSolution"></param>
+        /// <returns></returns>
         public int OnAfterOpenSolution(object pUnkReserved, int fNewSolution) {
             //SrcMLFileLogger.DefaultLogger.Info("==> SolutionMonitor: Triggered IVsSolutionEvents.OnAfterOpenSolution()");
             return VSConstants.S_OK;
@@ -685,31 +710,64 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// <param name="fRemoved"></param>
         /// <returns></returns>
         public int OnBeforeCloseProject(IVsHierarchy pHierarchy, int fRemoved) {
-            SrcMLFileLogger.DefaultLogger.Info("==> SolutionMonitor: Triggered IVsSolutionEvents.OnBeforeCloseProject() [" + fRemoved + "]");
-            NotifyProjectAddRemove(pHierarchy, fRemoved, FileEventType.FileDeleted);
+            SrcMLFileLogger.DefaultLogger.Info("====> SolutionMonitor: Triggered IVsSolutionEvents.OnBeforeCloseProject() [" + fRemoved + "]");
+            // If it is about to stop monitoring, skip this call and do not delete any srcML files
+            if(!isAboutToStopMonitoring) {
+                NotifyProjectAddRemove(pHierarchy, fRemoved, FileEventType.FileDeleted);
+            }
             return VSConstants.S_OK;
         }
 
+        /// <summary>
+        /// Notifies listening clients that the solution is about to be closed.
+        /// </summary>
+        /// <param name="pUnkReserved"></param>
+        /// <returns></returns>
         public int OnBeforeCloseSolution(object pUnkReserved) {
-            //SrcMLFileLogger.DefaultLogger.Info("==> SolutionMonitor: Triggered IVsSolutionEvents.OnBeforeCloseSolution()");
+            //SrcMLFileLogger.DefaultLogger.Info("=> SolutionMonitor: Triggered IVsSolutionEvents.OnBeforeCloseSolution()");
             return VSConstants.S_OK;
         }
 
+        /// <summary>
+        /// Notifies listening clients that the project is about to be unloaded.
+        /// </summary>
+        /// <param name="pRealHierarchy"></param>
+        /// <param name="pStubHierarchy"></param>
+        /// <returns></returns>
         public int OnBeforeUnloadProject(IVsHierarchy pRealHierarchy, IVsHierarchy pStubHierarchy) {
             //SrcMLFileLogger.DefaultLogger.Info("==> SolutionMonitor: Triggered IVsSolutionEvents.OnBeforeUnloadProject()");
             return VSConstants.S_OK;
         }
 
+        /// <summary>
+        /// Queries listening clients as to whether the project can be closed.
+        /// </summary>
+        /// <param name="pHierarchy"></param>
+        /// <param name="fRemoving"></param>
+        /// <param name="pfCancel"></param>
+        /// <returns></returns>
         public int OnQueryCloseProject(IVsHierarchy pHierarchy, int fRemoving, ref int pfCancel) {
             //SrcMLFileLogger.DefaultLogger.Info("==> SolutionMonitor: Triggered IVsSolutionEvents.OnQueryCloseProject()");
             return VSConstants.S_OK;
         }
 
+        /// <summary>
+        /// Queries listening clients as to whether the solution can be closed.
+        /// </summary>
+        /// <param name="pUnkReserved"></param>
+        /// <param name="pfCancel"></param>
+        /// <returns></returns>
         public int OnQueryCloseSolution(object pUnkReserved, ref int pfCancel) {
             //SrcMLFileLogger.DefaultLogger.Info("==> SolutionMonitor: Triggered IVsSolutionEvents.OnQueryCloseSolution()");
             return VSConstants.S_OK;
         }
 
+        /// <summary>
+        /// Queries listening clients as to whether the project can be unloaded.
+        /// </summary>
+        /// <param name="pRealHierarchy"></param>
+        /// <param name="pfCancel"></param>
+        /// <returns></returns>
         public int OnQueryUnloadProject(IVsHierarchy pRealHierarchy, ref int pfCancel) {
             //SrcMLFileLogger.DefaultLogger.Info("==> SolutionMonitor: Triggered IVsSolutionEvents.OnQueryUnloadProject()");
             return VSConstants.S_OK;
@@ -730,8 +788,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// <param name="fAddedRemoved"></param>
         /// <param name="type"></param>
         public void NotifyProjectAddRemove(IVsHierarchy pHierarchy, int fAddedRemoved, FileEventType type) {
-            // In this method, the AllMonitoredFiles is actually the list of files whose srcML files should be deleted
-            AllMonitoredFiles = new List<string>();
+            List<string> fileList = new List<string>();
             string projectName;
             pHierarchy.GetCanonicalName(VSConstants.VSITEMID_ROOT, out projectName);
             //SrcMLFileLogger.DefaultLogger.Info("Project Name: [" + projectName + "]");
@@ -752,14 +809,14 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
                     }
                     if(fullName != null && (fullName.Equals(projectName) || fullName.ToLower().Contains(projectName.ToLower()))) {
                         SrcMLFileLogger.DefaultLogger.Info("Project: [" + projectName + "]");
-                        ProcessProject(project, null);
+                        ProcessProject(project, null, fileList);
                         break;
                     }
             }
 
             // Generate or delete srcML files for the source files in this project
             try {
-                foreach(var filePath in AllMonitoredFiles) {
+                foreach(var filePath in fileList) {
                     if(FileEventType.FileAdded.Equals(type)) {
                         //SrcMLFileLogger.DefaultLogger.Info(">>> AddFile(" + filePath + ")");
                         AddFile(filePath);
@@ -773,11 +830,6 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
             }
         }
         #endregion
-
-
-
-
-
 
         /// <summary>
         /// Get a list of all files in the Running Docuement Table.
@@ -807,7 +859,6 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
 
         /// <summary>
         /// Save a specific file in the Running Docuement Table.
-        /// Being called in Sando's SolutionMonitor_SaveProjectItemsTest()
         /// </summary>
         /// <param name="fileName"></param>
         public void saveRDTFile(string fileName) {

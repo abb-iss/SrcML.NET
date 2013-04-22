@@ -15,11 +15,16 @@ namespace ABB.SrcML {
         private Dictionary<string, DateTime> lastModifiedMap;
         private readonly object mapLock = new object();
 
+        /// <summary>
+        /// Creates a new archive in the <paramref name="baseDirectory">specified directory</paramref> with a default file name.
+        /// </summary>
+        /// <param name="baseDirectory"></param>
         public LastModifiedArchive(string baseDirectory)
             : this(baseDirectory, "lastmodifiedmap.txt") {
         }
+
         /// <summary>
-        /// Creates a new archive in the <paramref name="storageDirectory">specified directory</paramref> with the given <paramref name="fileName"/>
+        /// Creates a new archive in the <paramref name="baseDirectory">specified directory</paramref> with the given <paramref name="fileName"/>
         /// </summary>
         /// <param name="baseDirectory">the directory that this archive will be stored in</param>
         /// <param name="fileName">the filename to store the mapping in</param>
@@ -29,6 +34,9 @@ namespace ABB.SrcML {
             ReadMap();
         }
 
+        /// <summary>
+        /// Returns a collection of all supported file extensions.
+        /// </summary>
         public override ICollection<string> SupportedExtensions {
             get { throw new NotImplementedException(); }
         }

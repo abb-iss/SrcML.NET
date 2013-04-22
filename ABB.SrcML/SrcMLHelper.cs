@@ -179,6 +179,11 @@ namespace ABB.SrcML
             return srcmlDir;
         }
 
+        /// <summary>
+        /// Returns the default srcML binary directory.
+        /// </summary>
+        /// <param name="extensionDirectory"></param>
+        /// <returns></returns>
         public static string GetSrcMLDefaultDirectory(string extensionDirectory)
         {
             return Path.Combine(extensionDirectory, "SrcML");

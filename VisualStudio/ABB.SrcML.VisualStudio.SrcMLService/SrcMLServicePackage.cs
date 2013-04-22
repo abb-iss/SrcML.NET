@@ -361,20 +361,14 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// Respond to the Visual Studio event that occurs when a solution is being opened.
         /// </summary>
         private void SolutionOpened() {
-            srcMLService.SourceFileChanged += WriteToOutput;
             SrcMLFileLogger.DefaultLogger.Info("Respond to the Visual Studio event that occurs when a solution is being opened.");
 
             BackgroundWorker bw = new BackgroundWorker();
             bw.WorkerReportsProgress = false;
             bw.WorkerSupportsCancellation = false;
             bw.DoWork += new DoWorkEventHandler(RespondToSolutionOpened);
-            bw.RunWorkerAsync();
-        }
 
-        private void WriteToOutput(object sender, FileEventRaisedArgs e)
-        {
-            if (e.EventType.Equals(FileEventType.FileDeleted))
-                Debug.WriteLine("Deleted: " + e.FilePath);
+            bw.RunWorkerAsync();
         }
 
         /// <summary>
@@ -385,8 +379,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         private void RespondToSolutionOpened(object sender, DoWorkEventArgs eventArgs) {
             //SrcMLFileLogger.DefaultLogger.Info("> SrcML service starts monitoring the opened solution.");
 
-            //srcMLService.StartMonitoring();
-            //srcMLService.StartMonitoring(true, SrcMLHelper.GetSrcMLDefaultDirectory(extensionDirectory));
+            // This statement should be commented out when releasing SrcML.NET for Sando
+            srcMLService.StartMonitoring(true, SrcMLHelper.GetSrcMLDefaultDirectory(extensionDirectory));
         }
 
         /// <summary>
@@ -396,7 +390,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             //SrcMLFileLogger.DefaultLogger.Info("Respond to the Visual Studio event that occurs when a solution is about to close.");
             //SrcMLFileLogger.DefaultLogger.Info("> SrcML service stops monitoring the opened solution.");
 
-            //srcMLService.StopMonitoring();
+            // This statement should be commented out when releasing SrcML.NET for Sando
+            srcMLService.StopMonitoring();
         }
 
         /// <summary>
