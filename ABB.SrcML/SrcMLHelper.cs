@@ -164,7 +164,7 @@ namespace ABB.SrcML
         /// </summary>
         /// <returns>The default srcML binary directory.</returns>
         public static string GetSrcMLDefaultDirectory()
-        {
+         {
             var srcmlDir = Environment.GetEnvironmentVariable("SRCMLBINDIR");
             if (null == srcmlDir)
             {
@@ -173,10 +173,20 @@ namespace ABB.SrcML
                     programFilesDir = Environment.GetEnvironmentVariable("ProgramFiles");
                 srcmlDir = Path.Combine(programFilesDir, Path.Combine("SrcML", "bin"));
             }
-
+             
             if (!Directory.Exists(srcmlDir))
                 return Directory.GetCurrentDirectory();
             return srcmlDir;
+        }
+
+        /// <summary>
+        /// Returns the default srcML binary directory.
+        /// </summary>
+        /// <param name="extensionDirectory"></param>
+        /// <returns></returns>
+        public static string GetSrcMLDefaultDirectory(string extensionDirectory)
+        {
+            return Path.Combine(extensionDirectory, "SrcML");
         }
     }
 }

@@ -11,13 +11,13 @@ namespace ABB.SrcML {
     /// <summary>
     /// <para>Represents an abstract file monitor. This class contains archives for storing various file types To start using it, you first instantiate
     /// it with a <see cref="AbstractArchive">default archive</see>. You then call <see cref="RegisterNonDefaultArchive"/> for each alternative 
-    /// <see cref="archive"/>. This class automatically routes files to the appropriate archive.</para>
+    /// archive. This class automatically routes files to the appropriate archive.</para>
     /// <para>You begin monitoring by calling <see cref="StartMonitoring"/>. <see cref="StartMonitoring"/> should subscribe to any events and then call
     /// functions to respond to those events:</para>
     /// <list type="bullet">
     /// <item><description><see cref="AddFile(string)"/></description></item>
     /// <item><description><see cref="DeleteFile(string)"/></description></item>
-    /// <item><description<see cref="UpdateFile(string)"/></item>
+    /// <item><description></description><see cref="UpdateFile(string)"/></item>
     /// <item><description><see cref="RenameFile(string,string)"/></description></item>
     /// </list>
     /// <para>When the archive is done processing the file, it raises its own <see cref="AbstractArchive.FileChanged">event</see></para>
@@ -78,6 +78,11 @@ namespace ABB.SrcML {
         /// </summary>
         /// <returns>An enumerable of files to be monitored</returns>
         public abstract Collection<string> GetFilesFromSource();
+        
+        /// <summary>
+        /// Number of the elements in the returned collection from GetFilesFromSource()
+        /// </summary>
+        public int NumberOfAllMonitoredFiles;
 
         /// <summary>
         /// Gets the list of files already present in this archive
@@ -157,7 +162,7 @@ namespace ABB.SrcML {
 
         /// <summary>
         /// Processes a file rename. If the old and new path are both in the same archive,
-        /// a <see cref="AbstractArchive.FileRename(string,string)"/> is called on the appropriate archive.
+        /// a <see cref="AbstractArchive.RenameFile(string,string)"/> is called on the appropriate archive.
         /// If they are in different archives, the <see cref="AbstractArchive.DeleteFile(string)"/> is called on <paramref name="oldFilePath"/>
         /// and <see cref="AbstractArchive.AddOrUpdateFile(string)"/> is called on <paramref name="newFilePath"/>
         /// </summary>
@@ -220,6 +225,7 @@ namespace ABB.SrcML {
                     // TODO log exception
                 }
             }
+            
             OnStartupCompleted(new EventArgs());
         }
 

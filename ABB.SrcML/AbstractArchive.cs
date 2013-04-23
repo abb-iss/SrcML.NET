@@ -94,6 +94,10 @@ namespace ABB.SrcML
             }
         }
 
+        /// <summary>
+        /// Raise the FileChanged event.
+        /// </summary>
+        /// <param name="e"></param>
         protected virtual void OnFileChanged(FileEventRaisedArgs e) {
             EventHandler<FileEventRaisedArgs> handler = FileChanged;
             if(handler != null) {

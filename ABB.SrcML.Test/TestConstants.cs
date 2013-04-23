@@ -18,6 +18,6 @@ namespace ABB.SrcML.Test
 {
     class TestConstants
     {
-        public const string SrcmlPath = @"..\..\External\bin\srcml";
+        public const string SrcmlPath = @"..\..\External\SrcML";
     }
 }
