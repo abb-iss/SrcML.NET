@@ -61,6 +61,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML.VisualStudio.SrcM
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML.VisualStudio.SrcMLService.UnitTests", "VisualStudio\ABB.SrcML.VisualStudio.SrcMLService.UnitTests\ABB.SrcML.VisualStudio.SrcMLService.UnitTests.csproj", "{4B2A4172-94E9-4544-9170-912F8C84FFD4}"
 EndProject
+Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "ProgramTransformationSetup", "VisualStudio\ProgramTransformationSetup\ProgramTransformationSetup.wixproj", "{CA38430C-390A-4B09-8A29-37C57C418F1C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -221,6 +223,17 @@ Global
 		{4B2A4172-94E9-4544-9170-912F8C84FFD4}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{4B2A4172-94E9-4544-9170-912F8C84FFD4}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{4B2A4172-94E9-4544-9170-912F8C84FFD4}.Release|x86.ActiveCfg = Release|Any CPU
+		{CA38430C-390A-4B09-8A29-37C57C418F1C}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{CA38430C-390A-4B09-8A29-37C57C418F1C}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{CA38430C-390A-4B09-8A29-37C57C418F1C}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{CA38430C-390A-4B09-8A29-37C57C418F1C}.Debug|x86.ActiveCfg = Debug|x86
+		{CA38430C-390A-4B09-8A29-37C57C418F1C}.Debug|x86.Build.0 = Debug|x86
+		{CA38430C-390A-4B09-8A29-37C57C418F1C}.Release|Any CPU.ActiveCfg = Release|x86
+		{CA38430C-390A-4B09-8A29-37C57C418F1C}.Release|Any CPU.Build.0 = Release|x86
+		{CA38430C-390A-4B09-8A29-37C57C418F1C}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{CA38430C-390A-4B09-8A29-37C57C418F1C}.Release|Mixed Platforms.Build.0 = Release|x86
+		{CA38430C-390A-4B09-8A29-37C57C418F1C}.Release|x86.ActiveCfg = Release|x86
+		{CA38430C-390A-4B09-8A29-37C57C418F1C}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -238,5 +251,6 @@ Global
 		{C3FC3845-B74F-498E-A8E5-80F5AE013DA0} = {E9F6AFA3-6494-4C3E-9807-5270E91268BA}
 		{A1D86129-0342-4D94-8329-5F46FB75E92A} = {E9F6AFA3-6494-4C3E-9807-5270E91268BA}
 		{4B2A4172-94E9-4544-9170-912F8C84FFD4} = {E9F6AFA3-6494-4C3E-9807-5270E91268BA}
+		{CA38430C-390A-4B09-8A29-37C57C418F1C} = {E9F6AFA3-6494-4C3E-9807-5270E91268BA}
 	EndGlobalSection
 EndGlobal
