@@ -18,14 +18,15 @@ using Microsoft.VisualStudio.Shell;
 
 namespace ABB.SrcML.VisualStudio.SolutionMonitor {
     /// <summary>
-    /// This class was adapted from Sando.
-    /// Now most likely this class would not be needed any more in SrcML.NET. Sando would maintain its own SolutionMonitorFactory class.
-    /// However for SrcML.NET Service, this class seems to be useful.
+    /// Factory class for creating the instance of solution monitor.
     /// </summary>
     public class SolutionMonitorFactory {
         /// <summary>
-        /// Constructor of SolutionMonitorFactory
+        /// Create an instance of solution monitor.
         /// </summary>
+        /// <param name="SrcMLServiceDirectory"></param>
+        /// <param name="lastModifiedArchive"></param>
+        /// <param name="CurrentSrcMLArchive"></param>
         /// <returns></returns>
         public static SolutionMonitor CreateMonitor(string SrcMLServiceDirectory, AbstractArchive lastModifiedArchive, params AbstractArchive[] CurrentSrcMLArchive) {
             var openSolution = GetOpenSolution();
@@ -33,9 +34,12 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         }
 
         /// <summary>
-        /// Constructor of SolutionMonitorFactory
+        /// Create an instance of solution monitor.
         /// </summary>
         /// <param name="openSolution"></param>
+        /// <param name="SrcMLServiceDirectory"></param>
+        /// <param name="lastModifiedArchive"></param>
+        /// <param name="CurrentSrcMLArchive"></param>
         /// <returns></returns>
         private static SolutionMonitor CreateMonitor(Solution openSolution, string SrcMLServiceDirectory, AbstractArchive lastModifiedArchive, params AbstractArchive[] CurrentSrcMLArchive) {
             Contract.Requires(openSolution != null, "A solution must be open");

@@ -9,6 +9,9 @@ using log4net.Layout;
 using log4net.Repository.Hierarchy;
 
 namespace ABB.SrcML.Utilities {
+    /// <summary>
+    /// File logger for SrcML.NET
+    /// </summary>
     public class SrcMLFileLogger {
 
         /*
@@ -20,12 +23,21 @@ namespace ABB.SrcML.Utilities {
         }
         */
 
+        /// <summary>
+        /// Create a file logger
+        /// </summary>
+        /// <param name="loggerName"></param>
+        /// <param name="filePath"></param>
+        /// <returns></returns>
         public static ILog CreateFileLogger(string loggerName, string filePath) {
             var appender = CreateFileAppender(loggerName + "Appender", filePath);
             AddAppender(loggerName, appender);
             return LogManager.GetLogger(loggerName);
         }
 
+        /// <summary>
+        /// Return the default logger
+        /// </summary>
         public static ILog DefaultLogger {
             get {
                 return LogManager.GetLogger("DefaultLogger");
