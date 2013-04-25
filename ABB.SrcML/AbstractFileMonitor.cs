@@ -226,10 +226,78 @@ namespace ABB.SrcML {
             OnStartupCompleted(new EventArgs());
         }
 
-        /// <summary>
+        /// <summary> For Sando, add degree of parallelism
         /// Synchronizes the archives with the object being monitored. Startup adds or updates outdated archive files and deletes archive files that are
         /// no longer present on disk.
         /// </summary>
+        public virtual void Startup_Concurrent(int degreeOfParallelism) {
+            SrcMLFileLogger.DefaultLogger.Info("AbstractFileMonitor.Startup()");
+
+            // make a hashset of all the files to monitor
+            var monitoredFiles = new HashSet<string>(StringComparer.CurrentCultureIgnoreCase);
+            foreach(var filePath in GetFilesFromSource()) {
+                monitoredFiles.Add(filePath);
+            }
+
+            // find all the files in the hashset that require updating
+            var outdatedFiles = from filePath in monitoredFiles
+                                where GetArchiveForFile(filePath).IsOutdated(filePath)
+                                select filePath;
+
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
+            ConcurrentQueue<string> missedFiles = new ConcurrentQueue<string>();
+            ParallelOptions option = new ParallelOptions();
+            //number of threads, for Sando application, 2 is the best trade-off
+            option.MaxDegreeOfParallelism = degreeOfParallelism;
+
+            Parallel.ForEach(outdatedFiles, option, currentFile => {
+                string filePath = currentFile;
+                try {
+                    AddFile(filePath);
+                } catch(Exception e) {
+                    //Trace.WriteLine(fileName + " " + e.Message);
+                    missedFiles.Enqueue(filePath);
+                }
+            });
+
+            Task.WaitAll();
+
+            //As a remedial action, regenerate the file missed in the last step
+            if(missedFiles.Count > 0) {
+                foreach(string fileName in missedFiles)
+                    try {
+                        AddFile(fileName);
+                    } catch(Exception e) {
+                        //Log exception
+                    }
+            }
+
+            sw.Stop();
+            Console.WriteLine("Concurrently generating SrcML files: " + sw.Elapsed);
+
+            // find all the files to delete (files in the archive that are not in
+            // the list of files to monitor
+            var filesToDelete = from archive in registeredArchives
+                                from filePath in archive.GetFiles()
+                                where !monitoredFiles.Contains(filePath)
+                                select new {
+                                    Archive = archive,
+                                    FilePath = filePath,
+                                };
+
+            // delete the extra files from the archive
+            foreach(var data in filesToDelete) {
+                try {
+                    data.Archive.DeleteFile(data.FilePath);
+                } catch(Exception) {
+                    // TODO log exception
+                }
+            }
+            OnStartupCompleted(new EventArgs());
+        }
+
         public virtual void Startup_Concurrent() {
             SrcMLFileLogger.DefaultLogger.Info("AbstractFileMonitor.Startup()");
 
