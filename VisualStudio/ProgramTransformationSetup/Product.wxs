@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?define VERSION=!(bind.FileVersion.$(var.ABB.SrcML.TargetName))?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:vs="http://schemas.microsoft.com/wix/VSExtension">
+	<Product Id="*" Name="ProgramTransformationSetup" Language="1033" Version="$(var.VERSION)" Manufacturer="ABB" UpgradeCode="ef19df80-9972-4908-84dd-03a1249565e2">
+		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+
+		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <Media Id="1" Cabinet="Cab1.cab" EmbedCab="yes" />
+    
+    <PropertyRef Id="VS2010_IDE_VCSHARP_PROJECTSYSTEM_INSTALLED" />
+    <!--<PropertyRef Id="VS2012_IDE_VCSHARP_PROJECTSYSTEM_INSTALLED" />-->
+    <PropertyRef Id="VS2010_PROJECTTEMPLATES_DIR" />
+    <PropertyRef Id="VS2010_ITEMTEMPLATES_DIR"/>
+    <CustomAction Id="SetItemTemplatesPath2010" Directory="VS2010ITEMTEMPLATESDIR" Value="[VS2010_ITEMTEMPLATES_DIR]\Visual C#\" />
+    <CustomAction Id="SetProjectTemplatesPath2010" Directory="VS2010PROJECTTEMPLATESDIR" Value="[VS2010_PROJECTTEMPLATES_DIR]\Visual C#\" />
+    <CustomActionRef Id="VS2010InstallVSTemplates" />
+    
+    <InstallExecuteSequence>
+      <Custom Action="SetItemTemplatesPath2010" After="CostFinalize" />
+      <Custom Action="SetProjectTemplatesPath2010" After="CostFinalize" />
+      <Custom Action="VS2010InstallVSTemplates" Before="InstallFinalize" />
+    </InstallExecuteSequence>
+    
+    <Directory Id="TARGETDIR" Name="SourceDir">
+			<Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLFOLDER" Name="SrcML">
+          <Directory Id="EXTERNALFOLDER" Name="bin" />
+        </Directory>
+			</Directory>
+      <Directory Id="VS2010ITEMTEMPLATESDIR"  />
+      <Directory Id="VS2010PROJECTTEMPLATESDIR" />
+		</Directory>
+    
+		<Feature Id="ProductFeature" Title="ProgramTransformationSetup" Level="1">
+      <ComponentGroupRef Id="External" />
+      
+      <!-- Core SrcML Binaries -->
+      <Component Id="$(var.ABB.SrcML.ProjectName)" Directory="INSTALLFOLDER">
+        <File Id="$(var.ABB.SrcML.TargetName)" Source="$(var.ABB.SrcML.TargetPath)" DiskId="1" />
+      </Component>
+      <Component Id="$(var.ABB.SrcML.Tools.Converter.ProjectName)" Directory="INSTALLFOLDER">
+        <File Id="$(var.ABB.SrcML.Tools.Converter.TargetName)" Source="$(var.ABB.SrcML.Tools.Converter.TargetPath)" DiskId="1" />
+      </Component>
+      <Component Id="$(var.ABB.SrcML.Tools.Src2SrcMLPreview.ProjectName)" Directory="INSTALLFOLDER">
+        <File Id="$(var.ABB.SrcML.Tools.Src2SrcMLPreview.TargetName)" Source="$(var.ABB.SrcML.Tools.Src2SrcMLPreview.TargetPath)" DiskId="1" />
+      </Component>
+      
+      <!-- Preview Add-In Binaries -->
+      <Component Id="$(var.ABB.SrcML.VisualStudio.PreviewAddIn.ProjectName)" Directory="INSTALLFOLDER">
+        <File Id="$(var.ABB.SrcML.VisualStudio.PreviewAddIn.TargetName)" Source="$(var.ABB.SrcML.VisualStudio.PreviewAddIn.TargetPath)" DiskId="1" />
+      </Component>
+      <Component Id="$(var.SDML.SrcMLVSAddin.SyntaticCategory.ProjectName)" Directory="INSTALLFOLDER">
+        <File Id="$(var.SDML.SrcMLVSAddin.SyntaticCategory.TargetName)" Source="$(var.SDML.SrcMLVSAddin.SyntaticCategory.TargetPath)" DiskId="1" />
+      </Component>
+      <Component Id="$(var.ABB.SrcML.VisualStudio.PreviewAddIn.ProjectName).AddIn" Directory="INSTALLFOLDER">
+        <File Id="SrcMLPreviewAddIn.AddIn" Source="$(var.ABB.SrcML.VisualStudio.PreviewAddIn.ProjectDir)\SrcMLPreviewAddIn.AddIn" DiskId="1" />
+      </Component>
+      
+      <!-- Visual Studio Templates -->
+      <Component Id="VSProjectTemplate" Directory="VS2010PROJECTTEMPLATESDIR" Guid="{1656C8EE-DA2D-427C-96EB-75CBE670F8FC}">
+        <File Id="TransformProjectFile" Source="..\Templates\ABB SrcML Transform Project.zip" DiskId="1" />
+      </Component>
+      <Component Id="VSItemTemplate" Directory="VS2010ITEMTEMPLATESDIR" Guid="{3206BD54-A821-4172-B4FB-DA3513B949A8}">
+        <File Id="TransformClassFile" Source="..\Templates\ABB SrcML Transform Class.zip" DiskId="1" />
+      </Component>
+      
+      <!-- Set the SRCMLBINDIR environment variable -->
+      <Component Id="SrcMLEnvironment" Guid="{729B4FCA-837B-4BBC-A136-18C497D920E1}" Directory="TARGETDIR">
+        <CreateFolder />
+        <Environment Id="SRCMLBINDIR" Name="SRCMLBINDIR" Action="create" Value="[EXTERNALFOLDER]"/>
+      </Component>
+      
+      <!-- Update the registry to look in SRCMLBINDIR for addins -->
+      <Component Id="RegistryVS2010" Directory="TARGETDIR">
+        <Condition><![CDATA[VS2010_IDE_VCSHARP_PROJECTSYSTEM_INSTALLED]]></Condition>
+        <RegistryKey Root="HKLM" Key="SOFTWARE\Microsoft\VisualStudio\10.0\AutomationOptions\LookInFolders">
+          <RegistryValue Type="string" Name="[INSTALLFOLDER]" Value="" />
+        </RegistryKey>
+      </Component>
+      
+      <!--<Component Id="RegistryVS2012">
+        <Condition><![CDATA[VS2012_IDE_VCSHARP_PROJECTSYSTEM_INSTALLED]]></Condition>
+        <RegistryKey Root="HKLM" Key="SOFTWARE\Microsoft\VisualStudio\11.0\AutomationOptions\LookInFolders">
+          <RegistryValue Type="string" Name="[INSTALLFOLDER]" Value="" />
+        </RegistryKey>
+      </Component>-->
+		</Feature>
+	</Product>
+</Wix>
