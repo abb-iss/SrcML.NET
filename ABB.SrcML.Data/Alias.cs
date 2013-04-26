@@ -7,6 +7,7 @@ namespace ABB.SrcML.Data {
     /// <summary>
     /// Represents an import or using directive (usually found at the top of a source file)
     /// </summary>
+    [Serializable]
     public class Alias {
         private NamespaceUse namespaceRoot;
         private NamedScopeUse endPoint;

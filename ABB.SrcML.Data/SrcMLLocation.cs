@@ -9,6 +9,7 @@ namespace ABB.SrcML.Data {
     /// Represents a location in a SrcML document. 
     /// This extends SourceLocation to include an XPath, and other relevant properties.
     /// </summary>
+    [Serializable]
     public class SrcMLLocation : SourceLocation {
         /// <summary>
         /// The XPath query that identifies this scope

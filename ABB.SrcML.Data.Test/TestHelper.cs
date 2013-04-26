@@ -21,7 +21,8 @@ namespace ABB.SrcML.Data.Test {
 
         public static bool ScopesAreEqual(Scope a, Scope b) {
             if(a == b) { return true; }
-            Assert.AreEqual(a.GetType(), b.GetType());
+            //Assert.AreEqual(a.GetType(), b.GetType());
+            if (a.GetType() != b.GetType()) { return false; }
             return TestEquality((dynamic)a, (dynamic)b);
         }
 

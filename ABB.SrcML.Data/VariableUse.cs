@@ -18,6 +18,7 @@ namespace ABB.SrcML.Data {
     /// <summary>
     /// The variable use class represents a use of a variable.
     /// </summary>
+    [Serializable]
     public class VariableUse : AbstractUse<VariableDeclaration>, IResolvesToType {
         /// <summary>
         /// The calling object for a use is used when you have <c>a.b</c> -- this variable use would refer to <c>b</c> and the calling object would be <c>a</c>.

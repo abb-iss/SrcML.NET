@@ -23,6 +23,7 @@ namespace ABB.SrcML.Data {
     /// and contains methods for adding child scopes and variable declarations.
     /// </summary>
     [DebuggerTypeProxy(typeof(ScopeDebugView))]
+    [Serializable]
     public class Scope {
         /// <summary>
         /// Holds all of the children for this scope.

@@ -20,6 +20,7 @@ namespace ABB.SrcML.Data {
     /// Source locations indicate where in the original source code a <see cref="Scope"/> is located
     /// It stores the file name, line number, &amp; startingPosition
     /// </summary>
+    [Serializable]
     public class SourceLocation {
         /// <summary>
         /// The file name for this location

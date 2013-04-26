@@ -9,6 +9,7 @@ namespace ABB.SrcML.Data {
     /// for resolving Named Scope uses
     /// </summary>
     /// <typeparam name="DEFINITION">The type. Must be NamedScope or a subclass</typeparam>
+    [Serializable]
     public abstract class AbstractScopeUse<DEFINITION> : AbstractUse<DEFINITION>
         where DEFINITION : NamedScope {
         /// <summary>

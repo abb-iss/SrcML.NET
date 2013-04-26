@@ -62,6 +62,7 @@
     <Compile Include="RealWorldTests.cs" />
     <Compile Include="ScopeMergeTests.cs" />
     <Compile Include="JavaCodeParserTests.cs" />
+    <Compile Include="SerializationTests.cs" />
     <Compile Include="SourceLocationTests.cs" />
     <Compile Include="SrcMLLocationTests.cs" />
     <Compile Include="TestHelper.cs" />

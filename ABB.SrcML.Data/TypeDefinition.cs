@@ -23,6 +23,7 @@ namespace ABB.SrcML.Data {
     /// Represents a type definition
     /// </summary>
     [DebuggerTypeProxy(typeof(ScopeDebugView))]
+    [Serializable]
     public class TypeDefinition : NamedScope {
         private Collection<TypeUse> ParentTypeCollection;
 

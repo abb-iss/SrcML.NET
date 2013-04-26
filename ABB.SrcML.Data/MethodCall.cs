@@ -19,6 +19,7 @@ namespace ABB.SrcML.Data {
     /// <summary>
     /// Represents a method call
     /// </summary>
+    [Serializable]
     public class MethodCall : AbstractScopeUse<MethodDefinition>, IResolvesToType {
         /// <summary>
         /// Creates a new MethodCall object
