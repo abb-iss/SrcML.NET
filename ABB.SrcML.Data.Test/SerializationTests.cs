@@ -43,5 +43,13 @@ namespace ABB.SrcML.Data.Test {
 
             Assert.IsTrue(TestHelper.ScopesAreEqual(data.GlobalScope, newData.GlobalScope));
         }
+
+        [Test]
+        [ExpectedException("System.Runtime.Serialization.SerializationException")]
+        public void TestLoad_BadFile() {
+            var archive = new SrcMLArchive("DataArchiveTests");
+            var data = new DataArchive(archive);
+            data.Load(@"..\..\TestInputs\bad_file.dar");
+        }
     }
 }

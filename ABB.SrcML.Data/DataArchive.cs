@@ -203,6 +203,7 @@ namespace ABB.SrcML.Data {
         /// Initializes the archive from the given file. This file must be a serialized DataArchive produced by DataArchive.Save().
         /// </summary>
         /// <param name="fileName">The file to load the archive from.</param>
+        /// <exception cref="System.Runtime.Serialization.SerializationException">A problem occurred in deserialization. E.g. the serialized data is the wrong version.</exception>
         public void Load(string fileName) {
             if (fileName == null) {
                 throw new ArgumentNullException("fileName");
@@ -210,7 +211,7 @@ namespace ABB.SrcML.Data {
             using(var f = File.OpenRead(fileName)) {
                 var formatter = new BinaryFormatter();
                 var tempScope = (Scope)formatter.Deserialize(f);
-                //TODO: what happens if it doesn't deserialize correctly?
+                //Will throw an exception if it doesn't deserialize correctly
                 this.globalScope = tempScope;
                 SetupParsers();
             }
