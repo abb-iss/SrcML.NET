@@ -21,45 +21,64 @@ namespace ABB.SrcML.Data.Test {
 
         public static bool ScopesAreEqual(Scope a, Scope b) {
             if(a == b) { return true; }
-            Assert.AreEqual(a.GetType(), b.GetType());
+            //Assert.AreEqual(a.GetType(), b.GetType());
+            if (a.GetType() != b.GetType()) { return false; }
             return TestEquality((dynamic)a, (dynamic)b);
         }
 
         private static bool TestEquality(Scope a, Scope b) {
-            Assert.IsTrue(CollectionsAreEqual(a.ChildScopes.ToList(), b.ChildScopes.ToList(), ScopesAreEqual));
-            Assert.IsTrue(CollectionsAreEqual(a.MethodCalls.ToList(), b.MethodCalls.ToList(), MethodCallsAreEqual));
-            Assert.IsTrue(CollectionsAreEqual(a.DeclaredVariables.ToList(), b.DeclaredVariables.ToList(), VariableDeclarationsAreEqual));
-            Assert.IsTrue(CollectionsAreEqual(a.Locations.ToList(), b.Locations.ToList(), LocationsAreEqual));
-            Assert.AreEqual(a.ProgrammingLanguage, b.ProgrammingLanguage);
-            return true;
+            //Assert.IsTrue(CollectionsAreEqual(a.ChildScopes.ToList(), b.ChildScopes.ToList(), ScopesAreEqual));
+            //Assert.IsTrue(CollectionsAreEqual(a.MethodCalls.ToList(), b.MethodCalls.ToList(), MethodCallsAreEqual));
+            //Assert.IsTrue(CollectionsAreEqual(a.DeclaredVariables.ToList(), b.DeclaredVariables.ToList(), VariableDeclarationsAreEqual));
+            //Assert.IsTrue(CollectionsAreEqual(a.Locations.ToList(), b.Locations.ToList(), LocationsAreEqual));
+            //Assert.AreEqual(a.ProgrammingLanguage, b.ProgrammingLanguage);
+            return CollectionsAreEqual(a.ChildScopes.ToList(), b.ChildScopes.ToList(), ScopesAreEqual) &&
+                   CollectionsAreEqual(a.MethodCalls.ToList(), b.MethodCalls.ToList(), MethodCallsAreEqual) &&
+                   CollectionsAreEqual(a.DeclaredVariables.ToList(), b.DeclaredVariables.ToList(), VariableDeclarationsAreEqual) &&
+                   CollectionsAreEqual(a.Locations.ToList(), b.Locations.ToList(), LocationsAreEqual) &&
+                   a.ProgrammingLanguage == b.ProgrammingLanguage;
         }
 
         private static bool TestEquality(NamedScope a, NamedScope b) {
-            Assert.AreEqual(a.Name, b.Name);
-            //Accessibility isn't undone right now, so don't check it
-            //Assert.AreEqual(a.Accessibility, b.Accessibility);
-            Assert.IsTrue(CollectionsAreEqual(a.ParentScopeCandidates, b.ParentScopeCandidates, NamedScopeUsesAreEqual));
-            Assert.IsTrue(NamedScopeUsesAreEqual(a.UnresolvedParentScopeInUse, b.UnresolvedParentScopeInUse));
-            return TestEquality((Scope)a, (Scope)b);
+            //Assert.AreEqual(a.Name, b.Name);
+            ////Accessibility isn't undone right now, so don't check it
+            ////Assert.AreEqual(a.Accessibility, b.Accessibility);
+            //Assert.IsTrue(CollectionsAreEqual(a.ParentScopeCandidates, b.ParentScopeCandidates, NamedScopeUsesAreEqual));
+            //Assert.IsTrue(NamedScopeUsesAreEqual(a.UnresolvedParentScopeInUse, b.UnresolvedParentScopeInUse));
+            //return TestEquality((Scope)a, (Scope)b);
+            return a.Name == b.Name &&
+                   CollectionsAreEqual(a.ParentScopeCandidates, b.ParentScopeCandidates, NamedScopeUsesAreEqual) &&
+                   NamedScopeUsesAreEqual(a.UnresolvedParentScopeInUse, b.UnresolvedParentScopeInUse) &&
+                   TestEquality((Scope)a, (Scope)b);
         }
 
         private static bool TestEquality(NamespaceDefinition a, NamespaceDefinition b) {
-            Assert.AreEqual(a.IsAnonymous, b.IsAnonymous);
-            return TestEquality((NamedScope)a, (NamedScope)b);
+            //Assert.AreEqual(a.IsAnonymous, b.IsAnonymous);
+            //return TestEquality((NamedScope)a, (NamedScope)b);
+            return a.IsAnonymous == b.IsAnonymous &&
+                   TestEquality((NamedScope)a, (NamedScope)b);
         }
 
         private static bool TestEquality(TypeDefinition a, TypeDefinition b) {
-            Assert.AreEqual(a.IsPartial, b.IsPartial);
-            Assert.AreEqual(a.Kind, b.Kind);
-            Assert.IsTrue(CollectionsAreEqual(a.ParentTypes, b.ParentTypes, TypeUsesAreEqual));
-            return TestEquality((NamedScope)a, (NamedScope)b);
+            //Assert.AreEqual(a.IsPartial, b.IsPartial);
+            //Assert.AreEqual(a.Kind, b.Kind);
+            //Assert.IsTrue(CollectionsAreEqual(a.ParentTypes, b.ParentTypes, TypeUsesAreEqual));
+            //return TestEquality((NamedScope)a, (NamedScope)b);
+            return a.IsPartial == b.IsPartial &&
+                   a.Kind == b.Kind &&
+                   CollectionsAreEqual(a.ParentTypes, b.ParentTypes, TypeUsesAreEqual) &&
+                   TestEquality((NamedScope)a, (NamedScope)b);
         }
 
         private static bool TestEquality(MethodDefinition a, MethodDefinition b) {
-            Assert.AreEqual(a.IsConstructor, b.IsConstructor);
-            Assert.AreEqual(a.IsDestructor, b.IsDestructor);
-            Assert.IsTrue(OrderedCollectionsAreEqual(a.Parameters, b.Parameters, ParameterDeclarationsAreEqual));
-            return TestEquality((NamedScope)a, (NamedScope)b);
+            //Assert.AreEqual(a.IsConstructor, b.IsConstructor);
+            //Assert.AreEqual(a.IsDestructor, b.IsDestructor);
+            //Assert.IsTrue(OrderedCollectionsAreEqual(a.Parameters, b.Parameters, ParameterDeclarationsAreEqual));
+            //return TestEquality((NamedScope)a, (NamedScope)b);
+            return a.IsConstructor == b.IsConstructor &&
+                   a.IsDestructor == b.IsDestructor &&
+                   OrderedCollectionsAreEqual(a.Parameters, b.Parameters, ParameterDeclarationsAreEqual) &&
+                   TestEquality((NamedScope)a, (NamedScope)b);
         }
 
         public static bool VariableDeclarationsAreEqual(VariableDeclaration a, VariableDeclaration b) {
@@ -84,7 +103,8 @@ namespace ABB.SrcML.Data.Test {
             if(a == b) { return true; }
             return LocationsAreEqual(a.Location, b.Location) && 
                    NamedScopeUsesAreEqual(a.Prefix, b.Prefix) &&
-                   a.Name == b.Name;
+                   a.Name == b.Name &&
+                   IResolvesToTypesAreEqual(a.CallingObject, b.CallingObject);
         }
 
         public static bool AliasesAreEqual(Alias a, Alias b) {
@@ -122,14 +142,35 @@ namespace ABB.SrcML.Data.Test {
         }
 
         public static bool IResolvesToTypesAreEqual(IResolvesToType a, IResolvesToType b) {
-            //TODO: implement value comparison?
-            return a == b;
+            //TODO: reimplement this using proper OO-ish design
+            if(a == b) { return true; }
+            if(a == null || b == null) { return false; }
+            var aType = a.GetType();
+            if(aType != b.GetType()) { return false; }
+            if(aType.Name == "VariableUse") {
+                return VariableUsesAreEqual((VariableUse)a, (VariableUse)b);
+            } else if(aType.Name == "MethodCall") {
+                return MethodCallsAreEqual((MethodCall)a, (MethodCall)b);
+            } else if(aType.Name == "TypeUse") {
+                return TypeUsesAreEqual((TypeUse)a, (TypeUse)b);
+            } else if(aType.Name == "LiteralUse") {
+                return LiteralUsesAreEqual((LiteralUse)a, (LiteralUse)b);
+            }
+
+            return false;
         }
 
         public static bool VariableUsesAreEqual(VariableUse a, VariableUse b) {
             if(a == b) { return true; }
             return a.Name == b.Name &&
-                   LocationsAreEqual(a.Location, b.Location);
+                   LocationsAreEqual(a.Location, b.Location) &&
+                   IResolvesToTypesAreEqual(a.CallingObject, b.CallingObject);
+        }
+
+        public static bool LiteralUsesAreEqual(LiteralUse a, LiteralUse b) {
+            if(a == b) { return true; }
+            return a.Kind == b.Kind &&
+                   TypeUsesAreEqual(a, b);
         }
 
         /// <summary>

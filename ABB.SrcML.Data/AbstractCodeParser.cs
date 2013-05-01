@@ -12,10 +12,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
+using System.Threading.Tasks;
 
 namespace ABB.SrcML.Data {
     /// <summary>
@@ -94,6 +96,19 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
+        /// Concurrently parses a file unit and returns a <see cref="NamespaceDefinition.IsGlobal">global</see> <see cref="NamespaceDefinition">namespace definition</see> object
+        /// </summary>
+        /// <param name="fileUnit">The file unit to parse</param>
+        /// <returns>a global namespace definition for <paramref name="fileUnit"/></returns>
+        public virtual NamespaceDefinition ParseFileUnit_Concurrent(XElement fileUnit) {
+            if(null == fileUnit) throw new ArgumentNullException("fileUnit");
+            if(SRC.Unit != fileUnit.Name) throw new ArgumentException("should be a SRC.Unit", "fileUnit");
+
+            var globalScope = ParseElement_Concurrent(fileUnit, new ParserContext()) as NamespaceDefinition;
+            return globalScope;
+        }
+
+        /// <summary>
         /// This is the main function that parses srcML nodes. It selects the appropriate parse element to call and then adds declarations, method calls, and children to it
         /// </summary>
         /// <param name="element">The element to parse</param>
@@ -112,20 +127,95 @@ namespace ABB.SrcML.Data {
                 ParseContainerElement(element, context);
             }
 
-            foreach(var declarationElement in GetDeclarationsFromElement(element)) {
+            IEnumerable<XElement> Elements = GetDeclarationsFromElement(element);
+            foreach(var declarationElement in Elements) {
                 foreach(var declaration in ParseDeclarationElement(declarationElement, context)) {
                     context.CurrentScope.AddDeclaredVariable(declaration);
                 }
             }
-            foreach(var methodCallElement in GetMethodCallsFromElement(element)) {
+
+            IEnumerable<XElement> methodCalls = GetMethodCallsFromElement(element);
+            foreach(var methodCallElement in methodCalls) {
                 var methodCall = ParseCallElement(methodCallElement, context);
                 context.CurrentScope.AddMethodCall(methodCall);
             }
 
-            foreach(var childElement in GetChildContainers(element)) {
+            IEnumerable<XElement> children = GetChildContainers(element);
+            foreach(var childElement in children) {
+                //var subContext = new ParserContext() {
+                //    Aliases = context.Aliases,
+                //    FileUnit = context.FileUnit,
+                //};
+
                 var childScope = ParseElement(childElement, context);
+                //Scope childScope = ParseElement(childElement, subContext);
                 context.CurrentScope.AddChildScope(childScope);
             }
+
+            var currentScope = context.Pop();
+            currentScope.AddSourceLocation(context.CreateLocation(element, ContainerIsReference(element)));
+            currentScope.ProgrammingLanguage = ParserLanguage;
+
+            return currentScope;
+        }
+
+
+        /// <summary>
+        /// This is the main function that parses srcML nodes. It selects the appropriate parse element to call and then adds declarations, method calls, and children to it
+        /// </summary>
+        /// <param name="element">The element to parse</param>
+        /// <param name="context">The parser context</param>
+        /// <returns>The scope representing <paramref name="element"/></returns>
+        public virtual Scope ParseElement_Concurrent(XElement element, ParserContext context) {
+            if(element.Name == SRC.Unit) {
+                ParseUnitElement(element, context);
+            } else if(TypeElementNames.Contains(element.Name)) {
+                ParseTypeElement(element, context);
+            } else if(NamespaceElementNames.Contains(element.Name)) {
+                ParseNamespaceElement(element, context);
+            } else if(MethodElementNames.Contains(element.Name)) {
+                ParseMethodElement(element, context);
+            } else {
+                ParseContainerElement(element, context);
+            }
+
+            IEnumerable<XElement> Elements = GetDeclarationsFromElement(element);
+            foreach(var declarationElement in Elements) {
+                foreach(var declaration in ParseDeclarationElement(declarationElement, context)) {
+                    context.CurrentScope.AddDeclaredVariable(declaration);
+                }
+            }
+
+            IEnumerable<XElement> methodCalls = GetMethodCallsFromElement(element);
+            foreach(var methodCallElement in methodCalls) {
+                var methodCall = ParseCallElement(methodCallElement, context);
+                context.CurrentScope.AddMethodCall(methodCall);
+            }
+
+            IEnumerable<XElement> children = GetChildContainers(element);
+            ConcurrentQueue<Exception> exceptions = new ConcurrentQueue<Exception>();
+
+            ConcurrentQueue<Scope> cq = new ConcurrentQueue<Scope>();
+            Parallel.ForEach(children, currentChild => {
+                try {
+                    var subContext = new ParserContext() {
+                        Aliases = context.Aliases,
+                        FileUnit = context.FileUnit,
+                    };
+
+                    Scope childScope = ParseElement(currentChild, subContext);
+                    cq.Enqueue(childScope);
+                } catch(Exception e) { exceptions.Enqueue(e); }
+            });
+
+            if(exceptions.Count > 0) throw new Exception();
+
+            while(!cq.IsEmpty) {
+                Scope childScope = new Scope();
+                cq.TryDequeue(out childScope);
+                context.CurrentScope.AddChildScope(childScope);
+            }
+
             var currentScope = context.Pop();
             currentScope.AddSourceLocation(context.CreateLocation(element, ContainerIsReference(element)));
             currentScope.ProgrammingLanguage = ParserLanguage;

@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
@@ -184,6 +185,37 @@ namespace ABB.SrcML.Data {
             return new Collection<MethodCall>(calls.OrderByDescending(mc => mc.Location, new SourceLocationComparer()).ToList());
         }
 
+        /// <summary>
+        /// Serializes the archive to the specified file.
+        /// </summary>
+        /// <param name="fileName">The file to save the archive to.</param>
+        public void Save(string fileName) {
+            if (fileName == null) {
+                throw new ArgumentNullException("fileName");
+            }
+            var formatter = new BinaryFormatter();
+            using(var f = File.OpenWrite(fileName)) {
+                formatter.Serialize(f, globalScope);
+            }
+        }
+
+        /// <summary>
+        /// Initializes the archive from the given file. This file must be a serialized DataArchive produced by DataArchive.Save().
+        /// </summary>
+        /// <param name="fileName">The file to load the archive from.</param>
+        /// <exception cref="System.Runtime.Serialization.SerializationException">A problem occurred in deserialization. E.g. the serialized data is the wrong version.</exception>
+        public void Load(string fileName) {
+            if (fileName == null) {
+                throw new ArgumentNullException("fileName");
+            }
+            using(var f = File.OpenRead(fileName)) {
+                var formatter = new BinaryFormatter();
+                var tempScope = (Scope)formatter.Deserialize(f);
+                //Will throw an exception if it doesn't deserialize correctly
+                this.globalScope = tempScope;
+                SetupParsers();
+            }
+        }
 
         #region Private Methods
         private void InitializeData() {

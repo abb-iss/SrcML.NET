@@ -26,6 +26,7 @@ namespace ABB.SrcML.Data {
     /// and <see cref="MethodDefinition"/></para>
     /// </summary>
     [DebuggerTypeProxy(typeof(ScopeDebugView))]
+    [Serializable]
     public class NamedScope : Scope {
         /// <summary>
         /// Create a new object

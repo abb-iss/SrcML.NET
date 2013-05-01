@@ -20,6 +20,7 @@ namespace ABB.SrcML.Data {
     /// <summary>
     /// Represents a use of a type. It is used in declarations and inheritance specifications.
     /// </summary>
+    [Serializable]
     public class TypeUse : AbstractScopeUse<TypeDefinition>, IResolvesToType {
         private List<TypeUse> internalTypeParameters;
 

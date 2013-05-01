@@ -19,6 +19,7 @@ namespace ABB.SrcML.Data {
     /// <summary>
     /// The base classes for use objects. Use objects represent a use of a <see cref="NamedScope"/>.
     /// </summary>
+    [Serializable]
     public abstract class AbstractUse<DEFINITION> where DEFINITION : class {
         private List<Alias> internalAliasCollection;
         private Scope parentScope;

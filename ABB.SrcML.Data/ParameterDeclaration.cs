@@ -19,6 +19,7 @@ namespace ABB.SrcML.Data {
     /// <summary>
     /// Represents a parameter declaration in a method.
     /// </summary>
+    [Serializable]
     public class ParameterDeclaration : VariableDeclaration {
         public ParameterDeclaration() {
             Locations = new Collection<SrcMLLocation>();

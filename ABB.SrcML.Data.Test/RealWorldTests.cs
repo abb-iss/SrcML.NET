@@ -11,12 +11,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
 using NUnit.Framework;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace ABB.SrcML.Data.Test {
     [TestFixture]
@@ -44,6 +47,16 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
+        public void TestFileUnitParsing_NotepadPlusPlus_Concurrent() {
+            string npp62SourcePath = @"C:\Workspace\Source\Notepad++\6.2";
+            string npp62DataPath = @"C:\Workspace\SrcMLData\NPP-6.2";
+
+            Console.WriteLine("\nReal world test: Notepad++ 6.2 (C++)");
+            Console.WriteLine("=======================================");
+            TestDataGeneration_Concurrent(npp62SourcePath, npp62DataPath);
+        }
+
+        [Test]
         public void TestFileUnitParsing_Bullet() {
             string bullet281SourcePath = @"C:\Workspace\Source\bullet\2.81";
             string bullet281DataPath = @"C:\Workspace\SrcMLData\bullet-2.81";
@@ -51,6 +64,16 @@ namespace ABB.SrcML.Data.Test {
             Console.WriteLine("\nReal World Test: Bullet 2.81 (C++)");
             Console.WriteLine("=======================================");
             TestDataGeneration(bullet281SourcePath, bullet281DataPath);
+        }
+
+        [Test]
+        public void TestFileUnitParsing_Bullet_Concurrent() {
+            string bullet281SourcePath = @"C:\Workspace\Source\bullet\2.81";
+            string bullet281DataPath = @"C:\Workspace\SrcMLData\bullet-2.81";
+
+            Console.WriteLine("\nReal World Test: Bullet 2.81 (C++)");
+            Console.WriteLine("=======================================");
+            TestDataGeneration_Concurrent(bullet281SourcePath, bullet281DataPath);
         }
 
         [Test]
@@ -64,6 +87,16 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
+        public void TestFileUnitParsing_Subversion_Concurrent() {
+            string svn178SourcePath = @"C:\Workspace\Source\Subversion\1.7.8";
+            string svn178DataPath = @"C:\Workspace\SrcMLData\subversion-1.7.8";
+
+            Console.WriteLine("\nReal World Test: Subversion 1.7.8 (C)");
+            Console.WriteLine("=======================================");
+            TestDataGeneration_Concurrent(svn178SourcePath, svn178DataPath);
+        }
+
+        [Test]
         public void TestFileUnitParsing_Eclipse() {
             string eclipse422SourcePath = @"C:\Workspace\Source\eclipse\platform422";
             string eclipse422Datapath = @"C:\Workspace\SrcMLData\eclipse-4.2.2";
@@ -71,6 +104,16 @@ namespace ABB.SrcML.Data.Test {
             Console.WriteLine("\nReal World Test: Eclipse Platform 4.2.2 (Java)");
             Console.WriteLine("=======================================");
             TestDataGeneration(eclipse422SourcePath, eclipse422Datapath);
+        }
+
+        [Test]
+        public void TestFileUnitParsing_Eclipse_Concurrent() {
+            string eclipse422SourcePath = @"C:\Workspace\Source\eclipse\platform422";
+            string eclipse422Datapath = @"C:\Workspace\SrcMLData\eclipse-4.2.2";
+
+            Console.WriteLine("\nReal World Test: Eclipse Platform 4.2.2 (Java)");
+            Console.WriteLine("=======================================");
+            TestDataGeneration_Concurrent(eclipse422SourcePath, eclipse422Datapath);
         }
 
         [Test]
@@ -82,6 +125,17 @@ namespace ABB.SrcML.Data.Test {
             Console.WriteLine("=======================================");
             TestDataGeneration(ndatabase45SourcePath, ndatabase45DataPath);
         }
+
+        [Test]
+        public void TestFileUnitParsing_NDatabase_Concurrent() {
+            string ndatabase45SourcePath = @"C:\Workspace\Source\NDatabase\master45";
+            string ndatabase45DataPath = @"C:\Workspace\SrcMLData\ndatabase-4.5";
+
+            Console.WriteLine("\nReal World Test: NDatabase 4.5 (C#)");
+            Console.WriteLine("=======================================");
+            TestDataGeneration_Concurrent(ndatabase45SourcePath, ndatabase45DataPath);
+        }
+
 
         private void TestDataGeneration(string sourcePath, string dataPath) {
             string fileLogPath = Path.Combine(dataPath, "parse.log");
@@ -122,6 +176,7 @@ namespace ABB.SrcML.Data.Test {
 
             sw.Start();
             monitor.Startup();
+
             startupCompleted = mre.WaitOne(60000);
             if(sw.IsRunning) {
                 sw.Stop();
@@ -137,7 +192,7 @@ namespace ABB.SrcML.Data.Test {
             int numberOfSuccesses = 0;
             int numberOfFiles = 0;
             Dictionary<string, List<string>> errors = new Dictionary<string, List<string>>();
-            
+
             using(var fileLog = new StreamWriter(fileLogPath)) {
                 foreach(var unit in archive.FileUnits) {
                     if(++numberOfFiles % 100 == 0) {
@@ -151,7 +206,7 @@ namespace ABB.SrcML.Data.Test {
                     try {
                         sw.Start();
                         var scopeForUnit = CodeParser[language].ParseFileUnit(unit);
-                        
+
                         if(null == globalScope) {
                             globalScope = scopeForUnit;
                         } else {
@@ -174,11 +229,132 @@ namespace ABB.SrcML.Data.Test {
                     }
                 }
             }
+                        
             Console.WriteLine("{0,5:N0} files completed in {1} with {2,5:N0} failures", numberOfFiles, sw.Elapsed, numberOfFailures);
-
             Console.WriteLine("\nSummary");
             Console.WriteLine("===================");
+            Console.WriteLine("{0,10:N0} failures  ({1,8:P2})", numberOfFailures, ((float)numberOfFailures) / numberOfFiles);
+            Console.WriteLine("{0,10:N0} successes ({1,8:P2})", numberOfSuccesses, ((float)numberOfSuccesses) / numberOfFiles);
+            Console.WriteLine("{0} to generate data", sw.Elapsed);
+            Console.WriteLine(fileLogPath);
 
+            PrintScopeReport(globalScope);
+            PrintMethodCallReport(globalScope, callLogPath);
+            PrintErrorReport(errors);
+
+            monitor.Dispose(); 
+            //Assert.AreEqual(numberOfFailures, (from e in errors.Values select e.Count).Sum());
+            //Assert.AreEqual(0, numberOfFailures);
+        }
+
+        
+        private void TestDataGeneration_Concurrent(string sourcePath, string dataPath) {
+            string fileLogPath = Path.Combine(dataPath, "parse.log");
+            string callLogPath = Path.Combine(dataPath, "methodcalls.log");
+            bool regenerateSrcML = shouldRegenerateSrcML;
+
+            if(!Directory.Exists(sourcePath)) {
+                Assert.Ignore("Source code for is missing");
+            }
+            if(File.Exists(callLogPath)) {
+                File.Delete(callLogPath);
+            }
+            if(File.Exists(fileLogPath)) {
+                File.Delete(fileLogPath);
+            }
+            if(!Directory.Exists(dataPath)) {
+                regenerateSrcML = true;
+            } else if(shouldRegenerateSrcML) {
+                Directory.Delete(dataPath, true);
+            }
+
+            var archive = new SrcMLArchive(dataPath, regenerateSrcML);
+            archive.XmlGenerator.ExtensionMapping[".cxx"] = Language.CPlusPlus;
+            archive.XmlGenerator.ExtensionMapping[".c"] = Language.CPlusPlus;
+            archive.XmlGenerator.ExtensionMapping[".cc"] = Language.CPlusPlus;
+
+            AbstractFileMonitor monitor = new FileSystemFolderMonitor(sourcePath, dataPath, new LastModifiedArchive(dataPath), archive);
+
+            ManualResetEvent mre = new ManualResetEvent(false);
+            Stopwatch sw = new Stopwatch();
+            bool startupCompleted = false;
+
+            monitor.StartupCompleted += (o, e) => {
+                sw.Stop();
+                startupCompleted = true;
+                mre.Set();
+            };
+
+            sw.Start();
+
+            //add the concurrency test: ZL
+            monitor.Startup_Concurrent();
+
+            startupCompleted = mre.WaitOne(60000);
+            if(sw.IsRunning) {
+                sw.Stop();
+            }
+
+            Console.WriteLine("{0} to {1} srcML", sw.Elapsed, (regenerateSrcML ? "generate" : "verify"));
+            Assert.That(startupCompleted);
+
+            Scope globalScope = null;
+            sw.Reset();
+
+            int numberOfFailures = 0;
+            int numberOfSuccesses = 0;
+            int numberOfFiles = 0;
+            Dictionary<string, List<string>> errors = new Dictionary<string, List<string>>();
+
+            List<string> xmlFiles = archive.ArchivedXmlFiles();
+            sw.Start();
+
+            using(var fileLog = new StreamWriter(fileLogPath)) {
+                using(BlockingCollection<NamespaceDefinition> bc = new BlockingCollection<NamespaceDefinition>()) {
+
+                    Task.Factory.StartNew(() => {
+
+                        Parallel.ForEach(xmlFiles, currentFile => {
+
+                            var unit = XElement.Load(currentFile, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo);
+                            var language = SrcMLElement.GetLanguageForUnit(unit);
+                            try {
+
+                                var scopeForUnit = CodeParser[language].ParseFileUnit(unit);
+                                bc.Add(scopeForUnit);
+
+                            } catch(Exception e) {
+                                var key = e.StackTrace.Split('\n')[0].Trim();
+                                if(!errors.ContainsKey(key)) {
+                                    errors[key] = new List<string>();
+                                }
+                                errors[key].Add(currentFile);
+                            }
+                        });
+
+                        bc.CompleteAdding();
+                    });
+
+                    foreach(var item in bc.GetConsumingEnumerable()) {
+                        if(null == globalScope) {
+                            globalScope = item;
+                        } else {
+                            try {
+                                globalScope = globalScope.Merge(item);
+                            } catch(Exception e) {
+                                //So far, don't know how to log the error (ZL 04/2013)
+                                //Console.WriteLine("error");
+                            }
+                        }
+                    }
+                }
+            }
+
+            sw.Stop();
+
+            Console.WriteLine("{0,5:N0} files completed in {1} with {2,5:N0} failures", numberOfFiles, sw.Elapsed, numberOfFailures);
+            Console.WriteLine("\nSummary");
+            Console.WriteLine("===================");
             Console.WriteLine("{0,10:N0} failures  ({1,8:P2})", numberOfFailures, ((float)numberOfFailures) / numberOfFiles);
             Console.WriteLine("{0,10:N0} successes ({1,8:P2})", numberOfSuccesses, ((float)numberOfSuccesses) / numberOfFiles);
             Console.WriteLine("{0} to generate data", sw.Elapsed);

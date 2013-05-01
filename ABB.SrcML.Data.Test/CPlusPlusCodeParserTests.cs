@@ -452,7 +452,7 @@ namespace ABB.SrcML.Data.Test {
 
             var globalScope_implementationFirst = implementationScope.Merge(headerScope);
 
-            TestHelper.ScopesAreEqual(globalScope, globalScope_implementationFirst);
+            Assert.IsTrue(TestHelper.ScopesAreEqual(globalScope, globalScope_implementationFirst));
         }
 
         [Test]

@@ -1,0 +1,340 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML><HEAD><TITLE>Man page of srcml2src</TITLE>
+</HEAD><BODY>
+<H1>srcml2src</H1>
+Section:  (1)<BR>Updated: Fri May 18 15:23:38 EDT 2012<BR><A HREF="#index">Index</A>
+<A HREF="/cgi-bin/man/man2html">Return to Main Contents</A><HR>
+
+<A NAME="lbAB">&nbsp;</A>
+<H2>NAME</H2>
+
+srcml2src - translates the XML source-code representation srcML into source code and provides utility features for the srcML format
+<A NAME="lbAC">&nbsp;</A>
+<H2>SYNOPSIS</H2>
+
+
+
+
+<B>srcml2src</B> 
+
+
+[<B>-nizcgv </B>] [<B>--language </B>] [<B>--filename </B>] [<B>--directory </B>] [<B>--encoding </B>] [<B>--src-encoding </B><I>encoding</I><B></B>] [<I>input-srcML-file</I>] [<B>-o </B><I>output-source-code-file</I><B></B>]
+
+
+
+<A NAME="lbAD">&nbsp;</A>
+<H2>DESCRIPTION</H2>
+
+The program <B>srcml2src</B> translates from the XML
+source-code representation srcML into source code. The srcML
+format allows for XML addressing, querying, and transformation of
+source code. The srcML format for a source-code file is typically
+produced by <B>src2srcml</B>.
+<P>
+
+The combination of <B>src2srcml</B> and
+<B>srcml2src</B> allows for full round-trip
+transformation of source-code files without any loss of comments,
+white space, and preprocessing statements.
+<P>
+
+Conversion from the srcML format to source code is relatively
+straightforward. All XML tags are removed and escaped characters
+are unescaped. Special srcML elements for characters not
+permitted in XML, e.g., formfeed, are converted back to their
+original characters.
+<P>
+
+In addition to conversion, <B>srcml2src</B> provides
+various srcML utilities such as extracting metadata, extracting
+individual files in a srcML archive (as either text or XML),
+and extracting metadata from individual files in a srcML archive.
+It can also be used to extract all the individual files in
+a srcML archive.
+<P>
+
+Further, <B>srcml2src</B> allows for querying srcML
+using XPath expressions and RelaxNG, and transformation using
+XLST. With a srcML archive, a query/transformation is applied
+individually to each file and the results combined. This allows
+the XPath, XSLT, or RelaxNG to work efficiently on large srcML
+documents that contain all of the source code in a large project.
+<P>
+
+Using the character - in the place of an input srcML file filename
+uses standard input, and in place of an output source-code file
+uses standard output.
+<A NAME="lbAE">&nbsp;</A>
+<H2>OPTIONS</H2>
+
+<DL COMPACT>
+<DT><B>-h, --help</B><DD>
+Output the help and exit.
+<DT><B>-V, --version</B><DD>
+Output the version of srcml2src and exit.
+<DT><B>-t, --src-encoding=</B><I>encoding</I><DD>
+Sets the encoding used for the output text source-code files
+to <I>encoding</I>. The default is --ISO-8859-1.
+<DT><B>-U, --unit=</B><I>number</I><DD>
+Refers to a specific file in a srcML archive.
+The numbering starts at 1. If the number is outside of the
+range of nested units then nothing is returned. In
+combination with the attribute flags, outputs the attribute
+of that particular unit. In combination with the <B>--xml</B> option
+outputs the unit in xml (not as text as is the default).
+<DT><B>-a, --to-dir</B><DD>
+Extracts all files from a srcML archive back into
+source-code files. The file path is based on the
+attributes "directory"
+and "filename" with necessary
+subdirectories created. Existing files with the same path
+are overwritten.
+<DT><B>-X, --xml</B><DD>
+Output is in srcML format. Used in combination with the
+<B>--unit</B> option to output a particular
+nested unit in XML. The attributes on the output element "unit" are
+the attributes of the individual unit with any missing attributes
+taken from the root unit.
+<DT><B>-z, --compress</B><DD>
+Output is in compressed gzip format.
+<DT><B>--no-xml-declaration</B><DD>
+No output of the default XML declaration for XML output options.
+Useful when the output is to be placed inside another XML document.
+<DT><B>--no-namespace-decl</B><DD>
+No output of namespace declarations for XML output options.
+Useful when the output is to be placed inside another XML document.
+<DT><B>-v, --verbose</B><DD>
+Verbose output to standard error.
+</DL>
+<A NAME="lbAF">&nbsp;</A>
+<H2>METADATA OPTIONS</H2>
+
+Options to access to the metadata stored in the
+srcML document. Unless otherwise noted, the metadata is quickly extracted
+from the start root element or the XML declaration and does not
+traverse the entire document. Output is to standard output.
+<DL COMPACT>
+<DT><B>-l, --language</B><DD>
+Output the language of the srcML file as stored in the
+attribute "language" in the element "unit".
+The language is the value of the attribute of the root
+element, or for a particular unit if specified with the
+<B>--unit</B> option.
+<DT><B>-d, --directory</B><DD>
+Output the directory of the srcML file as stored in the
+attribute "dir" in the element "unit". The
+directory is the value of the attribute of the root
+element, or for a particular unit if specified with the
+<B>--unit</B> option.
+<DT><B>-f, --filename</B><DD>
+Output the filename of the srcML file as stored in the
+attribute "filename" in the element "unit".
+The filename is the value of the attribute of the root
+element, or for a particular unit if specified with the
+<B>--unit</B> option.
+<DT><B>-s, --src-version</B><DD>
+Output the version of the srcML file as stored attribute
+"version" in the element "unit". The version
+is the value of the attribute of the root
+element, or for a particular unit if specified with the
+<B>--unit</B> option.
+<DT><B>-p, --prefix=</B><I>uri</I><DD>
+Output the prefix of the namespace given by uri. The name of
+the prefix is output with a newline character. The default
+namespace is a blank line. If the URI does not match a
+namespace declaration then no line is output.
+<DT><B>-n, --units</B><DD>
+Output the number of nested units in a srcML archive.
+Result is 0 for a srcML file that is not an archive.
+Requires traversal of the entire document.
+<DT><B>-i, --info</B><DD>
+Output most of the metadata of the srcML file. Each
+individual piece of data, i.e., namespaces, encoding,
+language, directory, filename, and version, is on a separate
+line. The form of the information is that same as that of
+the full flag option to src2srcml to form it, without the
+leading &quot;--&quot;.
+<DT><B>-L, --longinfo</B><DD>
+Output the metadata of the <B>--info</B>
+option along with the count of the nested files in a
+srcML archive. Requires traversal of the entire srcML document.
+</DL>
+<A NAME="lbAG">&nbsp;</A>
+<H2>QUERYING AND TRANSFORMATION OPTIONS</H2>
+
+Options for efficiently querying and transformation srcML.
+Standalone XML tools that are DOM based (XPath, XSLT) have large memory requirements with large
+srcML files. The <B>srcml2src</B> options work efficiently with large srcML
+archives that contain large numbers of files in a project, e.g., tens
+of thousands of files for a project in a single 1 GB srcML archive 1 GB.
+All queries/transformations are performed on a unit
+by unit basis inside the srcML archive.
+<DL COMPACT>
+<DT><B>--xpath=</B><I>xpath</I><DD>
+Apply the XPath expression <I>xpath</I> to each individual unit in the
+srcML archive and combine the results of the individual queries.
+<P>
+To refer to elements standard srcML prefixes (see <B>srcml2src</B>) are used.
+One exception is that prefix &quot;src&quot; is used for srcML elements, e.g., "src:unit".
+Note that these prefixes do not have to match the prefixes used in the document.
+<P>
+If the result of the expression is anything other then a set of nodes the
+individual unit results are combined. For numeric results, e.g., counts,
+the final result is the sum of the individual results. For boolean values,
+the result is the logical "or" of the individual results.
+<P>
+The output is a srcML archive with each XPath expression
+result in its own individual
+element "unit". If the XPath expression
+does not result in a element "unit", one is
+wrapped around the result. This format allows for pipelines of
+queries and transformations.
+<DT><B>--xslt=</B><I>xslt_file</I><DD>
+Apply the XSLT program <I>xslt_file</I> to each individual unit in a
+srcML archive and combine the results of the individual transformations.
+<P>
+The XSLT program can use any part of XSLT 1.0, and many EXSLT extension functions.
+Since the XSLT program doesn't have access to some information on the entire archive, the program
+is passed a series of internally generated parameters. The parameters
+src:filename, src:directory, src:version, and src:language are the corresponding
+entries from the root element "unit".
+The parameter
+src:position is the position of an individual unit in the root unit, e.g., the
+position of the file in the entire srcML archive. Parameters can also be
+passed to the XSLT program from the <B>srcml2src</B> command line.
+<P>
+The output is a srcML document with the combined results of the XSLT transformation
+wrapped in an outer element "unit" thereby providing an output format that allows
+for repeated application.
+<DT><B>--xpathparam </B><I>parameter_name</I><B> </B><I>parameter_value</I><DD>
+Pass the parameter <I>parameter_name</I> and its corresponding
+<I>parameter_value</I> to the XSLT transformation.
+This is only valid with the <B>--xslt</B> option.
+This is analagous to the --xpathparam of xsltproc. The xsltproc limit of 32
+parameters applies here.
+Note that the internally generated parameters src:filename, src:directory, src:version,
+src:language, and src:position are automatically generated and are not part
+of the 32 parameter limit.
+<DT><B>--relaxng=</B><I>relaxng_file</I><DD>
+Apply the RelaxNG grammar <I>relaxng_file</I> to each individual unit in the
+srcML archive and combine the parts that match.
+<P>
+The RelaxNG grammar acts as a filter for individual units
+(files). If the RelaxNG gramar is valid for a unit, then
+that unit is output. The result is a srcML archive with
+only the files that are valid based on the given RelaxNG
+grammar.
+</DL>
+<A NAME="lbAH">&nbsp;</A>
+<H2>USAGE</H2>
+
+To translate the srcML file main.cpp.xml into the C++ source-code file main.cpp:
+<P>
+
+<B>srcml2src</B> main.cpp.xml -o main.cpp
+<P>
+
+To extract the language of the srcML file main.cpp.xml:
+<P>
+
+<B>srcml2src</B> --language main.cpp.xml
+<P>
+
+To extract the directory of the srcML file main.cpp.xml:
+<P>
+
+<B>srcml2src</B> --directory main.cpp.xml
+<P>
+
+To extract the filename of the srcML file main.cpp.xml:
+<P>
+
+<B>srcml2src</B> --filename main.cpp.xml
+<P>
+
+To extract the version of the srcML file main.cpp.xml:
+<P>
+
+<B>srcml2src</B> --version main.cpp.xml
+<P>
+
+To extract the xml encoding of the srcML file main.cpp.xml:
+<P>
+
+<B>srcml2src</B> --encoding main.cpp.xml
+<A NAME="lbAI">&nbsp;</A>
+<H2>RETURN STATUS</H2>
+
+0: Normal
+<P>
+
+1: Error 
+<P>
+
+2: Problem with input file
+<P>
+
+3: Unknown option
+<P>
+
+4: Unknown encoding
+<P>
+
+11: Text encoding option specified, but value missing
+<P>
+
+13: Unit option specified, but value missing
+<P>
+
+14: Unit option value is not valid
+<P>
+
+15: Invalid combination of options
+<P>
+
+16: Incomplete output due to termination
+<A NAME="lbAJ">&nbsp;</A>
+<H2>CAVEATS</H2>
+
+Line endings are normalized in XML and in the srcML format.
+<A NAME="lbAK">&nbsp;</A>
+<H2>BUGS</H2>
+
+There may be some parts of XML (e.g., comments) unused in the srcML format (i.e., not generated by src2srcml)
+which are not preserved in the output with the <B>--xml</B> option.
+<A NAME="lbAL">&nbsp;</A>
+<H2>SEE ALSO</H2>
+
+<B><A HREF="/cgi-bin/man/man2html?1+src2srcml">src2srcml</A></B>(1)
+<A NAME="lbAM">&nbsp;</A>
+<H2>AUTHOR</H2>
+
+Written by 
+Michael L. Collard 
+and
+Huzefa Kagdi
+<P>
+
+<HR>
+<A NAME="index">&nbsp;</A><H2>Index</H2>
+<DL>
+<DT><A HREF="#lbAB">NAME</A><DD>
+<DT><A HREF="#lbAC">SYNOPSIS</A><DD>
+<DT><A HREF="#lbAD">DESCRIPTION</A><DD>
+<DT><A HREF="#lbAE">OPTIONS</A><DD>
+<DT><A HREF="#lbAF">METADATA OPTIONS</A><DD>
+<DT><A HREF="#lbAG">QUERYING AND TRANSFORMATION OPTIONS</A><DD>
+<DT><A HREF="#lbAH">USAGE</A><DD>
+<DT><A HREF="#lbAI">RETURN STATUS</A><DD>
+<DT><A HREF="#lbAJ">CAVEATS</A><DD>
+<DT><A HREF="#lbAK">BUGS</A><DD>
+<DT><A HREF="#lbAL">SEE ALSO</A><DD>
+<DT><A HREF="#lbAM">AUTHOR</A><DD>
+</DL>
+<HR>
+This document was created by
+<A HREF="/cgi-bin/man/man2html">man2html</A>,
+using the manual pages.<BR>
+Time: 19:23:39 GMT, May 18, 2012
+</BODY>
+</HTML>

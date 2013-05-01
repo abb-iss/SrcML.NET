@@ -361,23 +361,15 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// Respond to the Visual Studio event that occurs when a solution is being opened.
         /// </summary>
         private void SolutionOpened() {
-            ////srcMLService.SourceFileChanged += WriteToOutput;
             SrcMLFileLogger.DefaultLogger.Info("Respond to the Visual Studio event that occurs when a solution is being opened.");
 
             BackgroundWorker bw = new BackgroundWorker();
             bw.WorkerReportsProgress = false;
             bw.WorkerSupportsCancellation = false;
             bw.DoWork += new DoWorkEventHandler(RespondToSolutionOpened);
+
             bw.RunWorkerAsync();
         }
-
-        /*
-        private void WriteToOutput(object sender, FileEventRaisedArgs e)
-        {
-            if (e.EventType.Equals(FileEventType.FileDeleted))
-                Debug.WriteLine("Deleted: " + e.FilePath);
-        }
-        */
 
         /// <summary>
         /// SrcML service starts to monitor the opened solution.

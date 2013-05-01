@@ -8,6 +8,7 @@ namespace ABB.SrcML.Data {
     /// <summary>
     /// Literal use is a specific kind of type use that refers to a language's built-in types.
     /// </summary>
+    [Serializable]
     public class LiteralUse : TypeUse {
         /// <summary>
         /// The kind of literal

@@ -54,7 +54,7 @@ namespace ABB.SrcML.Data.Test {
 
             afterScope.RemoveFile("A2.cs");
 
-            TestHelper.ScopesAreEqual(beforeScope, afterScope);
+            Assert.IsTrue(TestHelper.ScopesAreEqual(beforeScope, afterScope));
         }
 
         [Test]

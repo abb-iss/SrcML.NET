@@ -22,6 +22,7 @@ namespace ABB.SrcML.Data {
     /// A method definition object.
     /// </summary>
     [DebuggerTypeProxy(typeof(MethodDebugView))]
+    [Serializable]
     public class MethodDefinition : NamedScope {
         private List<ParameterDeclaration> _parameters;
 
