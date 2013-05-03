@@ -7,6 +7,7 @@ using NUnit.Framework;
 
 namespace ABB.SrcML.Data.Test {
     [TestFixture]
+    [Category("Build")]
     public class SerializationTests {
         [SetUp]
         public void Setup() {
@@ -30,6 +31,7 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
+        [Category("LongRunning")]
         public void TestRoundtrip_Self() {
             var archive = new SrcMLArchive("DataArchiveTests");
             foreach(var csFile in Directory.GetFiles(@"..\..\ABB.SrcML", "*.cs", SearchOption.AllDirectories)) {
