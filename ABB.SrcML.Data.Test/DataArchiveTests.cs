@@ -50,6 +50,46 @@ namespace ABB.SrcML.Data.Test {
             }
         }
 
+        [Test]
+        public void TestFindScopeForAdjacentMethods() {
+            using(var sa = new SrcMLArchive("DataArchiveTests")) {
+                sa.AddOrUpdateFile(@"..\..\TestInputs\adjacent_methods.cpp");
+                var da = new DataArchive(sa);
+                
+                var mainMethod = da.GlobalScope.GetDescendantScopes<MethodDefinition>().FirstOrDefault();
+                var fooMethod = da.GlobalScope.GetDescendantScopes<MethodDefinition>().LastOrDefault();
+
+                Assert.IsNotNull(mainMethod, "could not find main()");
+                Assert.IsNotNull(fooMethod, "could not find foo()");
+                Assert.AreEqual("main", mainMethod.Name);
+                Assert.AreEqual("Foo", fooMethod.Name);
+
+                var fileName = @"TestInputs\adjacent_methods.cpp";
+
+                var startOfMain = new SourceLocation(fileName, 1, 1);
+                var locationInMain = new SourceLocation(fileName, 1, 11);
+
+                Assert.That(mainMethod.PrimaryLocation.Contains(startOfMain));
+                Assert.That(mainMethod.PrimaryLocation.Contains(locationInMain));
+
+                Assert.AreEqual(mainMethod, da.FindScope(startOfMain));
+                Assert.AreEqual(mainMethod, da.FindScope(locationInMain));
+
+                var startOfFoo = new SourceLocation(fileName, 3, 1);
+                var locationInFoo = new SourceLocation(fileName, 3, 11);
+
+                Assert.That(fooMethod.PrimaryLocation.Contains(startOfFoo));
+                Assert.That(fooMethod.PrimaryLocation.Contains(locationInFoo));
+
+                Assert.AreEqual(fooMethod, da.FindScope(startOfFoo));
+                Assert.AreEqual(fooMethod, da.FindScope(locationInFoo));
+
+                var lineBetweenMethods = new SourceLocation(fileName, 2, 1);
+                Assert.That(mainMethod.PrimaryLocation.Contains(lineBetweenMethods));
+                Assert.IsFalse(fooMethod.PrimaryLocation.Contains(lineBetweenMethods));
+                Assert.AreEqual(mainMethod, da.FindScope(lineBetweenMethods));
+            }
+        }
         //TODO: write tests that use the XPath overload
     }
 }

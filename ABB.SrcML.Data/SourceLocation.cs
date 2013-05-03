@@ -89,6 +89,11 @@ namespace ABB.SrcML.Data {
                 //files not equal
                 return false;
             }
+            if(EndingLineNumber < otherLoc.StartingLineNumber ||
+                (EndingLineNumber == otherLoc.StartingLineNumber && EndingColumnNumber <= otherLoc.StartingColumnNumber)) {
+                //otherLoc starts after this location ends    
+                return false;
+            }
             if((StartingLineNumber < otherLoc.StartingLineNumber ||
                 (StartingLineNumber == otherLoc.StartingLineNumber && StartingColumnNumber <= otherLoc.StartingColumnNumber))
                &&
