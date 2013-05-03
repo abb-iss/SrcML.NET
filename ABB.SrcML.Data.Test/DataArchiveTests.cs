@@ -8,8 +8,8 @@ using NUnit.Framework;
 namespace ABB.SrcML.Data.Test {
     [TestFixture]
     class DataArchiveTests {
-        [TestFixtureSetUp]
-        public void ClassSetup() {
+        [SetUp]
+        public void TestSetup() {
             if(Directory.Exists("DataArchiveTests")) {
                 Directory.Delete("DataArchiveTests", true);
             }
