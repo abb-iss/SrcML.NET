@@ -7,6 +7,7 @@ using NUnit.Framework;
 
 namespace ABB.SrcML.Data.Test {
     [TestFixture]
+    [Category("Build")]
     class DataArchiveTests {
         [TestFixtureSetUp]
         public void ClassSetup() {

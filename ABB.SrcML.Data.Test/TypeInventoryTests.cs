@@ -19,6 +19,7 @@ using System.Xml.Linq;
 
 namespace ABB.SrcML.Data.Test {
     [TestFixture]
+    [Category("Build")]
     public class TypeInventoryTests {
         private Dictionary<Language, SrcMLFileUnitSetup> FileUnitSetup;
         private Dictionary<Language, AbstractCodeParser> CodeParser;

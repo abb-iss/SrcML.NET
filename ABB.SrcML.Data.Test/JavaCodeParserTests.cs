@@ -19,6 +19,8 @@ using System.Xml.Linq;
 using System.Diagnostics;
 
 namespace ABB.SrcML.Data.Test {
+    [TestFixture]
+    [Category("Build")]
     class JavaCodeParserTests {
         private string srcMLFormat;
         private AbstractCodeParser codeParser;
@@ -121,6 +123,7 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
+        [Category("Todo")]
         public void TestCreateTypeDefinitions_ClassWithQualifiedParent() {
             // class D implements A.B.C {
             // }

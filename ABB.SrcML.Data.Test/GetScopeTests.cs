@@ -6,6 +6,7 @@ using NUnit.Framework;
 
 namespace ABB.SrcML.Data.Test {
     [TestFixture]
+    [Category("Build")]
     class GetScopeTests {
         private Dictionary<Language, AbstractCodeParser> parser;
         private Dictionary<Language,SrcMLFileUnitSetup> fileSetup;

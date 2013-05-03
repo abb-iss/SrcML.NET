@@ -23,6 +23,7 @@ using System.Xml.Linq;
 
 namespace ABB.SrcML.Data.Test {
     [TestFixture]
+    [Category("LongRunning")]
     class RealWorldTests {
         private bool shouldRegenerateSrcML = false;
         private Dictionary<Language, AbstractCodeParser> CodeParser;

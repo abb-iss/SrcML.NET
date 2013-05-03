@@ -16,6 +16,8 @@ using System.Text;
 using NUnit.Framework;
 
 namespace ABB.SrcML.Data.Test {
+    [TestFixture]
+    [Category("Build")]
     class ScopeMergeTests {
         private Dictionary<Language, SrcMLFileUnitSetup> FileUnitSetup;
         private Dictionary<Language, AbstractCodeParser> CodeParser;

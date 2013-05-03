@@ -18,6 +18,7 @@ using System.Xml.Linq;
 
 namespace ABB.SrcML.Data.Test {
     [TestFixture]
+    [Category("Build")]
     public class CSharpCodeParserTests {
         private CSharpCodeParser codeParser;
         private SrcMLFileUnitSetup fileSetup;
