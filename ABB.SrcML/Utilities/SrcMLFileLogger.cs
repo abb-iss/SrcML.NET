@@ -95,7 +95,6 @@ namespace ABB.SrcML.Utilities {
 						<file value='" + defaultLoggerLogFile + @"' />
 						<appendToFile value='false' />
 						<lockingModel type='log4net.Appender.FileAppender+MinimalLock' />
-						<maximumFileSize value='100KB' />
 						<layout type='log4net.Layout.PatternLayout'>
 							<conversionPattern value='%date %-5level %logger - %message%newline' />
 						</layout>
