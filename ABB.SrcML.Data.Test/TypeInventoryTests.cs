@@ -798,6 +798,53 @@ namespace ABB.SrcML.Data.Test {
 
             Assert.AreEqual(bDotFoo, callToFoo.FindMatches().FirstOrDefault());
         }
+
+        [Test]
+        public void TestGetCallsTo() {
+            //void foo() {
+            //    bar();
+            //    if(0) bar();
+            //}
+            //
+            //void bar() { star(); }
+            //
+            //void star() { }
+            string xml = @"<function><type><name>void</name></type> <name>foo</name><parameter_list>()</parameter_list> <block>{
+    <expr_stmt><expr><call><name>bar</name><argument_list>()</argument_list></call></expr>;</expr_stmt>
+    <if>if<condition>(<expr><lit:literal type=""number"">0</lit:literal></expr>)</condition><then> <expr_stmt><expr><call><name>bar</name><argument_list>()</argument_list></call></expr>;</expr_stmt></then></if>
+}</block></function>
+
+<function><type><name>void</name></type> <name>bar</name><parameter_list>()</parameter_list> <block>{ <expr_stmt><expr><call><name>star</name><argument_list>()</argument_list></call></expr>;</expr_stmt> }</block></function>
+
+<function><type><name>void</name></type> <name>star</name><parameter_list>()</parameter_list> <block>{ }</block></function>";
+
+            var unit = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xml, "test.cpp");
+
+            var globalScope = CodeParser[Language.CPlusPlus].ParseFileUnit(unit);
+
+            var methodFoo = globalScope.GetDescendantScopes<MethodDefinition>().FirstOrDefault();
+            var methodBar = globalScope.GetDescendantScopes<MethodDefinition>().Skip(1).FirstOrDefault();
+            var methodStar = globalScope.GetDescendantScopes<MethodDefinition>().LastOrDefault();
+
+            Assert.IsNotNull(methodFoo, "could not find method foo");
+            Assert.IsNotNull(methodBar, "could not find method bar");
+            Assert.IsNotNull(methodStar, "could not find method star");
+
+            Assert.AreEqual("foo", methodFoo.Name);
+            Assert.AreEqual("bar", methodBar.Name);
+            Assert.AreEqual("star", methodStar.Name);
+
+            Assert.That(methodFoo.ContainsCallTo(methodBar));
+            Assert.AreEqual(2, methodFoo.GetCallsTo(methodBar).Count());
+
+            Assert.That(methodBar.ContainsCallTo(methodStar));
+            Assert.AreEqual(1, methodBar.GetCallsTo(methodStar).Count());
+
+            Assert.IsFalse(methodFoo.ContainsCallTo(methodStar));
+            Assert.IsFalse(methodBar.ContainsCallTo(methodFoo));
+            Assert.IsFalse(methodStar.ContainsCallTo(methodFoo));
+            Assert.IsFalse(methodStar.ContainsCallTo(methodBar));
+        }
     }
 }
 

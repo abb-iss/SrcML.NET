@@ -89,6 +89,33 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
+        /// Gets all the method calls in this method to <paramref name="callee"/>. This method searches 
+        /// this method and all of its <see cref="Scope.ChildScopes"/>.
+        /// </summary>
+        /// <param name="callee">The method to find calls for.</param>
+        /// <returns>All of the method calls to <paramref name="callee"/> in this method.</returns>
+        public IEnumerable<MethodCall> GetCallsTo(MethodDefinition callee) {
+            if(null == callee) throw new ArgumentNullException("callee");
+
+            var callsToMethod = from scope in this.GetDescendantScopesAndSelf()
+                                from call in scope.MethodCalls
+                                where call.Matches(callee)
+                                select call;
+            return callsToMethod;
+        }
+
+        /// <summary>
+        /// Checks to see if this method contains a call to <paramref name="callee"/>.
+        /// </summary>
+        /// <param name="callee">The method to look for calls to</param>
+        /// <returns>True if this method contains any <see cref="GetCallsTo">calls to</see> <paramref name="callee"/></returns>.
+        public bool ContainsCallTo(MethodDefinition callee) {
+            if(null == callee) throw new ArgumentNullException("callee");
+
+            return GetCallsTo(callee).Any();
+        }
+
+        /// <summary>
         /// Merges this method definition with <paramref name="otherScope"/>. This happens when <c>otherScope.CanBeMergedInto(this)</c> evaluates to true.
         /// </summary>
         /// <param name="otherScope">the scope to merge with</param>
