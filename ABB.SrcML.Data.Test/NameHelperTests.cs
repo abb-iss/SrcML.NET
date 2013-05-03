@@ -18,6 +18,7 @@ using System.Xml.Linq;
 
 namespace ABB.SrcML.Data.Test {
     [TestFixture]
+    [Category("Build")]
     class NameHelperTests {
         [Test]
         public void TestGetNestedNameElements() {

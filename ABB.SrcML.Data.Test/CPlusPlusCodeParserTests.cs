@@ -21,6 +21,7 @@ using System.Collections.ObjectModel;
 
 namespace ABB.SrcML.Data.Test {
     [TestFixture]
+    [Category("Build")]
     class CPlusPlusCodeParserTests {
         private string srcMLFormat;
         private AbstractCodeParser codeParser;
@@ -264,6 +265,7 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
+        [Category("Todo")]
         public void TestCreateTypeDefinition_StaticMethod() {
             //class Example {
             //public:
@@ -420,6 +422,7 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreNotSame(aDotContains, methodCall.FindMatches().First());
         }
         [Test]
+        [Category("Todo")]
         public void TestMergeWithUsing() {
             // namespace A { class B { void Foo(); }; }
             string headerXml = @"<namespace>namespace <name>A</name> <block>{ <class>class <name>B</name> <block>{<private type=""default""> <function_decl><type><name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list>;</function_decl> </private>}</block>;</class> }</block></namespace>";

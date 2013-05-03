@@ -17,6 +17,7 @@ using NUnit.Framework;
 
 namespace ABB.SrcML.Data.Test {
     [TestFixture]
+    [Category("Build")]
     public class BuiltInTypeFactoryTests {
         private Dictionary<Language, SrcMLFileUnitSetup> FileUnitSetup;
         private Dictionary<Language, AbstractCodeParser> CodeParser;
@@ -83,6 +84,7 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
+        [Category("Todo")]
         public void TestCppBuiltIns_WithDoubleWord() {
             // #a.cpp
             // #example: "unsigned int a;";

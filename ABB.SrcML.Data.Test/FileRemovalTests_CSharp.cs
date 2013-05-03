@@ -6,6 +6,7 @@ using NUnit.Framework;
 
 namespace ABB.SrcML.Data.Test {
     [TestFixture]
+    [Category("Build")]
     public class FileRemovalTests_CSharp {
         private SrcMLFileUnitSetup FileUnitSetup;
         private CSharpCodeParser CodeParser;

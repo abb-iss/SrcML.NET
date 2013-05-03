@@ -6,6 +6,7 @@ using NUnit.Framework;
 
 namespace ABB.SrcML.Data.Test {
     [TestFixture]
+    [Category("Build")]
     class SourceLocationTests {
         [Test]
         public void TestContains_DifferentLines() {

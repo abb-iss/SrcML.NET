@@ -28,7 +28,7 @@
   </Target>
 
   <Target Name="Test" DependsOnTargets="Build" Condition="Exists('@(TestRunner)')">
-    <Exec Command="@(TestRunner) @(TestProject) /include=Build" />
+    <Exec Command="@(TestRunner) @(TestProject) /exclude=Todo,LongRunning" />
   </Target>
   
   <Target Name="TestData" DependsOnTargets="Build" Condition="Exists('@(TestRunner)')">
