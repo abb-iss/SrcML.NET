@@ -54,6 +54,11 @@ namespace ABB.SrcML.Data {
         private Dictionary<Language, AbstractCodeParser> parsers;
 
         /// <summary>
+        /// The file name to serialize to
+        /// </summary>
+        public string FileName { get; private set; }
+
+        /// <summary>
         /// The SrcMLArchive to extract the data from.
         /// </summary>
         public SrcMLArchive Archive { get; private set; }
@@ -67,11 +72,41 @@ namespace ABB.SrcML.Data {
         /// Create a data archive for the given srcML archive. It will subscribe to the <see cref="AbstractArchive.FileChanged"/> event.
         /// </summary>
         /// <param name="archive">The archive to monitor for changes.</param>
-        public DataArchive(SrcMLArchive archive) {
+        public DataArchive(SrcMLArchive archive) : this(archive, null) { }
+
+        /// <summary>
+        /// Create a data archive with data stored in the given <paramref name="fileName">binary file</paramref>.
+        /// </summary>
+        /// <param name="fileName">The binary file the data archive is stored in</param>
+        public DataArchive(string fileName) : this(null, fileName) { }
+
+        /// <summary>
+        /// Create a data archive for the given srcML archive and binary file. It will load data from the binary archive and then subscribe
+        /// to the srcML archive.
+        /// </summary>
+        /// <param name="archive">The srcML archive to monitor for changes. If null, no archive monitoring will be done.</param>
+        /// <param name="fileName">The file to read data from. If null, no previously saved data will be loaded.</param>
+        public DataArchive(SrcMLArchive archive, string fileName) {
             SetupParsers();
+            
             this.Archive = archive;
-            this.Archive.FileChanged += Archive_SourceFileChanged;
-            InitializeData();
+            this.FileName = fileName;
+
+            bool loadedFromDisk = false;
+
+            if(FileName != null) {
+                if(File.Exists(this.FileName)) {
+                    Load(this.FileName);
+                    loadedFromDisk = true;
+                }
+            }
+
+            if(this.Archive != null) {
+                this.Archive.FileChanged += Archive_SourceFileChanged;
+                if(!loadedFromDisk) {
+                    InitializeData();
+                }
+            }
         }
 
         /// <summary>
@@ -197,15 +232,27 @@ namespace ABB.SrcML.Data {
             using(var f = File.OpenWrite(fileName)) {
                 formatter.Serialize(f, globalScope);
             }
+            this.FileName = fileName;
         }
 
+        /// <summary>
+        /// Serializes the archive to <see cref="FileName"/>
+        /// </summary>
+        public void Save() {
+            if(this.FileName != null) {
+                Save(this.FileName);
+            }
+        }
+
+
+        #region Private Methods
         /// <summary>
         /// Initializes the archive from the given file. This file must be a serialized DataArchive produced by DataArchive.Save().
         /// </summary>
         /// <param name="fileName">The file to load the archive from.</param>
         /// <exception cref="System.Runtime.Serialization.SerializationException">A problem occurred in deserialization. E.g. the serialized data is the wrong version.</exception>
-        public void Load(string fileName) {
-            if (fileName == null) {
+        private void Load(string fileName) {
+            if(fileName == null) {
                 throw new ArgumentNullException("fileName");
             }
             using(var f = File.OpenRead(fileName)) {
@@ -217,7 +264,6 @@ namespace ABB.SrcML.Data {
             }
         }
 
-        #region Private Methods
         private void InitializeData() {
             Clear();
             foreach(var unit in Archive.FileUnits) {

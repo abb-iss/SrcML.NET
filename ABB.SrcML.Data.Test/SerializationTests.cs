@@ -24,8 +24,7 @@ namespace ABB.SrcML.Data.Test {
             var data = new DataArchive(archive);
             data.Save(@"DataArchiveTests\saved.dar");
 
-            var newData = new DataArchive(archive);
-            newData.Load(@"DataArchiveTests\saved.dar");
+            var newData = new DataArchive(archive, @"DataArchiveTests\saved.dar");
 
             Assert.IsTrue(TestHelper.ScopesAreEqual(data.GlobalScope, newData.GlobalScope));
         }
@@ -40,8 +39,7 @@ namespace ABB.SrcML.Data.Test {
             var data = new DataArchive(archive);
             data.Save(@"DataArchiveTests\saved.dar");
 
-            var newData = new DataArchive(archive);
-            newData.Load(@"DataArchiveTests\saved.dar");
+            var newData = new DataArchive(archive, @"DataArchiveTests\saved.dar");
 
             Assert.IsTrue(TestHelper.ScopesAreEqual(data.GlobalScope, newData.GlobalScope));
         }
@@ -50,8 +48,7 @@ namespace ABB.SrcML.Data.Test {
         [ExpectedException("System.Runtime.Serialization.SerializationException")]
         public void TestLoad_BadFile() {
             var archive = new SrcMLArchive("DataArchiveTests");
-            var data = new DataArchive(archive);
-            data.Load(@"..\..\TestInputs\bad_file.dar");
+            var data = new DataArchive(archive, @"..\..\TestInputs\bad_file.dar");
         }
     }
 }
