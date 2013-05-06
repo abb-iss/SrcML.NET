@@ -49,7 +49,7 @@ namespace ABB.SrcML.Data {
     /// XElement parentXml = data.ResolveType(parentType).GetXElement();
     /// </code>
     /// </example>
-    public class DataArchive {
+    public class DataArchive : IDisposable {
         private Scope globalScope;
         private Dictionary<Language, AbstractCodeParser> parsers;
 
@@ -313,6 +313,13 @@ namespace ABB.SrcML.Data {
                 }
                 return result;
             }
+        }
+
+        public void Dispose() {
+            if(this.Archive != null) {
+                this.Archive.FileChanged -= Archive_SourceFileChanged;
+            }
+            Save();
         }
     }
 }
