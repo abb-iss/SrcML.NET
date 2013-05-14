@@ -108,7 +108,7 @@ namespace ABB.SrcML.Tools.Converter
             }
             else if (File.Exists(source))
             {
-                doc = generator.GenerateSrcMLFromFile(source, outputFileName, lang);
+                generator.GenerateSrcMLFromFile(source, outputFileName, lang);
                 Console.WriteLine("Converted {0} to a srcML document at {1}", source, outputFileName);
             }
             else

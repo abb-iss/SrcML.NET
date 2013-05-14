@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -18,10 +19,13 @@ using System.Xml.Linq;
 
 namespace ABB.SrcML {
     public class SrcMLGenerator {
-        private readonly Src2SrcMLRunner defaultExecutable;
-        private readonly Language[] defaultLanguages = new[] {Language.C, Language.CPlusPlus, Language.Java, Language.AspectJ};
-        private Dictionary<Language, Src2SrcMLRunner> nonDefaultExecutables;
-
+        private readonly Src2SrcMLRunner2 defaultExecutable;
+        private readonly Language[] defaultLanguages = new[] { Language.C, Language.CPlusPlus, Language.Java, Language.AspectJ };
+        private readonly string[] defaultArguments = new[] { LIT.ArgumentLabel, OP.ArgumentLabel, POS.ArgumentLabel, TYPE.ArgumentLabel };
+        
+        private Dictionary<Language, Src2SrcMLRunner2> nonDefaultExecutables;
+        private Dictionary<Language, string[]> nonDefaultArguments;
+        
         private readonly Dictionary<string, Language> extensionMapping = new Dictionary<string, Language>(StringComparer.InvariantCultureIgnoreCase)
                                                                          {
                                                                              {".c", Language.C},
@@ -41,7 +45,7 @@ namespace ABB.SrcML {
         /// <summary>
         /// Maps Languages to the Src2SrcMLRunner that will parse it, if different from the default.
         /// </summary>
-        public Dictionary<Language, Src2SrcMLRunner> NonDefaultExecutables {
+        public Dictionary<Language, Src2SrcMLRunner2> NonDefaultExecutables {
             get { return nonDefaultExecutables; }
         }
 
@@ -56,8 +60,9 @@ namespace ABB.SrcML {
         /// Creates a new SrcMLGenerator.
         /// </summary>
         public SrcMLGenerator() {
-            defaultExecutable = new Src2SrcMLRunner();
-            nonDefaultExecutables = new Dictionary<Language, Src2SrcMLRunner>();
+            defaultExecutable = new Src2SrcMLRunner2();
+            nonDefaultExecutables = new Dictionary<Language, Src2SrcMLRunner2>();
+            nonDefaultArguments = new Dictionary<Language, string[]>();
             DetectNonDefaultExecutables();
         }
 
@@ -66,8 +71,9 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="defaultExecutableDirectory">The directory containing the default srcml executables to use.</param>
         public SrcMLGenerator(string defaultExecutableDirectory) {
-            defaultExecutable = new Src2SrcMLRunner(defaultExecutableDirectory);
-            nonDefaultExecutables = new Dictionary<Language, Src2SrcMLRunner>();
+            defaultExecutable = new Src2SrcMLRunner2(defaultExecutableDirectory);
+            nonDefaultExecutables = new Dictionary<Language, Src2SrcMLRunner2>();
+            nonDefaultArguments = new Dictionary<Language, string[]>();
             DetectNonDefaultExecutables();
         }
 
@@ -77,8 +83,9 @@ namespace ABB.SrcML {
         /// <param name="defaultExecutableDirectory">The directory containing the default srcml executables to use.</param>
         /// <param name="namespaceArguments">The namespace arguments to use when converting to SrcML.</param>
         public SrcMLGenerator(string defaultExecutableDirectory, IEnumerable<string> namespaceArguments) {
-            defaultExecutable = new Src2SrcMLRunner(defaultExecutableDirectory, namespaceArguments);
-            nonDefaultExecutables = new Dictionary<Language, Src2SrcMLRunner>();
+            defaultExecutable = new Src2SrcMLRunner2(defaultExecutableDirectory);
+            nonDefaultExecutables = new Dictionary<Language, Src2SrcMLRunner2>();
+            nonDefaultArguments = new Dictionary<Language, string[]>();
             DetectNonDefaultExecutables();
         }
 
@@ -99,7 +106,7 @@ namespace ABB.SrcML {
         /// <param name="namespaceArguments">The namespace arguments to use when converting to SrcML.</param>
         public void RegisterExecutable(string executableDirectory, IEnumerable<Language> languages, IEnumerable<string> namespaceArguments) {
             if(nonDefaultExecutables == null) {
-                nonDefaultExecutables = new Dictionary<Language, Src2SrcMLRunner>();
+                nonDefaultExecutables = new Dictionary<Language, Src2SrcMLRunner2>();
             }
 
             var langList = languages.ToList();
@@ -109,9 +116,13 @@ namespace ABB.SrcML {
                 throw new InvalidOperationException(string.Format("Executable already registered for language {0}: {1}", dupLanguages.First(), oldExec.ExecutablePath));
             }
 
-            var runner = namespaceArguments != null ? new Src2SrcMLRunner(executableDirectory, namespaceArguments) : new Src2SrcMLRunner(executableDirectory);
+            var runner = new Src2SrcMLRunner2(executableDirectory);
+            
             foreach(var lang in languages) {
                 nonDefaultExecutables[lang] = runner;
+                if(namespaceArguments != null) {
+                    nonDefaultArguments[lang] = namespaceArguments.ToArray();
+                }
             }
         }
 
@@ -124,8 +135,8 @@ namespace ABB.SrcML {
             foreach(var dir in defaultDir.GetDirectories()) {
                 Language dirlanguage;
                 if(Enum.TryParse<Language>(dir.Name, true, out dirlanguage)) {
-                    if(File.Exists(Path.Combine(dir.FullName, Src2SrcMLRunner.Src2SrcMLExecutableName))) {
-                        RegisterExecutable(dir.FullName, new[] {dirlanguage}, defaultExecutable.NamespaceArguments);
+                    if(File.Exists(Path.Combine(dir.FullName, Src2SrcMLRunner2.Src2SrcMLExecutableName))) {
+                        RegisterExecutable(dir.FullName, new[] {dirlanguage}, defaultArguments);
                     }
                 }
             }
@@ -137,8 +148,8 @@ namespace ABB.SrcML {
         /// <param name="sourceFileName">The path of the source file to convert.</param>
         /// <param name="xmlFileName">The file name to write the resulting XML to.</param>
         /// <returns>A SrcMLFile for <paramref name="xmlFileName"/>.</returns>
-        public SrcMLFile GenerateSrcMLFromFile(string sourceFileName, string xmlFileName) {
-            return GenerateSrcMLFromFile(sourceFileName, xmlFileName, Language.Any);
+        public void GenerateSrcMLFromFile(string sourceFileName, string xmlFileName) {
+            GenerateSrcMLFromFile(sourceFileName, xmlFileName, Language.Any);
         }
 
         /// <summary>
@@ -148,7 +159,7 @@ namespace ABB.SrcML {
         /// <param name="xmlFileName">The file name to write the resulting XML to.</param>
         /// <param name="language">The language to parse the source file as. If this is Language.Any, then the language will be determined from the file extension.</param>
         /// <returns>A SrcMLFile for <paramref name="xmlFileName"/>.</returns>
-        public SrcMLFile GenerateSrcMLFromFile(string sourceFileName, string xmlFileName, Language language) {
+        public void GenerateSrcMLFromFile(string sourceFileName, string xmlFileName, Language language) {
             if(language == Language.Any) {
                 string ext = Path.GetExtension(sourceFileName);
                 if(ext == null || !extensionMapping.ContainsKey(ext)) {
@@ -156,9 +167,11 @@ namespace ABB.SrcML {
                 }
                 language = extensionMapping[ext];
             }
-            Src2SrcMLRunner runner = nonDefaultExecutables.ContainsKey(language) ? nonDefaultExecutables[language] : defaultExecutable;
-            SetExtensionMappingOnRunner(runner);
-            return runner.GenerateSrcMLFromFile(sourceFileName, xmlFileName, language);
+            Src2SrcMLRunner2 runner = nonDefaultExecutables.ContainsKey(language) ? nonDefaultExecutables[language] : defaultExecutable;
+            var additionalArguments = CreateArgumentsForLanguage(language);
+            var runnerExtMap = CreateExtensionMappingForRunner(runner);
+
+            runner.GenerateSrcMLFromFile(sourceFileName, xmlFileName, language, additionalArguments, runnerExtMap);
         }
 
         //TODO: should this method be here? Can we get rid of it altogether?
@@ -170,7 +183,8 @@ namespace ABB.SrcML {
         /// <param name="xmlFileName">The file name to write the resulting XML to.</param>
         /// <returns>The root XElement for <paramref name="xmlFileName"/>.</returns>
         public XElement GenerateSrcMLAndXElementFromFile(string sourceFileName, string xmlFileName) {
-            SrcMLFile file = GenerateSrcMLFromFile(sourceFileName, xmlFileName);
+            GenerateSrcMLFromFile(sourceFileName, xmlFileName);
+            SrcMLFile file = new SrcMLFile(xmlFileName);
             return file.FileUnits.FirstOrDefault();
         }
 
@@ -183,7 +197,8 @@ namespace ABB.SrcML {
         /// <param name="xmlFileName">The file name to write the resulting XML to.</param>
         /// <returns>A string containing the xml for the file.</returns>
         public string GenerateSrcMLAndStringFromFile(string sourceFileName, string xmlFileName) {
-            SrcMLFile file = GenerateSrcMLFromFile(sourceFileName, xmlFileName);
+            GenerateSrcMLFromFile(sourceFileName, xmlFileName);
+            SrcMLFile file = new SrcMLFile(xmlFileName);
             return file.GetXMLString();
         }
 
@@ -224,14 +239,14 @@ namespace ABB.SrcML {
                 var tempOutputFile = Path.GetTempFileName();
                 SrcMLFile tempResult;
                 if(kvp.Key == Language.Any) {
-                    SetExtensionMappingOnRunner(defaultExecutable);
-                    tempResult = defaultExecutable.GenerateSrcMLFromFiles(kvp.Value, tempOutputFile);
+                    var mapForRunner = CreateExtensionMappingForRunner(defaultExecutable);
+                    defaultExecutable.GenerateSrcMLFromFiles(kvp.Value, tempOutputFile, Language.Any, new Collection<string>(defaultArguments.ToList()), mapForRunner);
                 } else {
                     var runner = nonDefaultExecutables[kvp.Key];
-                    SetExtensionMappingOnRunner(runner);
-                    tempResult = runner.GenerateSrcMLFromFiles(kvp.Value, tempOutputFile, kvp.Key);
+                    var mapForRunner = CreateExtensionMappingForRunner(runner);
+                    runner.GenerateSrcMLFromFiles(kvp.Value, tempOutputFile, kvp.Key, new Collection<string>(nonDefaultArguments[kvp.Key].ToList()), mapForRunner);
                 }
-
+                tempResult = new SrcMLFile(tempOutputFile);
                 var oldArchiveFile = tempArchive != null ? tempArchive.FileName : null;
                 tempArchive = tempResult.Merge(tempArchive, Path.GetTempFileName());
                 File.Delete(tempOutputFile);
@@ -254,10 +269,12 @@ namespace ABB.SrcML {
         /// <param name="xmlFileName">The file name to write the resulting XML to.</param>
         /// <param name="language">The language to parse the source files as.</param>
         /// <returns>A SrcMLFile for <paramref name="xmlFileName"/>.</returns>
-        public SrcMLFile GenerateSrcMLFromFiles(IEnumerable<string> sourceFileNames, string xmlFileName, Language language) {
-            Src2SrcMLRunner runner = nonDefaultExecutables.ContainsKey(language) ? nonDefaultExecutables[language] : defaultExecutable;
-            SetExtensionMappingOnRunner(runner);
-            return runner.GenerateSrcMLFromFiles(sourceFileNames, xmlFileName, language);
+        public void GenerateSrcMLFromFiles(IEnumerable<string> sourceFileNames, string xmlFileName, Language language) {
+            Src2SrcMLRunner2 runner = nonDefaultExecutables.ContainsKey(language) ? nonDefaultExecutables[language] : defaultExecutable;
+            var mapForRunner = CreateExtensionMappingForRunner(runner);
+            var additionalArguments = CreateArgumentsForLanguage(language);
+
+            runner.GenerateSrcMLFromFiles(sourceFileNames, xmlFileName, language, additionalArguments, mapForRunner);
         }
 
         /// <summary>
@@ -331,7 +348,7 @@ namespace ABB.SrcML {
         /// <param name="source">A string containing the source code to parse.</param>
         /// <returns>XML representing the source.</returns>
         public string GenerateSrcMLFromString(string source) {
-            return defaultExecutable.GenerateSrcMLFromString(source);
+            return defaultExecutable.GenerateSrcMLFromString(source, Language.CPlusPlus, new Collection<string>(defaultArguments), true);
         }
 
         /// <summary>
@@ -344,36 +361,36 @@ namespace ABB.SrcML {
             if(language == Language.Any) {
                 throw new SrcMLException("Any is not a valid language. Pick an actual language in the enumeration");
             }
-            Src2SrcMLRunner runner = nonDefaultExecutables.ContainsKey(language) ? nonDefaultExecutables[language] : defaultExecutable;
-            return runner.GenerateSrcMLFromString(source, language);
+            Src2SrcMLRunner2 runner = nonDefaultExecutables.ContainsKey(language) ? nonDefaultExecutables[language] : defaultExecutable;
+            var additionalArguments = CreateArgumentsForLanguage(language);
+
+            return runner.GenerateSrcMLFromString(source, language, additionalArguments, true);
         }
 
-        
+        private Collection<string> CreateArgumentsForLanguage(Language language) {
+            return new Collection<string>(nonDefaultArguments.ContainsKey(language) ? nonDefaultArguments[language] : defaultArguments);
+        }
 
-
-        private void SetExtensionMappingOnRunner(Src2SrcMLRunner runner) {
+        private Dictionary<string, Language> CreateExtensionMappingForRunner(Src2SrcMLRunner2 runner) {
+            Dictionary<string, Language> extensionMapForRunner = new Dictionary<string,Language>(StringComparer.InvariantCultureIgnoreCase);
+            IEnumerable<KeyValuePair<string, Language>> kvps = Enumerable.Empty<KeyValuePair<string,Language>>();
             if(runner == defaultExecutable) {
-                var runnerMap = runner.ExtensionMapping;
-                runnerMap.Clear();
-                foreach(var kvp in extensionMapping) {
-                    if(defaultLanguages.Contains(kvp.Value)) {
-                        runnerMap[kvp.Key] = kvp.Value;
-                    }
-                }
+                kvps = from kvp in ExtensionMapping
+                       where defaultLanguages.Contains(kvp.Value)
+                       select kvp;
             } else if(nonDefaultExecutables.Values.Contains(runner)) {
-                var runnerMap = runner.ExtensionMapping;
-                runnerMap.Clear();
                 var registeredLanguages = (from kvp in nonDefaultExecutables
                                            where kvp.Value == runner
                                            select kvp.Key).ToList();
-                foreach(var kvp in extensionMapping) {
-                    if(registeredLanguages.Contains(kvp.Value)) {
-                        runnerMap[kvp.Key] = kvp.Value;
-                    }
-                }
-            } else {
-                throw new ArgumentException("Unregistered Src2SrcMLRunner", "runner");
+                kvps = from kvp in ExtensionMapping
+                       where registeredLanguages.Contains(kvp.Value)
+                       select kvp;
             }
+            foreach(var kvp in kvps) {
+                extensionMapForRunner[kvp.Key] = kvp.Value;
+            }
+            
+            return extensionMapForRunner;
         }
     }
 }

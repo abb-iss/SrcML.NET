@@ -88,8 +88,8 @@ namespace LoggingTransformation
 
         [Test]
         public void DifferentLanguageTest() {
-            var doc = generator.GenerateSrcMLFromFile("srcmltest\\CSHARP.cs", "srcml_xml\\differentlanguage_java.xml", Language.Java);
-
+            generator.GenerateSrcMLFromFile("srcmltest\\CSHARP.cs", "srcml_xml\\differentlanguage_java.xml", Language.Java);
+            var doc = new SrcMLFile("srcml_xml\\differentlanguage_java.xml");
             Assert.IsNotNull(doc);
         }
 
@@ -107,23 +107,26 @@ printf(""hello world!"");
 
         [Test]
         public void InvalidLanguageTest() {
-            var doc = generator.GenerateSrcMLFromFile("srcmltest\\foo.c", "srcml_xml\\invalidlanguage_java.xml", Language.Java);
+            generator.GenerateSrcMLFromFile("srcmltest\\foo.c", "srcml_xml\\invalidlanguage_java.xml", Language.Java);
+            var doc = new SrcMLFile("srcml_xml\\invalidlanguage_java.xml");
             Assert.IsNotNull(doc);
 
             doc = null;
-            doc = generator.GenerateSrcMLFromFile("srcmltest\\foo.c", "srcml_xml\\invalidlanguage_cpp.xml", Language.CPlusPlus);
+            generator.GenerateSrcMLFromFile("srcmltest\\foo.c", "srcml_xml\\invalidlanguage_cpp.xml", Language.CPlusPlus);
+            doc = new SrcMLFile("srcml_xml\\invalidlanguage_cpp.xml");
             Assert.IsNotNull(doc);
 
             doc = null;
-            doc = generator.GenerateSrcMLFromFile("srcmltest\\foo.c", "srcml_xml\\invalidlanguage_c.xml", Language.C);
+            generator.GenerateSrcMLFromFile("srcmltest\\foo.c", "srcml_xml\\invalidlanguage_c.xml", Language.C);
+            doc = new SrcMLFile("srcml_xml\\invalidlanguage_c.xml");
 
             Assert.IsNotNull(doc);
         }
 
         [Test]
         public void SingleFileTest() {
-            var doc = generator.GenerateSrcMLFromFile("srcmltest\\foo.c", "srcml_xml\\singlefile.xml");
-
+            generator.GenerateSrcMLFromFile("srcmltest\\foo.c", "srcml_xml\\singlefile.xml");
+            var doc = new SrcMLFile("srcml_xml\\singlefile.xml");
             Assert.IsNotNull(doc);
             Assert.AreEqual(1, doc.FileUnits.Count());
             Assert.AreEqual("srcmltest\\foo.c", doc.FileUnits.First().Attribute("filename").Value);
@@ -183,7 +186,8 @@ printf(""hello world!"");
 
         [Test]
         public void MultipleFilesTest_Language() {
-            var doc = generator.GenerateSrcMLFromFiles(new string[] { "srcmltest\\foo.c", "srcmltest\\bar.c" }, "srcml_xml\\multiplefile.xml", Language.CPlusPlus);
+            generator.GenerateSrcMLFromFiles(new string[] { "srcmltest\\foo.c", "srcmltest\\bar.c" }, "srcml_xml\\multiplefile.xml", Language.CPlusPlus);
+            var doc = new SrcMLFile("srcml_xml\\multiplefile.xml");
 
             Assert.IsNotNull(doc);
             var files = doc.FileUnits.ToList();
@@ -216,16 +220,16 @@ printf(""hello world!"");
             File.WriteAllText("srcml_xml\\emptyFile.xml", "");
             Assert.IsTrue(File.Exists("srcml_xml\\emptyFile.xml"));
 
-            var doc = generator.GenerateSrcMLFromFile("srcmltest\\foo.c", "srcml_xml\\emptyFile.xml");
-
+            generator.GenerateSrcMLFromFile("srcmltest\\foo.c", "srcml_xml\\emptyFile.xml");
+            var doc = new SrcMLFile("srcml_xml\\emptyFile.xml");
             Assert.IsNotNull(doc);
             Assert.AreEqual(1, doc.FileUnits.Count());
         }
 
         [Test]
         public void InputWithSpacesTest() {
-            var doc = generator.GenerateSrcMLFromFile("srcmltest\\File with spaces.cpp", "srcml_xml\\input_with_spaces.xml");
-
+            generator.GenerateSrcMLFromFile("srcmltest\\File with spaces.cpp", "srcml_xml\\input_with_spaces.xml");
+            var doc = new SrcMLFile("srcml_xml\\input_with_spaces.xml");
             Assert.IsNotNull(doc);
             Assert.AreEqual(1, doc.FileUnits.Count());
         }
@@ -240,7 +244,8 @@ printf(""hello world!"");
 
         [Test]
         public void TestGenerateSrcMLFromFile_NonDefaultExtension() {
-            var doc = generator.GenerateSrcMLFromFile(@"srcmltest\CSHARP.cs", @"srcml_xml\CSHARP.xml");
+            generator.GenerateSrcMLFromFile(@"srcmltest\CSHARP.cs", @"srcml_xml\CSHARP.xml");
+            var doc = new SrcMLFile(@"srcml_xml\CSHARP.xml");
             Assert.IsNotNull(doc);
             Assert.AreEqual(1, doc.FileUnits.Count());
         }
