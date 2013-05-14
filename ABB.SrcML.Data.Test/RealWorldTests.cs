@@ -321,7 +321,7 @@ namespace ABB.SrcML.Data.Test {
 
                         Parallel.ForEach(xmlFiles, currentFile => {
 
-                            var unit = XElement.Load(currentFile, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo);
+                            var unit = SrcMLElement.Load(currentFile);
                             var language = SrcMLElement.GetLanguageForUnit(unit);
                             try {
 

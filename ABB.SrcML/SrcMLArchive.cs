@@ -136,7 +136,7 @@ namespace ABB.SrcML {
             get {
                 var xmlFiles = Directory.EnumerateFiles(this.ArchivePath, "*.xml", SearchOption.AllDirectories);
                 foreach(var xmlFileName in xmlFiles) {
-                    yield return XElement.Load(xmlFileName, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo);
+                    yield return SrcMLElement.Load(xmlFileName);
                 }
             }
         }

@@ -356,7 +356,7 @@ namespace ABB.SrcML {
             get {
                 if(0 == this.NumberOfNestedFileUnits) {
                     var shortList = new List<XElement>(1);
-                    shortList.Add(XElement.Load(this.FileName, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo));
+                    shortList.Add(SrcMLElement.Load(this.FileName));
                     return shortList;
                 }
                 IEnumerable<XElement> units = from unit in XmlHelper.StreamElements(this.ArchivePath, SRC.Unit)
