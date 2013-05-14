@@ -36,6 +36,10 @@ namespace ABB.SrcML
             
         }
 
+        /// <summary>
+        /// Archives are "ready" when they have no running tasks. This property automatically changes to false
+        /// when the number of running tasks is zero. Whenever the value changes, the <see cref="IsReadyChanged"/> event fires.
+        /// </summary>
         public bool IsReady {
             get { return this.archiveIsReady; }
             protected set {
@@ -46,8 +50,14 @@ namespace ABB.SrcML
             }
         }
 
+        /// <summary>
+        /// Task factory for the asynchronous methods
+        /// </summary>
         public TaskFactory TaskFactory { get; set; }
 
+        /// <summary>
+        /// The number of tasks that are currently running
+        /// </summary>
         protected int CountOfRunningTasks {
             get { return _runningTasks; }
         }
@@ -68,37 +78,61 @@ namespace ABB.SrcML
         public event EventHandler<IsReadyChangedEventArgs> IsReadyChanged;
 
         /// <summary>
-        /// Adds or updates <paramref name="fileName"/> within the archive
+        /// Sub-classes of AbstractArchive should implement the "add or update file" functionality here in order to enable <see cref="AddOrUpdateFile"/> and <see cref="AddOrUpdateFileAsync"/>
         /// </summary>
         /// <param name="fileName">The file name to add or update. If the file exists, it is deleted and then added regardless of whether or not the file is outdated</param>
         protected abstract void AddOrUpdateFileImpl(string fileName);
 
         /// <summary>
-        /// Deletes <paramref name="fileName"/> from the archive
+        /// Sub-classes of AbstractArchive should implement the "delete file" functionality here in order to enable <see cref="DeleteFile"/> and <see cref="DeleteFileAsync"/>
         /// </summary>
         /// <param name="fileName">The file name to delete. If it does not exist, nothing happens</param>
         protected abstract void DeleteFileImpl(string fileName);
+
+        /// <summary>
+        /// Sub-classes of AbstractArchive should implement the "rename file" functionality here in order to enable <see cref="RenameFile"/> and <see cref="RenameFileAsync"/>
+        /// </summary>
+        /// <param name="oldFileName">the existing path</param>
+        /// <param name="newFileName">the new path</param>
+        protected abstract void RenameFileImpl(string oldFileName, string newFileName);
+
+        /// <summary>
+        /// Adds or updates <paramref name="fileName"/> within the archive
+        /// </summary>
+        /// <param name="fileName">The file name to add or update. If the file exists, it is deleted and then added regardless of whether or not the file is outdated</param>
+        public virtual void AddOrUpdateFile(string fileName) { Run(() => AddOrUpdateFileImpl(fileName)); }
+
+        /// <summary>
+        /// Adds or updates <paramref name="fileName"/> within the archive asynchronously. A new <see cref="System.Threading.Tasks.Task"/> is run via <see cref="TaskFactory"/>.
+        /// </summary>
+        /// <param name="fileName">The file name to add or update. If the file exists, it is deleted and then added regardless of whether or not the file is outdated</param>
+        public virtual void AddOrUpdateFileAsync(string fileName) { RunAsync(() => AddOrUpdateFileImpl(fileName)); }
+
+        /// <summary>
+        /// Deletes <paramref name="fileName"/> from the archive
+        /// </summary>
+        /// <param name="fileName">The file name to delete. If it does not exist, nothing happens</param>
+        public virtual void DeleteFile(string fileName) { Run(() => DeleteFileImpl(fileName)); }
+
+        /// <summary>
+        /// Deletes <paramref name="fileName"/> from the archive asynchronously. A new <see cref="System.Threading.Tasks.Task"/> is run via <see cref="TaskFactory"/>.
+        /// </summary>
+        /// <param name="fileName">The file name to delete. If it does not exist, nothing happens</param>
+        public virtual void DeleteFileAsync(string fileName) { RunAsync(() => DeleteFileImpl(fileName)); }
 
         /// <summary>
         /// Renames the file to the new file name
         /// </summary>
         /// <param name="oldFileName">the existing path</param>
         /// <param name="newFileName">the new path</param>
-        protected abstract void RenameFileImpl(string oldFileName, string newFileName);
+        public virtual void RenameFile(string oldFileName, string newFileName) { Run(() => RenameFileImpl(oldFileName, newFileName)); }
 
-        public virtual void AddOrUpdateFile(string fileName) { Run(() => AddOrUpdateFileImpl(fileName), true); }
-
-        public virtual void AddOrUpdateFileAsync(string fileName) { Run(() => AddOrUpdateFileImpl(fileName), false); }
-        
-        public virtual void DeleteFile(string fileName) { Run(() => DeleteFileImpl(fileName), true); }
-
-        public virtual void DeleteFileAsync(string fileName) { Run(() => DeleteFileImpl(fileName), false); }
-
-        public virtual void RenameFile(string oldFileName, string newFileName) { Run(() => RenameFileImpl(oldFileName, newFileName), true); }
-
-        public virtual void RenameFileAsync(string oldFileName, string newFileName) { Run(() => RenameFileImpl(oldFileName, newFileName), false); }
-
-        
+        /// <summary>
+        /// Renames the file to the new file name asynchronously. A new <see cref="System.Threading.Tasks.Task"/> is run via <see cref="TaskFactory"/>.
+        /// </summary>
+        /// <param name="oldFileName">the existing path</param>
+        /// <param name="newFileName">the new path</param>
+        public virtual void RenameFileAsync(string oldFileName, string newFileName) { RunAsync(() => RenameFileImpl(oldFileName, newFileName)); }
 
         /// <summary>
         /// Tests to see if the archive contains <paramref name="fileName"/>
@@ -165,22 +199,32 @@ namespace ABB.SrcML
             FileChanged = null;
         }
 
-        protected void Run(Action action, bool runSynchronously) {
+        /// <summary>
+        /// Runs the specified action on this thread. The action will be run with the following continuations: <see cref="DecrementOnCompletion"/> and <see cref="LogExceptions"/>
+        /// </summary>
+        /// <param name="action">The action to run.</param>
+        protected void Run(Action action) {
             IncrementTask();
-            Task task;
-            if(runSynchronously) {
-                task = new Task(action);
-            } else {
-                task = this.TaskFactory.StartNew(action);   
-            }
+            Task task = new Task(action);
             DecrementOnCompletion(task);
             LogExceptions(task);
-
-            if(runSynchronously) {
-                task.RunSynchronously();
-            }
+            task.RunSynchronously();
         }
 
+        /// <summary>
+        /// Runs the specified action on <see cref="TaskFactory"/>. The action will be run with the following continuations: <see cref="DecrementOnCompletion"/> and <see cref="LogExceptions"/> 
+        /// </summary>
+        /// <param name="action"></param>
+        protected void RunAsync(Action action) {
+            IncrementTask();
+            Task task = this.TaskFactory.StartNew(action);
+            DecrementOnCompletion(task);
+            LogExceptions(task);
+        }
+
+        /// <summary>
+        /// Increments <see cref="CountOfRunningTasks"/> (called via the <see cref="Run"/> method). If <see cref="IsReady"/> is true, this sets it to false.
+        /// </summary>
         protected void IncrementTask() {
             Interlocked.Increment(ref _runningTasks);
             if(IsReady) {
@@ -188,6 +232,10 @@ namespace ABB.SrcML
             }
         }
 
+        /// <summary>
+        /// Decrements <see cref="CountOfRunningTasks"/> (called via the <see cref="DecrementOnCompletion"/> which is used in the <see cref="Run"/> method.
+        /// If the number of tasks becomes zero, then <see cref="IsReady"/> is set to true.
+        /// </summary>
         protected void DecrementTask() {
             Interlocked.Decrement(ref _runningTasks);
             if(_runningTasks <= 0) {
@@ -195,10 +243,18 @@ namespace ABB.SrcML
             }
         }
 
+        /// <summary>
+        /// Convenience function for adding a continuation that will call <see cref="DecrementTask"/> upon task completion.
+        /// </summary>
+        /// <param name="task"></param>
         protected void DecrementOnCompletion(Task task) {
             task.ContinueWith(t => DecrementTask());
         }
 
+        /// <summary>
+        /// Convenience function for logging exceptions upon task failure.
+        /// </summary>
+        /// <param name="task"></param>
         protected void LogExceptions(Task task) {
             task.ContinueWith(t => {
                 foreach(var exception in t.Exception.InnerExceptions) {
