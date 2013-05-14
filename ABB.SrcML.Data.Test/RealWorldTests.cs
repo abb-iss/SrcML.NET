@@ -25,7 +25,7 @@ namespace ABB.SrcML.Data.Test {
     [TestFixture]
     [Category("LongRunning")]
     class RealWorldTests {
-        private bool shouldRegenerateSrcML = false;
+        private bool shouldRegenerateSrcML = true;
         private Dictionary<Language, AbstractCodeParser> CodeParser;
 
         [TestFixtureSetUp]
@@ -50,11 +50,11 @@ namespace ABB.SrcML.Data.Test {
         [Test]
         public void TestFileUnitParsing_NotepadPlusPlus_Concurrent() {
             string npp62SourcePath = @"C:\Workspace\Source\Notepad++\6.2";
-            string npp62DataPath = @"C:\Workspace\SrcMLData\NPP-6.2";
+            string npp62DataPath = @"C:\Workspace\SrcMLData\concurrent\NPP-6.2";
 
-            Console.WriteLine("\nReal world test: Notepad++ 6.2 (C++)");
+            Console.WriteLine("\nReal world test: Notepad++ 6.2 (C++, concurrent)");
             Console.WriteLine("=======================================");
-            TestDataGeneration_Concurrent(npp62SourcePath, npp62DataPath);
+            TestDataGeneration(npp62SourcePath, npp62DataPath, true);
         }
 
         [Test]
@@ -70,11 +70,11 @@ namespace ABB.SrcML.Data.Test {
         [Test]
         public void TestFileUnitParsing_Bullet_Concurrent() {
             string bullet281SourcePath = @"C:\Workspace\Source\bullet\2.81";
-            string bullet281DataPath = @"C:\Workspace\SrcMLData\bullet-2.81";
+            string bullet281DataPath = @"C:\Workspace\SrcMLData\concurrent\bullet-2.81";
 
-            Console.WriteLine("\nReal World Test: Bullet 2.81 (C++)");
+            Console.WriteLine("\nReal World Test: Bullet 2.81 (C++, concurrent)");
             Console.WriteLine("=======================================");
-            TestDataGeneration_Concurrent(bullet281SourcePath, bullet281DataPath);
+            TestDataGeneration(bullet281SourcePath, bullet281DataPath, true);
         }
 
         [Test]
@@ -90,11 +90,11 @@ namespace ABB.SrcML.Data.Test {
         [Test]
         public void TestFileUnitParsing_Subversion_Concurrent() {
             string svn178SourcePath = @"C:\Workspace\Source\Subversion\1.7.8";
-            string svn178DataPath = @"C:\Workspace\SrcMLData\subversion-1.7.8";
+            string svn178DataPath = @"C:\Workspace\SrcMLData\concurrent\subversion-1.7.8";
 
-            Console.WriteLine("\nReal World Test: Subversion 1.7.8 (C)");
+            Console.WriteLine("\nReal World Test: Subversion 1.7.8 (C, concurrent)");
             Console.WriteLine("=======================================");
-            TestDataGeneration_Concurrent(svn178SourcePath, svn178DataPath);
+            TestDataGeneration(svn178SourcePath, svn178DataPath, true);
         }
 
         [Test]
@@ -110,11 +110,11 @@ namespace ABB.SrcML.Data.Test {
         [Test]
         public void TestFileUnitParsing_Eclipse_Concurrent() {
             string eclipse422SourcePath = @"C:\Workspace\Source\eclipse\platform422";
-            string eclipse422Datapath = @"C:\Workspace\SrcMLData\eclipse-4.2.2";
+            string eclipse422Datapath = @"C:\Workspace\SrcMLData\concurrent\eclipse-4.2.2";
 
-            Console.WriteLine("\nReal World Test: Eclipse Platform 4.2.2 (Java)");
+            Console.WriteLine("\nReal World Test: Eclipse Platform 4.2.2 (Java, concurrent)");
             Console.WriteLine("=======================================");
-            TestDataGeneration_Concurrent(eclipse422SourcePath, eclipse422Datapath);
+            TestDataGeneration(eclipse422SourcePath, eclipse422Datapath, true);
         }
 
         [Test]
@@ -130,15 +130,15 @@ namespace ABB.SrcML.Data.Test {
         [Test]
         public void TestFileUnitParsing_NDatabase_Concurrent() {
             string ndatabase45SourcePath = @"C:\Workspace\Source\NDatabase\master45";
-            string ndatabase45DataPath = @"C:\Workspace\SrcMLData\ndatabase-4.5";
+            string ndatabase45DataPath = @"C:\Workspace\SrcMLData\concurrent\ndatabase-4.5";
 
-            Console.WriteLine("\nReal World Test: NDatabase 4.5 (C#)");
+            Console.WriteLine("\nReal World Test: NDatabase 4.5 (C#, concurrent)");
             Console.WriteLine("=======================================");
-            TestDataGeneration_Concurrent(ndatabase45SourcePath, ndatabase45DataPath);
+            TestDataGeneration(ndatabase45SourcePath, ndatabase45DataPath, true);
         }
 
 
-        private void TestDataGeneration(string sourcePath, string dataPath) {
+        private void TestDataGeneration(string sourcePath, string dataPath, bool useAsyncMethods=false) {
             string fileLogPath = Path.Combine(dataPath, "parse.log");
             string callLogPath = Path.Combine(dataPath, "methodcalls.log");
             bool regenerateSrcML = shouldRegenerateSrcML;
@@ -164,40 +164,44 @@ namespace ABB.SrcML.Data.Test {
             archive.XmlGenerator.ExtensionMapping[".cc"] = Language.CPlusPlus;
 
             AbstractFileMonitor monitor = new FileSystemFolderMonitor(sourcePath, dataPath, new LastModifiedArchive(dataPath), archive);
+            monitor.UseAsyncMethods = useAsyncMethods;
 
             ManualResetEvent mre = new ManualResetEvent(false);
-            Stopwatch sw = new Stopwatch();
+            DateTime start, end = DateTime.MinValue;
             bool startupCompleted = false;
-
-            monitor.StartupCompleted += (o, e) => {
-                sw.Stop();
-                startupCompleted = true;
-                mre.Set();
+            
+            //monitor.IsReadyChanged += (o, e) => {
+            archive.IsReadyChanged += (o, e) => {
+                if(e.UpdatedReadyState) {
+                    end = DateTime.Now;
+                    startupCompleted = true;
+                    mre.Set();
+                }
             };
 
-            sw.Start();
+            start = DateTime.Now;
             monitor.Startup();
 
-            startupCompleted = mre.WaitOne(60000);
-            if(sw.IsRunning) {
-                sw.Stop();
+            startupCompleted = mre.WaitOne(120000);
+            if(!startupCompleted) {
+                end = DateTime.Now;
             }
 
-            Console.WriteLine("{0} to {1} srcML", sw.Elapsed, (regenerateSrcML ? "generate" : "verify"));
+            Console.WriteLine("{0} to {1} srcML", end - start, (regenerateSrcML ? "generate" : "verify"));
             Assert.That(startupCompleted);
 
             Scope globalScope = null;
-            sw.Reset();
 
             int numberOfFailures = 0;
             int numberOfSuccesses = 0;
             int numberOfFiles = 0;
             Dictionary<string, List<string>> errors = new Dictionary<string, List<string>>();
 
+            start = DateTime.Now;
             using(var fileLog = new StreamWriter(fileLogPath)) {
                 foreach(var unit in archive.FileUnits) {
                     if(++numberOfFiles % 100 == 0) {
-                        Console.WriteLine("{0,5:N0} files completed in {1} with {2,5:N0} failures", numberOfFiles, sw.Elapsed, numberOfFailures);
+                        Console.WriteLine("{0,5:N0} files completed in {1} with {2,5:N0} failures", numberOfFiles, DateTime.Now - start, numberOfFailures);
                     }
 
                     var fileName = SrcMLElement.GetFileNameForUnit(unit);
@@ -205,7 +209,6 @@ namespace ABB.SrcML.Data.Test {
 
                     fileLog.Write("Parsing {0}", fileName);
                     try {
-                        sw.Start();
                         var scopeForUnit = CodeParser[language].ParseFileUnit(unit);
 
                         if(null == globalScope) {
@@ -213,11 +216,9 @@ namespace ABB.SrcML.Data.Test {
                         } else {
                             globalScope = globalScope.Merge(scopeForUnit);
                         }
-                        sw.Stop();
                         fileLog.WriteLine(" PASSED");
                         numberOfSuccesses++;
                     } catch(Exception e) {
-                        sw.Stop();
                         fileLog.WriteLine(" FAILED");
                         fileLog.WriteLine(e.StackTrace);
                         var key = e.StackTrace.Split('\n')[0].Trim();
@@ -230,13 +231,14 @@ namespace ABB.SrcML.Data.Test {
                     }
                 }
             }
-                        
-            Console.WriteLine("{0,5:N0} files completed in {1} with {2,5:N0} failures", numberOfFiles, sw.Elapsed, numberOfFailures);
+            end = DateTime.Now;
+
+            Console.WriteLine("{0,5:N0} files completed in {1} with {2,5:N0} failures", numberOfFiles, end - start, numberOfFailures);
             Console.WriteLine("\nSummary");
             Console.WriteLine("===================");
             Console.WriteLine("{0,10:N0} failures  ({1,8:P2})", numberOfFailures, ((float)numberOfFailures) / numberOfFiles);
             Console.WriteLine("{0,10:N0} successes ({1,8:P2})", numberOfSuccesses, ((float)numberOfSuccesses) / numberOfFiles);
-            Console.WriteLine("{0} to generate data", sw.Elapsed);
+            Console.WriteLine("{0} to generate data", end - start);
             Console.WriteLine(fileLogPath);
 
             PrintScopeReport(globalScope);
@@ -280,10 +282,12 @@ namespace ABB.SrcML.Data.Test {
             Stopwatch sw = new Stopwatch();
             bool startupCompleted = false;
 
-            monitor.StartupCompleted += (o, e) => {
-                sw.Stop();
-                startupCompleted = true;
-                mre.Set();
+            monitor.IsReadyChanged += (o, e) => {
+                if(e.UpdatedReadyState) {
+                    sw.Stop();
+                    startupCompleted = true;
+                    mre.Set();
+                }
             };
 
             sw.Start();

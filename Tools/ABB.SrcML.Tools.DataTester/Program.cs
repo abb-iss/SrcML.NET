@@ -68,10 +68,12 @@ namespace ABB.SrcML.Tools.DataTester {
             Stopwatch timer = new Stopwatch();
             bool startupCompleted = false;
 
-            monitor.StartupCompleted += (o, e) => {
-                timer.Stop();
-                startupCompleted = true;
-                mre.Set();
+            monitor.IsReadyChanged += (o, e) => {
+                if(e.UpdatedReadyState) {
+                    timer.Stop();
+                    startupCompleted = true;
+                    mre.Set();
+                }
             };
 
             timer.Start();

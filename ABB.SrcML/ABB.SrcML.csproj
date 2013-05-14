@@ -67,6 +67,7 @@
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="IArchive.cs" />
     <Compile Include="IFileMonitor.cs" />
+    <Compile Include="IsReadyChangedEventArgs.cs" />
     <Compile Include="LastModifiedArchive.cs" />
     <Compile Include="ShortXmlFileNameMapping.cs" />
     <Compile Include="Src2SrcMLRunner2.cs" />

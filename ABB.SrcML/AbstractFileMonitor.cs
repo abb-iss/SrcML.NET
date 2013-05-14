@@ -26,9 +26,13 @@ namespace ABB.SrcML {
     /// <para>When the archive is done processing the file, it raises its own <see cref="AbstractArchive.FileChanged">event</see></para>
     /// </summary>
     public abstract class AbstractFileMonitor : IDisposable {
+        private bool monitorIsReady;
+        private int numberOfWorkingArchives;
         private AbstractArchive defaultArchive;
         private HashSet<AbstractArchive> registeredArchives;
         private Dictionary<string, AbstractArchive> archiveMap;
+
+        public bool UseAsyncMethods { get; set; }
 
         /// <summary>
         /// Creates a new AbstractFileMonitor with the default archive and a collection of non-default archives that should be registered
@@ -36,24 +40,31 @@ namespace ABB.SrcML {
         /// <param name="baseDirectory">The folder where this monitor stores it archives</param>
         /// <param name="defaultArchive">The default archive</param>
         /// <param name="otherArchives">A list of other archives that should be registered via <see cref="RegisterNonDefaultArchive(AbstractArchive)"/></param>
-        public AbstractFileMonitor(string baseDirectory, AbstractArchive defaultArchive, params AbstractArchive[] otherArchives)
-            : this(baseDirectory, defaultArchive) {
-                foreach(var archive in otherArchives) {
-                    this.RegisterNonDefaultArchive(archive);
-                }
-        }
-        /// <summary>
-        /// Creates a new AbstractFileMonitor with the default archive
-        /// </summary>
-        /// <param name="baseDirectory">The folder where this monitor stores its archives</param>
-        /// <param name="defaultArchive">The default archive</param>
-        public AbstractFileMonitor(string baseDirectory, AbstractArchive defaultArchive) {
+        public AbstractFileMonitor(string baseDirectory, AbstractArchive defaultArchive, params AbstractArchive[] otherArchives) {
             this.MonitorStoragePath = baseDirectory;
             this.registeredArchives = new HashSet<AbstractArchive>();
             this.archiveMap = new Dictionary<string, AbstractArchive>(StringComparer.InvariantCultureIgnoreCase);
-            this.registeredArchives.Add(defaultArchive);
-            this.defaultArchive = defaultArchive;
-            this.defaultArchive.FileChanged += RespondToArchiveFileEvent;
+            this.numberOfWorkingArchives = 0;
+            this.monitorIsReady = true;
+            this.UseAsyncMethods = false;
+
+            RegisterArchive(defaultArchive, true);
+            foreach(var archive in otherArchives) {
+                this.RegisterArchive(archive, false);
+            }
+        }
+
+        /// <summary>
+        /// Indicates that the monitor has finished updating all changed files.
+        /// </summary>
+        public bool IsReady {
+            get { return this.monitorIsReady; }
+            protected set {
+                if(value != monitorIsReady) {
+                    monitorIsReady = value;
+                    OnIsReadyChanged(new IsReadyChangedEventArgs(monitorIsReady));
+                }
+            }
         }
 
         /// <summary>
@@ -67,9 +78,9 @@ namespace ABB.SrcML {
         public event EventHandler<FileEventRaisedArgs> FileChanged;
 
         /// <summary>
-        /// Event fires when <see cref="Startup()"/> is completed
+        /// Event fires when the <see cref="IsReady"/> property changes
         /// </summary>
-        public event EventHandler StartupCompleted;
+        public event EventHandler<IsReadyChangedEventArgs> IsReadyChanged;
 
         /// <summary>
         /// Event fires when <see cref="StopMonitoring()"/> is completed
@@ -97,20 +108,39 @@ namespace ABB.SrcML {
                                 select filePath;
             return archivedFiles;
         }
-        
+
         /// <summary>
         /// Registers an archive in the file monitor. All file changes will be automatically routed to the appropriate archive
         /// based on file extension (via <see cref="AbstractArchive.SupportedExtensions"/>
         /// </summary>
         /// <param name="archive">the archive to add.</param>
-        public void RegisterNonDefaultArchive(AbstractArchive archive) {
-            registeredArchives.Add(archive);
+        /// <param name="isDefault">whether or not to use this archive as the default archive</param>
+        public void RegisterArchive(AbstractArchive archive, bool isDefault) {
+            this.registeredArchives.Add(archive);
             archive.FileChanged += RespondToArchiveFileEvent;
-            foreach(var extension in archive.SupportedExtensions) {
-                if(archiveMap.ContainsKey(extension)) {
-                    SrcMLFileLogger.DefaultLogger.WarnFormat("AbstractFileMonitor.RegisterNonDefaultArchive() - Archive already registered for extension {0}, will be replaced with the new archive.", extension);
+            archive.IsReadyChanged += archive_IsReadyChanged;
+            if(isDefault) {
+                this.defaultArchive = archive;
+            } else {
+                foreach(var extension in archive.SupportedExtensions) {
+                    if(archiveMap.ContainsKey(extension)) {
+                        SrcMLFileLogger.DefaultLogger.WarnFormat("AbstractFileMonitor.RegisterNonDefaultArchive() - Archive already registered for extension {0}, will be replaced with the new archive.", extension);
+                    }
+                    archiveMap[extension] = archive;
                 }
-                archiveMap[extension] = archive;
+            }
+        }
+
+        void archive_IsReadyChanged(object sender, IsReadyChangedEventArgs e) {
+            if(e.UpdatedReadyState) {
+                numberOfWorkingArchives--;
+            } else {
+                numberOfWorkingArchives++;
+            }
+            if(0 == numberOfWorkingArchives) {
+                IsReady = true;
+            } else {
+                IsReady = false;
             }
         }
 
@@ -144,7 +174,12 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="filePath">the file to add</param>
         public void AddFile(string filePath) {
-            this.GetArchiveForFile(filePath).AddOrUpdateFile(filePath);
+            if(UseAsyncMethods) {
+                this.GetArchiveForFile(filePath).AddOrUpdateFileAsync(filePath);
+            } else {
+                this.GetArchiveForFile(filePath).AddOrUpdateFile(filePath);
+            }
+            
         }
 
         /// <summary>
@@ -152,7 +187,11 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="filePath">The file to delete</param>
         public void DeleteFile(string filePath) {
-            this.GetArchiveForFile(filePath).DeleteFile(filePath);
+            if(UseAsyncMethods) {
+                this.GetArchiveForFile(filePath).DeleteFileAsync(filePath);
+            } else {
+                this.GetArchiveForFile(filePath).DeleteFile(filePath);
+            }
         }
 
         /// <summary>
@@ -160,7 +199,11 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="filePath">the file to update</param>
         public void UpdateFile(string filePath) {
-            this.GetArchiveForFile(filePath).AddOrUpdateFile(filePath);
+            if(UseAsyncMethods) {
+                this.GetArchiveForFile(filePath).AddOrUpdateFileAsync(filePath);
+            } else {
+                this.GetArchiveForFile(filePath).AddOrUpdateFile(filePath);
+            }
         }
 
         /// <summary>
@@ -176,10 +219,19 @@ namespace ABB.SrcML {
             var newArchive = GetArchiveForFile(newFilePath);
 
             if(!oldArchive.Equals(newArchive)) {
-                oldArchive.DeleteFile(oldFilePath);
-                newArchive.AddOrUpdateFile(newFilePath);
+                if(UseAsyncMethods) {
+                    oldArchive.DeleteFileAsync(oldFilePath);
+                    newArchive.AddOrUpdateFileAsync(newFilePath);
+                } else {
+                    oldArchive.DeleteFile(oldFilePath);
+                    newArchive.AddOrUpdateFile(newFilePath);
+                }
             } else {
-                oldArchive.RenameFile(oldFilePath, newFilePath);
+                if(UseAsyncMethods) {
+                    oldArchive.RenameFileAsync(oldFilePath, newFilePath);
+                } else {
+                    oldArchive.RenameFile(oldFilePath, newFilePath);
+                }
             }
         }
 
@@ -228,8 +280,6 @@ namespace ABB.SrcML {
                     // TODO log exception
                 }
             }
-            
-            OnStartupCompleted(new EventArgs());
         }
 
         /// <summary> For Sando, add degree of parallelism
@@ -301,7 +351,6 @@ namespace ABB.SrcML {
                     // TODO log exception
                 }
             }
-            OnStartupCompleted(new EventArgs());
         }
 
         public virtual void Startup_Concurrent() {
@@ -366,7 +415,6 @@ namespace ABB.SrcML {
                     // TODO log exception
                 }
             }
-            OnStartupCompleted(new EventArgs());
         }
 
         /// <summary>
@@ -374,7 +422,7 @@ namespace ABB.SrcML {
         /// </summary>
         public void Dispose() {
             SrcMLFileLogger.DefaultLogger.Info("AbstractFileMonitor.Dispose()");
-            StartupCompleted = null;
+            IsReadyChanged = null;
             FileChanged = null;
             foreach(var archive in registeredArchives) {
                 archive.Dispose();
@@ -393,11 +441,11 @@ namespace ABB.SrcML {
         }
 
         /// <summary>
-        /// event handler for <see cref="StartupCompleted"/>
+        /// event handler for <see cref="IsReadyChanged"/>
         /// </summary>
-        /// <param name="e">null event</param>
-        protected virtual void OnStartupCompleted(EventArgs e) {
-            EventHandler handler = StartupCompleted;
+        /// <param name="e">event arguments</param>
+        protected virtual void OnIsReadyChanged(IsReadyChangedEventArgs e) {
+            EventHandler<IsReadyChangedEventArgs> handler = IsReadyChanged;
             if(handler != null) {
                 handler(this, e);
             }
