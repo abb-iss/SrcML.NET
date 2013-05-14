@@ -7,6 +7,7 @@
  *
  * Contributors:
  *    Patrick Francis (ABB Group) - initial API, implementation, & documentation
+ *    Vinay Augustine (ABB Group) - Replaced Src2SrcMLRunner with Src2SrcMLRunner2
  *****************************************************************************/
 
 using System;
@@ -18,6 +19,9 @@ using System.Text;
 using System.Xml.Linq;
 
 namespace ABB.SrcML {
+    /// <summary>
+    /// The SrcML Generator class provides a convenient wrapper for multiple <see cref="Src2SrcMLRunner2">src2srcml runners</see>, each targetted at a different language.
+    /// </summary>
     public class SrcMLGenerator {
         private readonly Src2SrcMLRunner2 defaultExecutable;
         private readonly Language[] defaultLanguages = new[] { Language.C, Language.CPlusPlus, Language.Java, Language.AspectJ };

@@ -86,7 +86,7 @@ namespace ABB.SrcML {
 
         /// <summary>
         /// Renames filename from <paramref name="oldFileName"/> to <paramref name="newFileName"/>. If <paramref name="oldFileName"/> is
-        /// in the archive, then <see cref="AbstractArchive.FileChanged"/> is raised with <see cref="FileEventType.FileRenamed"/>. Otherwise, this method simply calls <see cref="AddOrUpdateFile(string)"/>
+        /// in the archive, then <see cref="AbstractArchive.FileChanged"/> is raised with <see cref="FileEventType.FileRenamed"/>. Otherwise, this method simply calls <see cref="AddOrUpdateFileImpl(string)"/>
         /// </summary>
         /// <param name="oldFileName">the old file path</param>
         /// <param name="newFileName">the new file path</param>

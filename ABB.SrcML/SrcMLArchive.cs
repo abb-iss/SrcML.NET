@@ -42,7 +42,7 @@ namespace ABB.SrcML {
         /// Creates a new SrcMLArchive. The archive is created in <c>"baseDirectory\srcML"</c>.
         /// </summary>
         /// <param name="baseDirectory">the base directory</param>
-        /// <param name="useExistingSrcML">If True, any existing SrcML files in <paramref name="xmlDirectory"/> will be used. If False, these files will be deleted and potentially recreated.</param>
+        /// <param name="useExistingSrcML">If True, any existing SrcML files in <see cref="AbstractArchive.ArchivePath"/> will be used. If False, these files will be deleted and potentially recreated.</param>
         public SrcMLArchive(string baseDirectory, bool useExistingSrcML)
             : this(baseDirectory, "srcML", useExistingSrcML) {
         }
@@ -51,7 +51,7 @@ namespace ABB.SrcML {
         /// Creates a new SrcMLArchive. The archive is created in <c>"baseDirectory\srcML"</c>.
         /// </summary>
         /// <param name="baseDirectory">the base directory</param>
-        /// <param name="useExistingSrcML">If True, any existing SrcML files in <paramref name="xmlDirectory"/> will be used. If False, these files will be deleted and potentially recreated.</param>
+        /// <param name="useExistingSrcML">If True, any existing SrcML files in <see cref="AbstractArchive.ArchivePath"/> will be used. If False, these files will be deleted and potentially recreated.</param>
         /// <param name="generator">The SrcMLGenerator to use to convert source files to SrcML.</param>
         public SrcMLArchive(string baseDirectory, bool useExistingSrcML, SrcMLGenerator generator)
             : this(baseDirectory, "srcML", useExistingSrcML, generator) {
@@ -61,7 +61,7 @@ namespace ABB.SrcML {
         /// Creates a new SrcMLArchive. The archive is created in <c>"baseDirectory\srcML"</c>.
         /// </summary>
         /// <param name="baseDirectory">the base directory</param>
-        /// <param name="useExistingSrcML">If True, any existing SrcML files in <paramref name="xmlDirectory"/> will be used. If False, these files will be deleted and potentially recreated.</param>
+        /// <param name="useExistingSrcML">If True, any existing SrcML files in <see cref="AbstractArchive.ArchivePath"/> will be used. If False, these files will be deleted and potentially recreated.</param>
         /// <param name="generator">The SrcMLGenerator to use to convert source files to SrcML.</param>
         /// <param name="xmlMapping">The XmlFileNameMapping to use to map source paths to xml file paths.</param>
         public SrcMLArchive(string baseDirectory, bool useExistingSrcML, SrcMLGenerator generator, XmlFileNameMapping xmlMapping)
@@ -81,7 +81,7 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="baseDirectory">The parent of <paramref name="srcMLDirectory"/>. <see cref="AbstractArchive.ArchivePath"/> will be set to <c>Path.Combine(baseDirectory, srcMLDirectory)</c></param>
         /// <param name="srcMLDirectory">The directory to store the SrcML files in. This will be created as a subdirectory of <paramref name="baseDirectory"/></param>
-        /// <param name="useExistingSrcML">If True, any existing SrcML files in <paramref name="xmlDirectory"/> will be used. If False, these files will be deleted and potentially recreated.</param>
+        /// <param name="useExistingSrcML">If True, any existing SrcML files in <see cref="AbstractArchive.ArchivePath"/> will be used. If False, these files will be deleted and potentially recreated.</param>
         public SrcMLArchive(string baseDirectory, string srcMLDirectory, bool useExistingSrcML)
             : this(baseDirectory, srcMLDirectory, useExistingSrcML, new SrcMLGenerator()) {
         }
@@ -91,7 +91,7 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="baseDirectory">The parent of <paramref name="srcMLDirectory"/>. <see cref="AbstractArchive.ArchivePath"/> will be set to <c>Path.Combine(baseDirectory, srcMLDirectory)</c></param>
         /// <param name="srcMLDirectory">The directory to store the SrcML files in. This will be created as a subdirectory of <paramref name="baseDirectory"/></param>
-        /// <param name="useExistingSrcML">If True, any existing SrcML files in <paramref name="xmlDirectory"/> will be used. If False, these files will be deleted and potentially recreated.</param>
+        /// <param name="useExistingSrcML">If True, any existing SrcML files in <see cref="AbstractArchive.ArchivePath"/> will be used. If False, these files will be deleted and potentially recreated.</param>
         /// <param name="generator">The SrcMLGenerator to use to convert source files to SrcML.</param>
         public SrcMLArchive(string baseDirectory, string srcMLDirectory, bool useExistingSrcML, SrcMLGenerator generator)
             : this(baseDirectory, srcMLDirectory, useExistingSrcML, generator,
@@ -104,9 +104,10 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="baseDirectory">The parent of <paramref name="srcMLDirectory"/>. <see cref="AbstractArchive.ArchivePath"/> will be set to <c>Path.Combine(baseDirectory, srcMLDirectory)</c></param>
         /// <param name="srcMLDirectory">The directory to store the SrcML files in. This will be created as a subdirectory of <paramref name="baseDirectory"/></param>
-        /// <param name="useExistingSrcML">If True, any existing SrcML files in <paramref name="xmlDirectory"/> will be used. If False, these files will be deleted and potentially recreated.</param>
+        /// <param name="useExistingSrcML">If True, any existing SrcML files in <see cref="AbstractArchive.ArchivePath"/> will be used. If False, these files will be deleted and potentially recreated.</param>
         /// <param name="generator">The SrcMLGenerator to use to convert source files to SrcML.</param>
         /// <param name="xmlMapping">The XmlFileNameMapping to use to map source paths to xml file paths.</param>
+        /// <param name="factory">The task factory to use to create tasks with</param>
         public SrcMLArchive(string baseDirectory, string srcMLDirectory, bool useExistingSrcML, SrcMLGenerator generator, XmlFileNameMapping xmlMapping, TaskFactory factory) 
             : base(baseDirectory, srcMLDirectory, factory) {
             this.XmlGenerator = generator;
@@ -172,6 +173,12 @@ namespace ABB.SrcML {
             get { return this.XmlGenerator.ExtensionMapping.Keys; }
         }
 
+        /// <summary>
+        /// Generates srcML for <paramref name="fileName"/>.
+        /// If the file already exists in the archive, The <see cref="AbstractArchive.FileChanged"/> event is thrown with with <see cref="FileEventType.FileChanged"/>.
+        /// Otherwise, <see cref="AbstractArchive.FileChanged"/> is thrown with <see cref="FileEventType.FileAdded"/>.
+        /// </summary>
+        /// <param name="fileName">The file name to generate srcML for</param>
         protected override void AddOrUpdateFileImpl(string fileName) {
             FileEventType eventType = FileEventType.FileAdded;
             if(this.ContainsFile(fileName)) {
@@ -182,6 +189,7 @@ namespace ABB.SrcML {
                 OnFileChanged(new FileEventRaisedArgs(eventType, fileName, true));
             }
         }
+        
         /// <summary>
         /// Checks to see if the file has a companions srcML file in the archive
         /// </summary>
@@ -192,6 +200,10 @@ namespace ABB.SrcML {
             return File.Exists(xmlPath);
         }
 
+        /// <summary>
+        /// Deletes <paramref name="fileName"/> from the archive and raises <see cref="AbstractArchive.FileChanged"/> with <see cref="FileEventType.FileDeleted"/>.
+        /// </summary>
+        /// <param name="fileName">The file name to delete</param>
         protected override void DeleteFileImpl(string fileName) {
             var xmlPath = GetXmlPathForSourcePath(fileName);
             if(File.Exists(xmlPath)) {
@@ -239,6 +251,11 @@ namespace ABB.SrcML {
             return sourceFileInfo.Exists != xmlFileInfo.Exists || sourceFileInfo.LastWriteTime != xmlFileInfo.LastWriteTime;
         }
 
+        /// <summary>
+        /// Renames the file from <paramref name="oldFileName"/> to <paramref name="newFileName"/>. When complete, it raises <see cref="AbstractArchive.FileChanged"/> with <see cref="FileEventType.FileRenamed"/>.
+        /// </summary>
+        /// <param name="oldFileName">The old file name</param>
+        /// <param name="newFileName">The new file name.</param>
         protected override void RenameFileImpl(string oldFileName, string newFileName) {
             var oldXmlPath = GetXmlPathForSourcePath(oldFileName);
             var newXmlPath = GetXmlPathForSourcePath(newFileName);

@@ -13,7 +13,7 @@ using ABB.SrcML.Utilities;
 namespace ABB.SrcML {
     /// <summary>
     /// <para>Represents an abstract file monitor. This class contains archives for storing various file types To start using it, you first instantiate
-    /// it with a <see cref="AbstractArchive">default archive</see>. You then call <see cref="RegisterNonDefaultArchive"/> for each alternative 
+    /// it with a <see cref="AbstractArchive">default archive</see>. You then call <see cref="RegisterArchive"/> for each alternative 
     /// archive. This class automatically routes files to the appropriate archive.</para>
     /// <para>You begin monitoring by calling <see cref="StartMonitoring"/>. <see cref="StartMonitoring"/> should subscribe to any events and then call
     /// functions to respond to those events:</para>
@@ -32,6 +32,9 @@ namespace ABB.SrcML {
         private HashSet<AbstractArchive> registeredArchives;
         private Dictionary<string, AbstractArchive> archiveMap;
 
+        /// <summary>
+        /// If true, this monitor will use the Async methods on all of its <see cref="AbstractArchive"/> objects. By default it is false.
+        /// </summary>
         public bool UseAsyncMethods { get; set; }
 
         /// <summary>
@@ -39,7 +42,7 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="baseDirectory">The folder where this monitor stores it archives</param>
         /// <param name="defaultArchive">The default archive</param>
-        /// <param name="otherArchives">A list of other archives that should be registered via <see cref="RegisterNonDefaultArchive(AbstractArchive)"/></param>
+        /// <param name="otherArchives">A list of other archives that should be registered via <see cref="RegisterArchive(AbstractArchive)"/></param>
         public AbstractFileMonitor(string baseDirectory, AbstractArchive defaultArchive, params AbstractArchive[] otherArchives) {
             this.MonitorStoragePath = baseDirectory;
             this.registeredArchives = new HashSet<AbstractArchive>();

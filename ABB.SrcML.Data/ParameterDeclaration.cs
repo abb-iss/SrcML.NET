@@ -21,10 +21,16 @@ namespace ABB.SrcML.Data {
     /// </summary>
     [Serializable]
     public class ParameterDeclaration : VariableDeclaration {
+        /// <summary>
+        /// Default constructor
+        /// </summary>
         public ParameterDeclaration() {
             Locations = new Collection<SrcMLLocation>();
         }
 
+        /// <summary>
+        /// The primary location for this parameter
+        /// </summary>
         public override SrcMLLocation Location {
             get { return Locations.FirstOrDefault(); }
             set { throw new NotImplementedException(); }
