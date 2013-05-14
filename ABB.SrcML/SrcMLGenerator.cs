@@ -178,34 +178,6 @@ namespace ABB.SrcML {
             runner.GenerateSrcMLFromFile(sourceFileName, xmlFileName, language, additionalArguments, runnerExtMap);
         }
 
-        //TODO: should this method be here? Can we get rid of it altogether?
-        /// <summary>
-        /// Generate a SrcML document from a single source file, and return an XElement for it. 
-        /// The source language will be inferred from the file extension.
-        /// </summary>
-        /// <param name="sourceFileName">The path of the source file to convert.</param>
-        /// <param name="xmlFileName">The file name to write the resulting XML to.</param>
-        /// <returns>The root XElement for <paramref name="xmlFileName"/>.</returns>
-        public XElement GenerateSrcMLAndXElementFromFile(string sourceFileName, string xmlFileName) {
-            GenerateSrcMLFromFile(sourceFileName, xmlFileName);
-            SrcMLFile file = new SrcMLFile(xmlFileName);
-            return file.FileUnits.FirstOrDefault();
-        }
-
-        //TODO: should this method be here? Can we get rid of it altogether?
-        /// <summary>
-        /// Generate a SrcML document from a single source file, and return the xml as a string.
-        /// The source language will be inferred from the file extension.
-        /// </summary>
-        /// <param name="sourceFileName">The path of the source file to convert.</param>
-        /// <param name="xmlFileName">The file name to write the resulting XML to.</param>
-        /// <returns>A string containing the xml for the file.</returns>
-        public string GenerateSrcMLAndStringFromFile(string sourceFileName, string xmlFileName) {
-            GenerateSrcMLFromFile(sourceFileName, xmlFileName);
-            SrcMLFile file = new SrcMLFile(xmlFileName);
-            return file.GetXMLString();
-        }
-
         /// <summary>
         /// Generates a SrcML document from a collection of source files. The language(s) will be inferred from the file extensions.
         /// </summary>

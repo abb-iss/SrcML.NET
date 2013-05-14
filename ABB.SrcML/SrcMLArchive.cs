@@ -282,24 +282,10 @@ namespace ABB.SrcML {
         }
 
         /// <summary>
-        /// Generate both a srcML File and a XElement of the content of this file for a source code file.
-        /// </summary>
-        /// <param name="sourcePath">The full path of the source code file.</param>
-        /// <returns>The XElement of the content of the generated srcML file.</returns>
-        public XElement GenerateXmlAndXElementForSource(string sourcePath) {
-            var xmlPath = GetXmlPathForSourcePath(sourcePath);
-            var directory = Path.GetDirectoryName(xmlPath);
-            if(!Directory.Exists(directory)) {
-                Directory.CreateDirectory(directory);
-            }
-            return this.XmlGenerator.GenerateSrcMLAndXElementFromFile(sourcePath, xmlPath);
-        }
-
-        /// <summary>
         /// Generate a srcML File for a source code file. Now use this method instead of GenerateXmlAndXElementForSource()
         /// </summary>
         /// <param name="sourcePath"></param>
-        public SrcMLFile GenerateXmlForSource(string sourcePath) {
+        public void GenerateXmlForSource(string sourcePath) {
             var xmlPath = GetXmlPathForSourcePath(sourcePath);
             var directory = Path.GetDirectoryName(xmlPath);
             if(!Directory.Exists(directory)) {
@@ -311,8 +297,6 @@ namespace ABB.SrcML {
             this.XmlGenerator.GenerateSrcMLFromFile(sourcePath, xmlPath);
             FileInfo srcFI = new FileInfo(sourcePath);
             File.SetLastWriteTime(xmlPath, srcFI.LastWriteTime);
-
-            return new SrcMLFile(xmlPath);
         }
 
         
@@ -396,13 +380,11 @@ namespace ABB.SrcML {
                 return null;
             } else {
                 string xmlPath = GetXmlPathForSourcePath(sourceFilePath);
-                SrcMLFile srcMLFile;
-                if(File.Exists(xmlPath)) {
-                    srcMLFile = new SrcMLFile(xmlPath);
-                } else {
-                    srcMLFile = GenerateXmlForSource(sourceFilePath);
+                
+                if(!File.Exists(xmlPath)) {
+                    GenerateXmlForSource(sourceFilePath);
                 }
-                return srcMLFile.FileUnits.FirstOrDefault();
+                return SrcMLElement.Load(xmlPath);
             }
         }
 

@@ -126,39 +126,9 @@ printf(""hello world!"");
         [Test]
         public void SingleFileTest() {
             generator.GenerateSrcMLFromFile("srcmltest\\foo.c", "srcml_xml\\singlefile.xml");
-            var doc = new SrcMLFile("srcml_xml\\singlefile.xml");
-            Assert.IsNotNull(doc);
-            Assert.AreEqual(1, doc.FileUnits.Count());
-            Assert.AreEqual("srcmltest\\foo.c", doc.FileUnits.First().Attribute("filename").Value);
-        }
-
-        /// <summary>
-        /// Added by JZ on 12/3/2012.
-        /// Unit test for Src2SrcMLRunner.GenerateSrcMLAndStringFromFile()
-        /// </summary>
-        [Test]
-        public void SingleFileToFileAndStringTest() {
-            string xml = generator.GenerateSrcMLAndStringFromFile("srcmltest\\foo.c", "srcml_xml\\singlefile.xml");
-            Console.WriteLine("xml = " + xml);
-
-            Assert.IsNotNull(xml);
-            //Assert.AreEqual(1, doc.FileUnits.Count());
-            //Assert.AreEqual("srcmltest\\foo.c", doc.FileUnits.First().Attribute("filename").Value);
-            Assert.That(File.Exists("srcml_xml\\singlefile.xml"));
-        }
-
-        /// <summary>
-        /// Added by JZ on 12/4/2012.
-        /// Unit test for Src2SrcMLRunner.GenerateSrcMLAndXElementFromFile()
-        /// </summary>
-        [Test]
-        public void SingleFileToFileAndXElementTest() {
-            XElement xElement = generator.GenerateSrcMLAndXElementFromFile("srcmltest\\foo.c", "srcml_xml\\singlefile.xml");
-
-            Assert.IsNotNull(xElement);
-            //Assert.AreEqual(1, doc.FileUnits.Count());
-            //Assert.AreEqual("srcmltest\\foo.c", doc.FileUnits.First().Attribute("filename").Value);
-            Assert.That(File.Exists("srcml_xml\\singlefile.xml"));
+            var unit = SrcMLElement.Load("srcml_xml\\singlefile.xml");
+            Assert.IsNotNull(unit);
+            Assert.AreEqual("srcmltest\\foo.c", unit.Attribute("filename").Value);
         }
 
         [Test]
