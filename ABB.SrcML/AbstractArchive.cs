@@ -8,6 +8,7 @@ using System.Xml;
 using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
+using ABB.SrcML.Utilities;
 
 namespace ABB.SrcML
 {
@@ -17,8 +18,7 @@ namespace ABB.SrcML
     public abstract class AbstractArchive : IDisposable
     {
         private string _archivePath;
-        private bool archiveIsReady;
-        private int _runningTasks;
+        protected TaskManager _taskManager;
 
         /// <summary>
         /// Sets the archive path for AbstractArchive objects
@@ -26,9 +26,8 @@ namespace ABB.SrcML
         /// <param name="baseDirectory">the base directory</param>
         /// <param name="archiveSubDirectory">the relative path within <paramref name="baseDirectory"/></param>
         protected AbstractArchive(string baseDirectory, string archiveSubDirectory, TaskFactory factory) {
-            this.archiveIsReady = true;
             this.ArchivePath = Path.Combine(baseDirectory, archiveSubDirectory);
-            this.TaskFactory = factory;
+            this._taskManager = new TaskManager(this, factory);
         }
 
         private AbstractArchive()
@@ -41,25 +40,15 @@ namespace ABB.SrcML
         /// when the number of running tasks is zero. Whenever the value changes, the <see cref="IsReadyChanged"/> event fires.
         /// </summary>
         public bool IsReady {
-            get { return this.archiveIsReady; }
-            protected set {
-                if(value != this.archiveIsReady) {
-                    archiveIsReady = value;
-                    OnIsReadyChanged(new IsReadyChangedEventArgs(archiveIsReady));
-                }
-            }
+            get { return this._taskManager.IsReady; }
         }
 
         /// <summary>
         /// Task factory for the asynchronous methods
         /// </summary>
-        public TaskFactory TaskFactory { get; set; }
-
-        /// <summary>
-        /// The number of tasks that are currently running
-        /// </summary>
-        protected int CountOfRunningTasks {
-            get { return _runningTasks; }
+        public TaskFactory TaskFactory {
+            get { return this._taskManager.TaskFactory; }
+            set { this._taskManager.TaskFactory = value; }
         }
 
         /// <summary>
@@ -75,7 +64,10 @@ namespace ABB.SrcML
         /// <summary>
         /// Event fires when the <see cref="IsReady"/> property changes
         /// </summary>
-        public event EventHandler<IsReadyChangedEventArgs> IsReadyChanged;
+        public event EventHandler<IsReadyChangedEventArgs> IsReadyChanged {
+            add { this._taskManager.IsReadyChanged += value; }
+            remove { this._taskManager.IsReadyChanged -= value; }
+        }
 
         /// <summary>
         /// Sub-classes of AbstractArchive should implement the "add or update file" functionality here in order to enable <see cref="AddOrUpdateFile"/> and <see cref="AddOrUpdateFileAsync"/>
@@ -100,39 +92,39 @@ namespace ABB.SrcML
         /// Adds or updates <paramref name="fileName"/> within the archive
         /// </summary>
         /// <param name="fileName">The file name to add or update. If the file exists, it is deleted and then added regardless of whether or not the file is outdated</param>
-        public virtual void AddOrUpdateFile(string fileName) { Run(() => AddOrUpdateFileImpl(fileName)); }
+        public virtual void AddOrUpdateFile(string fileName) { _taskManager.Run(() => AddOrUpdateFileImpl(fileName)); }
 
         /// <summary>
         /// Adds or updates <paramref name="fileName"/> within the archive asynchronously. A new <see cref="System.Threading.Tasks.Task"/> is run via <see cref="TaskFactory"/>.
         /// </summary>
         /// <param name="fileName">The file name to add or update. If the file exists, it is deleted and then added regardless of whether or not the file is outdated</param>
-        public virtual void AddOrUpdateFileAsync(string fileName) { RunAsync(() => AddOrUpdateFileImpl(fileName)); }
+        public virtual void AddOrUpdateFileAsync(string fileName) { _taskManager.RunAsync(() => AddOrUpdateFileImpl(fileName)); }
 
         /// <summary>
         /// Deletes <paramref name="fileName"/> from the archive
         /// </summary>
         /// <param name="fileName">The file name to delete. If it does not exist, nothing happens</param>
-        public virtual void DeleteFile(string fileName) { Run(() => DeleteFileImpl(fileName)); }
+        public virtual void DeleteFile(string fileName) { _taskManager.Run(() => DeleteFileImpl(fileName)); }
 
         /// <summary>
         /// Deletes <paramref name="fileName"/> from the archive asynchronously. A new <see cref="System.Threading.Tasks.Task"/> is run via <see cref="TaskFactory"/>.
         /// </summary>
         /// <param name="fileName">The file name to delete. If it does not exist, nothing happens</param>
-        public virtual void DeleteFileAsync(string fileName) { RunAsync(() => DeleteFileImpl(fileName)); }
+        public virtual void DeleteFileAsync(string fileName) { _taskManager.RunAsync(() => DeleteFileImpl(fileName)); }
 
         /// <summary>
         /// Renames the file to the new file name
         /// </summary>
         /// <param name="oldFileName">the existing path</param>
         /// <param name="newFileName">the new path</param>
-        public virtual void RenameFile(string oldFileName, string newFileName) { Run(() => RenameFileImpl(oldFileName, newFileName)); }
+        public virtual void RenameFile(string oldFileName, string newFileName) { _taskManager.Run(() => RenameFileImpl(oldFileName, newFileName)); }
 
         /// <summary>
         /// Renames the file to the new file name asynchronously. A new <see cref="System.Threading.Tasks.Task"/> is run via <see cref="TaskFactory"/>.
         /// </summary>
         /// <param name="oldFileName">the existing path</param>
         /// <param name="newFileName">the new path</param>
-        public virtual void RenameFileAsync(string oldFileName, string newFileName) { RunAsync(() => RenameFileImpl(oldFileName, newFileName)); }
+        public virtual void RenameFileAsync(string oldFileName, string newFileName) { _taskManager.RunAsync(() => RenameFileImpl(oldFileName, newFileName)); }
 
         /// <summary>
         /// Tests to see if the archive contains <paramref name="fileName"/>
@@ -181,87 +173,11 @@ namespace ABB.SrcML
         }
 
         /// <summary>
-        /// event handler for <see cref="IsReadyChanged"/>
-        /// </summary>
-        /// <param name="e">event arguments</param>
-        protected virtual void OnIsReadyChanged(IsReadyChangedEventArgs e) {
-            EventHandler<IsReadyChangedEventArgs> handler = IsReadyChanged;
-            if(handler != null) {
-                handler(this, e);
-            }
-        }
-
-        /// <summary>
         /// Disposes of this object
         /// </summary>
         public virtual void Dispose() {
-            IsReadyChanged = null;
+            _taskManager.Dispose();
             FileChanged = null;
-        }
-
-        /// <summary>
-        /// Runs the specified action on this thread. The action will be run with the following continuations: <see cref="DecrementOnCompletion"/> and <see cref="LogExceptions"/>
-        /// </summary>
-        /// <param name="action">The action to run.</param>
-        protected void Run(Action action) {
-            IncrementTask();
-            Task task = new Task(action);
-            DecrementOnCompletion(task);
-            LogExceptions(task);
-            task.RunSynchronously();
-        }
-
-        /// <summary>
-        /// Runs the specified action on <see cref="TaskFactory"/>. The action will be run with the following continuations: <see cref="DecrementOnCompletion"/> and <see cref="LogExceptions"/> 
-        /// </summary>
-        /// <param name="action"></param>
-        protected void RunAsync(Action action) {
-            IncrementTask();
-            Task task = this.TaskFactory.StartNew(action);
-            DecrementOnCompletion(task);
-            LogExceptions(task);
-        }
-
-        /// <summary>
-        /// Increments <see cref="CountOfRunningTasks"/> (called via the <see cref="Run"/> method). If <see cref="IsReady"/> is true, this sets it to false.
-        /// </summary>
-        protected void IncrementTask() {
-            Interlocked.Increment(ref _runningTasks);
-            if(IsReady) {
-                IsReady = false;
-            }
-        }
-
-        /// <summary>
-        /// Decrements <see cref="CountOfRunningTasks"/> (called via the <see cref="DecrementOnCompletion"/> which is used in the <see cref="Run"/> method.
-        /// If the number of tasks becomes zero, then <see cref="IsReady"/> is set to true.
-        /// </summary>
-        protected void DecrementTask() {
-            Interlocked.Decrement(ref _runningTasks);
-            if(_runningTasks <= 0) {
-                IsReady = true;
-            }
-        }
-
-        /// <summary>
-        /// Convenience function for adding a continuation that will call <see cref="DecrementTask"/> upon task completion.
-        /// </summary>
-        /// <param name="task"></param>
-        protected void DecrementOnCompletion(Task task) {
-            task.ContinueWith(t => DecrementTask());
-        }
-
-        /// <summary>
-        /// Convenience function for logging exceptions upon task failure.
-        /// </summary>
-        /// <param name="task"></param>
-        protected void LogExceptions(Task task) {
-            task.ContinueWith(t => {
-                foreach(var exception in t.Exception.InnerExceptions) {
-                    // logger.Error(exception);
-                    Console.Error.WriteLine(exception);
-                }
-            }, TaskContinuationOptions.OnlyOnFaulted);
         }
     }
 }
