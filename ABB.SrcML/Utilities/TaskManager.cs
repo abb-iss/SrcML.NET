@@ -16,11 +16,11 @@ namespace ABB.SrcML.Utilities {
         /// </summary>
         public event EventHandler<IsReadyChangedEventArgs> IsReadyChanged;
 
-        public TaskManager(Object parent) : this(parent, Task.Factory) { }
+        public TaskManager(Object parent) : this(parent, TaskScheduler.Default) { }
 
-        public TaskManager(Object parent, TaskFactory factory) {
+        public TaskManager(Object parent, TaskScheduler scheduler) {
             _parent = parent;
-            TaskFactory = factory;
+            Scheduler = scheduler;
             _runningTasks = 0;
             _isReady = true;
         }
@@ -42,31 +42,28 @@ namespace ABB.SrcML.Utilities {
         }
 
         /// <summary>
-        /// Task factory for the asynchronous methods
+        /// Task scheduler for the asynchronous methods
         /// </summary>
-        public TaskFactory TaskFactory { get; set; }
+        public TaskScheduler Scheduler { get; set; }
 
         /// <summary>
         /// Runs the specified action on this thread. The action will be run with the following continuations: <see cref="DecrementOnCompletion"/> and <see cref="LogExceptions"/>
         /// </summary>
-        /// <param name="action">The action to run.</param>
-        public void Run(Action action) {
+        /// <param name="task">The task to run.</param>
+        public void Run(Task task) {
             IncrementTask();
-            Task task = new Task(action);
             DecrementOnCompletion(task);
-            LogExceptions(task);
             task.RunSynchronously();
         }
 
         /// <summary>
         /// Runs the specified action on <see cref="TaskFactory"/>. The action will be run with the following continuations: <see cref="DecrementOnCompletion"/> and <see cref="LogExceptions"/> 
         /// </summary>
-        /// <param name="action"></param>
-        public void RunAsync(Action action) {
+        /// <param name="task"></param>
+        public void RunAsync(Task task) {
             IncrementTask();
-            Task task = this.TaskFactory.StartNew(action);
             DecrementOnCompletion(task);
-            LogExceptions(task);
+            task.Start(this.Scheduler);
         }
 
         /// <summary>
@@ -75,19 +72,6 @@ namespace ABB.SrcML.Utilities {
         /// <param name="task"></param>
         private void DecrementOnCompletion(Task task) {
             task.ContinueWith(t => DecrementTask());
-        }
-
-        /// <summary>
-        /// Convenience function for logging exceptions upon task failure.
-        /// </summary>
-        /// <param name="task"></param>
-        private void LogExceptions(Task task) {
-            task.ContinueWith(t => {
-                foreach(var exception in t.Exception.InnerExceptions) {
-                    // logger.Error(exception);
-                    Console.Error.WriteLine(exception);
-                }
-            }, TaskContinuationOptions.OnlyOnFaulted);
         }
 
         /// <summary>

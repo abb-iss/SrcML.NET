@@ -80,7 +80,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         #region ISrcMLGlobalService Members
 
         public event EventHandler<FileEventRaisedArgs> SourceFileChanged;
-        public event EventHandler<EventArgs> StartupCompleted;
+        public event EventHandler<IsReadyChangedEventArgs> IsReadyChanged;
         public event EventHandler<EventArgs> MonitoringStopped;
 
         /// <summary>
@@ -104,7 +104,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
                 // Subscribe events from Solution Monitor
                 CurrentMonitor.FileChanged += RespondToFileChangedEvent;
-                CurrentMonitor.StartupCompleted += RespondToStartupCompletedEvent;
+                CurrentMonitor.IsReadyChanged += RespondToIsReadyChangedEvent;
+
                 CurrentMonitor.MonitoringStopped += RespondToMonitoringStoppedEvent;
 
                 // Initialize the progress bar.
@@ -241,20 +242,22 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         }
 
         /// <summary>
-        /// Respond to the StartupCompleted event from Solution Monitor.
+        /// Respond to the IsReady
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="eventArgs"></param>
-        private void RespondToStartupCompletedEvent(object sender, EventArgs eventArgs) {
+        private void RespondToIsReadyChangedEvent(object sender, IsReadyChangedEventArgs eventArgs) {
             SrcMLFileLogger.DefaultLogger.Info("SrcMLService: RespondToStartupCompletedEvent()");
-            // Clear the progress bar.
-            amountCompleted = 0;
-            if(statusBar != null) {
-                statusBar.Progress(ref cookie, 0, "", 0, 0);
+            if(eventArgs.UpdatedReadyState) {
+                // Clear the progress bar.
+                amountCompleted = 0;
+                if(statusBar != null) {
+                    statusBar.Progress(ref cookie, 0, "", 0, 0);
+                }
+                DisplayTextOnStatusBar("SrcML Service has finished processing files");
+                duringStartup = false;
             }
-            DisplayTextOnStatusBar("SrcML Service has completed the startup process.");
-            duringStartup = false;
-            OnStartupCompleted(eventArgs);
+            OnIsReadyChanged(eventArgs);
         }
 
         /// <summary>
@@ -274,8 +277,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             }
         }
 
-        protected virtual void OnStartupCompleted(EventArgs e) {
-            EventHandler<EventArgs> handler = StartupCompleted;
+        protected virtual void OnIsReadyChanged(IsReadyChangedEventArgs e) {
+            EventHandler<IsReadyChangedEventArgs> handler = IsReadyChanged;
             if(handler != null) {
                 handler(this, e);
             }

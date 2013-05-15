@@ -57,7 +57,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
 
             // Register SrcML Service events
             srcMLService.SourceFileChanged += SourceFileChanged;
-            srcMLService.StartupCompleted += StartupCompleted;
+            srcMLService.IsReadyChanged += IsReadyChanged;
             srcMLService.MonitoringStopped += MonitoringStopped;
         }
 
@@ -323,7 +323,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             }
         }
 
-        public static void StartupCompleted(object sender, EventArgs args) {
+        public static void IsReadyChanged(object sender, IsReadyChangedEventArgs args) {
         }
 
         public static void MonitoringStopped(object sender, EventArgs args) {

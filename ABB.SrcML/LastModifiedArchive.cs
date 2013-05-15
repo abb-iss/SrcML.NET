@@ -32,16 +32,16 @@ namespace ABB.SrcML {
         /// <param name="baseDirectory">the directory that this archive will be stored in</param>
         /// <param name="fileName">the filename to store the mapping in</param>
         public LastModifiedArchive(string baseDirectory, string fileName)
-            : this(baseDirectory, fileName, Task.Factory) { }
+            : this(baseDirectory, fileName, TaskScheduler.Default) { }
 
         /// <summary>
         /// Creates a new archive in the <paramref name="baseDirectory">specified directory</paramref> with the given <paramref name="fileName"/>
         /// </summary>
         /// <param name="baseDirectory">the directory that this archive will be stored in</param>
         /// <param name="fileName">the filename to store the mapping in</param>
-        /// <param name="factory">The task factory to use for asynchronous methods</param>
-        public LastModifiedArchive(string baseDirectory, string fileName, TaskFactory factory)
-            : base(baseDirectory, fileName, factory) {
+        /// <param name="scheduler">The task factory to use for asynchronous methods</param>
+        public LastModifiedArchive(string baseDirectory, string fileName, TaskScheduler scheduler)
+            : base(baseDirectory, fileName, scheduler) {
             lastModifiedMap = new ConcurrentDictionary<string, DateTime>(StringComparer.InvariantCultureIgnoreCase);
             ReadMap();
         }

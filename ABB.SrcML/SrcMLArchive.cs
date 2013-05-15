@@ -65,7 +65,7 @@ namespace ABB.SrcML {
         /// <param name="generator">The SrcMLGenerator to use to convert source files to SrcML.</param>
         /// <param name="xmlMapping">The XmlFileNameMapping to use to map source paths to xml file paths.</param>
         public SrcMLArchive(string baseDirectory, bool useExistingSrcML, SrcMLGenerator generator, XmlFileNameMapping xmlMapping)
-            : this(baseDirectory, "srcML", useExistingSrcML, generator, xmlMapping, Task.Factory) {
+            : this(baseDirectory, "srcML", useExistingSrcML, generator, xmlMapping, TaskScheduler.Default) {
         }
         /// <summary>
         /// Creates a new SrcMLArchive. By default, any existing srcML will be used.
@@ -95,7 +95,7 @@ namespace ABB.SrcML {
         /// <param name="generator">The SrcMLGenerator to use to convert source files to SrcML.</param>
         public SrcMLArchive(string baseDirectory, string srcMLDirectory, bool useExistingSrcML, SrcMLGenerator generator)
             : this(baseDirectory, srcMLDirectory, useExistingSrcML, generator,
-                   new ShortXmlFileNameMapping(Path.Combine(baseDirectory, srcMLDirectory)), Task.Factory) {
+                   new ShortXmlFileNameMapping(Path.Combine(baseDirectory, srcMLDirectory)), TaskScheduler.Default) {
 
         }
 
@@ -107,9 +107,9 @@ namespace ABB.SrcML {
         /// <param name="useExistingSrcML">If True, any existing SrcML files in <see cref="AbstractArchive.ArchivePath"/> will be used. If False, these files will be deleted and potentially recreated.</param>
         /// <param name="generator">The SrcMLGenerator to use to convert source files to SrcML.</param>
         /// <param name="xmlMapping">The XmlFileNameMapping to use to map source paths to xml file paths.</param>
-        /// <param name="factory">The task factory to use to create tasks with</param>
-        public SrcMLArchive(string baseDirectory, string srcMLDirectory, bool useExistingSrcML, SrcMLGenerator generator, XmlFileNameMapping xmlMapping, TaskFactory factory) 
-            : base(baseDirectory, srcMLDirectory, factory) {
+        /// <param name="scheduler">The task scheduler to for asynchronous tasks</param>
+        public SrcMLArchive(string baseDirectory, string srcMLDirectory, bool useExistingSrcML, SrcMLGenerator generator, XmlFileNameMapping xmlMapping, TaskScheduler scheduler) 
+            : base(baseDirectory, srcMLDirectory, scheduler) {
             this.XmlGenerator = generator;
             this.xmlFileNameMapping = xmlMapping;
 
