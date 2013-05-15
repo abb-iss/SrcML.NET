@@ -70,7 +70,7 @@
     <Compile Include="ParserContext.cs" />
     <Compile Include="ScopeDebugView.cs" />
     <Compile Include="SourceLocation.cs" />
-    <Compile Include="DataArchive.cs" />
+    <Compile Include="DataRepository.cs" />
     <Compile Include="JavaCodeParser.cs" />
     <Compile Include="MethodDefinition.cs" />
     <Compile Include="NamespaceDefinition.cs" />

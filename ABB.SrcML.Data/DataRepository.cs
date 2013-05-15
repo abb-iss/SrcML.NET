@@ -32,8 +32,8 @@ namespace ABB.SrcML.Data {
     /// 
     /// // this should generate a data archive for the given srcML archive
     /// // when we start serializing data, we should consider how the location of the data can be stored in the srcmL archive
-    /// // calling "DataArchive" on a srcML archive that already has data should transparently load the existing data
-    /// DataArchive data = new DataArchive(archive);
+    /// // calling "DataRepository" on a srcML archive that already has data should transparently load the existing data
+    /// DataRepository data = new DataRepository(archive);
     ///
     /// // testDeclaration is some declaration within archive
     /// var testDeclaration = new XElement(SRC.Declaration, "test data");
@@ -49,7 +49,7 @@ namespace ABB.SrcML.Data {
     /// XElement parentXml = data.ResolveType(parentType).GetXElement();
     /// </code>
     /// </example>
-    public class DataArchive : IDisposable {
+    public class DataRepository : IDisposable {
         private Scope globalScope;
         private Dictionary<Language, AbstractCodeParser> parsers;
 
@@ -72,13 +72,13 @@ namespace ABB.SrcML.Data {
         /// Create a data archive for the given srcML archive. It will subscribe to the <see cref="AbstractArchive.FileChanged"/> event.
         /// </summary>
         /// <param name="archive">The archive to monitor for changes.</param>
-        public DataArchive(SrcMLArchive archive) : this(archive, null) { }
+        public DataRepository(SrcMLArchive archive) : this(archive, null) { }
 
         /// <summary>
         /// Create a data archive with data stored in the given <paramref name="fileName">binary file</paramref>.
         /// </summary>
         /// <param name="fileName">The binary file the data archive is stored in</param>
-        public DataArchive(string fileName) : this(null, fileName) { }
+        public DataRepository(string fileName) : this(null, fileName) { }
 
         /// <summary>
         /// Create a data archive for the given srcML archive and binary file. It will load data from the binary archive and then subscribe
@@ -86,7 +86,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="archive">The srcML archive to monitor for changes. If null, no archive monitoring will be done.</param>
         /// <param name="fileName">The file to read data from. If null, no previously saved data will be loaded.</param>
-        public DataArchive(SrcMLArchive archive, string fileName) {
+        public DataRepository(SrcMLArchive archive, string fileName) {
             SetupParsers();
             
             this.Archive = archive;
@@ -189,7 +189,7 @@ namespace ABB.SrcML.Data {
             if(loc == null) throw new ArgumentNullException("loc");
             var scope = globalScope.GetScopeForLocation(loc);
             if(scope == null) {
-                Utilities.SrcMLFileLogger.DefaultLogger.InfoFormat("SourceLocation {0} not found in DataArchive", loc);
+                Utilities.SrcMLFileLogger.DefaultLogger.InfoFormat("SourceLocation {0} not found in DataRepository", loc);
                 return new Collection<MethodCall>();
             }
             var calls = scope.MethodCalls.Where(mc => mc.Location.Contains(loc));
@@ -247,7 +247,7 @@ namespace ABB.SrcML.Data {
 
         #region Private Methods
         /// <summary>
-        /// Initializes the archive from the given file. This file must be a serialized DataArchive produced by DataArchive.Save().
+        /// Initializes the archive from the given file. This file must be a serialized DataRepository produced by DataRepository.Save().
         /// </summary>
         /// <param name="fileName">The file to load the archive from.</param>
         /// <exception cref="System.Runtime.Serialization.SerializationException">A problem occurred in deserialization. E.g. the serialized data is the wrong version.</exception>

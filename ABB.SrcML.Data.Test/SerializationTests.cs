@@ -11,20 +11,20 @@ namespace ABB.SrcML.Data.Test {
     public class SerializationTests {
         [SetUp]
         public void Setup() {
-            if(Directory.Exists("DataArchiveTests")) {
-                Directory.Delete("DataArchiveTests", true);
+            if(Directory.Exists("DataRepositoryTests")) {
+                Directory.Delete("DataRepositoryTests", true);
             }
         }
         
         [Test]
         public void TestRoundtrip() {
-            var archive = new SrcMLArchive("DataArchiveTests");
+            var archive = new SrcMLArchive("DataRepositoryTests");
             archive.AddOrUpdateFile(@"..\..\TestInputs\A.h");
             archive.AddOrUpdateFile(@"..\..\TestInputs\A.cpp");
-            var data = new DataArchive(archive);
-            data.Save(@"DataArchiveTests\saved.dar");
+            var data = new DataRepository(archive);
+            data.Save(@"DataRepositoryTests\saved.dar");
 
-            var newData = new DataArchive(archive, @"DataArchiveTests\saved.dar");
+            var newData = new DataRepository(archive, @"DataRepositoryTests\saved.dar");
 
             Assert.IsTrue(TestHelper.ScopesAreEqual(data.GlobalScope, newData.GlobalScope));
         }
@@ -32,14 +32,14 @@ namespace ABB.SrcML.Data.Test {
         [Test]
         [Category("LongRunning")]
         public void TestRoundtrip_Self() {
-            var archive = new SrcMLArchive("DataArchiveTests");
+            var archive = new SrcMLArchive("DataRepositoryTests");
             foreach(var csFile in Directory.GetFiles(@"..\..\ABB.SrcML", "*.cs", SearchOption.AllDirectories)) {
                 archive.AddOrUpdateFile(csFile);
             }
-            var data = new DataArchive(archive);
-            data.Save(@"DataArchiveTests\saved.dar");
+            var data = new DataRepository(archive);
+            data.Save(@"DataRepositoryTests\saved.dar");
 
-            var newData = new DataArchive(archive, @"DataArchiveTests\saved.dar");
+            var newData = new DataRepository(archive, @"DataRepositoryTests\saved.dar");
 
             Assert.IsTrue(TestHelper.ScopesAreEqual(data.GlobalScope, newData.GlobalScope));
         }
@@ -47,8 +47,8 @@ namespace ABB.SrcML.Data.Test {
         [Test]
         [ExpectedException("System.Runtime.Serialization.SerializationException")]
         public void TestLoad_BadFile() {
-            var archive = new SrcMLArchive("DataArchiveTests");
-            var data = new DataArchive(archive, @"..\..\TestInputs\bad_file.dar");
+            var archive = new SrcMLArchive("DataRepositoryTests");
+            var data = new DataRepository(archive, @"..\..\TestInputs\bad_file.dar");
         }
     }
 }

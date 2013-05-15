@@ -8,19 +8,19 @@ using NUnit.Framework;
 namespace ABB.SrcML.Data.Test {
     [TestFixture]
     [Category("Build")]
-    class DataArchiveTests {
+    class DataRepositoryTests {
         [SetUp]
         public void TestSetup() {
-            if(Directory.Exists("DataArchiveTests")) {
-                Directory.Delete("DataArchiveTests", true);
+            if(Directory.Exists("DataRepositoryTests")) {
+                Directory.Delete("DataRepositoryTests", true);
             }
         }
         
         [Test]
         public void TestFindMethodCalls_Simple() {
-            using(var sa = new SrcMLArchive("DataArchiveTests")) {
+            using(var sa = new SrcMLArchive("DataRepositoryTests")) {
                 sa.AddOrUpdateFile(@"..\..\TestInputs\function_def.cpp");
-                var da = new DataArchive(sa);
+                var da = new DataRepository(sa);
                 var expected = da.GlobalScope.ChildScopes.OfType<MethodDefinition>().First(md => md.Name == "main").MethodCalls.First();
                 var actual = da.FindMethodCalls(new SourceLocation(@"TestInputs\function_def.cpp", 12, 20));
                 Assert.IsNotNull(actual);
@@ -31,9 +31,9 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestFindMethodCalls_Nested() {
-            using(var sa = new SrcMLArchive("DataArchiveTests")) {
+            using(var sa = new SrcMLArchive("DataRepositoryTests")) {
                 sa.AddOrUpdateFile(@"..\..\TestInputs\nested_method_calls.cpp");
-                var da = new DataArchive(sa);
+                var da = new DataRepository(sa);
                 var foo = da.GlobalScope.ChildScopes.OfType<MethodDefinition>().First(md => md.Name == "Foo");
                 var expected = new[]
                                {
@@ -53,9 +53,9 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestFindScopeForAdjacentMethods() {
-            using(var sa = new SrcMLArchive("DataArchiveTests")) {
+            using(var sa = new SrcMLArchive("DataRepositoryTests")) {
                 sa.AddOrUpdateFile(@"..\..\TestInputs\adjacent_methods.cpp");
-                var da = new DataArchive(sa);
+                var da = new DataRepository(sa);
                 
                 var mainMethod = da.GlobalScope.GetDescendantScopes<MethodDefinition>().FirstOrDefault();
                 var fooMethod = da.GlobalScope.GetDescendantScopes<MethodDefinition>().LastOrDefault();

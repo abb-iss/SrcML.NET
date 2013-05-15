@@ -53,7 +53,7 @@
     </Compile>
     <Compile Include="BuiltInTypeFactoryTests.cs" />
     <Compile Include="CSharpCodeParserTests.cs" />
-    <Compile Include="DataArchiveTests.cs" />
+    <Compile Include="DataRepositoryTests.cs" />
     <Compile Include="FileRemovalTests_Cpp.cs" />
     <Compile Include="FileRemovalTests_CSharp.cs" />
     <Compile Include="FileRemovalTests_Java.cs" />
