@@ -190,62 +190,78 @@ namespace ABB.SrcML.Data.Test {
             Console.WriteLine("{0} to {1} srcML", end - start, (regenerateSrcML ? "generate" : "verify"));
             Assert.That(startupCompleted);
 
-            Scope globalScope = null;
-
             int numberOfFailures = 0;
             int numberOfSuccesses = 0;
             int numberOfFiles = 0;
             Dictionary<string, List<string>> errors = new Dictionary<string, List<string>>();
 
             start = DateTime.Now;
-            using(var fileLog = new StreamWriter(fileLogPath)) {
-                foreach(var unit in archive.FileUnits) {
-                    if(++numberOfFiles % 100 == 0) {
-                        Console.WriteLine("{0,5:N0} files completed in {1} with {2,5:N0} failures", numberOfFiles, DateTime.Now - start, numberOfFailures);
-                    }
+            //startupCompleted = false;
+            DataRepository data = new DataRepository(archive);
 
-                    var fileName = SrcMLElement.GetFileNameForUnit(unit);
-                    var language = SrcMLElement.GetLanguageForUnit(unit);
-
-                    fileLog.Write("Parsing {0}", fileName);
-                    try {
-                        var scopeForUnit = CodeParser[language].ParseFileUnit(unit);
-
-                        if(null == globalScope) {
-                            globalScope = scopeForUnit;
-                        } else {
-                            globalScope = globalScope.Merge(scopeForUnit);
-                        }
-                        fileLog.WriteLine(" PASSED");
-                        numberOfSuccesses++;
-                    } catch(Exception e) {
-                        fileLog.WriteLine(" FAILED");
-                        fileLog.WriteLine(e.StackTrace);
-                        var key = e.StackTrace.Split('\n')[0].Trim();
-                        if(!errors.ContainsKey(key)) {
-                            errors[key] = new List<string>();
-                        }
-                        errors[key].Add(fileName);
-
-                        numberOfFailures++;
-                    }
-                }
+            if(useAsyncMethods) {
+                data.InitializeDataAsync();
+            } else {
+                data.InitializeData();
             }
             end = DateTime.Now;
+            //startupCompleted = mre.WaitOne(300000);
 
-            Console.WriteLine("{0,5:N0} files completed in {1} with {2,5:N0} failures", numberOfFiles, end - start, numberOfFailures);
-            Console.WriteLine("\nSummary");
-            Console.WriteLine("===================");
-            Console.WriteLine("{0,10:N0} failures  ({1,8:P2})", numberOfFailures, ((float)numberOfFailures) / numberOfFiles);
-            Console.WriteLine("{0,10:N0} successes ({1,8:P2})", numberOfSuccesses, ((float)numberOfSuccesses) / numberOfFiles);
+            //if(!startupCompleted) {
+            //    end = DateTime.Now;
+            //}
+
+            Assert.That(startupCompleted);
             Console.WriteLine("{0} to generate data", end - start);
-            Console.WriteLine(fileLogPath);
 
-            PrintScopeReport(globalScope);
-            PrintMethodCallReport(globalScope, callLogPath);
-            PrintErrorReport(errors);
+            //using(var fileLog = new StreamWriter(fileLogPath)) {
+            //    foreach(var unit in archive.FileUnits) {
+            //        if(++numberOfFiles % 100 == 0) {
+            //            Console.WriteLine("{0,5:N0} files completed in {1} with {2,5:N0} failures", numberOfFiles, DateTime.Now - start, numberOfFailures);
+            //        }
 
-            monitor.Dispose(); 
+            //        var fileName = SrcMLElement.GetFileNameForUnit(unit);
+            //        var language = SrcMLElement.GetLanguageForUnit(unit);
+
+            //        fileLog.Write("Parsing {0}", fileName);
+            //        try {
+            //            var scopeForUnit = CodeParser[language].ParseFileUnit(unit);
+
+            //            if(null == globalScope) {
+            //                globalScope = scopeForUnit;
+            //            } else {
+            //                globalScope = globalScope.Merge(scopeForUnit);
+            //            }
+            //            fileLog.WriteLine(" PASSED");
+            //            numberOfSuccesses++;
+            //        } catch(Exception e) {
+            //            fileLog.WriteLine(" FAILED");
+            //            fileLog.WriteLine(e.StackTrace);
+            //            var key = e.StackTrace.Split('\n')[0].Trim();
+            //            if(!errors.ContainsKey(key)) {
+            //                errors[key] = new List<string>();
+            //            }
+            //            errors[key].Add(fileName);
+
+            //            numberOfFailures++;
+            //        }
+            //    }
+            //}
+
+            //Console.WriteLine("{0,5:N0} files completed in {1} with {2,5:N0} failures", numberOfFiles, end - start, numberOfFailures);
+            //Console.WriteLine("\nSummary");
+            //Console.WriteLine("===================");
+            //Console.WriteLine("{0,10:N0} failures  ({1,8:P2})", numberOfFailures, ((float)numberOfFailures) / numberOfFiles);
+            //Console.WriteLine("{0,10:N0} successes ({1,8:P2})", numberOfSuccesses, ((float)numberOfSuccesses) / numberOfFiles);
+            //Console.WriteLine("{0} to generate data", end - start);
+            //Console.WriteLine(fileLogPath);
+
+            PrintScopeReport(data.GlobalScope);
+            PrintMethodCallReport(data.GlobalScope, callLogPath);
+            //PrintErrorReport(errors);
+
+            monitor.Dispose();
+            data.Dispose();
             //Assert.AreEqual(numberOfFailures, (from e in errors.Values select e.Count).Sum());
             //Assert.AreEqual(0, numberOfFailures);
         }

@@ -11,6 +11,7 @@
  *****************************************************************************/
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -92,20 +93,19 @@ namespace ABB.SrcML.Data {
             this.Archive = archive;
             this.FileName = fileName;
 
-            bool loadedFromDisk = false;
-
+            //bool loadedFromDisk = false;
             if(FileName != null) {
                 if(File.Exists(this.FileName)) {
                     Load(this.FileName);
-                    loadedFromDisk = true;
+                    //loadedFromDisk = true;
                 }
             }
 
             if(this.Archive != null) {
                 this.Archive.FileChanged += Archive_SourceFileChanged;
-                if(!loadedFromDisk) {
-                    InitializeData();
-                }
+                //if(!loadedFromDisk) {
+                //    InitializeData();
+                //}
             }
         }
 
@@ -116,6 +116,7 @@ namespace ABB.SrcML.Data {
             globalScope = null;
             //TODO: clear any other data structures as necessary
         }
+        
 
         /// <summary>
         /// Adds the given file to the data archive.
@@ -131,19 +132,26 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="fileUnitElement">The <see cref="SRC.Unit"/> XElement for the file to add.</param>
         public void AddFile(XElement fileUnitElement) {
-            var fileLanguage = SrcMLElement.GetLanguageForUnit(fileUnitElement);
-            Scope resultScope = null;
-            AbstractCodeParser parserForUnit;
-            if(parsers.TryGetValue(fileLanguage, out parserForUnit)) {
-                resultScope = parserForUnit.ParseFileUnit(fileUnitElement);
+            var scope = ParseFileUnit(fileUnitElement);
+            if(scope != null) {
+                MergeScope(scope);
             }
-            
-            if(resultScope != null) {
-                globalScope = globalScope != null ? globalScope.Merge(resultScope) : resultScope;
-            }
-            //TODO: update other data structures as necessary
         }
 
+        private Scope ParseFileUnit(XElement fileUnit) {
+            var language = SrcMLElement.GetLanguageForUnit(fileUnit);
+            Scope scope = null;
+            AbstractCodeParser parser;
+
+            if(parsers.TryGetValue(language, out parser)) {
+                scope = parser.ParseFileUnit(fileUnit);
+            }
+            return scope;
+        }
+
+        private void MergeScope(Scope scopeForFile) {
+            globalScope = (globalScope != null ? globalScope.Merge(scopeForFile) : scopeForFile);
+        }
         /// <summary>
         /// Removes the given file from the data archive
         /// </summary>
@@ -225,7 +233,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="fileName">The file to save the archive to.</param>
         public void Save(string fileName) {
-            if (fileName == null) {
+            if(fileName == null) {
                 throw new ArgumentNullException("fileName");
             }
             var formatter = new BinaryFormatter();
@@ -264,13 +272,36 @@ namespace ABB.SrcML.Data {
             }
         }
 
-        private void InitializeData() {
+        public void InitializeData() {
             Clear();
             foreach(var unit in Archive.FileUnits) {
                 AddFile(unit);
             }
         }
 
+        public void InitializeDataAsync() {
+            InitializeDataAsync(TaskScheduler.Default);
+        }
+
+        public void InitializeDataAsync(TaskScheduler scheduler) {
+            BlockingCollection<Scope> mergeQueue = new BlockingCollection<Scope>();
+
+            var task = new Task(() => {
+                Parallel.ForEach(Archive.FileUnits, currentUnit => {
+                    var scope = ParseFileUnit(currentUnit);
+                    if(scope != null) {
+                        mergeQueue.Add(scope);
+                    }
+                });
+                mergeQueue.CompleteAdding();
+            });
+
+            task.Start(scheduler);
+
+            foreach(var scope in mergeQueue.GetConsumingEnumerable()) {
+                MergeScope(scope);
+            }
+        }
         private void SetupParsers() {
             parsers = new Dictionary<Language, AbstractCodeParser>() {
                 { Language.CPlusPlus, new CPlusPlusCodeParser() },
