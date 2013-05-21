@@ -200,7 +200,7 @@ namespace ABB.SrcML.Data.Test {
             DataRepository data = new DataRepository(archive);
 
             if(useAsyncMethods) {
-                data.InitializeDataAsync();
+                data.InitializeDataConcurrent();
             } else {
                 data.InitializeData();
             }

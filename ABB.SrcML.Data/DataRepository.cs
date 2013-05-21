@@ -279,11 +279,11 @@ namespace ABB.SrcML.Data {
             }
         }
 
-        public void InitializeDataAsync() {
-            InitializeDataAsync(TaskScheduler.Default);
+        public void InitializeDataConcurrent() {
+            InitializeDataConcurrent(TaskScheduler.Default);
         }
 
-        public void InitializeDataAsync(TaskScheduler scheduler) {
+        public void InitializeDataConcurrent(TaskScheduler scheduler) {
             BlockingCollection<Scope> mergeQueue = new BlockingCollection<Scope>();
 
             var task = new Task(() => {
