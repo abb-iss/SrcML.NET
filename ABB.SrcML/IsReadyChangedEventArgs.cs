@@ -11,7 +11,7 @@ namespace ABB.SrcML {
         /// <summary>
         /// The updated ready state
         /// </summary>
-        public bool UpdatedReadyState { get; private set; }
+        public bool ReadyState { get; private set; }
 
         /// <summary>
         /// Default constructor
@@ -21,9 +21,9 @@ namespace ABB.SrcML {
         /// <summary>
         /// Constructs a new object
         /// </summary>
-        /// <param name="updatedReadyState">The updated ready state</param>
-        public IsReadyChangedEventArgs(bool updatedReadyState) {
-            this.UpdatedReadyState = updatedReadyState;
+        /// <param name="readyState">The updated ready state</param>
+        public IsReadyChangedEventArgs(bool readyState) {
+            this.ReadyState = readyState;
         }
     }
 }

@@ -248,7 +248,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="eventArgs"></param>
         private void RespondToIsReadyChangedEvent(object sender, IsReadyChangedEventArgs eventArgs) {
             SrcMLFileLogger.DefaultLogger.Info("SrcMLService: RespondToStartupCompletedEvent()");
-            if(eventArgs.UpdatedReadyState) {
+            if(eventArgs.ReadyState) {
                 // Clear the progress bar.
                 amountCompleted = 0;
                 if(statusBar != null) {
