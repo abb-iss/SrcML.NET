@@ -57,6 +57,9 @@ namespace ABB.SrcML {
 
         #region IDisposable Members
 
+        /// <summary>
+        /// Disposes of this file name mapping
+        /// </summary>
         public abstract void Dispose();
 
         #endregion

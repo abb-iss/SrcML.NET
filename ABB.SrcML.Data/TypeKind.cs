@@ -16,11 +16,21 @@ using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML.Data {
+    /// <summary>
+    /// Enumerates the kinds of types encountered in the supported programming languages.
+    /// </summary>
     public enum TypeKind {
-        Class = 0,
+        /// <summary>Built-In type</summary>
+        BuiltIn = 0,
+        /// <summary>Class type</summary>
+        Class,
+        /// <summary>Struct type</summary>
         Struct,
+        /// <summary>Union type</summary>
         Union,
+        /// <summary>Interface type</summary>
         Interface,
+        /// <summary>Enumeration type</summary>
         Enumeration
     }
 }

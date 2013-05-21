@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace ABB.SrcML {
     /// <summary>
@@ -12,7 +14,8 @@ namespace ABB.SrcML {
     /// </summary>
     public class LastModifiedArchive : AbstractArchive {
         
-        private Dictionary<string, DateTime> lastModifiedMap;
+        //private Dictionary<string, DateTime> lastModifiedMap;
+        private ConcurrentDictionary<string, DateTime> lastModifiedMap;
         private readonly object mapLock = new object();
 
         /// <summary>
@@ -29,8 +32,17 @@ namespace ABB.SrcML {
         /// <param name="baseDirectory">the directory that this archive will be stored in</param>
         /// <param name="fileName">the filename to store the mapping in</param>
         public LastModifiedArchive(string baseDirectory, string fileName)
-            : base(baseDirectory, fileName) {
-            lastModifiedMap = new Dictionary<string, DateTime>(StringComparer.InvariantCultureIgnoreCase);
+            : this(baseDirectory, fileName, TaskScheduler.Default) { }
+
+        /// <summary>
+        /// Creates a new archive in the <paramref name="baseDirectory">specified directory</paramref> with the given <paramref name="fileName"/>
+        /// </summary>
+        /// <param name="baseDirectory">the directory that this archive will be stored in</param>
+        /// <param name="fileName">the filename to store the mapping in</param>
+        /// <param name="scheduler">The task factory to use for asynchronous methods</param>
+        public LastModifiedArchive(string baseDirectory, string fileName, TaskScheduler scheduler)
+            : base(baseDirectory, fileName, scheduler) {
+            lastModifiedMap = new ConcurrentDictionary<string, DateTime>(StringComparer.InvariantCultureIgnoreCase);
             ReadMap();
         }
 
@@ -46,13 +58,12 @@ namespace ABB.SrcML {
         /// <see cref="FileEventType.FileChanged"/> (if the file was in the archive) or <see cref="FileEventType.FileAdded"/>.
         /// </summary>
         /// <param name="fileName">The file name to add</param>
-        public override void AddOrUpdateFile(string fileName) {
+        protected override void AddOrUpdateFileImpl(string fileName) {
             string fullPath = GetFullPath(fileName);
             FileEventType eventType;
-            lock(mapLock) {
-                eventType = (lastModifiedMap.ContainsKey(fullPath) ? FileEventType.FileChanged : FileEventType.FileAdded);
-                lastModifiedMap[fullPath] = File.GetLastWriteTime(fullPath);
-            }
+
+            eventType = (lastModifiedMap.ContainsKey(fullPath) ? FileEventType.FileChanged : FileEventType.FileAdded);
+            lastModifiedMap[fullPath] = File.GetLastWriteTime(fullPath);
 
             OnFileChanged(new FileEventRaisedArgs(eventType, fullPath));
         }
@@ -62,43 +73,36 @@ namespace ABB.SrcML {
         /// <see cref="FileEventType.FileDeleted"/> if the file was in the archive.
         /// </summary>
         /// <param name="fileName">The file to delete</param>
-        public override void DeleteFile(string fileName) {
+        protected override void DeleteFileImpl(string fileName) {
             string fullPath = GetFullPath(fileName);
             bool mapContainsFile = true;
-            lock(mapLock) {
-                mapContainsFile = lastModifiedMap.ContainsKey(fullPath);
-                if(mapContainsFile) {
-                    lastModifiedMap.Remove(fullPath);
-                }
-            }
-            if(mapContainsFile) {
+
+            mapContainsFile = lastModifiedMap.ContainsKey(fullPath);
+            DateTime result;
+            if(lastModifiedMap.TryRemove(fullPath, out result)) {
                 OnFileChanged(new FileEventRaisedArgs(FileEventType.FileDeleted, fullPath));
             }
         }
 
         /// <summary>
         /// Renames filename from <paramref name="oldFileName"/> to <paramref name="newFileName"/>. If <paramref name="oldFileName"/> is
-        /// in the archive, then <see cref="AbstractArchive.FileChanged"/> is raised with <see cref="FileEventType.FileRenamed"/>. Otherwise, this method simply calls <see cref="AddOrUpdateFile(string)"/>
+        /// in the archive, then <see cref="AbstractArchive.FileChanged"/> is raised with <see cref="FileEventType.FileRenamed"/>. Otherwise, this method simply calls <see cref="AddOrUpdateFileImpl(string)"/>
         /// </summary>
         /// <param name="oldFileName">the old file path</param>
         /// <param name="newFileName">the new file path</param>
-        public override void RenameFile(string oldFileName, string newFileName) {
+        protected override void RenameFileImpl(string oldFileName, string newFileName) {
             string oldFullPath = GetFullPath(oldFileName);
             string newFullPath = GetFullPath(newFileName);
 
-            bool mapContainsFile = true;
-            lock(mapLock) {
-                mapContainsFile = lastModifiedMap.ContainsKey(oldFullPath);
-                if(mapContainsFile) {
-                    lastModifiedMap.Remove(oldFullPath);
-                    lastModifiedMap[newFullPath] = File.GetLastWriteTime(newFullPath);
-                }
+            var eventType = FileEventType.FileAdded;
+
+            DateTime result;
+            if(lastModifiedMap.TryRemove(oldFullPath, out result)) {
+                eventType = FileEventType.FileRenamed;
             }
-            if(mapContainsFile) {
-                OnFileChanged(new FileEventRaisedArgs(FileEventType.FileRenamed, newFullPath, oldFullPath));
-            } else {
-                AddOrUpdateFile(newFullPath);
-            }
+            lastModifiedMap[newFullPath] = File.GetLastWriteTime(newFullPath);
+
+            OnFileChanged(new FileEventRaisedArgs(eventType, newFullPath, oldFullPath));
         }
 
         /// <summary>
@@ -130,11 +134,9 @@ namespace ABB.SrcML {
             DateTime lastModified = (fileNameExists ? File.GetLastWriteTime(fullPath) : DateTime.MinValue);
             DateTime lastModifiedInArchive;
 
-            lock(mapLock) {
-                fileIsInArchive = this.lastModifiedMap.TryGetValue(fullPath, out lastModifiedInArchive);
-                if(!fileIsInArchive) {
-                    lastModifiedInArchive = DateTime.MinValue;
-                }
+            fileIsInArchive = this.lastModifiedMap.TryGetValue(fullPath, out lastModifiedInArchive);
+            if(!fileIsInArchive) {
+                lastModifiedInArchive = DateTime.MinValue;
             }
 
             return !(fileNameExists == fileIsInArchive && lastModified <= lastModifiedInArchive);
@@ -167,12 +169,9 @@ namespace ABB.SrcML {
         /// </summary>
         public void ReadMap() {
             if(File.Exists(this.ArchivePath)) {
-                lock(mapLock) {
-                    this.lastModifiedMap.Clear();
-                    foreach(var line in File.ReadLines(this.ArchivePath)) {
-                        var parts = line.Split('|');
-                        this.lastModifiedMap[parts[0]] = new DateTime(Int64.Parse(parts[1]));
-                    }
+                foreach(var line in File.ReadLines(this.ArchivePath)) {
+                    var parts = line.Split('|');
+                    this.lastModifiedMap[parts[0]] = new DateTime(Int64.Parse(parts[1]));
                 }
             }
         }
@@ -186,10 +185,8 @@ namespace ABB.SrcML {
             }
 
             using(var output = File.CreateText(this.ArchivePath)) {
-                lock(mapLock) {
-                    foreach(var kvp in lastModifiedMap) {
-                        output.WriteLine("{0}|{1}", kvp.Key, kvp.Value.Ticks);
-                    }
+                foreach(var kvp in lastModifiedMap) {
+                    output.WriteLine("{0}|{1}", kvp.Key, kvp.Value.Ticks);
                 }
             }
         }

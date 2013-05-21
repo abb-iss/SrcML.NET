@@ -91,5 +91,14 @@ namespace ABB.SrcML {
             }
             return null;
         }
+
+        /// <summary>
+        /// Loads an <see cref="System.Xml.Linq.XElement"/> from the file name with whitespae preserved and line info included
+        /// </summary>
+        /// <param name="xmlFileName">The srcml file name</param>
+        /// <returns>An XElement</returns>
+        public static XElement Load(string xmlFileName) {
+            return XElement.Load(xmlFileName, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo);
+        }
     }
 }

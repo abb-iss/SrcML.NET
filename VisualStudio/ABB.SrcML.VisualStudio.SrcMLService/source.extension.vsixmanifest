@@ -26,9 +26,6 @@
     <Reference Id="Microsoft.VisualStudio.MPF" MinVersion="10.0">
       <Name>Visual Studio MPF</Name>
     </Reference>
-	<Reference Id="Microsoft.Framework.NDP" MinVersion="4.0">
-	  <Name>Microsoft NDP</Name>
-	</Reference>
   </References>
   <Content>
     <VsPackage>|%CurrentProject%;PkgdefProjectOutputGroup|</VsPackage>

@@ -6,6 +6,7 @@ using NUnit.Framework;
 using System.IO;
 namespace ABB.SrcML.Test {
     [TestFixture]
+    [Category("Build")]
     class LastModifiedArchiveTests {
         private string testDirectory = "lastmodifiedarchivetests";
 

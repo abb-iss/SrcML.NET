@@ -8,6 +8,7 @@ using NUnit.Framework;
 
 namespace ABB.SrcML.Test {
     [TestFixture]
+    [Category("Build")]
     public class ShortXmlFileNameMappingTests {
         [TestFixtureSetUp]
         public void FixtureSetUp() {

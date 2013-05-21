@@ -43,6 +43,8 @@ namespace ABB.SrcML.Tools.Src2SrcMLPreview
         private Language _language;
         private Forms.FolderBrowserDialog directorySelector;
         private static Collection<string> _namespaceArguments = new Collection<string>() { LIT.ArgumentLabel, OP.ArgumentLabel, TYPE.ArgumentLabel };
+        private static Collection<string> _namespaceArgumentsWithPosition = new Collection<string>() { LIT.ArgumentLabel, OP.ArgumentLabel, TYPE.ArgumentLabel, POS.ArgumentLabel };
+
 
         public SrcMLGenerator XmlGenerator {
             get { return this._xmlGenerator;  }
@@ -53,6 +55,9 @@ namespace ABB.SrcML.Tools.Src2SrcMLPreview
         }
         public Src2SrcMLPreviewWindow()
         {
+            ToggleShowPositionCommand.InputGestures.Add(new KeyGesture(Key.P, ModifierKeys.Alt));
+            SelectSrcMLDirectoryCommand.InputGestures.Add(new KeyGesture(Key.D, ModifierKeys.Alt));
+
             binDirIsValid = true;
             directorySelector = new System.Windows.Forms.FolderBrowserDialog();
             directorySelector.ShowNewFolderButton = false;
@@ -62,6 +67,16 @@ namespace ABB.SrcML.Tools.Src2SrcMLPreview
             InitializeComponent();
             XmlGenerator = new SrcMLGenerator(directorySelector.SelectedPath, _namespaceArguments);
         }
+
+        /// <summary>
+        /// Static command to route "Alt-P" to the "show position" menu item
+        /// </summary>
+        public static RoutedCommand ToggleShowPositionCommand = new RoutedCommand();
+
+        /// <summary>
+        /// Static command to route "Alt-D" to the "Select SrcML Directory" menu item
+        /// </summary>
+        public static RoutedCommand SelectSrcMLDirectoryCommand = new RoutedCommand();
 
         private void sourceBox_TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -154,6 +169,30 @@ namespace ABB.SrcML.Tools.Src2SrcMLPreview
             languageLabel.Content = "Error!";
             srcmlBox.Text = errorMessage;
             srcmlBox.Foreground = Brushes.Red;
+        }
+        
+        private void MenuItemShowPosition_Checked(object sender, RoutedEventArgs e) {
+            _xmlGenerator = new SrcMLGenerator(directorySelector.SelectedPath, _namespaceArgumentsWithPosition);
+            if(sourceBox.Text.Length > 0) sourceBox_TextChanged(sender, null);
+        }
+
+        private void MenuItemShowPosition_Unchecked(object sender, RoutedEventArgs e) {
+            _xmlGenerator = new SrcMLGenerator(directorySelector.SelectedPath, _namespaceArguments);
+            if(sourceBox.Text.Length > 0) sourceBox_TextChanged(sender, null);
+        }
+
+        private void ToggleShowPosition(object sender, ExecutedRoutedEventArgs e) {
+            var window = sender as Src2SrcMLPreviewWindow;
+            if(null != window) {
+                window.MenuItemShowPosition.IsChecked = !window.MenuItemShowPosition.IsChecked;
+            }
+        }
+
+        private void SelectSrcMLDirectory(object sender, ExecutedRoutedEventArgs e) {
+            var window = sender as Src2SrcMLPreviewWindow;
+            if(null != window) {
+                MenuItemSrcMLSelect_Click(sender, e);
+            }
         }
     }
 }

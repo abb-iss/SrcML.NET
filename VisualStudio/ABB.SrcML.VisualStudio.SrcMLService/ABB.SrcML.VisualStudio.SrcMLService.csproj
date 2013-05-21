@@ -35,10 +35,10 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DeployExtension>True</DeployExtension>
     <CreateVsixContainer>True</CreateVsixContainer>
+	<DeployExtension>False</DeployExtension>
     <CopyVsixExtensionFiles>False</CopyVsixExtensionFiles>
-    <CopyVsixExtensionLocation>C:\Users\USJIZHE\AppData\Local\Microsoft\VisualStudio\11.0Exp\Extensions\ABB\SrcMLService\1.0</CopyVsixExtensionLocation>
+    <CopyVsixExtensionLocation>$(USERPROFILE)\AppData\Local\Microsoft\VisualStudio\11.0Exp\Extensions\ABB\SrcMLService\1.0</CopyVsixExtensionLocation>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -156,6 +156,9 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\SolutionInfo.cs">
+      <Link>Properties\SolutionInfo.cs</Link>
+    </Compile>
     <Compile Include="Guids.cs" />
     <Compile Include="HelperFunctions.cs" />
     <Compile Include="ISrcMLGlobalService.cs" />

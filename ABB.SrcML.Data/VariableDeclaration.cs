@@ -16,9 +16,56 @@ using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML.Data {
+    /// <summary>
+    /// Represents a variable declaration
+    /// </summary>
+    [Serializable]
     public class VariableDeclaration {
+        private Scope parentScope;
+
+        /// <summary>
+        /// The name of the variable
+        /// </summary>
         public string Name { get; set; }
+
+        /// <summary>
+        /// Description of the type for this variable
+        /// </summary>
         public TypeUse VariableType { get; set; }
+
+        /// <summary>
+        /// The access modifier assigned to this type
+        /// </summary>
         public AccessModifier Accessibility { get; set; }
+
+        /// <summary>
+        /// The scope where this variable is declared
+        /// </summary>
+        public Scope Scope
+        {
+            get { return this.parentScope; }
+            set {
+                this.parentScope = value;
+                if(null != VariableType) {
+                    this.VariableType.ParentScope = this.parentScope;
+                }
+            }
+        }
+
+        /// <summary>
+        /// The location of this declaration in both the original source file and in XML.
+        /// </summary>
+        public virtual SrcMLLocation Location { get; set; }
+
+        /// <summary>
+        /// Returns a string representation of this object.
+        /// </summary>
+        public override string ToString() {
+            if(Accessibility != AccessModifier.None) {
+                return string.Format("{0} {1} {2}", Accessibility.ToKeywordString(), VariableType, Name);
+            } else {
+                return string.Format("{0} {1}", VariableType, Name);
+            }
+        }
     }
 }

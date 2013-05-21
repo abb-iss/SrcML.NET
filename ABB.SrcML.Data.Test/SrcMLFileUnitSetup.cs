@@ -1,4 +1,15 @@
-﻿using ABB.SrcML.Utilities;
+﻿/******************************************************************************
+ * Copyright (c) 2013 ABB Group
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    Vinay Augustine (ABB Group) - initial API, implementation, & documentation
+ *****************************************************************************/
+
+using ABB.SrcML.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +18,15 @@ using System.Xml;
 using System.Xml.Linq;
 
 namespace ABB.SrcML.Data.Test {
-    static class SrcMLFileUnitSetup {
+    public class SrcMLFileUnitSetup {
+        string FileTemplate { get; set; }
+        Language SourceLanguage { get; set; }
+
+        public SrcMLFileUnitSetup(Language sourceLanguage) {
+            FileTemplate = CreateFileUnitTemplate();
+            SourceLanguage = sourceLanguage;
+        }
+
         public static string CreateFileUnitTemplate() {
             //construct the necessary srcML wrapper unit tags
             XmlNamespaceManager xnm = SrcML.NamespaceManager;
@@ -21,11 +40,11 @@ namespace ABB.SrcML.Data.Test {
                     }
                 }
             }
-            return string.Format("<unit {0} language=\"{{1}}\">{{0}}</unit>", namespaceDecls.ToString());
+            return string.Format("<unit {0} filename=\"{{2}}\" language=\"{{1}}\">{{0}}</unit>", namespaceDecls.ToString());
         }
 
-        public static XElement GetFileUnitForXmlSnippet(string fileFormat, string xmlSnippet, Language language) {
-            var xml = String.Format(fileFormat, xmlSnippet, KsuAdapter.GetLanguage(language));
+        public XElement GetFileUnitForXmlSnippet(string xmlSnippet, string fileName) {
+            var xml = string.Format(FileTemplate, xmlSnippet, KsuAdapter.GetLanguage(SourceLanguage), fileName);
             var fileUnit = XElement.Parse(xml);
             return fileUnit;
         }
