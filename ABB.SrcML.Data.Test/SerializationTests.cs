@@ -22,6 +22,7 @@ namespace ABB.SrcML.Data.Test {
             archive.AddOrUpdateFile(@"..\..\TestInputs\A.h");
             archive.AddOrUpdateFile(@"..\..\TestInputs\A.cpp");
             var data = new DataRepository(archive);
+            data.InitializeData();
             data.Save(@"DataRepositoryTests\saved.dar");
 
             var newData = new DataRepository(archive, @"DataRepositoryTests\saved.dar");
@@ -37,6 +38,7 @@ namespace ABB.SrcML.Data.Test {
                 archive.AddOrUpdateFile(csFile);
             }
             var data = new DataRepository(archive);
+            data.InitializeData();
             data.Save(@"DataRepositoryTests\saved.dar");
 
             var newData = new DataRepository(archive, @"DataRepositoryTests\saved.dar");

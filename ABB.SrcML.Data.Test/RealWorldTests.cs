@@ -163,107 +163,91 @@ namespace ABB.SrcML.Data.Test {
             archive.XmlGenerator.ExtensionMapping[".c"] = Language.CPlusPlus;
             archive.XmlGenerator.ExtensionMapping[".cc"] = Language.CPlusPlus;
 
-            AbstractFileMonitor monitor = new FileSystemFolderMonitor(sourcePath, dataPath, new LastModifiedArchive(dataPath), archive);
-            monitor.UseAsyncMethods = useAsyncMethods;
-
-            ManualResetEvent mre = new ManualResetEvent(false);
-            DateTime start, end = DateTime.MinValue;
-            bool startupCompleted = false;
-            
-            //monitor.IsReadyChanged += (o, e) => {
-            archive.IsReadyChanged += (o, e) => {
-                if(e.UpdatedReadyState) {
-                    end = DateTime.Now;
-                    startupCompleted = true;
-                    mre.Set();
-                }
-            };
-
-            start = DateTime.Now;
-            monitor.Startup();
-
-            startupCompleted = mre.WaitOne(120000);
-            if(!startupCompleted) {
-                end = DateTime.Now;
-            }
-
-            Console.WriteLine("{0} to {1} srcML", end - start, (regenerateSrcML ? "generate" : "verify"));
-            Assert.That(startupCompleted);
-
             int numberOfFailures = 0;
             int numberOfSuccesses = 0;
             int numberOfFiles = 0;
             Dictionary<string, List<string>> errors = new Dictionary<string, List<string>>();
 
-            start = DateTime.Now;
-            //startupCompleted = false;
-            DataRepository data = new DataRepository(archive);
+            using(var fileLog = new StreamWriter(fileLogPath)) {
+                using(var monitor = new FileSystemFolderMonitor(sourcePath, dataPath, new LastModifiedArchive(dataPath), archive)) {
+                    monitor.UseAsyncMethods = useAsyncMethods;
 
-            if(useAsyncMethods) {
-                data.InitializeDataConcurrent();
-            } else {
-                data.InitializeData();
+                    ManualResetEvent mre = new ManualResetEvent(false);
+                    DateTime start, end = DateTime.MinValue;
+                    bool startupCompleted = false;
+
+                    archive.IsReadyChanged += (o, e) => {
+                        if(e.ReadyState) {
+                            end = DateTime.Now;
+                            startupCompleted = true;
+                            mre.Set();
+                        }
+                    };
+
+                    start = DateTime.Now;
+                    monitor.Startup();
+                    startupCompleted = mre.WaitOne(120000);
+                    if(!startupCompleted) {
+                        end = DateTime.Now;
+                    }
+
+                    Console.WriteLine("{0} to {1} srcML", end - start, (regenerateSrcML ? "generate" : "verify"));
+                    Assert.That(startupCompleted);
+
+                    using(var data = new DataRepository(archive)) {
+                        start = DateTime.Now;
+
+                        data.FileProcessed += (o, e) => {
+                            if(e.EventType == FileEventType.FileAdded) {
+                                numberOfFiles++;
+                                numberOfSuccesses++;
+                                if(numberOfFiles % 100 == 0) {
+                                    Console.WriteLine("{0,5:N0} files completed in {1} with {2,5:N0} failures", numberOfFiles, DateTime.Now - start, numberOfFailures);
+                                }
+                                fileLog.WriteLine("OK {0}", e.FilePath);
+                            }
+                        };
+
+                        data.ParseErrorRaised += (o, e) => {
+                            numberOfFiles++;
+                            numberOfFailures++;
+                            if(numberOfFiles % 100 == 0) {
+                                Console.WriteLine("{0,5:N0} files completed in {1} with {2,5:N0} failures", numberOfFiles, DateTime.Now - start, numberOfFailures);
+                            }
+                            fileLog.WriteLine("ERROR {0}", e.Exception.FileName);
+                            fileLog.WriteLine(e.Exception.InnerException.StackTrace);
+                            var key = e.Exception.InnerException.StackTrace.Split('\n')[0].Trim();
+                            if(!errors.ContainsKey(key)) {
+                                errors[key] = new List<string>();
+                            }
+                            errors[key].Add(e.Exception.FileName);
+                        };
+
+                        if(useAsyncMethods) {
+                            data.InitializeDataConcurrent();
+                        } else {
+                            data.InitializeData();
+                        }
+
+                        end = DateTime.Now;
+
+                        Console.WriteLine("{0,5:N0} files completed in {1} with {2,5:N0} failures", numberOfFiles, end - start, numberOfFailures);
+                        Console.WriteLine("{0} to generate data", end - start);
+
+                        Console.WriteLine("\nSummary");
+                        Console.WriteLine("===================");
+                        Console.WriteLine("{0,10:N0} failures  ({1,8:P2})", numberOfFailures, ((float)numberOfFailures) / numberOfFiles);
+                        Console.WriteLine("{0,10:N0} successes ({1,8:P2})", numberOfSuccesses, ((float)numberOfSuccesses) / numberOfFiles);
+                        Console.WriteLine("{0} to generate data", end - start);
+                        Console.WriteLine(fileLogPath);
+
+                        PrintScopeReport(data.GlobalScope);
+                        PrintMethodCallReport(data.GlobalScope, callLogPath);
+                        PrintErrorReport(errors);
+                    }
+                }
             }
-            end = DateTime.Now;
-            //startupCompleted = mre.WaitOne(300000);
-
-            //if(!startupCompleted) {
-            //    end = DateTime.Now;
-            //}
-
-            Assert.That(startupCompleted);
-            Console.WriteLine("{0} to generate data", end - start);
-
-            //using(var fileLog = new StreamWriter(fileLogPath)) {
-            //    foreach(var unit in archive.FileUnits) {
-            //        if(++numberOfFiles % 100 == 0) {
-            //            Console.WriteLine("{0,5:N0} files completed in {1} with {2,5:N0} failures", numberOfFiles, DateTime.Now - start, numberOfFailures);
-            //        }
-
-            //        var fileName = SrcMLElement.GetFileNameForUnit(unit);
-            //        var language = SrcMLElement.GetLanguageForUnit(unit);
-
-            //        fileLog.Write("Parsing {0}", fileName);
-            //        try {
-            //            var scopeForUnit = CodeParser[language].ParseFileUnit(unit);
-
-            //            if(null == globalScope) {
-            //                globalScope = scopeForUnit;
-            //            } else {
-            //                globalScope = globalScope.Merge(scopeForUnit);
-            //            }
-            //            fileLog.WriteLine(" PASSED");
-            //            numberOfSuccesses++;
-            //        } catch(Exception e) {
-            //            fileLog.WriteLine(" FAILED");
-            //            fileLog.WriteLine(e.StackTrace);
-            //            var key = e.StackTrace.Split('\n')[0].Trim();
-            //            if(!errors.ContainsKey(key)) {
-            //                errors[key] = new List<string>();
-            //            }
-            //            errors[key].Add(fileName);
-
-            //            numberOfFailures++;
-            //        }
-            //    }
-            //}
-
-            //Console.WriteLine("{0,5:N0} files completed in {1} with {2,5:N0} failures", numberOfFiles, end - start, numberOfFailures);
-            //Console.WriteLine("\nSummary");
-            //Console.WriteLine("===================");
-            //Console.WriteLine("{0,10:N0} failures  ({1,8:P2})", numberOfFailures, ((float)numberOfFailures) / numberOfFiles);
-            //Console.WriteLine("{0,10:N0} successes ({1,8:P2})", numberOfSuccesses, ((float)numberOfSuccesses) / numberOfFiles);
-            //Console.WriteLine("{0} to generate data", end - start);
-            //Console.WriteLine(fileLogPath);
-
-            PrintScopeReport(data.GlobalScope);
-            PrintMethodCallReport(data.GlobalScope, callLogPath);
-            //PrintErrorReport(errors);
-
-            monitor.Dispose();
-            data.Dispose();
-            //Assert.AreEqual(numberOfFailures, (from e in errors.Values select e.Count).Sum());
-            //Assert.AreEqual(0, numberOfFailures);
+            
         }
 
         
@@ -299,7 +283,7 @@ namespace ABB.SrcML.Data.Test {
             bool startupCompleted = false;
 
             monitor.IsReadyChanged += (o, e) => {
-                if(e.UpdatedReadyState) {
+                if(e.ReadyState) {
                     sw.Stop();
                     startupCompleted = true;
                     mre.Set();

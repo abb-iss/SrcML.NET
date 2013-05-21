@@ -67,6 +67,8 @@
     <Compile Include="NamedScopeUse.cs" />
     <Compile Include="NamespaceUse.cs" />
     <Compile Include="ParameterDeclaration.cs" />
+    <Compile Include="ParseErrorRaisedArgs.cs" />
+    <Compile Include="ParseException.cs" />
     <Compile Include="ParserContext.cs" />
     <Compile Include="ScopeDebugView.cs" />
     <Compile Include="SourceLocation.cs" />

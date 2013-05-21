@@ -69,6 +69,8 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public Scope GlobalScope { get { return globalScope; } }
 
+        public event EventHandler<FileEventRaisedArgs> FileProcessed;
+        public event EventHandler<ParseErrorRaisedArgs> ParseErrorRaised;
         /// <summary>
         /// Create a data archive for the given srcML archive. It will subscribe to the <see cref="AbstractArchive.FileChanged"/> event.
         /// </summary>
@@ -144,7 +146,11 @@ namespace ABB.SrcML.Data {
             AbstractCodeParser parser;
 
             if(parsers.TryGetValue(language, out parser)) {
-                scope = parser.ParseFileUnit(fileUnit);
+                try {
+                    scope = parser.ParseFileUnit(fileUnit);
+                } catch(ParseException e) {
+                    OnParseErrorRaised(new ParseErrorRaisedArgs(e));
+                }
             }
             return scope;
         }
@@ -276,6 +282,7 @@ namespace ABB.SrcML.Data {
             Clear();
             foreach(var unit in Archive.FileUnits) {
                 AddFile(unit);
+                OnFileProcessed(new FileEventRaisedArgs(FileEventType.FileAdded, SrcMLElement.GetFileNameForUnit(unit)));
             }
         }
 
@@ -299,7 +306,9 @@ namespace ABB.SrcML.Data {
             task.Start(scheduler);
 
             foreach(var scope in mergeQueue.GetConsumingEnumerable()) {
+                var fileName = scope.PrimaryLocation.SourceFileName;
                 MergeScope(scope);
+                OnFileProcessed(new FileEventRaisedArgs(FileEventType.FileAdded, fileName));
             }
         }
         private void SetupParsers() {
@@ -328,9 +337,23 @@ namespace ABB.SrcML.Data {
                     AddFile(e.FilePath);
                     break;
             }
+            OnFileProcessed(e);
+        }
+        #endregion
+
+        private void OnFileProcessed(FileEventRaisedArgs e) {
+            EventHandler<FileEventRaisedArgs> handler = FileProcessed;
+            if(handler != null) {
+                handler(this, e);
+            }
         }
 
-        #endregion
+        private void OnParseErrorRaised(ParseErrorRaisedArgs e) {
+            EventHandler<ParseErrorRaisedArgs> handler = ParseErrorRaised;
+            if(handler != null) {
+                handler(this, e);
+            }
+        }
 
         class SourceLocationComparer : Comparer<SourceLocation> {
             public override int Compare(SourceLocation x, SourceLocation y) {
@@ -350,6 +373,8 @@ namespace ABB.SrcML.Data {
             if(this.Archive != null) {
                 this.Archive.FileChanged -= Archive_SourceFileChanged;
             }
+            this.FileProcessed = null;
+            this.ParseErrorRaised = null;
             Save();
         }
     }
