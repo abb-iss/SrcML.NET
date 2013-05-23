@@ -12,18 +12,17 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using ABB.SrcML;
 using NUnit.Framework;
-using NSubstitute;
 
 namespace ABB.SrcML.Test
 {
     [TestFixture]
+    [Category("Build")]
     public class SrcMLArchiveTests
     {
         public const string SourceDirectory = "testSourceDir";
