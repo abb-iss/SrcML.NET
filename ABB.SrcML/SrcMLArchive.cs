@@ -142,6 +142,11 @@ namespace ABB.SrcML {
         }
 
         /// <summary>
+        /// Returns true if this archive contains no file units
+        /// </summary>
+        public override bool IsEmpty { get { return this.FileUnits.Count() == 0;  } }
+
+        /// <summary>
         /// Enumerates over each file in the archive and returns a file list
         /// </summary>        
         public List<string> ArchivedXmlFiles() {

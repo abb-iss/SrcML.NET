@@ -138,5 +138,16 @@ namespace ABB.SrcML.Test {
             var archive = new LastModifiedArchive(testDirectory, "archive.txt");
             Assert.IsFalse(archive.IsOutdated("foo.txt"));
         }
+
+        [Test]
+        public void TestIsEmpty() {
+            var archive = new LastModifiedArchive(testDirectory, "archive.txt");
+            Assert.That(archive.IsEmpty);
+            
+            string pathToFoo = Path.GetFullPath(Path.Combine(testDirectory, "foo.txt"));
+            File.Create(pathToFoo).Dispose();
+            archive.AddOrUpdateFile(pathToFoo);
+            Assert.That(archive.IsEmpty, Is.False);
+        }
     }
 }

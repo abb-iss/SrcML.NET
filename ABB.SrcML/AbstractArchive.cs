@@ -41,6 +41,11 @@ namespace ABB.SrcML
         }
 
         /// <summary>
+        /// Returns true if this archive is empty
+        /// </summary>
+        public abstract bool IsEmpty { get; }
+
+        /// <summary>
         /// Archives are "ready" when they have no running tasks. This property automatically changes to false
         /// when the number of running tasks is zero. Whenever the value changes, the <see cref="IsReadyChanged"/> event fires.
         /// </summary>

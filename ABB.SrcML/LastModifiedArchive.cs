@@ -47,6 +47,12 @@ namespace ABB.SrcML {
         }
 
         /// <summary>
+        /// Returns true if there are no entries in this last modified archive
+        /// </summary>
+        public override bool IsEmpty {
+            get { return this.lastModifiedMap.Count == 0; }
+        }
+        /// <summary>
         /// Returns a collection of all supported file extensions.
         /// </summary>
         public override ICollection<string> SupportedExtensions {
