@@ -208,19 +208,22 @@ namespace ABB.SrcML.Data.Test {
                             }
                         };
 
-                        data.ParseErrorRaised += (o, e) => {
+                        data.ErrorRaised += (o, e) => {
                             numberOfFiles++;
                             numberOfFailures++;
                             if(numberOfFiles % 100 == 0) {
                                 Console.WriteLine("{0,5:N0} files completed in {1} with {2,5:N0} failures", numberOfFiles, DateTime.Now - start, numberOfFailures);
                             }
-                            fileLog.WriteLine("ERROR {0}", e.Exception.FileName);
-                            fileLog.WriteLine(e.Exception.InnerException.StackTrace);
-                            var key = e.Exception.InnerException.StackTrace.Split('\n')[0].Trim();
-                            if(!errors.ContainsKey(key)) {
-                                errors[key] = new List<string>();
+                            ParseException pe = e.Exception as ParseException;
+                            if(pe != null) {
+                                fileLog.WriteLine("ERROR {0}", pe.FileName);
+                                fileLog.WriteLine(e.Exception.InnerException.StackTrace);
+                                var key = e.Exception.InnerException.StackTrace.Split('\n')[0].Trim();
+                                if(!errors.ContainsKey(key)) {
+                                    errors[key] = new List<string>();
+                                }
+                                errors[key].Add(pe.FileName);
                             }
-                            errors[key].Add(e.Exception.FileName);
                         };
 
                         if(useAsyncMethods) {

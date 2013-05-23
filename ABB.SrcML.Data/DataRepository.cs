@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
@@ -69,8 +70,16 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public Scope GlobalScope { get { return globalScope; } }
 
+        /// <summary>
+        /// The file processed event is raised once the data repository is done parsing a file and merging the results
+        /// </summary>
         public event EventHandler<FileEventRaisedArgs> FileProcessed;
-        public event EventHandler<ParseErrorRaisedArgs> ParseErrorRaised;
+
+        /// <summary>
+        /// Raised whenever an expected error is raised
+        /// </summary>
+        public event EventHandler<ErrorRaisedArgs> ErrorRaised;
+
         /// <summary>
         /// Create a data archive for the given srcML archive. It will subscribe to the <see cref="AbstractArchive.FileChanged"/> event.
         /// </summary>
@@ -95,19 +104,8 @@ namespace ABB.SrcML.Data {
             this.Archive = archive;
             this.FileName = fileName;
 
-            //bool loadedFromDisk = false;
-            if(FileName != null) {
-                if(File.Exists(this.FileName)) {
-                    Load(this.FileName);
-                    //loadedFromDisk = true;
-                }
-            }
-
             if(this.Archive != null) {
                 this.Archive.FileChanged += Archive_SourceFileChanged;
-                //if(!loadedFromDisk) {
-                //    InitializeData();
-                //}
             }
         }
 
@@ -140,24 +138,6 @@ namespace ABB.SrcML.Data {
             }
         }
 
-        private Scope ParseFileUnit(XElement fileUnit) {
-            var language = SrcMLElement.GetLanguageForUnit(fileUnit);
-            Scope scope = null;
-            AbstractCodeParser parser;
-
-            if(parsers.TryGetValue(language, out parser)) {
-                try {
-                    scope = parser.ParseFileUnit(fileUnit);
-                } catch(ParseException e) {
-                    OnParseErrorRaised(new ParseErrorRaisedArgs(e));
-                }
-            }
-            return scope;
-        }
-
-        private void MergeScope(Scope scopeForFile) {
-            globalScope = (globalScope != null ? globalScope.Merge(scopeForFile) : scopeForFile);
-        }
         /// <summary>
         /// Removes the given file from the data archive
         /// </summary>
@@ -258,14 +238,12 @@ namespace ABB.SrcML.Data {
             }
         }
 
-
-        #region Private Methods
         /// <summary>
         /// Initializes the archive from the given file. This file must be a serialized DataRepository produced by DataRepository.Save().
         /// </summary>
         /// <param name="fileName">The file to load the archive from.</param>
         /// <exception cref="System.Runtime.Serialization.SerializationException">A problem occurred in deserialization. E.g. the serialized data is the wrong version.</exception>
-        private void Load(string fileName) {
+        public void Load(string fileName) {
             if(fileName == null) {
                 throw new ArgumentNullException("fileName");
             }
@@ -273,42 +251,121 @@ namespace ABB.SrcML.Data {
                 var formatter = new BinaryFormatter();
                 var tempScope = (Scope)formatter.Deserialize(f);
                 //Will throw an exception if it doesn't deserialize correctly
+                this.FileName = fileName;
                 this.globalScope = tempScope;
                 SetupParsers();
             }
         }
 
+        /// <summary>
+        /// initializes the archive. If <see cref="FileName"/> is set and exists, then it attempts to read the data from disk via <see cref="Load(string)"/>.
+        /// If the load fails the repository raises an <see cref="ErrorRaised"/> event and then iterates over all of the file units in <see cref="Archive"/>.
+        /// </summary>
         public void InitializeData() {
             Clear();
-            foreach(var unit in Archive.FileUnits) {
-                AddFile(unit);
-                OnFileProcessed(new FileEventRaisedArgs(FileEventType.FileAdded, SrcMLElement.GetFileNameForUnit(unit)));
+            if(FileName != null && File.Exists(FileName)) {
+                try {
+                    Load(FileName);
+                } catch(SerializationException e) {
+                    OnErrorRaised(new ErrorRaisedArgs(e));
+                }
+            }
+            if(globalScope == null) {
+                ReadArchive();
             }
         }
 
+        /// <summary>
+        /// initializes the archive. If <see cref="FileName"/> is set and exists, then it attempts to read the data from disk via <see cref="Load(string)"/>.
+        /// If the load fails the repository raises an <see cref="ErrorRaised"/> event and then iterates over all of the file units in <see cref="Archive"/>.
+        /// It parses the file units concurrently and merges them on the main thread.
+        /// </summary>
         public void InitializeDataConcurrent() {
             InitializeDataConcurrent(TaskScheduler.Default);
         }
 
+        /// <summary>
+        /// initializes the archive. If <see cref="FileName"/> is set and exists, then it attempts to read the data from disk via <see cref="Load(string)"/>.
+        /// If the load fails the repository raises an <see cref="ErrorRaised"/> event and then iterates over all of the file units in <see cref="Archive"/>.
+        /// It parses the file units concurrently and merges them on the main thread.
+        /// </summary>
+        /// <param name="scheduler">The scheduler to use</param>
         public void InitializeDataConcurrent(TaskScheduler scheduler) {
-            BlockingCollection<Scope> mergeQueue = new BlockingCollection<Scope>();
+            Clear();
+            if(FileName != null && File.Exists(FileName)) {
+                try {
+                    Load(FileName);
+                } catch(SerializationException e) {
+                    OnErrorRaised(new ErrorRaisedArgs(e));
+                }
+            }
+            if(globalScope == null) {
+                ReadArchiveConcurrent(scheduler);
+            }
+        }
 
-            var task = new Task(() => {
-                Parallel.ForEach(Archive.FileUnits, currentUnit => {
-                    var scope = ParseFileUnit(currentUnit);
-                    if(scope != null) {
-                        mergeQueue.Add(scope);
-                    }
+        /// <summary>
+        /// Disposes of the repository
+        /// </summary>
+        public void Dispose() {
+            if(this.Archive != null) {
+                this.Archive.FileChanged -= Archive_SourceFileChanged;
+            }
+            this.FileProcessed = null;
+            this.ErrorRaised = null;
+            Save();
+        }
+
+        #region Private Methods
+        private Scope ParseFileUnit(XElement fileUnit) {
+            var language = SrcMLElement.GetLanguageForUnit(fileUnit);
+            Scope scope = null;
+            AbstractCodeParser parser;
+
+            if(parsers.TryGetValue(language, out parser)) {
+                try {
+                    scope = parser.ParseFileUnit(fileUnit);
+                } catch(ParseException e) {
+                    OnErrorRaised(new ErrorRaisedArgs(e));
+                }
+            }
+            return scope;
+        }
+
+        private void MergeScope(Scope scopeForFile) {
+            globalScope = (globalScope != null ? globalScope.Merge(scopeForFile) : scopeForFile);
+        }
+
+        private void ReadArchive() {
+            if(null != Archive) {
+                foreach(var unit in Archive.FileUnits) {
+                    AddFile(unit);
+                    OnFileProcessed(new FileEventRaisedArgs(FileEventType.FileAdded, SrcMLElement.GetFileNameForUnit(unit)));
+                }
+            }
+        }
+
+        private void ReadArchiveConcurrent(TaskScheduler scheduler) {
+            if(null != Archive) {
+                BlockingCollection<Scope> mergeQueue = new BlockingCollection<Scope>();
+
+                var task = new Task(() => {
+                    Parallel.ForEach(Archive.FileUnits, currentUnit => {
+                        var scope = ParseFileUnit(currentUnit);
+                        if(scope != null) {
+                            mergeQueue.Add(scope);
+                        }
+                    });
+                    mergeQueue.CompleteAdding();
                 });
-                mergeQueue.CompleteAdding();
-            });
 
-            task.Start(scheduler);
+                task.Start(scheduler);
 
-            foreach(var scope in mergeQueue.GetConsumingEnumerable()) {
-                var fileName = scope.PrimaryLocation.SourceFileName;
-                MergeScope(scope);
-                OnFileProcessed(new FileEventRaisedArgs(FileEventType.FileAdded, fileName));
+                foreach(var scope in mergeQueue.GetConsumingEnumerable()) {
+                    var fileName = scope.PrimaryLocation.SourceFileName;
+                    MergeScope(scope);
+                    OnFileProcessed(new FileEventRaisedArgs(FileEventType.FileAdded, fileName));
+                }
             }
         }
         private void SetupParsers() {
@@ -339,7 +396,6 @@ namespace ABB.SrcML.Data {
             }
             OnFileProcessed(e);
         }
-        #endregion
 
         private void OnFileProcessed(FileEventRaisedArgs e) {
             EventHandler<FileEventRaisedArgs> handler = FileProcessed;
@@ -348,12 +404,13 @@ namespace ABB.SrcML.Data {
             }
         }
 
-        private void OnParseErrorRaised(ParseErrorRaisedArgs e) {
-            EventHandler<ParseErrorRaisedArgs> handler = ParseErrorRaised;
+        private void OnErrorRaised(ErrorRaisedArgs e) {
+            EventHandler<ErrorRaisedArgs> handler = ErrorRaised;
             if(handler != null) {
                 handler(this, e);
             }
         }
+        #endregion
 
         class SourceLocationComparer : Comparer<SourceLocation> {
             public override int Compare(SourceLocation x, SourceLocation y) {
@@ -367,15 +424,6 @@ namespace ABB.SrcML.Data {
                 }
                 return result;
             }
-        }
-
-        public void Dispose() {
-            if(this.Archive != null) {
-                this.Archive.FileChanged -= Archive_SourceFileChanged;
-            }
-            this.FileProcessed = null;
-            this.ParseErrorRaised = null;
-            Save();
         }
     }
 }

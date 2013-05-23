@@ -25,8 +25,8 @@ namespace ABB.SrcML.Data.Test {
             data.InitializeData();
             data.Save(@"DataRepositoryTests\saved.dar");
 
-            var newData = new DataRepository(archive, @"DataRepositoryTests\saved.dar");
-
+            var newData = new DataRepository(@"DataRepositoryTests\saved.dar");
+            newData.InitializeData();
             Assert.IsTrue(TestHelper.ScopesAreEqual(data.GlobalScope, newData.GlobalScope));
         }
 
@@ -50,7 +50,8 @@ namespace ABB.SrcML.Data.Test {
         [ExpectedException("System.Runtime.Serialization.SerializationException")]
         public void TestLoad_BadFile() {
             var archive = new SrcMLArchive("DataRepositoryTests");
-            var data = new DataRepository(archive, @"..\..\TestInputs\bad_file.dar");
+            var data = new DataRepository(archive);
+            data.Load(@"..\..\TestInputs\bad_file.dar");
         }
     }
 }
