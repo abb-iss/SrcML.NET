@@ -22,6 +22,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
+using ABB.SrcML.Utilities;
 
 namespace ABB.SrcML.Data {
     /// <summary>
@@ -54,6 +55,7 @@ namespace ABB.SrcML.Data {
     public class DataRepository : IDisposable {
         private Scope globalScope;
         private Dictionary<Language, AbstractCodeParser> parsers;
+        private ReadyNotifier ReadyState;
 
         /// <summary>
         /// The file name to serialize to
@@ -71,6 +73,14 @@ namespace ABB.SrcML.Data {
         public Scope GlobalScope { get { return globalScope; } }
 
         /// <summary>
+        /// True if this repository is idle; false if it is responding to file updates
+        /// </summary>
+        public bool IsReady {
+            get { return ReadyState.IsReady; }
+            private set { this.ReadyState.IsReady = value; }
+        }
+
+        /// <summary>
         /// The file processed event is raised once the data repository is done parsing a file and merging the results
         /// </summary>
         public event EventHandler<FileEventRaisedArgs> FileProcessed;
@@ -79,6 +89,14 @@ namespace ABB.SrcML.Data {
         /// Raised whenever an expected error is raised
         /// </summary>
         public event EventHandler<ErrorRaisedArgs> ErrorRaised;
+
+        /// <summary>
+        /// Raises whenever the value of <see cref="IsReady"/> changes
+        /// </summary>
+        public event EventHandler<IsReadyChangedEventArgs> IsReadyChanged {
+            add { this.ReadyState.IsReadyChanged += value;  }
+            remove { this.ReadyState.IsReadyChanged -= value; }
+        }
 
         /// <summary>
         /// Create a data archive for the given srcML archive. It will subscribe to the <see cref="AbstractArchive.FileChanged"/> event.
@@ -100,7 +118,7 @@ namespace ABB.SrcML.Data {
         /// <param name="fileName">The file to read data from. If null, no previously saved data will be loaded.</param>
         public DataRepository(SrcMLArchive archive, string fileName) {
             SetupParsers();
-            
+            this.ReadyState = new ReadyNotifier(this);
             this.Archive = archive;
             this.FileName = fileName;
 
@@ -132,9 +150,16 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="fileUnitElement">The <see cref="SRC.Unit"/> XElement for the file to add.</param>
         public void AddFile(XElement fileUnitElement) {
+            bool wasIdle = IsReady;
+            if(wasIdle) {
+                IsReady = false;
+            }
             var scope = ParseFileUnit(fileUnitElement);
             if(scope != null) {
                 MergeScope(scope);
+            }
+            if(wasIdle) {
+                IsReady = true;
             }
         }
 
@@ -143,7 +168,9 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="sourceFile">The path of the file to remove.</param>
         public void RemoveFile(string sourceFile) {
+            IsReady = false;
             globalScope.RemoveFile(sourceFile);
+            IsReady = true;
         }
 
         /// <summary>
@@ -258,10 +285,11 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// initializes the archive. If <see cref="FileName"/> is set and exists, then it attempts to read the data from disk via <see cref="Load(string)"/>.
+        /// Initializes the archive. If <see cref="FileName"/> is set and exists, then it attempts to read the data from disk via <see cref="Load(string)"/>.
         /// If the load fails the repository raises an <see cref="ErrorRaised"/> event and then iterates over all of the file units in <see cref="Archive"/>.
         /// </summary>
         public void InitializeData() {
+            IsReady = false;
             Clear();
             if(FileName != null && File.Exists(FileName)) {
                 try {
@@ -273,10 +301,11 @@ namespace ABB.SrcML.Data {
             if(globalScope == null) {
                 ReadArchive();
             }
+            IsReady = true;
         }
 
         /// <summary>
-        /// initializes the archive. If <see cref="FileName"/> is set and exists, then it attempts to read the data from disk via <see cref="Load(string)"/>.
+        /// Initializes the archive. If <see cref="FileName"/> is set and exists, then it attempts to read the data from disk via <see cref="Load(string)"/>.
         /// If the load fails the repository raises an <see cref="ErrorRaised"/> event and then iterates over all of the file units in <see cref="Archive"/>.
         /// It parses the file units concurrently and merges them on the main thread.
         /// </summary>
@@ -291,6 +320,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="scheduler">The scheduler to use</param>
         public void InitializeDataConcurrent(TaskScheduler scheduler) {
+            IsReady = false;
             Clear();
             if(FileName != null && File.Exists(FileName)) {
                 try {
@@ -302,6 +332,7 @@ namespace ABB.SrcML.Data {
             if(globalScope == null) {
                 ReadArchiveConcurrent(scheduler);
             }
+            IsReady = true;
         }
 
         /// <summary>
@@ -313,6 +344,7 @@ namespace ABB.SrcML.Data {
             }
             this.FileProcessed = null;
             this.ErrorRaised = null;
+            ReadyState.Dispose();
             Save();
         }
 
@@ -368,6 +400,7 @@ namespace ABB.SrcML.Data {
                 }
             }
         }
+
         private void SetupParsers() {
             parsers = new Dictionary<Language, AbstractCodeParser>() {
                 { Language.CPlusPlus, new CPlusPlusCodeParser() },
