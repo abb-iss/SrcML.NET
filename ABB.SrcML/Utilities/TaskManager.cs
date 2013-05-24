@@ -7,14 +7,17 @@ using System.Threading.Tasks;
 
 namespace ABB.SrcML.Utilities {
     public class TaskManager : IDisposable {
-        private bool _isReady;
         private int _runningTasks;
         private Object _parent;
+        private ReadyNotifier ReadyState;
 
         /// <summary>
         /// Event fires when the <see cref="IsReady"/> property changes
         /// </summary>
-        public event EventHandler<IsReadyChangedEventArgs> IsReadyChanged;
+        public event EventHandler<IsReadyChangedEventArgs> IsReadyChanged {
+            add { this.ReadyState.IsReadyChanged += value; }
+            remove { this.ReadyState.IsReadyChanged -= value; }
+        }
 
         public TaskManager(Object parent) : this(parent, TaskScheduler.Default) { }
 
@@ -22,7 +25,7 @@ namespace ABB.SrcML.Utilities {
             _parent = parent;
             Scheduler = scheduler;
             _runningTasks = 0;
-            _isReady = true;
+            ReadyState = new ReadyNotifier(_parent);
         }
 
         private TaskManager() { }
@@ -32,13 +35,8 @@ namespace ABB.SrcML.Utilities {
         /// when the number of running tasks is zero. Whenever the value changes, the <see cref="IsReadyChanged"/> event fires.
         /// </summary>
         public bool IsReady {
-            get { return this._isReady; }
-            protected set {
-                if(value != this._isReady) {
-                    _isReady = value;
-                    OnIsReadyChanged(new IsReadyChangedEventArgs(_isReady));
-                }
-            }
+            get { return this.ReadyState.IsReady; }
+            private set { this.ReadyState.IsReady = value; }
         }
 
         /// <summary>
@@ -75,17 +73,6 @@ namespace ABB.SrcML.Utilities {
         }
 
         /// <summary>
-        /// event handler for <see cref="IsReadyChanged"/>
-        /// </summary>
-        /// <param name="e">event arguments</param>
-        protected virtual void OnIsReadyChanged(IsReadyChangedEventArgs e) {
-            EventHandler<IsReadyChangedEventArgs> handler = IsReadyChanged;
-            if(handler != null) {
-                handler(_parent, e);
-            }
-        }
-
-        /// <summary>
         /// The number of tasks that are currently running
         /// </summary>
         protected int CountOfRunningTasks {
@@ -114,7 +101,7 @@ namespace ABB.SrcML.Utilities {
         }
 
         public void Dispose() {
-            IsReadyChanged = null;
+            ReadyState.Dispose();
         }
     }
 }

@@ -26,7 +26,7 @@ namespace ABB.SrcML {
     /// <para>When the archive is done processing the file, it raises its own <see cref="AbstractArchive.FileChanged">event</see></para>
     /// </summary>
     public abstract class AbstractFileMonitor : IDisposable {
-        private bool monitorIsReady;
+        private ReadyNotifier ReadyState;
         private int numberOfWorkingArchives;
         private AbstractArchive defaultArchive;
         private HashSet<AbstractArchive> registeredArchives;
@@ -47,8 +47,8 @@ namespace ABB.SrcML {
             this.MonitorStoragePath = baseDirectory;
             this.registeredArchives = new HashSet<AbstractArchive>();
             this.archiveMap = new Dictionary<string, AbstractArchive>(StringComparer.InvariantCultureIgnoreCase);
+            this.ReadyState = new ReadyNotifier(this);
             this.numberOfWorkingArchives = 0;
-            this.monitorIsReady = true;
             this.UseAsyncMethods = false;
 
             RegisterArchive(defaultArchive, true);
@@ -61,13 +61,8 @@ namespace ABB.SrcML {
         /// Indicates that the monitor has finished updating all changed files.
         /// </summary>
         public bool IsReady {
-            get { return this.monitorIsReady; }
-            protected set {
-                if(value != monitorIsReady) {
-                    monitorIsReady = value;
-                    OnIsReadyChanged(new IsReadyChangedEventArgs(monitorIsReady));
-                }
-            }
+            get { return this.ReadyState.IsReady; }
+            protected set { this.ReadyState.IsReady = value; }
         }
 
         /// <summary>
@@ -83,7 +78,10 @@ namespace ABB.SrcML {
         /// <summary>
         /// Event fires when the <see cref="IsReady"/> property changes
         /// </summary>
-        public event EventHandler<IsReadyChangedEventArgs> IsReadyChanged;
+        public event EventHandler<IsReadyChangedEventArgs> IsReadyChanged {
+            add { this.ReadyState.IsReadyChanged += value; }
+            remove { this.ReadyState.IsReadyChanged -= value; }
+        }
 
         /// <summary>
         /// Event fires when <see cref="StopMonitoring()"/> is completed
@@ -425,7 +423,7 @@ namespace ABB.SrcML {
         /// </summary>
         public void Dispose() {
             SrcMLFileLogger.DefaultLogger.Info("AbstractFileMonitor.Dispose()");
-            IsReadyChanged = null;
+            ReadyState.Dispose();
             FileChanged = null;
             foreach(var archive in registeredArchives) {
                 archive.Dispose();
@@ -438,17 +436,6 @@ namespace ABB.SrcML {
         /// <param name="e">event arguments</param>
         protected virtual void OnFileChanged(FileEventRaisedArgs e) {
             EventHandler<FileEventRaisedArgs> handler = FileChanged;
-            if(handler != null) {
-                handler(this, e);
-            }
-        }
-
-        /// <summary>
-        /// event handler for <see cref="IsReadyChanged"/>
-        /// </summary>
-        /// <param name="e">event arguments</param>
-        protected virtual void OnIsReadyChanged(IsReadyChangedEventArgs e) {
-            EventHandler<IsReadyChangedEventArgs> handler = IsReadyChanged;
             if(handler != null) {
                 handler(this, e);
             }

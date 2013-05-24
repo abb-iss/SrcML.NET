@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace ABB.SrcML {
+namespace ABB.SrcML.Utilities {
     /// <summary>
     /// Event arguments for IsReady changed events
     /// </summary>
