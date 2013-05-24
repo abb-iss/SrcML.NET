@@ -25,7 +25,7 @@ namespace ABB.SrcML {
     public class SrcMLGenerator {
         private readonly Src2SrcMLRunner2 defaultExecutable;
         private readonly Language[] defaultLanguages = new[] { Language.C, Language.CPlusPlus, Language.Java, Language.AspectJ };
-        private readonly string[] defaultArguments = new[] { LIT.ArgumentLabel, OP.ArgumentLabel, POS.ArgumentLabel, TYPE.ArgumentLabel };
+        private string[] defaultArguments;
         
         private Dictionary<Language, Src2SrcMLRunner2> nonDefaultExecutables;
         private Dictionary<Language, string[]> nonDefaultArguments;
@@ -65,6 +65,7 @@ namespace ABB.SrcML {
         /// </summary>
         public SrcMLGenerator() {
             defaultExecutable = new Src2SrcMLRunner2();
+            defaultArguments = new[] { LIT.ArgumentLabel, OP.ArgumentLabel, POS.ArgumentLabel, TYPE.ArgumentLabel };
             nonDefaultExecutables = new Dictionary<Language, Src2SrcMLRunner2>();
             nonDefaultArguments = new Dictionary<Language, string[]>();
             DetectNonDefaultExecutables();
@@ -74,12 +75,7 @@ namespace ABB.SrcML {
         /// Creates a new SrcMLGenerator
         /// </summary>
         /// <param name="defaultExecutableDirectory">The directory containing the default srcml executables to use.</param>
-        public SrcMLGenerator(string defaultExecutableDirectory) {
-            defaultExecutable = new Src2SrcMLRunner2(defaultExecutableDirectory);
-            nonDefaultExecutables = new Dictionary<Language, Src2SrcMLRunner2>();
-            nonDefaultArguments = new Dictionary<Language, string[]>();
-            DetectNonDefaultExecutables();
-        }
+        public SrcMLGenerator(string defaultExecutableDirectory) : this(defaultExecutableDirectory, new[] { LIT.ArgumentLabel, OP.ArgumentLabel, POS.ArgumentLabel, TYPE.ArgumentLabel }) { }
 
         /// <summary>
         /// Creates a new SrcMLGenerator
@@ -88,6 +84,7 @@ namespace ABB.SrcML {
         /// <param name="namespaceArguments">The namespace arguments to use when converting to SrcML.</param>
         public SrcMLGenerator(string defaultExecutableDirectory, IEnumerable<string> namespaceArguments) {
             defaultExecutable = new Src2SrcMLRunner2(defaultExecutableDirectory);
+            defaultArguments = namespaceArguments.ToArray();
             nonDefaultExecutables = new Dictionary<Language, Src2SrcMLRunner2>();
             nonDefaultArguments = new Dictionary<Language, string[]>();
             DetectNonDefaultExecutables();
