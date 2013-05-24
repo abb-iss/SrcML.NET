@@ -37,17 +37,24 @@ namespace ABB.SrcML {
             }
 
             var sig = new StringBuilder();
-            var paramListElement = methodElement.Element(SRC.ParameterList);
-            //add all the text and whitespace prior to the parameter list
-            foreach(var n in paramListElement.NodesBeforeSelf()) {
-                if(n.NodeType == XmlNodeType.Element) {
-                    sig.Append(((XElement)n).Value);
-                } else if(n.NodeType == XmlNodeType.Text || n.NodeType == XmlNodeType.Whitespace || n.NodeType == XmlNodeType.SignificantWhitespace) {
-                    sig.Append(((XText)n).Value);
-                }
+            var lastSigElement = methodElement.Element(SRC.ParameterList);
+            if(lastSigElement == null) {
+                lastSigElement = methodElement.Element(SRC.Name);
             }
-            //add the parameter list
-            sig.Append(paramListElement.Value);
+            if(lastSigElement != null) {
+                //add all the text and whitespace prior to the last element
+                foreach(var n in lastSigElement.NodesBeforeSelf()) {
+                    if(n.NodeType == XmlNodeType.Element) {
+                        sig.Append(((XElement)n).Value);
+                    } else if(n.NodeType == XmlNodeType.Text || n.NodeType == XmlNodeType.Whitespace || n.NodeType == XmlNodeType.SignificantWhitespace) {
+                        sig.Append(((XText)n).Value);
+                    }
+                }
+                //add the last element
+                sig.Append(lastSigElement.Value);
+            } else {
+                //no name or parameter list, anonymous method?
+            }
 
             //convert whitespace chars to spaces and condense any consecutive whitespaces.
             return Regex.Replace(sig.ToString().Trim(), @"\s+", " ");
