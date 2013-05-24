@@ -127,6 +127,7 @@ namespace ABB.SrcML.Data {
             }
         }
 
+#region Modification methods
         /// <summary>
         /// Removes any data from the archive.
         /// </summary>
@@ -173,6 +174,9 @@ namespace ABB.SrcML.Data {
             IsReady = true;
         }
 
+#endregion Modification methods
+
+#region Query methods
         /// <summary>
         /// Finds the innermost scope that contains the given source location.
         /// </summary>
@@ -240,50 +244,9 @@ namespace ABB.SrcML.Data {
             var calls = scope.MethodCalls.Where(mc => xpath.StartsWith(mc.Location.XPath));
             return new Collection<MethodCall>(calls.OrderByDescending(mc => mc.Location, new SourceLocationComparer()).ToList());
         }
+#endregion Query methods
 
-        /// <summary>
-        /// Serializes the archive to the specified file.
-        /// </summary>
-        /// <param name="fileName">The file to save the archive to.</param>
-        public void Save(string fileName) {
-            if(fileName == null) {
-                throw new ArgumentNullException("fileName");
-            }
-            var formatter = new BinaryFormatter();
-            using(var f = File.OpenWrite(fileName)) {
-                formatter.Serialize(f, globalScope);
-            }
-            this.FileName = fileName;
-        }
-
-        /// <summary>
-        /// Serializes the archive to <see cref="FileName"/>
-        /// </summary>
-        public void Save() {
-            if(this.FileName != null) {
-                Save(this.FileName);
-            }
-        }
-
-        /// <summary>
-        /// Initializes the archive from the given file. This file must be a serialized DataRepository produced by DataRepository.Save().
-        /// </summary>
-        /// <param name="fileName">The file to load the archive from.</param>
-        /// <exception cref="System.Runtime.Serialization.SerializationException">A problem occurred in deserialization. E.g. the serialized data is the wrong version.</exception>
-        public void Load(string fileName) {
-            if(fileName == null) {
-                throw new ArgumentNullException("fileName");
-            }
-            using(var f = File.OpenRead(fileName)) {
-                var formatter = new BinaryFormatter();
-                var tempScope = (Scope)formatter.Deserialize(f);
-                //Will throw an exception if it doesn't deserialize correctly
-                this.FileName = fileName;
-                this.globalScope = tempScope;
-                SetupParsers();
-            }
-        }
-
+#region initialization methods
         /// <summary>
         /// Initializes the archive. If <see cref="FileName"/> is set and exists, then it attempts to read the data from disk via <see cref="Load(string)"/>.
         /// If the load fails the repository raises an <see cref="ErrorRaised"/> event and then iterates over all of the file units in <see cref="Archive"/>.
@@ -336,6 +299,51 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
+        /// Initializes the archive from the given file. This file must be a serialized DataRepository produced by DataRepository.Save().
+        /// </summary>
+        /// <param name="fileName">The file to load the archive from.</param>
+        /// <exception cref="System.Runtime.Serialization.SerializationException">A problem occurred in deserialization. E.g. the serialized data is the wrong version.</exception>
+        public void Load(string fileName) {
+            if(fileName == null) {
+                throw new ArgumentNullException("fileName");
+            }
+            using(var f = File.OpenRead(fileName)) {
+                var formatter = new BinaryFormatter();
+                var tempScope = (Scope)formatter.Deserialize(f);
+                //Will throw an exception if it doesn't deserialize correctly
+                this.FileName = fileName;
+                this.globalScope = tempScope;
+                SetupParsers();
+            }
+        }
+#endregion initialization methods
+
+#region teardown methods
+        /// <summary>
+        /// Serializes the archive to the specified file.
+        /// </summary>
+        /// <param name="fileName">The file to save the archive to.</param>
+        public void Save(string fileName) {
+            if(fileName == null) {
+                throw new ArgumentNullException("fileName");
+            }
+            var formatter = new BinaryFormatter();
+            using(var f = File.OpenWrite(fileName)) {
+                formatter.Serialize(f, globalScope);
+            }
+            this.FileName = fileName;
+        }
+
+        /// <summary>
+        /// Serializes the archive to <see cref="FileName"/>
+        /// </summary>
+        public void Save() {
+            if(this.FileName != null) {
+                Save(this.FileName);
+            }
+        }
+
+        /// <summary>
         /// Disposes of the repository
         /// </summary>
         public void Dispose() {
@@ -347,8 +355,9 @@ namespace ABB.SrcML.Data {
             ReadyState.Dispose();
             Save();
         }
+#endregion teardown methods
 
-        #region Private Methods
+#region Private Methods
         private Scope ParseFileUnit(XElement fileUnit) {
             var language = SrcMLElement.GetLanguageForUnit(fileUnit);
             Scope scope = null;
@@ -443,7 +452,7 @@ namespace ABB.SrcML.Data {
                 handler(this, e);
             }
         }
-        #endregion
+#endregion
 
         class SourceLocationComparer : Comparer<SourceLocation> {
             public override int Compare(SourceLocation x, SourceLocation y) {
