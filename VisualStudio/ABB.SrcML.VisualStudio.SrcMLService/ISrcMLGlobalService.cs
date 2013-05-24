@@ -11,6 +11,8 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Xml.Linq;
+using ABB.SrcML.Data;
+using ABB.SrcML.Utilities;
 
 namespace ABB.SrcML.VisualStudio.SrcMLService {
     /// <summary>
@@ -25,6 +27,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         //void GlobalServiceFunction();
         //int CallLocalService();
 
+        bool IsReady { get; }
+
         event EventHandler<FileEventRaisedArgs> SourceFileChanged;
         event EventHandler<IsReadyChangedEventArgs> IsReadyChanged;
         event EventHandler<EventArgs> MonitoringStopped;
@@ -33,6 +37,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         void StartMonitoring(bool useExistingSrcML, string srcMLBinaryDirectory);
         void StopMonitoring();
         SrcMLArchive GetSrcMLArchive();
+        DataRepository GetDataRepository();
+
         XElement GetXElementForSourceFile(string sourceFilePath);
 
     }

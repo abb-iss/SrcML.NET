@@ -19,6 +19,7 @@ using ABB.SrcML;
 using ABB.SrcML.Utilities;
 using ABB.SrcML.VisualStudio.SolutionMonitor;
 using log4net;
+using ABB.SrcML.Data;
 
 namespace ABB.SrcML.VisualStudio.SrcMLService {
     /// <summary>
@@ -29,6 +30,16 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
     /// package that it is actually implementing this service.
     /// </summary>
     public class SrcMLGlobalService : ISrcMLGlobalService, SSrcMLGlobalService {
+        private int numRunningSources { get; set; }
+        private ReadyNotifier ReadyState;
+
+        private int NumRunningSources {
+            get { return this.numRunningSources; }
+            set {
+                this.numRunningSources = value;
+                IsReady = (numRunningSources == 0);
+            }
+        }
 
         /// <summary>
         /// SrcML.NET's Solution Monitor.
@@ -39,6 +50,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// SrcML.NET's SrcMLArchive.
         /// </summary>
         private SrcMLArchive CurrentSrcMLArchive;
+
+        private DataRepository CurrentDataRepository;
 
         /// <summary>
         /// The folder name of storing srcML archives.
@@ -62,7 +75,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         private int frozen;
         private uint cookie = 0;
         private uint amountCompleted = 0;
-        private bool duringStartup;
+        //private bool duringStartup;
 
         /// <summary>
         /// Constructor.
@@ -70,7 +83,9 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="sp"></param>
         /// <param name="extensionDirectory"></param>
         public SrcMLGlobalService(IServiceProvider sp, string extensionDirectory) {
+            numRunningSources = 0;
             SrcMLFileLogger.DefaultLogger.Info("Constructing a new instance of SrcMLGlobalService");
+            ReadyState = new ReadyNotifier(this);
             serviceProvider = sp;
             SrcMLServiceDirectory = extensionDirectory;
             statusBar = (IVsStatusbar)Package.GetGlobalService(typeof(SVsStatusbar));
@@ -79,8 +94,18 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         // Implement the methods of ISrcMLLocalService here.
         #region ISrcMLGlobalService Members
 
+        public bool IsReady {
+            get { return this.ReadyState.IsReady; }
+            private set { this.ReadyState.IsReady = value; }
+        }
+
         public event EventHandler<FileEventRaisedArgs> SourceFileChanged;
-        public event EventHandler<IsReadyChangedEventArgs> IsReadyChanged;
+        
+        public event EventHandler<IsReadyChangedEventArgs> IsReadyChanged {
+            add { this.ReadyState.IsReadyChanged += value; }
+            remove { this.ReadyState.IsReadyChanged -= value; }
+        }
+
         public event EventHandler<EventArgs> MonitoringStopped;
 
         /// <summary>
@@ -98,26 +123,45 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
                 // Create a new instance of SrcML.NET's SrcMLArchive
                 CurrentSrcMLArchive = new SrcMLArchive(srcMLArchiveDirectory, useExistingSrcML, new SrcMLGenerator(srcMLBinaryDirectory));
+                CurrentDataRepository = new DataRepository(CurrentSrcMLArchive, Path.Combine(srcMLArchiveDirectory, "solution.sdd"));
+
+                if(CurrentSrcMLArchive.IsEmpty) {
+                    CurrentSrcMLArchive.IsReadyChanged += InitDataWhenReady;
+                } else {
+                    InitDataWhenReady(this, new IsReadyChangedEventArgs(true));
+                }
 
                 // Create a new instance of SrcML.NET's solution monitor
                 CurrentMonitor = SolutionMonitorFactory.CreateMonitor(srcMLArchiveDirectory, lastModifiedArchive, CurrentSrcMLArchive);
 
                 // Subscribe events from Solution Monitor
                 CurrentMonitor.FileChanged += RespondToFileChangedEvent;
+                
+                CurrentDataRepository.FileProcessed += RespondToFileChangedEvent;
+
                 CurrentMonitor.IsReadyChanged += RespondToIsReadyChangedEvent;
+                CurrentDataRepository.IsReadyChanged += RespondToIsReadyChangedEvent;
 
                 CurrentMonitor.MonitoringStopped += RespondToMonitoringStoppedEvent;
 
+                
                 // Initialize the progress bar.
                 if(statusBar != null) {
                     statusBar.Progress(ref cookie, 1, "", 0, 0);
                 }
 
                 // Start monitoring
-                duringStartup = true;
+                //duringStartup = true;
                 CurrentMonitor.StartMonitoring();
             } catch(Exception e) {
                 SrcMLFileLogger.DefaultLogger.Error(SrcMLExceptionFormatter.CreateMessage(e, "Exception in SrcMLGlobalService.StartMonitoring()"));
+            }
+        }
+
+        void InitDataWhenReady(object sender, IsReadyChangedEventArgs e) {
+            if(e.ReadyState) {
+                CurrentDataRepository.InitializeDataConcurrent();
+                CurrentSrcMLArchive.IsReadyChanged -= InitDataWhenReady;
             }
         }
 
@@ -137,7 +181,10 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             try {
                 if(CurrentMonitor != null && CurrentSrcMLArchive != null) {
                     CurrentMonitor.StopMonitoring();
+                    CurrentDataRepository.Dispose();
+
                     CurrentSrcMLArchive = null;
+                    CurrentDataRepository = null;
                     CurrentMonitor = null;
                 }
             } catch(Exception e) {
@@ -153,6 +200,9 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             return CurrentSrcMLArchive;
         }
 
+        public DataRepository GetDataRepository() {
+            return CurrentDataRepository;
+        }
         /// <summary>
         /// Gets the XElement for the specified source file.
         /// </summary>
@@ -234,10 +284,12 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         private void RespondToFileChangedEvent(object sender, FileEventRaisedArgs eventArgs) {
             //SrcMLFileLogger.DefaultLogger.Info("SrcMLService: RespondToFileChangedEvent(), File = " + eventArgs.FilePath + ", EventType = " + eventArgs.EventType + ", HasSrcML = " + eventArgs.HasSrcML);
             // Show progress on the status bar.
-            if(duringStartup) {
-                amountCompleted++;
-                ShowProgressOnStatusBar("SrcML Service is processing " + eventArgs.FilePath);
-            }
+            //if(duringStartup) {
+                //amountCompleted++;
+            //ShowProgressOnStatusBar("SrcML Service is processing " + eventArgs.FilePath);
+            var senderIsDataRepo = (sender == CurrentDataRepository);
+            DisplayTextOnStatusBar(String.Format("SrcML Service is {0} {1}", (senderIsDataRepo ? "generating data for" : "processing"), eventArgs.FilePath));
+            //}
             OnFileChanged(eventArgs);
         }
 
@@ -249,15 +301,26 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         private void RespondToIsReadyChangedEvent(object sender, IsReadyChangedEventArgs eventArgs) {
             SrcMLFileLogger.DefaultLogger.Info("SrcMLService: RespondToStartupCompletedEvent()");
             if(eventArgs.ReadyState) {
+                NumRunningSources--;
+
                 // Clear the progress bar.
+
                 amountCompleted = 0;
                 if(statusBar != null) {
                     statusBar.Progress(ref cookie, 0, "", 0, 0);
                 }
-                DisplayTextOnStatusBar("SrcML Service has finished processing files");
-                duringStartup = false;
+                string message = "SrcML Service has no idea where this message came from";
+                if(sender == CurrentMonitor) {
+                    message = "SrcML Service has finished parsing files";
+                } else if(sender == CurrentDataRepository) {
+                    message = "SrcML Service has finished generating analysis data";
+                }
+
+                DisplayTextOnStatusBar(message);
+                // duringStartup = false;
+            } else {
+                NumRunningSources++;
             }
-            OnIsReadyChanged(eventArgs);
         }
 
         /// <summary>
@@ -272,13 +335,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
         protected virtual void OnFileChanged(FileEventRaisedArgs e) {
             EventHandler<FileEventRaisedArgs> handler = SourceFileChanged;
-            if(handler != null) {
-                handler(this, e);
-            }
-        }
-
-        protected virtual void OnIsReadyChanged(IsReadyChangedEventArgs e) {
-            EventHandler<IsReadyChangedEventArgs> handler = IsReadyChanged;
             if(handler != null) {
                 handler(this, e);
             }
