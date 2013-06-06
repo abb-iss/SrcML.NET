@@ -42,6 +42,7 @@ namespace ABB.SrcML.Data.Test {
             data.Save(@"DataRepositoryTests\saved.dar");
 
             var newData = new DataRepository(archive, @"DataRepositoryTests\saved.dar");
+            newData.InitializeData();
 
             Assert.IsTrue(TestHelper.ScopesAreEqual(data.GlobalScope, newData.GlobalScope));
         }

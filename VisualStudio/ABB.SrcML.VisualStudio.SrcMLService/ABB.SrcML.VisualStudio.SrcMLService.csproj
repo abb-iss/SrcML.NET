@@ -36,7 +36,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CreateVsixContainer>True</CreateVsixContainer>
-	<DeployExtension>False</DeployExtension>
+    <DeployExtension>False</DeployExtension>
     <CopyVsixExtensionFiles>False</CopyVsixExtensionFiles>
     <CopyVsixExtensionLocation>$(USERPROFILE)\AppData\Local\Microsoft\VisualStudio\11.0Exp\Extensions\ABB\SrcMLService\1.0</CopyVsixExtensionLocation>
   </PropertyGroup>
@@ -392,6 +392,10 @@
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\ABB.SrcML.Data\ABB.SrcML.Data.csproj">
+      <Project>{73c24e33-465b-424d-b35a-39f1750f705e}</Project>
+      <Name>ABB.SrcML.Data</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\ABB.SrcML\ABB.SrcML.csproj">
       <Project>{d52626e7-a4ca-471a-8a6a-fe0110430fe6}</Project>
       <Name>ABB.SrcML</Name>
