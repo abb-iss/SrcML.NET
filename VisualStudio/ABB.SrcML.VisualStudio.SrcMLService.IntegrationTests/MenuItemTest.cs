@@ -9,7 +9,7 @@ using Microsoft.VsSDK.IntegrationTestLibrary;
 using Microsoft.VSSDK.Tools.VsIdeTesting;
 using ABB.SrcML.VisualStudio.SrcMLService;
 
-namespace SrcMLService_IntegrationTests {
+namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
     [TestClass()]
     public class MenuItemTest {
         private delegate void ThreadInvoker();

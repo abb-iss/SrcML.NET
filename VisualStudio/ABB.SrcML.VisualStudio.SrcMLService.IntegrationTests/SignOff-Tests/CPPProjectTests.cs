@@ -7,7 +7,7 @@ using Microsoft.VSSDK.Tools.VsIdeTesting;
 using EnvDTE;
 using System.IO;
 
-namespace SrcMLService_IntegrationTests.IntegrationTests {
+namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
     [TestClass]
     public class CPPProjectTests {
         #region fields

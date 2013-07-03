@@ -25,12 +25,12 @@ namespace ABB.SrcML {
     /// </list>
     /// <para>When the archive is done processing the file, it raises its own <see cref="AbstractArchive.FileChanged">event</see></para>
     /// </summary>
-    public abstract class AbstractFileMonitor : IDisposable {
+    public abstract class AbstractFileMonitor : IFileMonitor {
         private bool monitorIsReady;
         private int numberOfWorkingArchives;
-        private AbstractArchive defaultArchive;
-        private HashSet<AbstractArchive> registeredArchives;
-        private Dictionary<string, AbstractArchive> archiveMap;
+        private IArchive defaultArchive;
+        private HashSet<IArchive> registeredArchives;
+        private Dictionary<string, IArchive> archiveMap;
 
         /// <summary>
         /// If true, this monitor will use the Async methods on all of its <see cref="AbstractArchive"/> objects. By default it is false.
@@ -42,11 +42,11 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="baseDirectory">The folder where this monitor stores it archives</param>
         /// <param name="defaultArchive">The default archive</param>
-        /// <param name="otherArchives">A list of other archives that should be registered via <see cref="RegisterArchive(AbstractArchive)"/></param>
-        public AbstractFileMonitor(string baseDirectory, AbstractArchive defaultArchive, params AbstractArchive[] otherArchives) {
+        /// <param name="otherArchives">A list of other archives that should be registered via <see cref="RegisterArchive(IArchive)"/></param>
+        protected AbstractFileMonitor(string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives) {
             this.MonitorStoragePath = baseDirectory;
-            this.registeredArchives = new HashSet<AbstractArchive>();
-            this.archiveMap = new Dictionary<string, AbstractArchive>(StringComparer.InvariantCultureIgnoreCase);
+            this.registeredArchives = new HashSet<IArchive>();
+            this.archiveMap = new Dictionary<string, IArchive>(StringComparer.InvariantCultureIgnoreCase);
             this.numberOfWorkingArchives = 0;
             this.monitorIsReady = true;
             this.UseAsyncMethods = false;
@@ -99,7 +99,7 @@ namespace ABB.SrcML {
         /// <summary>
         /// Number of the elements in the returned collection from GetFilesFromSource()
         /// </summary>
-        public int NumberOfAllMonitoredFiles;
+        public int NumberOfAllMonitoredFiles { get; protected set; }
 
         /// <summary>
         /// Gets the list of files already present in this archive
@@ -118,7 +118,7 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="archive">the archive to add.</param>
         /// <param name="isDefault">whether or not to use this archive as the default archive</param>
-        public void RegisterArchive(AbstractArchive archive, bool isDefault) {
+        public void RegisterArchive(IArchive archive, bool isDefault) {
             this.registeredArchives.Add(archive);
             archive.FileChanged += RespondToArchiveFileEvent;
             archive.IsReadyChanged += archive_IsReadyChanged;
@@ -470,10 +470,10 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="fileName">The file name</param>
         /// <returns>The archive that should contain this file name</returns>
-        private AbstractArchive GetArchiveForFile(string fileName) {
+        private IArchive GetArchiveForFile(string fileName) {
             if(null == fileName) throw new ArgumentNullException("fileName");
 
-            AbstractArchive selectedArchive = null;
+            IArchive selectedArchive = null;
             var extension = Path.GetExtension(fileName);
 
             if(!this.archiveMap.TryGetValue(extension, out selectedArchive)) {

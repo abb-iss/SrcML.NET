@@ -6,7 +6,7 @@ using Microsoft.VsSDK.IntegrationTestLibrary;
 using Microsoft.VSSDK.Tools.VsIdeTesting;
 using EnvDTE;
 
-namespace SrcMLService_IntegrationTests.IntegrationTests {
+namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
     [TestClass]
     public class VisualBasicProjectTests {
         #region fields

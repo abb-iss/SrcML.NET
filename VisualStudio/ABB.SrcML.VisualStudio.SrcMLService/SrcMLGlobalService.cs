@@ -38,7 +38,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <summary>
         /// SrcML.NET's SrcMLArchive.
         /// </summary>
-        private SrcMLArchive CurrentSrcMLArchive;
+        private ISrcMLArchive CurrentSrcMLArchive;
 
         /// <summary>
         /// The folder name of storing srcML archives.
@@ -97,10 +97,11 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 LastModifiedArchive lastModifiedArchive = new LastModifiedArchive(srcMLArchiveDirectory);
 
                 // Create a new instance of SrcML.NET's SrcMLArchive
-                CurrentSrcMLArchive = new SrcMLArchive(srcMLArchiveDirectory, useExistingSrcML, new SrcMLGenerator(srcMLBinaryDirectory));
+                SrcMLArchive sourceArchive = new SrcMLArchive(srcMLArchiveDirectory, useExistingSrcML, new SrcMLGenerator(srcMLBinaryDirectory));
+                CurrentSrcMLArchive = sourceArchive;
 
                 // Create a new instance of SrcML.NET's solution monitor
-                CurrentMonitor = SolutionMonitorFactory.CreateMonitor(srcMLArchiveDirectory, lastModifiedArchive, CurrentSrcMLArchive);
+                CurrentMonitor = SolutionMonitorFactory.CreateMonitor(srcMLArchiveDirectory, lastModifiedArchive, sourceArchive);
 
                 // Subscribe events from Solution Monitor
                 CurrentMonitor.FileChanged += RespondToFileChangedEvent;
@@ -149,7 +150,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// Get current SrcMLArchive instance.
         /// </summary>
         /// <returns></returns>
-        public SrcMLArchive GetSrcMLArchive() {
+        public ISrcMLArchive GetSrcMLArchive() {
             return CurrentSrcMLArchive;
         }
 

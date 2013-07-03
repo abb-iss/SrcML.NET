@@ -311,7 +311,6 @@ namespace ABB.SrcML.Data.Test {
             int numberOfFiles = 0;
             Dictionary<string, List<string>> errors = new Dictionary<string, List<string>>();
 
-            List<string> xmlFiles = archive.ArchivedXmlFiles();
             sw.Start();
 
             using(var fileLog = new StreamWriter(fileLogPath)) {
@@ -319,9 +318,8 @@ namespace ABB.SrcML.Data.Test {
 
                     Task.Factory.StartNew(() => {
 
-                        Parallel.ForEach(xmlFiles, currentFile => {
-
-                            var unit = SrcMLElement.Load(currentFile);
+                        Parallel.ForEach(archive.FileUnits, unit => {
+                            var currentFile = SrcMLElement.GetFileNameForUnit(unit);
                             var language = SrcMLElement.GetLanguageForUnit(unit);
                             try {
 

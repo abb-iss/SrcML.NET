@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VsSDK.IntegrationTestLibrary;
 using Microsoft.VSSDK.Tools.VsIdeTesting;
 
-namespace SrcMLService_IntegrationTests.IntegrationTests {
+namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
     [TestClass]
     public class CSharpProjectTests {
         #region fields

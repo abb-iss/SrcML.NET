@@ -85,7 +85,7 @@ namespace ABB.SrcML.Tools.Converter
                 //}
             }
 
-            Language lang = KsuAdapter.GetLanguageFromString(language);
+            Language lang = SrcMLElement.GetLanguageFromString(language);
             if (lang > Language.Any)
             {
                 Console.WriteLine("Using {0} language", language);
@@ -103,7 +103,7 @@ namespace ABB.SrcML.Tools.Converter
             SrcMLFile doc;
             if (Directory.Exists(source)) 
             {
-                doc = generator.GenerateSrcMLFromDirectory(source, outputFileName, lang);
+                doc = generator.GenerateSrcMLFileFromDirectory(source, outputFileName, lang);
                 Console.WriteLine("Created {0}, a srcML archive, from {1} files located at {2}", doc.FileName, doc.FileUnits.Count(), source);
             }
             else if (File.Exists(source))
@@ -197,7 +197,7 @@ namespace ABB.SrcML.Tools.Converter
             {
                 var parts = segment.Split('=');
                 var extension = parts[0];
-                Language language = KsuAdapter.GetLanguageFromString(parts[1]);
+                Language language = SrcMLElement.GetLanguageFromString(parts[1]);
                 yield return new ExtensionLanguagePair(extension, language);
             }
         }

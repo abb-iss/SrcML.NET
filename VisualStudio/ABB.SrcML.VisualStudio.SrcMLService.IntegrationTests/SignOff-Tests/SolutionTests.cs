@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VsSDK.UnitTestLibrary;
 
 
-namespace SrcMLService_IntegrationTests.IntegrationTests {
+namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
     [TestClass]
     public class SolutionTests {
         private delegate void ThreadInvoker();

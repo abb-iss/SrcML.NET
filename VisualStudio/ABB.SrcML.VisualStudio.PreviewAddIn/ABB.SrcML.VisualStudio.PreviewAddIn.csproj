@@ -94,6 +94,10 @@
     <Content Include="SrcMLPreviewAddin.AddIn" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\ABB.SrcML.Core\ABB.SrcML.Core.csproj">
+      <Project>{db649b35-b045-47c3-9903-f3404fa9c1be}</Project>
+      <Name>ABB.SrcML.Core</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\ABB.SrcML\ABB.SrcML.csproj">
       <Project>{d52626e7-a4ca-471a-8a6a-fe0110430fe6}</Project>
       <Name>ABB.SrcML</Name>
