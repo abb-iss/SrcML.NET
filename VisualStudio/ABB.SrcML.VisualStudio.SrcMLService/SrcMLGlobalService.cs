@@ -83,6 +83,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         public event EventHandler<IsReadyChangedEventArgs> IsReadyChanged;
         public event EventHandler<EventArgs> MonitoringStopped;
 
+        public bool IsReady { get { return (CurrentMonitor == null ? false : CurrentMonitor.IsReady); } }
+
         /// <summary>
         /// SrcML service starts to monitor the opened solution.
         /// </summary>
@@ -249,7 +251,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="eventArgs"></param>
         private void RespondToIsReadyChangedEvent(object sender, IsReadyChangedEventArgs eventArgs) {
             SrcMLFileLogger.DefaultLogger.Info("SrcMLService: RespondToStartupCompletedEvent()");
-            if(eventArgs.UpdatedReadyState) {
+            if(eventArgs.ReadyState) {
                 // Clear the progress bar.
                 amountCompleted = 0;
                 if(statusBar != null) {

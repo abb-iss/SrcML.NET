@@ -25,6 +25,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         //void GlobalServiceFunction();
         //int CallLocalService();
 
+        bool IsReady { get; }
         event EventHandler<FileEventRaisedArgs> SourceFileChanged;
         event EventHandler<IsReadyChangedEventArgs> IsReadyChanged;
         event EventHandler<EventArgs> MonitoringStopped;

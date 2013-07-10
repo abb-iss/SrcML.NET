@@ -135,7 +135,7 @@ namespace ABB.SrcML {
         }
 
         void archive_IsReadyChanged(object sender, IsReadyChangedEventArgs e) {
-            if(e.UpdatedReadyState) {
+            if(e.ReadyState) {
                 numberOfWorkingArchives--;
             } else {
                 numberOfWorkingArchives++;

@@ -172,7 +172,7 @@ namespace ABB.SrcML.Data.Test {
             
             //monitor.IsReadyChanged += (o, e) => {
             archive.IsReadyChanged += (o, e) => {
-                if(e.UpdatedReadyState) {
+                if(e.ReadyState) {
                     end = DateTime.Now;
                     startupCompleted = true;
                     mre.Set();
@@ -283,7 +283,7 @@ namespace ABB.SrcML.Data.Test {
             bool startupCompleted = false;
 
             monitor.IsReadyChanged += (o, e) => {
-                if(e.UpdatedReadyState) {
+                if(e.ReadyState) {
                     sw.Stop();
                     startupCompleted = true;
                     mre.Set();

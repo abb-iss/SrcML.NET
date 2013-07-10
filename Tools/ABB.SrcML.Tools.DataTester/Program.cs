@@ -69,7 +69,7 @@ namespace ABB.SrcML.Tools.DataTester {
             bool startupCompleted = false;
 
             monitor.IsReadyChanged += (o, e) => {
-                if(e.UpdatedReadyState) {
+                if(e.ReadyState) {
                     timer.Stop();
                     startupCompleted = true;
                     mre.Set();

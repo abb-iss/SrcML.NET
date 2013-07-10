@@ -6,7 +6,7 @@ using System.Text;
 using System.Xml.Linq;
 
 namespace ABB.SrcML {
-    public interface ISrcMLArchive {
+    public interface ISrcMLArchive : IArchive {
 
         IEnumerable<XElement> FileUnits { get; }
 
