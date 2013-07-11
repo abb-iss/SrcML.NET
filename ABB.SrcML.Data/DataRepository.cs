@@ -268,7 +268,13 @@ namespace ABB.SrcML.Data {
         private void InitializeData() {
             Clear();
             foreach(var unit in Archive.FileUnits) {
-                AddFile(unit);
+                try {
+                    AddFile(unit);
+                } catch(Exception ex) {
+                    var fileName = SrcMLElement.GetFileNameForUnit(unit);
+                    Console.Error.WriteLine("Error: {0} (Adding {1})", ex.Message, fileName);
+                }
+                
             }
         }
 
@@ -281,22 +287,27 @@ namespace ABB.SrcML.Data {
         }
 
         private void Archive_SourceFileChanged(object sender, FileEventRaisedArgs e) {
-            switch(e.EventType) {
-                case FileEventType.FileChanged:
-                    // Treat a changed source file as deleted then added
-                    RemoveFile(e.FilePath);
-                    goto case FileEventType.FileAdded;
-                case FileEventType.FileAdded:
-                    AddFile(e.FilePath);
-                    break;
-                case FileEventType.FileDeleted:
-                    RemoveFile(e.FilePath);
-                    break;
-                case FileEventType.FileRenamed:
-                    // TODO: could a more efficient rename action be supported within the data structures themselves?
-                    RemoveFile(e.OldFilePath);
-                    AddFile(e.FilePath);
-                    break;
+            try {
+                switch(e.EventType) {
+                    case FileEventType.FileChanged:
+                        // Treat a changed source file as deleted then added
+                        RemoveFile(e.FilePath);
+                        goto case FileEventType.FileAdded;
+                    case FileEventType.FileAdded:
+                        AddFile(e.FilePath);
+                        break;
+                    case FileEventType.FileDeleted:
+                        RemoveFile(e.FilePath);
+                        break;
+                    case FileEventType.FileRenamed:
+                        // TODO: could a more efficient rename action be supported within the data structures themselves?
+                        RemoveFile(e.OldFilePath);
+                        AddFile(e.FilePath);
+                        break;
+                }
+            } catch(Exception ex) {
+                // TODO log exception
+                Console.Error.WriteLine("Error: {0} ({1} {2})", ex.Message, e.EventType, e.FilePath);
             }
         }
 
