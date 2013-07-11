@@ -68,7 +68,7 @@ namespace ABB.SrcML
             if (null == name)
                 throw new ArgumentNullException("name");
 
-            SrcMLHelper.ThrowExceptionOnInvalidName(name, SRC.Name);
+            SrcMLElement.ThrowExceptionOnInvalidName(name, SRC.Name);
 
             var decls = from d in name.Ancestors(SRC.Function).First().Descendants(SRC.Declaration)
                         where d.Elements(SRC.Name).Any()
