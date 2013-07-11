@@ -12,6 +12,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -128,6 +129,256 @@ namespace ABB.SrcML {
         /// <returns>An XElement</returns>
         public static XElement Load(string xmlFileName) {
             return XElement.Load(xmlFileName, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo);
+        }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
+        private static XAttribute GetAttributeFromSelfOrDescendant(XElement element, XName name) {
+            XAttribute attribute = element.Attribute(name);
+
+            if(null == attribute) {
+                attribute = (from child in element.Descendants()
+                             let childAttribute = child.Attribute(name)
+                             where childAttribute != null
+                             select childAttribute).FirstOrDefault();
+            }
+
+            return attribute;
+        }
+
+        /// <summary>
+        /// Gets the X path that uniquely identifies the given XElement relative to to the containing file unit.
+        /// </summary>
+        /// <param name="element">The element.</param>
+        /// <returns>An XPath query that uniquely identifies <paramref name="element"/></returns>
+        public static string GetXPath(this XElement element) {
+            return GetXPath(element, true);
+        }
+
+        /// <summary>
+        /// Gets an XPath query that uniquely identifies the given XElement
+        /// </summary>
+        /// <param name="element">The element to create an XPath query for</param>
+        /// <param name="relativeToFileUnit">whether or not the XPath query is relative to the parent file unit or not</param>
+        /// <returns>An XPath query that uniquely identifies <paramref name="element"/></returns>
+        public static string GetXPath(this XElement element, bool relativeToFileUnit) {
+            if(null == element)
+                throw new ArgumentNullException("element");
+
+            StringBuilder xpathBuilder = new StringBuilder();
+
+            XElement current = element;
+
+            do {
+                if(SRC.Unit == current.Name) {
+                    if(relativeToFileUnit) {
+                        current = null;
+                        continue;
+                    }
+                    var fileName = current.Attribute("filename");
+                    if(fileName != null) {
+                        xpathBuilder.Insert(0, String.Format(CultureInfo.InvariantCulture, "[@filename=\"{0}\"]", fileName.Value));
+                    }
+                } else {
+                    var count = current.ElementsBeforeSelf(current.Name).Count() + 1;
+                    xpathBuilder.Insert(0, String.Format(CultureInfo.InvariantCulture, "[{0}]", count));
+                }
+
+                var prefix = SrcMLNamespaces.LookupPrefix(current.Name.NamespaceName);
+                
+
+                xpathBuilder.Insert(0, String.Format(CultureInfo.InvariantCulture, "{0}", current.Name.LocalName));
+                if(!String.IsNullOrEmpty(prefix)) {
+                    xpathBuilder.Insert(0, String.Format(CultureInfo.InvariantCulture, "{0}:", prefix));
+                }
+                xpathBuilder.Insert(0, "/");
+                current = (null == current.Parent ? null : current.Parent);
+            } while(null != current);
+            return xpathBuilder.ToString();
+        }
+
+        /// <summary>
+        /// Gets the line number for the given element.
+        /// </summary>
+        /// <param name="element">The element</param>
+        /// <returns>The line number that the given element is found on; -1 if the data is not present</returns>
+        public static int GetXmlLineNumber(this XElement element) {
+            LineInfo li = GetLineInfo(element);
+            if(null == li)
+                return -1;
+            return li.LineNumber;
+        }
+
+        /// <summary>
+        /// Gets the line position for the given element.
+        /// </summary>
+        /// <param name="element">The element</param>
+        /// <returns>The line number that the given element is found on; -1 if the data is not present</returns>
+        public static int GetXmlLinePosition(this XElement element) {
+            LineInfo li = GetLineInfo(element);
+            if(null == li)
+                return -1;
+            return li.Position;
+        }
+
+        /// <summary>
+        /// Gets the line of source code that contains the given element.
+        /// <para>This differs from <see cref="GetXmlLineNumber"/> in that this is the number of lines relative
+        /// to the current <see cref="SRC.Unit"/>; this matches to the line number in the original source file.</para>
+        /// </summary>
+        /// <param name="element">The element</param>
+        /// <returns>The line of source code; -1 if that info is not found.</returns>
+        public static int GetSrcLineNumber(this XElement element) {
+            if(null == element)
+                throw new ArgumentNullException("element");
+
+            int lineNumber = -1;
+
+            var srcLineAttribute = GetAttributeFromSelfOrDescendant(element, POS.Line);
+            if(null != srcLineAttribute && Int32.TryParse(srcLineAttribute.Value, out lineNumber)) {
+                return lineNumber;
+            }
+
+            int xmlLineNum = element.GetXmlLineNumber();
+
+            // if no line info is present, just return -1
+            // we may want to look at calculating the line number based on the text in the file (see GetSrcLinePosition below)
+            if(-1 == xmlLineNum)
+                return -1;
+
+            // if th element is a unit, just return 0: Source line number doesn't make sense for a file.
+            if(SRC.Unit == element.Name)
+                return 1;
+
+            // get the xml line number of the file unit that contains this element
+            var unit = element.Ancestors(SRC.Unit).First();
+            int fileStart = unit.GetXmlLineNumber();
+
+            // the line number is just the difference between the xml line number and the xml line number of the unit
+            lineNumber = xmlLineNum - fileStart + 1;
+            return lineNumber;
+        }
+
+        /// <summary>
+        /// Gets the ending source line number.
+        /// </summary>
+        /// <param name="element">The element.</param>
+        /// <returns>the last line number this element occupies</returns>
+        public static int GetEndingSrcLineNumber(this XElement element) {
+            if(null == element)
+                throw new ArgumentNullException("element");
+
+            var descendants = element.DescendantsAndSelf();
+
+            return descendants.Last().GetSrcLineNumber();
+        }
+
+        /// <summary>
+        /// Gets the original source column number that the given element starts on.
+        /// </summary>
+        /// <param name="element">The element</param>
+        /// <returns>The column number that this element starts on. This will return 0 if the element is a Unit and -1 if no line information is present.</returns>
+        public static int GetSrcLinePosition(this XElement element) {
+            if(null == element)
+                throw new ArgumentNullException("element");
+
+            // if element is a unit, just return 0: Source line position does not make sense for a file.
+            if(SRC.Unit == element.Name)
+                return 0;
+
+            var srcPositionAttribute = GetAttributeFromSelfOrDescendant(element, POS.Column);
+            int columnNumber = -1;
+
+            if(null != srcPositionAttribute && Int32.TryParse(srcPositionAttribute.Value, out columnNumber)) {
+                return columnNumber;
+            }
+
+            return -1;
+        }
+
+        /// <summary>
+        /// Adds line info to the given XObject.
+        /// </summary>
+        /// <param name="xmlObject">the XObject</param>
+        /// <param name="lineInfo">a LineInfo object. This object is added as an annotation to <paramref name="xmlObject"/></param>
+        public static void SetLineInfo(this XObject xmlObject, ABB.SrcML.LineInfo lineInfo) {
+            if(null == xmlObject)
+                throw new ArgumentNullException("xmlObject");
+
+            xmlObject.AddAnnotation(lineInfo);
+        }
+
+        /// <summary>
+        /// Returns the parent statement (either expr_stmt, or decl_stmt) of the given node.
+        /// </summary>
+        /// <param name="node">The node to search from.</param>
+        /// <returns>the parent element for <paramref name="node"/>. It will be either <see cref="SRC.ExpressionStatement"/> or <see cref="SRC.DeclarationStatement"/></returns>
+        public static XElement ParentStatement(this XNode node) {
+            if(null == node)
+                throw new ArgumentNullException("node");
+
+            var ancestors = node.Ancestors().Where(a => a.Name.LocalName.EndsWith("_stmt", StringComparison.Ordinal));
+
+            if(ancestors.Any())
+                return ancestors.First();
+            return null;
+        }
+
+        /// <summary>
+        /// Converts the tree rooted at the given element to source code.
+        /// </summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The source code in a string</returns>
+        public static string ToSource(this XElement element) {
+            return ToSource(element, 0);
+        }
+
+        /// <summary>
+        /// Converts the tree rooted at the given element to source code.
+        /// <para>It optionally converts tab to spaces.</para>
+        /// </summary>
+        /// <param name="element">The element to convert.</param>
+        /// <param name="spacesPerTab">The number of spaces to convert each tab to; if zero, no conversion is done.</param>
+        /// <returns>The source code in a string.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1011:ConsiderPassingBaseTypesAsParameters")]
+        public static string ToSource(this XElement element, int spacesPerTab) {
+            if(null == element)
+                throw new ArgumentNullException("element");
+
+            XmlReader r = element.CreateReader();
+
+            using(StringWriter sw = new StringWriter(CultureInfo.InvariantCulture)) {
+                while(r.Read()) {
+                    switch(r.NodeType) {
+                        case XmlNodeType.Element:
+                            break;
+                        case XmlNodeType.Text:
+                        case XmlNodeType.Whitespace:
+                        case XmlNodeType.SignificantWhitespace:
+                            sw.Write(r.Value);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                var source = sw.ToString();
+                if(spacesPerTab > 0) {
+                    using(StringWriter spaces = new StringWriter(CultureInfo.InvariantCulture)) {
+                        for(int i = 0; i < spacesPerTab; i++)
+                            spaces.Write(" ");
+                        source = source.Replace("\t", spaces.ToString());
+                    }
+                }
+                return source.Replace("\n", Environment.NewLine);
+            }
+        }
+
+        private static LineInfo GetLineInfo(XElement element) {
+            IXmlLineInfo ie = (IXmlLineInfo) element;
+
+            if(ie.HasLineInfo())
+                return new LineInfo(ie.LineNumber, ie.LinePosition);
+            else
+                return element.Annotation<ABB.SrcML.LineInfo>();
         }
     }
 }

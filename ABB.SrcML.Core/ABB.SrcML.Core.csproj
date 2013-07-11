@@ -46,6 +46,7 @@
     <Compile Include="ISrcMLGenerator.cs" />
     <Compile Include="IsReadyChangedEventArgs.cs" />
     <Compile Include="Language.cs" />
+    <Compile Include="LineInfo.cs" />
     <Compile Include="Namespaces\CPP.cs" />
     <Compile Include="Namespaces\DIFF.cs" />
     <Compile Include="Namespaces\LIT.cs" />
@@ -59,9 +60,7 @@
     <Compile Include="SrcMLRequiredNameException.cs" />
     <Compile Include="SrcMLNamespaces.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Utilities\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
