@@ -37,6 +37,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
         ///</summary>
         [TestMethod()]
         [HostType("VS IDE")]
+        [Ignore]
         public void LaunchCommand() {
             UIThreadInvoker.Invoke((ThreadInvoker)delegate() {
                 ////CommandID menuItemCmd = new CommandID(GuidList.guidSrcMLServiceCmdSet, (int)PkgCmdIDList.SrcML);

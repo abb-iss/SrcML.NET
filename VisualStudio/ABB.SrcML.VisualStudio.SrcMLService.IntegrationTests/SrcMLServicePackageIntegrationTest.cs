@@ -15,6 +15,8 @@ using ABB.SrcML.VisualStudio.SrcMLService;
 using System.Windows.Forms;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VsSDK.UnitTestLibrary;
+using Microsoft.VisualStudio;
+using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 
 namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
     /// <summary>
@@ -45,13 +47,22 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
         [ClassInitialize]
         public static void ClassInitialize(TestContext testContext) {
             // Create SrcMLServicePackage
-            SrcMLServicePackage packageObject = new SrcMLServicePackage();
-            package = (IVsPackage)packageObject;
-            Assert.IsNotNull(package, "Get a null SrcMLServicePackage instance.");
-            IServiceProvider serviceProvider = package as IServiceProvider;
+            SrcMLServicePackage servicePackage = new SrcMLServicePackage();
+            Assert.IsNotNull(servicePackage, "could not create a SrcML Service Package");
+            package = servicePackage as IVsPackage;
+            Assert.IsNotNull(package, "service package is not an IVsPackage");
+            
+            // get the DTE service provider
+            IOleServiceProvider serviceProvider = VsIdeTestHostContext.Dte as IOleServiceProvider;
+            Assert.IsNotNull(serviceProvider, "Could not get the service provider");
+
+            // site the srcML service package
+            Assert.AreEqual(VSConstants.S_OK, package.SetSite(serviceProvider), "Could not site the srcML service package");
+            
             // Get SrcML Service
-            object o = serviceProvider.GetService(typeof(SSrcMLGlobalService));
+            object o = VsIdeTestHostContext.ServiceProvider.GetService(typeof(SSrcMLGlobalService));
             Assert.IsNotNull(o, "GetService returned null for the global service.");
+            
             srcMLService = o as ISrcMLGlobalService;
             Assert.IsNotNull(srcMLService, "The service SSrcMLGlobalService does not implements ISrcMLGlobalService.");
 
@@ -61,59 +72,21 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             srcMLService.MonitoringStopped += MonitoringStopped;
         }
 
+        [ClassCleanup]
+        public static void ClassCleanup() {
+            srcMLService = null;
+            package.SetSite(null);
+            package.Close();
+            package = null;
+        }
+
         [TestInitialize]
         public void TestInitialize() {
         }
 
         [TestMethod]
         [HostType("VS IDE")]
-        public void FileLevelIncrementalUpdateTest() {
-            // CSharp
-            OpenSolution(testCSharpSolutionFilePath);
-            CheckCSharpSolutionStartup();
-            string newFileName = "NewCSharpClass1.cs";
-            string saveAsFileName = "NewCSharpClass111111.cs";
-            string templateFilePath = Path.Combine(testFileTemplateFolder, newFileName);
-            string newFilePath = Path.Combine(testCSharpProjectFolder, newFileName);
-            string saveAsFilePath = Path.Combine(testCSharpProjectFolder, saveAsFileName);
-            AddCSharpProjectItem(testCSharpProjectFilePath, templateFilePath);
-            CheckSrcMLFiles();
-            System.Threading.Thread.Sleep(1000);
-            SaveCSharpProjectItem(newFilePath);
-            //CheckSrcMLFiles();    // EnvDTE.ProjectItem.Save() does not trigger IVsRunningDocTableEvents.OnAfterSave()
-            System.Threading.Thread.Sleep(1000);
-            RenameCSharpProjectItem(newFilePath, saveAsFilePath);
-            CheckSrcMLFiles();
-            System.Threading.Thread.Sleep(1000);
-            DeleteCSharpProjectItem(saveAsFilePath);
-            CheckSrcMLFiles();
-            System.Threading.Thread.Sleep(1000);
-            CloseSolution();
-
-            // CPP
-            OpenSolution(testCPPSolutionFilePath);
-            CheckCPPSolutionStartup();
-            newFileName = "NewCPPClass1.cpp";
-            saveAsFileName = "NewCPPClass111111.cpp";
-            templateFilePath = Path.Combine(testFileTemplateFolder, newFileName);
-            newFilePath = Path.Combine(testCPPProjectFolder, newFileName);
-            saveAsFilePath = Path.Combine(testCPPProjectFolder, saveAsFileName);
-            AddCPPProjectItem(testCPPProjectFilePath, templateFilePath, newFilePath);
-            CheckSrcMLFiles();
-            System.Threading.Thread.Sleep(1000);
-            //SaveCPPProjectItem(newFilePath);  // EnvDTE.ProjectItem.Save() is not implemented in VS for CPP project item. (NotImplementedException)
-            //System.Threading.Thread.Sleep(1000);
-            //RenameCPPProjectItem(newFilePath, saveAsFilePath);  // EnvDTE.ProjectItem.SaveAs() is not implemented in VS for CPP project item. (NotImplementedException)
-            //System.Threading.Thread.Sleep(1000);
-            //DeleteCPPProjectItem(saveAsFilePath);
-            DeleteCPPProjectItem(newFilePath);
-            CheckSrcMLFiles();
-            System.Threading.Thread.Sleep(1000);
-            CloseSolution();
-        }
-
-        [TestMethod]
-        [HostType("VS IDE")]
+        [Ignore]
         public void ProjectLevelIncrementalUpdateTest() {
             // CPP
             OpenSolution(testCPPSolutionFilePath);
@@ -148,14 +121,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
         public void TestCleanup() {
         }
 
-        [ClassCleanup]
-        public static void ClassCleanup() {
-            srcMLService = null;
-            package.SetSite(null);
-            package.Close();
-            package = null;
-        }
-
         public void OpenSolution(string testSolutionFilePath) {
             // Get the components service
             context = VsIdeTestHostContext.ServiceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
@@ -164,8 +129,9 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             ModelSolution.Open(Path.GetFullPath(testSolutionFilePath));
             Assert.IsNotNull(ModelSolution, "VS solution not found");
             // Start up
-            //srcMLService.StartMonitoring(true, SrcMLHelper.GetSrcMLDefaultDirectory());
+            //srcMLService.StartMonitoring();
             System.Threading.Thread.Sleep(3000);
+            //Assert.IsTrue(srcMLService.IsReady);
         }
 
         public void CheckCSharpSolutionStartup() {
