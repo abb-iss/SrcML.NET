@@ -58,7 +58,11 @@ namespace ABB.SrcML
         /// <returns></returns>
         public static string GetSrcMLDefaultDirectory(string extensionDirectory)
         {
-            return Path.Combine(extensionDirectory, "SrcML");
+            if(!Directory.Exists(Path.Combine(extensionDirectory, "SrcML"))) {
+                return SrcMLHelper.GetSrcMLDefaultDirectory();
+            } else {
+                return Path.Combine(extensionDirectory, "SrcML");
+            }
         }
     }
 }
