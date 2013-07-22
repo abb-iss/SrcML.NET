@@ -17,39 +17,40 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
     public class SrcMLServiceCSharpTests : IInvoker {
         private const string TestSolutionName = "TestCSharpSolution";
 
-        private static Scaffold<ISrcMLGlobalService> TestScaffold;
+        //private static Scaffold<ISrcMLGlobalService> TestScaffold;
         private static Solution TestSolution;
 
         private static string baseTestInputsFolder = @"..\..\..\TestInputs\SrcMLService\";
         private static string TestSolutionPath = Path.Combine(TestSolutionName, TestSolutionName + ".sln");
 
         [ClassInitialize]
-        public static void Setup(TestContext testContext) {
+        public static void ClassSetup(TestContext testContext) {
             // Create a local copy of the solution
             TestHelpers.CopyDirectory(Path.Combine(baseTestInputsFolder, TestSolutionName), TestSolutionName);
+        }
 
-            TestScaffold = Scaffold<ISrcMLGlobalService>.Setup(new SrcMLServicePackage(), typeof(SSrcMLGlobalService));
-
+        [TestInitialize]
+        public void TestSetup() {
             TestSolution = VsIdeTestHostContext.Dte.Solution;
             Assert.IsNotNull(TestSolution, "Could not get the solution");
 
             TestSolution.Open(Path.GetFullPath(TestSolutionPath));
-            TestScaffold.Service.StartMonitoring();
+            TestHelpers.TestScaffold.Service.StartMonitoring();
         }
 
-        [ClassCleanup]
-        public static void Cleanup() {
-            TestScaffold.Service.StopMonitoring();
+        [TestCleanup]
+        public void Cleanup() {
+            TestHelpers.TestScaffold.Service.StopMonitoring();
             TestSolution.Close();
-            TestSolution = null;
-            TestScaffold.Cleanup();
+            //TestSolution = null;
+            // TestScaffold.Cleanup();
         }
 
         [TestMethod]
         [HostType("VS IDE")]
         public void TestCsServiceStartup() {
-            Assert.IsTrue(TestHelpers.WaitForServiceToFinish(TestScaffold.Service, 5000));
-            var archive = TestScaffold.Service.GetSrcMLArchive();
+            Assert.IsTrue(TestHelpers.WaitForServiceToFinish(TestHelpers.TestScaffold.Service, 5000));
+            var archive = TestHelpers.TestScaffold.Service.GetSrcMLArchive();
             Assert.IsNotNull(archive, "Could not get the SrcML Archive");
             Assert.AreEqual(2, archive.FileUnits.Count(), "There should only be two files in the srcML archive");
         }
@@ -60,7 +61,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             // setup
             Project project = TestHelpers.GetProjects(TestSolution).FirstOrDefault();
             Assert.IsNotNull(project, "Couldn't get the project");
-            var archive = TestScaffold.Service.GetSrcMLArchive();
+            var archive = TestHelpers.TestScaffold.Service.GetSrcMLArchive();
             Assert.IsNotNull(archive, "Could not get the SrcML Archive");
             
             AutoResetEvent resetEvent = new AutoResetEvent(false);
@@ -72,7 +73,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
                     resetEvent.Set();
                 }
             };
-            TestScaffold.Service.SourceFileChanged += action;
+            TestHelpers.TestScaffold.Service.SourceFileChanged += action;
 
             // add a file
             var fileTemplate = Path.Combine(TestConstants.TemplatesFolder, "NewCSharpClass1.cs");
@@ -108,13 +109,13 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
 
             Assert.IsFalse(archive.IsOutdated(expectedFilePath));
             //Assert.AreEqual(2, archive.FileUnits.Count());
-            TestScaffold.Service.SourceFileChanged -= action;
+            TestHelpers.TestScaffold.Service.SourceFileChanged -= action;
         }
 
         [TestMethod]
         [HostType("VS IDE")]
         public void TestCsProjectOperations() {
-            var archive = TestScaffold.Service.GetSrcMLArchive();
+            var archive = TestHelpers.TestScaffold.Service.GetSrcMLArchive();
             AutoResetEvent resetEvent = new AutoResetEvent(false);
             var testProjectName = "ClassLibrary1";
 
@@ -131,7 +132,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
                     resetEvent.Set();
                 }
             };
-            TestScaffold.Service.SourceFileChanged += action;
+            TestHelpers.TestScaffold.Service.SourceFileChanged += action;
 
             var projectTemplate = Path.GetFullPath(Path.Combine(TestConstants.TemplatesFolder, testProjectName, testProjectName, testProjectName + ".csproj"));
 
@@ -157,7 +158,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             foreach(var expectedFile in expectedFiles) {
                 Assert.IsFalse(archive.ContainsFile(expectedFile));
             }
-            TestScaffold.Service.SourceFileChanged -= action;
+            TestHelpers.TestScaffold.Service.SourceFileChanged -= action;
         }
         public void Invoke(MethodInvoker globalSystemWindowsFormsMethodInvoker) {
             UIThreadInvoker.Invoke(globalSystemWindowsFormsMethodInvoker);

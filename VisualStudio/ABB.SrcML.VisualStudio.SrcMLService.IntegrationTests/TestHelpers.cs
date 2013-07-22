@@ -1,4 +1,5 @@
 ﻿using EnvDTE;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,8 +9,21 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
-    class TestHelpers {
-        public static void CopyDirectory(string sourcePath, string destinationPath) {
+    [TestClass]
+    public class TestHelpers {
+        internal static Scaffold<ISrcMLGlobalService> TestScaffold;
+
+        [AssemblyInitialize]
+        public static void AssemblySetup(TestContext testContext) {
+            TestScaffold = Scaffold<ISrcMLGlobalService>.Setup(new SrcMLServicePackage(), typeof(SSrcMLGlobalService));
+        }
+
+        [AssemblyCleanup]
+        public static void AssemblyCleanup() {
+            TestScaffold.Cleanup();
+        }
+
+        internal static void CopyDirectory(string sourcePath, string destinationPath) {
             foreach(var fileTemplate in Directory.GetFiles(sourcePath, "*", SearchOption.AllDirectories)) {
                 var fileName = fileTemplate.Replace(sourcePath, destinationPath);
                 var directoryName = Path.GetDirectoryName(fileName);
@@ -19,7 +33,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
                 File.Copy(fileTemplate, fileName);
             }
         }
-        public static bool WaitForServiceToFinish(ISrcMLGlobalService service, int millisecondsTimeout) {
+        internal static bool WaitForServiceToFinish(ISrcMLGlobalService service, int millisecondsTimeout) {
             if(!service.IsReady) {
                 ManualResetEvent mre = new ManualResetEvent(false);
                 EventHandler<IsReadyChangedEventArgs> action = (o, e) => { mre.Set(); };
@@ -30,7 +44,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             return service.IsReady;
         }
 
-        public static IEnumerable<Project> GetProjects(Solution solution) {
+        internal static IEnumerable<Project> GetProjects(Solution solution) {
             var projects = solution.Projects;
             var enumerator = projects.GetEnumerator();
             while(enumerator.MoveNext()) {
