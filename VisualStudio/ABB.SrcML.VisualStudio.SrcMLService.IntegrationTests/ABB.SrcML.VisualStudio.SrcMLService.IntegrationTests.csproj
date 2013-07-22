@@ -101,6 +101,8 @@
     <!---->
     <!---->
     <!---->
+    <Compile Include="Scaffold.cs" />
+    <Compile Include="SrcMLServiceCPlusPlusTests.cs" />
     <Compile Include="SrcMLServiceCSharpTests.cs" />
     <Compile Include="SrcMLServicePackageIntegrationTest.cs" />
     <Compile Include="IntegrationTest Library\DialogboxPurger.cs" />

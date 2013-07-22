@@ -1,6 +1,4 @@
 ﻿using EnvDTE;
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VSSDK.Tools.VsIdeTesting;
 using System;
@@ -14,8 +12,8 @@ using System.Windows.Forms;
 
 namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
     [TestClass]
-    public class SrcMLServiceCSharpTests : IInvoker {
-        private const string TestSolutionName = "TestCSharpSolution";
+    public class SrcMLServiceCPlusPlusTests : IInvoker {
+        private const string TestSolutionName = "TestCPPSolution";
 
         private static Scaffold<ISrcMLGlobalService> TestScaffold;
         private static Solution TestSolution;
@@ -47,22 +45,22 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
 
         [TestMethod]
         [HostType("VS IDE")]
-        public void TestCsServiceStartup() {
+        public void TestCppServiceStartup() {
             Assert.IsTrue(TestHelpers.WaitForServiceToFinish(TestScaffold.Service, 5000));
             var archive = TestScaffold.Service.GetSrcMLArchive();
             Assert.IsNotNull(archive, "Could not get the SrcML Archive");
-            Assert.AreEqual(2, archive.FileUnits.Count(), "There should only be two files in the srcML archive");
+            Assert.AreEqual(4, archive.FileUnits.Count(), "There should only be four files in the srcML archive");
         }
 
         [TestMethod]
         [HostType("VS IDE")]
-        public void TestCsFileOperations() {
+        public void TestCppFileOperations() {
             // setup
             Project project = TestHelpers.GetProjects(TestSolution).FirstOrDefault();
             Assert.IsNotNull(project, "Couldn't get the project");
             var archive = TestScaffold.Service.GetSrcMLArchive();
             Assert.IsNotNull(archive, "Could not get the SrcML Archive");
-            
+
             AutoResetEvent resetEvent = new AutoResetEvent(false);
             string expectedFilePath = null;
             FileEventType expectedEventType = FileEventType.FileDeleted;
@@ -75,29 +73,30 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             TestScaffold.Service.SourceFileChanged += action;
 
             // add a file
-            var fileTemplate = Path.Combine(TestConstants.TemplatesFolder, "NewCSharpClass1.cs");
-            expectedFilePath = Path.Combine(Path.GetDirectoryName(project.FullName), "NewCSharpClass1.cs");
+            var fileTemplate = Path.Combine(TestConstants.TemplatesFolder, "NewCPPClass1.cpp");
+            expectedFilePath = Path.Combine(Path.GetDirectoryName(project.FullName), "NewCPPClass1.cpp");
             expectedEventType = FileEventType.FileAdded;
-            var item = project.ProjectItems.AddFromFileCopy(fileTemplate);
-            project.Save();
+            File.Copy(fileTemplate, expectedFilePath);
+            var item = project.ProjectItems.AddFromFile(expectedFilePath);
+            // project.Save();
 
             Assert.IsTrue(resetEvent.WaitOne(500));
             Assert.IsTrue(archive.ContainsFile(expectedFilePath));
             Assert.IsFalse(archive.IsOutdated(expectedFilePath));
 
-            // rename a file
-            string oldFilePath = expectedFilePath;
-            expectedFilePath = Path.Combine(Path.GetDirectoryName(project.FullName), "NewCSharpClass2.cs");
-            expectedEventType = FileEventType.FileAdded;
-            item.Open();
-            item.SaveAs(expectedFilePath);
-            File.Delete(oldFilePath);
-            project.Save();
+            //// rename a file
+            //string oldFilePath = expectedFilePath;
+            //expectedFilePath = Path.Combine(Path.GetDirectoryName(project.FullName), "NewCPPClass2.cpp");
+            //expectedEventType = FileEventType.FileAdded;
+            //item = TestSolution.FindProjectItem(oldFilePath);
+            //item.SaveAs(expectedFilePath);
+            //File.Delete(oldFilePath);
+            //project.Save();
 
-            Assert.IsTrue(resetEvent.WaitOne(500));
-            Assert.IsTrue(archive.ContainsFile(expectedFilePath), "The archive should contain {0}", expectedFilePath);
-            Assert.IsFalse(archive.ContainsFile(oldFilePath), "the archive should not contain {0}", oldFilePath);
-            Assert.IsFalse(archive.IsOutdated(expectedFilePath), String.Format("{0} is outdated", expectedFilePath));
+            //Assert.IsTrue(resetEvent.WaitOne(500));
+            //Assert.IsTrue(archive.ContainsFile(expectedFilePath), "The archive should contain {0}", expectedFilePath);
+            //Assert.IsFalse(archive.ContainsFile(oldFilePath), "the archive should not contain {0}", oldFilePath);
+            //Assert.IsFalse(archive.IsOutdated(expectedFilePath), String.Format("{0} is outdated", expectedFilePath));
 
             // delete the file
             expectedEventType = FileEventType.FileDeleted;
@@ -113,17 +112,19 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
 
         [TestMethod]
         [HostType("VS IDE")]
-        public void TestCsProjectOperations() {
+        public void TestCppProjectOperations() {
             var archive = TestScaffold.Service.GetSrcMLArchive();
             AutoResetEvent resetEvent = new AutoResetEvent(false);
-            var testProjectName = "ClassLibrary1";
+            var testProjectName = "ConsoleApplication1";
 
             var expectedProjectDirectory = Path.GetFullPath(Path.Combine(TestSolutionName, testProjectName));
             var expectedEventType = FileEventType.FileAdded;
 
             HashSet<string> expectedFiles = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase) {
-                Path.Combine(expectedProjectDirectory, "Class1.cs"),
-                Path.Combine(expectedProjectDirectory, "Properties", "AssemblyInfo.cs")
+                Path.Combine(expectedProjectDirectory, "ConsoleApplication1.cpp"),
+                Path.Combine(expectedProjectDirectory, "stdafx.cpp"),
+                Path.Combine(expectedProjectDirectory, "stdafx.h"),
+                Path.Combine(expectedProjectDirectory, "targetver.h"),
             };
 
             EventHandler<FileEventRaisedArgs> action = (o, e) => {
@@ -133,14 +134,16 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             };
             TestScaffold.Service.SourceFileChanged += action;
 
-            var projectTemplate = Path.GetFullPath(Path.Combine(TestConstants.TemplatesFolder, testProjectName, testProjectName, testProjectName + ".csproj"));
+            var projectTemplate = Path.GetFullPath(Path.Combine(TestConstants.TemplatesFolder, testProjectName, testProjectName, testProjectName + ".vcxproj"));
 
             // add a new project
             var addedProject = TestSolution.AddFromTemplate(projectTemplate, expectedProjectDirectory, testProjectName);
             addedProject.Save();
             Assert.IsTrue(resetEvent.WaitOne(500));
             Assert.IsTrue(resetEvent.WaitOne(500));
-            
+            Assert.IsTrue(resetEvent.WaitOne(500));
+            Assert.IsTrue(resetEvent.WaitOne(500));
+
             foreach(var expectedFile in expectedFiles) {
                 Assert.IsTrue(File.Exists(expectedFile));
                 Assert.IsTrue(archive.ContainsFile(expectedFile));
@@ -150,7 +153,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             // remove the project
             expectedEventType = FileEventType.FileDeleted;
             TestSolution.Remove(addedProject);
-            
+
             Assert.IsTrue(resetEvent.WaitOne(500));
             // Assert.IsTrue(resetEvent.WaitOne(500));
 
