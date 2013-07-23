@@ -16,15 +16,15 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
     [TestClass]
     public class SrcMLServiceCSharpTests : IInvoker {
         private const string TestSolutionName = "TestCSharpSolution";
-
-        //private static Scaffold<ISrcMLGlobalService> TestScaffold;
         private static Solution TestSolution;
+        private static object TestLock;
         private static string TestSolutionPath = Path.Combine(TestSolutionName, TestSolutionName + ".sln");
 
         [ClassInitialize]
         public static void ClassSetup(TestContext testContext) {
             // Create a local copy of the solution
             TestHelpers.CopyDirectory(Path.Combine(TestConstants.InputFolderPath, TestSolutionName), TestSolutionName);
+            TestLock = new object();
         }
 
         [TestInitialize]
@@ -67,8 +67,10 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             FileEventType expectedEventType = FileEventType.FileDeleted;
 
             EventHandler<FileEventRaisedArgs> action = (o, e) => {
-                if(e.FilePath.Equals(expectedFilePath, StringComparison.InvariantCultureIgnoreCase) && e.EventType == expectedEventType) {
-                    resetEvent.Set();
+                lock(TestLock) {
+                    if(e.FilePath.Equals(expectedFilePath, StringComparison.InvariantCultureIgnoreCase) && e.EventType == expectedEventType) {
+                        resetEvent.Set();
+                    }
                 }
             };
             TestHelpers.TestScaffold.Service.SourceFileChanged += action;
@@ -126,8 +128,10 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             };
 
             EventHandler<FileEventRaisedArgs> action = (o, e) => {
-                if(expectedFiles.Contains(Path.GetFullPath(e.FilePath)) && e.EventType == expectedEventType) {
-                    resetEvent.Set();
+                lock(TestLock) {
+                    if(expectedFiles.Contains(Path.GetFullPath(e.FilePath)) && e.EventType == expectedEventType) {
+                        resetEvent.Set();
+                    }
                 }
             };
             TestHelpers.TestScaffold.Service.SourceFileChanged += action;
