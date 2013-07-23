@@ -42,9 +42,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\SolutionInfo.cs">
-      <Link>Properties\SolutionInfo.cs</Link>
-    </Compile>
     <Compile Include="IArchive.cs" />
     <Compile Include="IFileMonitor.cs" />
     <Compile Include="ISrcMLArchive.cs" />

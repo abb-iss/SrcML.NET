@@ -12,13 +12,14 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System;
+using System.Resources;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("ABB.SrcML.Core")]
 [assembly: AssemblyProduct("ABB.SrcML.Core")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Core functionality for ABB SrcML")]
 [assembly: AssemblyCopyright("Copyright © ABB 2013")]
 
 [assembly: CLSCompliant(true)]
@@ -30,3 +31,7 @@ using System;
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("ec7a442d-da4b-459e-8213-6babd953f2af")]
+
+[assembly: AssemblyCompany("ABB")]
+[assembly: AssemblyVersion("2.0.0.0")]
+[assembly: NeutralResourcesLanguage("en-US")]

@@ -50,6 +50,16 @@
                   AssemblyFileVersion="$(Major).$(Minor).$(Build).$(Revision)"
                   NeutralResourcesLanguage="en-US"
                   Condition="$(BUILD_NUMBER) != '' " />
+    <WriteLinesToFile File="ABB.SrcML.Core\Properties\AssemblyInfo.cs"
+                      Lines="[assembly: AssemblyFileVersion(&quot;$(Major).$(Minor).$(Revision).$(Build)&quot;)]
+[assembly: AssemblyConfiguration(&quot;$(Configuration)&quot;)]"
+                      Overwrite="false"
+                      Condition="$(BUILD_NUMBER) != '' " />
+    <WriteLinesToFile File="VisualStudio\ABB.SrcML.VisualStudio.Interfaces\Properties\AssemblyInfo.cs"
+                  Lines="[assembly: AssemblyFileVersion(&quot;$(Major).$(Minor).$(Revision).$(Build)&quot;)]
+[assembly: AssemblyConfiguration(&quot;$(Configuration)&quot;)]"
+                  Overwrite="false"
+                  Condition="$(BUILD_NUMBER) != '' " />
   </Target>
   
   <Target Name="Docs" Condition="Exists('$(SHFBROOT)\SandcastleHelpFileBuilder.targets')">
