@@ -23,6 +23,13 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             TestScaffold.Cleanup();
         }
 
+        internal static string GetSolutionDirectory() {
+            var currentDirectory = new DirectoryInfo(Environment.CurrentDirectory);
+            while(currentDirectory != null && !File.Exists(Path.Combine(currentDirectory.FullName, "SrcML.NET.sln"))) {
+                currentDirectory = currentDirectory.Parent;
+            }
+            return currentDirectory.FullName;
+        }
         internal static void CopyDirectory(string sourcePath, string destinationPath) {
             foreach(var fileTemplate in Directory.GetFiles(sourcePath, "*", SearchOption.AllDirectories)) {
                 var fileName = fileTemplate.Replace(sourcePath, destinationPath);

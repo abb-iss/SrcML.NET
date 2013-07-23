@@ -19,14 +19,12 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
 
         //private static Scaffold<ISrcMLGlobalService> TestScaffold;
         private static Solution TestSolution;
-
-        private static string baseTestInputsFolder = @"..\..\..\TestInputs\SrcMLService\";
         private static string TestSolutionPath = Path.Combine(TestSolutionName, TestSolutionName + ".sln");
 
         [ClassInitialize]
         public static void ClassSetup(TestContext testContext) {
             // Create a local copy of the solution
-            TestHelpers.CopyDirectory(Path.Combine(baseTestInputsFolder, TestSolutionName), TestSolutionName);
+            TestHelpers.CopyDirectory(Path.Combine(TestConstants.InputFolderPath, TestSolutionName), TestSolutionName);
         }
 
         [TestInitialize]

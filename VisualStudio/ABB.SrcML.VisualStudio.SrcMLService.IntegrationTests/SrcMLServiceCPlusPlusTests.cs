@@ -16,13 +16,12 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
         private const string TestSolutionName = "TestCPPSolution";
         private static Solution TestSolution;
 
-        private static string baseTestInputsFolder = @"..\..\..\TestInputs\SrcMLService\";
         private static string TestSolutionPath = Path.Combine(TestSolutionName, TestSolutionName + ".sln");
 
         [ClassInitialize]
         public static void ClassSetup(TestContext testContext) {
             // Create a local copy of the solution
-            TestHelpers.CopyDirectory(Path.Combine(baseTestInputsFolder, TestSolutionName), TestSolutionName);
+            TestHelpers.CopyDirectory(Path.Combine(TestConstants.InputFolderPath, TestSolutionName), TestSolutionName);
         }
 
         [TestInitialize]
@@ -109,6 +108,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
 
         [TestMethod]
         [HostType("VS IDE")]
+
         public void TestCppProjectOperations() {
             var archive = TestHelpers.TestScaffold.Service.GetSrcMLArchive();
             AutoResetEvent resetEvent = new AutoResetEvent(false);
@@ -151,8 +151,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             expectedEventType = FileEventType.FileDeleted;
             TestSolution.Remove(addedProject);
 
-            Assert.IsTrue(resetEvent.WaitOne(500));
-            // Assert.IsTrue(resetEvent.WaitOne(500));
+            Assert.IsTrue(resetEvent.WaitOne(1000));
+            //Assert.IsTrue(resetEvent.WaitOne(500));
 
             foreach(var expectedFile in expectedFiles) {
                 Assert.IsFalse(archive.ContainsFile(expectedFile));
