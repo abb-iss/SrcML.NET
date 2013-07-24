@@ -22,6 +22,12 @@ using System.Resources;
 [assembly: AssemblyDescription("Core functionality for ABB SrcML")]
 [assembly: AssemblyCopyright("Copyright © ABB 2013")]
 
+#if DEBUG
+[assembly: AssemblyConfiguration("Debug")]
+#else
+[assembly: AssemblyConfiguration("Release")]
+#endif
+
 [assembly: CLSCompliant(true)]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
@@ -33,5 +39,5 @@ using System.Resources;
 [assembly: Guid("ec7a442d-da4b-459e-8213-6babd953f2af")]
 
 [assembly: AssemblyCompany("ABB")]
-[assembly: AssemblyVersion("2.0.0.0")]
 [assembly: NeutralResourcesLanguage("en-US")]
+[assembly: AssemblyVersion("2.0.0.0")]

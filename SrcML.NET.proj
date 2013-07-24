@@ -44,16 +44,22 @@
           Condition="Exists('External\MSBuild\MSBuildCommunityTasks\MSBuild.Community.Tasks.Targets')" />
   <Target Name="BeforeBuild" Condition="Exists('External\MSBuild\MSBuildCommunityTasks\MSBuild.Community.Tasks.Targets')">
     <Message Text="$(Configuration) Build: $(Major).$(Minor).$(Build).$(Revision)" />
-    <AssemblyInfo CodeLanguage="CS" OutputFile="SolutionInfo.cs"
-                  AssemblyCompany="ABB"
-                  AssemblyConfiguration="$(Configuration)"
-                  AssemblyVersion="$(Major).$(Minor).$(Build).$(Revision)"
-                  AssemblyFileVersion="$(Major).$(Minor).$(Build).$(Revision)"
-                  NeutralResourcesLanguage="en-US"
-                  Condition="$(BUILD_NUMBER) != '' " />
+    <Message Text="Interface File Version: $(Major).$(Minor).$(Revision).$(Build)" />
+    <WriteLinesToFile File="SolutionInfo.cs"
+                      Lines="[assembly: System.Reflection.AssemblyCompany(&quot;ABB&quot;)]
+
+#if DEBUG
+[assembly: System.Reflection.AssemblyConfiguration(&quot;Debug&quot;)]
+#else
+[assembly: System.Reflection.AssemblyConfiguration(&quot;Release&quot;)]
+#endif
+
+[assembly: System.Resources.NeutralResourcesLanguage(&quot;en-US&quot;)]
+[assembly: System.Reflection.AssemblyVersion(&quot;2.0.48.0&quot;)]"
+                      Overwrite="true"
+                      Condition="$(BUILD_NUMBER) != '' " />
     <WriteLinesToFile File="%(CoreLibs.FullPath)"
-                      Lines="[assembly: AssemblyFileVersion(&quot;$(Major).$(Minor).$(Revision).$(Build)&quot;)]
-[assembly: AssemblyConfiguration(&quot;$(Configuration)&quot;)]"
+                      Lines="[assembly: AssemblyFileVersion(&quot;$(Major).$(Minor).$(Revision).$(Build)&quot;)]"
                       Overwrite="false"
                       Condition="$(BUILD_NUMBER) != '' " />
   </Target>
