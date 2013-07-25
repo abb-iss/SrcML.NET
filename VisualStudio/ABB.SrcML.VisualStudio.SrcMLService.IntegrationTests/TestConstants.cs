@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ABB.SrcML.Test.Utilities;
 
 namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
     class TestConstants {
@@ -12,7 +13,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
         public static string TemplatesFolder { get; private set; }
 
         static TestConstants() {
-            SolutionDirectory = TestHelpers.GetSolutionDirectory();
+            SolutionDirectory = FileUtils.GetSolutionDirectory("SrcML.NET.sln");
             InputFolderPath = Path.Combine(SolutionDirectory, "TestInputs", "SrcMLService");
             TemplatesFolder = Path.Combine(InputFolderPath, "Template");
         }
