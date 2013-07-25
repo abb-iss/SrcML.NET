@@ -22,7 +22,7 @@ namespace ABB.SrcML {
         /// <param name="monitoringStorage">The base directory for the archive data</param>
         /// <param name="defaultArchive">The default archive</param>
         /// <param name="otherArchives">Other archives to register</param>
-        public FileSystemFolderMonitor(string pathToSourceFolder, string monitoringStorage, AbstractArchive defaultArchive, params AbstractArchive[] otherArchives)
+        public FileSystemFolderMonitor(string pathToSourceFolder, string monitoringStorage, IArchive defaultArchive, params IArchive[] otherArchives)
             : base(monitoringStorage, defaultArchive, otherArchives) {
             this.FullFolderPath = pathToSourceFolder;
             this._monitorStorageInfo = new DirectoryInfo(monitoringStorage);

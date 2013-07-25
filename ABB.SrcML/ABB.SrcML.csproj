@@ -65,23 +65,11 @@
     <Compile Include="FileInfoComparer.cs" />
     <Compile Include="FileSystemFolderMonitor.cs" />
     <Compile Include="GlobalSuppressions.cs" />
-    <Compile Include="IArchive.cs" />
-    <Compile Include="IFileMonitor.cs" />
-    <Compile Include="IsReadyChangedEventArgs.cs" />
     <Compile Include="LastModifiedArchive.cs" />
     <Compile Include="ShortXmlFileNameMapping.cs" />
     <Compile Include="Src2SrcMLRunner2.cs" />
     <Compile Include="SrcMLGenerator.cs" />
     <Compile Include="ITransform.cs" />
-    <Compile Include="Language.cs" />
-    <Compile Include="LineInfo.cs" />
-    <Compile Include="Namespaces\CPP.cs" />
-    <Compile Include="Namespaces\DIFF.cs" />
-    <Compile Include="Namespaces\LIT.cs" />
-    <Compile Include="Namespaces\OP.cs" />
-    <Compile Include="Namespaces\POS.cs" />
-    <Compile Include="Namespaces\SRC.cs" />
-    <Compile Include="Namespaces\TYPE.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QueryAttribute.cs" />
     <Compile Include="QueryHarness.cs" />
@@ -89,11 +77,8 @@
     <Compile Include="SrcML.cs" />
     <Compile Include="SrcML2SrcRunner.cs" />
     <Compile Include="SrcMLArchive.cs" />
-    <Compile Include="SrcMLElement.cs" />
-    <Compile Include="SrcMLException.cs" />
     <Compile Include="SrcMLFile.cs" />
     <Compile Include="SrcMLHelper.cs" />
-    <Compile Include="SrcMLRequiredNameException.cs" />
     <Compile Include="SrcMLRunner.cs" />
     <Compile Include="Transform.cs" />
     <Compile Include="TransformObjectHarness.cs" />
@@ -114,6 +99,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ABB.SrcML.Core\ABB.SrcML.Core.csproj">
+      <Project>{db649b35-b045-47c3-9903-f3404fa9c1be}</Project>
+      <Name>ABB.SrcML.Core</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />

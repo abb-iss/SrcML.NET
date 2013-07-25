@@ -38,7 +38,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <summary>
         /// SrcML.NET's SrcMLArchive.
         /// </summary>
-        private SrcMLArchive CurrentSrcMLArchive;
+        private ISrcMLArchive CurrentSrcMLArchive;
 
         /// <summary>
         /// The folder name of storing srcML archives.
@@ -70,7 +70,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="sp"></param>
         /// <param name="extensionDirectory"></param>
         public SrcMLGlobalService(IServiceProvider sp, string extensionDirectory) {
-            SrcMLFileLogger.DefaultLogger.Info("Constructing a new instance of SrcMLGlobalService");
+            SrcMLFileLogger.DefaultLogger.InfoFormat("Constructing a new instance of SrcMLGlobalService in {0}", extensionDirectory);
             serviceProvider = sp;
             SrcMLServiceDirectory = extensionDirectory;
             statusBar = (IVsStatusbar)Package.GetGlobalService(typeof(SVsStatusbar));
@@ -82,6 +82,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         public event EventHandler<FileEventRaisedArgs> SourceFileChanged;
         public event EventHandler<IsReadyChangedEventArgs> IsReadyChanged;
         public event EventHandler<EventArgs> MonitoringStopped;
+
+        public bool IsReady { get { return (CurrentMonitor == null ? false : CurrentMonitor.IsReady); } }
 
         /// <summary>
         /// SrcML service starts to monitor the opened solution.
@@ -97,10 +99,11 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 LastModifiedArchive lastModifiedArchive = new LastModifiedArchive(srcMLArchiveDirectory);
 
                 // Create a new instance of SrcML.NET's SrcMLArchive
-                CurrentSrcMLArchive = new SrcMLArchive(srcMLArchiveDirectory, useExistingSrcML, new SrcMLGenerator(srcMLBinaryDirectory));
+                SrcMLArchive sourceArchive = new SrcMLArchive(srcMLArchiveDirectory, useExistingSrcML, new SrcMLGenerator(srcMLBinaryDirectory));
+                CurrentSrcMLArchive = sourceArchive;
 
                 // Create a new instance of SrcML.NET's solution monitor
-                CurrentMonitor = SolutionMonitorFactory.CreateMonitor(srcMLArchiveDirectory, lastModifiedArchive, CurrentSrcMLArchive);
+                CurrentMonitor = SolutionMonitorFactory.CreateMonitor(srcMLArchiveDirectory, lastModifiedArchive, sourceArchive);
 
                 // Subscribe events from Solution Monitor
                 CurrentMonitor.FileChanged += RespondToFileChangedEvent;
@@ -149,7 +152,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// Get current SrcMLArchive instance.
         /// </summary>
         /// <returns></returns>
-        public SrcMLArchive GetSrcMLArchive() {
+        public ISrcMLArchive GetSrcMLArchive() {
             return CurrentSrcMLArchive;
         }
 
@@ -248,7 +251,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="eventArgs"></param>
         private void RespondToIsReadyChangedEvent(object sender, IsReadyChangedEventArgs eventArgs) {
             SrcMLFileLogger.DefaultLogger.Info("SrcMLService: RespondToStartupCompletedEvent()");
-            if(eventArgs.UpdatedReadyState) {
+            if(eventArgs.ReadyState) {
                 // Clear the progress bar.
                 amountCompleted = 0;
                 if(statusBar != null) {

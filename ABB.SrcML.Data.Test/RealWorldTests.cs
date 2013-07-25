@@ -172,7 +172,7 @@ namespace ABB.SrcML.Data.Test {
             
             //monitor.IsReadyChanged += (o, e) => {
             archive.IsReadyChanged += (o, e) => {
-                if(e.UpdatedReadyState) {
+                if(e.ReadyState) {
                     end = DateTime.Now;
                     startupCompleted = true;
                     mre.Set();
@@ -283,7 +283,7 @@ namespace ABB.SrcML.Data.Test {
             bool startupCompleted = false;
 
             monitor.IsReadyChanged += (o, e) => {
-                if(e.UpdatedReadyState) {
+                if(e.ReadyState) {
                     sw.Stop();
                     startupCompleted = true;
                     mre.Set();
@@ -311,7 +311,6 @@ namespace ABB.SrcML.Data.Test {
             int numberOfFiles = 0;
             Dictionary<string, List<string>> errors = new Dictionary<string, List<string>>();
 
-            List<string> xmlFiles = archive.ArchivedXmlFiles();
             sw.Start();
 
             using(var fileLog = new StreamWriter(fileLogPath)) {
@@ -319,9 +318,8 @@ namespace ABB.SrcML.Data.Test {
 
                     Task.Factory.StartNew(() => {
 
-                        Parallel.ForEach(xmlFiles, currentFile => {
-
-                            var unit = SrcMLElement.Load(currentFile);
+                        Parallel.ForEach(archive.FileUnits, unit => {
+                            var currentFile = SrcMLElement.GetFileNameForUnit(unit);
                             var language = SrcMLElement.GetLanguageForUnit(unit);
                             try {
 

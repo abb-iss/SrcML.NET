@@ -61,7 +61,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The SrcMLArchive to extract the data from.
         /// </summary>
-        public SrcMLArchive Archive { get; private set; }
+        public ISrcMLArchive Archive { get; private set; }
 
         /// <summary>
         /// The top-level Scope for the data in the archive.
@@ -72,7 +72,7 @@ namespace ABB.SrcML.Data {
         /// Create a data archive for the given srcML archive. It will subscribe to the <see cref="AbstractArchive.FileChanged"/> event.
         /// </summary>
         /// <param name="archive">The archive to monitor for changes.</param>
-        public DataRepository(SrcMLArchive archive) : this(archive, null) { }
+        public DataRepository(ISrcMLArchive archive) : this(archive, null) { }
 
         /// <summary>
         /// Create a data archive with data stored in the given <paramref name="fileName">binary file</paramref>.
@@ -86,7 +86,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="archive">The srcML archive to monitor for changes. If null, no archive monitoring will be done.</param>
         /// <param name="fileName">The file to read data from. If null, no previously saved data will be loaded.</param>
-        public DataRepository(SrcMLArchive archive, string fileName) {
+        public DataRepository(ISrcMLArchive archive, string fileName) {
             SetupParsers();
             
             this.Archive = archive;
@@ -189,7 +189,8 @@ namespace ABB.SrcML.Data {
             if(loc == null) throw new ArgumentNullException("loc");
             var scope = globalScope.GetScopeForLocation(loc);
             if(scope == null) {
-                Utilities.SrcMLFileLogger.DefaultLogger.InfoFormat("SourceLocation {0} not found in DataRepository", loc);
+                //TODO replace logger call
+                //Utilities.SrcMLFileLogger.DefaultLogger.InfoFormat("SourceLocation {0} not found in DataRepository", loc);
                 return new Collection<MethodCall>();
             }
             var calls = scope.MethodCalls.Where(mc => mc.Location.Contains(loc));
@@ -267,7 +268,13 @@ namespace ABB.SrcML.Data {
         private void InitializeData() {
             Clear();
             foreach(var unit in Archive.FileUnits) {
-                AddFile(unit);
+                try {
+                    AddFile(unit);
+                } catch(Exception ex) {
+                    var fileName = SrcMLElement.GetFileNameForUnit(unit);
+                    Console.Error.WriteLine("Error: {0} (Adding {1})", ex.Message, fileName);
+                }
+                
             }
         }
 
@@ -280,22 +287,27 @@ namespace ABB.SrcML.Data {
         }
 
         private void Archive_SourceFileChanged(object sender, FileEventRaisedArgs e) {
-            switch(e.EventType) {
-                case FileEventType.FileChanged:
-                    // Treat a changed source file as deleted then added
-                    RemoveFile(e.FilePath);
-                    goto case FileEventType.FileAdded;
-                case FileEventType.FileAdded:
-                    AddFile(e.FilePath);
-                    break;
-                case FileEventType.FileDeleted:
-                    RemoveFile(e.FilePath);
-                    break;
-                case FileEventType.FileRenamed:
-                    // TODO: could a more efficient rename action be supported within the data structures themselves?
-                    RemoveFile(e.OldFilePath);
-                    AddFile(e.FilePath);
-                    break;
+            try {
+                switch(e.EventType) {
+                    case FileEventType.FileChanged:
+                        // Treat a changed source file as deleted then added
+                        RemoveFile(e.FilePath);
+                        goto case FileEventType.FileAdded;
+                    case FileEventType.FileAdded:
+                        AddFile(e.FilePath);
+                        break;
+                    case FileEventType.FileDeleted:
+                        RemoveFile(e.FilePath);
+                        break;
+                    case FileEventType.FileRenamed:
+                        // TODO: could a more efficient rename action be supported within the data structures themselves?
+                        RemoveFile(e.OldFilePath);
+                        AddFile(e.FilePath);
+                        break;
+                }
+            } catch(Exception ex) {
+                // TODO log exception
+                Console.Error.WriteLine("Error: {0} ({1} {2})", ex.Message, e.EventType, e.FilePath);
             }
         }
 

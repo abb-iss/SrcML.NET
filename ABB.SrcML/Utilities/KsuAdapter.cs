@@ -64,29 +64,6 @@ namespace ABB.SrcML.Utilities
         }
 
         /// <summary>
-        /// Helper method to get a Language value from a string. This is primarily used by obsolete SrcML.cs APIs to interface with newer code that does use the Language enumeration.
-        /// </summary>
-        /// <param name="language">a string to convert</param>
-        /// <returns>the Language value that corresponds to language.</returns>
-        public static Language GetLanguageFromString(string language)
-        {
-            if ("Any" == language)
-                return Language.Any;
-            else if ("C++" == language)
-                return Language.CPlusPlus;
-            else if ("C" == language)
-                return Language.C;
-            else if ("Java" == language)
-                return Language.Java;
-            else if ("AspectJ" == language)
-                return Language.AspectJ;
-            else if("C#" == language) {
-                return Language.CSharp;
-            }
-            throw new SrcMLException(String.Format(CultureInfo.CurrentCulture, "{0} is not a valid language.", language));
-        }
-
-        /// <summary>
         /// Converts an extension mapping dictionary to a string that can be passed to src2srcml.exe.
         /// If the extensions begin with a dot, these are stripped to conform with src2srcml.exe's input format.
         /// </summary>

@@ -65,6 +65,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML.Tools.DataTester"
 EndProject
 Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "ProgramTransformationSetup", "VisualStudio\ProgramTransformationSetup\ProgramTransformationSetup.wixproj", "{CA38430C-390A-4B09-8A29-37C57C418F1C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML.Core", "ABB.SrcML.Core\ABB.SrcML.Core.csproj", "{DB649B35-B045-47C3-9903-F3404FA9C1BE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML.VisualStudio.Interfaces", "VisualStudio\ABB.SrcML.VisualStudio.Interfaces\ABB.SrcML.VisualStudio.Interfaces.csproj", "{A4099F0F-52E6-4754-8E14-0777AFAA7F07}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML.Test.Utilities", "ABB.SrcML.Test.Utilities\ABB.SrcML.Test.Utilities.csproj", "{46A346F2-679E-4EED-94A5-1A36BA56C2EE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -246,6 +252,36 @@ Global
 		{CA38430C-390A-4B09-8A29-37C57C418F1C}.Release|Mixed Platforms.Build.0 = Release|x86
 		{CA38430C-390A-4B09-8A29-37C57C418F1C}.Release|x86.ActiveCfg = Release|x86
 		{CA38430C-390A-4B09-8A29-37C57C418F1C}.Release|x86.Build.0 = Release|x86
+		{DB649B35-B045-47C3-9903-F3404FA9C1BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DB649B35-B045-47C3-9903-F3404FA9C1BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DB649B35-B045-47C3-9903-F3404FA9C1BE}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{DB649B35-B045-47C3-9903-F3404FA9C1BE}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{DB649B35-B045-47C3-9903-F3404FA9C1BE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{DB649B35-B045-47C3-9903-F3404FA9C1BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DB649B35-B045-47C3-9903-F3404FA9C1BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DB649B35-B045-47C3-9903-F3404FA9C1BE}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{DB649B35-B045-47C3-9903-F3404FA9C1BE}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{DB649B35-B045-47C3-9903-F3404FA9C1BE}.Release|x86.ActiveCfg = Release|Any CPU
+		{A4099F0F-52E6-4754-8E14-0777AFAA7F07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A4099F0F-52E6-4754-8E14-0777AFAA7F07}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A4099F0F-52E6-4754-8E14-0777AFAA7F07}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{A4099F0F-52E6-4754-8E14-0777AFAA7F07}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{A4099F0F-52E6-4754-8E14-0777AFAA7F07}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A4099F0F-52E6-4754-8E14-0777AFAA7F07}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A4099F0F-52E6-4754-8E14-0777AFAA7F07}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A4099F0F-52E6-4754-8E14-0777AFAA7F07}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{A4099F0F-52E6-4754-8E14-0777AFAA7F07}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{A4099F0F-52E6-4754-8E14-0777AFAA7F07}.Release|x86.ActiveCfg = Release|Any CPU
+		{46A346F2-679E-4EED-94A5-1A36BA56C2EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46A346F2-679E-4EED-94A5-1A36BA56C2EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46A346F2-679E-4EED-94A5-1A36BA56C2EE}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{46A346F2-679E-4EED-94A5-1A36BA56C2EE}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{46A346F2-679E-4EED-94A5-1A36BA56C2EE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{46A346F2-679E-4EED-94A5-1A36BA56C2EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46A346F2-679E-4EED-94A5-1A36BA56C2EE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{46A346F2-679E-4EED-94A5-1A36BA56C2EE}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{46A346F2-679E-4EED-94A5-1A36BA56C2EE}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{46A346F2-679E-4EED-94A5-1A36BA56C2EE}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -265,5 +301,6 @@ Global
 		{A1D86129-0342-4D94-8329-5F46FB75E92A} = {E9F6AFA3-6494-4C3E-9807-5270E91268BA}
 		{4B2A4172-94E9-4544-9170-912F8C84FFD4} = {E9F6AFA3-6494-4C3E-9807-5270E91268BA}
 		{CA38430C-390A-4B09-8A29-37C57C418F1C} = {E9F6AFA3-6494-4C3E-9807-5270E91268BA}
+		{A4099F0F-52E6-4754-8E14-0777AFAA7F07} = {E9F6AFA3-6494-4C3E-9807-5270E91268BA}
 	EndGlobalSection
 EndGlobal
