@@ -9,8 +9,10 @@
  *    Vinay Augustine (ABB Group) - initial API, implementation, & documentation
  *****************************************************************************/
 
+using ABB.SrcML.Test.Utilities;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -18,6 +20,10 @@ namespace ABB.SrcML.Test
 {
     class TestConstants
     {
-        public const string SrcmlPath = @"..\..\External\SrcML";
+        public static string SrcmlPath { get; private set; }
+
+        static TestConstants() {
+            SrcmlPath = Path.Combine(FileUtils.GetSolutionDirectory("SrcML.NET.sln"), "External", "SrcML");
+        }
     }
 }

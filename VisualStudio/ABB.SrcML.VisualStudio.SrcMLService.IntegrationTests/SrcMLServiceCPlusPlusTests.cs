@@ -1,4 +1,5 @@
-﻿using EnvDTE;
+﻿using ABB.SrcML.Test.Utilities;
+using EnvDTE;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VSSDK.Tools.VsIdeTesting;
 using System;
@@ -22,7 +23,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
         [ClassInitialize]
         public static void ClassSetup(TestContext testContext) {
             // Create a local copy of the solution
-            TestHelpers.CopyDirectory(Path.Combine(TestConstants.InputFolderPath, TestSolutionName), TestSolutionName);
+            FileUtils.CopyDirectory(Path.Combine(TestConstants.InputFolderPath, TestSolutionName), TestSolutionName);
             TestLock = new object();
         }
 
