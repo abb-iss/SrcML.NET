@@ -70,7 +70,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="sp"></param>
         /// <param name="extensionDirectory"></param>
         public SrcMLGlobalService(IServiceProvider sp, string extensionDirectory) {
-            SrcMLFileLogger.DefaultLogger.Info("Constructing a new instance of SrcMLGlobalService");
+            SrcMLFileLogger.DefaultLogger.InfoFormat("Constructing a new instance of SrcMLGlobalService in {0}", extensionDirectory);
             serviceProvider = sp;
             SrcMLServiceDirectory = extensionDirectory;
             statusBar = (IVsStatusbar)Package.GetGlobalService(typeof(SVsStatusbar));
