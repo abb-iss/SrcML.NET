@@ -33,7 +33,6 @@ namespace ABB.SrcML
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1724:TypeNamesShouldNotMatchNamespaces")]
     public class SrcML
     {
-        private readonly static XmlNamespaceManager nsManager = new XmlNamespaceManager(new NameTable());
         private readonly DefaultsDictionary<string, Language> _extensionMapping = new DefaultsDictionary<string, Language>(new Dictionary<string, Language>(StringComparer.CurrentCultureIgnoreCase) {
                     { ".c" , Language.C },
                     { ".h", Language.C },
@@ -62,17 +61,6 @@ namespace ABB.SrcML
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1810:InitializeReferenceTypeStaticFieldsInline")]
-        static SrcML()
-        {
-            nsManager.AddNamespace(CPP.Prefix, CPP.NS.NamespaceName);
-            nsManager.AddNamespace(LIT.Prefix, LIT.NS.NamespaceName);
-            nsManager.AddNamespace(OP.Prefix, OP.NS.NamespaceName);
-            nsManager.AddNamespace(POS.Prefix, POS.NS.NamespaceName);
-            nsManager.AddNamespace(SRC.Prefix, SRC.NS.NamespaceName);
-            nsManager.AddNamespace(TYPE.Prefix, TYPE.NS.NamespaceName);
-            nsManager.AddNamespace(DIFF.Prefix, DIFF.NS.NamespaceName);
-        }
         /// <summary>
         /// List of common name space arguments that src2srcml.exe uses to modify its output.
         /// </summary>
@@ -127,7 +115,7 @@ namespace ABB.SrcML
         {
             get
             {
-                return nsManager;
+                return SrcMLNamespaces.Manager;
             }
         }
 
@@ -481,7 +469,7 @@ namespace ABB.SrcML
             if (null == language)
                 lang = Language.CPlusPlus;
             else
-                lang = KsuAdapter.GetLanguageFromString(language);
+                lang = SrcMLElement.GetLanguageFromString(language);
 
             return GenerateSrcMLFromString(source, lang);
         }
@@ -495,7 +483,7 @@ namespace ABB.SrcML
         [Obsolete("Consider using GenerateSrcMLFromFile(string,string,Language)")]
         public SrcMLFile GenerateSrcMLFromFile(string sourceFileName, string xmlFileName, string language)
         {
-            var lang = KsuAdapter.GetLanguageFromString(language);
+            var lang = SrcMLElement.GetLanguageFromString(language);
             string fullPath = Path.GetFullPath(sourceFileName);
 
             generateSrcMLDoc(sourceFileName, xmlFileName, lang);
@@ -513,7 +501,7 @@ namespace ABB.SrcML
         [Obsolete("Consider using GenerateSrcMLFromProject(string,string,Language)")]
         public SrcMLFile GenerateSrcMLFromProject(string project, string xmlFileName, string language)
         {
-            Language lang = KsuAdapter.GetLanguageFromString(language);
+            Language lang = SrcMLElement.GetLanguageFromString(language);
 
             GenerateSrcMLFromProject(project, xmlFileName, lang);
             return new SrcMLFile(xmlFileName);
@@ -576,7 +564,7 @@ namespace ABB.SrcML
 
             try
             {
-                return GenerateSrcMLFromDirectory(path, xmlFileName, fileExclusionList, KsuAdapter.GetLanguageFromString(language));
+                return GenerateSrcMLFromDirectory(path, xmlFileName, fileExclusionList, SrcMLElement.GetLanguageFromString(language));
             }
             finally
             {

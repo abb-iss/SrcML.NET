@@ -65,7 +65,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The SrcMLArchive to extract the data from.
         /// </summary>
-        public SrcMLArchive Archive { get; private set; }
+        public ISrcMLArchive Archive { get; private set; }
 
         /// <summary>
         /// The top-level Scope for the data in the archive.
@@ -102,7 +102,7 @@ namespace ABB.SrcML.Data {
         /// Create a data archive for the given srcML archive. It will subscribe to the <see cref="AbstractArchive.FileChanged"/> event.
         /// </summary>
         /// <param name="archive">The archive to monitor for changes.</param>
-        public DataRepository(SrcMLArchive archive) : this(archive, null) { }
+        public DataRepository(ISrcMLArchive archive) : this(archive, null) { }
 
         /// <summary>
         /// Create a data archive with data stored in the given <paramref name="fileName">binary file</paramref>.
@@ -116,7 +116,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="archive">The srcML archive to monitor for changes. If null, no archive monitoring will be done.</param>
         /// <param name="fileName">The file to read data from. If null, no previously saved data will be loaded.</param>
-        public DataRepository(SrcMLArchive archive, string fileName) {
+        public DataRepository(ISrcMLArchive archive, string fileName) {
             SetupParsers();
             this.ReadyState = new ReadyNotifier(this);
             this.Archive = archive;
@@ -135,7 +135,7 @@ namespace ABB.SrcML.Data {
             globalScope = null;
             //TODO: clear any other data structures as necessary
         }
-        
+
 
         /// <summary>
         /// Adds the given file to the data archive.
@@ -214,7 +214,8 @@ namespace ABB.SrcML.Data {
             if(loc == null) throw new ArgumentNullException("loc");
             var scope = globalScope.GetScopeForLocation(loc);
             if(scope == null) {
-                Utilities.SrcMLFileLogger.DefaultLogger.InfoFormat("SourceLocation {0} not found in DataRepository", loc);
+                //TODO replace logger call
+                //Utilities.SrcMLFileLogger.DefaultLogger.InfoFormat("SourceLocation {0} not found in DataRepository", loc);
                 return new Collection<MethodCall>();
             }
             var calls = scope.MethodCalls.Where(mc => mc.Location.Contains(loc));
@@ -324,7 +325,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="fileName">The file to save the archive to.</param>
         public void Save(string fileName) {
-            if(fileName == null) {
+            if (fileName == null) {
                 throw new ArgumentNullException("fileName");
             }
             var formatter = new BinaryFormatter();
@@ -357,7 +358,7 @@ namespace ABB.SrcML.Data {
         }
 #endregion teardown methods
 
-#region Private Methods
+        #region Private Methods
         private Scope ParseFileUnit(XElement fileUnit) {
             var language = SrcMLElement.GetLanguageForUnit(fileUnit);
             Scope scope = null;
@@ -371,7 +372,7 @@ namespace ABB.SrcML.Data {
                 }
             }
             return scope;
-        }
+            }
 
         private void MergeScope(Scope scopeForFile) {
             globalScope = (globalScope != null ? globalScope.Merge(scopeForFile) : scopeForFile);
@@ -380,12 +381,16 @@ namespace ABB.SrcML.Data {
         private void ReadArchive() {
             if(null != Archive) {
                 foreach(var unit in Archive.FileUnits) {
-                    AddFile(unit);
-                    OnFileProcessed(new FileEventRaisedArgs(FileEventType.FileAdded, SrcMLElement.GetFileNameForUnit(unit)));
+                    try {
+                        AddFile(unit);
+                    } catch(Exception ex) {
+                        var fileName = SrcMLElement.GetFileNameForUnit(unit);
+                        Console.Error.WriteLine("Error: {0} (Adding {1})", ex.Message, fileName);
+                    }
                 }
             }
         }
-
+                
         private void ReadArchiveConcurrent(TaskScheduler scheduler) {
             if(null != Archive) {
                 BlockingCollection<Scope> mergeQueue = new BlockingCollection<Scope>();
@@ -419,24 +424,28 @@ namespace ABB.SrcML.Data {
         }
 
         private void Archive_SourceFileChanged(object sender, FileEventRaisedArgs e) {
-            switch(e.EventType) {
-                case FileEventType.FileChanged:
-                    // Treat a changed source file as deleted then added
-                    RemoveFile(e.FilePath);
-                    goto case FileEventType.FileAdded;
-                case FileEventType.FileAdded:
-                    AddFile(e.FilePath);
-                    break;
-                case FileEventType.FileDeleted:
-                    RemoveFile(e.FilePath);
-                    break;
-                case FileEventType.FileRenamed:
-                    // TODO: could a more efficient rename action be supported within the data structures themselves?
-                    RemoveFile(e.OldFilePath);
-                    AddFile(e.FilePath);
-                    break;
+            try {
+                switch(e.EventType) {
+                    case FileEventType.FileChanged:
+                        // Treat a changed source file as deleted then added
+                        RemoveFile(e.FilePath);
+                        goto case FileEventType.FileAdded;
+                    case FileEventType.FileAdded:
+                        AddFile(e.FilePath);
+                        break;
+                    case FileEventType.FileDeleted:
+                        RemoveFile(e.FilePath);
+                        break;
+                    case FileEventType.FileRenamed:
+                        // TODO: could a more efficient rename action be supported within the data structures themselves?
+                        RemoveFile(e.OldFilePath);
+                        AddFile(e.FilePath);
+                        break;
+                }
+            } catch(Exception ex) {
+                // TODO log exception
+                Console.Error.WriteLine("Error: {0} ({1} {2})", ex.Message, e.EventType, e.FilePath);
             }
-            OnFileProcessed(e);
         }
 
         private void OnFileProcessed(FileEventRaisedArgs e) {
@@ -445,14 +454,13 @@ namespace ABB.SrcML.Data {
                 handler(this, e);
             }
         }
-
         private void OnErrorRaised(ErrorRaisedArgs e) {
             EventHandler<ErrorRaisedArgs> handler = ErrorRaised;
             if(handler != null) {
                 handler(this, e);
             }
         }
-#endregion
+        #endregion
 
         class SourceLocationComparer : Comparer<SourceLocation> {
             public override int Compare(SourceLocation x, SourceLocation y) {

@@ -170,29 +170,29 @@ namespace ABB.SrcML.Data.Test {
 
             using(var fileLog = new StreamWriter(fileLogPath)) {
                 using(var monitor = new FileSystemFolderMonitor(sourcePath, dataPath, new LastModifiedArchive(dataPath), archive)) {
-                    monitor.UseAsyncMethods = useAsyncMethods;
+            monitor.UseAsyncMethods = useAsyncMethods;
 
-                    ManualResetEvent mre = new ManualResetEvent(false);
-                    DateTime start, end = DateTime.MinValue;
-                    bool startupCompleted = false;
-
-                    archive.IsReadyChanged += (o, e) => {
+            ManualResetEvent mre = new ManualResetEvent(false);
+            DateTime start, end = DateTime.MinValue;
+            bool startupCompleted = false;
+            
+            archive.IsReadyChanged += (o, e) => {
                         if(e.ReadyState) {
-                            end = DateTime.Now;
-                            startupCompleted = true;
-                            mre.Set();
-                        }
-                    };
+                    end = DateTime.Now;
+                    startupCompleted = true;
+                    mre.Set();
+                }
+            };
 
-                    start = DateTime.Now;
-                    monitor.Startup();
-                    startupCompleted = mre.WaitOne(120000);
-                    if(!startupCompleted) {
-                        end = DateTime.Now;
-                    }
+            start = DateTime.Now;
+            monitor.Startup();
+            startupCompleted = mre.WaitOne(120000);
+            if(!startupCompleted) {
+                end = DateTime.Now;
+            }
 
-                    Console.WriteLine("{0} to {1} srcML", end - start, (regenerateSrcML ? "generate" : "verify"));
-                    Assert.That(startupCompleted);
+            Console.WriteLine("{0} to {1} srcML", end - start, (regenerateSrcML ? "generate" : "verify"));
+            Assert.That(startupCompleted);
 
                     using(var data = new DataRepository(archive)) {
                         start = DateTime.Now;
@@ -202,8 +202,8 @@ namespace ABB.SrcML.Data.Test {
                                 numberOfFiles++;
                                 numberOfSuccesses++;
                                 if(numberOfFiles % 100 == 0) {
-                                    Console.WriteLine("{0,5:N0} files completed in {1} with {2,5:N0} failures", numberOfFiles, DateTime.Now - start, numberOfFailures);
-                                }
+                        Console.WriteLine("{0,5:N0} files completed in {1} with {2,5:N0} failures", numberOfFiles, DateTime.Now - start, numberOfFailures);
+                    }
                                 fileLog.WriteLine("OK {0}", e.FilePath);
                             }
                         };
@@ -213,15 +213,15 @@ namespace ABB.SrcML.Data.Test {
                             numberOfFailures++;
                             if(numberOfFiles % 100 == 0) {
                                 Console.WriteLine("{0,5:N0} files completed in {1} with {2,5:N0} failures", numberOfFiles, DateTime.Now - start, numberOfFailures);
-                            }
+                        }
                             ParseException pe = e.Exception as ParseException;
                             if(pe != null) {
                                 fileLog.WriteLine("ERROR {0}", pe.FileName);
                                 fileLog.WriteLine(e.Exception.InnerException.StackTrace);
                                 var key = e.Exception.InnerException.StackTrace.Split('\n')[0].Trim();
-                                if(!errors.ContainsKey(key)) {
-                                    errors[key] = new List<string>();
-                                }
+                        if(!errors.ContainsKey(key)) {
+                            errors[key] = new List<string>();
+                        }
                                 errors[key].Add(pe.FileName);
                             }
                         };
@@ -230,27 +230,27 @@ namespace ABB.SrcML.Data.Test {
                             data.InitializeDataConcurrent();
                         } else {
                             data.InitializeData();
-                        }
+            }
 
-                        end = DateTime.Now;
+            end = DateTime.Now;
 
-                        Console.WriteLine("{0,5:N0} files completed in {1} with {2,5:N0} failures", numberOfFiles, end - start, numberOfFailures);
+            Console.WriteLine("{0,5:N0} files completed in {1} with {2,5:N0} failures", numberOfFiles, end - start, numberOfFailures);
                         Console.WriteLine("{0} to generate data", end - start);
 
-                        Console.WriteLine("\nSummary");
-                        Console.WriteLine("===================");
-                        Console.WriteLine("{0,10:N0} failures  ({1,8:P2})", numberOfFailures, ((float)numberOfFailures) / numberOfFiles);
-                        Console.WriteLine("{0,10:N0} successes ({1,8:P2})", numberOfSuccesses, ((float)numberOfSuccesses) / numberOfFiles);
-                        Console.WriteLine("{0} to generate data", end - start);
-                        Console.WriteLine(fileLogPath);
+            Console.WriteLine("\nSummary");
+            Console.WriteLine("===================");
+            Console.WriteLine("{0,10:N0} failures  ({1,8:P2})", numberOfFailures, ((float)numberOfFailures) / numberOfFiles);
+            Console.WriteLine("{0,10:N0} successes ({1,8:P2})", numberOfSuccesses, ((float)numberOfSuccesses) / numberOfFiles);
+            Console.WriteLine("{0} to generate data", end - start);
+            Console.WriteLine(fileLogPath);
 
                         PrintScopeReport(data.GlobalScope);
                         PrintMethodCallReport(data.GlobalScope, callLogPath);
-                        PrintErrorReport(errors);
+            PrintErrorReport(errors);
                     }
                 }
             }
-            
+
         }
 
         
@@ -314,7 +314,6 @@ namespace ABB.SrcML.Data.Test {
             int numberOfFiles = 0;
             Dictionary<string, List<string>> errors = new Dictionary<string, List<string>>();
 
-            List<string> xmlFiles = archive.ArchivedXmlFiles();
             sw.Start();
 
             using(var fileLog = new StreamWriter(fileLogPath)) {
@@ -322,9 +321,8 @@ namespace ABB.SrcML.Data.Test {
 
                     Task.Factory.StartNew(() => {
 
-                        Parallel.ForEach(xmlFiles, currentFile => {
-
-                            var unit = SrcMLElement.Load(currentFile);
+                        Parallel.ForEach(archive.FileUnits, unit => {
+                            var currentFile = SrcMLElement.GetFileNameForUnit(unit);
                             var language = SrcMLElement.GetLanguageForUnit(unit);
                             try {
 

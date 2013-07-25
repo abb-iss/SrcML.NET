@@ -310,6 +310,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 DteEvents.OnStartupComplete += DTEStartupCompleted;
                 // Register the Visual Studio DTE event that occurs when the development environment is closing.
                 DteEvents.OnBeginShutdown += DTEBeginShutdown;
+            } else {
+                SrcMLFileLogger.DefaultLogger.Info("> Could not get the DTE object");
             }
         }
 
@@ -380,7 +382,9 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             //SrcMLFileLogger.DefaultLogger.Info("> SrcML service starts monitoring the opened solution.");
 
             // This statement should be commented out when releasing SrcML.NET for Sando
-            srcMLService.StartMonitoring(true, SrcMLHelper.GetSrcMLDefaultDirectory(extensionDirectory));
+            //srcMLService.StartMonitoring(true, SrcMLHelper.GetSrcMLDefaultDirectory(extensionDirectory));
+            SrcMLFileLogger.DefaultLogger.Info("srcml service starts monitoring");
+            srcMLService.StartMonitoring();
         }
 
         /// <summary>

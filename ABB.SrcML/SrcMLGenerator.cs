@@ -22,10 +22,10 @@ namespace ABB.SrcML {
     /// <summary>
     /// The SrcML Generator class provides a convenient wrapper for multiple <see cref="Src2SrcMLRunner2">src2srcml runners</see>, each targetted at a different language.
     /// </summary>
-    public class SrcMLGenerator {
+    public class SrcMLGenerator : ISrcMLGenerator {
         private readonly Src2SrcMLRunner2 defaultExecutable;
         private readonly Language[] defaultLanguages = new[] { Language.C, Language.CPlusPlus, Language.Java, Language.AspectJ };
-        private readonly string[] defaultArguments = new[] { LIT.ArgumentLabel, OP.ArgumentLabel, POS.ArgumentLabel, TYPE.ArgumentLabel };
+        private string[] defaultArguments;
         
         private Dictionary<Language, Src2SrcMLRunner2> nonDefaultExecutables;
         private Dictionary<Language, string[]> nonDefaultArguments;
@@ -65,6 +65,7 @@ namespace ABB.SrcML {
         /// </summary>
         public SrcMLGenerator() {
             defaultExecutable = new Src2SrcMLRunner2();
+            defaultArguments = new[] { LIT.ArgumentLabel, OP.ArgumentLabel, POS.ArgumentLabel, TYPE.ArgumentLabel };
             nonDefaultExecutables = new Dictionary<Language, Src2SrcMLRunner2>();
             nonDefaultArguments = new Dictionary<Language, string[]>();
             DetectNonDefaultExecutables();
@@ -74,12 +75,7 @@ namespace ABB.SrcML {
         /// Creates a new SrcMLGenerator
         /// </summary>
         /// <param name="defaultExecutableDirectory">The directory containing the default srcml executables to use.</param>
-        public SrcMLGenerator(string defaultExecutableDirectory) {
-            defaultExecutable = new Src2SrcMLRunner2(defaultExecutableDirectory);
-            nonDefaultExecutables = new Dictionary<Language, Src2SrcMLRunner2>();
-            nonDefaultArguments = new Dictionary<Language, string[]>();
-            DetectNonDefaultExecutables();
-        }
+        public SrcMLGenerator(string defaultExecutableDirectory) : this(defaultExecutableDirectory, new[] { LIT.ArgumentLabel, OP.ArgumentLabel, POS.ArgumentLabel, TYPE.ArgumentLabel }) { }
 
         /// <summary>
         /// Creates a new SrcMLGenerator
@@ -88,6 +84,7 @@ namespace ABB.SrcML {
         /// <param name="namespaceArguments">The namespace arguments to use when converting to SrcML.</param>
         public SrcMLGenerator(string defaultExecutableDirectory, IEnumerable<string> namespaceArguments) {
             defaultExecutable = new Src2SrcMLRunner2(defaultExecutableDirectory);
+            defaultArguments = namespaceArguments.ToArray();
             nonDefaultExecutables = new Dictionary<Language, Src2SrcMLRunner2>();
             nonDefaultArguments = new Dictionary<Language, string[]>();
             DetectNonDefaultExecutables();
@@ -178,13 +175,7 @@ namespace ABB.SrcML {
             runner.GenerateSrcMLFromFile(sourceFileName, xmlFileName, language, additionalArguments, runnerExtMap);
         }
 
-        /// <summary>
-        /// Generates a SrcML document from a collection of source files. The language(s) will be inferred from the file extensions.
-        /// </summary>
-        /// <param name="sourceFileNames">The source files to generate SrcML from.</param>
-        /// <param name="xmlFileName">The file name to write the resulting XML to.</param>
-        /// <returns>A SrcMLFile for <paramref name="xmlFileName"/>.</returns>
-        public SrcMLFile GenerateSrcMLFromFiles(IEnumerable<string> sourceFileNames, string xmlFileName) {
+        public void GenerateSrcMLFromFiles(IEnumerable<string> sourceFileNames, string xmlFileName) {
             var filesByLanguage = new Dictionary<Language, List<string>>();
             //determine which runner should process each source file
             foreach(var sourceFile in sourceFileNames) {
@@ -194,14 +185,14 @@ namespace ABB.SrcML {
                     if(nonDefaultExecutables.ContainsKey(lang)) {
                         //this file should be parsed by a non-default runner
                         if(!filesByLanguage.ContainsKey(lang)) {
-                            filesByLanguage[lang] = new List<string>() {sourceFile};
+                            filesByLanguage[lang] = new List<string>() { sourceFile };
                         } else {
                             filesByLanguage[lang].Add(sourceFile);
                         }
                     } else {
                         //should be parsed by the default runner
                         if(!filesByLanguage.ContainsKey(Language.Any)) {
-                            filesByLanguage[Language.Any] = new List<string>() {sourceFile};
+                            filesByLanguage[Language.Any] = new List<string>() { sourceFile };
                         } else {
                             filesByLanguage[Language.Any].Add(sourceFile);
                         }
@@ -235,6 +226,15 @@ namespace ABB.SrcML {
                 }
                 File.Move(tempArchive.FileName, xmlFileName);
             }
+        }
+        /// <summary>
+        /// Generates a SrcML document from a collection of source files. The language(s) will be inferred from the file extensions.
+        /// </summary>
+        /// <param name="sourceFileNames">The source files to generate SrcML from.</param>
+        /// <param name="xmlFileName">The file name to write the resulting XML to.</param>
+        /// <returns>A SrcMLFile for <paramref name="xmlFileName"/>.</returns>
+        public SrcMLFile GenerateSrcMLFileFromFiles(IEnumerable<string> sourceFileNames, string xmlFileName) {
+            GenerateSrcMLFromFiles(sourceFileNames, xmlFileName);
             return new SrcMLFile(xmlFileName);
         }
 
@@ -259,8 +259,8 @@ namespace ABB.SrcML {
         /// <param name="directoryPath">The directory path.</param>
         /// <param name="xmlFileName">The path of the xml file.</param>
         /// <returns>A SrcMLFile that points at <paramref name="xmlFileName"/>.</returns>
-        public SrcMLFile GenerateSrcMLFromDirectory(string directoryPath, string xmlFileName) {
-            return GenerateSrcMLFromDirectory(directoryPath, xmlFileName, Language.Any);
+        public SrcMLFile GenerateSrcMLFileFromDirectory(string directoryPath, string xmlFileName) {
+            return GenerateSrcMLFileFromDirectory(directoryPath, xmlFileName, Language.Any);
         }
 
         /// <summary>
@@ -270,8 +270,8 @@ namespace ABB.SrcML {
         /// <param name="xmlFileName">The path of the xml file.</param>
         /// <param name="filesToExclude">A collection of files to exclude from <paramref name="xmlFileName"/>.</param>
         /// <returns>A SrcMLFile that points at <paramref name="xmlFileName"/>.</returns>
-        public SrcMLFile GenerateSrcMLFromDirectory(string directoryPath, string xmlFileName, IEnumerable<string> filesToExclude) {
-            return GenerateSrcMLFromDirectory(directoryPath, xmlFileName, filesToExclude, Language.Any);
+        public SrcMLFile GenerateSrcMLFileFromDirectory(string directoryPath, string xmlFileName, IEnumerable<string> filesToExclude) {
+            return GenerateSrcMLFileFromDirectory(directoryPath, xmlFileName, filesToExclude, Language.Any);
         }
 
         /// <summary>
@@ -281,10 +281,25 @@ namespace ABB.SrcML {
         /// <param name="xmlFileName">The path of the xml file.</param>
         /// <param name="languageFilter">The language to include.</param>
         /// <returns>A SrcMLFile that points at <paramref name="xmlFileName"/>.</returns>
-        public SrcMLFile GenerateSrcMLFromDirectory(string directoryPath, string xmlFileName, Language languageFilter) {
-            return GenerateSrcMLFromDirectory(directoryPath, xmlFileName, new string[] {}, languageFilter);
+        public SrcMLFile GenerateSrcMLFileFromDirectory(string directoryPath, string xmlFileName, Language languageFilter) {
+            return GenerateSrcMLFileFromDirectory(directoryPath, xmlFileName, new string[] { }, languageFilter);
         }
 
+        public SrcMLFile GenerateSrcMLFileFromDirectory(string directoryPath, string xmlFileName, IEnumerable<string> filesToExclude, Language languageFilter) {
+            GenerateSrcMLFromDirectory(directoryPath, xmlFileName, filesToExclude, languageFilter);
+            return new SrcMLFile(xmlFileName);
+        }
+
+        public void GenerateSrcMLFromDirectory(string directoryPath, string xmlFileName) {
+
+        }
+
+        public void GenerateSrcMLFromDirectory(string directoryPath, string xmlFileName, Language languageFilter) {
+        }
+
+        public void GenerateSrcMLFromDirectory(string directoryPath, string xmlFileName, IEnumerable<string> filesToExclude) {
+
+        }
         /// <summary>
         /// Generate a SrcML document from the given path and place it in the XML file. The file will only contain source files classified as <paramref name="languageFilter"/>.
         /// </summary>
@@ -293,7 +308,7 @@ namespace ABB.SrcML {
         /// <param name="filesToExclude">A collection of files to exclude from <paramref name="xmlFileName"/>.</param>
         /// <param name="languageFilter">The language to include.</param>
         /// <returns>A SrcMLFile that points at <paramref name="xmlFileName"/>.</returns>
-        public SrcMLFile GenerateSrcMLFromDirectory(string directoryPath, string xmlFileName, IEnumerable<string> filesToExclude, Language languageFilter) {
+        public void GenerateSrcMLFromDirectory(string directoryPath, string xmlFileName, IEnumerable<string> filesToExclude, Language languageFilter) {
             if(!Directory.Exists(directoryPath)) {
                 throw new DirectoryNotFoundException(String.Format("{0} does not exist.", directoryPath));
             }
@@ -314,8 +329,7 @@ namespace ABB.SrcML {
                                   where extensionMapping.ContainsKey(f.Extension) && extensionMapping[f.Extension] == languageFilter
                                   select f.FullName;
             }
-
-            return GenerateSrcMLFromFiles(reducedFileList, xmlFileName);
+            GenerateSrcMLFileFromFiles(reducedFileList, xmlFileName);
         }
 
         /// <summary>

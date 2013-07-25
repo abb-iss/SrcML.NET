@@ -133,7 +133,7 @@ printf(""hello world!"");
 
         [Test]
         public void MultipleFilesTest() {
-            var doc = generator.GenerateSrcMLFromFiles(new string[] { "srcmltest\\foo.c", "srcmltest\\bar.c" }, "srcml_xml\\multiplefile.xml");
+            var doc = generator.GenerateSrcMLFileFromFiles(new string[] { "srcmltest\\foo.c", "srcmltest\\bar.c" }, "srcml_xml\\multiplefile.xml");
 
             Assert.IsNotNull(doc);
             var files = doc.FileUnits.ToList();
@@ -144,7 +144,7 @@ printf(""hello world!"");
 
         [Test]
         public void MultipleFilesTest_DifferentDirectories() {
-            var doc = generator.GenerateSrcMLFromFiles(new string[] { "srcmltest\\foo.c", "srcmltest\\bar.c", "..\\..\\TestInputs\\baz.cpp" }, "srcml_xml\\multiplefile.xml");
+            var doc = generator.GenerateSrcMLFileFromFiles(new string[] { "srcmltest\\foo.c", "srcmltest\\bar.c", "..\\..\\TestInputs\\baz.cpp" }, "srcml_xml\\multiplefile.xml");
 
             Assert.IsNotNull(doc);
             var files = doc.FileUnits.ToList();
@@ -173,7 +173,7 @@ printf(""hello world!"");
             var exclusionList = new List<string>();
             exclusionList.Add("srcmltest\\bar.c");
 
-            var doc = generator.GenerateSrcMLFromDirectory("srcmltest", "srcml_xml\\exclusionfilter.xml", exclusionList, Language.C);
+            var doc = generator.GenerateSrcMLFileFromDirectory("srcmltest", "srcml_xml\\exclusionfilter.xml", exclusionList, Language.C);
 
             var numFileUnits = doc.FileUnits.Count();
             string firstSourceFile = null;
@@ -222,7 +222,7 @@ printf(""hello world!"");
 
         [Test]
         public void TestGenerateSrcMLFromFiles_NonDefaultExtension() {
-            var doc = generator.GenerateSrcMLFromFiles(new[] {@"srcmltest\File with spaces.cpp", @"srcmltest\CSHARP.cs", @"srcmltest\foo.c"}, @"srcml_xml\multiple_files_csharp.xml");
+            var doc = generator.GenerateSrcMLFileFromFiles(new[] {@"srcmltest\File with spaces.cpp", @"srcmltest\CSHARP.cs", @"srcmltest\foo.c"}, @"srcml_xml\multiple_files_csharp.xml");
             Assert.IsNotNull(doc);
             Assert.AreEqual(3, doc.FileUnits.Count());
         }

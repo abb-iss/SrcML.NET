@@ -207,7 +207,7 @@ namespace ABB.SrcML {
             if(null == unit)
                 throw new ArgumentNullException("unit");
             try {
-                SrcMLHelper.ThrowExceptionOnInvalidName(unit, SRC.Unit);
+                SrcMLElement.ThrowExceptionOnInvalidName(unit, SRC.Unit);
             } catch(SrcMLRequiredNameException e) {
                 throw new ArgumentException(e.Message, "unit", e);
             }

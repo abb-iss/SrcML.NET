@@ -49,7 +49,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <summary>
         /// SrcML.NET's SrcMLArchive.
         /// </summary>
-        private SrcMLArchive CurrentSrcMLArchive;
+        private ISrcMLArchive CurrentSrcMLArchive;
 
         private DataRepository CurrentDataRepository;
 
@@ -83,9 +83,10 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="sp"></param>
         /// <param name="extensionDirectory"></param>
         public SrcMLGlobalService(IServiceProvider sp, string extensionDirectory) {
+            SrcMLFileLogger.DefaultLogger.InfoFormat("Constructing a new instance of SrcMLGlobalService in {0}", extensionDirectory);
             numRunningSources = 0;
-            SrcMLFileLogger.DefaultLogger.Info("Constructing a new instance of SrcMLGlobalService");
             ReadyState = new ReadyNotifier(this);
+            
             serviceProvider = sp;
             SrcMLServiceDirectory = extensionDirectory;
             statusBar = (IVsStatusbar)Package.GetGlobalService(typeof(SVsStatusbar));
@@ -196,7 +197,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// Get current SrcMLArchive instance.
         /// </summary>
         /// <returns></returns>
-        public SrcMLArchive GetSrcMLArchive() {
+        public ISrcMLArchive GetSrcMLArchive() {
             return CurrentSrcMLArchive;
         }
 

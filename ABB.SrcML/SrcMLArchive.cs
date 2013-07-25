@@ -27,7 +27,7 @@ namespace ABB.SrcML {
     /// This is an implementation of <see cref="AbstractArchive"/>. File changes trigger the addition, update, and deletion of srcML archives in
     /// the archive directory
     /// </summary>
-    public class SrcMLArchive : AbstractArchive {
+    public class SrcMLArchive : AbstractArchive, ISrcMLArchive {
         private XmlFileNameMapping xmlFileNameMapping;
 
         /// <summary>
@@ -127,7 +127,7 @@ namespace ABB.SrcML {
         /// <summary>
         /// The SrcML generator used to generate srcML
         /// </summary>
-        public SrcMLGenerator XmlGenerator { get; set; }
+        public ISrcMLGenerator XmlGenerator { get; set; }
 
         /// <summary>
         /// Enumerates over each file in the archive and returns a file unit
@@ -201,7 +201,7 @@ namespace ABB.SrcML {
         /// <param name="fileName">the file to check for</param>
         /// <returns>true if the file is in the archive; false otherwise</returns>
         public override bool ContainsFile(string fileName) {
-            var xmlPath = GetXmlPathForSourcePath(fileName);
+            var xmlPath = GetXmlPath(fileName);
             return File.Exists(xmlPath);
         }
 
@@ -210,7 +210,7 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="fileName">The file name to delete</param>
         protected override void DeleteFileImpl(string fileName) {
-            var xmlPath = GetXmlPathForSourcePath(fileName);
+            var xmlPath = GetXmlPath(fileName);
             if(File.Exists(xmlPath)) {
                 File.Delete(xmlPath);
             }
@@ -250,7 +250,7 @@ namespace ABB.SrcML {
         /// <returns>true if the source file is newer OR older than its srcML file in the archive or the file is not in the archive.</returns>
         public override bool IsOutdated(string fileName) {
             var sourceFileInfo = new FileInfo(fileName);
-            var xmlPath = GetXmlPathForSourcePath(fileName);
+            var xmlPath = GetXmlPath(fileName);
             var xmlFileInfo = new FileInfo(xmlPath);
 
             return sourceFileInfo.Exists != xmlFileInfo.Exists || sourceFileInfo.LastWriteTime != xmlFileInfo.LastWriteTime;
@@ -262,8 +262,8 @@ namespace ABB.SrcML {
         /// <param name="oldFileName">The old file name</param>
         /// <param name="newFileName">The new file name.</param>
         protected override void RenameFileImpl(string oldFileName, string newFileName) {
-            var oldXmlPath = GetXmlPathForSourcePath(oldFileName);
-            var newXmlPath = GetXmlPathForSourcePath(newFileName);
+            var oldXmlPath = GetXmlPath(oldFileName);
+            var newXmlPath = GetXmlPath(newFileName);
 
             if(File.Exists(oldXmlPath)) {
                 File.Delete(oldXmlPath);
@@ -291,7 +291,7 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="sourcePath"></param>
         public void GenerateXmlForSource(string sourcePath) {
-            var xmlPath = GetXmlPathForSourcePath(sourcePath);
+            var xmlPath = GetXmlPath(sourcePath);
             var directory = Path.GetDirectoryName(xmlPath);
             if(!Directory.Exists(directory)) {
                 Directory.CreateDirectory(directory);
@@ -341,7 +341,7 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="sourcePath"></param>
         public void DeleteXmlForSourceFile(string sourcePath) {
-            var xmlPath = GetXmlPathForSourcePath(sourcePath);
+            var xmlPath = GetXmlPath(sourcePath);
             var sourceDirectory = Path.GetDirectoryName(sourcePath);
 
             if(File.Exists(xmlPath)) {
@@ -362,7 +362,7 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="sourcePath"></param>
         /// <returns></returns>
-        public string GetXmlPathForSourcePath(string sourcePath) {
+        public string GetXmlPath(string sourcePath) {
             return xmlFileNameMapping.GetXmlPath(sourcePath);
         }
 
@@ -384,7 +384,7 @@ namespace ABB.SrcML {
             if(!File.Exists(sourceFilePath)) {
                 return null;
             } else {
-                string xmlPath = GetXmlPathForSourcePath(sourceFilePath);
+                string xmlPath = GetXmlPath(sourceFilePath);
                 
                 if(!File.Exists(xmlPath)) {
                     GenerateXmlForSource(sourceFilePath);

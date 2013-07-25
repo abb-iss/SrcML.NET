@@ -130,7 +130,7 @@ namespace ABB.SrcML.Tools.Src2SrcMLPreview
                         item.IsCheckable = true;
                     }
 
-                    this._language = KsuAdapter.GetLanguageFromString(menuItem.Header.ToString());
+                    this._language = SrcMLElement.GetLanguageFromString(menuItem.Header.ToString());
                     sourceBox_TextChanged(sender, null);
                 }
             }
@@ -159,7 +159,7 @@ namespace ABB.SrcML.Tools.Src2SrcMLPreview
             HashSet<Language> supportedLanguages = new HashSet<Language>(this.XmlGenerator.SupportedLanguages);
             foreach(var item in this.MenuItemLanguage.Items) {
                 var menuItem = item as MenuItem;
-                var language = KsuAdapter.GetLanguageFromString(menuItem.Header.ToString());
+                var language = SrcMLElement.GetLanguageFromString(menuItem.Header.ToString());
                 menuItem.IsEnabled = supportedLanguages.Contains(language);
             }
         }

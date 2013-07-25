@@ -15,7 +15,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
-using KsuAdapter = ABB.SrcML.Utilities.KsuAdapter;
 
 namespace ABB.SrcML.Data {
     /// <summary>

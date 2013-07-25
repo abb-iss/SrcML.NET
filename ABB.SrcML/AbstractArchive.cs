@@ -15,7 +15,7 @@ namespace ABB.SrcML
     /// <summary>
     /// The abstract archive class is the base class for archives. Archives are responsible for recording changes to files and then raising an <see cref="FileChanged">event</see> when they are done.
     /// </summary>
-    public abstract class AbstractArchive : IDisposable
+    public abstract class AbstractArchive : IArchive
     {
         private string _archivePath;
         protected TaskManager _taskManager;
@@ -24,6 +24,7 @@ namespace ABB.SrcML
             this.ArchivePath = Path.Combine(baseDirectory, archiveSubDirectory);
             this._taskManager = new TaskManager(this);
         }
+
         /// <summary>
         /// Sets the archive path for AbstractArchive objects
         /// </summary>
