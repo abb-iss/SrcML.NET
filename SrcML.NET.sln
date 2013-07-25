@@ -69,6 +69,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML.Core", "ABB.SrcML
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML.VisualStudio.Interfaces", "VisualStudio\ABB.SrcML.VisualStudio.Interfaces\ABB.SrcML.VisualStudio.Interfaces.csproj", "{A4099F0F-52E6-4754-8E14-0777AFAA7F07}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML.Data.Core", "ABB.SrcML.Data.Core\ABB.SrcML.Data.Core.csproj", "{2FCC803A-0727-4829-8ED9-54A13008EAB8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -270,6 +272,16 @@ Global
 		{A4099F0F-52E6-4754-8E14-0777AFAA7F07}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{A4099F0F-52E6-4754-8E14-0777AFAA7F07}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{A4099F0F-52E6-4754-8E14-0777AFAA7F07}.Release|x86.ActiveCfg = Release|Any CPU
+		{2FCC803A-0727-4829-8ED9-54A13008EAB8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2FCC803A-0727-4829-8ED9-54A13008EAB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2FCC803A-0727-4829-8ED9-54A13008EAB8}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{2FCC803A-0727-4829-8ED9-54A13008EAB8}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{2FCC803A-0727-4829-8ED9-54A13008EAB8}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2FCC803A-0727-4829-8ED9-54A13008EAB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2FCC803A-0727-4829-8ED9-54A13008EAB8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2FCC803A-0727-4829-8ED9-54A13008EAB8}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{2FCC803A-0727-4829-8ED9-54A13008EAB8}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{2FCC803A-0727-4829-8ED9-54A13008EAB8}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
