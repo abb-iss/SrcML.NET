@@ -131,6 +131,16 @@ namespace ABB.SrcML {
         }
 
         /// <summary>
+        /// Checks to see if
+        /// <paramref name="fileName"/>is in any of the <see cref="MonitoredDirectories"/>.
+        /// </summary>
+        /// <param name="fileName">The file name to check</param>
+        /// <returns>True if the file is in a <see cref="MonitoredDirectories">monitored
+        /// directory</see>, false otherwise</returns>
+        public bool IsMonitoringFile(string fileName) {
+            var fullPath = Path.GetFullPath(fileName);
+            return MonitoredDirectories.Any(d => fullPath.StartsWith(d, StringComparison.InvariantCultureIgnoreCase));
+        }
         /// Start scanning <see cref="MonitoredDirectories">monitored directories</see> every
         /// <see cref="ScanInterval"/> seconds.
         /// </summary>

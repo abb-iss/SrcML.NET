@@ -81,6 +81,17 @@ namespace ABB.SrcML.Test {
         }
 
         [Test]
+        public void TestIsMonitoringFile() {
+            var archive = new LastModifiedArchive(monitorFolder);
+            DirectoryScanningMonitor monitor = new DirectoryScanningMonitor(monitorFolder, archive);
+            monitor.AddDirectory(testFolder);
+
+            foreach(var fileName in Directory.EnumerateFiles(testFolder)) {
+                Assert.IsTrue(monitor.IsMonitoringFile(fileName), "should be able to use the file name with the relative path");
+                Assert.IsTrue(monitor.IsMonitoringFile(Path.GetFullPath(fileName)), "should be able to find the file name with the absolute path");
+            }
+        }
+
         public void TestStartup() {
             var archive = new LastModifiedArchive(monitorFolder);
             DirectoryScanningMonitor monitor = new DirectoryScanningMonitor(monitorFolder, archive);
