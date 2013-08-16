@@ -45,6 +45,15 @@ namespace ABB.SrcML.Test {
 
         #endregion test setup
 
+        [Test, ExpectedException(ExpectedException = typeof(DirectoryScanningMonitorSubDirectoryException))]
+        public void TestAddSubdirectory() {
+            var archive = new LastModifiedArchive(monitorFolder);
+            DirectoryScanningMonitor monitor = new DirectoryScanningMonitor(monitorFolder, archive);
+
+            monitor.AddDirectory(testFolder);
+            monitor.AddDirectory(Path.Combine(testFolder, "test"));
+        }
+
         [Test]
         public void TestFileChanges() {
             var archive = new LastModifiedArchive(monitorFolder);

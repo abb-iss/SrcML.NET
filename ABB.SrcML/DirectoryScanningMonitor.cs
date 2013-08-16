@@ -104,8 +104,19 @@ namespace ABB.SrcML {
         /// Add a folder to <see cref="MonitoredDirectories"/>
         /// </summary>
         /// <param name="directoryPath">The directory to start monitoring</param>
+        /// <remarks>
+        /// Throws a <see cref="DirectoryScanningMonitorSubDirectoryException"/> if
+        /// <paramref name="directoryPath"/>is a subdirectory of an existing directory.
+        /// </remarks>
         public void AddDirectory(string directoryPath) {
-            folders.Add(directoryPath);
+            var fullPath = Path.GetFullPath(directoryPath);
+            foreach(var directory in MonitoredDirectories) {
+                if(fullPath.StartsWith(directory, StringComparison.InvariantCultureIgnoreCase)) {
+                    throw new DirectoryScanningMonitorSubDirectoryException(directoryPath, directory, this);
+                }
+            }
+
+            folders.Add(Path.GetFullPath(directoryPath));
             if(ScanTimer.Enabled) {
                 foreach(var fileName in EnumerateDirectory(directoryPath)) {
                     UpdateFile(fileName);
