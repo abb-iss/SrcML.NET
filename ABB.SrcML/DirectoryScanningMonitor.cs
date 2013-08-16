@@ -86,8 +86,9 @@ namespace ABB.SrcML {
             : this(foldersToMonitor, 60, baseDirectory, defaultArchive, otherArchives) { }
 
         /// <summary>
-        /// A read only collection of the directories being monitored. <para>In order to add a
-        /// directory, use the <see cref="AddDirectory(string)"/>.</para>
+        /// A read only collection of the directories being monitored. <para>Use
+        /// <see cref="AddDirectory(string)"/> to add a directory and
+        /// <see cref="RemoveDirectory(string)"/> to remove one.</para>
         /// </summary>
         public ReadOnlyCollection<string> MonitoredDirectories { get; private set; }
 
@@ -152,6 +153,30 @@ namespace ABB.SrcML {
             var fullPath = Path.GetFullPath(fileName);
             return MonitoredDirectories.Any(d => fullPath.StartsWith(d, StringComparison.InvariantCultureIgnoreCase));
         }
+
+        /// <summary>
+        /// Remove a directory from <see cref="MonitoredDirectories"/>. Files in this directory will
+        /// be removed from all archives.
+        /// </summary>
+        /// <param name="directoryPath">The directory to remove</param>
+        /// <remarks>
+        /// If
+        /// <paramref name="directoryPath"/>is not in <see cref="MonitoredDirectories"/> this method
+        /// has no effect.
+        /// </remarks>
+        public void RemoveDirectory(string directoryPath) {
+            var directoryFullPath = Path.GetFullPath(directoryPath);
+            if(folders.Contains(directoryFullPath, StringComparer.InvariantCultureIgnoreCase)) {
+                folders.Remove(directoryFullPath);
+                foreach(var fileName in GetArchivedFiles()) {
+                    if(fileName.StartsWith(directoryFullPath, StringComparison.InvariantCultureIgnoreCase)) {
+                        DeleteFile(fileName);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Start scanning <see cref="MonitoredDirectories">monitored directories</see> every
         /// <see cref="ScanInterval"/> seconds.
         /// </summary>

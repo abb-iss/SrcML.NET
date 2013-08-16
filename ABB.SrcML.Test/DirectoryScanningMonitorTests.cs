@@ -101,6 +101,25 @@ namespace ABB.SrcML.Test {
             }
         }
 
+        [Test]
+        public void TestRemoveDirectory() {
+            var archive = new LastModifiedArchive(monitorFolder);
+            DirectoryScanningMonitor monitor = new DirectoryScanningMonitor(monitorFolder, archive);
+            monitor.AddDirectory(testFolder);
+            monitor.UpdateArchives();
+
+            Assert.AreEqual(numStartingFiles, monitor.GetArchivedFiles().Count());
+            monitor.RemoveDirectory("test1");
+            Assert.AreEqual(numStartingFiles, monitor.GetArchivedFiles().Count());
+
+            monitor.RemoveDirectory(testFolder);
+            Assert.AreEqual(0, monitor.GetArchivedFiles().Count());
+            foreach(var fileName in Directory.EnumerateFiles(testFolder)) {
+                Assert.IsTrue(File.Exists(fileName));
+            }
+        }
+
+        [Test]
         public void TestStartup() {
             var archive = new LastModifiedArchive(monitorFolder);
             DirectoryScanningMonitor monitor = new DirectoryScanningMonitor(monitorFolder, archive);
