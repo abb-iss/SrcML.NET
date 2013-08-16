@@ -125,6 +125,13 @@ namespace ABB.SrcML {
             }
         }
 
+        /// <summary>
+        /// Returns an enumerable of all the files in
+        /// <paramref name="directory"/>.
+        /// </summary>
+        /// <param name="directory">The directory to enumerate</param>
+        /// <returns>An enumerable of the full file names in
+        /// <paramref name="directory"/></returns>
         public IEnumerable<string> EnumerateDirectory(string directory) {
             var files = from filePath in Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories)
                         select Path.GetFullPath(filePath);
@@ -132,7 +139,7 @@ namespace ABB.SrcML {
         }
 
         /// <summary>
-        /// Returns an enumerable
+        /// Returns an enumerable of all the monitored files
         /// </summary>
         /// <returns></returns>
         public override IEnumerable<string> EnumerateMonitoredFiles() {
