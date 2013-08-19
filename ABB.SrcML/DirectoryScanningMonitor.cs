@@ -203,12 +203,14 @@ namespace ABB.SrcML {
         /// Stops monitoring
         /// </remarks>
         public override void StopMonitoring() {
-            ScanTimer.Stop();
+            if(ScanTimer.Enabled) {
+                ScanTimer.Stop();
 
-            while(Interlocked.CompareExchange(ref syncPoint, STOPPED, IDLE) != IDLE) {
-                Thread.Sleep(1);
+                while(RUNNING == Interlocked.CompareExchange(ref syncPoint, STOPPED, IDLE)) {
+                    Thread.Sleep(1);
+                }
+                base.StopMonitoring();
             }
-            base.StopMonitoring();
         }
 
         /// <summary>
