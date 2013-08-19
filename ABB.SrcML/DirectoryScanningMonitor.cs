@@ -172,7 +172,14 @@ namespace ABB.SrcML {
         /// has no effect.
         /// </remarks>
         public void RemoveDirectory(string directoryPath) {
+            bool isRunning = ScanTimer.Enabled;
+            if(isRunning) {
+                while(RUNNING == Interlocked.CompareExchange(ref syncPoint, RUNNING, IDLE)) {
+                    Thread.Sleep(1);
+                }
+            }
             var directoryFullPath = Path.GetFullPath(directoryPath);
+
             if(folders.Contains(directoryFullPath, StringComparer.InvariantCultureIgnoreCase)) {
                 folders.Remove(directoryFullPath);
                 foreach(var fileName in GetArchivedFiles()) {
@@ -180,6 +187,10 @@ namespace ABB.SrcML {
                         DeleteFile(fileName);
                     }
                 }
+            }
+
+            if(isRunning) {
+                syncPoint = IDLE;
             }
         }
 
