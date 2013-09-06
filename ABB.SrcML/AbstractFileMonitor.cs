@@ -149,6 +149,10 @@ namespace ABB.SrcML {
             }
         }
 
+        /// <summary>
+        /// Returns an enumerable of all the files monitored by this monitor
+        /// </summary>
+        /// <returns>An enumerable of monitored files</returns>
         public abstract IEnumerable<string> EnumerateMonitoredFiles();
 
         /// <summary>

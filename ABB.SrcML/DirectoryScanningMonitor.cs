@@ -77,7 +77,7 @@ namespace ABB.SrcML {
         /// Create a new directory scanning monitor
         /// </summary>
         /// <param name="foldersToMonitor">An initial list of
-        /// <see cref="MonitoredDirectories">folders to /see></param>
+        /// <see cref="MonitoredDirectories">folders to </see> monitor</param>
         /// <param name="baseDirectory">The base directory to use for the archives of this
         /// monitor</param>
         /// <param name="defaultArchive">The default archive to use</param>
