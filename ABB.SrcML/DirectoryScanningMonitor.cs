@@ -66,6 +66,19 @@ namespace ABB.SrcML {
         /// <summary>
         /// Create a new directory scanning monitor
         /// </summary>
+        /// <param name="folderListFileName">An initial list of
+        /// <see cref="MonitoredDirectories">folders to </see> monitor</param>
+        /// <param name="scanInterval">The <see cref="ScanInterval"/> in seconds</param>
+        /// <param name="baseDirectory">The base directory to use for the archives of this
+        /// monitor</param>
+        /// <param name="defaultArchive">The default archive to use</param>
+        /// <param name="otherArchives">Other archives for specific extensions</param>
+        public DirectoryScanningMonitor(string folderListFileName, double scanInterval, string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
+            : this(File.ReadAllLines(folderListFileName).ToList(), scanInterval, baseDirectory, defaultArchive, otherArchives) { }
+
+        /// <summary>
+        /// Create a new directory scanning monitor
+        /// </summary>
         /// <param name="baseDirectory">The base directory to use for the archives of this
         /// monitor</param>
         /// <param name="defaultArchive">The default archive to use</param>
@@ -84,6 +97,18 @@ namespace ABB.SrcML {
         /// <param name="otherArchives">Other archives for specific extensions</param>
         public DirectoryScanningMonitor(ICollection<string> foldersToMonitor, string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
             : this(foldersToMonitor, 60, baseDirectory, defaultArchive, otherArchives) { }
+
+        /// <summary>
+        /// Create a new directory scanning monitor
+        /// </summary>
+        /// <param name="folderListFileName">A file name with the initial list of
+        /// <see cref="MonitoredDirectories">folders to /see> monitor</param>
+        /// <param name="baseDirectory">The base directory to use for the archives of this
+        /// monitor</param>
+        /// <param name="defaultArchive">The default archive to use</param>
+        /// <param name="otherArchives">Other archives for specific extensions</param>
+        public DirectoryScanningMonitor(string folderListFileName, string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
+            : this(folderListFileName, 60, baseDirectory, defaultArchive, otherArchives) { }
 
         /// <summary>
         /// A read only collection of the directories being monitored. <para>Use
@@ -222,6 +247,14 @@ namespace ABB.SrcML {
                 }
                 base.StopMonitoring();
             }
+        }
+
+        /// <summary>
+        /// Writes the current list of <see cref="MonitoredDirectories"/> to
+        /// <paramref name="fileName"/></summary>
+        /// <param name="fileName">The file name to write the list of directories to</param>
+        public void WriteMonitoringList(string fileName) {
+            File.WriteAllLines(fileName, MonitoredDirectories);
         }
 
         /// <summary>
