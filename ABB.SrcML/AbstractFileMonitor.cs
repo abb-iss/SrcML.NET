@@ -68,6 +68,14 @@ namespace ABB.SrcML {
         }
 
         /// <summary>
+        /// Calls <see cref="Dispose(bool)"/> with false as the argument in case disposal hasn't
+        /// already been done.
+        /// </summary>
+        ~AbstractFileMonitor() {
+            Dispose(false);
+        }
+
+        /// <summary>
         /// Event fires when any of the archives raises their
         /// <see cref="AbstractArchive.FileChanged"/>.
         /// </summary>
@@ -142,11 +150,8 @@ namespace ABB.SrcML {
         /// </summary>
         public void Dispose() {
             SrcMLFileLogger.DefaultLogger.Info("AbstractFileMonitor.Dispose()");
-            IsReadyChanged = null;
-            FileChanged = null;
-            foreach(var archive in registeredArchives) {
-                archive.Dispose();
-            }
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         /// <summary>
@@ -410,6 +415,21 @@ namespace ABB.SrcML {
             } else {
                 this.GetArchiveForFile(filePath).AddOrUpdateFile(filePath);
             }
+        }
+
+        /// <summary>
+        /// Sets the published events to null and calls Dispose on the registered archives if
+        /// <paramref name="disposing"/>is true.
+        /// </summary>
+        /// <param name="disposing">Causes this method to dispose of the registered archives</param>
+        protected virtual void Dispose(bool disposing) {
+            if(disposing) {
+                foreach(var archive in registeredArchives) {
+                    archive.Dispose();
+                }
+            }
+            IsReadyChanged = null;
+            FileChanged = null;
         }
 
         /// <summary>
