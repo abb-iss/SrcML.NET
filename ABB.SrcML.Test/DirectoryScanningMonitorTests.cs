@@ -93,10 +93,14 @@ namespace ABB.SrcML.Test {
         public void TestFileSaveAndRestore() {
             using(var monitor = new DirectoryScanningMonitor(monitorFolder, new LastModifiedArchive(monitorFolder))) {
                 monitor.AddDirectory(testFolder);
-                monitor.WriteMonitoringList(Path.Combine(monitorFolder, "folderlist.txt"));
             }
 
-            using(var monitor = new DirectoryScanningMonitor(Path.Combine(monitorFolder, "folderlist.txt"), monitorFolder, new LastModifiedArchive(monitorFolder))) {
+            using(var monitor = new DirectoryScanningMonitor(monitorFolder, new LastModifiedArchive(monitorFolder))) {
+                Assert.AreEqual(1, monitor.MonitoredDirectories.Count);
+                Assert.AreEqual(Path.GetFullPath(testFolder), monitor.MonitoredDirectories[0]);
+            }
+
+            using(var monitor = new DirectoryScanningMonitor(monitorFolder, new LastModifiedArchive(monitorFolder))) {
                 Assert.AreEqual(1, monitor.MonitoredDirectories.Count);
                 Assert.AreEqual(Path.GetFullPath(testFolder), monitor.MonitoredDirectories[0]);
             }
