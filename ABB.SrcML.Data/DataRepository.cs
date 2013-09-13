@@ -328,6 +328,7 @@ namespace ABB.SrcML.Data {
 
         private void SetupParsers() {
             parsers = new Dictionary<Language, AbstractCodeParser>() {
+                { Language.C, new CPlusPlusCodeParser() },
                 { Language.CPlusPlus, new CPlusPlusCodeParser() },
                 { Language.Java, new JavaCodeParser() },
                 { Language.CSharp, new CSharpCodeParser() }
