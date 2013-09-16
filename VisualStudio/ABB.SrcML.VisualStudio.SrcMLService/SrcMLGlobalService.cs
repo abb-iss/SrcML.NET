@@ -1,12 +1,4 @@
-﻿using ABB.SrcML;
-using ABB.SrcML.Utilities;
-using ABB.SrcML.VisualStudio.SolutionMonitor;
-using EnvDTE;
-using log4net;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
-
-/******************************************************************************
+﻿/******************************************************************************
  * Copyright (c) 2013 ABB Group
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -17,8 +9,12 @@ using Microsoft.VisualStudio.Shell.Interop;
  *    Jiang Zheng (ABB Group) - Initial implementation
  *****************************************************************************/
 
+using ABB.SrcML.Utilities;
+using ABB.SrcML.VisualStudio.SolutionMonitor;
+using EnvDTE;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Xml.Linq;
 
@@ -128,34 +124,40 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="useExistingSrcML"></param>
         public void StartMonitoring(bool useExistingSrcML, string srcMLBinaryDirectory) {
             // Get the path of the folder that storing the srcML archives
-            string srcMLArchiveDirectory = GetSrcMLArchiveFolder(SolutionMonitorFactory.GetOpenSolution());
-            SrcMLFileLogger.DefaultLogger.Info("SrcMLGlobalService.StartMonitoring( " + srcMLArchiveDirectory + " )");
+            string baseDirectory = GetSrcMLArchiveFolder(SolutionMonitorFactory.GetOpenSolution());
+            var openSolution = SolutionMonitorFactory.GetOpenSolution();
+
+            SrcMLFileLogger.DefaultLogger.Info("SrcMLGlobalService.StartMonitoring( " + baseDirectory + " )");
             try {
                 // Create a new instance of SrcML.NET's LastModifiedArchive
-                LastModifiedArchive lastModifiedArchive = new LastModifiedArchive(srcMLArchiveDirectory);
+                LastModifiedArchive lastModifiedArchive = new LastModifiedArchive(baseDirectory);
 
                 // Create a new instance of SrcML.NET's SrcMLArchive
-                SrcMLArchive sourceArchive = new SrcMLArchive(srcMLArchiveDirectory, useExistingSrcML, new SrcMLGenerator(srcMLBinaryDirectory));
+                SrcMLArchive sourceArchive = new SrcMLArchive(baseDirectory, useExistingSrcML, new SrcMLGenerator(srcMLBinaryDirectory));
                 CurrentSrcMLArchive = sourceArchive;
 
                 // Create a new instance of SrcML.NET's solution monitor
-                CurrentMonitor = SolutionMonitorFactory.CreateMonitor(srcMLArchiveDirectory, lastModifiedArchive, sourceArchive);
-
-                // Subscribe events from Solution Monitor
-                CurrentMonitor.FileChanged += RespondToFileChangedEvent;
-                CurrentMonitor.IsReadyChanged += RespondToIsReadyChangedEvent;
-
-                CurrentMonitor.MonitoringStopped += RespondToMonitoringStoppedEvent;
-
-                // Initialize the progress bar.
-                if(statusBar != null) {
-                    statusBar.Progress(ref cookie, 1, "", 0, 0);
+                if(openSolution != null) {
+                    CurrentMonitor = new SourceMonitor(openSolution, DirectoryScanningMonitor.DEFAULT_SCAN_INTERVAL, baseDirectory, lastModifiedArchive, sourceArchive);
                 }
 
-                // Start monitoring
-                duringStartup = true;
-                CurrentMonitor.UpdateArchives();
-                CurrentMonitor.StartMonitoring();
+                // Subscribe events from Solution Monitor
+                if(CurrentMonitor != null) {
+                    CurrentMonitor.FileChanged += RespondToFileChangedEvent;
+                    CurrentMonitor.IsReadyChanged += RespondToIsReadyChangedEvent;
+
+                    CurrentMonitor.MonitoringStopped += RespondToMonitoringStoppedEvent;
+
+                    // Initialize the progress bar.
+                    if(statusBar != null) {
+                        statusBar.Progress(ref cookie, 1, "", 0, 0);
+                    }
+
+                    // Start monitoring
+                    duringStartup = true;
+                    CurrentMonitor.UpdateArchives();
+                    CurrentMonitor.StartMonitoring();
+                }
             } catch(Exception e) {
                 SrcMLFileLogger.DefaultLogger.Error(SrcMLExceptionFormatter.CreateMessage(e, "Exception in SrcMLGlobalService.StartMonitoring()"));
             }

@@ -110,6 +110,7 @@
     </Compile>
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="SolutionReloadEventListener.cs" />
+    <Compile Include="SourceMonitor.cs" />
     <Compile Include="SrcMLGlobalService.cs" />
     <Compile Include="SrcMLLocalService.cs" />
     <Compile Include="SrcMLServicePackage.cs" />
