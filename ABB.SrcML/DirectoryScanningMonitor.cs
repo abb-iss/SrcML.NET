@@ -34,7 +34,7 @@ namespace ABB.SrcML {
     /// files to identify files that have been deleted. Next, it checks the files
     /// </remarks>
     public class DirectoryScanningMonitor : AbstractFileMonitor {
-        private const int DEFAULT_SCAN_INTERVAL = 60;
+        public const int DEFAULT_SCAN_INTERVAL = 60;
         private const int IDLE = 0;
         private const string MONITOR_LIST_FILENAME = "monitored_directories.txt";
         private const int RUNNING = 1;
