@@ -10,7 +10,6 @@
  *****************************************************************************/
 
 using ABB.SrcML.Utilities;
-using ABB.SrcML.VisualStudio.SolutionMonitor;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -124,8 +123,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="useExistingSrcML"></param>
         public void StartMonitoring(bool useExistingSrcML, string srcMLBinaryDirectory) {
             // Get the path of the folder that storing the srcML archives
-            string baseDirectory = GetSrcMLArchiveFolder(SolutionMonitorFactory.GetOpenSolution());
-            var openSolution = SolutionMonitorFactory.GetOpenSolution();
+            var openSolution = GetOpenSolution();
+            string baseDirectory = GetSrcMLArchiveFolder(openSolution);
 
             SrcMLFileLogger.DefaultLogger.Info("SrcMLGlobalService.StartMonitoring( " + baseDirectory + " )");
             try {
@@ -240,6 +239,20 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             EventHandler<EventArgs> handler = MonitoringStopped;
             if(handler != null) {
                 handler(this, e);
+            }
+        }
+
+        /// <summary>
+        /// Get the open solution.
+        /// </summary>
+        /// <returns></returns>
+        private static Solution GetOpenSolution() {
+            var dte = Package.GetGlobalService(typeof(DTE)) as DTE;
+            if(dte != null) {
+                var openSolution = dte.Solution;
+                return openSolution;
+            } else {
+                return null;
             }
         }
 
