@@ -8,42 +8,75 @@
  * Contributors:
  *    Jiang Zheng (ABB Group) - Initial implementation
  *****************************************************************************/
+
 using System;
 using System.Runtime.InteropServices;
 using System.Xml.Linq;
 
 namespace ABB.SrcML.VisualStudio.SrcMLService {
+
     /// <summary>
-    /// This is the interface that will be implemented by the global service exposed
-    /// by the package defined in ABB.SrcML.VisualStudio.SrcMLService.
-    /// Notice that we have to define this interface as COM visible so that 
-    /// it will be possible to query for it from the native version of IServiceProvider.
+    /// This is the interface that will be implemented by the global service exposed by the package
+    /// defined in ABB.SrcML.VisualStudio.SrcMLService. Notice that we have to define this interface
+    /// as COM visible so that it will be possible to query for it from the native version of
+    /// IServiceProvider.
     /// </summary>
     [Guid("ba9fe7a3-e216-424e-87f9-dee001228d04")]
     [ComVisible(true)]
     public interface ISrcMLGlobalService {
-        //void GlobalServiceFunction();
-        //int CallLocalService();
 
-        bool IsReady { get; }
-        event EventHandler<FileEventRaisedArgs> SourceFileChanged;
+        /// <summary>
+        /// Event to indicate that the state of <see cref="IsReady"/> has changed
+        /// </summary>
         event EventHandler<IsReadyChangedEventArgs> IsReadyChanged;
+
+        /// <summary>
+        /// Event to indicate that <see cref="StopMonitoring()"/> has been called
+        /// </summary>
         event EventHandler<EventArgs> MonitoringStopped;
 
-        void StartMonitoring();
-        //void StartMonitoring(bool useExistingSrcML, string srcMLBinaryDirectory);
-        void StopMonitoring();
+        /// <summary>
+        /// Event to indicate that a source file has changed
+        /// </summary>
+        event EventHandler<FileEventRaisedArgs> SourceFileChanged;
+
+        /// <summary>
+        /// Indicates whether or not the service is processing any files (true if no files are being
+        /// processed, false otherwise)
+        /// </summary>
+        bool IsReady { get; }
+
+        /// <summary>
+        /// Gets the current SrcML Archive
+        /// </summary>
+        /// <returns></returns>
         ISrcMLArchive GetSrcMLArchive();
+
+        /// <summary>
+        /// Gets the unit XElement for the given
+        /// <paramref name="sourceFilePath"/></summary>
+        /// <param name="sourceFilePath">The path to get a unit XElement for</param>
+        /// <returns>A unit XElement for
+        /// <paramref name="sourceFilePath"/></returns>
         XElement GetXElementForSourceFile(string sourceFilePath);
 
+        /// <summary>
+        /// Start monitoring the current solution
+        /// </summary>
+        void StartMonitoring();
+
+        /// <summary>
+        /// Stop monitoring the current solution
+        /// </summary>
+        void StopMonitoring();
     }
 
     /// <summary>
     /// The goal of this interface is actually just to define a Type (or Guid from the native
-    /// client's point of view) that will be used to identify the service.
-    /// In theory, we could use the interface defined above, but it is a good practice to always
-    /// define a new type as the service's identifier because a service can expose different interfaces.
-    /// 
+    /// client's point of view) that will be used to identify the service. In theory, we could use
+    /// the interface defined above, but it is a good practice to always define a new type as the
+    /// service's identifier because a service can expose different interfaces.
+    ///
     /// It is registered at: HKEY_USERS\S-1-5-21-1472859983-109138142-169162935-138973\Software\Microsoft\VisualStudio\11.0Exp_Config\Services\{fafafdfb-60f3-47e4-b38c-1bae05b44241}
     /// </summary>
     [Guid("fafafdfb-60f3-47e4-b38c-1bae05b44241")]

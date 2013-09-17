@@ -78,8 +78,16 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         public SourceMonitor(Solution solution, string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
             : this(solution, new List<string>(), DEFAULT_SCAN_INTERVAL, baseDirectory, defaultArchive, otherArchives) { }
 
+        /// <summary>
+        /// The solution being monitored
+        /// </summary>
         public Solution MonitoredSolution { get; private set; }
 
+        /// <summary>
+        /// Gets the full directory path that contains the
+        /// <paramref name="solution"/></summary>
+        /// <param name="solution">The solution</param>
+        /// <returns>The absolute path to the directory that contains the solution</returns>
         public static string GetSolutionPath(Solution solution) {
             if(null == solution) {
                 throw new ArgumentNullException("solution");
@@ -90,6 +98,9 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
         /// <summary>
         /// Update the
+        /// <paramref name="docCookie">referenced file</paramref>
+        /// <see cref="DirectoryScanningMonitor.IsMonitoringFile(string)">if it is being
+        /// monitored</see>
         /// <paramref name="docCookie">file</paramref> if the
         /// <paramref name="grfAttribs">changed attribute</paramref> is
         /// <see cref="__VSRDTATTRIB.RDTA_DocDataReloaded"/>.
@@ -129,7 +140,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
         /// <summary>
         /// Respond to visual studio file saves by updating the monitor if the file
-        /// <see cref="DirectoryScanningMonitor.IsMonitoringFile(string)"/>
+        /// <see cref="DirectoryScanningMonitor.IsMonitoringFile(string)">is being monitored</see>
         /// </summary>
         /// <param name="docCookie"></param>
         /// <returns>If the method succeeds, it returns <see cref="VSConstants.S_OK"/>. If it fails,
@@ -181,10 +192,17 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             base.StopMonitoring();
         }
 
+        /// <summary>
+        /// Dispose of this source monitor
+        /// </summary>
+        /// <param name="disposing"></param>
         protected override void Dispose(bool disposing) {
             base.Dispose(disposing);
         }
 
+        /// <summary>
+        /// Subscribe to the running document table events
+        /// </summary>
         private void SubscribeToEvents() {
             DocumentTable = Package.GetGlobalService(typeof(SVsRunningDocumentTable)) as IVsRunningDocumentTable;
             if(DocumentTable != null) {
@@ -193,6 +211,9 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             }
         }
 
+        /// <summary>
+        /// Unsubscribe from the running document table events
+        /// </summary>
         private void UnsubscribeFromEvents() {
             if(DocumentTable != null) {
                 int result = DocumentTable.UnadviseRunningDocTableEvents(DocumentTableItemId);
@@ -200,6 +221,12 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             }
         }
 
+        /// <summary>
+        /// Update the visual studio document referred to by
+        /// <paramref name="docCookie"/></summary>
+        /// <param name="docCookie">The identifier for the visula studio document</param>
+        /// <returns>The <see cref="VSConstants"/> indicating whether or not the document was
+        /// found</returns>
         private int UpdateVisualStudioDocument(uint docCookie) {
             uint flags, readingLocks, editLocks, documentId;
             string filePath;
