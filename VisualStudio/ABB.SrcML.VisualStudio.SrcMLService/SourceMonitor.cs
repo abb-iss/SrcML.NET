@@ -38,6 +38,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="otherArchives">Other archives to route files to</param>
         public SourceMonitor(Solution solution, ICollection<string> foldersToMonitor, double scanInterval, string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
             : base(foldersToMonitor, scanInterval, baseDirectory, defaultArchive, otherArchives) {
+            this.UseAsyncMethods = true;
             this.MonitoredSolution = solution;
             AddDirectory(GetSolutionPath(MonitoredSolution));
         }
