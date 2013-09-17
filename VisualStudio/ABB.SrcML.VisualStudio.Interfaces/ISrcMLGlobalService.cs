@@ -10,6 +10,7 @@
  *****************************************************************************/
 
 using System;
+using System.Collections.ObjectModel;
 using System.Runtime.InteropServices;
 using System.Xml.Linq;
 
@@ -47,6 +48,20 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         bool IsReady { get; }
 
         /// <summary>
+        /// Collection of directories monitored by the service. The list of directories is persisted
+        /// for each solution. Modify the collection by calling
+        /// <see cref="AddDirectoryToMonitor(string)"/> and
+        /// <see cref="RemoveDirectoryFromMonitor(string)"/>
+        /// </summary>
+        ReadOnlyCollection<string> MonitoredDirectories { get; }
+
+        /// <summary>
+        /// Add a directory to <see cref="MonitoredDirectories"/>
+        /// </summary>
+        /// <param name="pathToDirectory">The directory path to start monitoring</param>
+        void AddDirectoryToMonitor(string pathToDirectory);
+
+        /// <summary>
         /// Gets the current SrcML Archive
         /// </summary>
         /// <returns></returns>
@@ -59,6 +74,12 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <returns>A unit XElement for
         /// <paramref name="sourceFilePath"/></returns>
         XElement GetXElementForSourceFile(string sourceFilePath);
+
+        /// <summary>
+        /// Remove a directory from <see cref="MonitoredDirectories"/>
+        /// </summary>
+        /// <param name="pathToDirectory">The directory to stop monitoring</param>
+        void RemoveDirectoryFromMonitor(string pathToDirectory);
 
         /// <summary>
         /// Start monitoring the current solution

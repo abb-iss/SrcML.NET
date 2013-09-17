@@ -14,6 +14,7 @@ using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Xml.Linq;
 
@@ -39,7 +40,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <summary>
         /// SrcML.NET's Solution Monitor.
         /// </summary>
-        private AbstractFileMonitor CurrentMonitor;
+        private SourceMonitor CurrentMonitor;
 
         /// <summary>
         /// SrcML.NET's SrcMLArchive.
@@ -90,6 +91,18 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
         public bool IsReady { get { return (CurrentMonitor == null ? false : CurrentMonitor.IsReady); } }
 
+        public ReadOnlyCollection<string> MonitoredDirectories { get { return (CurrentMonitor == null ? null : this.CurrentMonitor.MonitoredDirectories); } }
+
+        public void AddDirectoryToMonitor(string pathToDirectory) {
+            if(null == CurrentMonitor) {
+                throw new InvalidOperationException("Only valid once a solution has been opened.");
+            }
+            if(null == pathToDirectory) {
+                throw new ArgumentNullException("pathToDirectory");
+            }
+            CurrentMonitor.AddDirectory(pathToDirectory);
+        }
+
         /// <summary>
         /// Get current SrcMLArchive instance.
         /// </summary>
@@ -107,13 +120,15 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             return CurrentSrcMLArchive.GetXElementForSourceFile(sourceFilePath);
         }
 
-        /// <summary>
-        /// Implementation of the function that does not access the local service.
-        /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1303:DoNotPassLiteralsAsLocalizedParameters", MessageId = "Microsoft.Samples.VisualStudio.Services.HelperFunctions.WriteOnOutputWindow(System.IServiceProvider,System.String)")]
-        public void GlobalServiceFunction() {
-            string outputText = "Global SrcML Service Function called.\n";
-            HelperFunctions.WriteOnOutputWindow(serviceProvider, outputText);
+        public void RemoveDirectoryFromMonitor(string pathToDirectory) {
+            if(null == CurrentMonitor) {
+                throw new InvalidOperationException("Only valid once a solution has been opened.");
+            }
+            if(null == pathToDirectory) {
+                throw new ArgumentNullException("pathToDirectory");
+            }
+
+            CurrentMonitor.RemoveDirectory(pathToDirectory);
         }
 
         /// <summary>
@@ -186,29 +201,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 SrcMLFileLogger.DefaultLogger.Error(SrcMLExceptionFormatter.CreateMessage(e, "Exception in SrcMLGlobalService.StopMonitoring()"));
             }
         }
-
-        /*
-        /// <summary>
-        /// Implementation of the function that will call a method of the local service. Notice that
-        /// this class will access the local service using as service provider the one implemented
-        /// by ServicesPackage.
-        /// </summary>
-        public int CallLocalService() {
-            // Query the service provider for the local service. This object is supposed to be build
-            // by ServicesPackage and it pass its service provider to the constructor, so the local
-            // service should be found.
-            ISrcMLLocalService localService = serviceProvider.GetService(typeof(SSrcMLLocalService)) as ISrcMLLocalService;
-            if(null == localService) {
-                // The local service was not found; write a message on the debug output and exit.
-                Trace.WriteLine("Can not get the local service from the global one.");
-                return -1;
-            }
-
-            // Now call the method of the local service. This will write a message on the output
-            // window.
-            return localService.LocalServiceFunction();
-        }
-        */
 
         #endregion ISrcMLGlobalService Members
 
