@@ -84,6 +84,34 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         public Solution MonitoredSolution { get; private set; }
 
         /// <summary>
+        /// Gets a list of all the files from the solution
+        /// </summary>
+        /// <param name="solution">The solution to get the files from</param>
+        /// <returns>A list of the solution files</returns>
+        public static List<string> GetSolutionFiles(Solution solution) {
+            if(solution == null)
+                throw new ArgumentNullException("solution");
+
+            List<string> solutionFiles = new List<string>();
+            var projectEnumerator = solution.Projects.GetEnumerator();
+            while(projectEnumerator.MoveNext()) {
+                var project = projectEnumerator.Current as Project;
+                if(project.ProjectItems != null) {
+                    var itemEnumerator = project.ProjectItems.GetEnumerator();
+                    while(itemEnumerator.MoveNext()) {
+                        var item = itemEnumerator.Current as ProjectItem;
+                        if(item != null && item.Name != null && item.FileCount > 0) {
+                            try {
+                                solutionFiles.Add(Path.GetFullPath(item.FileNames[0]));
+                            } catch(ArgumentException) { }
+                        }
+                    }
+                }
+            }
+            return solutionFiles;
+        }
+
+        /// <summary>
         /// Gets the full directory path that contains the
         /// <paramref name="solution"/></summary>
         /// <param name="solution">The solution</param>
@@ -93,7 +121,10 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 throw new ArgumentNullException("solution");
             }
 
-            return Path.GetFullPath(Path.GetDirectoryName(solution.FullName));
+            string solutionFilePath = Path.GetFullPath(Path.GetDirectoryName(solution.FullName));
+            var solutionFiles = GetSolutionFiles(solution);
+            string commonPath = Utilities.FileHelper.GetCommonPath(solutionFilePath, solutionFiles);
+            return commonPath;
         }
 
         /// <summary>
