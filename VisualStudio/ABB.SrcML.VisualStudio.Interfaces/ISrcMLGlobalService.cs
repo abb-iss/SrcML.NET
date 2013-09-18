@@ -56,6 +56,11 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         ReadOnlyCollection<string> MonitoredDirectories { get; }
 
         /// <summary>
+        /// The interval at which the service scans <see cref="MonitoredDirectories"/>
+        /// </summary>
+        double ScanInterval { get; set; }
+
+        /// <summary>
         /// Add a directory to <see cref="MonitoredDirectories"/>
         /// </summary>
         /// <param name="pathToDirectory">The directory path to start monitoring</param>

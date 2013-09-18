@@ -93,6 +93,17 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
         public ReadOnlyCollection<string> MonitoredDirectories { get { return (CurrentMonitor == null ? null : this.CurrentMonitor.MonitoredDirectories); } }
 
+        public double ScanInterval {
+            get { return (CurrentMonitor == null ? Double.NaN : CurrentMonitor.ScanInterval); }
+            set {
+                if(CurrentMonitor == null)
+                    throw new InvalidOperationException("There is no monitor to update");
+                if(value < 0.0)
+                    throw new ArgumentOutOfRangeException("value", value, "ScanInterval must be greater than 0");
+                CurrentMonitor.ScanInterval = value;
+            }
+        }
+
         public void AddDirectoryToMonitor(string pathToDirectory) {
             if(null == CurrentMonitor) {
                 throw new InvalidOperationException("Only valid once a solution has been opened.");
