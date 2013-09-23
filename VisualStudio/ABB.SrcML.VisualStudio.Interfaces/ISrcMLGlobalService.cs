@@ -1,6 +1,4 @@
-﻿using ABB.SrcML.Data;
-
-/******************************************************************************
+﻿/******************************************************************************
  * Copyright (c) 2013 ABB Group
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -11,7 +9,9 @@
  *    Jiang Zheng (ABB Group) - Initial implementation
  *****************************************************************************/
 
+using ABB.SrcML.Data;
 using System;
+using System.Collections.ObjectModel;
 using System.Runtime.InteropServices;
 using System.Xml.Linq;
 
@@ -26,26 +26,77 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
     [Guid("ba9fe7a3-e216-424e-87f9-dee001228d04")]
     [ComVisible(true)]
     public interface ISrcMLGlobalService {
-        //void GlobalServiceFunction();
-        //int CallLocalService();
 
+        /// <summary>
+        /// Event to indicate that the state of <see cref="IsReady"/> has changed
+        /// </summary>
         event EventHandler<IsReadyChangedEventArgs> IsReadyChanged;
 
+        /// <summary>
+        /// Event to indicate that <see cref="StopMonitoring()"/> has been called
+        /// </summary>
         event EventHandler<EventArgs> MonitoringStopped;
 
+        /// <summary>
+        /// Event to indicate that a source file has changed
+        /// </summary>
         event EventHandler<FileEventRaisedArgs> SourceFileChanged;
 
+        /// <summary>
+        /// Indicates whether or not the service is processing any files (true if no files are being
+        /// processed, false otherwise)
+        /// </summary>
         bool IsReady { get; }
+
+        /// <summary>
+        /// Collection of directories monitored by the service. The list of directories is persisted
+        /// for each solution. Modify the collection by calling
+        /// <see cref="AddDirectoryToMonitor(string)"/> and
+        /// <see cref="RemoveDirectoryFromMonitor(string)"/>
+        /// </summary>
+        ReadOnlyCollection<string> MonitoredDirectories { get; }
+
+        /// <summary>
+        /// The interval at which the service scans <see cref="MonitoredDirectories"/>
+        /// </summary>
+        double ScanInterval { get; set; }
+
+        /// <summary>
+        /// Add a directory to <see cref="MonitoredDirectories"/>
+        /// </summary>
+        /// <param name="pathToDirectory">The directory path to start monitoring</param>
+        void AddDirectoryToMonitor(string pathToDirectory);
 
         DataRepository GetDataRepository();
 
+        /// <summary>
+        /// Gets the current SrcML Archive
+        /// </summary>
+        /// <returns></returns>
         ISrcMLArchive GetSrcMLArchive();
 
+        /// <summary>
+        /// Gets the unit XElement for the given
+        /// <paramref name="sourceFilePath"/></summary>
+        /// <param name="sourceFilePath">The path to get a unit XElement for</param>
+        /// <returns>A unit XElement for
+        /// <paramref name="sourceFilePath"/></returns>
         XElement GetXElementForSourceFile(string sourceFilePath);
 
+        /// <summary>
+        /// Remove a directory from <see cref="MonitoredDirectories"/>
+        /// </summary>
+        /// <param name="pathToDirectory">The directory to stop monitoring</param>
+        void RemoveDirectoryFromMonitor(string pathToDirectory);
+
+        /// <summary>
+        /// Start monitoring the current solution
+        /// </summary>
         void StartMonitoring();
 
-        //void StartMonitoring(bool useExistingSrcML, string srcMLBinaryDirectory);
+        /// <summary>
+        /// Stop monitoring the current solution
+        /// </summary>
         void StopMonitoring();
     }
 

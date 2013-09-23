@@ -110,6 +110,7 @@
     </Compile>
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="SolutionReloadEventListener.cs" />
+    <Compile Include="SourceMonitor.cs" />
     <Compile Include="SrcMLGlobalService.cs" />
     <Compile Include="SrcMLLocalService.cs" />
     <Compile Include="SrcMLServicePackage.cs" />
@@ -257,10 +258,6 @@
     <ProjectReference Include="..\ABB.SrcML.VisualStudio.Interfaces\ABB.SrcML.VisualStudio.Interfaces.csproj">
       <Project>{a4099f0f-52e6-4754-8e14-0777afaa7f07}</Project>
       <Name>ABB.SrcML.VisualStudio.Interfaces</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ABB.SrcML.VisualStudio.SolutionMonitor\ABB.SrcML.VisualStudio.SolutionMonitor.csproj">
-      <Project>{873dd65e-2c15-413d-9441-9850ac9a6b84}</Project>
-      <Name>ABB.SrcML.VisualStudio.SolutionMonitor</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>

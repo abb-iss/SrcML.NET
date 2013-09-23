@@ -48,7 +48,7 @@ namespace ABB.SrcML.Test
             File.WriteAllText("srcmlfiletest\\foo.c", String.Format(@"int foo() {{{0}printf(""hello world!"");{0}}}", Environment.NewLine));
             File.WriteAllText("srcmlfiletest\\bar.cpp", String.Format(@"int bar() {{{0}printf(""good bye, world"");{0}}}", Environment.NewLine));
         }
-
+        
         //
         // Use ClassCleanup to run code after all tests in a class have run
         [TestFixtureTearDown()]

@@ -8,18 +8,20 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ABB.SrcML {
+
     /// <summary>
-    /// The last modified archive simply stores the last-modified times of all its files.
-    /// It serializes them to disk upon <see cref="LastModifiedArchive.Dispose()">disposal</see>
+    /// The last modified archive simply stores the last-modified times of all its files. It
+    /// serializes them to disk upon <see cref="LastModifiedArchive.Dispose()">disposal</see>
     /// </summary>
     public class LastModifiedArchive : AbstractArchive {
-        
+        // private readonly object mapLock = new object();
+
         //private Dictionary<string, DateTime> lastModifiedMap;
         private ConcurrentDictionary<string, DateTime> lastModifiedMap;
-        private readonly object mapLock = new object();
 
         /// <summary>
-        /// Creates a new archive in the <paramref name="baseDirectory">specified directory</paramref> with a default file name.
+        /// Creates a new archive in the
+        /// <paramref name="baseDirectory">specified directory</paramref> with a default file name.
         /// </summary>
         /// <param name="baseDirectory"></param>
         public LastModifiedArchive(string baseDirectory)
@@ -27,16 +29,18 @@ namespace ABB.SrcML {
         }
 
         /// <summary>
-        /// Creates a new archive in the <paramref name="baseDirectory">specified directory</paramref> with the given <paramref name="fileName"/>
-        /// </summary>
+        /// Creates a new archive in the
+        /// <paramref name="baseDirectory">specified directory</paramref> with the given
+        /// <paramref name="fileName"/></summary>
         /// <param name="baseDirectory">the directory that this archive will be stored in</param>
         /// <param name="fileName">the filename to store the mapping in</param>
         public LastModifiedArchive(string baseDirectory, string fileName)
             : this(baseDirectory, fileName, TaskScheduler.Default) { }
 
         /// <summary>
-        /// Creates a new archive in the <paramref name="baseDirectory">specified directory</paramref> with the given <paramref name="fileName"/>
-        /// </summary>
+        /// Creates a new archive in the
+        /// <paramref name="baseDirectory">specified directory</paramref> with the given
+        /// <paramref name="fileName"/></summary>
         /// <param name="baseDirectory">the directory that this archive will be stored in</param>
         /// <param name="fileName">the filename to store the mapping in</param>
         /// <param name="scheduler">The task factory to use for asynchronous methods</param>
@@ -60,76 +64,53 @@ namespace ABB.SrcML {
         }
 
         /// <summary>
-        /// Adds or updates <paramref name="fileName"/> to the archive. It raises <see cref="AbstractArchive.FileChanged"/> with
-        /// <see cref="FileEventType.FileChanged"/> (if the file was in the archive) or <see cref="FileEventType.FileAdded"/>.
-        /// </summary>
-        /// <param name="fileName">The file name to add</param>
-        protected override void AddOrUpdateFileImpl(string fileName) {
-            string fullPath = GetFullPath(fileName);
-            FileEventType eventType;
-
-            eventType = (lastModifiedMap.ContainsKey(fullPath) ? FileEventType.FileChanged : FileEventType.FileAdded);
-            lastModifiedMap[fullPath] = File.GetLastWriteTime(fullPath);
-
-            OnFileChanged(new FileEventRaisedArgs(eventType, fullPath));
-        }
-
-        /// <summary>
-        /// Deletes the given <paramref name="fileName"/> from the archive. It raises <see cref="AbstractArchive.FileChanged"/> with
-        /// <see cref="FileEventType.FileDeleted"/> if the file was in the archive.
-        /// </summary>
-        /// <param name="fileName">The file to delete</param>
-        protected override void DeleteFileImpl(string fileName) {
-            string fullPath = GetFullPath(fileName);
-            bool mapContainsFile = true;
-
-            mapContainsFile = lastModifiedMap.ContainsKey(fullPath);
-            DateTime result;
-            if(lastModifiedMap.TryRemove(fullPath, out result)) {
-                OnFileChanged(new FileEventRaisedArgs(FileEventType.FileDeleted, fullPath));
-            }
-        }
-
-        /// <summary>
-        /// Renames filename from <paramref name="oldFileName"/> to <paramref name="newFileName"/>. If <paramref name="oldFileName"/> is
-        /// in the archive, then <see cref="AbstractArchive.FileChanged"/> is raised with <see cref="FileEventType.FileRenamed"/>. Otherwise, this method simply calls <see cref="AddOrUpdateFileImpl(string)"/>
-        /// </summary>
-        /// <param name="oldFileName">the old file path</param>
-        /// <param name="newFileName">the new file path</param>
-        protected override void RenameFileImpl(string oldFileName, string newFileName) {
-            string oldFullPath = GetFullPath(oldFileName);
-            string newFullPath = GetFullPath(newFileName);
-
-            var eventType = FileEventType.FileAdded;
-
-            DateTime result;
-            if(lastModifiedMap.TryRemove(oldFullPath, out result)) {
-                eventType = FileEventType.FileRenamed;
-            }
-            lastModifiedMap[newFullPath] = File.GetLastWriteTime(newFullPath);
-
-            OnFileChanged(new FileEventRaisedArgs(eventType, newFullPath, oldFullPath));
-        }
-
-        /// <summary>
         /// Checks if the given file name is present in the archive
         /// </summary>
         /// <param name="fileName">The file name to test for</param>
         /// <returns>True if the file is in the archive; false otherwise</returns>
         public override bool ContainsFile(string fileName) {
             string fullPath = GetFullPath(fileName);
-            lock(mapLock) {
-                return lastModifiedMap.ContainsKey(fullPath);
-            }
+            //lock(mapLock) {
+            return lastModifiedMap.ContainsKey(fullPath);
+            //}
         }
 
         /// <summary>
-        /// Checks if the archive is outdated in comparison to the original file. A file is outdated if any of the following are true:
-        /// <list type="bullet">
-        /// <item><description>the file does not exist and it is in the archive</description></item>
-        /// <item><description>the file is not in the archive and it exists</description></item>
-        /// <item><description>The last modified time in the archive is more recent than <paramref name="fileName"/></description></item>
-        /// </list>
+        /// saves this archive to disk
+        /// </summary>
+        public override void Dispose() {
+            SaveMap();
+            base.Dispose();
+        }
+
+        /// <summary>
+        /// Gets all of the files stored in the archive
+        /// </summary>
+        /// <returns>the files in the archive</returns>
+        public override Collection<string> GetFiles() {
+            Collection<string> fileNames = new Collection<string>();
+            //lock(mapLock) {
+            foreach(var fileName in lastModifiedMap.Keys) {
+                fileNames.Add(fileName);
+            }
+            //}
+            return fileNames;
+        }
+
+        public DateTime GetLastModifiedTime(string fileName) {
+            if(ContainsFile(fileName)) {
+                return lastModifiedMap[GetFullPath(fileName)];
+            }
+            return DateTime.MaxValue;
+        }
+
+        /// <summary>
+        /// Checks if the archive is outdated in comparison to the original file. A file is outdated
+        /// if any of the following are true: <list type="bullet"> <item><description>the file does
+        /// not exist and it is in the archive</description></item> <item><description>the file is
+        /// not in the archive and it exists</description></item> <item><description>The last
+        /// modified time in the archive is more recent than
+        /// <paramref name="fileName"/></description></item> </list>
         /// </summary>
         /// <param name="fileName">the file to check</param>
         /// <returns>True if the file is outdated; false otherwise</returns>
@@ -146,28 +127,6 @@ namespace ABB.SrcML {
             }
 
             return !(fileNameExists == fileIsInArchive && lastModified <= lastModifiedInArchive);
-        }
-
-        /// <summary>
-        /// Gets all of the files stored in the archive
-        /// </summary>
-        /// <returns>the files in the archive</returns>
-        public override Collection<string> GetFiles() {
-            Collection<string> fileNames = new Collection<string>();
-            lock(mapLock) {
-                foreach(var fileName in lastModifiedMap.Keys) {
-                    fileNames.Add(fileName);
-                }
-            }
-            return fileNames;
-        }
-
-        /// <summary>
-        /// saves this archive to disk
-        /// </summary>
-        public override void Dispose() {
-            SaveMap();
-            base.Dispose();
         }
 
         /// <summary>
@@ -198,7 +157,69 @@ namespace ABB.SrcML {
         }
 
         /// <summary>
-        /// Gets the full path for a file name (returns the file name if <see cref="Path.IsPathRooted(string)"/> is true.
+        /// Adds or updates
+        /// <paramref name="fileName"/>to the archive. It raises
+        /// <see cref="AbstractArchive.FileChanged"/> with <see cref="FileEventType.FileChanged"/>
+        /// (if the file was in the archive) or <see cref="FileEventType.FileAdded"/>.
+        /// </summary>
+        /// <param name="fileName">The file name to add</param>
+        protected override void AddOrUpdateFileImpl(string fileName) {
+            string fullPath = GetFullPath(fileName);
+            FileEventType eventType;
+
+            eventType = (lastModifiedMap.ContainsKey(fullPath) ? FileEventType.FileChanged : FileEventType.FileAdded);
+            lastModifiedMap[fullPath] = File.GetLastWriteTime(fullPath);
+
+            OnFileChanged(new FileEventRaisedArgs(eventType, fullPath));
+        }
+
+        /// <summary>
+        /// Deletes the given
+        /// <paramref name="fileName"/>from the archive. It raises
+        /// <see cref="AbstractArchive.FileChanged"/> with <see cref="FileEventType.FileDeleted"/>
+        /// if the file was in the archive.
+        /// </summary>
+        /// <param name="fileName">The file to delete</param>
+        protected override void DeleteFileImpl(string fileName) {
+            string fullPath = GetFullPath(fileName);
+            bool mapContainsFile = true;
+
+            mapContainsFile = lastModifiedMap.ContainsKey(fullPath);
+            DateTime result;
+            if(lastModifiedMap.TryRemove(fullPath, out result)) {
+                OnFileChanged(new FileEventRaisedArgs(FileEventType.FileDeleted, fullPath));
+            }
+        }
+
+        /// <summary>
+        /// Renames filename from
+        /// <paramref name="oldFileName"/>to
+        /// <paramref name="newFileName"/>. If
+        /// <paramref name="oldFileName"/>is in the archive, then
+        /// <see cref="AbstractArchive.FileChanged"/> is raised with
+        /// <see cref="FileEventType.FileRenamed"/>. Otherwise, this method simply calls
+        /// <see cref="AddOrUpdateFileImpl(string)"/>
+        /// </summary>
+        /// <param name="oldFileName">the old file path</param>
+        /// <param name="newFileName">the new file path</param>
+        protected override void RenameFileImpl(string oldFileName, string newFileName) {
+            string oldFullPath = GetFullPath(oldFileName);
+            string newFullPath = GetFullPath(newFileName);
+
+            var eventType = FileEventType.FileAdded;
+
+            DateTime result;
+            if(lastModifiedMap.TryRemove(oldFullPath, out result)) {
+                eventType = FileEventType.FileRenamed;
+            }
+            lastModifiedMap[newFullPath] = File.GetLastWriteTime(newFullPath);
+
+            OnFileChanged(new FileEventRaisedArgs(eventType, newFullPath, oldFullPath));
+        }
+
+        /// <summary>
+        /// Gets the full path for a file name (returns the file name if
+        /// <see cref="Path.IsPathRooted(string)"/> is true.
         /// </summary>
         /// <param name="fileName"></param>
         /// <returns></returns>

@@ -19,7 +19,9 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace ABB.SrcML.Data {
@@ -85,8 +87,20 @@ namespace ABB.SrcML.Data {
             this.Archive = archive;
             this.FileName = fileName;
 
+            bool loadedFromDisk = false;
+
+            if(FileName != null) {
+                if(File.Exists(this.FileName)) {
+                    Load(this.FileName);
+                    loadedFromDisk = true;
+                }
+            }
+
             if(this.Archive != null) {
                 this.Archive.FileChanged += Archive_SourceFileChanged;
+                if(!loadedFromDisk) {
+                    InitializeData();
+                }
             }
         }
 
@@ -160,6 +174,7 @@ namespace ABB.SrcML.Data {
             if(wasIdle) {
                 IsReady = true;
             }
+            //TODO: update other data structures as necessary
         }
 
         /// <summary>
@@ -485,6 +500,7 @@ namespace ABB.SrcML.Data {
 
         private void SetupParsers() {
             parsers = new Dictionary<Language, AbstractCodeParser>() {
+                { Language.C, new CPlusPlusCodeParser() },
                 { Language.CPlusPlus, new CPlusPlusCodeParser() },
                 { Language.Java, new JavaCodeParser() },
                 { Language.CSharp, new CSharpCodeParser() }

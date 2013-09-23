@@ -24,7 +24,7 @@ using System.Xml.Linq;
 namespace ABB.SrcML.Data.Test {
     [TestFixture]
     [Category("LongRunning")]
-    class RealWorldTests {
+    internal class RealWorldTests {
         private bool shouldRegenerateSrcML = true;
         private Dictionary<Language, AbstractCodeParser> CodeParser;
 
@@ -41,7 +41,7 @@ namespace ABB.SrcML.Data.Test {
         public void TestFileUnitParsing_NotepadPlusPlus() {
             string npp62SourcePath = @"C:\Workspace\Source\Notepad++\6.2";
             string npp62DataPath = @"C:\Workspace\SrcMLData\NPP-6.2";
-            
+
             Console.WriteLine("\nReal world test: Notepad++ 6.2 (C++)");
             Console.WriteLine("=======================================");
             TestDataGeneration(npp62SourcePath, npp62DataPath);
@@ -137,8 +137,7 @@ namespace ABB.SrcML.Data.Test {
             TestDataGeneration(ndatabase45SourcePath, ndatabase45DataPath, true);
         }
 
-
-        private void TestDataGeneration(string sourcePath, string dataPath, bool useAsyncMethods=false) {
+        private void TestDataGeneration(string sourcePath, string dataPath, bool useAsyncMethods = false) {
             string fileLogPath = Path.Combine(dataPath, "parse.log");
             string callLogPath = Path.Combine(dataPath, "methodcalls.log");
             bool regenerateSrcML = shouldRegenerateSrcML;
@@ -175,9 +174,9 @@ namespace ABB.SrcML.Data.Test {
             ManualResetEvent mre = new ManualResetEvent(false);
             DateTime start, end = DateTime.MinValue;
             bool startupCompleted = false;
-            
+
             archive.IsReadyChanged += (o, e) => {
-                        if(e.ReadyState) {
+                if(e.ReadyState) {
                     end = DateTime.Now;
                     startupCompleted = true;
                     mre.Set();
@@ -185,7 +184,8 @@ namespace ABB.SrcML.Data.Test {
             };
 
             start = DateTime.Now;
-            monitor.Startup();
+            monitor.UpdateArchives();
+
             startupCompleted = mre.WaitOne(120000);
             if(!startupCompleted) {
                 end = DateTime.Now;
@@ -239,8 +239,8 @@ namespace ABB.SrcML.Data.Test {
 
             Console.WriteLine("\nSummary");
             Console.WriteLine("===================");
-            Console.WriteLine("{0,10:N0} failures  ({1,8:P2})", numberOfFailures, ((float)numberOfFailures) / numberOfFiles);
-            Console.WriteLine("{0,10:N0} successes ({1,8:P2})", numberOfSuccesses, ((float)numberOfSuccesses) / numberOfFiles);
+            Console.WriteLine("{0,10:N0} failures  ({1,8:P2})", numberOfFailures, ((float) numberOfFailures) / numberOfFiles);
+            Console.WriteLine("{0,10:N0} successes ({1,8:P2})", numberOfSuccesses, ((float) numberOfSuccesses) / numberOfFiles);
             Console.WriteLine("{0} to generate data", end - start);
             Console.WriteLine(fileLogPath);
 
@@ -253,7 +253,6 @@ namespace ABB.SrcML.Data.Test {
 
         }
 
-        
         private void TestDataGeneration_Concurrent(string sourcePath, string dataPath) {
             string fileLogPath = Path.Combine(dataPath, "parse.log");
             string callLogPath = Path.Combine(dataPath, "methodcalls.log");
@@ -361,8 +360,8 @@ namespace ABB.SrcML.Data.Test {
             Console.WriteLine("{0,5:N0} files completed in {1} with {2,5:N0} failures", numberOfFiles, sw.Elapsed, numberOfFailures);
             Console.WriteLine("\nSummary");
             Console.WriteLine("===================");
-            Console.WriteLine("{0,10:N0} failures  ({1,8:P2})", numberOfFailures, ((float)numberOfFailures) / numberOfFiles);
-            Console.WriteLine("{0,10:N0} successes ({1,8:P2})", numberOfSuccesses, ((float)numberOfSuccesses) / numberOfFiles);
+            Console.WriteLine("{0,10:N0} failures  ({1,8:P2})", numberOfFailures, ((float) numberOfFailures) / numberOfFiles);
+            Console.WriteLine("{0,10:N0} successes ({1,8:P2})", numberOfSuccesses, ((float) numberOfSuccesses) / numberOfFiles);
             Console.WriteLine("{0} to generate data", sw.Elapsed);
             Console.WriteLine(fileLogPath);
 
@@ -421,9 +420,9 @@ namespace ABB.SrcML.Data.Test {
                     }
                 }
             }
-            
+
             Console.WriteLine("{0,10:N0} method calls", numMethodCalls);
-            Console.WriteLine("{0,10:N0} matched method calls ({1,8:P2})", numMatchedMethodCalls, ((float)numMatchedMethodCalls) / numMethodCalls);
+            Console.WriteLine("{0,10:N0} matched method calls ({1,8:P2})", numMatchedMethodCalls, ((float) numMatchedMethodCalls) / numMethodCalls);
             Console.WriteLine("{0,10:N0} matches / millisecond ({1,7:N0} ms elapsed)", ((float) numMethodCalls) / sw.ElapsedMilliseconds, sw.ElapsedMilliseconds);
             Console.WriteLine(callLogPath);
         }
@@ -451,7 +450,6 @@ namespace ABB.SrcML.Data.Test {
             } else {
                 Console.WriteLine("No parsing errors!");
             }
-            
         }
     }
 }

@@ -1,11 +1,4 @@
-﻿using ABB.SrcML.Data;
-using ABB.SrcML.Utilities;
-using ABB.SrcML.VisualStudio.SolutionMonitor;
-using EnvDTE;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
-
-/******************************************************************************
+﻿/******************************************************************************
  * Copyright (c) 2013 ABB Group
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -16,7 +9,13 @@ using Microsoft.VisualStudio.Shell.Interop;
  *    Jiang Zheng (ABB Group) - Initial implementation
  *****************************************************************************/
 
+using ABB.SrcML.Data;
+using ABB.SrcML.Utilities;
+using EnvDTE;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using System;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Xml.Linq;
 
@@ -44,15 +43,16 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <summary>
         /// SrcML.NET's Solution Monitor.
         /// </summary>
-        private AbstractFileMonitor CurrentMonitor;
+        private SourceMonitor CurrentMonitor;
 
         /// <summary>
         /// SrcML.NET's SrcMLArchive.
         /// </summary>
         private ISrcMLArchive CurrentSrcMLArchive;
 
-        private int frozen;
+        private bool duringStartup;
 
+        private int frozen;
         private ReadyNotifier ReadyState;
 
         /// <summary>
@@ -115,6 +115,29 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             private set { this.ReadyState.IsReady = value; }
         }
 
+        public ReadOnlyCollection<string> MonitoredDirectories { get { return (CurrentMonitor == null ? null : this.CurrentMonitor.MonitoredDirectories); } }
+
+        public double ScanInterval {
+            get { return (CurrentMonitor == null ? Double.NaN : CurrentMonitor.ScanInterval); }
+            set {
+                if(CurrentMonitor == null)
+                    throw new InvalidOperationException("There is no monitor to update");
+                if(value < 0.0)
+                    throw new ArgumentOutOfRangeException("value", value, "ScanInterval must be greater than 0");
+                CurrentMonitor.ScanInterval = value;
+            }
+        }
+
+        public void AddDirectoryToMonitor(string pathToDirectory) {
+            if(null == CurrentMonitor) {
+                throw new InvalidOperationException("Only valid once a solution has been opened.");
+            }
+            if(null == pathToDirectory) {
+                throw new ArgumentNullException("pathToDirectory");
+            }
+            CurrentMonitor.AddDirectory(pathToDirectory);
+        }
+
         public DataRepository GetDataRepository() {
             return CurrentDataRepository;
         }
@@ -136,13 +159,15 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             return CurrentSrcMLArchive.GetXElementForSourceFile(sourceFilePath);
         }
 
-        /// <summary>
-        /// Implementation of the function that does not access the local service.
-        /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1303:DoNotPassLiteralsAsLocalizedParameters", MessageId = "Microsoft.Samples.VisualStudio.Services.HelperFunctions.WriteOnOutputWindow(System.IServiceProvider,System.String)")]
-        public void GlobalServiceFunction() {
-            string outputText = "Global SrcML Service Function called.\n";
-            HelperFunctions.WriteOnOutputWindow(serviceProvider, outputText);
+        public void RemoveDirectoryFromMonitor(string pathToDirectory) {
+            if(null == CurrentMonitor) {
+                throw new InvalidOperationException("Only valid once a solution has been opened.");
+            }
+            if(null == pathToDirectory) {
+                throw new ArgumentNullException("pathToDirectory");
+            }
+
+            CurrentMonitor.RemoveDirectory(pathToDirectory);
         }
 
         /// <summary>
@@ -152,15 +177,18 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="useExistingSrcML"></param>
         public void StartMonitoring(bool useExistingSrcML, string srcMLBinaryDirectory) {
             // Get the path of the folder that storing the srcML archives
-            string srcMLArchiveDirectory = GetSrcMLArchiveFolder(SolutionMonitorFactory.GetOpenSolution());
-            SrcMLFileLogger.DefaultLogger.Info("SrcMLGlobalService.StartMonitoring( " + srcMLArchiveDirectory + " )");
+            var openSolution = GetOpenSolution();
+            string baseDirectory = GetSrcMLArchiveFolder(openSolution);
+
+            SrcMLFileLogger.DefaultLogger.Info("SrcMLGlobalService.StartMonitoring( " + baseDirectory + " )");
             try {
                 // Create a new instance of SrcML.NET's LastModifiedArchive
-                LastModifiedArchive lastModifiedArchive = new LastModifiedArchive(srcMLArchiveDirectory);
+                LastModifiedArchive lastModifiedArchive = new LastModifiedArchive(baseDirectory);
 
                 // Create a new instance of SrcML.NET's SrcMLArchive
-                CurrentSrcMLArchive = new SrcMLArchive(srcMLArchiveDirectory, useExistingSrcML, new SrcMLGenerator(srcMLBinaryDirectory));
-                CurrentDataRepository = new DataRepository(CurrentSrcMLArchive, Path.Combine(srcMLArchiveDirectory, "solution.sdd"));
+                SrcMLArchive sourceArchive = new SrcMLArchive(baseDirectory, useExistingSrcML, new SrcMLGenerator(srcMLBinaryDirectory));
+                CurrentSrcMLArchive = sourceArchive;
+                CurrentDataRepository = new DataRepository(CurrentSrcMLArchive, Path.Combine(CurrentSrcMLArchive.ArchivePath, "solution.sdd"));
 
                 if(CurrentSrcMLArchive.IsEmpty) {
                     CurrentSrcMLArchive.IsReadyChanged += InitDataWhenReady;
@@ -169,26 +197,31 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 }
 
                 // Create a new instance of SrcML.NET's solution monitor
-                CurrentMonitor = SolutionMonitorFactory.CreateMonitor(srcMLArchiveDirectory, lastModifiedArchive, CurrentSrcMLArchive);
-
-                // Subscribe events from Solution Monitor
-                CurrentMonitor.FileChanged += RespondToFileChangedEvent;
-
-                CurrentDataRepository.FileProcessed += RespondToFileChangedEvent;
-
-                CurrentMonitor.IsReadyChanged += RespondToIsReadyChangedEvent;
-                CurrentDataRepository.IsReadyChanged += RespondToIsReadyChangedEvent;
-
-                CurrentMonitor.MonitoringStopped += RespondToMonitoringStoppedEvent;
-
-                // Initialize the progress bar.
-                if(statusBar != null) {
-                    statusBar.Progress(ref cookie, 1, "", 0, 0);
+                if(openSolution != null) {
+                    CurrentMonitor = new SourceMonitor(openSolution, DirectoryScanningMonitor.DEFAULT_SCAN_INTERVAL, baseDirectory, lastModifiedArchive, sourceArchive);
                 }
 
-                // Start monitoring
-                //duringStartup = true;
-                CurrentMonitor.StartMonitoring();
+                // Subscribe events from Solution Monitor
+                if(CurrentMonitor != null) {
+                    CurrentMonitor.FileChanged += RespondToFileChangedEvent;
+
+                    CurrentDataRepository.FileProcessed += RespondToFileChangedEvent;
+
+                    CurrentMonitor.IsReadyChanged += RespondToIsReadyChangedEvent;
+                    CurrentDataRepository.IsReadyChanged += RespondToIsReadyChangedEvent;
+
+                    CurrentMonitor.MonitoringStopped += RespondToMonitoringStoppedEvent;
+
+                    // Initialize the progress bar.
+                    if(statusBar != null) {
+                        statusBar.Progress(ref cookie, 1, "", 0, 0);
+                    }
+
+                    // Start monitoring
+                    duringStartup = true;
+                    CurrentMonitor.UpdateArchives();
+                    CurrentMonitor.StartMonitoring();
+                }
             } catch(Exception e) {
                 SrcMLFileLogger.DefaultLogger.Error(SrcMLExceptionFormatter.CreateMessage(e, "Exception in SrcMLGlobalService.StartMonitoring()"));
             }
@@ -210,6 +243,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             try {
                 if(CurrentMonitor != null && CurrentSrcMLArchive != null) {
                     CurrentMonitor.StopMonitoring();
+                    CurrentMonitor.Dispose();
                     CurrentDataRepository.Dispose();
 
                     CurrentSrcMLArchive = null;
@@ -227,29 +261,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 CurrentSrcMLArchive.IsReadyChanged -= InitDataWhenReady;
             }
         }
-
-        /*
-        /// <summary>
-        /// Implementation of the function that will call a method of the local service. Notice that
-        /// this class will access the local service using as service provider the one implemented
-        /// by ServicesPackage.
-        /// </summary>
-        public int CallLocalService() {
-            // Query the service provider for the local service. This object is supposed to be build
-            // by ServicesPackage and it pass its service provider to the constructor, so the local
-            // service should be found.
-            ISrcMLLocalService localService = serviceProvider.GetService(typeof(SSrcMLLocalService)) as ISrcMLLocalService;
-            if(null == localService) {
-                // The local service was not found; write a message on the debug output and exit.
-                Trace.WriteLine("Can not get the local service from the global one.");
-                return -1;
-            }
-
-            // Now call the method of the local service. This will write a message on the output
-            // window.
-            return localService.LocalServiceFunction();
-        }
-        */
 
         #endregion ISrcMLGlobalService Members
 
@@ -273,6 +284,20 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             EventHandler<EventArgs> handler = MonitoringStopped;
             if(handler != null) {
                 handler(this, e);
+            }
+        }
+
+        /// <summary>
+        /// Get the open solution.
+        /// </summary>
+        /// <returns></returns>
+        private static Solution GetOpenSolution() {
+            var dte = Package.GetGlobalService(typeof(DTE)) as DTE;
+            if(dte != null) {
+                var openSolution = dte.Solution;
+                return openSolution;
+            } else {
+                return null;
             }
         }
 

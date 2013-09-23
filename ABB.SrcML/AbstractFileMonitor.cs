@@ -1,4 +1,16 @@
-﻿using ABB.SrcML.Utilities;
+﻿/******************************************************************************
+ * Copyright (c) 2013 ABB Group
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    Vinay Augustine (ABB Group) - Initial implementation
+ *****************************************************************************/
+
+using ABB.SrcML.Utilities;
+using log4net;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -6,6 +18,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace ABB.SrcML {
@@ -52,6 +65,14 @@ namespace ABB.SrcML {
             foreach(var archive in otherArchives) {
                 this.RegisterArchive(archive, false);
             }
+        }
+
+        /// <summary>
+        /// Calls <see cref="Dispose(bool)"/> with false as the argument in case disposal hasn't
+        /// already been done.
+        /// </summary>
+        ~AbstractFileMonitor() {
+            Dispose(false);
         }
 
         /// <summary>
@@ -127,12 +148,15 @@ namespace ABB.SrcML {
         /// </summary>
         public void Dispose() {
             SrcMLFileLogger.DefaultLogger.Info("AbstractFileMonitor.Dispose()");
-            ReadyState.Dispose();
-            FileChanged = null;
-            foreach(var archive in registeredArchives) {
-                archive.Dispose();
-            }
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
+
+        /// <summary>
+        /// Returns an enumerable of all the files monitored by this monitor
+        /// </summary>
+        /// <returns>An enumerable of monitored files</returns>
+        public abstract IEnumerable<string> EnumerateMonitoredFiles();
 
         /// <summary>
         /// Gets the list of files already present in this archive
@@ -149,7 +173,9 @@ namespace ABB.SrcML {
         /// Gets the list of source files from the object being monitored
         /// </summary>
         /// <returns>An enumerable of files to be monitored</returns>
-        public abstract Collection<string> GetFilesFromSource();
+        public virtual Collection<string> GetFilesFromSource() {
+            return new Collection<string>(EnumerateMonitoredFiles().ToList());
+        }
 
         /// <summary>
         /// Registers an archive in the file monitor. All file changes will be automatically routed
@@ -210,53 +236,6 @@ namespace ABB.SrcML {
         /// Starts monitoring
         /// </summary>
         public abstract void StartMonitoring();
-
-        /// <summary>
-        /// Synchronizes the archives with the object being monitored. Startup adds or updates
-        /// outdated archive files and deletes archive files that are no longer present on disk.
-        /// </summary>
-        public virtual void Startup() {
-            SrcMLFileLogger.DefaultLogger.Info("AbstractFileMonitor.Startup()");
-
-            // make a hashset of all the files to monitor
-            var monitoredFiles = new HashSet<string>(StringComparer.CurrentCultureIgnoreCase);
-            foreach(var filePath in GetFilesFromSource()) {
-                monitoredFiles.Add(filePath);
-            }
-
-            // find all the files in the hashset that require updating
-            var outdatedFiles = from filePath in monitoredFiles
-                                where GetArchiveForFile(filePath).IsOutdated(filePath)
-                                select filePath;
-
-            // update the outdated files
-            foreach(var filePath in outdatedFiles) {
-                try {
-                    AddFile(filePath);
-                } catch(Exception) {
-                    // TODO log exception
-                }
-            }
-
-            // find all the files to delete (files in the archive that are not in the list of files
-            // to monitor
-            var filesToDelete = from archive in registeredArchives
-                                from filePath in archive.GetFiles()
-                                where !monitoredFiles.Contains(filePath)
-                                select new {
-                                    Archive = archive,
-                                    FilePath = filePath,
-                                };
-
-            // delete the extra files from the archive
-            foreach(var data in filesToDelete) {
-                try {
-                    data.Archive.DeleteFile(data.FilePath);
-                } catch(Exception) {
-                    // TODO log exception
-                }
-            }
-        }
 
         /// <summary>
         /// For Sando, add degree of parallelism Synchronizes the archives with the object being
@@ -398,9 +377,30 @@ namespace ABB.SrcML {
         /// Stops monitoring. Also calls <see cref="Dispose()"/>
         /// </summary>
         public virtual void StopMonitoring() {
-            Dispose();
-
             OnMonitoringStopped(new EventArgs());
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        public virtual void UpdateArchives() {
+            var monitoredFiles = new HashSet<string>(GetFilesFromSource(), StringComparer.InvariantCultureIgnoreCase);
+
+            var outdatedFiles = from filePath in monitoredFiles
+                                where GetArchiveForFile(filePath).IsOutdated(filePath)
+                                select filePath;
+
+            var deletedFiles = from filePath in GetArchivedFiles()
+                               where !monitoredFiles.Contains(filePath)
+                               select filePath;
+
+            foreach(var filePath in outdatedFiles) {
+                UpdateFile(filePath);
+            }
+
+            foreach(var filePath in deletedFiles) {
+                DeleteFile(filePath);
+            }
         }
 
         /// <summary>
@@ -413,6 +413,40 @@ namespace ABB.SrcML {
             } else {
                 this.GetArchiveForFile(filePath).AddOrUpdateFile(filePath);
             }
+        }
+
+        /// <summary>
+        /// Sets the published events to null and calls Dispose on the registered archives if
+        /// <paramref name="disposing"/>is true.
+        /// </summary>
+        /// <param name="disposing">Causes this method to dispose of the registered archives</param>
+        protected virtual void Dispose(bool disposing) {
+            if(disposing) {
+                foreach(var archive in registeredArchives) {
+                    archive.Dispose();
+                }
+            }
+            ReadyState.Dispose();
+            FileChanged = null;
+        }
+
+        /// <summary>
+        /// Gets the appropriate archive for string this file name (based on
+        /// <see cref="Path.GetExtension(string)"/>
+        /// </summary>
+        /// <param name="fileName">The file name</param>
+        /// <returns>The archive that should contain this file name</returns>
+        protected IArchive GetArchiveForFile(string fileName) {
+            if(null == fileName)
+                throw new ArgumentNullException("fileName");
+
+            IArchive selectedArchive = null;
+            var extension = Path.GetExtension(fileName);
+
+            if(!this.archiveMap.TryGetValue(extension, out selectedArchive)) {
+                selectedArchive = defaultArchive;
+            }
+            return selectedArchive;
         }
 
         /// <summary>
@@ -459,25 +493,6 @@ namespace ABB.SrcML {
             } else {
                 IsReady = false;
             }
-        }
-
-        /// <summary>
-        /// Gets the appropriate archive for string this file name (based on
-        /// <see cref="Path.GetExtension(string)"/>
-        /// </summary>
-        /// <param name="fileName">The file name</param>
-        /// <returns>The archive that should contain this file name</returns>
-        private IArchive GetArchiveForFile(string fileName) {
-            if(null == fileName)
-                throw new ArgumentNullException("fileName");
-
-            IArchive selectedArchive = null;
-            var extension = Path.GetExtension(fileName);
-
-            if(!this.archiveMap.TryGetValue(extension, out selectedArchive)) {
-                selectedArchive = defaultArchive;
-            }
-            return selectedArchive;
         }
     }
 }
