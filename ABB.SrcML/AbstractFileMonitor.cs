@@ -1,48 +1,45 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using ABB.SrcML.Utilities;
+using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Diagnostics;
-using log4net;
-using ABB.SrcML.Utilities;
 
 namespace ABB.SrcML {
+
     /// <summary>
-    /// <para>Represents an abstract file monitor. This class contains archives for storing various file types To start using it, you first instantiate
-    /// it with a <see cref="AbstractArchive">default archive</see>. You then call <see cref="RegisterArchive"/> for each alternative 
-    /// archive. This class automatically routes files to the appropriate archive.</para>
-    /// <para>You begin monitoring by calling <see cref="StartMonitoring"/>. <see cref="StartMonitoring"/> should subscribe to any events and then call
-    /// functions to respond to those events:</para>
-    /// <list type="bullet">
+    /// <para>Represents an abstract file monitor. This class contains archives for storing various
+    /// file types To start using it, you first instantiate it with a
+    /// <see cref="AbstractArchive">default archive</see>. You then call
+    /// <see cref="RegisterArchive"/> for each alternative archive. This class automatically routes
+    /// files to the appropriate archive.</para> <para>You begin monitoring by calling
+    /// <see cref="StartMonitoring"/>. <see cref="StartMonitoring"/> should subscribe to any events
+    /// and then call functions to respond to those events:</para> <list type="bullet">
     /// <item><description><see cref="AddFile(string)"/></description></item>
     /// <item><description><see cref="DeleteFile(string)"/></description></item>
     /// <item><description></description><see cref="UpdateFile(string)"/></item>
-    /// <item><description><see cref="RenameFile(string,string)"/></description></item>
-    /// </list>
-    /// <para>When the archive is done processing the file, it raises its own <see cref="AbstractArchive.FileChanged">event</see></para>
+    /// <item><description><see cref="RenameFile(string,string)"/></description></item> </list>
+    /// <para>When the archive is done processing the file, it raises its own
+    /// <see cref="AbstractArchive.FileChanged">event</see></para>
     /// </summary>
     public abstract class AbstractFileMonitor : IFileMonitor {
-        private ReadyNotifier ReadyState;
-        private int numberOfWorkingArchives;
-        private IArchive defaultArchive;
-        private HashSet<IArchive> registeredArchives;
         private Dictionary<string, IArchive> archiveMap;
+        private IArchive defaultArchive;
+        private int numberOfWorkingArchives;
+        private ReadyNotifier ReadyState;
+        private HashSet<IArchive> registeredArchives;
 
         /// <summary>
-        /// If true, this monitor will use the Async methods on all of its <see cref="AbstractArchive"/> objects. By default it is false.
-        /// </summary>
-        public bool UseAsyncMethods { get; set; }
-
-        /// <summary>
-        /// Creates a new AbstractFileMonitor with the default archive and a collection of non-default archives that should be registered
+        /// Creates a new AbstractFileMonitor with the default archive and a collection of
+        /// non-default archives that should be registered
         /// </summary>
         /// <param name="baseDirectory">The folder where this monitor stores it archives</param>
         /// <param name="defaultArchive">The default archive</param>
-        /// <param name="otherArchives">A list of other archives that should be registered via <see cref="RegisterArchive(IArchive)"/></param>
+        /// <param name="otherArchives">A list of other archives that should be registered via see
+        /// cref="RegisterArchive(IArchive)"/></param>
         protected AbstractFileMonitor(string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives) {
             this.MonitorStoragePath = baseDirectory;
             this.registeredArchives = new HashSet<IArchive>();
@@ -58,20 +55,8 @@ namespace ABB.SrcML {
         }
 
         /// <summary>
-        /// Indicates that the monitor has finished updating all changed files.
-        /// </summary>
-        public bool IsReady {
-            get { return this.ReadyState.IsReady; }
-            protected set { this.ReadyState.IsReady = value; }
-        }
-
-        /// <summary>
-        /// The folder where all of the archives can store their data. <see cref="AbstractArchive"/> objects can use this as their root folder
-        /// </summary>
-        public string MonitorStoragePath { get; protected set; }
-
-        /// <summary>
-        /// Event fires when any of the archives raises their <see cref="AbstractArchive.FileChanged"/>.
+        /// Event fires when any of the archives raises their
+        /// <see cref="AbstractArchive.FileChanged"/>.
         /// </summary>
         public event EventHandler<FileEventRaisedArgs> FileChanged;
 
@@ -89,15 +74,65 @@ namespace ABB.SrcML {
         public event EventHandler MonitoringStopped;
 
         /// <summary>
-        /// Gets the list of source files from the object being monitored
+        /// Indicates that the monitor has finished updating all changed files.
         /// </summary>
-        /// <returns>An enumerable of files to be monitored</returns>
-        public abstract Collection<string> GetFilesFromSource();
-        
+        public bool IsReady {
+            get { return this.ReadyState.IsReady; }
+            protected set { this.ReadyState.IsReady = value; }
+        }
+
+        /// <summary>
+        /// The folder where all of the archives can store their data. <see cref="AbstractArchive"/>
+        /// objects can use this as their root folder
+        /// </summary>
+        public string MonitorStoragePath { get; protected set; }
+
         /// <summary>
         /// Number of the elements in the returned collection from GetFilesFromSource()
         /// </summary>
         public int NumberOfAllMonitoredFiles { get; protected set; }
+
+        /// <summary>
+        /// If true, this monitor will use the Async methods on all of its
+        /// <see cref="AbstractArchive"/> objects. By default it is false.
+        /// </summary>
+        public bool UseAsyncMethods { get; set; }
+
+        /// <summary>
+        /// Processes a file addition by adding the file to the appropriate archive
+        /// </summary>
+        /// <param name="filePath">the file to add</param>
+        public void AddFile(string filePath) {
+            if(UseAsyncMethods) {
+                this.GetArchiveForFile(filePath).AddOrUpdateFileAsync(filePath);
+            } else {
+                this.GetArchiveForFile(filePath).AddOrUpdateFile(filePath);
+            }
+        }
+
+        /// <summary>
+        /// Processes a file deletion by deleting the file from the appropriate archive
+        /// </summary>
+        /// <param name="filePath">The file to delete</param>
+        public void DeleteFile(string filePath) {
+            if(UseAsyncMethods) {
+                this.GetArchiveForFile(filePath).DeleteFileAsync(filePath);
+            } else {
+                this.GetArchiveForFile(filePath).DeleteFile(filePath);
+            }
+        }
+
+        /// <summary>
+        /// disposes of all of the archives and stops the events
+        /// </summary>
+        public void Dispose() {
+            SrcMLFileLogger.DefaultLogger.Info("AbstractFileMonitor.Dispose()");
+            ReadyState.Dispose();
+            FileChanged = null;
+            foreach(var archive in registeredArchives) {
+                archive.Dispose();
+            }
+        }
 
         /// <summary>
         /// Gets the list of files already present in this archive
@@ -111,11 +146,19 @@ namespace ABB.SrcML {
         }
 
         /// <summary>
-        /// Registers an archive in the file monitor. All file changes will be automatically routed to the appropriate archive
-        /// based on file extension (via <see cref="AbstractArchive.SupportedExtensions"/>
+        /// Gets the list of source files from the object being monitored
+        /// </summary>
+        /// <returns>An enumerable of files to be monitored</returns>
+        public abstract Collection<string> GetFilesFromSource();
+
+        /// <summary>
+        /// Registers an archive in the file monitor. All file changes will be automatically routed
+        /// to the appropriate archive based on file extension (via
+        /// <see cref="AbstractArchive.SupportedExtensions"/>
         /// </summary>
         /// <param name="archive">the archive to add.</param>
-        /// <param name="isDefault">whether or not to use this archive as the default archive</param>
+        /// <param name="isDefault">whether or not to use this archive as the default
+        /// archive</param>
         public void RegisterArchive(IArchive archive, bool isDefault) {
             this.registeredArchives.Add(archive);
             archive.FileChanged += RespondToArchiveFileEvent;
@@ -132,87 +175,14 @@ namespace ABB.SrcML {
             }
         }
 
-        void archive_IsReadyChanged(object sender, IsReadyChangedEventArgs e) {
-            if(e.ReadyState) {
-                numberOfWorkingArchives--;
-            } else {
-                numberOfWorkingArchives++;
-            }
-            if(0 == numberOfWorkingArchives) {
-                IsReady = true;
-            } else {
-                IsReady = false;
-            }
-        }
-
         /// <summary>
-        /// Raises the <see cref="FileChanged"/> event.
-        /// </summary>
-        /// <param name="sender">The caller</param>
-        /// <param name="e">The event arguments</param>
-        protected virtual void RespondToArchiveFileEvent(object sender, FileEventRaisedArgs e) {
-            //SrcMLFileLogger.DefaultLogger.Info("AbstractFileMonitor.RespondToArchiveFileEvent() type = " + e.EventType + ", file = " + e.FilePath + ", oldfile = " + e.OldFilePath + ", HasSrcML = " + e.HasSrcML);
-            FileInfo fi = new FileInfo(e.FilePath);
-            OnFileChanged(e);
-        }
-
-        /// <summary>
-        /// Starts monitoring
-        /// </summary>
-        public abstract void StartMonitoring();
-
-        /// <summary>
-        /// Stops monitoring. Also calls <see cref="Dispose()"/>
-        /// </summary>
-        public virtual void StopMonitoring() {
-            Dispose();
-
-            OnMonitoringStopped(new EventArgs());
-        }
-
-        /// <summary>
-        /// Processes a file addition by adding the file to the appropriate archive
-        /// </summary>
-        /// <param name="filePath">the file to add</param>
-        public void AddFile(string filePath) {
-            if(UseAsyncMethods) {
-                this.GetArchiveForFile(filePath).AddOrUpdateFileAsync(filePath);
-            } else {
-                this.GetArchiveForFile(filePath).AddOrUpdateFile(filePath);
-            }
-            
-        }
-
-        /// <summary>
-        /// Processes a file deletion by deleting the file from the appropriate archive
-        /// </summary>
-        /// <param name="filePath">The file to delete</param>
-        public void DeleteFile(string filePath) {
-            if(UseAsyncMethods) {
-                this.GetArchiveForFile(filePath).DeleteFileAsync(filePath);
-            } else {
-                this.GetArchiveForFile(filePath).DeleteFile(filePath);
-            }
-        }
-
-        /// <summary>
-        /// Processes a file update by updating the file in the appropriate archive
-        /// </summary>
-        /// <param name="filePath">the file to update</param>
-        public void UpdateFile(string filePath) {
-            if(UseAsyncMethods) {
-                this.GetArchiveForFile(filePath).AddOrUpdateFileAsync(filePath);
-            } else {
-                this.GetArchiveForFile(filePath).AddOrUpdateFile(filePath);
-            }
-        }
-
-        /// <summary>
-        /// Processes a file rename. If the old and new path are both in the same archive,
-        /// a <see cref="AbstractArchive.RenameFile(string,string)"/> is called on the appropriate archive.
-        /// If they are in different archives, the <see cref="AbstractArchive.DeleteFile(string)"/> is called on <paramref name="oldFilePath"/>
-        /// and <see cref="AbstractArchive.AddOrUpdateFile(string)"/> is called on <paramref name="newFilePath"/>
-        /// </summary>
+        /// Processes a file rename. If the old and new path are both in the same archive, a
+        /// <see cref="AbstractArchive.RenameFile(string,string)"/> is called on the appropriate
+        /// archive. If they are in different archives, the
+        /// <see cref="AbstractArchive.DeleteFile(string)"/> is called on
+        /// <paramref name="oldFilePath"/>and <see cref="AbstractArchive.AddOrUpdateFile(string)"/>
+        /// is called on
+        /// <paramref name="newFilePath"/></summary>
         /// <param name="oldFilePath">the old file name</param>
         /// <param name="newFilePath">the new file name</param>
         public void RenameFile(string oldFilePath, string newFilePath) {
@@ -237,8 +207,13 @@ namespace ABB.SrcML {
         }
 
         /// <summary>
-        /// Synchronizes the archives with the object being monitored. Startup adds or updates outdated archive files and deletes archive files that are
-        /// no longer present on disk.
+        /// Starts monitoring
+        /// </summary>
+        public abstract void StartMonitoring();
+
+        /// <summary>
+        /// Synchronizes the archives with the object being monitored. Startup adds or updates
+        /// outdated archive files and deletes archive files that are no longer present on disk.
         /// </summary>
         public virtual void Startup() {
             SrcMLFileLogger.DefaultLogger.Info("AbstractFileMonitor.Startup()");
@@ -263,12 +238,12 @@ namespace ABB.SrcML {
                 }
             }
 
-            // find all the files to delete (files in the archive that are not in
-            // the list of files to monitor
+            // find all the files to delete (files in the archive that are not in the list of files
+            // to monitor
             var filesToDelete = from archive in registeredArchives
                                 from filePath in archive.GetFiles()
                                 where !monitoredFiles.Contains(filePath)
-                                select new { 
+                                select new {
                                     Archive = archive,
                                     FilePath = filePath,
                                 };
@@ -283,9 +258,10 @@ namespace ABB.SrcML {
             }
         }
 
-        /// <summary> For Sando, add degree of parallelism
-        /// Synchronizes the archives with the object being monitored. Startup adds or updates outdated archive files and deletes archive files that are
-        /// no longer present on disk.
+        /// <summary>
+        /// For Sando, add degree of parallelism Synchronizes the archives with the object being
+        /// monitored. Startup adds or updates outdated archive files and deletes archive files that
+        /// are no longer present on disk.
         /// </summary>
         public virtual void Startup_Concurrent(int degreeOfParallelism) {
             SrcMLFileLogger.DefaultLogger.Info("AbstractFileMonitor.Startup()");
@@ -334,8 +310,8 @@ namespace ABB.SrcML {
             sw.Stop();
             Console.WriteLine("Concurrently generating SrcML files: " + sw.Elapsed);
 
-            // find all the files to delete (files in the archive that are not in
-            // the list of files to monitor
+            // find all the files to delete (files in the archive that are not in the list of files
+            // to monitor
             var filesToDelete = from archive in registeredArchives
                                 from filePath in archive.GetFiles()
                                 where !monitoredFiles.Contains(filePath)
@@ -398,8 +374,8 @@ namespace ABB.SrcML {
             sw.Stop();
             Console.WriteLine("Concurrently generating SrcML files: " + sw.Elapsed);
 
-            // find all the files to delete (files in the archive that are not in
-            // the list of files to monitor
+            // find all the files to delete (files in the archive that are not in the list of files
+            // to monitor
             var filesToDelete = from archive in registeredArchives
                                 from filePath in archive.GetFiles()
                                 where !monitoredFiles.Contains(filePath)
@@ -419,14 +395,23 @@ namespace ABB.SrcML {
         }
 
         /// <summary>
-        /// disposes of all of the archives and stops the events
+        /// Stops monitoring. Also calls <see cref="Dispose()"/>
         /// </summary>
-        public void Dispose() {
-            SrcMLFileLogger.DefaultLogger.Info("AbstractFileMonitor.Dispose()");
-            ReadyState.Dispose();
-            FileChanged = null;
-            foreach(var archive in registeredArchives) {
-                archive.Dispose();
+        public virtual void StopMonitoring() {
+            Dispose();
+
+            OnMonitoringStopped(new EventArgs());
+        }
+
+        /// <summary>
+        /// Processes a file update by updating the file in the appropriate archive
+        /// </summary>
+        /// <param name="filePath">the file to update</param>
+        public void UpdateFile(string filePath) {
+            if(UseAsyncMethods) {
+                this.GetArchiveForFile(filePath).AddOrUpdateFileAsync(filePath);
+            } else {
+                this.GetArchiveForFile(filePath).AddOrUpdateFile(filePath);
             }
         }
 
@@ -453,12 +438,38 @@ namespace ABB.SrcML {
         }
 
         /// <summary>
-        /// Gets the appropriate archive for string this file name (based on <see cref="Path.GetExtension(string)"/>
+        /// Raises the <see cref="FileChanged"/> event.
+        /// </summary>
+        /// <param name="sender">The caller</param>
+        /// <param name="e">The event arguments</param>
+        protected virtual void RespondToArchiveFileEvent(object sender, FileEventRaisedArgs e) {
+            //SrcMLFileLogger.DefaultLogger.Info("AbstractFileMonitor.RespondToArchiveFileEvent() type = " + e.EventType + ", file = " + e.FilePath + ", oldfile = " + e.OldFilePath + ", HasSrcML = " + e.HasSrcML);
+            FileInfo fi = new FileInfo(e.FilePath);
+            OnFileChanged(e);
+        }
+
+        private void archive_IsReadyChanged(object sender, IsReadyChangedEventArgs e) {
+            if(e.ReadyState) {
+                numberOfWorkingArchives--;
+            } else {
+                numberOfWorkingArchives++;
+            }
+            if(0 == numberOfWorkingArchives) {
+                IsReady = true;
+            } else {
+                IsReady = false;
+            }
+        }
+
+        /// <summary>
+        /// Gets the appropriate archive for string this file name (based on
+        /// <see cref="Path.GetExtension(string)"/>
         /// </summary>
         /// <param name="fileName">The file name</param>
         /// <returns>The archive that should contain this file name</returns>
         private IArchive GetArchiveForFile(string fileName) {
-            if(null == fileName) throw new ArgumentNullException("fileName");
+            if(null == fileName)
+                throw new ArgumentNullException("fileName");
 
             IArchive selectedArchive = null;
             var extension = Path.GetExtension(fileName);
