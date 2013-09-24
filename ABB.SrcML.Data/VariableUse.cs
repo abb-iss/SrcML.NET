@@ -96,6 +96,11 @@ namespace ABB.SrcML.Data {
             IEnumerable<TypeDefinition> typeDefinitions;
             if(this.Name == "this") {
                 typeDefinitions = ParentScopes.OfType<TypeDefinition>().Take(1);
+            } else if(this.Name == "base" && this.ProgrammingLanguage == Language.CSharp) {
+                typeDefinitions = from containingType in ParentScopes.OfType<TypeDefinition>()
+                                  from parentTypeReference in containingType.ParentTypes
+                                  from parentType in parentTypeReference.FindMatchingTypes()
+                                  select parentType;
             } else if(this.CallingObject != null) {
                 typeDefinitions = from typeForCallingObject in this.CallingObject.FindMatchingTypes()
                                   from typeDefinition in typeForCallingObject.GetParentTypesAndSelf()

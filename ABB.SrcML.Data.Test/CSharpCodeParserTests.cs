@@ -600,6 +600,40 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
+        public void TestMethodCallWithBaseKeyword() {
+            // B.cs namespace A { class B { public virtual void Foo() { } } }
+            string bXml = @"<namespace>namespace <name>A</name> <block>{ <class>class <name>B</name> <block>{ <function><type><specifier>public</specifier> <specifier>virtual</specifier> <name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></function> }</block></class> }</block></namespace>";
+            // C.cs namespace A { class C : B { public override void Foo() { base.Foo(); } } }
+            string cXml = @"<namespace>namespace <name>A</name> <block>{ <class>class <name>C</name> <super>: <name>B</name></super> <block>{ <function><type><specifier>public</specifier> <specifier>override</specifier> <name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ <expr_stmt><expr><call><name><name>base</name><op:operator>.</op:operator><name>Foo</name></name><argument_list>()</argument_list></call></expr>;</expr_stmt> }</block></function> }</block></class> }</block></namespace>";
+
+            var bUnit = fileSetup.GetFileUnitForXmlSnippet(bXml, "B.cs");
+            var cUnit = fileSetup.GetFileUnitForXmlSnippet(cXml, "C.cs");
+
+            var bScope = codeParser.ParseFileUnit(bUnit);
+            var cScope = codeParser.ParseFileUnit(cUnit);
+            var globalScope = bScope.Merge(cScope);
+
+            var fooMethods = from methodDefinition in globalScope.GetDescendantScopes<MethodDefinition>()
+                             select methodDefinition;
+
+            var bDotFoo = (from method in fooMethods
+                           where method.GetParentScopes<TypeDefinition>().FirstOrDefault().Name == "B"
+                           select method).FirstOrDefault();
+            var cDotFoo = (from method in fooMethods
+                           where method.GetParentScopes<TypeDefinition>().FirstOrDefault().Name == "C"
+                           select method).FirstOrDefault();
+
+            Assert.IsNotNull(bDotFoo);
+            Assert.IsNotNull(cDotFoo);
+
+            var methodCall = (from scope in globalScope.GetDescendantScopes()
+                              from call in scope.MethodCalls
+                              select call).FirstOrDefault();
+            Assert.IsNotNull(methodCall);
+            Assert.AreSame(bDotFoo, methodCall.FindMatches().FirstOrDefault());
+        }
+
+        [Test]
         public void TestMethodDefinitionWithReturnType() {
             //int Foo() { }
             string xml = @"<function><type><name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></function>";
