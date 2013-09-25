@@ -52,6 +52,73 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
+        public void TestConstructorWithCallToSelf() {
+            // test.h class MyClass {
+            // public:
+            // MyClass() : MyClass(0) { } MyClass(int foo) { } };
+            string xml = @"<class>class <name>MyClass</name> <block>{<private type=""default"">
+  </private><public>public:
+    <constructor><name>MyClass</name><parameter_list>()</parameter_list> <member_list>: <call><name>MyClass</name><argument_list>(<argument><expr><lit:literal type=""number"">0</lit:literal></expr></argument>)</argument_list></call> </member_list><block>{ }</block></constructor>
+    <constructor><name>MyClass</name><parameter_list>(<param><decl><type><name>int</name></type> <name>foo</name></decl></param>)</parameter_list> <block>{ }</block></constructor>
+</public>}</block>;</class>";
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.h");
+            var globalScope = codeParser.ParseFileUnit(unit);
+
+            var constructors = globalScope.GetDescendantScopes<MethodDefinition>();
+            var defaultConstructor = (from method in constructors
+                                      where method.Parameters.Count == 0
+                                      select method).FirstOrDefault();
+
+            var calledConstructor = (from method in constructors
+                                     where method.Parameters.Count == 1
+                                     select method).FirstOrDefault();
+
+            Assert.IsNotNull(defaultConstructor);
+            Assert.IsNotNull(calledConstructor);
+            Assert.AreEqual(1, defaultConstructor.MethodCalls.Count());
+
+            var constructorCall = defaultConstructor.MethodCalls.First();
+
+            Assert.AreSame(calledConstructor, constructorCall.FindMatches().FirstOrDefault());
+        }
+
+        [Test]
+        public void TestConstructorWithSuperClass() {
+            // test.h class SuperClass {
+            // public:
+            // SuperClass(int foo) { } }; class SubClass : public SuperClass {
+            // public:
+            // SubClass(int foo) : SuperClass(foo) { } };
+            string xml = @"<class>class <name>SuperClass</name> <block>{<private type=""default"">
+  </private><public>public:
+    <constructor><name>SuperClass</name><parameter_list>(<param><decl><type><name>int</name></type> <name>foo</name></decl></param>)</parameter_list> <block>{ }</block></constructor>
+</public>}</block>;</class>
+<class>class <name>SubClass</name> <super>: <specifier>public</specifier> <name>SuperClass</name></super> <block>{<private type=""default"">
+  </private><public>public:
+    <constructor><name>SubClass</name><parameter_list>(<param><decl><type><name>int</name></type> <name>foo</name></decl></param>)</parameter_list> <member_list>: <call><name>SuperClass</name><argument_list>(<argument><expr><name>foo</name></expr></argument>)</argument_list></call> </member_list><block>{ }</block></constructor>
+</public>}</block>;</class>";
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.h");
+            var globalScope = codeParser.ParseFileUnit(unit);
+
+            var constructors = globalScope.GetDescendantScopes<MethodDefinition>();
+            var subClassConstructor = (from method in constructors
+                                       where method.GetParentScopes<TypeDefinition>().First().Name == "SubClass"
+                                       select method).FirstOrDefault();
+
+            var calledConstructor = (from method in constructors
+                                     where method.GetParentScopes<TypeDefinition>().First().Name == "SuperClass"
+                                     select method).FirstOrDefault();
+
+            Assert.IsNotNull(subClassConstructor);
+            Assert.IsNotNull(calledConstructor);
+            Assert.AreEqual(1, subClassConstructor.MethodCalls.Count());
+
+            var constructorCall = subClassConstructor.MethodCalls.First();
+
+            Assert.AreSame(calledConstructor, constructorCall.FindMatches().FirstOrDefault());
+        }
+
+        [Test]
         public void TestCreateAliasesForFiles_ImportClass() {
             // using A::Foo;
             string xml = @"<using>using <name><name>A</name><op:operator>::</op:operator><name>Foo</name></name>;</using>";
