@@ -92,14 +92,20 @@ namespace ABB.SrcML.Data {
             IEnumerable<MethodDefinition> matchingMethods = Enumerable.Empty<MethodDefinition>();
 
             if(IsConstructor || IsDestructor) {
-                TypeUse tempTypeUse = new TypeUse() {
-                    Name = this.Name,
-                    ParentScope = this.ParentScope,
-                };
-                tempTypeUse.AddAliases(this.Aliases);
+                IEnumerable<TypeDefinition> typeDefinitions;
+                if(this.Name == "this" || (this.Name == "base" && this.ProgrammingLanguage == Language.CSharp)) {
+                    typeDefinitions = TypeDefinition.GetTypeForKeyword(this);
+                } else {
+                    TypeUse tempTypeUse = new TypeUse() {
+                        Name = this.Name,
+                        ParentScope = this.ParentScope,
+                    };
+                    tempTypeUse.AddAliases(this.Aliases);
+                    typeDefinitions = tempTypeUse.FindMatches();
+                }
 
-                matchingMethods = from typeDefinition in tempTypeUse.FindMatches()
-                                  from method in typeDefinition.GetChildScopesWithId<MethodDefinition>(this.Name)
+                matchingMethods = from typeDefinition in typeDefinitions
+                                  from method in typeDefinition.GetChildScopesWithId<MethodDefinition>(typeDefinition.Name)
                                   where Matches(method)
                                   select method;
             } else if(CallingObject != null) {
@@ -134,6 +140,24 @@ namespace ABB.SrcML.Data {
             return possibleReturnTypes;
         }
 
+        public IEnumerable<string> GetPossibleNames() {
+            if(this.Name == "this") {
+                foreach(var containingType in ParentScopes.OfType<TypeDefinition>().Take(1)) {
+                    yield return containingType.Name;
+                }
+            } else if(this.Name == "base" && ProgrammingLanguage == Language.CSharp) {
+                var typeDefinitions = from containingType in ParentScopes.OfType<TypeDefinition>()
+                                      from parentTypeReference in containingType.ParentTypes
+                                      from parentType in parentTypeReference.FindMatchingTypes()
+                                      select parentType;
+                foreach(var baseType in typeDefinitions) {
+                    yield return baseType.Name;
+                }
+            } else {
+                yield return this.Name;
+            }
+        }
+
         /// <summary>
         /// Tests if the provided method definition matches this method call
         /// </summary>
@@ -148,7 +172,7 @@ namespace ABB.SrcML.Data {
 
             return this.IsConstructor == definition.IsConstructor &&
                    this.IsDestructor == definition.IsDestructor &&
-                   this.Name == definition.Name &&
+                   GetPossibleNames().Any(n => n == definition.Name) &&
                    this.Arguments.Count == definition.Parameters.Count;// &&
                                                                        //argumentsMatchParameters.All(a => a);
         }
@@ -160,8 +184,8 @@ namespace ABB.SrcML.Data {
         /// it.
         /// </summary>
         /// <param name="argument">an argument from see cref="Arguments"/></param>
-        /// <param name="parameter">a parameter from
-        /// see cref="MethodDefinition.Parameters"/></param>
+        /// <param name="parameter">a parameter from see
+        /// cref="MethodDefinition.Parameters"/></param>
         /// <returns>true if the argument and the parameter have a matching type in common; false
         /// otherwise</returns>
         private bool ArgumentMatchesDefinition(IResolvesToType argument, ParameterDeclaration parameter) {

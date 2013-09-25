@@ -256,6 +256,12 @@ namespace ABB.SrcML.Data {
                 }
             }
 
+            var parentElement = callElement.Parent;
+            if(null != parentElement && parentElement.Name == SRC.MemberList) {
+                var container = parentElement.Parent;
+                isConstructor = (container != null && container.Name == SRC.Constructor);
+            }
+
             var methodCall = new MethodCall() {
                 Name = name,
                 IsConstructor = isConstructor,
@@ -379,6 +385,7 @@ namespace ABB.SrcML.Data {
             IEnumerable<XElement> methodCalls = GetMethodCallsFromElement(element);
             foreach(var methodCallElement in methodCalls) {
                 var methodCall = ParseCallElement(methodCallElement, context);
+                methodCall.ProgrammingLanguage = ParserLanguage;
                 context.CurrentScope.AddMethodCall(methodCall);
             }
 
@@ -821,7 +828,9 @@ namespace ABB.SrcML.Data {
         /// <param name="element">The element to search</param>
         /// <returns>All of the call elements from the element</returns>
         public virtual IEnumerable<XElement> GetMethodCallsFromElement(XElement element) {
-            if(MethodElementNames.Contains(element.Name) ||
+            if(SRC.Constructor == element.Name) {
+                return GetCallsFromConstructorElement(element);
+            } else if(MethodElementNames.Contains(element.Name) ||
                NamespaceElementNames.Contains(element.Name) ||
                TypeElementNames.Contains(element.Name)) {
                 return GetCallsFromBlockParent(element);
@@ -834,6 +843,16 @@ namespace ABB.SrcML.Data {
             if(null == block)
                 return Enumerable.Empty<XElement>();
             return GetMethodCallsFromBlockElement(block);
+        }
+
+        private IEnumerable<XElement> GetCallsFromConstructorElement(XElement element) {
+            var blockCalls = GetCallsFromBlockParent(element);
+            if(element.Element(SRC.MemberList) != null) {
+                var memberListCalls = from call in element.Element(SRC.MemberList).Elements(SRC.Call)
+                                      select call;
+                return memberListCalls.Concat(blockCalls);
+            }
+            return blockCalls;
         }
 
         private IEnumerable<XElement> GetMethodCallsFromBlockElement(XElement container) {
