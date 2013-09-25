@@ -773,6 +773,82 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
+        public void TestProperty() {
+            // namespace A { class B { int Foo { get; set; } } }
+            string xml = @"<namespace>namespace <name>A</name> <block>{ <class>class <name>B</name> <block>{ <decl_stmt><decl><type><name>int</name></type> <name>Foo</name> <block>{ <function_decl><name>get</name>;</function_decl> <function_decl><name>set</name>;</function_decl> }</block></decl></decl_stmt> }</block></class> }</block></namespace>";
+
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "B.cs");
+            var testScope = codeParser.ParseFileUnit(testUnit);
+
+            var classB = testScope.GetDescendantScopes<TypeDefinition>().FirstOrDefault();
+
+            Assert.IsNotNull(classB);
+            Assert.AreEqual(1, classB.DeclaredVariables.Count());
+
+            var fooProperty = classB.DeclaredVariables.First();
+            Assert.AreEqual("Foo", fooProperty.Name);
+            Assert.AreEqual("int", fooProperty.VariableType.Name);
+        }
+
+        [Test]
+        public void TestPropertyAsCallingObject() {
+            // B.cs
+            string bXml = @"<namespace>namespace <name>A</name> <block>{ <class>class <name>B</name> <block>{ <decl_stmt><decl><type><name>C</name></type> <name>Foo</name> <block>{ <function_decl><name>get</name>;</function_decl> <function_decl><name>set</name>;</function_decl> }</block></decl></decl_stmt> }</block></class> }</block></namespace>";
+
+            // C.cs
+            //namespace A {
+            //	class C {
+            //		static void main() {
+            //			B b = new B();
+            //			b.Foo.Bar();
+            //		}
+            //		void Bar() { }
+            //	}
+            //}
+            string cXml = @"<namespace>namespace <name>A</name> <block>{
+	<class>class <name>C</name> <block>{
+		<function><type><specifier>static</specifier> <name>void</name></type> <name>main</name><parameter_list>()</parameter_list> <block>{
+			<decl_stmt><decl><type><name>B</name></type> <name>b</name> =<init> <expr><op:operator>new</op:operator> <call><name>B</name><argument_list>()</argument_list></call></expr></init></decl>;</decl_stmt>
+			<expr_stmt><expr><call><name><name>b</name><op:operator>.</op:operator><name>Foo</name><op:operator>.</op:operator><name>Bar</name></name><argument_list>()</argument_list></call></expr>;</expr_stmt>
+		}</block></function>
+
+		<function><type><name>void</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ }</block></function>
+	}</block></class>
+}</block></namespace>";
+
+            var bUnit = fileSetup.GetFileUnitForXmlSnippet(bXml, "B.cs");
+            var cUnit = fileSetup.GetFileUnitForXmlSnippet(cXml, "C.cs");
+            var bScope = codeParser.ParseFileUnit(bUnit);
+            var cScope = codeParser.ParseFileUnit(cUnit);
+
+            var globalScope = bScope.Merge(cScope);
+
+            var classB = (from t in globalScope.GetDescendantScopes<TypeDefinition>()
+                          where t.Name == "B"
+                          select t).FirstOrDefault();
+
+            var classC = (from t in globalScope.GetDescendantScopes<TypeDefinition>()
+                          where t.Name == "C"
+                          select t).FirstOrDefault();
+
+            Assert.IsNotNull(classB);
+            Assert.IsNotNull(classC);
+
+            var mainMethod = classC.GetChildScopesWithId<MethodDefinition>("main").FirstOrDefault();
+            var barMethod = classC.GetChildScopesWithId<MethodDefinition>("Bar").FirstOrDefault();
+
+            Assert.IsNotNull(mainMethod);
+            Assert.IsNotNull(barMethod);
+
+            var callToBar = (from m in mainMethod.MethodCalls
+                             where m.Name == "Bar"
+                             select m).FirstOrDefault();
+
+            Assert.IsNotNull(callToBar);
+            Assert.AreSame(barMethod, callToBar.FindMatches().FirstOrDefault());
+        }
+
+        [Test]
         public void TestVariablesWithSpecifiers() {
             //static int A;
             //public const int B;
