@@ -401,6 +401,32 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
+        public void TestDeclarationWithTypeVar() {
+            // B.cs namespace A { class B { public B() { }; } }
+            string bXml = @"<namespace>namespace <name>A</name> <block>{ <class>class <name>B</name> <block>{ <constructor><specifier>public</specifier> <name>B</name><parameter_list>()</parameter_list> <block>{ }</block></constructor><empty_stmt>;</empty_stmt> }</block></class> }</block></namespace>";
+            // C.cs namespace A { class C { void main() { var b = new B(); } } }
+            string cXml = @"<namespace>namespace <name>A</name> <block>{ <class>class <name>C</name> <block>{ <function><type><name>void</name></type> <name>main</name><parameter_list>()</parameter_list> <block>{ <decl_stmt><decl><type><name>var</name></type> <name>b</name> =<init> <expr><op:operator>new</op:operator> <call><name>B</name><argument_list>()</argument_list></call></expr></init></decl>;</decl_stmt> }</block></function> }</block></class> }</block></namespace>";
+
+            var bUnit = fileSetup.GetFileUnitForXmlSnippet(bXml, "B.cs");
+            var cUnit = fileSetup.GetFileUnitForXmlSnippet(cXml, "C.cs");
+            var bScope = codeParser.ParseFileUnit(bUnit);
+            var cScope = codeParser.ParseFileUnit(cUnit);
+            var globalScope = bScope.Merge(cScope);
+
+            var typeB = (from type in globalScope.GetDescendantScopes<TypeDefinition>()
+                         where type.Name == "B"
+                         select type).FirstOrDefault();
+
+            var declaration = (from scope in globalScope.GetDescendantScopesAndSelf()
+                               from decl in scope.DeclaredVariables
+                               select decl).FirstOrDefault();
+
+            Assert.IsNotNull(typeB);
+            Assert.IsNotNull(declaration);
+            Assert.AreSame(typeB, declaration.VariableType.FindFirstMatchingType());
+        }
+
+        [Test]
         public void TestFieldCreation() {
             //// A.cs
             //class A {
