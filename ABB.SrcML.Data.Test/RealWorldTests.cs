@@ -79,6 +79,16 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
+        public void TestFileUnitParsing_FamilyShow() {
+            string familyShow3SourcePath = @"C:\Workspace\Source\FamilyShow\3.0";
+            string familyShow3Datapath = @"C:\Workspace\SrcMLData\FamilyShow-3.0";
+
+            Console.WriteLine("\nReal World Test: Family Show 3.0 (C#)");
+            Console.WriteLine("=======================================");
+            TestDataGeneration(familyShow3SourcePath, familyShow3Datapath);
+        }
+
+        [Test]
         public void TestFileUnitParsing_NDatabase() {
             string ndatabase45SourcePath = @"C:\Workspace\Source\NDatabase\master45";
             string ndatabase45DataPath = @"C:\Workspace\SrcMLData\ndatabase-4.5";
@@ -116,6 +126,16 @@ namespace ABB.SrcML.Data.Test {
             Console.WriteLine("\nReal world test: Notepad++ 6.2 (C++, concurrent)");
             Console.WriteLine("=======================================");
             TestDataGeneration(npp62SourcePath, npp62DataPath, true);
+        }
+
+        [Test]
+        public void TestFileUnitParsing_QuickGraph3() {
+            string quickgraph3SourcePath = @"C:\Workspace\Source\QuickGraph\69709-3.0\sources";
+            string quickgraph3DataPath = @"c:\Workspace\SrcMLData\QuickGraph-69709-3.0";
+
+            Console.WriteLine("\nReal world test: QuickGraph 3.0 (C#)");
+            Console.WriteLine("=======================================");
+            TestDataGeneration(quickgraph3SourcePath, quickgraph3DataPath, true);
         }
 
         [Test]
