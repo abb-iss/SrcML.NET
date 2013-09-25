@@ -71,6 +71,25 @@ namespace ABB.SrcML.Data {
         public ReadOnlyCollection<TypeUse> ParentTypes { get; protected set; }
 
         /// <summary>
+        /// This handles the "base" keyword (C# only) and the "this" keyword. It searches for the
+        /// appropriate type definition depending on the context of the
+        /// </summary>
+        /// <typeparam name="T">The use type</typeparam>
+        /// <param name="use">The use to find the containing class for</param>
+        /// <returns>The class referred to by the keyword</returns>
+        public static IEnumerable<TypeDefinition> GetTypeForKeyword<T>(AbstractUse<T> use) where T : class {
+            var typeDefinitions = Enumerable.Empty<TypeDefinition>();
+            if(use.Name == "this") {
+                typeDefinitions = use.ParentScopes.OfType<TypeDefinition>().Take(1);
+            } else if(use.Name == "base" && use.ProgrammingLanguage == Language.CSharp) {
+                typeDefinitions = from containingType in use.ParentScopes.OfType<TypeDefinition>()
+                                  from parentType in containingType.GetParentTypes()
+                                  select parentType;
+            }
+            return typeDefinitions;
+        }
+
+        /// <summary>
         /// The AddFrom function adds all of the declarations and children from
         /// <paramref name="otherScope"/>to this scope
         /// </summary>

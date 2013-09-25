@@ -94,13 +94,8 @@ namespace ABB.SrcML.Data {
         /// <returns>An enumerable of matching type definitions</returns>
         public IEnumerable<TypeDefinition> FindMatchingTypes() {
             IEnumerable<TypeDefinition> typeDefinitions;
-            if(this.Name == "this") {
-                typeDefinitions = ParentScopes.OfType<TypeDefinition>().Take(1);
-            } else if(this.Name == "base" && this.ProgrammingLanguage == Language.CSharp) {
-                typeDefinitions = from containingType in ParentScopes.OfType<TypeDefinition>()
-                                  from parentTypeReference in containingType.ParentTypes
-                                  from parentType in parentTypeReference.FindMatchingTypes()
-                                  select parentType;
+            if(this.Name == "this" || (this.Name == "base" && this.ProgrammingLanguage == Language.CSharp)) {
+                typeDefinitions = TypeDefinition.GetTypeForKeyword(this);
             } else if(this.CallingObject != null) {
                 typeDefinitions = from typeForCallingObject in this.CallingObject.FindMatchingTypes()
                                   from typeDefinition in typeForCallingObject.GetParentTypesAndSelf()
