@@ -96,19 +96,11 @@ namespace ABB.SrcML.Data {
             IEnumerable<TypeDefinition> typeDefinitions;
             if(this.Name == "this" || (this.Name == "base" && this.ProgrammingLanguage == Language.CSharp)) {
                 typeDefinitions = TypeDefinition.GetTypeForKeyword(this);
-            } else if(this.CallingObject != null) {
-                typeDefinitions = from typeForCallingObject in this.CallingObject.FindMatchingTypes()
-                                  from typeDefinition in typeForCallingObject.GetParentTypesAndSelf()
-                                  from variableDeclaration in typeDefinition.DeclaredVariables
-                                  where Matches(variableDeclaration)
-                                  where variableDeclaration.VariableType != null
-                                  from matchingType in variableDeclaration.VariableType.FindMatchingTypes()
-                                  select matchingType;
             } else {
                 typeDefinitions = from declaration in FindMatches()
                                   where declaration.VariableType != null
-                                  from typeDefinition in declaration.VariableType.FindMatches()
-                                  select typeDefinition;
+                                  from definition in declaration.VariableType.FindMatches()
+                                  select definition;
             }
             return typeDefinitions;
         }
