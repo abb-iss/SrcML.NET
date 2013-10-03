@@ -133,17 +133,27 @@ namespace ABB.SrcML {
         /// <paramref name="directoryPath"/>is a subdirectory of an existing directory.
         /// </remarks>
         public void AddDirectory(string directoryPath) {
-            var fullPath = Path.GetFullPath(directoryPath);
+            // get the full path to the directory with any trailing path separators trimmed off
+            var fullPath = GetFullPath(directoryPath);
+            bool alreadyMonitoringDirectory = false;
+
             foreach(var directory in MonitoredDirectories) {
                 if(fullPath.StartsWith(directory, StringComparison.InvariantCultureIgnoreCase)) {
+                    // if full path starts with directory, then check to see if they
+                    alreadyMonitoringDirectory = (fullPath.Length == directory.Length);
+                    if(alreadyMonitoringDirectory) {
+                        break;
+                    }
                     throw new DirectoryScanningMonitorSubDirectoryException(directoryPath, directory, this);
                 }
             }
 
-            folders.Add(Path.GetFullPath(directoryPath));
-            if(ScanTimer.Enabled) {
-                foreach(var fileName in EnumerateDirectory(directoryPath)) {
-                    UpdateFile(fileName);
+            if(!alreadyMonitoringDirectory) {
+                folders.Add(fullPath);
+                if(ScanTimer.Enabled) {
+                    foreach(var fileName in EnumerateDirectory(directoryPath)) {
+                        UpdateFile(fileName);
+                    }
                 }
             }
         }
@@ -157,7 +167,7 @@ namespace ABB.SrcML {
         /// <paramref name="directory"/></returns>
         public IEnumerable<string> EnumerateDirectory(string directory) {
             var files = from filePath in Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories)
-                        select Path.GetFullPath(filePath);
+                        select GetFullPath(filePath);
             return files;
         }
 
@@ -180,7 +190,7 @@ namespace ABB.SrcML {
         /// <returns>True if the file is in a <see cref="MonitoredDirectories">monitored
         /// directory</see>, false otherwise</returns>
         public bool IsMonitoringFile(string fileName) {
-            var fullPath = Path.GetFullPath(fileName);
+            var fullPath = GetFullPath(fileName);
             return MonitoredDirectories.Any(d => fullPath.StartsWith(d, StringComparison.InvariantCultureIgnoreCase));
         }
 
@@ -201,7 +211,7 @@ namespace ABB.SrcML {
                     Thread.Sleep(1);
                 }
             }
-            var directoryFullPath = Path.GetFullPath(directoryPath);
+            var directoryFullPath = GetFullPath(directoryPath);
 
             if(folders.Contains(directoryFullPath, StringComparer.InvariantCultureIgnoreCase)) {
                 folders.Remove(directoryFullPath);
@@ -260,6 +270,21 @@ namespace ABB.SrcML {
                 WriteMonitoringList();
             }
             base.Dispose(disposing);
+        }
+
+        /// <summary>
+        /// Gets the full path for a given path. This calls
+        /// <see cref="System.IO.Path.GetFullPath(string)"/> and then trims any
+        /// <see cref="System.IO.Path.PathSeparator">path separators</see> off of the end.
+        /// </summary>
+        /// <param name="path">The path to get a full path for</param>
+        /// <returns>The full path for
+        /// <paramref name="path"/>with no trailing path separators</returns>
+        private string GetFullPath(string path) {
+            if(null == path)
+                throw new ArgumentNullException("path");
+
+            return Path.GetFullPath(path).TrimEnd(Path.PathSeparator);
         }
 
         /// <summary>
