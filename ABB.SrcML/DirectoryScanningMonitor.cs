@@ -43,7 +43,17 @@ namespace ABB.SrcML {
         private Timer ScanTimer;
         private int syncPoint;
 
-        public DirectoryScanningMonitor(string monitorFileName, ICollection<string> foldersToMonitor, double scanInterval, string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
+        /// <summary>
+        /// Create a new directory scanning monitor
+        /// </summary>
+        /// <param name="monitorFileName">The file name to save the list of monitored directories
+        /// to</param>
+        /// <param name="scanInterval">The <see cref="ScanInterval"/> in seconds</param>
+        /// <param name="baseDirectory">The base directory to use for the archives of this
+        /// monitor</param>
+        /// <param name="defaultArchive">The default archive to use</param>
+        /// <param name="otherArchives">Other archives for specific extensions</param>
+        public DirectoryScanningMonitor(string monitorFileName, double scanInterval, string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
             : base(baseDirectory, defaultArchive, otherArchives) {
             MonitoredDirectoriesFilePath = Path.Combine(baseDirectory, monitorFileName);
             folders = new List<string>();
@@ -54,16 +64,6 @@ namespace ABB.SrcML {
             ScanTimer.AutoReset = true;
             ScanTimer.Elapsed += ScanTimer_Elapsed;
             syncPoint = STOPPED;
-
-            if(File.Exists(MonitoredDirectoriesFilePath)) {
-                foreach(var folderPath in File.ReadAllLines(MonitoredDirectoriesFilePath)) {
-                    AddDirectory(folderPath);
-                }
-            }
-
-            foreach(var folderPath in foldersToMonitor) {
-                AddDirectory(folderPath);
-            }
         }
 
         /// <summary>
@@ -76,8 +76,8 @@ namespace ABB.SrcML {
         /// monitor</param>
         /// <param name="defaultArchive">The default archive to use</param>
         /// <param name="otherArchives">Other archives for specific extensions</param>
-        public DirectoryScanningMonitor(ICollection<string> foldersToMonitor, double scanInterval, string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
-            : this(MONITOR_LIST_FILENAME, foldersToMonitor, scanInterval, baseDirectory, defaultArchive, otherArchives) { }
+        public DirectoryScanningMonitor(double scanInterval, string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
+            : this(MONITOR_LIST_FILENAME, scanInterval, baseDirectory, defaultArchive, otherArchives) { }
 
         /// <summary>
         /// Create a new directory scanning monitor
@@ -88,21 +88,8 @@ namespace ABB.SrcML {
         /// monitor</param>
         /// <param name="defaultArchive">The default archive to use</param>
         /// <param name="otherArchives">Other archives for specific extensions</param>
-        public DirectoryScanningMonitor(ICollection<string> foldersToMonitor, string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
-            : this(MONITOR_LIST_FILENAME, foldersToMonitor, DEFAULT_SCAN_INTERVAL, baseDirectory, defaultArchive, otherArchives) { }
-
-        public DirectoryScanningMonitor(int scanInterval, string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
-            : this(MONITOR_LIST_FILENAME, new List<string>(), scanInterval, baseDirectory, defaultArchive, otherArchives) { }
-
-        /// <summary>
-        /// Create a new directory scanning monitor with the default scan interval.
-        /// </summary>
-        /// <param name="baseDirectory">The base directory to use for the archives of this
-        /// monitor</param>
-        /// <param name="defaultArchive">The default archive to use</param>
-        /// <param name="otherArchives">Other archives for specific extensions</param>
         public DirectoryScanningMonitor(string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
-            : this(MONITOR_LIST_FILENAME, new List<string>(), DEFAULT_SCAN_INTERVAL, baseDirectory, defaultArchive, otherArchives) { }
+            : this(MONITOR_LIST_FILENAME, DEFAULT_SCAN_INTERVAL, baseDirectory, defaultArchive, otherArchives) { }
 
         /// <summary>
         /// A read only collection of the directories being monitored. <para>Use
@@ -120,7 +107,22 @@ namespace ABB.SrcML {
             set { ScanTimer.Interval = value * 1000; }
         }
 
+        /// <summary>
+        /// the file path to save the list of directories to when <see cref="WriteMonitoringList"/>
+        /// is called.
+        /// </summary>
         protected string MonitoredDirectoriesFilePath { get; private set; }
+
+        /// <summary>
+        /// Loads the list of monitored directories from <see cref="MonitoredDirectoriesFilePath"/>.
+        /// </summary>
+        public void AddDirectoriesFromSaveFile() {
+            if(File.Exists(MonitoredDirectoriesFilePath)) {
+                foreach(var folderPath in File.ReadAllLines(MonitoredDirectoriesFilePath)) {
+                    AddDirectory(folderPath);
+                }
+            }
+        }
 
         /// <summary>
         /// Add a folder to <see cref="MonitoredDirectories"/>

@@ -164,6 +164,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 // Create a new instance of SrcML.NET's solution monitor
                 if(openSolution != null) {
                     CurrentMonitor = new SourceMonitor(openSolution, DirectoryScanningMonitor.DEFAULT_SCAN_INTERVAL, baseDirectory, lastModifiedArchive, sourceArchive);
+                    CurrentMonitor.AddDirectoriesFromSaveFile();
+                    CurrentMonitor.AddSolutionDirectory();
                 }
 
                 // Subscribe events from Solution Monitor

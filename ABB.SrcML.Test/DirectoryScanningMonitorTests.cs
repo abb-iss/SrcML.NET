@@ -96,11 +96,13 @@ namespace ABB.SrcML.Test {
             }
 
             using(var monitor = new DirectoryScanningMonitor(monitorFolder, new LastModifiedArchive(monitorFolder))) {
+                monitor.AddDirectoriesFromSaveFile();
                 Assert.AreEqual(1, monitor.MonitoredDirectories.Count);
                 Assert.AreEqual(Path.GetFullPath(testFolder), monitor.MonitoredDirectories[0]);
             }
 
             using(var monitor = new DirectoryScanningMonitor(monitorFolder, new LastModifiedArchive(monitorFolder))) {
+                monitor.AddDirectoriesFromSaveFile();
                 Assert.AreEqual(1, monitor.MonitoredDirectories.Count);
                 Assert.AreEqual(Path.GetFullPath(testFolder), monitor.MonitoredDirectories[0]);
             }
