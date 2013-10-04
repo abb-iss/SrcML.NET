@@ -321,15 +321,17 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         private void DTEStartupCompleted() {
             SrcMLFileLogger.DefaultLogger.Info("Respond to the Visual Studio DTE event that occurs when the environment has completed initializing.");
 
-            /*
-            if(GetDte().Version.StartsWith("10")) {
+            DTE2 dte = GetService(typeof(DTE)) as DTE2;
+            if(dte.Version.StartsWith("10")) {
                 //only need to do this in VS2010, and it breaks things in VS2012
-                Solution openSolution = GetOpenSolution();
-                if(openSolution != null && !String.IsNullOrWhiteSpace(openSolution.FullName) && _currentMonitor == null) {
+                var openSolution = dte.Solution;
+                
+                if(openSolution != null && !String.IsNullOrWhiteSpace(openSolution.FullName)) {
                     SolutionOpened();
                 }
             }
-            */
+
+                      
 
             RegisterSolutionEvents();
         }
