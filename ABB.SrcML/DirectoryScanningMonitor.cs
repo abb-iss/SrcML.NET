@@ -39,6 +39,11 @@ namespace ABB.SrcML {
         private const string MONITOR_LIST_FILENAME = "monitored_directories.txt";
         private const int RUNNING = 1;
         private const int STOPPED = -1;
+
+        private static HashSet<string> Exclusions = new HashSet<string>(new List<string>() {
+            "bin", "obj", "TestResults"
+        }, StringComparer.InvariantCultureIgnoreCase);
+
         private List<string> folders;
         private Timer ScanTimer;
         private int syncPoint;
@@ -166,9 +171,26 @@ namespace ABB.SrcML {
         /// <returns>An enumerable of the full file names in
         /// <paramref name="directory"/></returns>
         public IEnumerable<string> EnumerateDirectory(string directory) {
-            var files = from filePath in Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories)
-                        select GetFullPath(filePath);
-            return files;
+            var dirName = Path.GetFileName(directory);
+            bool startsWithDot = (dirName[0] == '.');
+            bool isExcluded = Exclusions.Contains(dirName);
+
+            if(!(startsWithDot || isExcluded)) {
+                foreach(var dir in Directory.EnumerateDirectories(directory, "*", SearchOption.TopDirectoryOnly)) {
+                    foreach(var filePath in EnumerateDirectory(dir)) {
+                        yield return filePath;
+                    }
+                }
+
+                var files = from filePath in Directory.EnumerateFiles(directory, "*", SearchOption.TopDirectoryOnly)
+                            let fileName = Path.GetFileName(filePath)
+                            where fileName[0] != '.'
+                            select filePath;
+
+                foreach(var filePath in files) {
+                    yield return filePath;
+                }
+            }
         }
 
         /// <summary>

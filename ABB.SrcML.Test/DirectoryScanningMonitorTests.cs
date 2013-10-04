@@ -65,6 +65,22 @@ namespace ABB.SrcML.Test {
         }
 
         [Test]
+        public void TestExcludedDirectory() {
+            var testResultsPath = Path.Combine(testFolder, "TestResults");
+
+            Directory.CreateDirectory(testResultsPath);
+
+            var excludedFilePath = Path.Combine(testResultsPath, "test.txt");
+
+            File.Create(excludedFilePath).Close();
+
+            var archive = new LastModifiedArchive(monitorFolder);
+            using(var monitor = new DirectoryScanningMonitor(monitorFolder, archive)) {
+                Assert.AreEqual(0, monitor.GetFilesFromSource().Count);
+            }
+        }
+
+        [Test]
         public void TestFileChanges() {
             var archive = new LastModifiedArchive(monitorFolder);
             DirectoryScanningMonitor monitor = new DirectoryScanningMonitor(monitorFolder, archive);
