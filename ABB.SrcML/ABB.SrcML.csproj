@@ -61,12 +61,14 @@
     <Compile Include="AbstractArchive.cs" />
     <Compile Include="AbstractDocument.cs" />
     <Compile Include="AbstractFileMonitor.cs" />
+    <Compile Include="DirectoryScanningMonitorSubDirectoryException.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="FileInfoComparer.cs" />
     <Compile Include="FileSystemFolderMonitor.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="LastModifiedArchive.cs" />
     <Compile Include="ShortXmlFileNameMapping.cs" />
+    <Compile Include="DirectoryScanningMonitor.cs" />
     <Compile Include="Src2SrcMLRunner2.cs" />
     <Compile Include="SrcMLGenerator.cs" />
     <Compile Include="ITransform.cs" />
@@ -87,6 +89,7 @@
     <Compile Include="Utilities\DefaultsDictionary.cs" />
     <Compile Include="Utilities\ExecutableReturnValue.cs" />
     <Compile Include="Utilities\ExecutableRunner.cs" />
+    <Compile Include="Utilities\FileHelper.cs" />
     <Compile Include="Utilities\KsuAdapter.cs" />
     <Compile Include="Utilities\ReadOnlyDictionary.cs" />
     <Compile Include="Utilities\SrcMLExceptionFormatter.cs" />

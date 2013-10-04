@@ -1,4 +1,6 @@
 ﻿using ABB.SrcML.Data;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,30 +9,10 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace ABB.SrcML.Tools.DataTester {
-    class Program {
-        static void Main(string[] args) {
 
-            var projects = ReadMapping(@"C:\Workspace\source-srcmldata-mapping.txt");
-            foreach(var project in projects) {
-                GenerateData(project.Key, project.Value, @"c:\Workspace\SrcMLData");
-            }
-        }
-
-        private static Dictionary<string, string> ReadMapping(string mappingFilePath) {
-            var pairs = from line in File.ReadAllLines(mappingFilePath)
-                        let parts = line.Split('|')
-                        where parts.Length == 2
-                        select new { Key = parts[0], Value = parts[1] };
-            var mapping = new Dictionary<string, string>(pairs.Count());
-            foreach(var pair in pairs) {
-                mapping.Add(pair.Key, pair.Value);
-            }
-            return mapping;
-        }
+    internal class Program {
 
         private static void GenerateData(string sourcePath, string dataPath, string csvDirectory) {
             Dictionary<Language, AbstractCodeParser> CodeParser = new Dictionary<Language, AbstractCodeParser>() {
@@ -43,7 +25,7 @@ namespace ABB.SrcML.Tools.DataTester {
             string callLogPath = Path.Combine(dataPath, "methodcalls.log");
             string csvPath = Path.Combine(csvDirectory, "timing.csv");
             string jsonPath = String.Format("{0}.json", Path.Combine(@"c:\Workspace\DataVisualization", dataPath.Substring(23)));
-            
+
             if(!Directory.Exists(sourcePath)) {
                 Console.Error.WriteLine("{0} does not exist", sourcePath);
                 return;
@@ -77,7 +59,7 @@ namespace ABB.SrcML.Tools.DataTester {
             };
 
             timer.Start();
-            monitor.Startup();
+            monitor.UpdateArchives();
             string[] spinner = new string[] { "\\\r", "|\r", "/\r" };
             int spinner_index = -1;
             while(!startupCompleted) {
@@ -96,7 +78,6 @@ namespace ABB.SrcML.Tools.DataTester {
             int numberOfFiles = 0;
             Dictionary<string, List<string>> errors = new Dictionary<string, List<string>>();
 
-            
             if(!File.Exists(csvPath)) {
                 File.WriteAllLines(csvPath, new string[] { String.Join(",", "Project", "Files", "Failures", "Time (s)") });
             }
@@ -128,8 +109,7 @@ namespace ABB.SrcML.Tools.DataTester {
                         errors[key].Add(fileName);
 
                         numberOfFailures++;
-                    }
-                    finally {
+                    } finally {
                         if(++numberOfFiles % 50 == 0) {
                             Console.Write("{0,5:N0} files completed in {1} with {2,5:N0} failures\r", numberOfFiles, timer.Elapsed, numberOfFailures);
                             csvFile.WriteLine(string.Join(",", sourcePath, numberOfFiles, numberOfFailures, timer.Elapsed.TotalSeconds));
@@ -144,39 +124,57 @@ namespace ABB.SrcML.Tools.DataTester {
             Console.WriteLine("\nSummary");
             Console.WriteLine("===================");
 
-            Console.WriteLine("{0,10:N0} failures  ({1,8:P2})", numberOfFailures, ((float)numberOfFailures) / numberOfFiles);
-            Console.WriteLine("{0,10:N0} successes ({1,8:P2})", numberOfSuccesses, ((float)numberOfSuccesses) / numberOfFiles);
+            Console.WriteLine("{0,10:N0} failures  ({1,8:P2})", numberOfFailures, ((float) numberOfFailures) / numberOfFiles);
+            Console.WriteLine("{0,10:N0} successes ({1,8:P2})", numberOfSuccesses, ((float) numberOfSuccesses) / numberOfFiles);
             Console.WriteLine("{0} to generate data", timer.Elapsed);
             Console.WriteLine("See parse log at {0}", fileLogPath);
-            
+
             OutputCallGraphByType(globalScope, jsonPath);
 
             PrintScopeReport(globalScope, sourcePath, csvDirectory);
             PrintMethodCallReport(globalScope, sourcePath, csvDirectory, callLogPath);
         }
-        private static void PrintScopeReport(Scope globalScope, string sourcePath, string csvDirectory) {
-            var csvPath = Path.Combine(csvDirectory, "scopes.csv");
-            Console.WriteLine("\nScope Report");
-            Console.WriteLine("===============");
 
-            var allScopes = VariableScopeIterator.Visit(globalScope);
-            int numScopes = allScopes.Count();
-            int numNamedScopes = allScopes.OfType<NamedScope>().Count();
-            int numNamespaces = allScopes.OfType<NamespaceDefinition>().Count();
-            int numTypes = allScopes.OfType<TypeDefinition>().Count();
-            int numMethods = allScopes.OfType<MethodDefinition>().Count();
-
-            Console.WriteLine("{0,10:N0} scopes", numScopes);
-            
-            Console.WriteLine("{0,10:N0} named scopes", numNamedScopes);
-            
-            Console.WriteLine("{0,10:N0} namespaces", numNamespaces);
-            Console.WriteLine("{0,10:N0} types", numTypes);
-            Console.WriteLine("{0,10:N0} methods", numMethods);
-            if(!File.Exists(csvPath)) {
-                File.WriteAllText(csvPath, String.Format("{0}{1}", String.Join(",", "Project", "Scopes", "Named Scopes", "Namespaces", "Types", "Methods"), Environment.NewLine));
+        private static void Main(string[] args) {
+            var projects = ReadMapping(@"C:\Workspace\source-srcmldata-mapping.txt");
+            foreach(var project in projects) {
+                GenerateData(project.Key, project.Value, @"c:\Workspace\SrcMLData");
             }
-            File.AppendAllText(csvPath, String.Format("{0}{1}", String.Join(",", sourcePath, numScopes, numNamedScopes, numNamespaces, numTypes, numMethods), Environment.NewLine));
+        }
+
+        private static void OutputCallGraphByType(Scope globalScope, string jsonPath) {
+            using(var writer = new JsonTextWriter(new StreamWriter(jsonPath))) {
+                writer.WriteStartArray();
+                foreach(var typeDefinition in globalScope.GetDescendantScopesAndSelf<TypeDefinition>()) {
+                    writer.WriteStartObject();
+                    writer.WritePropertyName("name");
+                    writer.WriteValue(typeDefinition.GetFullName());
+
+                    var calls = from scope in typeDefinition.GetDescendantScopesAndSelf()
+                                from call in scope.MethodCalls
+                                select call;
+
+                    writer.WritePropertyName("size");
+                    writer.WriteValue(calls.Count());
+
+                    // find the parent type of all the calls
+                    var callMatches = from call in calls
+                                      let match = call.FindMatches().FirstOrDefault()
+                                      where match != null
+                                      let parentOfMatch = match.GetFirstParent<TypeDefinition>()
+                                      where parentOfMatch != null
+                                      select parentOfMatch.GetFullName();
+                    // output the calls property and array
+                    writer.WritePropertyName("calls");
+                    writer.WriteStartArray();
+                    foreach(var call in callMatches) {
+                        writer.WriteValue(call);
+                    }
+                    writer.WriteEndArray();
+                    writer.WriteEndObject();
+                }
+                writer.WriteEndArray();
+            }
         }
 
         private static void PrintMethodCallReport(Scope globalScope, string sourcePath, string csvDirectory, string callLogPath) {
@@ -205,8 +203,8 @@ namespace ABB.SrcML.Tools.DataTester {
             }
 
             Console.WriteLine("{0,10:N0} method calls", numMethodCalls);
-            Console.WriteLine("{0,10:N0} matched method calls ({1,8:P2})", numMatchedMethodCalls, ((float)numMatchedMethodCalls) / numMethodCalls);
-            Console.WriteLine("{0,10:N0} matches / millisecond ({1,7:N0} ms elapsed)", ((float)numMethodCalls) / sw.ElapsedMilliseconds, sw.ElapsedMilliseconds);
+            Console.WriteLine("{0,10:N0} matched method calls ({1,8:P2})", numMatchedMethodCalls, ((float) numMatchedMethodCalls) / numMethodCalls);
+            Console.WriteLine("{0,10:N0} matches / millisecond ({1,7:N0} ms elapsed)", ((float) numMethodCalls) / sw.ElapsedMilliseconds, sw.ElapsedMilliseconds);
             Console.WriteLine("See matched method calls in {0}", callLogPath);
 
             if(!File.Exists(csvPath)) {
@@ -215,41 +213,41 @@ namespace ABB.SrcML.Tools.DataTester {
             File.AppendAllText(csvPath, String.Format("{0}{1}", String.Join(",", sourcePath, numMethodCalls, numMatchedMethodCalls, sw.ElapsedMilliseconds), Environment.NewLine));
         }
 
-        private static void OutputCallGraphByType(Scope globalScope, string jsonPath) {
-            using(var writer = new JsonTextWriter(new StreamWriter(jsonPath))) {
-                writer.WriteStartArray();
-                foreach(var typeDefinition in globalScope.GetDescendantScopesAndSelf<TypeDefinition>()) {
-                    writer.WriteStartObject();
-                    writer.WritePropertyName("name");
-                    writer.WriteValue(typeDefinition.GetFullName());
-                    
-                    
-                    var calls = from scope in typeDefinition.GetDescendantScopesAndSelf()
-                                from call in scope.MethodCalls
-                                select call;
-                    
-                    writer.WritePropertyName("size");
-                    writer.WriteValue(calls.Count());
+        private static void PrintScopeReport(Scope globalScope, string sourcePath, string csvDirectory) {
+            var csvPath = Path.Combine(csvDirectory, "scopes.csv");
+            Console.WriteLine("\nScope Report");
+            Console.WriteLine("===============");
 
-                    // find the parent type of all the calls
-                    var callMatches = from call in calls
-                                      let match = call.FindMatches().FirstOrDefault()
-                                      where match != null
-                                      let parentOfMatch = match.GetFirstParent<TypeDefinition>()
-                                      where parentOfMatch != null
-                                      select parentOfMatch.GetFullName();
-                    // output the calls property and array
-                    writer.WritePropertyName("calls");
-                    writer.WriteStartArray();
-                    foreach (var call in callMatches)
-	                {
-                        writer.WriteValue(call);
-	                }
-                    writer.WriteEndArray();
-                    writer.WriteEndObject();
-                }
-                writer.WriteEndArray();
+            var allScopes = VariableScopeIterator.Visit(globalScope);
+            int numScopes = allScopes.Count();
+            int numNamedScopes = allScopes.OfType<NamedScope>().Count();
+            int numNamespaces = allScopes.OfType<NamespaceDefinition>().Count();
+            int numTypes = allScopes.OfType<TypeDefinition>().Count();
+            int numMethods = allScopes.OfType<MethodDefinition>().Count();
+
+            Console.WriteLine("{0,10:N0} scopes", numScopes);
+
+            Console.WriteLine("{0,10:N0} named scopes", numNamedScopes);
+
+            Console.WriteLine("{0,10:N0} namespaces", numNamespaces);
+            Console.WriteLine("{0,10:N0} types", numTypes);
+            Console.WriteLine("{0,10:N0} methods", numMethods);
+            if(!File.Exists(csvPath)) {
+                File.WriteAllText(csvPath, String.Format("{0}{1}", String.Join(",", "Project", "Scopes", "Named Scopes", "Namespaces", "Types", "Methods"), Environment.NewLine));
             }
+            File.AppendAllText(csvPath, String.Format("{0}{1}", String.Join(",", sourcePath, numScopes, numNamedScopes, numNamespaces, numTypes, numMethods), Environment.NewLine));
+        }
+
+        private static Dictionary<string, string> ReadMapping(string mappingFilePath) {
+            var pairs = from line in File.ReadAllLines(mappingFilePath)
+                        let parts = line.Split('|')
+                        where parts.Length == 2
+                        select new { Key = parts[0], Value = parts[1] };
+            var mapping = new Dictionary<string, string>(pairs.Count());
+            foreach(var pair in pairs) {
+                mapping.Add(pair.Key, pair.Value);
+            }
+            return mapping;
         }
     }
 }

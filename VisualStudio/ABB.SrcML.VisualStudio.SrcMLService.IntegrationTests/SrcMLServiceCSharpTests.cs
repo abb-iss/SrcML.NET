@@ -14,11 +14,12 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
+
     [TestClass]
     public class SrcMLServiceCSharpTests : IInvoker {
         private const string TestSolutionName = "TestCSharpSolution";
-        private static Solution TestSolution;
         private static object TestLock;
+        private static Solution TestSolution;
         private static string TestSolutionPath = Path.Combine(TestSolutionName, TestSolutionName + ".sln");
 
         [ClassInitialize]
@@ -26,15 +27,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             // Create a local copy of the solution
             FileUtils.CopyDirectory(Path.Combine(TestConstants.InputFolderPath, TestSolutionName), TestSolutionName);
             TestLock = new object();
-        }
-
-        [TestInitialize]
-        public void TestSetup() {
-            TestSolution = VsIdeTestHostContext.Dte.Solution;
-            Assert.IsNotNull(TestSolution, "Could not get the solution");
-
-            TestSolution.Open(Path.GetFullPath(TestSolutionPath));
-            TestHelpers.TestScaffold.Service.StartMonitoring();
         }
 
         [TestCleanup]
@@ -45,13 +37,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             // TestScaffold.Cleanup();
         }
 
-        [TestMethod]
-        [HostType("VS IDE")]
-        public void TestCsServiceStartup() {
-            Assert.IsTrue(TestHelpers.WaitForServiceToFinish(TestHelpers.TestScaffold.Service, 5000));
-            var archive = TestHelpers.TestScaffold.Service.GetSrcMLArchive();
-            Assert.IsNotNull(archive, "Could not get the SrcML Archive");
-            Assert.AreEqual(2, archive.FileUnits.Count(), "There should only be two files in the srcML archive");
+        public void Invoke(MethodInvoker globalSystemWindowsFormsMethodInvoker) {
+            UIThreadInvoker.Invoke(globalSystemWindowsFormsMethodInvoker);
         }
 
         [TestMethod]
@@ -61,8 +48,12 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             Project project = TestHelpers.GetProjects(TestSolution).FirstOrDefault();
             Assert.IsNotNull(project, "Couldn't get the project");
             var archive = TestHelpers.TestScaffold.Service.GetSrcMLArchive();
+            var service = TestHelpers.TestScaffold.Service;
+            int scanInterval = 5;
+            int scanIntervalMs = scanInterval * 1000;
+            service.ScanInterval = scanInterval;
             Assert.IsNotNull(archive, "Could not get the SrcML Archive");
-            
+
             AutoResetEvent resetEvent = new AutoResetEvent(false);
             string expectedFilePath = null;
             FileEventType expectedEventType = FileEventType.FileDeleted;
@@ -83,7 +74,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             var item = project.ProjectItems.AddFromFileCopy(fileTemplate);
             project.Save();
 
-            Assert.IsTrue(resetEvent.WaitOne(500));
+            Assert.IsTrue(resetEvent.WaitOne(scanIntervalMs));
             Assert.IsTrue(archive.ContainsFile(expectedFilePath));
             Assert.IsFalse(archive.IsOutdated(expectedFilePath));
 
@@ -96,7 +87,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             File.Delete(oldFilePath);
             project.Save();
 
-            Assert.IsTrue(resetEvent.WaitOne(500));
+            Assert.IsTrue(resetEvent.WaitOne(scanIntervalMs));
             Assert.IsTrue(archive.ContainsFile(expectedFilePath), "The archive should contain {0}", expectedFilePath);
             Assert.IsFalse(archive.ContainsFile(oldFilePath), "the archive should not contain {0}", oldFilePath);
             Assert.IsFalse(archive.IsOutdated(expectedFilePath), String.Format("{0} is outdated", expectedFilePath));
@@ -106,7 +97,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             item = TestSolution.FindProjectItem(expectedFilePath);
             item.Delete();
             project.Save();
-            Assert.IsTrue(resetEvent.WaitOne(500));
+            Assert.IsTrue(resetEvent.WaitOne(scanIntervalMs));
 
             Assert.IsFalse(archive.IsOutdated(expectedFilePath));
             //Assert.AreEqual(2, archive.FileUnits.Count());
@@ -117,6 +108,11 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
         [HostType("VS IDE")]
         public void TestCsProjectOperations() {
             var archive = TestHelpers.TestScaffold.Service.GetSrcMLArchive();
+            var service = TestHelpers.TestScaffold.Service;
+            int scanInterval = 5;
+            int scanIntervalMs = scanInterval * 1000;
+            service.ScanInterval = scanInterval;
+
             AutoResetEvent resetEvent = new AutoResetEvent(false);
             var testProjectName = "ClassLibrary1";
 
@@ -142,9 +138,9 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             // add a new project
             var addedProject = TestSolution.AddFromTemplate(projectTemplate, expectedProjectDirectory, testProjectName);
             addedProject.Save();
-            Assert.IsTrue(resetEvent.WaitOne(500));
-            Assert.IsTrue(resetEvent.WaitOne(500));
-            
+            Assert.IsTrue(resetEvent.WaitOne(scanIntervalMs));
+            Assert.IsTrue(resetEvent.WaitOne(scanIntervalMs));
+
             foreach(var expectedFile in expectedFiles) {
                 Assert.IsTrue(File.Exists(expectedFile));
                 Assert.IsTrue(archive.ContainsFile(expectedFile));
@@ -154,17 +150,31 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             // remove the project
             expectedEventType = FileEventType.FileDeleted;
             TestSolution.Remove(addedProject);
-            
-            Assert.IsTrue(resetEvent.WaitOne(500));
-            // Assert.IsTrue(resetEvent.WaitOne(500));
-
             foreach(var expectedFile in expectedFiles) {
+                File.Delete(expectedFile);
+                Assert.IsTrue(resetEvent.WaitOne(scanIntervalMs * 2));
                 Assert.IsFalse(archive.ContainsFile(expectedFile));
             }
+
             TestHelpers.TestScaffold.Service.SourceFileChanged -= action;
         }
-        public void Invoke(MethodInvoker globalSystemWindowsFormsMethodInvoker) {
-            UIThreadInvoker.Invoke(globalSystemWindowsFormsMethodInvoker);
+
+        [TestMethod]
+        [HostType("VS IDE")]
+        public void TestCsServiceStartup() {
+            Assert.IsTrue(TestHelpers.WaitForServiceToFinish(TestHelpers.TestScaffold.Service, 5000));
+            var archive = TestHelpers.TestScaffold.Service.GetSrcMLArchive();
+            Assert.IsNotNull(archive, "Could not get the SrcML Archive");
+            Assert.AreEqual(5, archive.FileUnits.Count(), "There should only be two files in the srcML archive");
+        }
+
+        [TestInitialize]
+        public void TestSetup() {
+            TestSolution = VsIdeTestHostContext.Dte.Solution;
+            Assert.IsNotNull(TestSolution, "Could not get the solution");
+
+            TestSolution.Open(Path.GetFullPath(TestSolutionPath));
+            TestHelpers.TestScaffold.Service.StartMonitoring();
         }
     }
 }
