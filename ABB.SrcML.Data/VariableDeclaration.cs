@@ -16,6 +16,7 @@ using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML.Data {
+
     /// <summary>
     /// Represents a variable declaration
     /// </summary>
@@ -24,25 +25,24 @@ namespace ABB.SrcML.Data {
         private Scope parentScope;
 
         /// <summary>
-        /// The name of the variable
-        /// </summary>
-        public string Name { get; set; }
-
-        /// <summary>
-        /// Description of the type for this variable
-        /// </summary>
-        public TypeUse VariableType { get; set; }
-
-        /// <summary>
         /// The access modifier assigned to this type
         /// </summary>
         public AccessModifier Accessibility { get; set; }
 
         /// <summary>
+        /// The location of this declaration in both the original source file and in XML.
+        /// </summary>
+        public virtual SrcMLLocation Location { get; set; }
+
+        /// <summary>
+        /// The name of the variable
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
         /// The scope where this variable is declared
         /// </summary>
-        public Scope Scope
-        {
+        public Scope Scope {
             get { return this.parentScope; }
             set {
                 this.parentScope = value;
@@ -53,9 +53,9 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// The location of this declaration in both the original source file and in XML.
+        /// Description of the type for this variable
         /// </summary>
-        public virtual SrcMLLocation Location { get; set; }
+        public virtual TypeUse VariableType { get; set; }
 
         /// <summary>
         /// Returns a string representation of this object.
