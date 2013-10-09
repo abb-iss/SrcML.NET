@@ -159,60 +159,6 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Parses a C# declaration element. If the declaration has a type "var" it attempts to
-        /// compute the type of the variable. Otherwise it proceeds as if we are using
-        /// <see cref="AbstractCodeParser.ParseDeclarationElement(XElement, ParserContext)"/>
-        /// </summary>
-        /// <param name="declarationElement">The declaration element (must be see
-        /// cref="AbstractCodeParser.VariableDeclarationElementNames"/></param>
-        /// <param name="context">The parser context</param>
-        /// <returns>One variable declaration for each declaration ni the statement</returns>
-        public override IEnumerable<VariableDeclaration> ParseDeclarationElement(XElement declarationElement, ParserContext context) {
-            XElement declElement;
-            if(declarationElement.Name == SRC.Declaration || declarationElement.Name == SRC.FunctionDeclaration) {
-                declElement = declarationElement;
-            } else {
-                declElement = declarationElement.Element(SRC.Declaration);
-            }
-
-            // first get the type element and see if the type is "var" if the type is "var" then
-            // this is a single declaration (not multiple declarations in a single statement)
-            var typeElement = declElement.Element(SRC.Type);
-            if(typeElement != null && typeElement.Element(SRC.Name).Value == "var") {
-                // get the init expression from the declaration
-                var initElement = declElement.Element(SRC.Init);
-                var expression = initElement.Element(SRC.Expression);
-
-                // if the init expression has the "new" operator, then it is likely of the form var
-                // a = new A();
-                if(expression.Elements(OP.Operator).Any(o => o.Value == "new")) {
-                    var nameElement = declarationElement.Element(SRC.Name);
-
-                    var callElement = expression.Elements(SRC.Call).FirstOrDefault();
-
-                    var declaration = new VariableDeclaration() {
-                        Name = nameElement.Value,
-                        Location = context.CreateLocation(nameElement),
-                        Scope = context.CurrentScope,
-                    };
-
-                    // try to create the declaration element based on the constructor name. If we
-                    // can't, then just proceed as if "var" is the type
-                    if(callElement != null && callElement.Element(SRC.Name) != null) {
-                        declaration.VariableType = ParseTypeUseElement(callElement.Element(SRC.Name), context);
-                    } else {
-                        declaration.VariableType = ParseTypeUseElement(typeElement, context);
-                    }
-                    yield return declaration;
-                }
-            } else {
-                foreach(var declaration in base.ParseDeclarationElement(declarationElement, context)) {
-                    yield return declaration;
-                }
-            }
-        }
-
-        /// <summary>
         /// Parses a C# namespace block
         /// </summary>
         /// <param name="namespaceElement">the namespace element to parse</param>
@@ -247,7 +193,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Parses the given typeElement and returns a TypeDefinition object.
         /// </summary>
-        /// <param name="typeElement">the type XML typeUseElement.</param>
+        /// <param name="typeElement">the type XML type element.</param>
         /// <param name="context">the parser context</param>
         /// <returns>A new TypeDefinition object</returns>
         public override void ParseTypeElement(XElement typeElement, ParserContext context) {
@@ -257,6 +203,49 @@ namespace ABB.SrcML.Data {
                            where specifiers.Value == "partial"
                            select specifiers;
             (context.CurrentScope as TypeDefinition).IsPartial = partials.Any();
+        }
+
+        /// <summary>
+        /// Parses the given typeUseElement and returns a TypeUse object. This handles the "var" keyword for C# if used
+        /// </summary>
+        /// <param name="typeUseElement">The XML type use element</param>
+        /// <param name="context">The parser context</param>
+        /// <returns>A new TypeUse object</returns>
+        public override TypeUse ParseTypeUseElement(XElement typeUseElement, ParserContext context) {
+            if(typeUseElement == null)
+                throw new ArgumentNullException("typeUseElement");
+
+            XElement typeElement;
+            XElement typeNameElement;
+
+            // validate the type use typeUseElement (must be a SRC.Name or SRC.Type)
+            if(typeUseElement.Name == SRC.Type) {
+                typeElement = typeUseElement;
+                typeNameElement = typeUseElement.Elements(SRC.Name).LastOrDefault();
+            } else if(typeUseElement.Name == SRC.Name) {
+                typeElement = typeUseElement.Ancestors(SRC.Type).FirstOrDefault();
+                typeNameElement = typeUseElement;
+            } else {
+                throw new ArgumentException("typeUseElement should be of type type or name", "typeUseElement");
+            }
+
+            if(typeNameElement.Value == "var") {
+                var initElement = typeElement.ElementsAfterSelf(SRC.Init).FirstOrDefault();
+                var expressionElement = (null == initElement ? null : initElement.Element(SRC.Expression));
+                var callElement = (null == expressionElement ? null : expressionElement.Element(SRC.Call));
+
+                IResolvesToType initializer = (null == callElement ? null : ParseCallElement(callElement, context));
+                var typeUse = new CSharpVarTypeUse() {
+                    Name = typeNameElement.Value,
+                    Initializer = initializer,
+                    ParentScope = context.CurrentScope,
+                    Location = context.CreateLocation(typeNameElement),
+                    ProgrammingLanguage = this.ParserLanguage,
+                };
+                return typeUse;
+            } else {
+                return base.ParseTypeUseElement(typeUseElement, context);
+            }
         }
 
         //TODO: implement support for using blocks, once SrcML has been fixed to parse them correctly

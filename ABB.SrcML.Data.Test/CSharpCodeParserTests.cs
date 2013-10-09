@@ -401,7 +401,7 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestDeclarationWithTypeVar() {
+        public void TestDeclarationWithTypeVarFromConstructor() {
             // B.cs namespace A { class B { public B() { }; } }
             string bXml = @"<namespace>namespace <name>A</name> <block>{ <class>class <name>B</name> <block>{ <constructor><specifier>public</specifier> <name>B</name><parameter_list>()</parameter_list> <block>{ }</block></constructor><empty_stmt>;</empty_stmt> }</block></class> }</block></namespace>";
             // C.cs namespace A { class C { void main() { var b = new B(); } } }
@@ -422,6 +422,38 @@ namespace ABB.SrcML.Data.Test {
                                select decl).FirstOrDefault();
 
             Assert.IsNotNull(typeB);
+            Assert.IsNotNull(declaration);
+            Assert.AreSame(typeB, declaration.VariableType.FindFirstMatchingType());
+        }
+
+        [Test]
+        public void TestDeclarationWithTypeVarFromMethod() {
+            //namespace A {
+            //    class B {
+            //        public static void main() { var b = getB(); }
+            //        public static B getB() { return new B(); }
+            //    }
+            //}
+            string xml = @"<namespace>namespace <name>A</name> <block>{
+    <class>class <name>B</name> <block>{
+        <function><type><specifier>public</specifier> <specifier>static</specifier> <name>void</name></type> <name>main</name><parameter_list>()</parameter_list> <block>{ <decl_stmt><decl><type><name>var</name></type> <name>b</name> =<init> <expr><call><name>getB</name><argument_list>()</argument_list></call></expr></init></decl>;</decl_stmt> }</block></function>
+        <function><type><specifier>public</specifier> <specifier>static</specifier> <name>B</name></type> <name>getB</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><op:operator>new</op:operator> <call><name>B</name><argument_list>()</argument_list></call></expr>;</return> }</block></function>
+    }</block></class>
+}</block></namespace>";
+
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "B.cs");
+            var scope = codeParser.ParseFileUnit(unit);
+
+            var typeB = (from type in scope.GetDescendantScopes<TypeDefinition>()
+                         where type.Name == "B"
+                         select type).FirstOrDefault();
+
+            var mainMethod = (from method in scope.GetDescendantScopes<MethodDefinition>()
+                              where method.Name == "main"
+                              select method).FirstOrDefault();
+
+            var declaration = mainMethod.DeclaredVariables.FirstOrDefault();
+
             Assert.IsNotNull(declaration);
             Assert.AreSame(typeB, declaration.VariableType.FindFirstMatchingType());
         }
