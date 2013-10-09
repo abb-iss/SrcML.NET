@@ -602,6 +602,9 @@ namespace ABB.SrcML.Data {
                     current = scopeUse;
                 }
             }
+            if (null != root) {
+                root.ParentScope = context.CurrentScope;
+            }
             return root;
         }
 

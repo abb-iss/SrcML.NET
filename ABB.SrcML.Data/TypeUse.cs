@@ -98,13 +98,21 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <returns>All of the type definitions that match this type use</returns>
         public override IEnumerable<TypeDefinition> FindMatches() {
-            // if this is a built-in type, then just return that
-            // otherwise, go hunting for matching types
+            // if this is a built-in type, then just return that otherwise, go hunting for matching
+            // types
             if(BuiltInTypeFactory.IsBuiltIn(this)) {
                 yield return BuiltInTypeFactory.GetBuiltIn(this);
+            } else if(null != Prefix) {
+                var matches = from prefixMatch in Prefix.FindMatches()
+                              from match in prefixMatch.GetChildScopesWithId<TypeDefinition>(this.Name)
+                              select match;
+                foreach(var match in matches) {
+                    yield return match;
+                }
             } else {
-                // First, just call AbstractUse.FindMatches() this will search everything in ParentScope.GetParentScopesAndSelf<TypeDefinition>()
-                // for a matching type and return it
+                // First, just call AbstractUse.FindMatches() this will search everything in
+                // ParentScope.GetParentScopesAndSelf<TypeDefinition>() for a matching type and
+                // return it
                 foreach(var match in base.FindMatches()) {
                     yield return match;
                 }

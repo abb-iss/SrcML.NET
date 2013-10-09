@@ -133,11 +133,20 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <returns>An enumerable of the matching type definitions for this method</returns>
         public IEnumerable<TypeDefinition> FindMatchingTypes() {
-            var possibleReturnTypes = from methodDefinition in FindMatches()
-                                      where methodDefinition.ReturnType != null
-                                      from typeDefinition in methodDefinition.ReturnType.FindMatches()
-                                      select typeDefinition;
-            return possibleReturnTypes;
+            foreach(var methodDefinition in FindMatches()) {
+                IEnumerable<TypeDefinition> matchingTypes = Enumerable.Empty<TypeDefinition>();
+
+                if(methodDefinition.ReturnType != null) {
+                    matchingTypes = methodDefinition.ReturnType.FindMatches();
+                } else if(methodDefinition.IsConstructor) {
+                    matchingTypes = from type in methodDefinition.GetParentScopes<TypeDefinition>()
+                                    where type.Name == methodDefinition.Name
+                                    select type;
+                }
+                foreach(var result in matchingTypes) {
+                    yield return result;
+                }
+            }
         }
 
         public IEnumerable<string> GetPossibleNames() {

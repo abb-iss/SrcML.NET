@@ -480,6 +480,68 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
+        public void TestFindParentType() {
+            // namespace A { class B : C { } }
+            string bXml = @"<namespace>namespace <name>A</name> <block>{ <class>class <name>B</name> <super>: <name>C</name></super> <block>{<private type=""default""> </private>}</block> <decl/></class>}</block></namespace>";
+
+            // namespace A { class C { } }
+            string cXml = @"<namespace>namespace <name>A</name> <block>{ <class>class <name>C</name> <block>{<private type=""default""> </private>}</block> <decl/></class>}</block></namespace>";
+
+            var bUnit = fileSetup.GetFileUnitForXmlSnippet(bXml, "B.cs");
+            var cUnit = fileSetup.GetFileUnitForXmlSnippet(cXml, "D.cs");
+
+            var bScope = codeParser.ParseFileUnit(bUnit);
+            var cScope = codeParser.ParseFileUnit(cUnit);
+
+            var globalScope = bScope.Merge(cScope);
+
+            var typeB = (from type in globalScope.GetDescendantScopes<TypeDefinition>()
+                         where type.Name == "B"
+                         select type).FirstOrDefault();
+
+            var typeC = (from type in globalScope.GetDescendantScopes<TypeDefinition>()
+                         where type.Name == "C"
+                         select type).FirstOrDefault();
+
+            Assert.IsNotNull(typeB);
+            Assert.IsNotNull(typeC);
+
+            Assert.AreEqual(1, typeB.ParentTypes.Count);
+            Assert.AreSame(typeC, typeB.ParentTypes[0].FindFirstMatchingType());
+        }
+
+        [Test]
+        public void TestFindQualifiedParentType() {
+            // namespace A { class B : C.D { } }
+            string bXml = @"<namespace>namespace <name>A</name> <block>{ <class>class <name>B</name> <super>: <name><name>C</name><op:operator>.</op:operator><name>D</name></name></super> <block>{<private type=""default""> </private>}</block> <decl/></class>}</block></namespace>";
+
+            // namespace C { class D { } }
+            string dXml = @"<namespace>namespace <name>C</name> <block>{ <class>class <name>D</name> <block>{<private type=""default""> </private>}</block> <decl/></class>}</block></namespace>";
+
+            var bUnit = fileSetup.GetFileUnitForXmlSnippet(bXml, "B.cs");
+            var dUnit = fileSetup.GetFileUnitForXmlSnippet(dXml, "D.cs");
+
+            var bScope = codeParser.ParseFileUnit(bUnit);
+            var dScope = codeParser.ParseFileUnit(dUnit);
+
+            var globalScope = bScope.Merge(dScope);
+
+            var typeB = (from type in globalScope.GetDescendantScopes<TypeDefinition>()
+                         where type.Name == "B"
+                         select type).FirstOrDefault();
+
+            var typeD = (from type in globalScope.GetDescendantScopes<TypeDefinition>()
+                         where type.Name == "D"
+                         select type).FirstOrDefault();
+
+            Assert.IsNotNull(typeB);
+            Assert.IsNotNull(typeD);
+
+            Assert.AreEqual(1, typeB.ParentTypes.Count);
+            Assert.AreSame(typeD, typeB.ParentTypes[0].FindFirstMatchingType());
+        }
+
+        [Test]
         public void TestGenericVariableDeclaration() {
             //Dictionary<string,int> map;
             string xml = @"<decl_stmt><decl><type><name><name>Dictionary</name><argument_list>&lt;<argument><name>string</name></argument>,<argument><name>int</name></argument>&gt;</argument_list></name></type> <name>map</name></decl>;</decl_stmt>";
@@ -903,6 +965,68 @@ namespace ABB.SrcML.Data.Test {
                              select m).FirstOrDefault();
 
             Assert.IsNotNull(callToBar);
+            Assert.AreSame(barMethod, callToBar.FindMatches().FirstOrDefault());
+        }
+
+        [Test]
+        public void TestStaticMethodCall() {
+            //namespace A { public class B { public static void Bar() { } } }
+            var bXml = @"<namespace>namespace <name>A</name> <block>{ <class><specifier>public</specifier> class <name>B</name> <block>{ <function><type><specifier>public</specifier> <specifier>static</specifier> <name>void</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ }</block></function> }</block></class> }</block></namespace>";
+            //namespace A { public class C { public void Foo() { B.Bar(); } } }
+            var cXml = @"<namespace>namespace <name>A</name> <block>{ <class><specifier>public</specifier> class <name>C</name> <block>{ <function><type><specifier>public</specifier> <name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ <expr_stmt><expr><call><name><name>B</name><op:operator>.</op:operator><name>Bar</name></name><argument_list>()</argument_list></call></expr>;</expr_stmt> }</block></function> }</block></class> }</block></namespace>";
+
+            var bUnit = fileSetup.GetFileUnitForXmlSnippet(bXml, "B.cs");
+            var cUnit = fileSetup.GetFileUnitForXmlSnippet(cXml, "C.cs");
+
+            var bScope = codeParser.ParseFileUnit(bUnit);
+            var cScope = codeParser.ParseFileUnit(cUnit);
+
+            var globalScope = bScope.Merge(cScope);
+
+            var fooMethod = (from method in globalScope.GetDescendantScopes<MethodDefinition>()
+                             where method.Name == "Foo"
+                             select method).FirstOrDefault();
+            var barMethod = (from method in globalScope.GetDescendantScopes<MethodDefinition>()
+                             where method.Name == "Bar"
+                             select method).FirstOrDefault();
+
+            Assert.IsNotNull(fooMethod);
+            Assert.IsNotNull(barMethod);
+
+            var callToBar = fooMethod.MethodCalls.FirstOrDefault();
+            Assert.IsNotNull(callToBar);
+
+            Assert.AreSame(barMethod, callToBar.FindMatches().FirstOrDefault());
+        }
+
+        [Test]
+        public void TestStaticMethodCallInDifferentNamespace() {
+            //namespace A { public class B { public static void Bar() { } } }
+            var bXml = @"<namespace>namespace <name>A</name> <block>{ <class><specifier>public</specifier> class <name>B</name> <block>{ <function><type><specifier>public</specifier> <specifier>static</specifier> <name>void</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ }</block></function> }</block></class> }</block></namespace>";
+            //namespace C { public class D { public void Foo() { A.B.Bar(); } } }
+            var dXml = @"<namespace>namespace <name>C</name> <block>{ <class><specifier>public</specifier> class <name>D</name> <block>{ <function><type><specifier>public</specifier> <name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ <expr_stmt><expr><call><name><name>A</name><op:operator>.</op:operator><name>B</name><op:operator>.</op:operator><name>Bar</name></name><argument_list>()</argument_list></call></expr>;</expr_stmt> }</block></function> }</block></class> }</block></namespace>";
+
+            var bUnit = fileSetup.GetFileUnitForXmlSnippet(bXml, "B.cs");
+            var dUnit = fileSetup.GetFileUnitForXmlSnippet(dXml, "C.cs");
+
+            var bScope = codeParser.ParseFileUnit(bUnit);
+            var dScope = codeParser.ParseFileUnit(dUnit);
+
+            var globalScope = bScope.Merge(dScope);
+
+            var fooMethod = (from method in globalScope.GetDescendantScopes<MethodDefinition>()
+                             where method.Name == "Foo"
+                             select method).FirstOrDefault();
+            var barMethod = (from method in globalScope.GetDescendantScopes<MethodDefinition>()
+                             where method.Name == "Bar"
+                             select method).FirstOrDefault();
+
+            Assert.IsNotNull(fooMethod);
+            Assert.IsNotNull(barMethod);
+
+            var callToBar = fooMethod.MethodCalls.FirstOrDefault();
+            Assert.IsNotNull(callToBar);
+
             Assert.AreSame(barMethod, callToBar.FindMatches().FirstOrDefault());
         }
 

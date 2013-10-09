@@ -197,7 +197,16 @@ namespace ABB.SrcML.Data.Test {
             using(var callLog = new StreamWriter(callLogPath)) {
                 foreach(var call in methodCalls) {
                     sw.Start();
-                    var match = call.FindMatches().FirstOrDefault();
+                    MethodDefinition match = null;
+                    try
+                    {
+                        match = call.FindMatches().FirstOrDefault();
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("{0}:{1}:{2}): {3}", call.Location.SourceFileName, call.Location.StartingLineNumber, call.Location.StartingColumnNumber, e.Message);
+                    }
+                    
                     sw.Stop();
                     numMethodCalls++;
                     if(null != match) {

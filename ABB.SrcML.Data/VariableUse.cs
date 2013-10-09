@@ -97,10 +97,47 @@ namespace ABB.SrcML.Data {
             if(this.Name == "this" || (this.Name == "base" && this.ProgrammingLanguage == Language.CSharp)) {
                 typeDefinitions = TypeDefinition.GetTypeForKeyword(this);
             } else {
-                typeDefinitions = from declaration in FindMatches()
-                                  where declaration.VariableType != null
-                                  from definition in declaration.VariableType.FindMatches()
-                                  select definition;
+                var matchingVariables = FindMatches();
+                if(matchingVariables.Any()) {
+                    typeDefinitions = from declaration in matchingVariables
+                                      where declaration.VariableType != null
+                                      from definition in declaration.VariableType.FindMatches()
+                                      select definition;
+                } else {
+                    var tempTypeUse = new TypeUse() {
+                        Name = this.Name,
+                        ParentScope = this.ParentScope,
+                        ProgrammingLanguage = this.ProgrammingLanguage,
+                    };
+                    if(CallingObject != null) {
+                        var caller = CallingObject as VariableUse;
+                        Stack<NamedScopeUse> callerStack = new Stack<NamedScopeUse>();
+                        while(caller != null) {
+                            var scopeUse = new NamedScopeUse() {
+                                Name = caller.Name,
+                                ProgrammingLanguage = this.ProgrammingLanguage,
+                            };
+                            callerStack.Push(scopeUse);
+                            caller = caller.CallingObject as VariableUse;
+                        }
+
+                        NamedScopeUse prefix = null, last = null;
+
+                        foreach(var current in callerStack) {
+                            if(null == prefix) {
+                                prefix = current;
+                                last = prefix;
+                            } else {
+                                last.ChildScopeUse = current;
+                                last = current;
+                            }
+                        }
+                        prefix.ParentScope = this.ParentScope;
+                        tempTypeUse.Prefix = prefix;
+                    }
+                    tempTypeUse.AddAliases(this.Aliases);
+                    typeDefinitions = tempTypeUse.FindMatchingTypes();
+                }
             }
             return typeDefinitions;
         }
