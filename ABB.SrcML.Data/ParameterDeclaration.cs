@@ -32,6 +32,11 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
+        /// Indicates whether or not there is a default value for this method parameter
+        /// </summary>
+        public bool HasDefaultValue { get; set; }
+
+        /// <summary>
         /// The primary location for this parameter
         /// </summary>
         public override SrcMLLocation Location {

@@ -621,6 +621,41 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
+        public void TestMethodWithDefaultArguments() {
+            //void foo(int a = 0);
+            //
+            //int main() {
+            //    foo();
+            //    foo(5);
+            //    return 0;
+            //}
+            //
+            //void foo(int a) { }
+            string xml = @"<function_decl><type><name>void</name></type> <name>foo</name><parameter_list>(<param><decl><type><name>int</name></type> <name>a</name> =<init> <expr><lit:literal type=""number"">0</lit:literal></expr></init></decl></param>)</parameter_list>;</function_decl>
+
+<function><type><name>int</name></type> <name>main</name><parameter_list>()</parameter_list> <block>{
+    <expr_stmt><expr><call><name>foo</name><argument_list>()</argument_list></call></expr>;</expr_stmt>
+    <expr_stmt><expr><call><name>foo</name><argument_list>(<argument><expr><lit:literal type=""number"">5</lit:literal></expr></argument>)</argument_list></call></expr>;</expr_stmt>
+    <return>return <expr><lit:literal type=""number"">0</lit:literal></expr>;</return>
+}</block></function>
+
+<function><type><name>void</name></type> <name>foo</name><parameter_list>(<param><decl><type><name>int</name></type> <name>a</name></decl></param>)</parameter_list> <block>{ }</block></function>";
+
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cpp");
+            var globalScope = codeParser.ParseFileUnit(unit);
+
+            var fooMethod = globalScope.GetChildScopesWithId<MethodDefinition>("foo").FirstOrDefault();
+            var mainMethod = globalScope.GetChildScopesWithId<MethodDefinition>("main").FirstOrDefault();
+
+            Assert.IsNotNull(fooMethod);
+            Assert.IsNotNull(mainMethod);
+            Assert.AreEqual(2, mainMethod.MethodCalls.Count());
+
+            Assert.AreSame(fooMethod, mainMethod.MethodCalls.First().FindMatches().FirstOrDefault());
+            Assert.AreSame(fooMethod, mainMethod.MethodCalls.Last().FindMatches().FirstOrDefault());
+        }
+
+        [Test]
         public void TestMultiVariableDeclarations() {
             //int a,b,c;
             string testXml = @"<decl_stmt><decl><type><name>int</name></type> <name>a</name>,<name>b</name>,<name>c</name></decl>;</decl_stmt>";

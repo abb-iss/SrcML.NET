@@ -169,11 +169,14 @@ namespace ABB.SrcML.Data {
 
             //var argumentsMatchParameters = Enumerable.Zip(this.Arguments, definition.Parameters,
             //                                              (a,p) => ArgumentMatchesDefinition(a,p));
+            var numberOfMethodParameters = definition.Parameters.Count;
+            var numberOfMethodParametersWithDefault = definition.Parameters.Where(p => p.HasDefaultValue).Count();
 
             return this.IsConstructor == definition.IsConstructor &&
                    this.IsDestructor == definition.IsDestructor &&
                    GetPossibleNames().Any(n => n == definition.Name) &&
-                   this.Arguments.Count == definition.Parameters.Count;// &&
+                   this.Arguments.Count >= numberOfMethodParameters - numberOfMethodParametersWithDefault &&
+                   this.Arguments.Count <= definition.Parameters.Count;// &&
                                                                        //argumentsMatchParameters.All(a => a);
         }
 

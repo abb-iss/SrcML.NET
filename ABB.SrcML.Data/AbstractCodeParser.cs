@@ -562,10 +562,12 @@ namespace ABB.SrcML.Data {
             var typeElement = declElement.Element(SRC.Type);
             var nameElement = declElement.Element(SRC.Name);
             var name = (nameElement == null ? String.Empty : nameElement.Value);
+            var hasDefault = (declElement.Element(SRC.Init) != null);
 
             var parameterDeclaration = new ParameterDeclaration {
                 VariableType = ParseTypeUseElement(typeElement, context),
                 Name = name,
+                HasDefaultValue = hasDefault,
                 Scope = context.CurrentScope
             };
             parameterDeclaration.Locations.Add(context.CreateLocation(declElement));
