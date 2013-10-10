@@ -1086,5 +1086,73 @@ namespace ABB.SrcML.Data.Test {
 
             Assert.AreSame(bDotFoo, callToFoo.FindMatches().FirstOrDefault());
         }
+
+        [Test]
+        public void TestCallToGenericMethod() {
+            //namespace A {
+            //    public class B {
+            //        void Foo<T>(T t) { }
+            //        void Bar() { Foo(this); }
+            //    }
+            //}
+            var xml = @"<namespace>namespace <name>A</name> <block>{
+    <class><specifier>public</specifier> class <name>B</name> <block>{
+        <function><type><name>void</name></type> <name><name>Foo</name><argument_list>&lt;<argument><name>T</name></argument>&gt;</argument_list></name><parameter_list>(<param><decl><type><name>T</name></type> <name>t</name></decl></param>)</parameter_list> <block>{ }</block></function>
+        <function><type><name>void</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ <expr_stmt><expr><call><name>Foo</name><argument_list>(<argument><expr><name>this</name></expr></argument>)</argument_list></call></expr>;</expr_stmt> }</block></function>
+    }</block></class>
+}</block></namespace>"; 
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
+
+            var scope = codeParser.ParseFileUnit(unit);
+
+            var foo = scope.GetDescendantScopes<MethodDefinition>().Where(m => m.Name == "Foo").FirstOrDefault();
+            var bar = scope.GetDescendantScopes<MethodDefinition>().Where(m => m.Name == "Bar").FirstOrDefault();
+
+            Assert.IsNotNull(foo);
+            Assert.IsNotNull(bar);
+
+            var callToFoo = bar.MethodCalls.FirstOrDefault();
+
+            Assert.IsNotNull(callToFoo);
+
+            Assert.AreSame(foo, callToFoo.FindMatches().FirstOrDefault());
+        }
+
+        [Test]
+        public void TestCallWithTypeParameters() {
+            //namespace A {
+            //	public interface IQuery { }
+            //	public interface IOdb { IQuery Query<T>(); }
+            //	
+            //	public class Test {
+            //		public IOdb Open() { }
+            //		void Test1() {
+            //			var odb = Open();
+            //			var query = odb.Query<Foo>();
+            //		}
+            //	}
+            //}
+            var xml = @"<namespace>namespace <name>A</name> <block>{
+	<class type=""interface""><specifier>public</specifier> interface <name>IQuery</name> <block>{ }</block></class>
+	<class type=""interface""><specifier>public</specifier> interface <name>IOdb</name> <block>{ <function_decl><type><name>IQuery</name></type> <name><name>Query</name><argument_list>&lt;<argument><name>T</name></argument>&gt;</argument_list></name><parameter_list>()</parameter_list>;</function_decl> }</block></class>
+	
+	<class><specifier>public</specifier> class <name>Test</name> <block>{
+		<function><type><specifier>public</specifier> <name>IOdb</name></type> <name>Open</name><parameter_list>()</parameter_list> <block>{ }</block></function>
+		<function><type><name>void</name></type> <name>Test1</name><parameter_list>()</parameter_list> <block>{
+			<decl_stmt><decl><type><name>var</name></type> <name>odb</name> =<init> <expr><call><name>Open</name><argument_list>()</argument_list></call></expr></init></decl>;</decl_stmt>
+			<decl_stmt><decl><type><name>var</name></type> <name>query</name> =<init> <expr><call><name><name>odb</name><op:operator>.</op:operator><name><name>Query</name><argument_list>&lt;<argument><name>Foo</name></argument>&gt;</argument_list></name></name><argument_list>()</argument_list></call></expr></init></decl>;</decl_stmt>
+		}</block></function>
+	}</block></class>
+}</block></namespace>";
+
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
+            var scope = codeParser.ParseFileUnit(unit);
+
+            var queryMethod = scope.GetDescendantScopes<MethodDefinition>().Where(m => m.Name == "Query").FirstOrDefault();
+            var test1Method = scope.GetDescendantScopes<MethodDefinition>().Where(m => m.Name == "Test1").FirstOrDefault();
+            var callToQuery = test1Method.MethodCalls.LastOrDefault();
+
+            Assert.AreSame(queryMethod, callToQuery.FindMatches().FirstOrDefault());
+        }
     }
 }

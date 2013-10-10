@@ -235,6 +235,7 @@ namespace ABB.SrcML.Data {
         /// <returns>A method call for
         /// <paramref name="callElement"/></returns>
         public virtual MethodCall ParseCallElement(XElement callElement, ParserContext context) {
+            XElement methodNameElement = null;
             string name = String.Empty;
             bool isConstructor = false;
             bool isDestructor = false;
@@ -242,10 +243,19 @@ namespace ABB.SrcML.Data {
 
             var nameElement = callElement.Element(SRC.Name);
             if(null != nameElement) {
-                name = NameHelper.GetLastName(nameElement);
+                methodNameElement = NameHelper.GetLastNameElement(nameElement);
                 callingObjectNames = NameHelper.GetNameElementsExceptLast(nameElement);
             }
-
+            if(null != methodNameElement) {
+                if(null != methodNameElement.Element(SRC.ArgumentList)) {
+                    name = methodNameElement.Element(SRC.Name).Value;
+                } else {
+                    name = methodNameElement.Value;
+                }
+            }
+            if(methodNameElement != null && methodNameElement.Element(SRC.ArgumentList) != null) {
+                name = methodNameElement.Element(SRC.Name).Value;
+            }
             var precedingElements = callElement.ElementsBeforeSelf();
 
             foreach(var pe in precedingElements) {
@@ -1159,10 +1169,11 @@ namespace ABB.SrcML.Data {
         /// <param name="methodElement">the method callElement to get the name for</param>
         /// <returns>The name of the method</returns>
         public virtual string GetNameForMethod(XElement methodElement) {
-            var name = methodElement.Element(SRC.Name);
-            if(null == name)
+            var nameElement = methodElement.Element(SRC.Name);
+
+            if(null == nameElement)
                 return string.Empty;
-            return name.Value;
+            return NameHelper.GetLastName(nameElement);
         }
 
         /// <summary>
