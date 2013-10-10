@@ -1056,5 +1056,35 @@ namespace ABB.SrcML.Data.Test {
                 CollectionAssert.Contains(expectedVariableTypes, declaration.VariableType.Name);
             }
         }
+
+        [Test]
+        public void TestCallToGrandparent() {
+            //namespace A {
+            //    public class B { public void Foo() { } }
+            //    public class C : B { }
+            //    public class D : C { public void Bar() { Foo() } }
+            //}
+            var xml = @"<namespace>namespace <name>A</name> <block>{
+    <class><specifier>public</specifier> class <name>B</name> <block>{ <function><type><specifier>public</specifier> <name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></function> }</block></class>
+    <class><specifier>public</specifier> class <name>C</name> <super>: <name>B</name></super> <block>{ }</block></class>
+    <class><specifier>public</specifier> class <name>D</name> <super>: <name>C</name></super> <block>{ <function><type><specifier>public</specifier> <name>void</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ <expr_stmt><expr><call><name>Foo</name><argument_list>()</argument_list></call></expr></expr_stmt> }</block></function> }</block></class>
+}</block></namespace>";
+
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
+
+            var scope = codeParser.ParseFileUnit(unit);
+
+            var bDotFoo = scope.GetDescendantScopes<MethodDefinition>().Where(m => m.Name == "Foo").FirstOrDefault();
+            var dDotBar = scope.GetDescendantScopes<MethodDefinition>().Where(m => m.Name == "Bar").FirstOrDefault();
+
+            Assert.IsNotNull(bDotFoo);
+            Assert.IsNotNull(dDotBar);
+
+            var callToFoo = dDotBar.MethodCalls.FirstOrDefault();
+
+            Assert.IsNotNull(callToFoo);
+
+            Assert.AreSame(bDotFoo, callToFoo.FindMatches().FirstOrDefault());
+        }
     }
 }

@@ -145,11 +145,11 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <returns>Matching parent types for this type</returns>
         public IEnumerable<TypeDefinition> GetParentTypes() {
-            foreach(var parentTypeUse in this.ParentTypes) {
-                foreach(var match in parentTypeUse.FindMatchingTypes()) {
-                    yield return match;
-                }
-            }
+            var results = from typeUse in ParentTypes
+                          from type in typeUse.FindMatchingTypes()
+                          from nextType in type.GetParentTypesAndSelf()
+                          select nextType;
+            return results.Take(100);
         }
 
         /// <summary>
