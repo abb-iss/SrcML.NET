@@ -1185,7 +1185,7 @@ namespace ABB.SrcML.Data {
             var name = typeElement.Element(SRC.Name);
             if(null == name)
                 return string.Empty;
-            return name.Value;
+            return NameHelper.GetLastName(name);
         }
 
         /// <summary>

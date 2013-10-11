@@ -1150,5 +1150,18 @@ namespace ABB.SrcML.Data.Test {
 
             Assert.AreSame(queryMethod, callToQuery.FindMatches().FirstOrDefault());
         }
+
+        [Test]
+        public void TestGenericType() {
+            //public class B<T> { }
+            var xml = @"<class><specifier>public</specifier> class <name><name>B</name><argument_list>&lt;<argument><name>T</name></argument>&gt;</argument_list></name> <block>{ }</block></class>";
+
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "B.cs");
+            var scope = codeParser.ParseFileUnit(unit);
+
+            var typeB = scope.GetChildScopes<TypeDefinition>().FirstOrDefault();
+            Assert.IsNotNull(typeB);
+            Assert.AreEqual("B", typeB.Name);
+        }
     }
 }
