@@ -34,12 +34,42 @@ namespace ABB.SrcML {
     /// files to identify files that have been deleted. Next, it checks the files
     /// </remarks>
     public class DirectoryScanningMonitor : AbstractFileMonitor {
+        public const int DEFAULT_SCAN_INTERVAL = 60;
         private const int IDLE = 0;
+        private const string MONITOR_LIST_FILENAME = "monitored_directories.txt";
         private const int RUNNING = 1;
         private const int STOPPED = -1;
+
+        private static HashSet<string> Exclusions = new HashSet<string>(new List<string>() {
+            "bin", "obj", "TestResults"
+        }, StringComparer.InvariantCultureIgnoreCase);
+
         private List<string> folders;
         private Timer ScanTimer;
         private int syncPoint;
+
+        /// <summary>
+        /// Create a new directory scanning monitor
+        /// </summary>
+        /// <param name="monitorFileName">The file name to save the list of monitored directories
+        /// to</param>
+        /// <param name="scanInterval">The <see cref="ScanInterval"/> in seconds</param>
+        /// <param name="baseDirectory">The base directory to use for the archives of this
+        /// monitor</param>
+        /// <param name="defaultArchive">The default archive to use</param>
+        /// <param name="otherArchives">Other archives for specific extensions</param>
+        public DirectoryScanningMonitor(string monitorFileName, double scanInterval, string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
+            : base(baseDirectory, defaultArchive, otherArchives) {
+            MonitoredDirectoriesFilePath = Path.Combine(baseDirectory, monitorFileName);
+            folders = new List<string>();
+            MonitoredDirectories = new ReadOnlyCollection<string>(folders);
+
+            ScanTimer = new Timer();
+            ScanInterval = scanInterval;
+            ScanTimer.AutoReset = true;
+            ScanTimer.Elapsed += ScanTimer_Elapsed;
+            syncPoint = STOPPED;
+        }
 
         /// <summary>
         /// Create a new directory scanning monitor
@@ -51,39 +81,20 @@ namespace ABB.SrcML {
         /// monitor</param>
         /// <param name="defaultArchive">The default archive to use</param>
         /// <param name="otherArchives">Other archives for specific extensions</param>
-        public DirectoryScanningMonitor(ICollection<string> foldersToMonitor, double scanInterval, string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
-            : base(baseDirectory, defaultArchive, otherArchives) {
-            folders = new List<string>(foldersToMonitor.Count);
-            folders.AddRange(foldersToMonitor);
-            MonitoredDirectories = new ReadOnlyCollection<string>(folders);
-            ScanTimer = new Timer();
-            ScanInterval = scanInterval;
-            ScanTimer.AutoReset = true;
-            ScanTimer.Elapsed += ScanTimer_Elapsed;
-            syncPoint = STOPPED;
-        }
-
-        /// <summary>
-        /// Create a new directory scanning monitor
-        /// </summary>
-        /// <param name="baseDirectory">The base directory to use for the archives of this
-        /// monitor</param>
-        /// <param name="defaultArchive">The default archive to use</param>
-        /// <param name="otherArchives">Other archives for specific extensions</param>
-        public DirectoryScanningMonitor(string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
-            : this(new List<string>(), baseDirectory, defaultArchive, otherArchives) { }
+        public DirectoryScanningMonitor(double scanInterval, string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
+            : this(MONITOR_LIST_FILENAME, scanInterval, baseDirectory, defaultArchive, otherArchives) { }
 
         /// <summary>
         /// Create a new directory scanning monitor
         /// </summary>
         /// <param name="foldersToMonitor">An initial list of
-        /// <see cref="MonitoredDirectories">folders to /see></param>
+        /// <see cref="MonitoredDirectories">folders to </see> monitor</param>
         /// <param name="baseDirectory">The base directory to use for the archives of this
         /// monitor</param>
         /// <param name="defaultArchive">The default archive to use</param>
         /// <param name="otherArchives">Other archives for specific extensions</param>
-        public DirectoryScanningMonitor(ICollection<string> foldersToMonitor, string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
-            : this(foldersToMonitor, 60, baseDirectory, defaultArchive, otherArchives) { }
+        public DirectoryScanningMonitor(string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
+            : this(MONITOR_LIST_FILENAME, DEFAULT_SCAN_INTERVAL, baseDirectory, defaultArchive, otherArchives) { }
 
         /// <summary>
         /// A read only collection of the directories being monitored. <para>Use
@@ -102,6 +113,23 @@ namespace ABB.SrcML {
         }
 
         /// <summary>
+        /// the file path to save the list of directories to when <see cref="WriteMonitoringList"/>
+        /// is called.
+        /// </summary>
+        protected string MonitoredDirectoriesFilePath { get; private set; }
+
+        /// <summary>
+        /// Loads the list of monitored directories from <see cref="MonitoredDirectoriesFilePath"/>.
+        /// </summary>
+        public void AddDirectoriesFromSaveFile() {
+            if(File.Exists(MonitoredDirectoriesFilePath)) {
+                foreach(var folderPath in File.ReadAllLines(MonitoredDirectoriesFilePath)) {
+                    AddDirectory(folderPath);
+                }
+            }
+        }
+
+        /// <summary>
         /// Add a folder to <see cref="MonitoredDirectories"/>
         /// </summary>
         /// <param name="directoryPath">The directory to start monitoring</param>
@@ -110,17 +138,27 @@ namespace ABB.SrcML {
         /// <paramref name="directoryPath"/>is a subdirectory of an existing directory.
         /// </remarks>
         public void AddDirectory(string directoryPath) {
-            var fullPath = Path.GetFullPath(directoryPath);
+            // get the full path to the directory with any trailing path separators trimmed off
+            var fullPath = GetFullPath(directoryPath);
+            bool alreadyMonitoringDirectory = false;
+
             foreach(var directory in MonitoredDirectories) {
                 if(fullPath.StartsWith(directory, StringComparison.InvariantCultureIgnoreCase)) {
+                    // if full path starts with directory, then check to see if they
+                    alreadyMonitoringDirectory = (fullPath.Length == directory.Length);
+                    if(alreadyMonitoringDirectory) {
+                        break;
+                    }
                     throw new DirectoryScanningMonitorSubDirectoryException(directoryPath, directory, this);
                 }
             }
 
-            folders.Add(Path.GetFullPath(directoryPath));
-            if(ScanTimer.Enabled) {
-                foreach(var fileName in EnumerateDirectory(directoryPath)) {
-                    UpdateFile(fileName);
+            if(!alreadyMonitoringDirectory) {
+                folders.Add(fullPath);
+                if(ScanTimer.Enabled) {
+                    foreach(var fileName in EnumerateDirectory(directoryPath)) {
+                        UpdateFile(fileName);
+                    }
                 }
             }
         }
@@ -133,9 +171,26 @@ namespace ABB.SrcML {
         /// <returns>An enumerable of the full file names in
         /// <paramref name="directory"/></returns>
         public IEnumerable<string> EnumerateDirectory(string directory) {
-            var files = from filePath in Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories)
-                        select Path.GetFullPath(filePath);
-            return files;
+            var dirName = Path.GetFileName(directory);
+            bool startsWithDot = (dirName[0] == '.');
+            bool isExcluded = Exclusions.Contains(dirName);
+
+            if(!(startsWithDot || isExcluded)) {
+                foreach(var dir in Directory.EnumerateDirectories(directory, "*", SearchOption.TopDirectoryOnly)) {
+                    foreach(var filePath in EnumerateDirectory(dir)) {
+                        yield return filePath;
+                    }
+                }
+
+                var files = from filePath in Directory.EnumerateFiles(directory, "*", SearchOption.TopDirectoryOnly)
+                            let fileName = Path.GetFileName(filePath)
+                            where fileName[0] != '.'
+                            select filePath;
+
+                foreach(var filePath in files) {
+                    yield return filePath;
+                }
+            }
         }
 
         /// <summary>
@@ -157,7 +212,7 @@ namespace ABB.SrcML {
         /// <returns>True if the file is in a <see cref="MonitoredDirectories">monitored
         /// directory</see>, false otherwise</returns>
         public bool IsMonitoringFile(string fileName) {
-            var fullPath = Path.GetFullPath(fileName);
+            var fullPath = GetFullPath(fileName);
             return MonitoredDirectories.Any(d => fullPath.StartsWith(d, StringComparison.InvariantCultureIgnoreCase));
         }
 
@@ -178,7 +233,7 @@ namespace ABB.SrcML {
                     Thread.Sleep(1);
                 }
             }
-            var directoryFullPath = Path.GetFullPath(directoryPath);
+            var directoryFullPath = GetFullPath(directoryPath);
 
             if(folders.Contains(directoryFullPath, StringComparer.InvariantCultureIgnoreCase)) {
                 folders.Remove(directoryFullPath);
@@ -222,6 +277,36 @@ namespace ABB.SrcML {
                 }
                 base.StopMonitoring();
             }
+        }
+
+        /// <summary>
+        /// Writes the current list of <see cref="MonitoredDirectories"/> to
+        /// <paramref name="fileName"/></summary>
+        /// <param name="fileName">The file name to write the list of directories to</param>
+        public void WriteMonitoringList() {
+            File.WriteAllLines(MonitoredDirectoriesFilePath, MonitoredDirectories);
+        }
+
+        protected override void Dispose(bool disposing) {
+            if(disposing) {
+                WriteMonitoringList();
+            }
+            base.Dispose(disposing);
+        }
+
+        /// <summary>
+        /// Gets the full path for a given path. This calls
+        /// <see cref="System.IO.Path.GetFullPath(string)"/> and then trims any
+        /// <see cref="System.IO.Path.PathSeparator">path separators</see> off of the end.
+        /// </summary>
+        /// <param name="path">The path to get a full path for</param>
+        /// <returns>The full path for
+        /// <paramref name="path"/>with no trailing path separators</returns>
+        private string GetFullPath(string path) {
+            if(null == path)
+                throw new ArgumentNullException("path");
+
+            return Path.GetFullPath(path).TrimEnd(Path.PathSeparator);
         }
 
         /// <summary>

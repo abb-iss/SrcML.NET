@@ -4,18 +4,22 @@ using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML.Data {
+
     /// <summary>
-    /// Abstract Scope Use is a variable use for Named Scopes. It provides an implementation of <see cref="AbstractUse{T}.FindMatches()"/>
-    /// for resolving Named Scope uses
+    /// Abstract Scope Use is a variable use for Named Scopes. It provides an implementation of
+    /// <see cref="AbstractUse{T}.FindMatches()"/> for resolving Named Scope uses
     /// </summary>
     /// <typeparam name="DEFINITION">The type. Must be NamedScope or a subclass</typeparam>
     [Serializable]
     public abstract class AbstractScopeUse<DEFINITION> : AbstractUse<DEFINITION>
         where DEFINITION : NamedScope {
+
         /// <summary>
-        /// Finds matching <typeparamref name="DEFINITION"/> from the <see cref="AbstractUse{T}.ParentScopes"/> of this usage.
+        /// Finds matching <typeparamref name="DEFINITION"/> from the
+        /// <see cref="AbstractUse{T}.ParentScopes"/> of this usage.
         /// </summary>
-        /// <returns>An enumerable of <typeparamref name="DEFINITION"/> objects that <see cref="AbstractUse{T}.Matches">matches</see> this usage.</returns>
+        /// <returns>An enumerable of <typeparamref name="DEFINITION"/> objects that
+        /// <see cref="AbstractUse{T}.Matches">matches</see> this usage.</returns>
         public override IEnumerable<DEFINITION> FindMatches() {
             DEFINITION definition = null;
             foreach(var parent in this.ParentScopes) {
@@ -34,9 +38,8 @@ namespace ABB.SrcML.Data {
                 }
             }
 
-            var globalScope = (from ns in this.ParentScope.GetParentScopesAndSelf<NamespaceDefinition>()
-                               where ns.IsGlobal
-                               select ns).FirstOrDefault();
+            NamespaceDefinition globalScope = this.ParentScope.GetParentScopesAndSelf<NamespaceDefinition>().Where(n => n.IsGlobal).FirstOrDefault();
+            
             if(globalScope != null) {
                 foreach(var alias in Aliases) {
                     if(alias.IsNamespaceImport) {

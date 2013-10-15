@@ -8,19 +8,23 @@ using System.Text.RegularExpressions;
 using System.Xml;
 
 namespace ABB.SrcML {
+
     /// <summary>
     /// Maintains a mapping between source file paths and the paths where XML versions are stored.
-    /// The names of the XML files are relatively short to avoid exceeding the Windows file path character limit.
+    /// The names of the XML files are relatively short to avoid exceeding the Windows file path
+    /// character limit.
     /// </summary>
     public class ShortXmlFileNameMapping : XmlFileNameMapping {
         private const string mappingFile = "mapping.txt";
         private readonly object mappingLock = new object();
+
         //maps source path to xml path
         //TODO should support case insensitive paths, add option in constructor
         private Dictionary<string, string> mapping;
+
         //maps source files names (without path) to a count of how many times that name has been seen
         private Dictionary<string, int> nameCount;
-        
+
         /// <summary>
         /// Creates a new ShortXmlFileNameMapping.
         /// </summary>
@@ -38,15 +42,44 @@ namespace ABB.SrcML {
         }
 
         /// <summary>
-        /// Returns the path for the XML file mapped to <paramref name="sourcePath"/>.
+        /// Disposes of the object. This will write the mapping file to disk.
+        /// </summary>
+        public override void Dispose() {
+            SaveMapping();
+        }
+
+        /// <summary>
+        /// Returns the path where the source file for
+        /// <paramref name="xmlPath"/>is located.
+        /// </summary>
+        /// <param name="xmlPath">The path for the XML file.</param>
+        /// <returns>The full path for the source file that
+        /// <paramref name="xmlPath"/>is based on.</returns>
+        public override string GetSourcePath(string xmlPath) {
+            if(!Path.IsPathRooted(xmlPath)) {
+                xmlPath = Path.Combine(XmlDirectory, xmlPath);
+            }
+            string result = null;
+            lock(mappingLock) {
+                result = (from kvp in mapping
+                          where xmlPath.Equals(kvp.Value, StringComparison.CurrentCultureIgnoreCase)
+                          select kvp.Key).FirstOrDefault();
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Returns the path for the XML file mapped to
+        /// <paramref name="sourcePath"/>.
         /// </summary>
         /// <param name="sourcePath">The path for the source file.</param>
-        /// <returns>The full path for an XML file based on <paramref name="sourcePath"/>.</returns>
+        /// <returns>The full path for an XML file based on
+        /// <paramref name="sourcePath"/>.</returns>
         public override string GetXmlPath(string sourcePath) {
             if(string.IsNullOrWhiteSpace(sourcePath)) {
                 throw new ArgumentException("Argument cannot be null, string.Empty, or whitespace.", "sourcePath");
             }
-            
+
             sourcePath = Path.GetFullPath(sourcePath);
             string xmlPath;
             lock(mappingLock) {
@@ -65,29 +98,6 @@ namespace ABB.SrcML {
         }
 
         /// <summary>
-        /// Returns the path where the source file for <paramref name="xmlPath"/> is located.
-        /// </summary>
-        /// <param name="xmlPath">The path for the XML file.</param>
-        /// <returns>The full path for the source file that <paramref name="xmlPath"/> is based on.</returns>
-        public override string GetSourcePath(string xmlPath) {
-            if(!Path.IsPathRooted(xmlPath)) {
-                xmlPath = Path.Combine(XmlDirectory, xmlPath);
-            }
-            string result;
-            lock(mappingLock) {
-                if(mapping.ContainsValue(xmlPath)) {
-                    var sourcePath = (from kvp in mapping
-                                      where kvp.Value == xmlPath
-                                      select kvp.Key);
-                    result = sourcePath.FirstOrDefault();
-                } else {
-                    result = null;
-                }
-            }
-            return result;
-        }
-
-        /// <summary>
         /// Saves the file name mapping to the XmlDirectory.
         /// </summary>
         public override void SaveMapping() {
@@ -101,15 +111,30 @@ namespace ABB.SrcML {
         }
 
         /// <summary>
-        /// Disposes of the object. This will write the mapping file to disk.
+        /// Updates the mapping data structures with the info from a single map file entry.
         /// </summary>
-        public override void Dispose() {
-            SaveMapping();
+        /// <param name="sourcePath"></param>
+        /// <param name="xmlPath"></param>
+        protected void ProcessMapFileEntry(string sourcePath, string xmlPath) {
+            lock(mappingLock) {
+                mapping[sourcePath] = xmlPath;
+                //determine duplicate number
+                var m = Regex.Match(xmlPath, @"\.(\d+)\.xml$");
+                if(m.Success) {
+                    var sourceName = Path.GetFileName(sourcePath);
+                    var nameNum = int.Parse(m.Groups[1].Value);
+                    var currMax = -1;
+                    if(nameCount.ContainsKey(sourceName)) {
+                        currMax = nameCount[sourceName];
+                    }
+                    nameCount[sourceName] = nameNum > currMax ? nameNum : currMax;
+                }
+            }
         }
 
         /// <summary>
-        /// Reads the mapping file in XmlDirectory. 
-        /// If this doesn't exist, it constructs a mapping from any existing SrcML files in the directory.
+        /// Reads the mapping file in XmlDirectory. If this doesn't exist, it constructs a mapping
+        /// from any existing SrcML files in the directory.
         /// </summary>
         protected void ReadMapping() {
             lock(mappingLock) {
@@ -145,28 +170,6 @@ namespace ABB.SrcML {
             }
         }
 
-        /// <summary>
-        /// Updates the mapping data structures with the info from a single map file entry.
-        /// </summary>
-        /// <param name="sourcePath"></param>
-        /// <param name="xmlPath"></param>
-        protected void ProcessMapFileEntry(string sourcePath, string xmlPath) {
-            lock(mappingLock) {
-                mapping[sourcePath] = xmlPath;
-                //determine duplicate number
-                var m = Regex.Match(xmlPath, @"\.(\d+)\.xml$");
-                if(m.Success) {
-                    var sourceName = Path.GetFileName(sourcePath);
-                    var nameNum = int.Parse(m.Groups[1].Value);
-                    var currMax = -1;
-                    if(nameCount.ContainsKey(sourceName)) {
-                        currMax = nameCount[sourceName];
-                    }
-                    nameCount[sourceName] = nameNum > currMax ? nameNum : currMax;
-                }
-            }
-        }
-
         private bool CheckIfDirectoryIsCaseInsensitive(string directory) {
             bool isCaseInsensitive = false;
             string tempFile = string.Empty;
@@ -178,7 +181,6 @@ namespace ABB.SrcML {
                 }
                 File.Create(tempFile).Close();
                 isCaseInsensitive = File.Exists(tempFile.ToUpper());
-
             } finally {
                 if(File.Exists(tempFile)) {
                     File.Delete(tempFile);

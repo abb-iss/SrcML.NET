@@ -17,6 +17,7 @@ using System.Text;
 using System.Xml.Linq;
 
 namespace ABB.SrcML.Data {
+
     /// <summary>
     /// Represents a use of a type. It is used in declarations and inheritance specifications.
     /// </summary>
@@ -33,6 +34,16 @@ namespace ABB.SrcML.Data {
             this.TypeParameters = new ReadOnlyCollection<TypeUse>(this.internalTypeParameters);
         }
 
+        /// <summary>
+        /// The calling object for this type (should be unused)
+        /// </summary>
+        public IResolvesToType CallingObject { get; set; }
+
+        /// <summary>
+        /// Returns true if <see cref="TypeParameters"/> has any elements
+        /// </summary>
+        public bool IsGeneric { get { return this.internalTypeParameters.Count > 0; } }
+
         public override Scope ParentScope {
             get {
                 return base.ParentScope;
@@ -47,20 +58,11 @@ namespace ABB.SrcML.Data {
                 }
             }
         }
-        /// <summary>
-        /// The calling object for this type (should be unused)
-        /// </summary>
-        public IResolvesToType CallingObject { get; set; }
 
         /// <summary>
         /// The prefix for this type use object
         /// </summary>
         public NamedScopeUse Prefix { get; set; }
-
-        /// <summary>
-        /// Returns true if <see cref="TypeParameters"/> has any elements
-        /// </summary>
-        public bool IsGeneric { get { return this.internalTypeParameters.Count > 0; } }
 
         /// <summary>
         /// Parameters for the type use (indicates that this is a generic type use)
@@ -84,30 +86,37 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
+        /// Gets the first type that matches this use
+        /// </summary>
+        /// <returns>The matching type; null if there aren't any</returns>
+        public TypeDefinition FindFirstMatchingType() {
+            return this.FindMatches().FirstOrDefault();
+        }
+
+        /// <summary>
         /// Finds all of the matches for this type
         /// </summary>
         /// <returns>All of the type definitions that match this type use</returns>
         public override IEnumerable<TypeDefinition> FindMatches() {
-            // if this is a built-in type, then just return that
-            // otherwise, go hunting for matching types
+            // if this is a built-in type, then just return that otherwise, go hunting for matching
+            // types
             if(BuiltInTypeFactory.IsBuiltIn(this)) {
                 yield return BuiltInTypeFactory.GetBuiltIn(this);
+            } else if(null != Prefix) {
+                var matches = from prefixMatch in Prefix.FindMatches()
+                              from match in prefixMatch.GetChildScopesWithId<TypeDefinition>(this.Name)
+                              select match;
+                foreach(var match in matches) {
+                    yield return match;
+                }
             } else {
-                // First, just call AbstractUse.FindMatches() this will search everything in ParentScope.GetParentScopesAndSelf<TypeDefinition>()
-                // for a matching type and return it
+                // First, just call AbstractUse.FindMatches() this will search everything in
+                // ParentScope.GetParentScopesAndSelf<TypeDefinition>() for a matching type and
+                // return it
                 foreach(var match in base.FindMatches()) {
                     yield return match;
                 }
             }
-        }
-
-        /// <summary>
-        /// Tests if this type use is a match for the given <paramref name="definition"/>
-        /// </summary>
-        /// <param name="definition">the definition to compare to</param>
-        /// <returns>true if the definitions match; false otherwise</returns>
-        public override bool Matches(TypeDefinition definition) {
-            return definition != null && definition.Name == this.Name;
         }
 
         /// <summary>
@@ -119,11 +128,12 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Gets the first type that matches this use
-        /// </summary>
-        /// <returns>The matching type; null if there aren't any</returns>
-        public TypeDefinition FindFirstMatchingType() {
-            return this.FindMatches().FirstOrDefault();
+        /// Tests if this type use is a match for the given
+        /// <paramref name="definition"/></summary>
+        /// <param name="definition">the definition to compare to</param>
+        /// <returns>true if the definitions match; false otherwise</returns>
+        public override bool Matches(TypeDefinition definition) {
+            return definition != null && definition.Name == this.Name;
         }
 
         /// <summary>

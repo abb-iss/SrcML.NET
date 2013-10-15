@@ -45,6 +45,16 @@ namespace ABB.SrcML.Test {
 
         #endregion test setup
 
+        [Test]
+        public void TestAddDuplicateDirectory() {
+            var archive = new LastModifiedArchive(monitorFolder);
+            DirectoryScanningMonitor monitor = new DirectoryScanningMonitor(monitorFolder, archive);
+
+            monitor.AddDirectory(testFolder);
+            monitor.AddDirectory(testFolder);
+            Assert.AreEqual(1, monitor.MonitoredDirectories.Count);
+        }
+
         [Test, ExpectedException(ExpectedException = typeof(DirectoryScanningMonitorSubDirectoryException))]
         public void TestAddSubdirectory() {
             var archive = new LastModifiedArchive(monitorFolder);
@@ -52,6 +62,22 @@ namespace ABB.SrcML.Test {
 
             monitor.AddDirectory(testFolder);
             monitor.AddDirectory(Path.Combine(testFolder, "test"));
+        }
+
+        [Test]
+        public void TestExcludedDirectory() {
+            var testResultsPath = Path.Combine(testFolder, "TestResults");
+
+            Directory.CreateDirectory(testResultsPath);
+
+            var excludedFilePath = Path.Combine(testResultsPath, "test.txt");
+
+            File.Create(excludedFilePath).Close();
+
+            var archive = new LastModifiedArchive(monitorFolder);
+            using(var monitor = new DirectoryScanningMonitor(monitorFolder, archive)) {
+                Assert.AreEqual(0, monitor.GetFilesFromSource().Count);
+            }
         }
 
         [Test]
@@ -87,6 +113,25 @@ namespace ABB.SrcML.Test {
             expectedEventType = FileEventType.FileDeleted;
             File.Delete(expectedFileName);
             Assert.IsTrue(are.WaitOne(1500));
+        }
+
+        [Test]
+        public void TestFileSaveAndRestore() {
+            using(var monitor = new DirectoryScanningMonitor(monitorFolder, new LastModifiedArchive(monitorFolder))) {
+                monitor.AddDirectory(testFolder);
+            }
+
+            using(var monitor = new DirectoryScanningMonitor(monitorFolder, new LastModifiedArchive(monitorFolder))) {
+                monitor.AddDirectoriesFromSaveFile();
+                Assert.AreEqual(1, monitor.MonitoredDirectories.Count);
+                Assert.AreEqual(Path.GetFullPath(testFolder), monitor.MonitoredDirectories[0]);
+            }
+
+            using(var monitor = new DirectoryScanningMonitor(monitorFolder, new LastModifiedArchive(monitorFolder))) {
+                monitor.AddDirectoriesFromSaveFile();
+                Assert.AreEqual(1, monitor.MonitoredDirectories.Count);
+                Assert.AreEqual(Path.GetFullPath(testFolder), monitor.MonitoredDirectories[0]);
+            }
         }
 
         [Test]

@@ -89,6 +89,7 @@
     <Compile Include="Utilities\DefaultsDictionary.cs" />
     <Compile Include="Utilities\ExecutableReturnValue.cs" />
     <Compile Include="Utilities\ExecutableRunner.cs" />
+    <Compile Include="Utilities\FileHelper.cs" />
     <Compile Include="Utilities\KsuAdapter.cs" />
     <Compile Include="Utilities\ReadOnlyDictionary.cs" />
     <Compile Include="Utilities\SrcMLExceptionFormatter.cs" />

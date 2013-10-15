@@ -26,8 +26,8 @@ namespace ABB.SrcML.Data.Test {
     [TestFixture]
     [Category("LongRunning")]
     internal class RealWorldTests {
-        private bool shouldRegenerateSrcML = true;
         private Dictionary<Language, AbstractCodeParser> CodeParser;
+        private bool shouldRegenerateSrcML = true;
 
         [TestFixtureSetUp]
         public void ClassSetup() {
@@ -36,26 +36,6 @@ namespace ABB.SrcML.Data.Test {
                 { Language.Java, new JavaCodeParser() },
                 { Language.CSharp, new CSharpCodeParser() }
             };
-        }
-
-        [Test]
-        public void TestFileUnitParsing_NotepadPlusPlus() {
-            string npp62SourcePath = @"C:\Workspace\Source\Notepad++\6.2";
-            string npp62DataPath = @"C:\Workspace\SrcMLData\NPP-6.2";
-
-            Console.WriteLine("\nReal world test: Notepad++ 6.2 (C++)");
-            Console.WriteLine("=======================================");
-            TestDataGeneration(npp62SourcePath, npp62DataPath);
-        }
-
-        [Test]
-        public void TestFileUnitParsing_NotepadPlusPlus_Concurrent() {
-            string npp62SourcePath = @"C:\Workspace\Source\Notepad++\6.2";
-            string npp62DataPath = @"C:\Workspace\SrcMLData\concurrent\NPP-6.2";
-
-            Console.WriteLine("\nReal world test: Notepad++ 6.2 (C++, concurrent)");
-            Console.WriteLine("=======================================");
-            TestDataGeneration(npp62SourcePath, npp62DataPath, true);
         }
 
         [Test]
@@ -79,26 +59,6 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestFileUnitParsing_Subversion() {
-            string svn178SourcePath = @"C:\Workspace\Source\Subversion\1.7.8";
-            string svn178DataPath = @"C:\Workspace\SrcMLData\subversion-1.7.8";
-
-            Console.WriteLine("\nReal World Test: Subversion 1.7.8 (C)");
-            Console.WriteLine("=======================================");
-            TestDataGeneration(svn178SourcePath, svn178DataPath);
-        }
-
-        [Test]
-        public void TestFileUnitParsing_Subversion_Concurrent() {
-            string svn178SourcePath = @"C:\Workspace\Source\Subversion\1.7.8";
-            string svn178DataPath = @"C:\Workspace\SrcMLData\concurrent\subversion-1.7.8";
-
-            Console.WriteLine("\nReal World Test: Subversion 1.7.8 (C, concurrent)");
-            Console.WriteLine("=======================================");
-            TestDataGeneration(svn178SourcePath, svn178DataPath, true);
-        }
-
-        [Test]
         public void TestFileUnitParsing_Eclipse() {
             string eclipse422SourcePath = @"C:\Workspace\Source\eclipse\platform422";
             string eclipse422Datapath = @"C:\Workspace\SrcMLData\eclipse-4.2.2";
@@ -119,6 +79,16 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
+        public void TestFileUnitParsing_FamilyShow() {
+            string familyShow3SourcePath = @"C:\Workspace\Source\FamilyShow\3.0";
+            string familyShow3Datapath = @"C:\Workspace\SrcMLData\FamilyShow-3.0";
+
+            Console.WriteLine("\nReal World Test: Family Show 3.0 (C#)");
+            Console.WriteLine("=======================================");
+            TestDataGeneration(familyShow3SourcePath, familyShow3Datapath);
+        }
+
+        [Test]
         public void TestFileUnitParsing_NDatabase() {
             string ndatabase45SourcePath = @"C:\Workspace\Source\NDatabase\master45";
             string ndatabase45DataPath = @"C:\Workspace\SrcMLData\ndatabase-4.5";
@@ -136,6 +106,143 @@ namespace ABB.SrcML.Data.Test {
             Console.WriteLine("\nReal World Test: NDatabase 4.5 (C#, concurrent)");
             Console.WriteLine("=======================================");
             TestDataGeneration(ndatabase45SourcePath, ndatabase45DataPath, true);
+        }
+
+        [Test]
+        public void TestFileUnitParsing_NotepadPlusPlus() {
+            string npp62SourcePath = @"C:\Workspace\Source\Notepad++\6.2";
+            string npp62DataPath = @"C:\Workspace\SrcMLData\NPP-6.2";
+
+            Console.WriteLine("\nReal world test: Notepad++ 6.2 (C++)");
+            Console.WriteLine("=======================================");
+            TestDataGeneration(npp62SourcePath, npp62DataPath);
+        }
+
+        [Test]
+        public void TestFileUnitParsing_NotepadPlusPlus_Concurrent() {
+            string npp62SourcePath = @"C:\Workspace\Source\Notepad++\6.2";
+            string npp62DataPath = @"C:\Workspace\SrcMLData\concurrent\NPP-6.2";
+
+            Console.WriteLine("\nReal world test: Notepad++ 6.2 (C++, concurrent)");
+            Console.WriteLine("=======================================");
+            TestDataGeneration(npp62SourcePath, npp62DataPath, true);
+        }
+
+        [Test]
+        public void TestFileUnitParsing_QuickGraph3() {
+            string quickgraph3SourcePath = @"C:\Workspace\Source\QuickGraph\69709-3.0\sources";
+            string quickgraph3DataPath = @"c:\Workspace\SrcMLData\QuickGraph-69709-3.0";
+
+            Console.WriteLine("\nReal world test: QuickGraph 3.0 (C#)");
+            Console.WriteLine("=======================================");
+            TestDataGeneration(quickgraph3SourcePath, quickgraph3DataPath, true);
+        }
+
+        [Test]
+        public void TestFileUnitParsing_Subversion() {
+            string svn178SourcePath = @"C:\Workspace\Source\Subversion\1.7.8";
+            string svn178DataPath = @"C:\Workspace\SrcMLData\subversion-1.7.8";
+
+            Console.WriteLine("\nReal World Test: Subversion 1.7.8 (C)");
+            Console.WriteLine("=======================================");
+            TestDataGeneration(svn178SourcePath, svn178DataPath);
+        }
+
+        [Test]
+        public void TestFileUnitParsing_Subversion_Concurrent() {
+            string svn178SourcePath = @"C:\Workspace\Source\Subversion\1.7.8";
+            string svn178DataPath = @"C:\Workspace\SrcMLData\concurrent\subversion-1.7.8";
+
+            Console.WriteLine("\nReal World Test: Subversion 1.7.8 (C, concurrent)");
+            Console.WriteLine("=======================================");
+            TestDataGeneration(svn178SourcePath, svn178DataPath, true);
+        }
+
+        private void PrintErrorReport(Dictionary<string, List<string>> errors) {
+            Console.WriteLine("\nError Report");
+            Console.WriteLine("===============");
+            var sortedErrors = from kvp in errors
+                               orderby kvp.Value.Count descending
+                               select kvp;
+
+            if(sortedErrors.Any()) {
+                foreach(var kvp in sortedErrors) {
+                    var indexOfIn = kvp.Key.IndexOf(" in ");
+                    var indexOfColon = kvp.Key.LastIndexOf(":");
+                    var fileName = kvp.Key.Substring(indexOfIn + 4, indexOfColon - indexOfIn - 4);
+                    var lineNumber = kvp.Key.Substring(indexOfColon + 6);
+                    string method = kvp.Key.Substring(0, indexOfIn);
+
+                    Console.WriteLine("{0}({1}) : {2} exception{3} {4}", fileName, lineNumber, kvp.Value.Count, (kvp.Value.Count > 1 ? "s" : String.Empty), method);
+                    foreach(var sourceFile in kvp.Value) {
+                        Console.WriteLine("\t{0}", sourceFile);
+                    }
+                }
+            } else {
+                Console.WriteLine("No parsing errors!");
+            }
+        }
+
+        private void PrintMethodCallReport(Scope globalScope, string callLogPath) {
+            Console.WriteLine("\nMethod Call Report");
+            Console.WriteLine("===============");
+            var methodCalls = from scope in VariableScopeIterator.Visit(globalScope)
+                              from call in scope.MethodCalls
+                              select call;
+
+            int numMethodCalls = 0;
+            int numMatchedMethodCalls = 0;
+            Stopwatch sw = new Stopwatch();
+
+            using(var callLog = new StreamWriter(callLogPath)) {
+                foreach(var call in methodCalls) {
+                    sw.Start();
+                    MethodDefinition match = null;
+                    try
+                    {
+                        match = call.FindMatches().FirstOrDefault();
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("{0}:{1}:{2}): {3}", call.Location.SourceFileName, call.Location.StartingLineNumber, call.Location.StartingColumnNumber, e.Message);
+                    }
+                    
+                    sw.Stop();
+                    numMethodCalls++;
+                    if(null != match) {
+                        numMatchedMethodCalls++;
+                        callLog.WriteLine("{0} ({1}:{2}) -> {3} ({4}:{5})", call.Name, call.Location.SourceFileName, call.Location.StartingLineNumber, match.Name, match.PrimaryLocation.SourceFileName, match.PrimaryLocation.StartingLineNumber);
+                    }
+                }
+            }
+
+            Console.WriteLine("{0,10:N0} method calls", numMethodCalls);
+            Console.WriteLine("{0,10:N0} matched method calls ({1,8:P2})", numMatchedMethodCalls, ((float) numMatchedMethodCalls) / numMethodCalls);
+            Console.WriteLine("{0,10:N0} matches / millisecond ({1,7:N0} ms elapsed)", ((float) numMethodCalls) / sw.ElapsedMilliseconds, sw.ElapsedMilliseconds);
+            Console.WriteLine(callLogPath);
+        }
+
+        private void PrintScopeReport(Scope globalScope) {
+            Console.WriteLine("\nScope Report");
+            Console.WriteLine("===============");
+
+            Console.WriteLine("{0,10:N0} scopes", VariableScopeIterator.Visit(globalScope).Count());
+            var namedScopes = from scope in VariableScopeIterator.Visit(globalScope)
+                              where (scope as NamedScope) != null
+                              select scope;
+            Console.WriteLine("{0,10:N0} named scopes", namedScopes.Count());
+            var namespaceScopes = from scope in namedScopes
+                                  where (scope as NamespaceDefinition) != null
+                                  select scope;
+            var typeScopes = from scope in namedScopes
+                             where (scope as TypeDefinition) != null
+                             select scope;
+            var methodScopes = from scope in namedScopes
+                               where (scope as MethodDefinition) != null
+                               select scope;
+            Console.WriteLine("{0,10:N0} namespaces", namespaceScopes.Count());
+            Console.WriteLine("{0,10:N0} types", typeScopes.Count());
+            Console.WriteLine("{0,10:N0} methods", methodScopes.Count());
         }
 
         private void TestDataGeneration(string sourcePath, string dataPath, bool useAsyncMethods = false) {
@@ -365,84 +472,6 @@ namespace ABB.SrcML.Data.Test {
             monitor.Dispose();
             //Assert.AreEqual(numberOfFailures, (from e in errors.Values select e.Count).Sum());
             //Assert.AreEqual(0, numberOfFailures);
-        }
-
-        private void PrintScopeReport(Scope globalScope) {
-            Console.WriteLine("\nScope Report");
-            Console.WriteLine("===============");
-
-            Console.WriteLine("{0,10:N0} scopes", VariableScopeIterator.Visit(globalScope).Count());
-            var namedScopes = from scope in VariableScopeIterator.Visit(globalScope)
-                              where (scope as NamedScope) != null
-                              select scope;
-            Console.WriteLine("{0,10:N0} named scopes", namedScopes.Count());
-            var namespaceScopes = from scope in namedScopes
-                                  where (scope as NamespaceDefinition) != null
-                                  select scope;
-            var typeScopes = from scope in namedScopes
-                             where (scope as TypeDefinition) != null
-                             select scope;
-            var methodScopes = from scope in namedScopes
-                               where (scope as MethodDefinition) != null
-                               select scope;
-            Console.WriteLine("{0,10:N0} namespaces", namespaceScopes.Count());
-            Console.WriteLine("{0,10:N0} types", typeScopes.Count());
-            Console.WriteLine("{0,10:N0} methods", methodScopes.Count());
-        }
-
-        private void PrintMethodCallReport(Scope globalScope, string callLogPath) {
-            Console.WriteLine("\nMethod Call Report");
-            Console.WriteLine("===============");
-            var methodCalls = from scope in VariableScopeIterator.Visit(globalScope)
-                              from call in scope.MethodCalls
-                              select call;
-
-            int numMethodCalls = 0;
-            int numMatchedMethodCalls = 0;
-            Stopwatch sw = new Stopwatch();
-
-            using(var callLog = new StreamWriter(callLogPath)) {
-                foreach(var call in methodCalls) {
-                    sw.Start();
-                    var match = call.FindMatches().FirstOrDefault();
-                    sw.Stop();
-                    numMethodCalls++;
-                    if(null != match) {
-                        numMatchedMethodCalls++;
-                        callLog.WriteLine("{0} ({1}:{2}) -> {3} ({4}:{5})", call.Name, call.Location.SourceFileName, call.Location.StartingLineNumber, match.Name, match.PrimaryLocation.SourceFileName, match.PrimaryLocation.StartingLineNumber);
-                    }
-                }
-            }
-
-            Console.WriteLine("{0,10:N0} method calls", numMethodCalls);
-            Console.WriteLine("{0,10:N0} matched method calls ({1,8:P2})", numMatchedMethodCalls, ((float) numMatchedMethodCalls) / numMethodCalls);
-            Console.WriteLine("{0,10:N0} matches / millisecond ({1,7:N0} ms elapsed)", ((float) numMethodCalls) / sw.ElapsedMilliseconds, sw.ElapsedMilliseconds);
-            Console.WriteLine(callLogPath);
-        }
-
-        private void PrintErrorReport(Dictionary<string, List<string>> errors) {
-            Console.WriteLine("\nError Report");
-            Console.WriteLine("===============");
-            var sortedErrors = from kvp in errors
-                               orderby kvp.Value.Count descending
-                               select kvp;
-
-            if(sortedErrors.Any()) {
-                foreach(var kvp in sortedErrors) {
-                    var indexOfIn = kvp.Key.IndexOf(" in ");
-                    var indexOfColon = kvp.Key.LastIndexOf(":");
-                    var fileName = kvp.Key.Substring(indexOfIn + 4, indexOfColon - indexOfIn - 4);
-                    var lineNumber = kvp.Key.Substring(indexOfColon + 6);
-                    string method = kvp.Key.Substring(0, indexOfIn);
-
-                    Console.WriteLine("{0}({1}) : {2} exception{3} {4}", fileName, lineNumber, kvp.Value.Count, (kvp.Value.Count > 1 ? "s" : String.Empty), method);
-                    foreach(var sourceFile in kvp.Value) {
-                        Console.WriteLine("\t{0}", sourceFile);
-                    }
-                }
-            } else {
-                Console.WriteLine("No parsing errors!");
-            }
         }
     }
 }

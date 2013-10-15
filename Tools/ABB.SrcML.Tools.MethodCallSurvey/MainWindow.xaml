@@ -1,0 +1,113 @@
+﻿<Window x:Class="ABB.SrcML.Tools.MethodCallSurvey.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Method Call Survey" Height="350" Width="525">
+    <Grid>
+        <Menu Height="23" VerticalAlignment="Top" Background="AliceBlue">
+            <MenuItem Header="_File">
+                <MenuItem Name="MenuItemOpenArchive" Header="_Open SrcML Archive" HorizontalAlignment="Left" InputGestureText="Ctrl-O" Click="MenuItemOpenArchive_Click" />
+                <Separator />
+                <MenuItem Name="MenuItemExit" Header="E_xit" InputGestureText="Alt-F4" />
+            </MenuItem>
+        </Menu>
+        <Grid Margin="10,23,0,39">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <ListBox Name="CallList" Grid.Column="0" Grid.Row="0" ItemsSource="{Binding Path=CallSample}"
+                     SelectionChanged="CallList_SelectionChanged" HorizontalContentAlignment="Stretch">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <DockPanel x:Name="callTemplate" ToolTip="{Binding Path=Location}" LastChildFill="True">
+                            <StackPanel DockPanel.Dock="Left" Margin="5,0,5,0">
+                                <ToggleButton IsChecked="{Binding Path=IsExternal}">External</ToggleButton>
+                                <ToggleButton IsChecked="{Binding Path=HasNoMatches}">None</ToggleButton>
+                            </StackPanel>
+                            <TextBlock Padding="5">
+                                <TextBlock Text="{Binding Path=SourceCode}" FontWeight="Bold" />
+                                <LineBreak />
+                                <TextBlock Text="In " FontStyle="Italic" />
+                                <TextBlock Text="{Binding Path=FullName}" />
+                            </TextBlock>
+                        </DockPanel>
+                        <DataTemplate.Triggers>
+                            <DataTrigger Binding="{Binding Path=HasMatches}" Value="true">
+                                <Setter TargetName="callTemplate" Property="Background" Value="LawnGreen" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Path=IsExternal}" Value="true">
+                                <Setter TargetName="callTemplate" Property="Background" Value="DarkGray" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Path=HasNoMatches}" Value="true">
+                                <Setter TargetName="callTemplate" Property="Background" Value="Tomato" />
+                            </DataTrigger>
+                        </DataTemplate.Triggers>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+                <ListBox.Resources>
+                    <Style TargetType="{x:Type ListBoxItem}">
+                        <EventSetter Event="MouseDoubleClick" Handler="HandleDoubleClick" />
+                    </Style>
+                </ListBox.Resources>
+            </ListBox>
+            <GridSplitter HorizontalAlignment="Right"
+                          VerticalAlignment="Stretch"
+                          Grid.Column="1" ResizeBehavior="PreviousAndNext"
+                          Width="5" Background="AliceBlue" />
+            <ListView Grid.Column="2" Margin="0,0,5,0" ItemsSource="{Binding Path=CurrentMatches}">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <DockPanel LastChildFill="True" x:Name="methodTemplate" ToolTip="{Binding Path=Location}">
+                            <CheckBox IsChecked="{Binding Path=IsValidForCall}" DockPanel.Dock="Left" Margin="5,0,5,0" x:Name="methodCheckBox" />
+                            <TextBlock Text="{Binding Path=Signature}" FontWeight="Bold" DockPanel.Dock="Top" />
+                            <TextBlock Text="Full name: " FontStyle="Italic" />
+                            <TextBlock Text="{Binding Path=FullName}" />
+                        </DockPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+                <ListView.Resources>
+                    <Style TargetType="{x:Type ListViewItem}">
+                        <EventSetter Event="MouseDoubleClick" Handler="HandleDoubleClick" />
+                    </Style>
+                </ListView.Resources>
+            </ListView>
+            <Label Grid.Row="1" Grid.Column="2" FontWeight="Bold">Statistics</Label>
+
+            <TextBlock Grid.Row="2" Grid.Column="2"><TextBlock Text="{Binding Path=FirstMatchIsValid}" /><TextBlock>% of calls have a valid first match</TextBlock></TextBlock>
+            <TextBlock Grid.Row="3" Grid.Column="2"><TextBlock Text="{Binding Path=HasMatches}" /><TextBlock>% of calls have at least one valid match</TextBlock></TextBlock>
+            <TextBlock Grid.Row="4" Grid.Column="2"><TextBlock Text="{Binding Path=IsExternal}" /><TextBlock>% of calls are to an external library</TextBlock></TextBlock>
+            <TextBlock Grid.Row="5" Grid.Column="2"><TextBlock Text="{Binding Path=HasNoMatches}" /><TextBlock>% of calls have no match</TextBlock></TextBlock>
+
+            <Label Grid.Row="1" Grid.Column="0" FontWeight="Bold">Configuration</Label>
+            <TextBlock Grid.Row="2" Grid.Column="0">
+                <TextBlock FontStyle="Italic">Project: </TextBlock>
+                <TextBlock Text="{Binding Path=ProjectName}" />
+            </TextBlock>
+            <TextBlock Grid.Row="3" Grid.Column="0">
+                <TextBlock FontStyle="Italic">Date: </TextBlock>
+                <TextBlock Text="{Binding Path=Date}" />
+            </TextBlock>
+            <TextBlock Grid.Row="4" Grid.Column="0">
+                <TextBlock FontStyle="Italic">Sample Size: </TextBlock>
+                <TextBlock Text="{Binding Path=SampleSize}" />
+            </TextBlock>
+        </Grid>
+        <StatusBar Height="39" VerticalAlignment="Bottom" Background="AliceBlue">
+            <StatusBarItem>
+                <Label Name="StatusBarLabel" Content="" Height="30" />
+            </StatusBarItem>
+            <StatusBarItem DockPanel.Dock="Right" HorizontalAlignment="Right">
+                <ProgressBar Name="StatusBarProgress" Height="19" Width="100" />
+            </StatusBarItem>
+        </StatusBar>
+    </Grid>
+</Window>
