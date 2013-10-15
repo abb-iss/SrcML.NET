@@ -1,21 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace ABB.SrcML.Data {
+
     /// <summary>
-    /// Abstract Scope Use is a variable use for Named Scopes. It provides an implementation of <see cref="AbstractUse{T}.FindMatches()"/>
-    /// for resolving Named Scope uses
+    /// Abstract Scope Use is a variable use for Named Scopes. It provides an implementation of
+    /// <see cref="AbstractUse{T}.FindMatches()"/> for resolving Named Scope uses
     /// </summary>
     /// <typeparam name="DEFINITION">The type. Must be NamedScope or a subclass</typeparam>
     [Serializable]
     public abstract class AbstractScopeUse<DEFINITION> : AbstractUse<DEFINITION>
         where DEFINITION : NamedScope {
+
         /// <summary>
-        /// Finds matching <typeparamref name="DEFINITION"/> from the <see cref="AbstractUse{T}.ParentScopes"/> of this usage.
+        /// Finds matching <typeparamref name="DEFINITION"/> from the
+        /// <see cref="AbstractUse{T}.ParentScopes"/> of this usage.
         /// </summary>
-        /// <returns>An enumerable of <typeparamref name="DEFINITION"/> objects that <see cref="AbstractUse{T}.Matches">matches</see> this usage.</returns>
+        /// <returns>An enumerable of <typeparamref name="DEFINITION"/> objects that
+        /// <see cref="AbstractUse{T}.Matches">matches</see> this usage.</returns>
         public override IEnumerable<DEFINITION> FindMatches() {
             DEFINITION definition = null;
             foreach(var parent in this.ParentScopes) {

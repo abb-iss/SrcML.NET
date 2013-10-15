@@ -8,15 +8,14 @@
  * Contributors:
  *    Patrick Francis (ABB Group) - initial API, implementation, & documentation
  *****************************************************************************/
+
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Xml.Linq;
 
 namespace ABB.SrcML.Data {
+
     /// <summary>
     /// Provides parsing facilities for the C# language
     /// </summary>
@@ -25,8 +24,9 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Constructs a C# code parser
         /// </summary>
-        public CSharpCodeParser() :base() {
-            this.TypeElementNames = new HashSet<XName> {SRC.Class, SRC.Enum, SRC.Struct}; //SRC.Interface?
+        public CSharpCodeParser()
+            : base() {
+            this.TypeElementNames = new HashSet<XName> { SRC.Class, SRC.Enum, SRC.Struct }; //SRC.Interface?
             this.AliasElementName = SRC.Using;
             //TODO: what else needs to be set here?
         }
@@ -39,48 +39,37 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Parses the given typeElement and returns a TypeDefinition object.
+        /// Checks if the using statement is a namespace import
         /// </summary>
-        /// <param name="typeElement">the type XML typeUseElement.</param>
-        /// <param name="context">the parser context</param>
-        /// <returns>A new TypeDefinition object</returns>
-        public override void ParseTypeElement(XElement typeElement, ParserContext context) {
-            base.ParseTypeElement(typeElement, context);
-
-            var partials = from specifiers in typeElement.Elements(SRC.Specifier)
-                           where specifiers.Value == "partial"
-                           select specifiers;
-            (context.CurrentScope as TypeDefinition).IsPartial = partials.Any();
+        /// <param name="aliasStatement"></param>
+        /// <returns></returns>
+        public override bool AliasIsNamespaceImport(XElement aliasStatement) {
+            // TODO handle "using A = B.C"
+            return true;
         }
 
         /// <summary>
-        /// Parses a C# namespace block
+        /// Tests whether this container is a reference or whether it includes a definition.
         /// </summary>
-        /// <param name="namespaceElement">the namespace element to parse</param>
-        /// <param name="context">the parser context</param>
-        public override void ParseNamespaceElement(XElement namespaceElement, ParserContext context) {
-            if(namespaceElement == null) throw new ArgumentNullException("namespaceElement");
-            if(!NamespaceElementNames.Contains(namespaceElement.Name)) throw new ArgumentException(string.Format("Not a valid namespace element: {0}", namespaceElement.Name), "namespaceElement");
+        /// <param name="element">The element to test</param>
+        /// <returns>True if this is a reference element; false otherwise</returns>
+        public override bool ContainerIsReference(XElement element) {
+            if(element == null) {
+                throw new ArgumentNullException("typeUseElement");
+            }
 
-            var nameElement = namespaceElement.Element(SRC.Name);
-            string namespaceName;
-            if(nameElement == null) {
-                namespaceName = string.Empty;
-            } else {
-                NamespaceDefinition root = null;
-                foreach(var name in NameHelper.GetNameElementsFromName(nameElement)) {
-                    var namespaceForName = new NamespaceDefinition() {
-                        Name = name.Value,
-                        ProgrammingLanguage = ParserLanguage,
-                    };
-                    if(root == null) {
-                        root = namespaceForName;
-                    } else {
-                        namespaceForName.AddSourceLocation(context.CreateLocation(name));
+            var functionNames = new[] { SRC.Function, SRC.Constructor, SRC.Destructor };
+            bool isReference = false;
+            if(functionNames.Contains(element.Name)) {
+                var typeElement = element.Element(SRC.Type);
+                if(typeElement != null && typeElement.Elements(SRC.Specifier).Any(spec => spec.Value == "partial")) {
+                    //partial method
+                    if(element.Element(SRC.Block) == null) {
+                        isReference = true;
                     }
-                    context.Push(namespaceForName, root);
                 }
             }
+            return isReference || base.ContainerIsReference(element);
         }
 
         /// <summary>
@@ -94,16 +83,6 @@ namespace ABB.SrcML.Data {
                 return superElement.Elements(SRC.Name);
             }
             return Enumerable.Empty<XElement>();
-        }
-
-        /// <summary>
-        /// Checks if the using statement is a namespace import
-        /// </summary>
-        /// <param name="aliasStatement"></param>
-        /// <returns></returns>
-        public override bool AliasIsNamespaceImport(XElement aliasStatement) {
-            // TODO handle "using A = B.C"
-            return true;
         }
 
         /// <summary>
@@ -125,7 +104,8 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Parses a C# number literal based on C# 4.0 in a Nutshell by Joseph Albahari and Ben Albahari, page 22.
+        /// Parses a C# number literal based on C# 4.0 in a Nutshell by Joseph Albahari and Ben
+        /// Albahari, page 22.
         /// </summary>
         /// <param name="literalValue">The literal value</param>
         /// <returns>returns the appropriate numeric type</returns>
@@ -175,6 +155,53 @@ namespace ABB.SrcML.Data {
             return "string";
         }
 
+        /// <summary>
+        /// Parses a C# namespace block
+        /// </summary>
+        /// <param name="namespaceElement">the namespace element to parse</param>
+        /// <param name="context">the parser context</param>
+        public override void ParseNamespaceElement(XElement namespaceElement, ParserContext context) {
+            if(namespaceElement == null)
+                throw new ArgumentNullException("namespaceElement");
+            if(!NamespaceElementNames.Contains(namespaceElement.Name))
+                throw new ArgumentException(string.Format("Not a valid namespace element: {0}", namespaceElement.Name), "namespaceElement");
+
+            var nameElement = namespaceElement.Element(SRC.Name);
+            string namespaceName;
+            if(nameElement == null) {
+                namespaceName = string.Empty;
+            } else {
+                NamespaceDefinition root = null;
+                foreach(var name in NameHelper.GetNameElementsFromName(nameElement)) {
+                    var namespaceForName = new NamespaceDefinition() {
+                        Name = name.Value,
+                        ProgrammingLanguage = ParserLanguage,
+                    };
+                    if(root == null) {
+                        root = namespaceForName;
+                    } else {
+                        namespaceForName.AddSourceLocation(context.CreateLocation(name));
+                    }
+                    context.Push(namespaceForName, root);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Parses the given typeElement and returns a TypeDefinition object.
+        /// </summary>
+        /// <param name="typeElement">the type XML typeUseElement.</param>
+        /// <param name="context">the parser context</param>
+        /// <returns>A new TypeDefinition object</returns>
+        public override void ParseTypeElement(XElement typeElement, ParserContext context) {
+            base.ParseTypeElement(typeElement, context);
+
+            var partials = from specifiers in typeElement.Elements(SRC.Specifier)
+                           where specifiers.Value == "partial"
+                           select specifiers;
+            (context.CurrentScope as TypeDefinition).IsPartial = partials.Any();
+        }
+
         //TODO: implement support for using blocks, once SrcML has been fixed to parse them correctly
         ///// <summary>
         ///// Gets all of the variable declarations from a container
@@ -185,38 +212,14 @@ namespace ABB.SrcML.Data {
         //public override IEnumerable<VariableDeclaration> GetVariableDeclarationsFromContainer(XElement container, XElement fileUnit, Scope parentScope) {
         //    if(null == container) return Enumerable.Empty<VariableDeclaration>();
 
-        //    if(container.Name != SRC.Using) {
-        //        return base.GetVariableDeclarationsFromContainer(container, fileUnit, parentScope);
-        //    }
-        //    //parse using typeUseElement
+        // if(container.Name != SRC.Using) { return
+        // base.GetVariableDeclarationsFromContainer(container, fileUnit, parentScope); } //parse
+        // using typeUseElement
 
         //}
 
-        /// <summary>
-        /// Tests whether this container is a reference or whether it includes a definition.
-        /// </summary>
-        /// <param name="element">The element to test</param>
-        /// <returns>True if this is a reference element; false otherwise</returns>
-        public override bool ContainerIsReference(XElement element) {
-            if(element == null) {
-                throw new ArgumentNullException("typeUseElement");
-            }
-
-            var functionNames = new[] {SRC.Function, SRC.Constructor, SRC.Destructor};
-            bool isReference = false;
-            if(functionNames.Contains(element.Name)) {
-                var typeElement = element.Element(SRC.Type);
-                if(typeElement != null && typeElement.Elements(SRC.Specifier).Any(spec => spec.Value == "partial")) {
-                    //partial method
-                    if(element.Element(SRC.Block) == null) {
-                        isReference = true;
-                    }
-                }
-            }
-            return isReference || base.ContainerIsReference(element);
-        }
-
         #region Private methods
+
         private NamespaceUse CreateNamespaceUsePrefix(XElement nameElement, ParserContext context) {
             IEnumerable<XElement> parentNameElements = Enumerable.Empty<XElement>();
 
@@ -225,12 +228,11 @@ namespace ABB.SrcML.Data {
 
             if(parentNameElements.Any()) {
                 foreach(var element in parentNameElements) {
-                    var namespaceUse = new NamespaceUse
-                                       {
-                                           Name = element.Value,
-                                           Location = context.CreateLocation(element, false),
-                                           ProgrammingLanguage = this.ParserLanguage,
-                                       };
+                    var namespaceUse = new NamespaceUse {
+                        Name = element.Value,
+                        Location = context.CreateLocation(element, false),
+                        ProgrammingLanguage = this.ParserLanguage,
+                    };
                     if(null == root) {
                         root = namespaceUse;
                     }
@@ -242,7 +244,7 @@ namespace ABB.SrcML.Data {
             }
             return root;
         }
-        #endregion
 
+        #endregion Private methods
     }
 }
