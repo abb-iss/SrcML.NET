@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
+using System.Xml;
 
 namespace ABB.SrcML {
 
@@ -57,16 +59,11 @@ namespace ABB.SrcML {
             if(!Path.IsPathRooted(xmlPath)) {
                 xmlPath = Path.Combine(XmlDirectory, xmlPath);
             }
-            string result;
+            string result = null;
             lock(mappingLock) {
-                if(mapping.ContainsValue(xmlPath)) {
-                    var sourcePath = (from kvp in mapping
-                                      where kvp.Value == xmlPath
-                                      select kvp.Key);
-                    result = sourcePath.FirstOrDefault();
-                } else {
-                    result = null;
-                }
+                result = (from kvp in mapping
+                          where xmlPath.Equals(kvp.Value, StringComparison.CurrentCultureIgnoreCase)
+                          select kvp.Key).FirstOrDefault();
             }
             return result;
         }

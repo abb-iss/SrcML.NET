@@ -36,11 +36,10 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="baseDirectory">The base directory for this monitor</param>
         /// <param name="defaultArchive">The default archive to route files to</param>
         /// <param name="otherArchives">Other archives to route files to</param>
-        public SourceMonitor(Solution solution, ICollection<string> foldersToMonitor, double scanInterval, string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
-            : base(foldersToMonitor, scanInterval, baseDirectory, defaultArchive, otherArchives) {
+        public SourceMonitor(Solution solution, double scanInterval, string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
+            : base(scanInterval, baseDirectory, defaultArchive, otherArchives) {
             this.UseAsyncMethods = true;
             this.MonitoredSolution = solution;
-            AddDirectory(GetSolutionPath(MonitoredSolution));
         }
 
         /// <summary>
@@ -51,32 +50,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="baseDirectory">The base directory for this monitor</param>
         /// <param name="defaultArchive">The default archive to route files to</param>
         /// <param name="otherArchives">Other archives to route files to</param>
-        public SourceMonitor(Solution solution, ICollection<string> foldersToMonitor, string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
-            : this(solution, foldersToMonitor, DEFAULT_SCAN_INTERVAL, baseDirectory, defaultArchive, otherArchives) { }
-
-        /// <summary>
-        /// Creates a new source monitor
-        /// </summary>
-        /// <param name="solution">The solution to monitor</param>
-        /// <param name="scanInterval">The interval at which to scan the folders (in
-        /// seconds) </param>
-        /// <param name="baseDirectory">The base directory for this monitor</param>
-        /// <param name="defaultArchive">The default archive to route files to</param>
-        /// <param name="otherArchives">Other archives to route files to</param>
-        public SourceMonitor(Solution solution, double scanInterval, string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
-            : this(solution, new List<string>(), scanInterval, baseDirectory, defaultArchive, otherArchives) { }
-
-        /// <summary>
-        /// Creates a new source monitor
-        /// </summary>
-        /// <param name="solution">The solution to monitor</param>
-        /// <param name="scanInterval">The interval at which to scan the folders (in
-        /// seconds) </param>
-        /// <param name="baseDirectory">The base directory for this monitor</param>
-        /// <param name="defaultArchive">The default archive to route files to</param>
-        /// <param name="otherArchives">Other archives to route files to</param>
         public SourceMonitor(Solution solution, string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
-            : this(solution, new List<string>(), DEFAULT_SCAN_INTERVAL, baseDirectory, defaultArchive, otherArchives) { }
+            : this(solution, DEFAULT_SCAN_INTERVAL, baseDirectory, defaultArchive, otherArchives) { }
 
         /// <summary>
         /// The solution being monitored
@@ -125,6 +100,14 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             var solutionFiles = GetSolutionFiles(solution);
             string commonPath = Utilities.FileHelper.GetCommonPath(solutionFilePath, solutionFiles);
             return commonPath;
+        }
+
+        /// <summary>
+        /// Adds the root directory for the <see cref="MonitoredSolution">monitored solution</see>
+        /// to <see cref="DirectoryScanningMonitor.MonitoredDirectories"/>.
+        /// </summary>
+        public void AddSolutionDirectory() {
+            AddDirectory(GetSolutionPath(MonitoredSolution));
         }
 
         /// <summary>

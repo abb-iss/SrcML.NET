@@ -15,6 +15,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
+using System.Xml.Linq;
 
 namespace ABB.SrcML.Data {
 
@@ -67,6 +69,25 @@ namespace ABB.SrcML.Data {
         /// The parent types that this type inherits from
         /// </summary>
         public ReadOnlyCollection<TypeUse> ParentTypes { get; protected set; }
+
+        /// <summary>
+        /// This handles the "base" keyword (C# only) and the "this" keyword. It searches for the
+        /// appropriate type definition depending on the context of the
+        /// </summary>
+        /// <typeparam name="T">The use type</typeparam>
+        /// <param name="use">The use to find the containing class for</param>
+        /// <returns>The class referred to by the keyword</returns>
+        public static IEnumerable<TypeDefinition> GetTypeForKeyword<T>(AbstractUse<T> use) where T : class {
+            var typeDefinitions = Enumerable.Empty<TypeDefinition>();
+            if(use.Name == "this") {
+                typeDefinitions = use.ParentScopes.OfType<TypeDefinition>().Take(1);
+            } else if(use.Name == "base" && use.ProgrammingLanguage == Language.CSharp) {
+                typeDefinitions = from containingType in use.ParentScopes.OfType<TypeDefinition>()
+                                  from parentType in containingType.GetParentTypes()
+                                  select parentType;
+            }
+            return typeDefinitions;
+        }
 
         /// <summary>
         /// The AddFrom function adds all of the declarations and children from
@@ -124,11 +145,11 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <returns>Matching parent types for this type</returns>
         public IEnumerable<TypeDefinition> GetParentTypes() {
-            foreach(var parentTypeUse in this.ParentTypes) {
-                foreach(var match in parentTypeUse.FindMatchingTypes()) {
-                    yield return match;
-                }
-            }
+            var results = from typeUse in ParentTypes
+                          from type in typeUse.FindMatchingTypes()
+                          from nextType in type.GetParentTypesAndSelf()
+                          select nextType;
+            return results.Take(100);
         }
 
         /// <summary>

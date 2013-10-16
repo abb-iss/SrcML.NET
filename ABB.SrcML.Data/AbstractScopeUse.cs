@@ -37,9 +37,8 @@ namespace ABB.SrcML.Data {
                 }
             }
 
-            var globalScope = (from ns in this.ParentScope.GetParentScopesAndSelf<NamespaceDefinition>()
-                               where ns.IsGlobal
-                               select ns).FirstOrDefault();
+            NamespaceDefinition globalScope = this.ParentScope.GetParentScopesAndSelf<NamespaceDefinition>().Where(n => n.IsGlobal).FirstOrDefault();
+            
             if(globalScope != null) {
                 foreach(var alias in Aliases) {
                     if(alias.IsNamespaceImport) {

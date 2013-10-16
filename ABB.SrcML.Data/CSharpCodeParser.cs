@@ -11,7 +11,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Xml.Linq;
 
 namespace ABB.SrcML.Data {
@@ -190,7 +193,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Parses the given typeElement and returns a TypeDefinition object.
         /// </summary>
-        /// <param name="typeElement">the type XML typeUseElement.</param>
+        /// <param name="typeElement">the type XML type element.</param>
         /// <param name="context">the parser context</param>
         /// <returns>A new TypeDefinition object</returns>
         public override void ParseTypeElement(XElement typeElement, ParserContext context) {
@@ -200,6 +203,49 @@ namespace ABB.SrcML.Data {
                            where specifiers.Value == "partial"
                            select specifiers;
             (context.CurrentScope as TypeDefinition).IsPartial = partials.Any();
+        }
+
+        /// <summary>
+        /// Parses the given typeUseElement and returns a TypeUse object. This handles the "var" keyword for C# if used
+        /// </summary>
+        /// <param name="typeUseElement">The XML type use element</param>
+        /// <param name="context">The parser context</param>
+        /// <returns>A new TypeUse object</returns>
+        public override TypeUse ParseTypeUseElement(XElement typeUseElement, ParserContext context) {
+            if(typeUseElement == null)
+                throw new ArgumentNullException("typeUseElement");
+
+            XElement typeElement;
+            XElement typeNameElement;
+
+            // validate the type use typeUseElement (must be a SRC.Name or SRC.Type)
+            if(typeUseElement.Name == SRC.Type) {
+                typeElement = typeUseElement;
+                typeNameElement = typeUseElement.Elements(SRC.Name).LastOrDefault();
+            } else if(typeUseElement.Name == SRC.Name) {
+                typeElement = typeUseElement.Ancestors(SRC.Type).FirstOrDefault();
+                typeNameElement = typeUseElement;
+            } else {
+                throw new ArgumentException("typeUseElement should be of type type or name", "typeUseElement");
+            }
+
+            if(typeNameElement.Value == "var") {
+                var initElement = typeElement.ElementsAfterSelf(SRC.Init).FirstOrDefault();
+                var expressionElement = (null == initElement ? null : initElement.Element(SRC.Expression));
+                var callElement = (null == expressionElement ? null : expressionElement.Element(SRC.Call));
+
+                IResolvesToType initializer = (null == callElement ? null : ParseCallElement(callElement, context));
+                var typeUse = new CSharpVarTypeUse() {
+                    Name = typeNameElement.Value,
+                    Initializer = initializer,
+                    ParentScope = context.CurrentScope,
+                    Location = context.CreateLocation(typeNameElement),
+                    ProgrammingLanguage = this.ParserLanguage,
+                };
+                return typeUse;
+            } else {
+                return base.ParseTypeUseElement(typeUseElement, context);
+            }
         }
 
         //TODO: implement support for using blocks, once SrcML has been fixed to parse them correctly

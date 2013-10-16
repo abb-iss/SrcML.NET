@@ -14,6 +14,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
@@ -234,6 +235,7 @@ namespace ABB.SrcML.Data {
         /// <returns>A method call for
         /// <paramref name="callElement"/></returns>
         public virtual MethodCall ParseCallElement(XElement callElement, ParserContext context) {
+            XElement methodNameElement = null;
             string name = String.Empty;
             bool isConstructor = false;
             bool isDestructor = false;
@@ -241,10 +243,19 @@ namespace ABB.SrcML.Data {
 
             var nameElement = callElement.Element(SRC.Name);
             if(null != nameElement) {
-                name = NameHelper.GetLastName(nameElement);
+                methodNameElement = NameHelper.GetLastNameElement(nameElement);
                 callingObjectNames = NameHelper.GetNameElementsExceptLast(nameElement);
             }
-
+            if(null != methodNameElement) {
+                if(null != methodNameElement.Element(SRC.ArgumentList)) {
+                    name = methodNameElement.Element(SRC.Name).Value;
+                } else {
+                    name = methodNameElement.Value;
+                }
+            }
+            if(methodNameElement != null && methodNameElement.Element(SRC.ArgumentList) != null) {
+                name = methodNameElement.Element(SRC.Name).Value;
+            }
             var precedingElements = callElement.ElementsBeforeSelf();
 
             foreach(var pe in precedingElements) {
@@ -253,6 +264,12 @@ namespace ABB.SrcML.Data {
                 } else if(pe.Name == OP.Operator && pe.Value == "~") {
                     isDestructor = true;
                 }
+            }
+
+            var parentElement = callElement.Parent;
+            if(null != parentElement && parentElement.Name == SRC.MemberList) {
+                var container = parentElement.Parent;
+                isConstructor = (container != null && container.Name == SRC.Constructor);
             }
 
             var methodCall = new MethodCall() {
@@ -378,6 +395,7 @@ namespace ABB.SrcML.Data {
             IEnumerable<XElement> methodCalls = GetMethodCallsFromElement(element);
             foreach(var methodCallElement in methodCalls) {
                 var methodCall = ParseCallElement(methodCallElement, context);
+                methodCall.ProgrammingLanguage = ParserLanguage;
                 context.CurrentScope.AddMethodCall(methodCall);
             }
 
@@ -479,13 +497,8 @@ namespace ABB.SrcML.Data {
             if(SRC.Unit != fileUnit.Name)
                 throw new ArgumentException("should be a SRC.Unit", "fileUnit");
 
-            try {
-                var globalScope = ParseElement(fileUnit, new ParserContext()) as NamespaceDefinition;
-                return globalScope;
-            } catch(Exception e) {
-                string fileName = SrcMLElement.GetFileNameForUnit(fileUnit);
-                throw new ParseException(fileName, this, e.Message, e);
-            }
+            var globalScope = ParseElement(fileUnit, new ParserContext()) as NamespaceDefinition;
+            return globalScope;
         }
 
         /// <summary>
@@ -559,10 +572,12 @@ namespace ABB.SrcML.Data {
             var typeElement = declElement.Element(SRC.Type);
             var nameElement = declElement.Element(SRC.Name);
             var name = (nameElement == null ? String.Empty : nameElement.Value);
+            var hasDefault = (declElement.Element(SRC.Init) != null);
 
             var parameterDeclaration = new ParameterDeclaration {
                 VariableType = ParseTypeUseElement(typeElement, context),
                 Name = name,
+                HasDefaultValue = hasDefault,
                 Scope = context.CurrentScope
             };
             parameterDeclaration.Locations.Add(context.CreateLocation(declElement));
@@ -596,6 +611,9 @@ namespace ABB.SrcML.Data {
                     }
                     current = scopeUse;
                 }
+            }
+            if (null != root) {
+                root.ParentScope = context.CurrentScope;
             }
             return root;
         }
@@ -825,7 +843,9 @@ namespace ABB.SrcML.Data {
         /// <param name="element">The element to search</param>
         /// <returns>All of the call elements from the element</returns>
         public virtual IEnumerable<XElement> GetMethodCallsFromElement(XElement element) {
-            if(MethodElementNames.Contains(element.Name) ||
+            if(SRC.Constructor == element.Name) {
+                return GetCallsFromConstructorElement(element);
+            } else if(MethodElementNames.Contains(element.Name) ||
                NamespaceElementNames.Contains(element.Name) ||
                TypeElementNames.Contains(element.Name)) {
                 return GetCallsFromBlockParent(element);
@@ -838,6 +858,16 @@ namespace ABB.SrcML.Data {
             if(null == block)
                 return Enumerable.Empty<XElement>();
             return GetMethodCallsFromBlockElement(block);
+        }
+
+        private IEnumerable<XElement> GetCallsFromConstructorElement(XElement element) {
+            var blockCalls = GetCallsFromBlockParent(element);
+            if(element.Element(SRC.MemberList) != null) {
+                var memberListCalls = from call in element.Element(SRC.MemberList).Elements(SRC.Call)
+                                      select call;
+                return memberListCalls.Concat(blockCalls);
+            }
+            return blockCalls;
         }
 
         private IEnumerable<XElement> GetMethodCallsFromBlockElement(XElement container) {
@@ -1139,10 +1169,11 @@ namespace ABB.SrcML.Data {
         /// <param name="methodElement">the method callElement to get the name for</param>
         /// <returns>The name of the method</returns>
         public virtual string GetNameForMethod(XElement methodElement) {
-            var name = methodElement.Element(SRC.Name);
-            if(null == name)
+            var nameElement = methodElement.Element(SRC.Name);
+
+            if(null == nameElement)
                 return string.Empty;
-            return name.Value;
+            return NameHelper.GetLastName(nameElement);
         }
 
         /// <summary>
@@ -1154,7 +1185,7 @@ namespace ABB.SrcML.Data {
             var name = typeElement.Element(SRC.Name);
             if(null == name)
                 return string.Empty;
-            return name.Value;
+            return NameHelper.GetLastName(name);
         }
 
         /// <summary>

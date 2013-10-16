@@ -9,9 +9,14 @@
  *    Vinay Augustine (ABB Group) - initial API, implementation, & documentation
  *****************************************************************************/
 
+using ABB.SrcML.Utilities;
 using NUnit.Framework;
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
+using System.Text;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace ABB.SrcML.Data.Test {
@@ -44,6 +49,73 @@ namespace ABB.SrcML.Data.Test {
             var classA = globalScope.ChildScopes.First() as TypeDefinition;
             Assert.AreEqual("A", classA.Name);
             Assert.AreEqual(1, classA.DeclaredVariables.Count());
+        }
+
+        [Test]
+        public void TestConstructorWithCallToSelf() {
+            // test.h class MyClass {
+            // public:
+            // MyClass() : MyClass(0) { } MyClass(int foo) { } };
+            string xml = @"<class>class <name>MyClass</name> <block>{<private type=""default"">
+  </private><public>public:
+    <constructor><name>MyClass</name><parameter_list>()</parameter_list> <member_list>: <call><name>MyClass</name><argument_list>(<argument><expr><lit:literal type=""number"">0</lit:literal></expr></argument>)</argument_list></call> </member_list><block>{ }</block></constructor>
+    <constructor><name>MyClass</name><parameter_list>(<param><decl><type><name>int</name></type> <name>foo</name></decl></param>)</parameter_list> <block>{ }</block></constructor>
+</public>}</block>;</class>";
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.h");
+            var globalScope = codeParser.ParseFileUnit(unit);
+
+            var constructors = globalScope.GetDescendantScopes<MethodDefinition>();
+            var defaultConstructor = (from method in constructors
+                                      where method.Parameters.Count == 0
+                                      select method).FirstOrDefault();
+
+            var calledConstructor = (from method in constructors
+                                     where method.Parameters.Count == 1
+                                     select method).FirstOrDefault();
+
+            Assert.IsNotNull(defaultConstructor);
+            Assert.IsNotNull(calledConstructor);
+            Assert.AreEqual(1, defaultConstructor.MethodCalls.Count());
+
+            var constructorCall = defaultConstructor.MethodCalls.First();
+
+            Assert.AreSame(calledConstructor, constructorCall.FindMatches().FirstOrDefault());
+        }
+
+        [Test]
+        public void TestConstructorWithSuperClass() {
+            // test.h class SuperClass {
+            // public:
+            // SuperClass(int foo) { } }; class SubClass : public SuperClass {
+            // public:
+            // SubClass(int foo) : SuperClass(foo) { } };
+            string xml = @"<class>class <name>SuperClass</name> <block>{<private type=""default"">
+  </private><public>public:
+    <constructor><name>SuperClass</name><parameter_list>(<param><decl><type><name>int</name></type> <name>foo</name></decl></param>)</parameter_list> <block>{ }</block></constructor>
+</public>}</block>;</class>
+<class>class <name>SubClass</name> <super>: <specifier>public</specifier> <name>SuperClass</name></super> <block>{<private type=""default"">
+  </private><public>public:
+    <constructor><name>SubClass</name><parameter_list>(<param><decl><type><name>int</name></type> <name>foo</name></decl></param>)</parameter_list> <member_list>: <call><name>SuperClass</name><argument_list>(<argument><expr><name>foo</name></expr></argument>)</argument_list></call> </member_list><block>{ }</block></constructor>
+</public>}</block>;</class>";
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.h");
+            var globalScope = codeParser.ParseFileUnit(unit);
+
+            var constructors = globalScope.GetDescendantScopes<MethodDefinition>();
+            var subClassConstructor = (from method in constructors
+                                       where method.GetParentScopes<TypeDefinition>().First().Name == "SubClass"
+                                       select method).FirstOrDefault();
+
+            var calledConstructor = (from method in constructors
+                                     where method.GetParentScopes<TypeDefinition>().First().Name == "SuperClass"
+                                     select method).FirstOrDefault();
+
+            Assert.IsNotNull(subClassConstructor);
+            Assert.IsNotNull(calledConstructor);
+            Assert.AreEqual(1, subClassConstructor.MethodCalls.Count());
+
+            var constructorCall = subClassConstructor.MethodCalls.First();
+
+            Assert.AreSame(calledConstructor, constructorCall.FindMatches().FirstOrDefault());
         }
 
         [Test]
@@ -165,8 +237,8 @@ namespace ABB.SrcML.Data.Test {
         public void TestCreateTypeDefinitions_ClassInFunction() {
             // int main() { class A { }; }
             string xml = @"<function><type><name>int</name></type> <name>main</name><parameter_list>()</parameter_list> <block>{
-	<class>class <name>A</name> <block>{<private type=""default"">
-	</private>}</block>;</class>
+    <class>class <name>A</name> <block>{<private type=""default"">
+    </private>}</block>;</class>
 }</block></function>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "main.cpp");
@@ -184,8 +256,8 @@ namespace ABB.SrcML.Data.Test {
         public void TestCreateTypeDefinitions_ClassWithInnerClass() {
             // class A { class B { }; };
             string xml = @"<class>class <name>A</name> <block>{<private type=""default"">
-	<class>class <name>B</name> <block>{<private type=""default"">
-	</private>}</block>;</class>
+    <class>class <name>B</name> <block>{<private type=""default"">
+    </private>}</block>;</class>
 </private>}</block>;</class>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
@@ -249,10 +321,10 @@ namespace ABB.SrcML.Data.Test {
         public void TestCreateTypeDefinitions_InnerClassWithNamespace() {
             // namespace A { class B { class C { }; }; }
             string xml = @"<namespace>namespace <name>A</name> <block>{
-	<class>class <name>B</name> <block>{<private type=""default"">
-		<class>class <name>C</name> <block>{<private type=""default"">
-		</private>}</block>;</class>
-	</private>}</block>;</class>
+    <class>class <name>B</name> <block>{<private type=""default"">
+        <class>class <name>C</name> <block>{<private type=""default"">
+        </private>}</block>;</class>
+    </private>}</block>;</class>
 }</block></namespace>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
@@ -297,8 +369,8 @@ namespace ABB.SrcML.Data.Test {
             // union A { int a; char b;
             //};
             string xml = @"<union>union <name>A</name> <block>{<public type=""default"">
-	<decl_stmt><decl><type><name>int</name></type> <name>a</name></decl>;</decl_stmt>
-	<decl_stmt><decl><type><name>char</name></type> <name>b</name></decl>;</decl_stmt>
+    <decl_stmt><decl><type><name>int</name></type> <name>a</name></decl>;</decl_stmt>
+    <decl_stmt><decl><type><name>char</name></type> <name>b</name></decl>;</decl_stmt>
 </public>}</block>;</union>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
@@ -546,6 +618,41 @@ namespace ABB.SrcML.Data.Test {
 
             Assert.IsNull(method.ReturnType, "return type should be null");
             Assert.AreEqual("Method: void Foo()", method.ToString());
+        }
+
+        [Test]
+        public void TestMethodWithDefaultArguments() {
+            //void foo(int a = 0);
+            //
+            //int main() {
+            //    foo();
+            //    foo(5);
+            //    return 0;
+            //}
+            //
+            //void foo(int a) { }
+            string xml = @"<function_decl><type><name>void</name></type> <name>foo</name><parameter_list>(<param><decl><type><name>int</name></type> <name>a</name> =<init> <expr><lit:literal type=""number"">0</lit:literal></expr></init></decl></param>)</parameter_list>;</function_decl>
+
+<function><type><name>int</name></type> <name>main</name><parameter_list>()</parameter_list> <block>{
+    <expr_stmt><expr><call><name>foo</name><argument_list>()</argument_list></call></expr>;</expr_stmt>
+    <expr_stmt><expr><call><name>foo</name><argument_list>(<argument><expr><lit:literal type=""number"">5</lit:literal></expr></argument>)</argument_list></call></expr>;</expr_stmt>
+    <return>return <expr><lit:literal type=""number"">0</lit:literal></expr>;</return>
+}</block></function>
+
+<function><type><name>void</name></type> <name>foo</name><parameter_list>(<param><decl><type><name>int</name></type> <name>a</name></decl></param>)</parameter_list> <block>{ }</block></function>";
+
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cpp");
+            var globalScope = codeParser.ParseFileUnit(unit);
+
+            var fooMethod = globalScope.GetChildScopesWithId<MethodDefinition>("foo").FirstOrDefault();
+            var mainMethod = globalScope.GetChildScopesWithId<MethodDefinition>("main").FirstOrDefault();
+
+            Assert.IsNotNull(fooMethod);
+            Assert.IsNotNull(mainMethod);
+            Assert.AreEqual(2, mainMethod.MethodCalls.Count());
+
+            Assert.AreSame(fooMethod, mainMethod.MethodCalls.First().FindMatches().FirstOrDefault());
+            Assert.AreSame(fooMethod, mainMethod.MethodCalls.Last().FindMatches().FirstOrDefault());
         }
 
         [Test]

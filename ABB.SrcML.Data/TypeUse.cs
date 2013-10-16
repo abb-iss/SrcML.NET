@@ -101,6 +101,13 @@ namespace ABB.SrcML.Data {
             // types
             if(BuiltInTypeFactory.IsBuiltIn(this)) {
                 yield return BuiltInTypeFactory.GetBuiltIn(this);
+            } else if(null != Prefix) {
+                var matches = from prefixMatch in Prefix.FindMatches()
+                              from match in prefixMatch.GetChildScopesWithId<TypeDefinition>(this.Name)
+                              select match;
+                foreach(var match in matches) {
+                    yield return match;
+                }
             } else {
                 // First, just call AbstractUse.FindMatches() this will search everything in
                 // ParentScope.GetParentScopesAndSelf<TypeDefinition>() for a matching type and

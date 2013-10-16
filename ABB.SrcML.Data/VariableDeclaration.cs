@@ -11,6 +11,9 @@
  *****************************************************************************/
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 namespace ABB.SrcML.Data {
 
@@ -52,7 +55,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Description of the type for this variable
         /// </summary>
-        public TypeUse VariableType { get; set; }
+        public virtual TypeUse VariableType { get; set; }
 
         /// <summary>
         /// Returns a string representation of this object.

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 
 namespace ABB.SrcML.Test {
@@ -268,6 +269,22 @@ C:\Foo\Bar\xyzzy\Example.cs|C:\srcmlArchive\Example.cs.2.xml";
                     File.Delete(file);
                 }
             }
+        }
+
+        [Test]
+        public void TestXmlPathWithDifferentCase() {
+            var xmlFilePath = @"..\..\TestInputs\function_def.xml";
+            var sourceFilePath = @"C:\Workspaces\SrcML.NET\TestInputs\function_def.cpp";
+
+            File.Copy(xmlFilePath, @"mappingTest\function_def.xml", true);
+
+            var map = new ShortXmlFileNameMapping("mappingTest");
+            var storedXmlPath = map.GetXmlPath(sourceFilePath);
+            Assert.IsNotNull(map.GetSourcePath(storedXmlPath));
+
+            var modifiedDriveLetter = Char.IsLower(storedXmlPath[0]) ? Char.ToUpper(storedXmlPath[0]) : Char.ToLower(storedXmlPath[0]);
+            var absoluteXmlPath = String.Concat(modifiedDriveLetter, storedXmlPath.Substring(1));
+            Assert.IsNotNull(map.GetSourcePath(absoluteXmlPath));
         }
 
         private void ConcurrentWorker(ShortXmlFileNameMapping map, IEnumerable<string> sourceFiles) {

@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Text;
 
 namespace ABB.SrcML.Data {
 
@@ -91,14 +92,20 @@ namespace ABB.SrcML.Data {
             IEnumerable<MethodDefinition> matchingMethods = Enumerable.Empty<MethodDefinition>();
 
             if(IsConstructor || IsDestructor) {
-                TypeUse tempTypeUse = new TypeUse() {
-                    Name = this.Name,
-                    ParentScope = this.ParentScope,
-                };
-                tempTypeUse.AddAliases(this.Aliases);
+                IEnumerable<TypeDefinition> typeDefinitions;
+                if(this.Name == "this" || (this.Name == "base" && this.ProgrammingLanguage == Language.CSharp)) {
+                    typeDefinitions = TypeDefinition.GetTypeForKeyword(this);
+                } else {
+                    TypeUse tempTypeUse = new TypeUse() {
+                        Name = this.Name,
+                        ParentScope = this.ParentScope,
+                    };
+                    tempTypeUse.AddAliases(this.Aliases);
+                    typeDefinitions = tempTypeUse.FindMatches();
+                }
 
-                matchingMethods = from typeDefinition in tempTypeUse.FindMatches()
-                                  from method in typeDefinition.GetChildScopesWithId<MethodDefinition>(this.Name)
+                matchingMethods = from typeDefinition in typeDefinitions
+                                  from method in typeDefinition.GetChildScopesWithId<MethodDefinition>(typeDefinition.Name)
                                   where Matches(method)
                                   select method;
             } else if(CallingObject != null) {
@@ -126,11 +133,38 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <returns>An enumerable of the matching type definitions for this method</returns>
         public IEnumerable<TypeDefinition> FindMatchingTypes() {
-            var possibleReturnTypes = from methodDefinition in FindMatches()
-                                      where methodDefinition.ReturnType != null
-                                      from typeDefinition in methodDefinition.ReturnType.FindMatches()
-                                      select typeDefinition;
-            return possibleReturnTypes;
+            foreach(var methodDefinition in FindMatches()) {
+                IEnumerable<TypeDefinition> matchingTypes = Enumerable.Empty<TypeDefinition>();
+
+                if(methodDefinition.ReturnType != null) {
+                    matchingTypes = methodDefinition.ReturnType.FindMatches();
+                } else if(methodDefinition.IsConstructor) {
+                    matchingTypes = from type in methodDefinition.GetParentScopes<TypeDefinition>()
+                                    where type.Name == methodDefinition.Name
+                                    select type;
+                }
+                foreach(var result in matchingTypes) {
+                    yield return result;
+                }
+            }
+        }
+
+        public IEnumerable<string> GetPossibleNames() {
+            if(this.Name == "this") {
+                foreach(var containingType in ParentScopes.OfType<TypeDefinition>().Take(1)) {
+                    yield return containingType.Name;
+                }
+            } else if(this.Name == "base" && ProgrammingLanguage == Language.CSharp) {
+                var typeDefinitions = from containingType in ParentScopes.OfType<TypeDefinition>()
+                                      from parentTypeReference in containingType.ParentTypes
+                                      from parentType in parentTypeReference.FindMatchingTypes()
+                                      select parentType;
+                foreach(var baseType in typeDefinitions) {
+                    yield return baseType.Name;
+                }
+            } else {
+                yield return this.Name;
+            }
         }
 
         /// <summary>
@@ -144,11 +178,14 @@ namespace ABB.SrcML.Data {
 
             //var argumentsMatchParameters = Enumerable.Zip(this.Arguments, definition.Parameters,
             //                                              (a,p) => ArgumentMatchesDefinition(a,p));
+            var numberOfMethodParameters = definition.Parameters.Count;
+            var numberOfMethodParametersWithDefault = definition.Parameters.Where(p => p.HasDefaultValue).Count();
 
             return this.IsConstructor == definition.IsConstructor &&
                    this.IsDestructor == definition.IsDestructor &&
-                   this.Name == definition.Name &&
-                   this.Arguments.Count == definition.Parameters.Count;// &&
+                   GetPossibleNames().Any(n => n == definition.Name) &&
+                   this.Arguments.Count >= numberOfMethodParameters - numberOfMethodParametersWithDefault &&
+                   this.Arguments.Count <= definition.Parameters.Count;// &&
                                                                        //argumentsMatchParameters.All(a => a);
         }
 

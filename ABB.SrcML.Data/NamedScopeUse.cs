@@ -32,6 +32,38 @@ namespace ABB.SrcML.Data {
             }
             return scope;
         }
+        
+        /// <summary>
+        /// Find named scopes that match this named scope use.
+        /// </summary>
+        /// <returns>An enumerable of named scopes with the same name as this use</returns>
+        public override IEnumerable<NamedScope> FindMatches() {
+            if(ChildScopeUse != null) {
+                var globalScope = ParentScope.GetParentScopesAndSelf<NamespaceDefinition>().Where(p => p.IsGlobal).FirstOrDefault();
+
+                NamedScopeUse current = ChildScopeUse;
+
+                IEnumerable<NamedScope> matches = null;
+                while(current != null) {
+                    if(matches == null) {
+                        matches = globalScope.GetChildScopesWithId<NamedScope>(current.Name);
+                    } else {
+                        matches = GetChildScopesWithName(matches, current.Name);
+                    }
+                    current = current.ChildScopeUse;
+                }
+                return (matches == null ? Enumerable.Empty<NamedScope>() : matches);
+            } else {
+                return base.FindMatches();
+            }
+        }
+
+        private IEnumerable<NamedScope> GetChildScopesWithName(IEnumerable<NamedScope> scopes, string name) {
+            var matches = from scope in scopes
+                          from match in scope.GetChildScopesWithId<NamedScope>(name)
+                          select match;
+            return matches;
+        }
 
         /// <summary>
         /// Constructs the full name for this named scope use by combining this scope with all of
