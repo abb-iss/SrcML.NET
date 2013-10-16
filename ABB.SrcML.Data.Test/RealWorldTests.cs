@@ -196,15 +196,12 @@ namespace ABB.SrcML.Data.Test {
                 foreach(var call in methodCalls) {
                     sw.Start();
                     MethodDefinition match = null;
-                    try
-                    {
+                    try {
                         match = call.FindMatches().FirstOrDefault();
-                    }
-                    catch (Exception e)
-                    {
+                    } catch(Exception e) {
                         Console.WriteLine("{0}:{1}:{2}): {3}", call.Location.SourceFileName, call.Location.StartingLineNumber, call.Location.StartingColumnNumber, e.Message);
                     }
-                    
+
                     sw.Stop();
                     numMethodCalls++;
                     if(null != match) {

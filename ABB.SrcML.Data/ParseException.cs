@@ -1,22 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace ABB.SrcML.Data {
+
     /// <summary>
-    /// Represents an error from an <see cref="AbstractCodeParser"/>. The various parser functions are caught by <see cref="AbstractCodeParser.ParseFileUnit(System.Xml.Linq.XElement)"/> and rethrown as a ParseException.
+    /// Represents an error from an <see cref="AbstractCodeParser"/>. The various parser functions
+    /// are caught by <see cref="AbstractCodeParser.ParseFileUnit(System.Xml.Linq.XElement)"/> and
+    /// rethrown as a ParseException.
     /// </summary>
     public class ParseException : Exception {
-        /// <summary>
-        /// The file name that caused the exception
-        /// </summary>
-        public string FileName { get; protected set; }
-
-        /// <summary>
-        /// The parser object that threw the exception
-        /// </summary>
-        public AbstractCodeParser Parser { get; protected set; }
 
         /// <summary>
         /// Constructs an object
@@ -53,5 +44,15 @@ namespace ABB.SrcML.Data {
             this.FileName = fileName;
             this.Parser = parser;
         }
+
+        /// <summary>
+        /// The file name that caused the exception
+        /// </summary>
+        public string FileName { get; protected set; }
+
+        /// <summary>
+        /// The parser object that threw the exception
+        /// </summary>
+        public AbstractCodeParser Parser { get; protected set; }
     }
 }
