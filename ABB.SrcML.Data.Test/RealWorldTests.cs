@@ -325,7 +325,10 @@ namespace ABB.SrcML.Data.Test {
                                 if(!errors.ContainsKey(key)) {
                                     errors[key] = new List<string>();
                                 }
-                                errors[key].Add(pe.FileName);
+                                int errorLineNumber = (pe.LineNumber < 1 ? 1 : pe.LineNumber);
+                                int errorColumnNumber = (pe.ColumnNumber < 1 ? 1 : pe.ColumnNumber);
+                                var errorLocation = String.Format("{0}({1},{2})", pe.FileName, errorLineNumber, errorColumnNumber);
+                                errors[key].Add(errorLocation);
                             }
                         };
 

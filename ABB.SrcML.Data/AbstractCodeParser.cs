@@ -373,49 +373,51 @@ namespace ABB.SrcML.Data {
         /// <returns>The scope representing
         /// <paramref name="element"/></returns>
         public virtual Scope ParseElement(XElement element, ParserContext context) {
-            if(element.Name == SRC.Unit) {
-                ParseUnitElement(element, context);
-            } else if(TypeElementNames.Contains(element.Name)) {
-                ParseTypeElement(element, context);
-            } else if(NamespaceElementNames.Contains(element.Name)) {
-                ParseNamespaceElement(element, context);
-            } else if(MethodElementNames.Contains(element.Name)) {
-                ParseMethodElement(element, context);
-            } else {
-                ParseContainerElement(element, context);
-            }
-
-            IEnumerable<XElement> Elements = GetDeclarationsFromElement(element);
-            foreach(var declarationElement in Elements) {
-                foreach(var declaration in ParseDeclarationElement(declarationElement, context)) {
-                    context.CurrentScope.AddDeclaredVariable(declaration);
+            try {
+                if(element.Name == SRC.Unit) {
+                    ParseUnitElement(element, context);
+                } else if(TypeElementNames.Contains(element.Name)) {
+                    ParseTypeElement(element, context);
+                } else if(NamespaceElementNames.Contains(element.Name)) {
+                    ParseNamespaceElement(element, context);
+                } else if(MethodElementNames.Contains(element.Name)) {
+                    ParseMethodElement(element, context);
+                } else {
+                    ParseContainerElement(element, context);
                 }
+
+                IEnumerable<XElement> Elements = GetDeclarationsFromElement(element);
+                foreach(var declarationElement in Elements) {
+                    foreach(var declaration in ParseDeclarationElement(declarationElement, context)) {
+                        context.CurrentScope.AddDeclaredVariable(declaration);
+                    }
+                }
+
+                IEnumerable<XElement> methodCalls = GetMethodCallsFromElement(element);
+                foreach(var methodCallElement in methodCalls) {
+                    var methodCall = ParseCallElement(methodCallElement, context);
+                    methodCall.ProgrammingLanguage = ParserLanguage;
+                    context.CurrentScope.AddMethodCall(methodCall);
+                }
+
+                IEnumerable<XElement> children = GetChildContainers(element);
+                foreach(var childElement in children) {
+                    var childScope = ParseElement(childElement, context);
+                    context.CurrentScope.AddChildScope(childScope);
+                }
+
+                var currentScope = context.Pop();
+                currentScope.AddSourceLocation(context.CreateLocation(element, ContainerIsReference(element)));
+                currentScope.ProgrammingLanguage = ParserLanguage;
+
+                return currentScope;
+            } catch(ParseException) {
+                throw;
+            } catch(Exception e) {
+                int lineNumber = element.GetSrcLineNumber();
+                int columnNumber = element.GetSrcLinePosition();
+                throw new ParseException(context.FileName, lineNumber, columnNumber, this, e.Message, e);
             }
-
-            IEnumerable<XElement> methodCalls = GetMethodCallsFromElement(element);
-            foreach(var methodCallElement in methodCalls) {
-                var methodCall = ParseCallElement(methodCallElement, context);
-                methodCall.ProgrammingLanguage = ParserLanguage;
-                context.CurrentScope.AddMethodCall(methodCall);
-            }
-
-            IEnumerable<XElement> children = GetChildContainers(element);
-            foreach(var childElement in children) {
-                //var subContext = new ParserContext() {
-                //    Aliases = context.Aliases,
-                //    FileUnit = context.FileUnit,
-                //};
-
-                var childScope = ParseElement(childElement, context);
-                //Scope childScope = ParseElement(childElement, subContext);
-                context.CurrentScope.AddChildScope(childScope);
-            }
-
-            var currentScope = context.Pop();
-            currentScope.AddSourceLocation(context.CreateLocation(element, ContainerIsReference(element)));
-            currentScope.ProgrammingLanguage = ParserLanguage;
-
-            return currentScope;
         }
 
         /// <summary>
@@ -497,13 +499,8 @@ namespace ABB.SrcML.Data {
             if(SRC.Unit != fileUnit.Name)
                 throw new ArgumentException("should be a SRC.Unit", "fileUnit");
 
-            try {
-                var globalScope = ParseElement(fileUnit, new ParserContext()) as NamespaceDefinition;
-                return globalScope;
-            } catch(Exception e) {
-                string fileName = SrcMLElement.GetFileNameForUnit(fileUnit);
-                throw new ParseException(fileName, this, e.Message, e);
-            }
+            var globalScope = ParseElement(fileUnit, new ParserContext()) as NamespaceDefinition;
+            return globalScope;
         }
 
         /// <summary>
