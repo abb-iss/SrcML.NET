@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML.Data {
@@ -32,7 +34,7 @@ namespace ABB.SrcML.Data {
             }
             return scope;
         }
-        
+
         /// <summary>
         /// Find named scopes that match this named scope use.
         /// </summary>
@@ -56,13 +58,6 @@ namespace ABB.SrcML.Data {
             } else {
                 return base.FindMatches();
             }
-        }
-
-        private IEnumerable<NamedScope> GetChildScopesWithName(IEnumerable<NamedScope> scopes, string name) {
-            var matches = from scope in scopes
-                          from match in scope.GetChildScopesWithId<NamedScope>(name)
-                          select match;
-            return matches;
         }
 
         /// <summary>
@@ -100,6 +95,13 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public override string ToString() {
             return GetFullName();
+        }
+
+        private IEnumerable<NamedScope> GetChildScopesWithName(IEnumerable<NamedScope> scopes, string name) {
+            var matches = from scope in scopes
+                          from match in scope.GetChildScopesWithId<NamedScope>(name)
+                          select match;
+            return matches;
         }
     }
 }

@@ -497,8 +497,13 @@ namespace ABB.SrcML.Data {
             if(SRC.Unit != fileUnit.Name)
                 throw new ArgumentException("should be a SRC.Unit", "fileUnit");
 
-            var globalScope = ParseElement(fileUnit, new ParserContext()) as NamespaceDefinition;
-            return globalScope;
+            try {
+                var globalScope = ParseElement(fileUnit, new ParserContext()) as NamespaceDefinition;
+                return globalScope;
+            } catch(Exception e) {
+                string fileName = SrcMLElement.GetFileNameForUnit(fileUnit);
+                throw new ParseException(fileName, this, e.Message, e);
+            }
         }
 
         /// <summary>
@@ -612,7 +617,7 @@ namespace ABB.SrcML.Data {
                     current = scopeUse;
                 }
             }
-            if (null != root) {
+            if(null != root) {
                 root.ParentScope = context.CurrentScope;
             }
             return root;
