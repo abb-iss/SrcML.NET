@@ -420,6 +420,7 @@ namespace ABB.SrcML.Data {
                         AddFile(e.FilePath);
                         break;
                 }
+                OnFileProcessed(e);
             } catch(Exception ex) {
                 // TODO log exception
                 Console.Error.WriteLine("Error: {0} ({1} {2})", ex.Message, e.EventType, e.FilePath);
@@ -463,10 +464,11 @@ namespace ABB.SrcML.Data {
             if(null != Archive) {
                 foreach(var unit in Archive.FileUnits) {
                     try {
+                        string fileName = SrcMLElement.GetFileNameForUnit(unit);
                         AddFile(unit);
+                        OnFileProcessed(new FileEventRaisedArgs(FileEventType.FileAdded, fileName));
                     } catch(Exception ex) {
-                        var fileName = SrcMLElement.GetFileNameForUnit(unit);
-                        Console.Error.WriteLine("Error: {0} (Adding {1})", ex.Message, fileName);
+                        OnErrorRaised(new ErrorRaisedArgs(ex));
                     }
                 }
             }
