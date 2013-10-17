@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 
 namespace ABB.SrcML.Data.Test {
+
     [TestFixture]
     [Category("Build")]
-    class SourceLocationTests {
+    internal class SourceLocationTests {
+
         [Test]
         public void TestContains_DifferentLines() {
             var outer = new SourceLocation("Foo.cpp", 3, 5, 10, 60);
@@ -17,10 +15,10 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestContains_SameLine() {
+        public void TestContains_Overlapping() {
             var outer = new SourceLocation("Foo.cpp", 3, 1, 10, 60);
-            var inner = new SourceLocation("Foo.cpp", 3, 3, 3, 5);
-            Assert.IsTrue(outer.Contains(inner));
+            var inner = new SourceLocation("Foo.cpp", 4, 1, 11, 1);
+            Assert.IsFalse(outer.Contains(inner));
             Assert.IsFalse(inner.Contains(outer));
         }
 
@@ -33,10 +31,10 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestContains_Overlapping() {
+        public void TestContains_SameLine() {
             var outer = new SourceLocation("Foo.cpp", 3, 1, 10, 60);
-            var inner = new SourceLocation("Foo.cpp", 4, 1, 11, 1);
-            Assert.IsFalse(outer.Contains(inner));
+            var inner = new SourceLocation("Foo.cpp", 3, 3, 3, 5);
+            Assert.IsTrue(outer.Contains(inner));
             Assert.IsFalse(inner.Contains(outer));
         }
     }

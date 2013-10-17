@@ -9,26 +9,16 @@
  *    Vinay Augustine (ABB Group) - initial API, implementation, & documentation
  *****************************************************************************/
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using NUnit.Framework;
+using System;
+using System.Linq;
 using System.Xml.Linq;
 
 namespace ABB.SrcML.Data.Test {
+
     [TestFixture]
     [Category("Build")]
-    class NameHelperTests {
-        [Test]
-        public void TestGetNestedNameElements() {
-            var nameElement = FormatRootNameElement("<name>A</name><name>B</name>");
-
-            var nestedNames = NameHelper.GetNameElementsFromName(nameElement);
-
-            Assert.AreEqual("A", nestedNames.First().Value);
-            Assert.AreEqual("B", nestedNames.Last().Value);
-        }
+    internal class NameHelperTests {
 
         [Test]
         public void TestGetLastNameElement() {
@@ -38,6 +28,11 @@ namespace ABB.SrcML.Data.Test {
             var lastName = NameHelper.GetLastNameElement(nameElement);
 
             Assert.AreSame(expectedLastName, lastName);
+        }
+
+        [Test, ExpectedException(typeof(ArgumentNullException))]
+        public void TestGetLastNameElement_Null() {
+            NameHelper.GetLastName(null);
         }
 
         [Test]
@@ -51,6 +46,21 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreSame(expectedFirstName, nestedNamesExceptLast.First());
         }
 
+        [Test, ExpectedException(typeof(ArgumentNullException))]
+        public void TestGetNameElementsExceptLast_Null() {
+            NameHelper.GetNameElementsExceptLast(null).First();
+        }
+
+        [Test]
+        public void TestGetNestedNameElements() {
+            var nameElement = FormatRootNameElement("<name>A</name><name>B</name>");
+
+            var nestedNames = NameHelper.GetNameElementsFromName(nameElement);
+
+            Assert.AreEqual("A", nestedNames.First().Value);
+            Assert.AreEqual("B", nestedNames.Last().Value);
+        }
+
         [Test]
         public void TestGetNestedNameElements_NoNestedNames() {
             var nameElement = FormatRootNameElement("A");
@@ -62,20 +72,11 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual(0, NameHelper.GetNameElementsExceptLast(nameElement).Count());
         }
 
-        [Test,ExpectedException(typeof(ArgumentNullException))]
+        [Test, ExpectedException(typeof(ArgumentNullException))]
         public void TestGetNestedNameElements_Null() {
             NameHelper.GetNameElementsFromName(null).First();
         }
 
-        [Test, ExpectedException(typeof(ArgumentNullException))]
-        public void TestGetLastNameElement_Null() {
-            NameHelper.GetLastName(null);
-        }
-        
-        [Test, ExpectedException(typeof(ArgumentNullException))]
-        public void TestGetNameElementsExceptLast_Null() {
-            NameHelper.GetNameElementsExceptLast(null).First();
-        }
         private XElement FormatRootNameElement(string content) {
             return XElement.Parse(String.Format(@"<name xmlns=""{0}"">{1}</name>", SrcML.NamespaceManager.LookupNamespace("src"), content));
         }

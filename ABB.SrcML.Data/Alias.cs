@@ -1,23 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace ABB.SrcML.Data {
+
     /// <summary>
     /// Represents an import or using directive (usually found at the top of a source file)
     /// </summary>
     [Serializable]
     public class Alias {
-        private NamespaceUse namespaceRoot;
         private NamedScopeUse endPoint;
+        private NamespaceUse namespaceRoot;
 
         /// <summary>
-        /// The namespace root identified by this alias
+        /// Constructs a new alias object
         /// </summary>
-        public NamespaceUse ImportedNamespace {
-            get { return namespaceRoot; }
-            set { this.namespaceRoot = value; }
+        public Alias() {
+            this.ImportedNamedScope = null;
+            this.ImportedNamespace = null;
         }
 
         /// <summary>
@@ -27,8 +26,15 @@ namespace ABB.SrcML.Data {
             get { return endPoint; }
             set {
                 this.endPoint = value;
-                
             }
+        }
+
+        /// <summary>
+        /// The namespace root identified by this alias
+        /// </summary>
+        public NamespaceUse ImportedNamespace {
+            get { return namespaceRoot; }
+            set { this.namespaceRoot = value; }
         }
 
         /// <summary>
@@ -46,20 +52,13 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public Language ProgrammingLanguage { get; set; }
 
-        
         /// <summary>
-        /// Constructs a new alias object
-        /// </summary>
-        public Alias() {
-            this.ImportedNamedScope = null;
-            this.ImportedNamespace = null;
-        }
-
-        /// <summary>
-        /// Finds a namespace that matches the <see cref="ImportedNamespace"/> portion of this alias.
+        /// Finds a namespace that matches the <see cref="ImportedNamespace"/> portion of this
+        /// alias.
         /// </summary>
         /// <param name="rootScope">the global scope to search from</param>
-        /// <returns>namespace definitions rooted at <paramref name="rootScope"/> that match <see cref="ImportedNamespace"/></returns>
+        /// <returns>namespace definitions rooted at
+        /// <paramref name="rootScope"/>that match see cref="ImportedNamespace"/></returns>
         public IEnumerable<NamespaceDefinition> FindMatchingNamespace(NamespaceDefinition rootScope) {
             var currentNsUse = this.ImportedNamespace;
 
@@ -68,21 +67,30 @@ namespace ABB.SrcML.Data {
 
             // we will go through each namespace referenced by the alias
             while(currentNsUse != null) {
-                // go through all of the scopes and get the children that match currentNsUse
-                // on the first iteration, the only thing in scopes will be the global scope
-                // on subsequent iterations, scopes will contain matches for the parent of currentNsUse
+                // go through all of the scopes and get the children that match currentNsUse on the
+                // first iteration, the only thing in scopes will be the global scope on subsequent
+                // iterations, scopes will contain matches for the parent of currentNsUse
                 int currentLength = scopes.Count;
                 for(int i = 0; i < currentLength; i++) {
                     scopes.AddRange(scopes[i].GetChildScopesWithId<NamespaceDefinition>(currentNsUse.Name));
                 }
-                // once we've found matches for currentNsUse, remove the previous scopes from the list
-                // and set currentNsUse to its child
+                // once we've found matches for currentNsUse, remove the previous scopes from the
+                // list and set currentNsUse to its child
                 scopes.RemoveRange(0, currentLength);
                 currentNsUse = currentNsUse.ChildScopeUse as NamespaceUse;
             }
 
             return scopes;
         }
+
+        /// <summary>
+        /// Gets the full name for this alias
+        /// </summary>
+        /// <returns>the full name for this alias</returns>
+        public string GetFullName() {
+            return String.Format("{0}.{1}", GetNamespaceName(), ImportedNamedScope.GetFullName()).TrimStart('.');
+        }
+
         /// <summary>
         /// Constructs the namespace name for this alias
         /// </summary>
@@ -94,15 +102,9 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Gets the full name for this alias
-        /// </summary>
-        /// <returns>the full name for this alias</returns>
-        public string GetFullName() {
-            return String.Format("{0}.{1}", GetNamespaceName(), ImportedNamedScope.GetFullName()).TrimStart('.');
-        }
-        /// <summary>
-        /// Checks if this is a valid alias for the given type use. Namespace prefixes are always valid.
-        /// Other prefixes must have <see cref="ImportedNamedScope"/> match <see cref="AbstractUse{T}.Name"/>
+        /// Checks if this is a valid alias for the given type use. Namespace prefixes are always
+        /// valid. Other prefixes must have <see cref="ImportedNamedScope"/> match
+        /// <see cref="AbstractUse{T}.Name"/>
         /// </summary>
         /// <param name="use">the type use to check</param>
         /// <returns>true if this alias may represent this type use.</returns>
@@ -119,10 +121,11 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Checks to see if this is an alias for <paramref name="namedScope"/>
-        /// </summary>
+        /// Checks to see if this is an alias for
+        /// <paramref name="namedScope"/></summary>
         /// <param name="namedScope">The named scope to check</param>
-        /// <returns>True if this alias can apply to the provided named scope; false otherwise</returns>
+        /// <returns>True if this alias can apply to the provided named scope; false
+        /// otherwise</returns>
         public bool IsAliasFor(NamedScope namedScope) {
             if(this.IsNamespaceImport)
                 return true;

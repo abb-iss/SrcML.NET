@@ -18,16 +18,18 @@ using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML.Data {
+
     /// <summary>
-    /// <para>This is a variable scope that can be identified by name. Its subclasses identify specific constructs
-    /// in the code that have a name. It is also used by <see cref="CPlusPlusCodeParser"/> to represent unresolved
-    /// scopes.</para>
-    /// <para>Sub-classes of this include <see cref="TypeDefinition"/>, <see cref="NamespaceDefinition"/>,
-    /// and <see cref="MethodDefinition"/></para>
+    /// <para>This is a variable scope that can be identified by name. Its subclasses identify
+    /// specific constructs in the code that have a name. It is also used by
+    /// <see cref="CPlusPlusCodeParser"/> to represent unresolved scopes.</para> <para>Sub-classes
+    /// of this include <see cref="TypeDefinition"/>, <see cref="NamespaceDefinition"/>, and
+    /// <see cref="MethodDefinition"/></para>
     /// </summary>
     [DebuggerTypeProxy(typeof(ScopeDebugView))]
     [Serializable]
     public class NamedScope : Scope {
+
         /// <summary>
         /// Create a new object
         /// </summary>
@@ -53,7 +55,7 @@ namespace ABB.SrcML.Data {
             }
             UnresolvedParentScopeInUse = otherScope.UnresolvedParentScopeInUse;
         }
-        
+
         /// <summary>
         /// The access modifier for this scope
         /// </summary>
@@ -69,35 +71,25 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// This indicates which unresolved parent scope has been used to link this object with a parent object
+        /// The name of this scope
         /// </summary>
-        public NamedScopeUse UnresolvedParentScopeInUse { get; set; }
-        
+        public string Name { get; set; }
+
         /// <summary>
         /// Collection of possible parent scope candidates
         /// </summary>
         public Collection<NamedScopeUse> ParentScopeCandidates { get; set; }
 
         /// <summary>
-        /// The name of this scope
+        /// This indicates which unresolved parent scope has been used to link this object with a
+        /// parent object
         /// </summary>
-        public string Name { get; set; }
+        public NamedScopeUse UnresolvedParentScopeInUse { get; set; }
 
         /// <summary>
-        /// Gets the full name by finding all of the named scope ancestors and combining them.
-        /// </summary>
-        /// <returns>The full name for this scope</returns>
-        public string GetFullName() {
-            var names = from scope in GetParentScopesAndSelf<NamedScope>()
-                        where !String.IsNullOrEmpty(scope.Name)
-                        select scope.Name;
-            return String.Join(".", names.Reverse()).TrimEnd('.');
-        }
-
-        /// <summary>
-        /// Adds a child scope to this object. If the child scope is a <see cref="Scope"/>
-        /// It setups all of the unresolved links between this scope and the <paramref name="childScope"/>
-        /// </summary>
+        /// Adds a child scope to this object. If the child scope is a <see cref="Scope"/> It setups
+        /// all of the unresolved links between this scope and the
+        /// <paramref name="childScope"/></summary>
         /// <param name="childScope">the child scope to add</param>
         public override void AddChildScope(Scope childScope) {
             var cs = childScope as NamedScope;
@@ -109,83 +101,8 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Sets up unresolved links between this and <paramref name="childScope"/> if needed.
-        /// </summary>
-        /// <param name="childScope">The child scope to add</param>
-        protected void AddNamedChildScope(NamedScope childScope) {
-            var scopeToAdd = childScope;
-            if(childScope.UnresolvedParentScopeInUse == null && childScope.ParentScopeCandidates.Any()) {
-                var selectedScope = childScope.SelectUnresolvedScope();
-                scopeToAdd = selectedScope.CreateScope();
-
-                Scope latest = scopeToAdd, current;
-                do {
-                    current = latest;
-                    latest = current.ChildScopes.FirstOrDefault();
-                } while(latest != null);
-
-                current.AddChildScope(childScope);
-            }
-            base.AddChildScope(scopeToAdd);
-        }
-
-        /// <summary>
-        /// Selects the most likely unresolved path to this element. Currently, it always selects the first element.
-        /// Calling this sets <see cref="UnresolvedParentScopeInUse"/>.
-        /// </summary>
-        /// <returns><see cref="UnresolvedParentScopeInUse"/> unless there are no <see cref="ParentScopeCandidates"/>. Then it returns null</returns>
-        public NamedScopeUse SelectUnresolvedScope() {
-            if(ParentScopeCandidates.Any()) {
-                UnresolvedParentScopeInUse = ParentScopeCandidates.First();
-                return UnresolvedParentScopeInUse;
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// <para>Merges NamedVariableScopes together. It works like this:</para>
-        /// <para>If both objects are the same type, it merges <paramref name="otherScope"/> with this.</para>
-        /// <para>If this is a subclass of NamedScope and <paramref name="otherScope"/> is not, it merges otherScope with this.</para>
-        /// <para>If this is a NamedScope and <paramref name="otherScope"/> is a subclass, it merges this with otherScope</para>
-        /// <para>If the two objects cannot be merged, it does not merge them.</para>
-        /// <para><seealso cref="CanBeMergedInto(NamedScope)">CanBeMergedInto is used to decide if the two objects can be merged.</seealso></para>
-        /// </summary>
-        /// <param name="otherScope">The scope to merge with</param>
-        /// <returns>The merged scope. null if they cannot be merged.</returns>
-        public override Scope Merge(Scope otherScope) {
-            return this.Merge(otherScope as NamedScope);
-        }
-
-        /// <summary>
-        /// Merges two NamedVariableScopes together. It works like this:
-        /// <list type="bullet">
-        /// <item><description>If this is the same type or more specific than <paramref name="otherScope"/>, then create a new merged NamedScope
-        /// from <paramref name="otherScope"/> and this.</description></item>
-        /// <item><description>If <paramref name="otherScope"/> is more specific than this, call <c>otherScope.Merge</c></description></item>
-        /// </list>
-        /// </summary>
-        /// <param name="otherScope">The scope to merge with</param>
-        /// <returns>The new merged scope; null if they couldn't be merged</returns>
-        public virtual NamedScope Merge(NamedScope otherScope) {
-            NamedScope mergedScope = null;
-            if(otherScope != null) {
-                if(otherScope.CanBeMergedInto(this)) {
-                    // this and other scope can be merged normally
-                    // either they are the same type or
-                    // this is a subclass of NamedScope and otherScope is a NamedScope
-                    mergedScope = new NamedScope(this);
-                    mergedScope.AddFrom(otherScope);
-                } else if(this.CanBeMergedInto(otherScope) && !otherScope.CanBeMergedInto(this)) {
-                    // this is a NamedScope and otherScope is a subclass
-                    // useful information (type, method, or namespace data) are in otherScope
-                    mergedScope = otherScope.Merge(this);
-                }
-            }
-            return mergedScope;
-        }
-
-        /// <summary>
-        /// The AddFrom function adds all of the declarations and children from <paramref name="otherScope"/> to this scope
+        /// The AddFrom function adds all of the declarations and children from
+        /// <paramref name="otherScope"/>to this scope
         /// </summary>
         /// <param name="otherScope">The scope to add data from</param>
         /// <returns>the new scope</returns>
@@ -200,28 +117,88 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Overrides <see cref="Scope.CanBeMergedInto"/> to call <see cref="CanBeMergedInto(NamedScope)"/>
+        /// Overrides <see cref="Scope.CanBeMergedInto"/> to call
+        /// <see cref="CanBeMergedInto(NamedScope)"/>
         /// </summary>
         /// <param name="otherScope">the scope to test</param>
         /// <returns>true if the two objects can be merged, false otherwise</returns>
         public override bool CanBeMergedInto(Scope otherScope) {
             return this.CanBeMergedInto(otherScope as NamedScope);
         }
+
         /// <summary>
         /// Two NamedScope objects can be merged if they share the same name.
         /// </summary>
         /// <param name="otherScope">The scope to test</param>
-        /// <returns>true if the two objects have the same <see cref="Name"/>. False, otherwise.</returns>
+        /// <returns>true if the two objects have the same <see cref="Name"/>. False,
+        /// otherwise.</returns>
         public virtual bool CanBeMergedInto(NamedScope otherScope) {
             return (null != otherScope && this.Name == otherScope.Name);
         }
 
         /// <summary>
-        /// Removes any program elements defined in the given file.
-        /// If the scope is defined entirely within the given file, then it removes itself from its parent.
+        /// Gets the full name by finding all of the named scope ancestors and combining them.
+        /// </summary>
+        /// <returns>The full name for this scope</returns>
+        public string GetFullName() {
+            var names = from scope in GetParentScopesAndSelf<NamedScope>()
+                        where !String.IsNullOrEmpty(scope.Name)
+                        select scope.Name;
+            return String.Join(".", names.Reverse()).TrimEnd('.');
+        }
+
+        /// <summary>
+        /// <para>Merges NamedVariableScopes together. It works like this:</para> <para>If both
+        /// objects are the same type, it merges
+        /// <paramref name="otherScope"/>with this.</para> <para>If this is a subclass of NamedScope
+        /// and
+        /// <paramref name="otherScope"/>is not, it merges otherScope with this.</para> <para>If
+        /// this is a NamedScope and
+        /// <paramref name="otherScope"/>is a subclass, it merges this with otherScope</para>
+        /// <para>If the two objects cannot be merged, it does not merge them.</para>
+        /// <para><seealso cref="CanBeMergedInto(NamedScope)">CanBeMergedInto is used to decide if
+        /// the two objects can be merged.</seealso></para>
+        /// </summary>
+        /// <param name="otherScope">The scope to merge with</param>
+        /// <returns>The merged scope. null if they cannot be merged.</returns>
+        public override Scope Merge(Scope otherScope) {
+            return this.Merge(otherScope as NamedScope);
+        }
+
+        /// <summary>
+        /// Merges two NamedVariableScopes together. It works like this: <list type="bullet">
+        /// <item><description>If this is the same type or more specific than
+        /// <paramref name="otherScope"/>, then create a new merged NamedScope from
+        /// <paramref name="otherScope"/>and this.</description></item> <item><description>If
+        /// <paramref name="otherScope"/>is more specific than this, call
+        /// <c>otherScope.Merge</c></description></item> </list>
+        /// </summary>
+        /// <param name="otherScope">The scope to merge with</param>
+        /// <returns>The new merged scope; null if they couldn't be merged</returns>
+        public virtual NamedScope Merge(NamedScope otherScope) {
+            NamedScope mergedScope = null;
+            if(otherScope != null) {
+                if(otherScope.CanBeMergedInto(this)) {
+                    // this and other scope can be merged normally either they are the same type or
+                    // this is a subclass of NamedScope and otherScope is a NamedScope
+                    mergedScope = new NamedScope(this);
+                    mergedScope.AddFrom(otherScope);
+                } else if(this.CanBeMergedInto(otherScope) && !otherScope.CanBeMergedInto(this)) {
+                    // this is a NamedScope and otherScope is a subclass useful information (type,
+                    // method, or namespace data) are in otherScope
+                    mergedScope = otherScope.Merge(this);
+                }
+            }
+            return mergedScope;
+        }
+
+        /// <summary>
+        /// Removes any program elements defined in the given file. If the scope is defined entirely
+        /// within the given file, then it removes itself from its parent.
         /// </summary>
         /// <param name="fileName">The file to remove.</param>
-        /// <returns>A collection of any unresolved scopes that result from removing the file. The caller is responsible for re-resolving these as appropriate.</returns>
+        /// <returns>A collection of any unresolved scopes that result from removing the file. The
+        /// caller is responsible for re-resolving these as appropriate.</returns>
         public override Collection<Scope> RemoveFile(string fileName) {
             Collection<Scope> unresolvedScopes = null;
             if(LocationDictionary.ContainsKey(fileName)) {
@@ -308,6 +285,50 @@ namespace ABB.SrcML.Data {
             return unresolvedScopes;
         }
 
+        /// <summary>
+        /// Selects the most likely unresolved path to this element. Currently, it always selects
+        /// the first element. Calling this sets <see cref="UnresolvedParentScopeInUse"/>.
+        /// </summary>
+        /// <returns><see cref="UnresolvedParentScopeInUse"/> unless there are no
+        /// <see cref="ParentScopeCandidates"/>. Then it returns null</returns>
+        public NamedScopeUse SelectUnresolvedScope() {
+            if(ParentScopeCandidates.Any()) {
+                UnresolvedParentScopeInUse = ParentScopeCandidates.First();
+                return UnresolvedParentScopeInUse;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Creates a string representation of this named scope
+        /// </summary>
+        /// <returns>String that describes this named scope</returns>
+        public override string ToString() {
+            return ToString("Named Scope");
+        }
+
+        /// <summary>
+        /// Sets up unresolved links between this and
+        /// <paramref name="childScope"/>if needed.
+        /// </summary>
+        /// <param name="childScope">The child scope to add</param>
+        protected void AddNamedChildScope(NamedScope childScope) {
+            var scopeToAdd = childScope;
+            if(childScope.UnresolvedParentScopeInUse == null && childScope.ParentScopeCandidates.Any()) {
+                var selectedScope = childScope.SelectUnresolvedScope();
+                scopeToAdd = selectedScope.CreateScope();
+
+                Scope latest = scopeToAdd, current;
+                do {
+                    current = latest;
+                    latest = current.ChildScopes.FirstOrDefault();
+                } while(latest != null);
+
+                current.AddChildScope(childScope);
+            }
+            base.AddChildScope(scopeToAdd);
+        }
+
         private string GetUnresolvedName() {
             StringBuilder sb = new StringBuilder();
             //var current = UnresolvedParentScope;
@@ -320,14 +341,6 @@ namespace ABB.SrcML.Data {
             }
 
             return sb.ToString().TrimEnd('.');
-        }
-
-        /// <summary>
-        /// Creates a string representation of this named scope
-        /// </summary>
-        /// <returns>String that describes this named scope</returns>
-        public override string ToString() {
-            return ToString("Named Scope");
         }
     }
 }

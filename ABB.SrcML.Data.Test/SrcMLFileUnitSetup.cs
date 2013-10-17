@@ -11,21 +11,22 @@
 
 using ABB.SrcML.Utilities;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 
 namespace ABB.SrcML.Data.Test {
+
     public class SrcMLFileUnitSetup {
-        string FileTemplate { get; set; }
-        Language SourceLanguage { get; set; }
 
         public SrcMLFileUnitSetup(Language sourceLanguage) {
             FileTemplate = CreateFileUnitTemplate();
             SourceLanguage = sourceLanguage;
         }
+
+        private string FileTemplate { get; set; }
+
+        private Language SourceLanguage { get; set; }
 
         public static string CreateFileUnitTemplate() {
             //construct the necessary srcML wrapper unit tags

@@ -1,19 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Linq;
-using System.Text;
 
 namespace ABB.SrcML.Data {
+
     internal class ScopeDebugView {
         private Scope scope;
 
         public ScopeDebugView(Scope scope) {
             this.scope = scope;
         }
-        
+
         [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-        public Scope[] ChildScopes { get { return this.scope.ChildScopes.ToArray(); }
+        public Scope[] ChildScopes {
+            get { return this.scope.ChildScopes.ToArray(); }
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]

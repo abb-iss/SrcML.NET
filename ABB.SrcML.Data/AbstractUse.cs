@@ -12,10 +12,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
 
 namespace ABB.SrcML.Data {
+
     /// <summary>
     /// The base classes for use objects. Use objects represent a use of a <see cref="NamedScope"/>.
     /// </summary>
@@ -31,6 +30,7 @@ namespace ABB.SrcML.Data {
             internalAliasCollection = new List<Alias>();
             Aliases = new ReadOnlyCollection<Alias>(internalAliasCollection);
         }
+
         /// <summary>
         /// The aliases for this type use
         /// </summary>
@@ -73,7 +73,8 @@ namespace ABB.SrcML.Data {
         public Language ProgrammingLanguage { get; set; }
 
         /// <summary>
-        /// Adds an alias. If <see cref="Alias.IsAliasFor{T}(AbstractUse{T})"/> returns false, then the alias is not added.
+        /// Adds an alias. If <see cref="Alias.IsAliasFor{T}(AbstractUse{T})"/> returns false, then
+        /// the alias is not added.
         /// </summary>
         /// <param name="alias">The alias to add</param>
         public void AddAlias(Alias alias) {
@@ -95,14 +96,16 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Finds matching <typeparamref name="DEFINITION"/> from the <see cref="ParentScopes"/> of this usage.
+        /// Finds matching <typeparamref name="DEFINITION"/> from the <see cref="ParentScopes"/> of
+        /// this usage.
         /// </summary>
-        /// <returns>An enumerable of <typeparamref name="DEFINITION"/> objects that <see cref="Matches">matches</see> this usage.</returns>
+        /// <returns>An enumerable of <typeparamref name="DEFINITION"/> objects that
+        /// <see cref="Matches">matches</see> this usage.</returns>
         public abstract IEnumerable<DEFINITION> FindMatches();
 
         /// <summary>
-        /// Tests if this usage matches the provided <paramref name="definition"/>
-        /// </summary>
+        /// Tests if this usage matches the provided
+        /// <paramref name="definition"/></summary>
         /// <param name="definition">The definition to compare to</param>
         /// <returns>true if they are a match; false otherwise</returns>
         public abstract bool Matches(DEFINITION definition);

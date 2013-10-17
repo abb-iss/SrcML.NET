@@ -9,14 +9,9 @@
  *    Vinay Augustine (ABB Group) - initial API, implementation, & documentation
  *****************************************************************************/
 
-using ABB.SrcML.Utilities;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
-using System.Xml;
 using System.Xml.Linq;
 
 namespace ABB.SrcML.Data.Test {

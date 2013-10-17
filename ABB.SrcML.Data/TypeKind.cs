@@ -10,27 +10,41 @@
  *    Patrick Francis (ABB Group) - initial API, implementation, & documentation
  *****************************************************************************/
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
 namespace ABB.SrcML.Data {
+
     /// <summary>
     /// Enumerates the kinds of types encountered in the supported programming languages.
     /// </summary>
     public enum TypeKind {
-        /// <summary>Built-In type</summary>
+
+        /// <summary>
+        /// Built-In type
+        /// </summary>
         BuiltIn = 0,
-        /// <summary>Class type</summary>
+
+        /// <summary>
+        /// Class type
+        /// </summary>
         Class,
-        /// <summary>Struct type</summary>
+
+        /// <summary>
+        /// Struct type
+        /// </summary>
         Struct,
-        /// <summary>Union type</summary>
+
+        /// <summary>
+        /// Union type
+        /// </summary>
         Union,
-        /// <summary>Interface type</summary>
+
+        /// <summary>
+        /// Interface type
+        /// </summary>
         Interface,
-        /// <summary>Enumeration type</summary>
+
+        /// <summary>
+        /// Enumeration type
+        /// </summary>
         Enumeration
     }
 }

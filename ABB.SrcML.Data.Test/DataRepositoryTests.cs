@@ -1,36 +1,12 @@
-﻿using System;
+﻿using NUnit.Framework;
 using System.IO;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using NUnit.Framework;
 
 namespace ABB.SrcML.Data.Test {
+
     [TestFixture]
     [Category("Build")]
-    class DataRepositoryTests {
-        [SetUp]
-        public void TestSetup() {
-            if(Directory.Exists("DataRepositoryTests")) {
-                Directory.Delete("DataRepositoryTests", true);
-            }
-        }
-        
-        [Test]
-        public void TestFindMethodCalls_Simple() {
-            using(var sa = new SrcMLArchive("DataRepositoryTests")) {
-                sa.AddOrUpdateFile(@"..\..\TestInputs\function_def.cpp");
-
-                using(var da = new DataRepository(sa)) {
-                    da.InitializeData();
-                    var expected = da.GlobalScope.ChildScopes.OfType<MethodDefinition>().First(md => md.Name == "main").MethodCalls.First();
-                    var actual = da.FindMethodCalls(new SourceLocation(@"TestInputs\function_def.cpp", 12, 20));
-                    Assert.IsNotNull(actual);
-                    Assert.AreEqual(1, actual.Count);
-                    Assert.AreEqual(expected, actual[0]);
-                }
-            }
-        }
+    internal class DataRepositoryTests {
 
         [Test]
         public void TestFindMethodCalls_Nested() {
@@ -53,6 +29,22 @@ namespace ABB.SrcML.Data.Test {
                     for(int i = 0; i < expected.Length; i++) {
                         Assert.AreEqual(expected[i], actual[i]);
                     }
+                }
+            }
+        }
+
+        [Test]
+        public void TestFindMethodCalls_Simple() {
+            using(var sa = new SrcMLArchive("DataRepositoryTests")) {
+                sa.AddOrUpdateFile(@"..\..\TestInputs\function_def.cpp");
+
+                using(var da = new DataRepository(sa)) {
+                    da.InitializeData();
+                    var expected = da.GlobalScope.ChildScopes.OfType<MethodDefinition>().First(md => md.Name == "main").MethodCalls.First();
+                    var actual = da.FindMethodCalls(new SourceLocation(@"TestInputs\function_def.cpp", 12, 20));
+                    Assert.IsNotNull(actual);
+                    Assert.AreEqual(1, actual.Count);
+                    Assert.AreEqual(expected, actual[0]);
                 }
             }
         }
@@ -99,6 +91,14 @@ namespace ABB.SrcML.Data.Test {
                 }
             }
         }
+
+        [SetUp]
+        public void TestSetup() {
+            if(Directory.Exists("DataRepositoryTests")) {
+                Directory.Delete("DataRepositoryTests", true);
+            }
+        }
+
         //TODO: write tests that use the XPath overload
     }
 }

@@ -9,18 +9,18 @@
  *    Vinay Augustine (ABB Group) - initial API, implementation, & documentation
  *****************************************************************************/
 
+using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using NUnit.Framework;
 
 namespace ABB.SrcML.Data.Test {
+
     [TestFixture]
     [Category("Build")]
     public class BuiltInTypeFactoryTests {
-        private Dictionary<Language, SrcMLFileUnitSetup> FileUnitSetup;
         private Dictionary<Language, AbstractCodeParser> CodeParser;
+        private Dictionary<Language, SrcMLFileUnitSetup> FileUnitSetup;
 
         [TestFixtureSetUp]
         public void ClassSetup() {
@@ -35,34 +35,32 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestJavaBuiltIns() {
-            // #a.java
-            // TYPE a;
-            // TYPE b;
-            string xmlFormat = @"<decl_stmt><decl><type><name>{0}</name></type> <name>a</name></decl>;</decl_stmt>
-<decl_stmt><decl><type><name>{0}</name></type> <name>b</name></decl>;</decl_stmt>";
+        [Category("Todo")]
+        public void TestCppBuiltIns_WithDoubleWord() {
+            // #a.cpp #example: "unsigned int a;"; MODIFIER TYPE a; MODIFIER TYPE b;
+            string xmlFormat = @"<decl_stmt><decl><type><name>{0}</name> <name>{1}</name></type> <name>a</name></decl>;</decl_stmt>
+<decl_stmt><decl><type><name>{0}</name> <name>{1}</name></type> <name>b</name></decl>;</decl_stmt>";
 
-            foreach(var builtIn in new string[] { "byte", "short", "int", "long", "float", "double", "boolean", "char" }) {
-                var aXml = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(String.Format(xmlFormat, builtIn), "a.java");
+            foreach(var builtInModifier in new string[] { "unsigned", "signed", "long" }) {
+                foreach(var builtIn in new string[] { "int", "double" }) {
+                    var aXml = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(String.Format(xmlFormat, builtInModifier, builtIn), "a.cpp");
 
-                var variableA = CodeParser[Language.Java].ParseDeclarationElement(aXml.Descendants(SRC.Declaration).First(), new ParserContext(aXml)).First();
-                var variableB = CodeParser[Language.Java].ParseDeclarationElement(aXml.Descendants(SRC.Declaration).Last(), new ParserContext(aXml)).First();
-                
-                Assert.AreEqual("a", variableA.Name);
-                Assert.AreEqual("b", variableB.Name);
-                Assert.AreEqual(builtIn, variableA.VariableType.Name);
+                    var variableA = CodeParser[Language.CPlusPlus].ParseDeclarationElement(aXml.Descendants(SRC.Declaration).First(), new ParserContext(aXml)).First();
+                    var variableB = CodeParser[Language.CPlusPlus].ParseDeclarationElement(aXml.Descendants(SRC.Declaration).Last(), new ParserContext(aXml)).First();
 
-                var typeOfA = variableA.VariableType.FindMatches().First();
-                var typeOfB = variableB.VariableType.FindMatches().First();
-                Assert.AreSame(typeOfA, typeOfB);
+                    Assert.AreEqual("a", variableA.Name);
+                    Assert.AreEqual("b", variableB.Name);
+                    Assert.AreEqual(String.Format("{0} {1}", builtInModifier, builtIn), variableA.VariableType.Name, "TODO: Fix compound types");
+                    var typeOfA = variableA.VariableType.FindMatches().First();
+                    var typeOfB = variableB.VariableType.FindMatches().First();
+                    Assert.AreSame(typeOfA, typeOfB);
+                }
             }
         }
 
         [Test]
         public void TestCppBuiltIns_WithSingleWord() {
-            // #a.cpp
-            // TYPE a;
-            // TYPE b;
+            // #a.cpp TYPE a; TYPE b;
 
             string xmlFormat = @"<decl_stmt><decl><type><name>{0}</name></type> <name>a</name></decl>;</decl_stmt>
 <decl_stmt><decl><type><name>{0}</name></type> <name>b</name></decl>;</decl_stmt>";
@@ -84,29 +82,24 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        [Category("Todo")]
-        public void TestCppBuiltIns_WithDoubleWord() {
-            // #a.cpp
-            // #example: "unsigned int a;";
-            // MODIFIER TYPE a;
-            // MODIFIER TYPE b;
-            string xmlFormat = @"<decl_stmt><decl><type><name>{0}</name> <name>{1}</name></type> <name>a</name></decl>;</decl_stmt>
-<decl_stmt><decl><type><name>{0}</name> <name>{1}</name></type> <name>b</name></decl>;</decl_stmt>";
+        public void TestJavaBuiltIns() {
+            // #a.java TYPE a; TYPE b;
+            string xmlFormat = @"<decl_stmt><decl><type><name>{0}</name></type> <name>a</name></decl>;</decl_stmt>
+<decl_stmt><decl><type><name>{0}</name></type> <name>b</name></decl>;</decl_stmt>";
 
-            foreach(var builtInModifier in new string[] { "unsigned", "signed", "long" }) {
-                foreach(var builtIn in new string[] { "int", "double" }) {
-                    var aXml = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(String.Format(xmlFormat, builtInModifier, builtIn), "a.cpp");
+            foreach(var builtIn in new string[] { "byte", "short", "int", "long", "float", "double", "boolean", "char" }) {
+                var aXml = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(String.Format(xmlFormat, builtIn), "a.java");
 
-                    var variableA = CodeParser[Language.CPlusPlus].ParseDeclarationElement(aXml.Descendants(SRC.Declaration).First(), new ParserContext(aXml)).First();
-                    var variableB = CodeParser[Language.CPlusPlus].ParseDeclarationElement(aXml.Descendants(SRC.Declaration).Last(), new ParserContext(aXml)).First();
+                var variableA = CodeParser[Language.Java].ParseDeclarationElement(aXml.Descendants(SRC.Declaration).First(), new ParserContext(aXml)).First();
+                var variableB = CodeParser[Language.Java].ParseDeclarationElement(aXml.Descendants(SRC.Declaration).Last(), new ParserContext(aXml)).First();
 
-                    Assert.AreEqual("a", variableA.Name);
-                    Assert.AreEqual("b", variableB.Name);
-                    Assert.AreEqual(String.Format("{0} {1}", builtInModifier, builtIn), variableA.VariableType.Name, "TODO: Fix compound types");
-                    var typeOfA = variableA.VariableType.FindMatches().First();
-                    var typeOfB = variableB.VariableType.FindMatches().First();
-                    Assert.AreSame(typeOfA, typeOfB);
-                }
+                Assert.AreEqual("a", variableA.Name);
+                Assert.AreEqual("b", variableB.Name);
+                Assert.AreEqual(builtIn, variableA.VariableType.Name);
+
+                var typeOfA = variableA.VariableType.FindMatches().First();
+                var typeOfB = variableB.VariableType.FindMatches().First();
+                Assert.AreSame(typeOfA, typeOfB);
             }
         }
     }

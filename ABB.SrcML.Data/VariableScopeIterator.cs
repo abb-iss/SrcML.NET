@@ -9,17 +9,17 @@
  *    Vinay Augustine (ABB Group) - initial API, implementation, & documentation
  *****************************************************************************/
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace ABB.SrcML.Data {
+
     /// <summary>
-    /// <para>The VariableScopeIterator returns an enumerable of a <see cref="Scope"/> and all of its descendants.</para>
-    /// <para>It works by yielding the element, and then calling Visit on each of the child scopes.</para>
+    /// <para>The VariableScopeIterator returns an enumerable of a <see cref="Scope"/> and all of
+    /// its descendants.</para> <para>It works by yielding the element, and then calling Visit on
+    /// each of the child scopes.</para>
     /// </summary>
     public class VariableScopeIterator {
+
         /// <summary>
         /// Dummy constructor
         /// </summary>
@@ -27,10 +27,21 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Visits all the nodes in the scope graph rooted at <paramref name="scope"/>
+        /// Convenience method for constructing the iterator and visiting the variable scope.
         /// </summary>
         /// <param name="scope">the root scope</param>
-        /// <returns>An enumerable of all the scopes rooted at <paramref name="scope"/></returns>
+        /// <returns>An enumerable of all the scopes rooted at
+        /// <paramref name="scope"/></returns>
+        public static IEnumerable<Scope> Visit(Scope scope) {
+            return (new VariableScopeIterator()).VisitScope(scope);
+        }
+
+        /// <summary>
+        /// Visits all the nodes in the scope graph rooted at
+        /// <paramref name="scope"/></summary>
+        /// <param name="scope">the root scope</param>
+        /// <returns>An enumerable of all the scopes rooted at
+        /// <paramref name="scope"/></returns>
         public IEnumerable<Scope> VisitScope(Scope scope) {
             yield return scope;
             foreach(var child in scope.ChildScopes) {
@@ -38,15 +49,6 @@ namespace ABB.SrcML.Data {
                     yield return descendant;
                 }
             }
-        }
-
-        /// <summary>
-        /// Convenience method for constructing the iterator and visiting the variable scope.
-        /// </summary>
-        /// <param name="scope">the root scope</param>
-        /// <returns>An enumerable of all the scopes rooted at <paramref name="scope"/></returns>
-        public static IEnumerable<Scope> Visit(Scope scope) {
-            return (new VariableScopeIterator()).VisitScope(scope);
         }
     }
 }

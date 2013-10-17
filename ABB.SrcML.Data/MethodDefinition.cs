@@ -18,6 +18,7 @@ using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML.Data {
+
     /// <summary>
     /// A method definition object.
     /// </summary>
@@ -60,105 +61,18 @@ namespace ABB.SrcML.Data {
         public bool IsDestructor { get; set; }
 
         /// <summary>
-        /// The return type for this method
-        /// </summary>
-        public TypeUse ReturnType { get; set; }
-
-        /// <summary>
         /// The parameters for this method.
         /// </summary>
         public ReadOnlyCollection<ParameterDeclaration> Parameters { get; private set; }
 
         /// <summary>
-        /// Adds a method parameter to this method
+        /// The return type for this method
         /// </summary>
-        /// <param name="parameter">The parameter to add</param>
-        public void AddMethodParameter(ParameterDeclaration parameter) {
-            parameter.Scope = this;
-            _parameters.Add(parameter);
-        }
+        public TypeUse ReturnType { get; set; }
 
         /// <summary>
-        /// Adds an enumerable of method parameters to this method.
-        /// </summary>
-        /// <param name="parameters">The parameters to add</param>
-        public void AddMethodParameters(IEnumerable<ParameterDeclaration> parameters) {
-            foreach(var parameter in parameters) {
-                AddMethodParameter(parameter);
-            }
-        }
-
-        /// <summary>
-        /// Gets all the method calls in this method to <paramref name="callee"/>. This method searches 
-        /// this method and all of its <see cref="Scope.ChildScopes"/>.
-        /// </summary>
-        /// <param name="callee">The method to find calls for.</param>
-        /// <returns>All of the method calls to <paramref name="callee"/> in this method.</returns>
-        public IEnumerable<MethodCall> GetCallsTo(MethodDefinition callee) {
-            if(null == callee) throw new ArgumentNullException("callee");
-
-            var callsToMethod = from scope in this.GetDescendantScopesAndSelf()
-                                from call in scope.MethodCalls
-                                where call.Matches(callee)
-                                select call;
-            return callsToMethod;
-        }
-
-        /// <summary>
-        /// Checks to see if this method contains a call to <paramref name="callee"/>.
-        /// </summary>
-        /// <param name="callee">The method to look for calls to</param>
-        /// <returns>True if this method contains any <see cref="GetCallsTo">calls to</see> <paramref name="callee"/></returns>.
-        public bool ContainsCallTo(MethodDefinition callee) {
-            if(null == callee) throw new ArgumentNullException("callee");
-
-            return GetCallsTo(callee).Any();
-        }
-
-        /// <summary>
-        /// Merges this method definition with <paramref name="otherScope"/>. This happens when <c>otherScope.CanBeMergedInto(this)</c> evaluates to true.
-        /// </summary>
-        /// <param name="otherScope">the scope to merge with</param>
-        /// <returns>a new method definition from this and otherScope, or null if they couldn't be merged.</returns>
-        public override NamedScope Merge(NamedScope otherScope) {
-            MethodDefinition mergedScope = null;
-            if(otherScope != null) {
-                if(otherScope.CanBeMergedInto(this)) {
-                    mergedScope = new MethodDefinition(this);
-                    mergedScope.AddFrom(otherScope);
-                    if(mergedScope.Accessibility == AccessModifier.None) {
-                        mergedScope.Accessibility = otherScope.Accessibility;
-                    }
-                }
-            }
-            return mergedScope;
-        }
-
-        /// <summary>
-        /// Returns true if both this and <paramref name="otherScope"/> have the same name.
-        /// </summary>
-        /// <param name="otherScope">The scope to test</param>
-        /// <returns>true if they are the same method; false otherwise.</returns>
-        /// TODO implement better method merging
-        public virtual bool CanBeMergedInto(MethodDefinition otherScope) {
-            if(otherScope != null && this.Parameters.Count == otherScope.Parameters.Count) {
-                var parameterComparisons = Enumerable.Zip(this.Parameters, otherScope.Parameters, (t, o) => t.VariableType.Name == o.VariableType.Name);
-                return base.CanBeMergedInto(otherScope) && parameterComparisons.All(x => x);
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Casts <paramref name="otherScope"/> to a <see cref="MethodDefinition"/> and calls <see cref="CanBeMergedInto(MethodDefinition)"/>
-        /// </summary>
-        /// <param name="otherScope">The scope to test</param>
-        /// <returns>true if <see cref="CanBeMergedInto(MethodDefinition)"/> evaluates to true.</returns>
-        public override bool CanBeMergedInto(NamedScope otherScope) {
-            return this.CanBeMergedInto(otherScope as MethodDefinition);
-        }
-
-        /// <summary>
-        /// The AddFrom function adds all of the declarations and children from <paramref name="otherScope"/> to this scope
+        /// The AddFrom function adds all of the declarations and children from
+        /// <paramref name="otherScope"/>to this scope
         /// </summary>
         /// <param name="otherScope">The scope to add data from</param>
         /// <returns>the new scope</returns>
@@ -190,11 +104,113 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Removes any program elements defined in the given file.
-        /// If the scope is defined entirely within the given file, then it removes itself from its parent.
+        /// Adds a method parameter to this method
+        /// </summary>
+        /// <param name="parameter">The parameter to add</param>
+        public void AddMethodParameter(ParameterDeclaration parameter) {
+            parameter.Scope = this;
+            _parameters.Add(parameter);
+        }
+
+        /// <summary>
+        /// Adds an enumerable of method parameters to this method.
+        /// </summary>
+        /// <param name="parameters">The parameters to add</param>
+        public void AddMethodParameters(IEnumerable<ParameterDeclaration> parameters) {
+            foreach(var parameter in parameters) {
+                AddMethodParameter(parameter);
+            }
+        }
+
+        /// <summary>
+        /// Returns true if both this and
+        /// <paramref name="otherScope"/>have the same name.
+        /// </summary>
+        /// <param name="otherScope">The scope to test</param>
+        /// <returns>true if they are the same method; false otherwise.</returns> TODO implement
+        /// better method merging
+        public virtual bool CanBeMergedInto(MethodDefinition otherScope) {
+            if(otherScope != null && this.Parameters.Count == otherScope.Parameters.Count) {
+                var parameterComparisons = Enumerable.Zip(this.Parameters, otherScope.Parameters, (t, o) => t.VariableType.Name == o.VariableType.Name);
+                return base.CanBeMergedInto(otherScope) && parameterComparisons.All(x => x);
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Casts
+        /// <paramref name="otherScope"/>to a <see cref="MethodDefinition"/> and calls
+        /// <see cref="CanBeMergedInto(MethodDefinition)"/>
+        /// </summary>
+        /// <param name="otherScope">The scope to test</param>
+        /// <returns>true if <see cref="CanBeMergedInto(MethodDefinition)"/> evaluates to
+        /// true.</returns>
+        public override bool CanBeMergedInto(NamedScope otherScope) {
+            return this.CanBeMergedInto(otherScope as MethodDefinition);
+        }
+
+        /// <summary>
+        /// Checks to see if this method contains a call to
+        /// <paramref name="callee"/>.
+        /// </summary>
+        /// <param name="callee">The method to look for calls to</param>
+        /// <returns>True if this method contains any <see cref="GetCallsTo">calls to</see>
+        /// <paramref name="callee"/></returns>.
+        public bool ContainsCallTo(MethodDefinition callee) {
+            if(null == callee)
+                throw new ArgumentNullException("callee");
+
+            return GetCallsTo(callee).Any();
+        }
+
+        /// <summary>
+        /// Gets all the method calls in this method to
+        /// <paramref name="callee"/>. This method searches this method and all of its
+        /// <see cref="Scope.ChildScopes"/>.
+        /// </summary>
+        /// <param name="callee">The method to find calls for.</param>
+        /// <returns>All of the method calls to
+        /// <paramref name="callee"/>in this method.</returns>
+        public IEnumerable<MethodCall> GetCallsTo(MethodDefinition callee) {
+            if(null == callee)
+                throw new ArgumentNullException("callee");
+
+            var callsToMethod = from scope in this.GetDescendantScopesAndSelf()
+                                from call in scope.MethodCalls
+                                where call.Matches(callee)
+                                select call;
+            return callsToMethod;
+        }
+
+        /// <summary>
+        /// Merges this method definition with
+        /// <paramref name="otherScope"/>. This happens when <c>otherScope.CanBeMergedInto(this)</c>
+        /// evaluates to true.
+        /// </summary>
+        /// <param name="otherScope">the scope to merge with</param>
+        /// <returns>a new method definition from this and otherScope, or null if they couldn't be
+        /// merged.</returns>
+        public override NamedScope Merge(NamedScope otherScope) {
+            MethodDefinition mergedScope = null;
+            if(otherScope != null) {
+                if(otherScope.CanBeMergedInto(this)) {
+                    mergedScope = new MethodDefinition(this);
+                    mergedScope.AddFrom(otherScope);
+                    if(mergedScope.Accessibility == AccessModifier.None) {
+                        mergedScope.Accessibility = otherScope.Accessibility;
+                    }
+                }
+            }
+            return mergedScope;
+        }
+
+        /// <summary>
+        /// Removes any program elements defined in the given file. If the scope is defined entirely
+        /// within the given file, then it removes itself from its parent.
         /// </summary>
         /// <param name="fileName">The file to remove.</param>
-        /// <returns>A collection of any unresolved scopes that result from removing the file. The caller is responsible for re-resolving these as appropriate.</returns>
+        /// <returns>A collection of any unresolved scopes that result from removing the file. The
+        /// caller is responsible for re-resolving these as appropriate.</returns>
         public override Collection<Scope> RemoveFile(string fileName) {
             if(LocationDictionary.ContainsKey(fileName)) {
                 if(LocationDictionary.Count == 1) {
@@ -251,7 +267,9 @@ namespace ABB.SrcML.Data {
             return null;
         }
 
-        /// <summary>Returns a string representation of this object.</summary>
+        /// <summary>
+        /// Returns a string representation of this object.
+        /// </summary>
         public override string ToString() {
             var sig = new StringBuilder();
             if(IsConstructor) {
@@ -297,10 +315,10 @@ namespace ABB.SrcML.Data {
             public MethodCall[] MethodCalls { get { return this.method.MethodCalls.ToArray(); } }
 
             [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-            public VariableDeclaration[] Variables { get { return this.method.DeclaredVariables.ToArray(); } }
+            public ParameterDeclaration[] Parameters { get { return method.Parameters.ToArray(); } }
 
             [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-            public ParameterDeclaration[] Parameters { get { return method.Parameters.ToArray(); } }
+            public VariableDeclaration[] Variables { get { return this.method.DeclaredVariables.ToArray(); } }
 
             public override string ToString() {
                 return method.ToString();

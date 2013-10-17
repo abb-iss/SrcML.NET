@@ -10,27 +10,41 @@
  *    Patrick Francis (ABB Group) - initial API, implementation, & documentation
  *****************************************************************************/
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
 namespace ABB.SrcML.Data {
+
     /// <summary>
     /// Enumerates the types of protection encountered in the supported programming languages
     /// </summary>
     public enum AccessModifier {
-        /// <summary>None indicates that no access modifier was provided</summary>
+
+        /// <summary>
+        /// None indicates that no access modifier was provided
+        /// </summary>
         None = 0,
-        /// <summary>Public</summary>
+
+        /// <summary>
+        /// Public
+        /// </summary>
         Public,
-        /// <summary>Protected Internal, used in C#</summary>
+
+        /// <summary>
+        /// Protected Internal, used in C#
+        /// </summary>
         ProtectedInternal,
-        /// <summary>Protected</summary>
+
+        /// <summary>
+        /// Protected
+        /// </summary>
         Protected,
-        /// <summary>Internal</summary>
+
+        /// <summary>
+        /// Internal
+        /// </summary>
         Internal,
-        /// <summary>Private</summary>
+
+        /// <summary>
+        /// Private
+        /// </summary>
         Private
     }
 
@@ -38,6 +52,7 @@ namespace ABB.SrcML.Data {
     /// Contains extension methods for the AccessModifier enum.
     /// </summary>
     public static class AccessModifierExtensions {
+
         /// <summary>
         /// Converts the enum value to its programming language keyword equivalent.
         /// </summary>
@@ -45,16 +60,22 @@ namespace ABB.SrcML.Data {
             switch(am) {
                 case AccessModifier.None:
                     return string.Empty;
+
                 case AccessModifier.Public:
                     return "public";
+
                 case AccessModifier.ProtectedInternal:
                     return "protected internal";
+
                 case AccessModifier.Protected:
                     return "protected";
+
                 case AccessModifier.Internal:
                     return "internal";
+
                 case AccessModifier.Private:
                     return "private";
+
                 default:
                     return am.ToString();
             }

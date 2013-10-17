@@ -11,10 +11,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Xml.Linq;
 
 namespace ABB.SrcML.Data {
@@ -206,7 +203,8 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Parses the given typeUseElement and returns a TypeUse object. This handles the "var" keyword for C# if used
+        /// Parses the given typeUseElement and returns a TypeUse object. This handles the "var"
+        /// keyword for C# if used
         /// </summary>
         /// <param name="typeUseElement">The XML type use element</param>
         /// <param name="context">The parser context</param>

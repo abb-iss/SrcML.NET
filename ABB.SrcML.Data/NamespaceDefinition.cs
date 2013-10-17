@@ -15,27 +15,28 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 
 namespace ABB.SrcML.Data {
+
     /// <summary>
     /// Represents a namespace definition
     /// </summary>
     [DebuggerTypeProxy(typeof(ScopeDebugView))]
     [Serializable]
     public class NamespaceDefinition : NamedScope {
+
         /// <summary>
         /// Creates a new namespace definition object
         /// </summary>
         public NamespaceDefinition()
-            : base() {}
+            : base() { }
 
         /// <summary>
         /// Copy constructor
         /// </summary>
         /// <param name="otherDefinition">The scope to copy from</param>
         public NamespaceDefinition(NamespaceDefinition otherDefinition)
-            : base(otherDefinition) {}
+            : base(otherDefinition) { }
 
         /// <summary>
         /// Returns true if this is an anonymous namespace
@@ -45,16 +46,39 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// <para>Returns true if this namespace represents the global namespace</para>
-        /// <para>A namespace is global if the <see cref="NamedScope.Name"/> is <c>String.Empty</c></para>
+        /// <para>Returns true if this namespace represents the global namespace</para> <para>A
+        /// namespace is global if the <see cref="NamedScope.Name"/> is <c>String.Empty</c></para>
         /// </summary>
         public bool IsGlobal { get { return this.IsAnonymous && this.ParentScope == null; } }
+
+        /// <summary>
+        /// Returns true if both this and
+        /// <paramref name="otherScope"/>have the same name.
+        /// </summary>
+        /// <param name="otherScope">The scope to test</param>
+        /// <returns>true if they are the same namespace; false otherwise.</returns>
+        public virtual bool CanBeMergedInto(NamespaceDefinition otherScope) {
+            return base.CanBeMergedInto(otherScope);
+        }
+
+        /// <summary>
+        /// Casts
+        /// <paramref name="otherScope"/>to a <see cref="NamespaceDefinition"/> and calls
+        /// <see cref="CanBeMergedInto(NamespaceDefinition)"/>
+        /// </summary>
+        /// <param name="otherScope">The scope to test</param>
+        /// <returns>true if <see cref="CanBeMergedInto(NamespaceDefinition)"/> evaluates to
+        /// true.</returns>
+        public override bool CanBeMergedInto(NamedScope otherScope) {
+            return this.CanBeMergedInto(otherScope as NamespaceDefinition);
+        }
 
         /// <summary>
         /// Returns the fully qualified name for the given type
         /// </summary>
         /// <param name="name">A name</param>
-        /// <returns>the fully qualified name (made from this namespace definition and the given name)</returns>
+        /// <returns>the fully qualified name (made from this namespace definition and the given
+        /// name) </returns>
         public string MakeQualifiedName(string name) {
             if(this.Name.Length == 0)
                 return name;
@@ -62,10 +86,13 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Merges this namespace definition with <paramref name="otherScope"/>. This happens when <c>otherScope.CanBeMergedInto(this)</c> evaluates to true.
+        /// Merges this namespace definition with
+        /// <paramref name="otherScope"/>. This happens when <c>otherScope.CanBeMergedInto(this)</c>
+        /// evaluates to true.
         /// </summary>
         /// <param name="otherScope">the scope to merge with</param>
-        /// <returns>a new namespace definition from this and otherScope, or null if they couldn't be merged.</returns>
+        /// <returns>a new namespace definition from this and otherScope, or null if they couldn't
+        /// be merged.</returns>
         public override NamedScope Merge(NamedScope otherScope) {
             NamespaceDefinition mergedScope = null;
             if(otherScope != null) {
@@ -78,29 +105,12 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Returns true if both this and <paramref name="otherScope"/> have the same name.
-        /// </summary>
-        /// <param name="otherScope">The scope to test</param>
-        /// <returns>true if they are the same namespace; false otherwise.</returns>
-        public virtual bool CanBeMergedInto(NamespaceDefinition otherScope) {
-            return base.CanBeMergedInto(otherScope);
-        }
-
-        /// <summary>
-        /// Casts <paramref name="otherScope"/> to a <see cref="NamespaceDefinition"/> and calls <see cref="CanBeMergedInto(NamespaceDefinition)"/>
-        /// </summary>
-        /// <param name="otherScope">The scope to test</param>
-        /// <returns>true if <see cref="CanBeMergedInto(NamespaceDefinition)"/> evaluates to true.</returns>
-        public override bool CanBeMergedInto(NamedScope otherScope) {
-            return this.CanBeMergedInto(otherScope as NamespaceDefinition);
-        }
-
-        /// <summary>
-        /// Removes any program elements defined in the given file.
-        /// If the scope is defined entirely within the given file, then it removes itself from its parent.
+        /// Removes any program elements defined in the given file. If the scope is defined entirely
+        /// within the given file, then it removes itself from its parent.
         /// </summary>
         /// <param name="fileName">The file to remove.</param>
-        /// <returns>A collection of any unresolved scopes that result from removing the file. The caller is responsible for re-resolving these as appropriate.</returns>
+        /// <returns>A collection of any unresolved scopes that result from removing the file. The
+        /// caller is responsible for re-resolving these as appropriate.</returns>
         public override Collection<Scope> RemoveFile(string fileName) {
             Collection<Scope> unresolvedScopes = null;
             if(LocationDictionary.ContainsKey(fileName)) {
@@ -192,7 +202,8 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <returns>A string that describes this namespace definition</returns>
         public override string ToString() {
-            if(IsGlobal) return ToString("Namespace", "Global");
+            if(IsGlobal)
+                return ToString("Namespace", "Global");
             return ToString("Namespace");
         }
     }

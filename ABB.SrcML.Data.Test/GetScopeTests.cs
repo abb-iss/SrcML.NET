@@ -1,15 +1,14 @@
-﻿using System;
+﻿using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using NUnit.Framework;
 
 namespace ABB.SrcML.Data.Test {
+
     [TestFixture]
     [Category("Build")]
-    class GetScopeTests {
+    internal class GetScopeTests {
+        private Dictionary<Language, SrcMLFileUnitSetup> fileSetup;
         private Dictionary<Language, AbstractCodeParser> parser;
-        private Dictionary<Language,SrcMLFileUnitSetup> fileSetup;
 
         [TestFixtureSetUp]
         public void ClassSetup() {
@@ -57,36 +56,6 @@ namespace ABB.SrcML.Data.Test {
             var actual = globalScope.GetScopeForLocation(new SourceLocation("Foo.cs", 3, 14));
             Assert.AreEqual(expected, actual);
         }
-        
-        [Test]
-        public void TestLocationInMethodDefinition_Cpp() {
-            ////Foo.h
-            //class Foo {
-            //public:
-            //    int bar(int);
-            //}
-            var hXml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">Foo</name> <block pos:line=""1"" pos:column=""11"">{<private type=""default"" pos:line=""1"" pos:column=""12"">
-</private><public pos:line=""2"" pos:column=""1"">public:
-    <function_decl><type><name pos:line=""3"" pos:column=""5"">int</name></type> <name pos:line=""3"" pos:column=""9"">bar</name><parameter_list pos:line=""3"" pos:column=""12"">(<param><decl><type><name pos:line=""3"" pos:column=""13"">int</name></type></decl></param>)</parameter_list>;</function_decl>
-</public>}</block><decl/></class>";
-            var hUnit = fileSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(hXml, "Foo.h");
-            NamedScope globalScope = parser[Language.CPlusPlus].ParseFileUnit(hUnit);
-            ////Foo.cpp
-            //#include "Foo.h"
-            //int Foo::bar(int baz) {
-            //    return baz + 1;
-            //}
-            var cppXml = @"<cpp:include pos:line=""1"" pos:column=""1"">#<cpp:directive pos:line=""1"" pos:column=""2"">include</cpp:directive> <cpp:file><lit:literal type=""string"" pos:line=""1"" pos:column=""10"">""Foo.h""</lit:literal></cpp:file></cpp:include>
-<function><type><name pos:line=""2"" pos:column=""1"">int</name></type> <name><name pos:line=""2"" pos:column=""5"">Foo</name><op:operator pos:line=""2"" pos:column=""8"">::</op:operator><name pos:line=""2"" pos:column=""10"">bar</name></name><parameter_list pos:line=""2"" pos:column=""13"">(<param><decl><type><name pos:line=""2"" pos:column=""14"">int</name></type> <name pos:line=""2"" pos:column=""18"">baz</name></decl></param>)</parameter_list> <block pos:line=""2"" pos:column=""23"">{
-    <return pos:line=""3"" pos:column=""5"">return <expr><name pos:line=""3"" pos:column=""12"">baz</name> <op:operator pos:line=""3"" pos:column=""16"">+</op:operator> <lit:literal type=""number"" pos:line=""3"" pos:column=""18"">1</lit:literal></expr>;</return>
-}</block></function>";
-            var cppUnit = fileSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(cppXml, "Foo.cpp");
-            globalScope = globalScope.Merge(parser[Language.CPlusPlus].ParseFileUnit(cppUnit));
-
-            var bar = globalScope.ChildScopes.First().ChildScopes.OfType<MethodDefinition>().First();
-            Assert.AreEqual("bar", bar.Name);
-            Assert.AreEqual(bar, globalScope.GetScopeForLocation(new SourceLocation("Foo.cpp", 3, 2)));
-        }
 
         [Test]
         public void TestLocationInMain_Cpp() {
@@ -123,6 +92,36 @@ namespace ABB.SrcML.Data.Test {
 
             var main = globalScope.ChildScopes.OfType<MethodDefinition>().First(md => md.Name == "main");
             Assert.AreEqual(main, globalScope.GetScopeForLocation(new SourceLocation("function_def.cpp", 12, 20)));
+        }
+
+        [Test]
+        public void TestLocationInMethodDefinition_Cpp() {
+            ////Foo.h
+            //class Foo {
+            //public:
+            //    int bar(int);
+            //}
+            var hXml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">Foo</name> <block pos:line=""1"" pos:column=""11"">{<private type=""default"" pos:line=""1"" pos:column=""12"">
+</private><public pos:line=""2"" pos:column=""1"">public:
+    <function_decl><type><name pos:line=""3"" pos:column=""5"">int</name></type> <name pos:line=""3"" pos:column=""9"">bar</name><parameter_list pos:line=""3"" pos:column=""12"">(<param><decl><type><name pos:line=""3"" pos:column=""13"">int</name></type></decl></param>)</parameter_list>;</function_decl>
+</public>}</block><decl/></class>";
+            var hUnit = fileSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(hXml, "Foo.h");
+            NamedScope globalScope = parser[Language.CPlusPlus].ParseFileUnit(hUnit);
+            ////Foo.cpp
+            //#include "Foo.h"
+            //int Foo::bar(int baz) {
+            //    return baz + 1;
+            //}
+            var cppXml = @"<cpp:include pos:line=""1"" pos:column=""1"">#<cpp:directive pos:line=""1"" pos:column=""2"">include</cpp:directive> <cpp:file><lit:literal type=""string"" pos:line=""1"" pos:column=""10"">""Foo.h""</lit:literal></cpp:file></cpp:include>
+<function><type><name pos:line=""2"" pos:column=""1"">int</name></type> <name><name pos:line=""2"" pos:column=""5"">Foo</name><op:operator pos:line=""2"" pos:column=""8"">::</op:operator><name pos:line=""2"" pos:column=""10"">bar</name></name><parameter_list pos:line=""2"" pos:column=""13"">(<param><decl><type><name pos:line=""2"" pos:column=""14"">int</name></type> <name pos:line=""2"" pos:column=""18"">baz</name></decl></param>)</parameter_list> <block pos:line=""2"" pos:column=""23"">{
+    <return pos:line=""3"" pos:column=""5"">return <expr><name pos:line=""3"" pos:column=""12"">baz</name> <op:operator pos:line=""3"" pos:column=""16"">+</op:operator> <lit:literal type=""number"" pos:line=""3"" pos:column=""18"">1</lit:literal></expr>;</return>
+}</block></function>";
+            var cppUnit = fileSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(cppXml, "Foo.cpp");
+            globalScope = globalScope.Merge(parser[Language.CPlusPlus].ParseFileUnit(cppUnit));
+
+            var bar = globalScope.ChildScopes.First().ChildScopes.OfType<MethodDefinition>().First();
+            Assert.AreEqual("bar", bar.Name);
+            Assert.AreEqual(bar, globalScope.GetScopeForLocation(new SourceLocation("Foo.cpp", 3, 2)));
         }
     }
 }

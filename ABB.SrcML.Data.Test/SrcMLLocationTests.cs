@@ -1,21 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using NUnit.Framework;
 using System.Linq;
-using System.Text;
-using System.Xml.Linq;
-using NUnit.Framework;
 
 namespace ABB.SrcML.Data.Test {
+
     [TestFixture]
     [Category("Build")]
-    class SrcMLLocationTests {
+    internal class SrcMLLocationTests {
         private SrcMLFileUnitSetup fileUnitSetup;
 
         [TestFixtureSetUp]
         public void SetUpFixture() {
             fileUnitSetup = new SrcMLFileUnitSetup(Language.CSharp);
         }
-        
+
         [Test]
         public void TestContains_NoSibling() {
             ////Foo.cs
@@ -30,6 +27,20 @@ namespace ABB.SrcML.Data.Test {
             var classLoc = new SrcMLLocation(classElement, "Foo.cs");
             var methodLoc = new SrcMLLocation(methodElement, "Foo.cs");
             Assert.IsTrue(classLoc.Contains(methodLoc));
+        }
+
+        [Test]
+        public void TestContains_Reflexive() {
+            ////Foo.cs
+            //class Foo {
+            //    int Bar(){return 0;}
+            //}
+            var xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">Foo</name> <block pos:line=""1"" pos:column=""11"">{
+    <function><type><name pos:line=""2"" pos:column=""5"">int</name></type> <name pos:line=""2"" pos:column=""9"">Bar</name><parameter_list pos:line=""2"" pos:column=""12"">()</parameter_list><block pos:line=""2"" pos:column=""14"">{<return pos:line=""2"" pos:column=""15"">return <expr><lit:literal type=""number"" pos:line=""2"" pos:column=""22"">0</lit:literal></expr>;</return>}</block></function>
+}</block></class>";
+            var classElement = fileUnitSetup.GetFileUnitForXmlSnippet(xml, "Foo.cs").Descendants(SRC.Class).First();
+            var classLoc = new SrcMLLocation(classElement, "Foo.cs");
+            Assert.IsTrue(classLoc.Contains(classLoc));
         }
 
         [Test]
@@ -54,20 +65,6 @@ namespace ABB.SrcML.Data.Test {
             var methodLoc = new SrcMLLocation(methodElement, "Foo.cs");
             var declLoc = new SrcMLLocation(declElement, "Foo.cs");
             Assert.IsTrue(methodLoc.Contains(declLoc));
-        }
-
-        [Test]
-        public void TestContains_Reflexive() {
-            ////Foo.cs
-            //class Foo {
-            //    int Bar(){return 0;}
-            //}
-            var xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">Foo</name> <block pos:line=""1"" pos:column=""11"">{
-    <function><type><name pos:line=""2"" pos:column=""5"">int</name></type> <name pos:line=""2"" pos:column=""9"">Bar</name><parameter_list pos:line=""2"" pos:column=""12"">()</parameter_list><block pos:line=""2"" pos:column=""14"">{<return pos:line=""2"" pos:column=""15"">return <expr><lit:literal type=""number"" pos:line=""2"" pos:column=""22"">0</lit:literal></expr>;</return>}</block></function>
-}</block></class>";
-            var classElement = fileUnitSetup.GetFileUnitForXmlSnippet(xml, "Foo.cs").Descendants(SRC.Class).First();
-            var classLoc = new SrcMLLocation(classElement, "Foo.cs");
-            Assert.IsTrue(classLoc.Contains(classLoc));
         }
 
         [Test]

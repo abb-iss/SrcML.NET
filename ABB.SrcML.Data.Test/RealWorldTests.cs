@@ -181,7 +181,7 @@ namespace ABB.SrcML.Data.Test {
             }
         }
 
-        private void PrintMethodCallReport(Scope globalScope, string callLogPath) {
+        private void PrintMethodCallReport(IScope globalScope, string callLogPath) {
             Console.WriteLine("\nMethod Call Report");
             Console.WriteLine("===============");
             var methodCalls = from scope in VariableScopeIterator.Visit(globalScope)
@@ -217,7 +217,7 @@ namespace ABB.SrcML.Data.Test {
             Console.WriteLine(callLogPath);
         }
 
-        private void PrintScopeReport(Scope globalScope) {
+        private void PrintScopeReport(IScope globalScope) {
             Console.WriteLine("\nScope Report");
             Console.WriteLine("===============");
 
@@ -410,7 +410,7 @@ namespace ABB.SrcML.Data.Test {
             Console.WriteLine("{0} to {1} srcML", sw.Elapsed, (regenerateSrcML ? "generate" : "verify"));
             Assert.That(startupCompleted);
 
-            Scope globalScope = null;
+            IScope globalScope = null;
             sw.Reset();
 
             int numberOfFailures = 0;
