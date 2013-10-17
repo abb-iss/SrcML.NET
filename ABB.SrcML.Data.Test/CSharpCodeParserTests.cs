@@ -143,11 +143,11 @@ namespace ABB.SrcML.Data.Test {
                                select methodDefinition;
 
             var bConstructor = (from method in constructors
-                                where method.GetParentScopes<TypeDefinition>().FirstOrDefault().Name == "B"
+                                where method.GetParentScopes<ITypeDefinition>().FirstOrDefault().Name == "B"
                                 select method).FirstOrDefault();
 
             var cConstructor = (from method in constructors
-                                where method.GetParentScopes<TypeDefinition>().FirstOrDefault().Name == "C"
+                                where method.GetParentScopes<ITypeDefinition>().FirstOrDefault().Name == "C"
                                 select method).FirstOrDefault();
 
             var methodCall = (from scope in globalScope.GetDescendantScopes()
@@ -229,7 +229,7 @@ namespace ABB.SrcML.Data.Test {
             var globalScope = codeParser.ParseFileUnit(fooFileUnit);
 
             Assert.AreEqual(1, globalScope.ChildScopes.Count());
-            var foo = globalScope.ChildScopes.First() as TypeDefinition;
+            var foo = globalScope.ChildScopes.First() as ITypeDefinition;
             Assert.IsNotNull(foo);
             Assert.AreEqual("Foo", foo.Name);
             Assert.AreEqual(TypeKind.Class, foo.Kind);
@@ -250,7 +250,7 @@ namespace ABB.SrcML.Data.Test {
             var globalScope = codeParser.ParseFileUnit(fooFileUnit);
 
             Assert.AreEqual(1, globalScope.ChildScopes.Count());
-            var foo = globalScope.ChildScopes.First() as TypeDefinition;
+            var foo = globalScope.ChildScopes.First() as ITypeDefinition;
             Assert.IsNotNull(foo);
             Assert.AreEqual("Foo", foo.Name);
             Assert.AreEqual(TypeKind.Class, foo.Kind);
@@ -273,7 +273,7 @@ namespace ABB.SrcML.Data.Test {
             var globalScope = codeParser.ParseFileUnit(fooFileUnit);
 
             Assert.AreEqual(1, globalScope.ChildScopes.Count());
-            var foo = globalScope.ChildScopes.First() as TypeDefinition;
+            var foo = globalScope.ChildScopes.First() as ITypeDefinition;
             Assert.IsNotNull(foo);
             Assert.AreEqual("Foo", foo.Name);
             Assert.AreEqual(TypeKind.Class, foo.Kind);
@@ -314,7 +314,7 @@ namespace ABB.SrcML.Data.Test {
             Assert.IsNotNull(level3);
             Assert.AreEqual("Level3", level3.Name);
             Assert.AreEqual(1, level3.ChildScopes.Count());
-            var foo = level3.ChildScopes.First() as TypeDefinition;
+            var foo = level3.ChildScopes.First() as ITypeDefinition;
             Assert.IsNotNull(foo);
             Assert.AreEqual("Foo", foo.Name);
             Assert.AreEqual(0, foo.ChildScopes.Count());
@@ -334,7 +334,7 @@ namespace ABB.SrcML.Data.Test {
             var globalScope = codeParser.ParseFileUnit(fooFileUnit);
 
             Assert.AreEqual(1, globalScope.ChildScopes.Count());
-            var foo = globalScope.ChildScopes.First() as TypeDefinition;
+            var foo = globalScope.ChildScopes.First() as ITypeDefinition;
             Assert.IsNotNull(foo);
             Assert.AreEqual("Foo", foo.Name);
             Assert.AreEqual(TypeKind.Interface, foo.Kind);
@@ -363,7 +363,7 @@ namespace ABB.SrcML.Data.Test {
             Assert.IsNotNull(example);
             Assert.AreEqual("Example", example.Name);
             Assert.AreEqual(1, example.ChildScopes.Count());
-            var foo = example.ChildScopes.First() as TypeDefinition;
+            var foo = example.ChildScopes.First() as ITypeDefinition;
             Assert.IsNotNull(foo);
             Assert.AreEqual("Foo", foo.Name);
             Assert.AreEqual(0, foo.ChildScopes.Count());
@@ -407,7 +407,7 @@ namespace ABB.SrcML.Data.Test {
             Assert.IsNotNull(level3);
             Assert.AreEqual("Level3", level3.Name);
             Assert.AreEqual(1, level3.ChildScopes.Count());
-            var foo = level3.ChildScopes.First() as TypeDefinition;
+            var foo = level3.ChildScopes.First() as ITypeDefinition;
             Assert.IsNotNull(foo);
             Assert.AreEqual("Foo", foo.Name);
             Assert.AreEqual(0, foo.ChildScopes.Count());
@@ -427,7 +427,7 @@ namespace ABB.SrcML.Data.Test {
             var globalScope = codeParser.ParseFileUnit(fooFileUnit);
 
             Assert.AreEqual(1, globalScope.ChildScopes.Count());
-            var foo = globalScope.ChildScopes.First() as TypeDefinition;
+            var foo = globalScope.ChildScopes.First() as ITypeDefinition;
             Assert.IsNotNull(foo);
             Assert.AreEqual("Foo", foo.Name);
             Assert.AreEqual(TypeKind.Struct, foo.Kind);
@@ -448,10 +448,10 @@ namespace ABB.SrcML.Data.Test {
             var globalScope = codeParser.ParseFileUnit(xmlElement);
 
             Assert.AreEqual(1, globalScope.ChildScopes.Count());
-            var typeA = globalScope.ChildScopes.First() as TypeDefinition;
+            var typeA = globalScope.ChildScopes.First() as ITypeDefinition;
             Assert.IsNotNull(typeA);
             Assert.AreEqual(1, typeA.ChildScopes.Count());
-            var typeB = typeA.ChildScopes.First() as TypeDefinition;
+            var typeB = typeA.ChildScopes.First() as ITypeDefinition;
             Assert.IsNotNull(typeB);
 
             Assert.AreSame(typeA, typeB.ParentScope);
@@ -479,10 +479,10 @@ namespace ABB.SrcML.Data.Test {
             var foo = globalScope.ChildScopes.First() as INamespaceDefinition;
             Assert.IsNotNull(foo);
             Assert.AreEqual(1, foo.ChildScopes.Count());
-            var typeA = foo.ChildScopes.First() as TypeDefinition;
+            var typeA = foo.ChildScopes.First() as ITypeDefinition;
             Assert.IsNotNull(typeA);
             Assert.AreEqual(1, typeA.ChildScopes.Count());
-            var typeB = typeA.ChildScopes.First() as TypeDefinition;
+            var typeB = typeA.ChildScopes.First() as ITypeDefinition;
             Assert.IsNotNull(typeB);
 
             Assert.AreEqual("A", typeA.Name);
@@ -507,7 +507,7 @@ namespace ABB.SrcML.Data.Test {
             var cScope = codeParser.ParseFileUnit(cUnit);
             var globalScope = bScope.Merge(cScope);
 
-            var typeB = (from type in globalScope.GetDescendantScopes<TypeDefinition>()
+            var typeB = (from type in globalScope.GetDescendantScopes<ITypeDefinition>()
                          where type.Name == "B"
                          select type).FirstOrDefault();
 
@@ -538,7 +538,7 @@ namespace ABB.SrcML.Data.Test {
             var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "B.cs");
             var scope = codeParser.ParseFileUnit(unit);
 
-            var typeB = (from type in scope.GetDescendantScopes<TypeDefinition>()
+            var typeB = (from type in scope.GetDescendantScopes<ITypeDefinition>()
                          where type.Name == "B"
                          select type).FirstOrDefault();
 
@@ -589,11 +589,11 @@ namespace ABB.SrcML.Data.Test {
 
             var globalScope = bScope.Merge(cScope);
 
-            var typeB = (from type in globalScope.GetDescendantScopes<TypeDefinition>()
+            var typeB = (from type in globalScope.GetDescendantScopes<ITypeDefinition>()
                          where type.Name == "B"
                          select type).FirstOrDefault();
 
-            var typeC = (from type in globalScope.GetDescendantScopes<TypeDefinition>()
+            var typeC = (from type in globalScope.GetDescendantScopes<ITypeDefinition>()
                          where type.Name == "C"
                          select type).FirstOrDefault();
 
@@ -620,11 +620,11 @@ namespace ABB.SrcML.Data.Test {
 
             var globalScope = bScope.Merge(dScope);
 
-            var typeB = (from type in globalScope.GetDescendantScopes<TypeDefinition>()
+            var typeB = (from type in globalScope.GetDescendantScopes<ITypeDefinition>()
                          where type.Name == "B"
                          select type).FirstOrDefault();
 
-            var typeD = (from type in globalScope.GetDescendantScopes<TypeDefinition>()
+            var typeD = (from type in globalScope.GetDescendantScopes<ITypeDefinition>()
                          where type.Name == "D"
                          select type).FirstOrDefault();
 
@@ -643,7 +643,7 @@ namespace ABB.SrcML.Data.Test {
             var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "B.cs");
             var scope = codeParser.ParseFileUnit(unit);
 
-            var typeB = scope.GetChildScopes<TypeDefinition>().FirstOrDefault();
+            var typeB = scope.GetChildScopes<ITypeDefinition>().FirstOrDefault();
             Assert.IsNotNull(typeB);
             Assert.AreEqual("B", typeB.Name);
         }
@@ -921,10 +921,10 @@ namespace ABB.SrcML.Data.Test {
                              select methodDefinition;
 
             var bDotFoo = (from method in fooMethods
-                           where method.GetParentScopes<TypeDefinition>().FirstOrDefault().Name == "B"
+                           where method.GetParentScopes<ITypeDefinition>().FirstOrDefault().Name == "B"
                            select method).FirstOrDefault();
             var cDotFoo = (from method in fooMethods
-                           where method.GetParentScopes<TypeDefinition>().FirstOrDefault().Name == "C"
+                           where method.GetParentScopes<ITypeDefinition>().FirstOrDefault().Name == "C"
                            select method).FirstOrDefault();
 
             Assert.IsNotNull(bDotFoo);
@@ -1007,7 +1007,7 @@ namespace ABB.SrcML.Data.Test {
             var testUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "B.cs");
             var testScope = codeParser.ParseFileUnit(testUnit);
 
-            var classB = testScope.GetDescendantScopes<TypeDefinition>().FirstOrDefault();
+            var classB = testScope.GetDescendantScopes<ITypeDefinition>().FirstOrDefault();
 
             Assert.IsNotNull(classB);
             Assert.AreEqual(1, classB.DeclaredVariables.Count());
@@ -1050,11 +1050,11 @@ namespace ABB.SrcML.Data.Test {
 
             var globalScope = bScope.Merge(cScope);
 
-            var classB = (from t in globalScope.GetDescendantScopes<TypeDefinition>()
+            var classB = (from t in globalScope.GetDescendantScopes<ITypeDefinition>()
                           where t.Name == "B"
                           select t).FirstOrDefault();
 
-            var classC = (from t in globalScope.GetDescendantScopes<TypeDefinition>()
+            var classC = (from t in globalScope.GetDescendantScopes<ITypeDefinition>()
                           where t.Name == "C"
                           select t).FirstOrDefault();
 

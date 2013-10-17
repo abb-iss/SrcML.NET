@@ -17,13 +17,13 @@ namespace ABB.SrcML.Data {
 
     /// <summary>
     /// The Built-In type factory creates on-demand instances of built-in types for each language.
-    /// It creates and stores one <see cref="TypeDefinition"/> object for each
+    /// It creates and stores one <see cref="ITypeDefinition"/> object for each
     /// <see cref="ABB.SrcML.Language"/>/built-in type pair. This factory is primarily used by when
     /// comparing <see cref="TypeUse"/> objects for method parameters. A parameter and an argument
-    /// should have the same <see cref="TypeDefinition"/> object.
+    /// should have the same <see cref="ITypeDefinition"/> object.
     /// </summary>
     public static class BuiltInTypeFactory {
-        private static Dictionary<Tuple<Language, string>, TypeDefinition> builtInTypeMap;
+        private static Dictionary<Tuple<Language, string>, ITypeDefinition> builtInTypeMap;
 
         private static HashSet<string> cppBuiltInParts = new HashSet<string> { "char", "short", "int", "long", "bool", "float", "double", "wchar_t",
                                                                                "signed", "unsigned", "short", "long", "char*"};
@@ -34,7 +34,7 @@ namespace ABB.SrcML.Data {
         private static HashSet<string> javaBuiltIns = new HashSet<string> { "byte", "short", "int", "long", "float", "double", "boolean", "char" };
 
         static BuiltInTypeFactory() {
-            builtInTypeMap = new Dictionary<Tuple<Language, string>, TypeDefinition>();
+            builtInTypeMap = new Dictionary<Tuple<Language, string>, ITypeDefinition>();
         }
 
         /// <summary>
@@ -43,12 +43,12 @@ namespace ABB.SrcML.Data {
         /// <param name="use">the type use to locate</param>
         /// <returns>A type definition that matches the type use; null if this is not a
         /// built-in</returns>
-        public static TypeDefinition GetBuiltIn(TypeUse use) {
+        public static ITypeDefinition GetBuiltIn(TypeUse use) {
             if(!IsBuiltIn(use))
                 return null;
 
             var key = new Tuple<Language, string>(use.ProgrammingLanguage, use.Name);
-            TypeDefinition builtIn;
+            ITypeDefinition builtIn;
             if(!builtInTypeMap.TryGetValue(key, out builtIn)) {
                 builtIn = new TypeDefinition() {
                     Accessibility = AccessModifier.None,

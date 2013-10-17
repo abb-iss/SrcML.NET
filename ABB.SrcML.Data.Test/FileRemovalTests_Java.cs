@@ -41,7 +41,7 @@ namespace ABB.SrcML.Data.Test {
             var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(bazFileUnit));
 
             Assert.AreEqual(0, afterScope.ChildScopes.OfType<INamespaceDefinition>().Count());
-            Assert.AreEqual(2, afterScope.ChildScopes.OfType<TypeDefinition>().Count());
+            Assert.AreEqual(2, afterScope.ChildScopes.OfType<ITypeDefinition>().Count());
 
             afterScope.RemoveFile("Baz.java");
 

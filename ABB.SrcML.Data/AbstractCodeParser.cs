@@ -637,7 +637,7 @@ namespace ABB.SrcML.Data {
             if(null == typeElement)
                 throw new ArgumentNullException("typeElement");
 
-            var typeDefinition = new TypeDefinition() {
+            ITypeDefinition typeDefinition = new TypeDefinition() {
                 Accessibility = GetAccessModifierForType(typeElement),
                 Kind = XNameMaps.GetKindForXElement(typeElement),
                 Name = GetNameForType(typeElement),

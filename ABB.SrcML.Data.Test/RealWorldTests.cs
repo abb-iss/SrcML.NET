@@ -230,7 +230,7 @@ namespace ABB.SrcML.Data.Test {
                                   where (scope as INamespaceDefinition) != null
                                   select scope;
             var typeScopes = from scope in namedScopes
-                             where (scope as TypeDefinition) != null
+                             where (scope as ITypeDefinition) != null
                              select scope;
             var methodScopes = from scope in namedScopes
                                where (scope as MethodDefinition) != null

@@ -23,7 +23,7 @@ namespace ABB.SrcML.Data {
     /// <para>This is a variable scope that can be identified by name. Its subclasses identify
     /// specific constructs in the code that have a name. It is also used by
     /// <see cref="CPlusPlusCodeParser"/> to represent unresolved scopes.</para> <para>Sub-classes
-    /// of this include <see cref="TypeDefinition"/>, <see cref="NamespaceDefinition"/>, and
+    /// of this include <see cref="ITypeDefinition"/>, <see cref="NamespaceDefinition"/>, and
     /// <see cref="MethodDefinition"/></para>
     /// </summary>
     [DebuggerTypeProxy(typeof(ScopeDebugView))]

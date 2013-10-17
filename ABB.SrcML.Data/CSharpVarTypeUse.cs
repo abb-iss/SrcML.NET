@@ -6,7 +6,7 @@ namespace ABB.SrcML.Data {
 
         public IResolvesToType Initializer { get; set; }
 
-        public override IEnumerable<TypeDefinition> FindMatches() {
+        public override IEnumerable<ITypeDefinition> FindMatches() {
             if(Initializer != null) {
                 return Initializer.FindMatchingTypes();
             }

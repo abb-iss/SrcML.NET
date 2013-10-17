@@ -145,7 +145,7 @@ namespace ABB.SrcML.Tools.DataTester {
         private static void OutputCallGraphByType(IScope globalScope, string jsonPath) {
             using(var writer = new JsonTextWriter(new StreamWriter(jsonPath))) {
                 writer.WriteStartArray();
-                foreach(var typeDefinition in globalScope.GetDescendantScopesAndSelf<TypeDefinition>()) {
+                foreach(var typeDefinition in globalScope.GetDescendantScopesAndSelf<ITypeDefinition>()) {
                     writer.WriteStartObject();
                     writer.WritePropertyName("name");
                     writer.WriteValue(typeDefinition.GetFullName());
@@ -161,7 +161,7 @@ namespace ABB.SrcML.Tools.DataTester {
                     var callMatches = from call in calls
                                       let match = call.FindMatches().FirstOrDefault()
                                       where match != null
-                                      let parentOfMatch = match.GetFirstParent<TypeDefinition>()
+                                      let parentOfMatch = match.GetFirstParent<ITypeDefinition>()
                                       where parentOfMatch != null
                                       select parentOfMatch.GetFullName();
                     // output the calls property and array
@@ -222,7 +222,7 @@ namespace ABB.SrcML.Tools.DataTester {
             int numScopes = allScopes.Count();
             int numNamedScopes = allScopes.OfType<INamedScope>().Count();
             int numNamespaces = allScopes.OfType<NamespaceDefinition>().Count();
-            int numTypes = allScopes.OfType<TypeDefinition>().Count();
+            int numTypes = allScopes.OfType<ITypeDefinition>().Count();
             int numMethods = allScopes.OfType<MethodDefinition>().Count();
 
             Console.WriteLine("{0,10:N0} scopes", numScopes);

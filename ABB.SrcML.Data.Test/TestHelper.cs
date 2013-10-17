@@ -177,7 +177,7 @@ namespace ABB.SrcML.Data.Test {
                    TestEquality((INamedScope) a, (INamedScope) b);
         }
 
-        private static bool TestEquality(TypeDefinition a, TypeDefinition b) {
+        private static bool TestEquality(ITypeDefinition a, ITypeDefinition b) {
             //Assert.AreEqual(a.IsPartial, b.IsPartial);
             //Assert.AreEqual(a.Kind, b.Kind);
             //Assert.IsTrue(CollectionsAreEqual(a.ParentTypes, b.ParentTypes, TypeUsesAreEqual));

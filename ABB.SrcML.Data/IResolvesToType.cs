@@ -34,12 +34,12 @@ namespace ABB.SrcML.Data {
         /// Returns the first matching type definition returned by <see cref="FindMatchingTypes()"/>
         /// </summary>
         /// <returns>The first matching type definition. Null if there aren't any.</returns>
-        TypeDefinition FindFirstMatchingType();
+        ITypeDefinition FindFirstMatchingType();
 
         /// <summary>
         /// Finds all of the possible matching types for this usage
         /// </summary>
         /// <returns>An enumerable of type definition objects</returns>
-        IEnumerable<TypeDefinition> FindMatchingTypes();
+        IEnumerable<ITypeDefinition> FindMatchingTypes();
     }
 }

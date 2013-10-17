@@ -41,7 +41,7 @@ namespace ABB.SrcML.Data.Test {
 
             var globalScope = codeParser.ParseFileUnit(fileSetup.GetFileUnitForXmlSnippet(xml, "A.h"));
 
-            var classA = globalScope.ChildScopes.First() as TypeDefinition;
+            var classA = globalScope.ChildScopes.First() as ITypeDefinition;
             Assert.AreEqual("A", classA.Name);
             Assert.AreEqual(1, classA.DeclaredVariables.Count());
         }
@@ -97,11 +97,11 @@ namespace ABB.SrcML.Data.Test {
 
             var constructors = globalScope.GetDescendantScopes<MethodDefinition>();
             var subClassConstructor = (from method in constructors
-                                       where method.GetParentScopes<TypeDefinition>().First().Name == "SubClass"
+                                       where method.GetParentScopes<ITypeDefinition>().First().Name == "SubClass"
                                        select method).FirstOrDefault();
 
             var calledConstructor = (from method in constructors
-                                     where method.GetParentScopes<TypeDefinition>().First().Name == "SuperClass"
+                                     where method.GetParentScopes<ITypeDefinition>().First().Name == "SuperClass"
                                      select method).FirstOrDefault();
 
             Assert.IsNotNull(subClassConstructor);
@@ -155,7 +155,7 @@ namespace ABB.SrcML.Data.Test {
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
             var namespaceA = globalScope.ChildScopes.First() as INamespaceDefinition;
-            var typeB = namespaceA.ChildScopes.First() as TypeDefinition;
+            var typeB = namespaceA.ChildScopes.First() as ITypeDefinition;
 
             Assert.AreEqual("A", namespaceA.Name);
             Assert.IsFalse(namespaceA.IsGlobal);
@@ -178,7 +178,7 @@ namespace ABB.SrcML.Data.Test {
             var globalScope = codeParser.ParseFileUnit(xmlElement);
             var scopes = VariableScopeIterator.Visit(globalScope);
 
-            var typeA = globalScope.ChildScopes.First() as TypeDefinition;
+            var typeA = globalScope.ChildScopes.First() as ITypeDefinition;
             var methodFoo = typeA.ChildScopes.First() as MethodDefinition;
             Assert.AreEqual(3, scopes.Count());
 
@@ -202,7 +202,7 @@ namespace ABB.SrcML.Data.Test {
             var fileUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "static_method.h");
             var globalScope = codeParser.ParseFileUnit(fileUnit);
 
-            var example = globalScope.ChildScopes.OfType<TypeDefinition>().FirstOrDefault();
+            var example = globalScope.ChildScopes.OfType<ITypeDefinition>().FirstOrDefault();
             Assert.IsNotNull(example);
             Assert.AreEqual("Example", example.Name);
             Assert.AreEqual(1, example.ChildScopes.Count());
@@ -220,7 +220,7 @@ namespace ABB.SrcML.Data.Test {
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
-            var actual = globalScope.ChildScopes.First() as TypeDefinition;
+            var actual = globalScope.ChildScopes.First() as ITypeDefinition;
 
             Assert.AreEqual("A", actual.Name);
             Assert.AreEqual(TypeKind.Class, actual.Kind);
@@ -241,7 +241,7 @@ namespace ABB.SrcML.Data.Test {
 
             Assert.AreEqual("main", mainMethod.Name);
 
-            var typeA = mainMethod.ChildScopes.First() as TypeDefinition;
+            var typeA = mainMethod.ChildScopes.First() as ITypeDefinition;
             Assert.AreEqual("A", typeA.Name);
             Assert.AreEqual("main.A", typeA.GetFullName());
             Assert.AreEqual(String.Empty, typeA.GetFirstParent<INamespaceDefinition>().GetFullName());
@@ -258,8 +258,8 @@ namespace ABB.SrcML.Data.Test {
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
             var globalScope = codeParser.ParseFileUnit(xmlElement);
 
-            var typeA = globalScope.ChildScopes.First() as TypeDefinition;
-            var typeB = typeA.ChildScopes.First() as TypeDefinition;
+            var typeA = globalScope.ChildScopes.First() as ITypeDefinition;
+            var typeB = typeA.ChildScopes.First() as ITypeDefinition;
 
             Assert.AreSame(typeA, typeB.ParentScope);
             Assert.AreEqual("A", typeA.GetFullName());
@@ -275,7 +275,7 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
             var globalScope = codeParser.ParseFileUnit(xmlElement);
-            var actual = globalScope.ChildScopes.First() as TypeDefinition;
+            var actual = globalScope.ChildScopes.First() as ITypeDefinition;
 
             Assert.AreEqual("A", actual.Name);
             Assert.AreEqual(3, actual.ParentTypes.Count);
@@ -299,7 +299,7 @@ namespace ABB.SrcML.Data.Test {
 </private>}</block>;</class>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "D.h");
-            var actual = codeParser.ParseFileUnit(xmlElement).ChildScopes.First() as TypeDefinition;
+            var actual = codeParser.ParseFileUnit(xmlElement).ChildScopes.First() as ITypeDefinition;
             var globalNamespace = actual.ParentScope as INamespaceDefinition;
 
             Assert.AreEqual("D", actual.Name);
@@ -328,12 +328,12 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual(4, scopes.Count());
 
             var typeDefinitions = from scope in scopes
-                                  let definition = scope as TypeDefinition
+                                  let definition = scope as ITypeDefinition
                                   where definition != null
                                   select definition;
 
-            var outer = typeDefinitions.First() as TypeDefinition;
-            var inner = typeDefinitions.Last() as TypeDefinition;
+            var outer = typeDefinitions.First() as ITypeDefinition;
+            var inner = typeDefinitions.Last() as ITypeDefinition;
 
             Assert.AreEqual("B", outer.Name);
             Assert.AreEqual("A", outer.GetFirstParent<INamespaceDefinition>().GetFullName());
@@ -351,7 +351,7 @@ namespace ABB.SrcML.Data.Test {
 </public>}</block>;</struct>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
-            var actual = codeParser.ParseFileUnit(xmlElement).ChildScopes.First() as TypeDefinition;
+            var actual = codeParser.ParseFileUnit(xmlElement).ChildScopes.First() as ITypeDefinition;
             var globalNamespace = actual.ParentScope as INamespaceDefinition;
 
             Assert.AreEqual("A", actual.Name);
@@ -369,7 +369,7 @@ namespace ABB.SrcML.Data.Test {
 </public>}</block>;</union>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
-            var actual = codeParser.ParseFileUnit(xmlElement).ChildScopes.First() as TypeDefinition;
+            var actual = codeParser.ParseFileUnit(xmlElement).ChildScopes.First() as ITypeDefinition;
             var globalNamespace = actual.ParentScope as INamespaceDefinition;
             Assert.AreEqual(TypeKind.Union, actual.Kind);
             Assert.That(globalNamespace.IsGlobal);
@@ -453,7 +453,7 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("A", namespaceA.Name);
             Assert.AreEqual(1, namespaceA.ChildScopes.Count());
 
-            var typeB = namespaceA.ChildScopes.First() as TypeDefinition;
+            var typeB = namespaceA.ChildScopes.First() as ITypeDefinition;
             Assert.AreEqual("B", typeB.Name);
             Assert.AreEqual(1, typeB.ChildScopes.Count());
 
@@ -497,8 +497,8 @@ namespace ABB.SrcML.Data.Test {
             var scopeForB = codeParser.ParseFileUnit(fileUnitB);
             var globalScope = scopeForA.Merge(scopeForB);
 
-            var classA = globalScope.ChildScopes.First() as TypeDefinition;
-            var classB = globalScope.ChildScopes.Last() as TypeDefinition;
+            var classA = globalScope.ChildScopes.First() as ITypeDefinition;
+            var classB = globalScope.ChildScopes.Last() as ITypeDefinition;
             Assert.AreEqual("A", classA.Name);
             Assert.AreEqual("B", classB.Name);
 

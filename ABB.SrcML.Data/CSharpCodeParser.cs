@@ -199,7 +199,7 @@ namespace ABB.SrcML.Data {
             var partials = from specifiers in typeElement.Elements(SRC.Specifier)
                            where specifiers.Value == "partial"
                            select specifiers;
-            (context.CurrentScope as TypeDefinition).IsPartial = partials.Any();
+            (context.CurrentScope as ITypeDefinition).IsPartial = partials.Any();
         }
 
         /// <summary>

@@ -76,7 +76,7 @@ namespace ABB.SrcML.Data {
         /// Gets the first type definition that matches the return type for this method
         /// </summary>
         /// <returns>The first matching type definition</returns>
-        public TypeDefinition FindFirstMatchingType() {
+        public ITypeDefinition FindFirstMatchingType() {
             return FindMatchingTypes().FirstOrDefault();
         }
 
@@ -91,7 +91,7 @@ namespace ABB.SrcML.Data {
             IEnumerable<MethodDefinition> matchingMethods = Enumerable.Empty<MethodDefinition>();
 
             if(IsConstructor || IsDestructor) {
-                IEnumerable<TypeDefinition> typeDefinitions;
+                IEnumerable<ITypeDefinition> typeDefinitions;
                 if(this.Name == "this" || (this.Name == "base" && this.ProgrammingLanguage == Language.CSharp)) {
                     typeDefinitions = TypeDefinition.GetTypeForKeyword(this);
                 } else {
@@ -115,7 +115,7 @@ namespace ABB.SrcML.Data {
                                   select method;
             } else {
                 var matches = base.FindMatches();
-                var matchingTypeMethods = from containingType in ParentScope.GetParentScopesAndSelf<TypeDefinition>()
+                var matchingTypeMethods = from containingType in ParentScope.GetParentScopesAndSelf<ITypeDefinition>()
                                           from typeDefinition in containingType.GetParentTypes()
                                           from method in typeDefinition.GetChildScopesWithId<MethodDefinition>(this.Name)
                                           where Matches(method)
@@ -131,14 +131,14 @@ namespace ABB.SrcML.Data {
         /// Finds all of the matching type definitions for the return type of this method definition
         /// </summary>
         /// <returns>An enumerable of the matching type definitions for this method</returns>
-        public IEnumerable<TypeDefinition> FindMatchingTypes() {
+        public IEnumerable<ITypeDefinition> FindMatchingTypes() {
             foreach(var methodDefinition in FindMatches()) {
-                IEnumerable<TypeDefinition> matchingTypes = Enumerable.Empty<TypeDefinition>();
+                IEnumerable<ITypeDefinition> matchingTypes = Enumerable.Empty<ITypeDefinition>();
 
                 if(methodDefinition.ReturnType != null) {
                     matchingTypes = methodDefinition.ReturnType.FindMatches();
                 } else if(methodDefinition.IsConstructor) {
-                    matchingTypes = from type in methodDefinition.GetParentScopes<TypeDefinition>()
+                    matchingTypes = from type in methodDefinition.GetParentScopes<ITypeDefinition>()
                                     where type.Name == methodDefinition.Name
                                     select type;
                 }
@@ -150,11 +150,11 @@ namespace ABB.SrcML.Data {
 
         public IEnumerable<string> GetPossibleNames() {
             if(this.Name == "this") {
-                foreach(var containingType in ParentScopes.OfType<TypeDefinition>().Take(1)) {
+                foreach(var containingType in ParentScopes.OfType<ITypeDefinition>().Take(1)) {
                     yield return containingType.Name;
                 }
             } else if(this.Name == "base" && ProgrammingLanguage == Language.CSharp) {
-                var typeDefinitions = from containingType in ParentScopes.OfType<TypeDefinition>()
+                var typeDefinitions = from containingType in ParentScopes.OfType<ITypeDefinition>()
                                       from parentTypeReference in containingType.ParentTypes
                                       from parentType in parentTypeReference.FindMatchingTypes()
                                       select parentType;

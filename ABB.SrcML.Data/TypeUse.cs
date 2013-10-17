@@ -21,7 +21,7 @@ namespace ABB.SrcML.Data {
     /// Represents a use of a type. It is used in declarations and inheritance specifications.
     /// </summary>
     [Serializable]
-    public class TypeUse : AbstractScopeUse<TypeDefinition>, IResolvesToType {
+    public class TypeUse : AbstractScopeUse<ITypeDefinition>, IResolvesToType {
         private List<TypeUse> internalTypeParameters;
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace ABB.SrcML.Data {
         /// Gets the first type that matches this use
         /// </summary>
         /// <returns>The matching type; null if there aren't any</returns>
-        public TypeDefinition FindFirstMatchingType() {
+        public ITypeDefinition FindFirstMatchingType() {
             return this.FindMatches().FirstOrDefault();
         }
 
@@ -96,14 +96,14 @@ namespace ABB.SrcML.Data {
         /// Finds all of the matches for this type
         /// </summary>
         /// <returns>All of the type definitions that match this type use</returns>
-        public override IEnumerable<TypeDefinition> FindMatches() {
+        public override IEnumerable<ITypeDefinition> FindMatches() {
             // if this is a built-in type, then just return that otherwise, go hunting for matching
             // types
             if(BuiltInTypeFactory.IsBuiltIn(this)) {
                 yield return BuiltInTypeFactory.GetBuiltIn(this);
             } else if(null != Prefix) {
                 var matches = from prefixMatch in Prefix.FindMatches()
-                              from match in prefixMatch.GetChildScopesWithId<TypeDefinition>(this.Name)
+                              from match in prefixMatch.GetChildScopesWithId<ITypeDefinition>(this.Name)
                               select match;
                 foreach(var match in matches) {
                     yield return match;
@@ -122,7 +122,7 @@ namespace ABB.SrcML.Data {
         /// This is just a call to <see cref="FindMatches()"/>
         /// </summary>
         /// <returns>The matching type definitions for this use</returns>
-        public IEnumerable<TypeDefinition> FindMatchingTypes() {
+        public IEnumerable<ITypeDefinition> FindMatchingTypes() {
             return this.FindMatches();
         }
 
@@ -131,7 +131,7 @@ namespace ABB.SrcML.Data {
         /// <paramref name="definition"/></summary>
         /// <param name="definition">the definition to compare to</param>
         /// <returns>true if the definitions match; false otherwise</returns>
-        public override bool Matches(TypeDefinition definition) {
+        public override bool Matches(ITypeDefinition definition) {
             return definition != null && definition.Name == this.Name;
         }
 

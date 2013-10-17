@@ -43,7 +43,7 @@ namespace ABB.SrcML.Data.Test {
             var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(hFileunit));
 
             Assert.AreEqual(1, afterScope.ChildScopes.Count());
-            Assert.IsNotNull(afterScope.ChildScopes.First() as TypeDefinition);
+            Assert.IsNotNull(afterScope.ChildScopes.First() as ITypeDefinition);
 
             afterScope.RemoveFile("A.h");
 
@@ -101,7 +101,7 @@ namespace ABB.SrcML.Data.Test {
             var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(cppFileunit));
 
             Assert.AreEqual(1, afterScope.ChildScopes.Count());
-            var foo = afterScope.ChildScopes.First() as TypeDefinition;
+            var foo = afterScope.ChildScopes.First() as ITypeDefinition;
             Assert.IsNotNull(foo);
             Assert.AreEqual(1, foo.DeclaredVariables.Count());
 

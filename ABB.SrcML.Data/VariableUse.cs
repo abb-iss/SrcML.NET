@@ -47,7 +47,7 @@ namespace ABB.SrcML.Data {
         /// Gets the first result from <see cref="FindMatchingTypes()"/>
         /// </summary>
         /// <returns>The first matching variable type definition</returns>
-        public TypeDefinition FindFirstMatchingType() {
+        public ITypeDefinition FindFirstMatchingType() {
             return FindMatchingTypes().FirstOrDefault();
         }
 
@@ -76,7 +76,7 @@ namespace ABB.SrcML.Data {
                                        where Matches(parameter)
                                        select parameter;
 
-                var matchingParentVariables = from containingType in ParentScope.GetParentScopesAndSelf<TypeDefinition>()
+                var matchingParentVariables = from containingType in ParentScope.GetParentScopesAndSelf<ITypeDefinition>()
                                               from typeDefinition in containingType.GetParentTypes()
                                               from variable in typeDefinition.DeclaredVariables
                                               where Matches(variable)
@@ -91,8 +91,8 @@ namespace ABB.SrcML.Data {
         /// match this variable use
         /// </summary>
         /// <returns>An enumerable of matching type definitions</returns>
-        public IEnumerable<TypeDefinition> FindMatchingTypes() {
-            IEnumerable<TypeDefinition> typeDefinitions;
+        public IEnumerable<ITypeDefinition> FindMatchingTypes() {
+            IEnumerable<ITypeDefinition> typeDefinitions;
             if(this.Name == "this" || (this.Name == "base" && this.ProgrammingLanguage == Language.CSharp)) {
                 typeDefinitions = TypeDefinition.GetTypeForKeyword(this);
             } else {

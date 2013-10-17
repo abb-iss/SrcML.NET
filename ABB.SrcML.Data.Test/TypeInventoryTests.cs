@@ -47,7 +47,7 @@ namespace ABB.SrcML.Data.Test {
 
             var scopes = VariableScopeIterator.Visit(globalScope);
             var typeDefinitions = (from scope in scopes
-                                   let typeDefinition = (scope as TypeDefinition)
+                                   let typeDefinition = (scope as ITypeDefinition)
                                    where typeDefinition != null
                                    orderby typeDefinition.Name
                                    select typeDefinition).ToList();
@@ -113,11 +113,11 @@ namespace ABB.SrcML.Data.Test {
 
             var globalScope = cScope.Merge(eScope);
 
-            var typeC = (from typeDefinition in globalScope.GetDescendantScopesAndSelf<TypeDefinition>()
+            var typeC = (from typeDefinition in globalScope.GetDescendantScopesAndSelf<ITypeDefinition>()
                          where typeDefinition.Name == "C"
                          select typeDefinition).First();
 
-            var typeE = (from typeDefinition in globalScope.GetDescendantScopesAndSelf<TypeDefinition>()
+            var typeE = (from typeDefinition in globalScope.GetDescendantScopesAndSelf<ITypeDefinition>()
                          where typeDefinition.Name == "E"
                          select typeDefinition).First();
 
@@ -216,7 +216,7 @@ namespace ABB.SrcML.Data.Test {
 
             var globalScope = headerScope.Merge(mainScope);
 
-            var typeA = globalScope.GetChildScopesWithId<TypeDefinition>("A").FirstOrDefault();
+            var typeA = globalScope.GetChildScopesWithId<ITypeDefinition>("A").FirstOrDefault();
             Assert.IsNotNull(typeA, "could not find class A");
 
             var globalAObject = globalScope.DeclaredVariables.FirstOrDefault();
@@ -282,7 +282,7 @@ namespace ABB.SrcML.Data.Test {
 
             Assert.AreEqual(2, namedChildren.Count());
 
-            var typeA = namedChildren.First() as TypeDefinition;
+            var typeA = namedChildren.First() as ITypeDefinition;
             var mainMethod = namedChildren.Last() as MethodDefinition;
 
             Assert.AreEqual("A", typeA.Name);
@@ -342,7 +342,7 @@ namespace ABB.SrcML.Data.Test {
 
             Assert.AreEqual(2, namedChildren.Count());
 
-            var typeA = namedChildren.First() as TypeDefinition;
+            var typeA = namedChildren.First() as ITypeDefinition;
             var mainMethod = namedChildren.Last() as MethodDefinition;
 
             Assert.AreEqual("A", typeA.Name);
@@ -368,7 +368,7 @@ namespace ABB.SrcML.Data.Test {
             var testScope = CodeParser[Language.CPlusPlus].ParseFileUnit(testUnit);
 
             var methodCallFoo = testScope.GetChildScopesWithId<MethodDefinition>("CallFoo").FirstOrDefault();
-            var classB = testScope.GetChildScopesWithId<TypeDefinition>("B").FirstOrDefault();
+            var classB = testScope.GetChildScopesWithId<ITypeDefinition>("B").FirstOrDefault();
 
             Assert.IsNotNull(methodCallFoo, "can't find CallFoo");
             Assert.IsNotNull(classB, "can't find class B");
@@ -411,9 +411,9 @@ namespace ABB.SrcML.Data.Test {
             globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(bUnit)) as INamespaceDefinition;
             globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(cUnit)) as INamespaceDefinition;
 
-            var typeA = globalScope.GetChildScopesWithId<TypeDefinition>("A").FirstOrDefault();
-            var typeB = globalScope.GetChildScopesWithId<TypeDefinition>("B").FirstOrDefault();
-            var typeC = globalScope.GetChildScopesWithId<TypeDefinition>("C").FirstOrDefault();
+            var typeA = globalScope.GetChildScopesWithId<ITypeDefinition>("A").FirstOrDefault();
+            var typeB = globalScope.GetChildScopesWithId<ITypeDefinition>("B").FirstOrDefault();
+            var typeC = globalScope.GetChildScopesWithId<ITypeDefinition>("C").FirstOrDefault();
 
             Assert.IsNotNull(typeA, "could not find class A");
             Assert.IsNotNull(typeB, "could not find class B");
@@ -449,8 +449,8 @@ namespace ABB.SrcML.Data.Test {
             INamespaceDefinition globalScope = CodeParser[Language.CSharp].ParseFileUnit(aUnit);
             globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(bUnit)) as INamespaceDefinition;
 
-            var typeA = globalScope.GetChildScopesWithId<TypeDefinition>("A").FirstOrDefault();
-            var typeB = globalScope.GetChildScopesWithId<TypeDefinition>("B").FirstOrDefault();
+            var typeA = globalScope.GetChildScopesWithId<ITypeDefinition>("A").FirstOrDefault();
+            var typeB = globalScope.GetChildScopesWithId<ITypeDefinition>("B").FirstOrDefault();
 
             Assert.IsNotNull(typeA, "could not find class A");
             Assert.IsNotNull(typeB, "could not find class B");
@@ -511,8 +511,8 @@ namespace ABB.SrcML.Data.Test {
             INamespaceDefinition globalScope = CodeParser[Language.CPlusPlus].ParseFileUnit(cUnit);
             globalScope = globalScope.Merge(CodeParser[Language.CPlusPlus].ParseFileUnit(eUnit)) as INamespaceDefinition;
 
-            var typeC = globalScope.GetDescendantScopes<TypeDefinition>().Where(t => t.Name == "C").FirstOrDefault();
-            var typeE = globalScope.GetDescendantScopes<TypeDefinition>().Where(t => t.Name == "E").FirstOrDefault();
+            var typeC = globalScope.GetDescendantScopes<ITypeDefinition>().Where(t => t.Name == "C").FirstOrDefault();
+            var typeE = globalScope.GetDescendantScopes<ITypeDefinition>().Where(t => t.Name == "E").FirstOrDefault();
 
             var mainMethod = typeE.ChildScopes.First() as MethodDefinition;
             Assert.IsNotNull(mainMethod, "is not a method definition");
@@ -575,8 +575,8 @@ namespace ABB.SrcML.Data.Test {
             INamespaceDefinition globalScope = CodeParser[Language.CSharp].ParseFileUnit(cUnit);
             globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(eUnit)) as INamespaceDefinition;
 
-            var typeC = globalScope.GetDescendantScopes<TypeDefinition>().Where(t => t.Name == "C").FirstOrDefault();
-            var typeE = globalScope.GetDescendantScopes<TypeDefinition>().Where(t => t.Name == "E").FirstOrDefault();
+            var typeC = globalScope.GetDescendantScopes<ITypeDefinition>().Where(t => t.Name == "C").FirstOrDefault();
+            var typeE = globalScope.GetDescendantScopes<ITypeDefinition>().Where(t => t.Name == "E").FirstOrDefault();
 
             var mainMethod = typeE.ChildScopes.First() as MethodDefinition;
             Assert.IsNotNull(mainMethod, "is not a method definition");
@@ -635,8 +635,8 @@ namespace ABB.SrcML.Data.Test {
             INamespaceDefinition globalScope = CodeParser[Language.Java].ParseFileUnit(cUnit);
             globalScope = globalScope.Merge(CodeParser[Language.Java].ParseFileUnit(eUnit)) as INamespaceDefinition;
 
-            var typeC = globalScope.GetDescendantScopes<TypeDefinition>().Where(t => t.Name == "C").FirstOrDefault();
-            var typeE = globalScope.GetDescendantScopes<TypeDefinition>().Where(t => t.Name == "E").FirstOrDefault();
+            var typeC = globalScope.GetDescendantScopes<ITypeDefinition>().Where(t => t.Name == "C").FirstOrDefault();
+            var typeE = globalScope.GetDescendantScopes<ITypeDefinition>().Where(t => t.Name == "E").FirstOrDefault();
 
             var mainMethod = typeE.ChildScopes.First() as MethodDefinition;
             Assert.IsNotNull(mainMethod, "is not a method definition");
@@ -691,10 +691,10 @@ namespace ABB.SrcML.Data.Test {
             globalScope = globalScope.Merge(CodeParser[Language.CPlusPlus].ParseFileUnit(cUnit)) as INamespaceDefinition;
             globalScope = globalScope.Merge(CodeParser[Language.CPlusPlus].ParseFileUnit(dUnit)) as INamespaceDefinition;
 
-            var typeA = globalScope.GetChildScopesWithId<TypeDefinition>("A").FirstOrDefault();
-            var typeB = globalScope.GetChildScopesWithId<TypeDefinition>("B").FirstOrDefault();
-            var typeC = globalScope.GetChildScopesWithId<TypeDefinition>("C").FirstOrDefault();
-            var typeD = globalScope.GetChildScopesWithId<TypeDefinition>("D").FirstOrDefault();
+            var typeA = globalScope.GetChildScopesWithId<ITypeDefinition>("A").FirstOrDefault();
+            var typeB = globalScope.GetChildScopesWithId<ITypeDefinition>("B").FirstOrDefault();
+            var typeC = globalScope.GetChildScopesWithId<ITypeDefinition>("C").FirstOrDefault();
+            var typeD = globalScope.GetChildScopesWithId<ITypeDefinition>("D").FirstOrDefault();
 
             Assert.IsNotNull(typeA, "could not find class A");
             Assert.IsNotNull(typeB, "could not find class B");
@@ -747,10 +747,10 @@ namespace ABB.SrcML.Data.Test {
             globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(cUnit)) as INamespaceDefinition;
             globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(dUnit)) as INamespaceDefinition;
 
-            var typeA = globalScope.GetChildScopesWithId<TypeDefinition>("A").FirstOrDefault();
-            var typeB = globalScope.GetChildScopesWithId<TypeDefinition>("B").FirstOrDefault();
-            var typeC = globalScope.GetChildScopesWithId<TypeDefinition>("C").FirstOrDefault();
-            var typeD = globalScope.GetChildScopesWithId<TypeDefinition>("D").FirstOrDefault();
+            var typeA = globalScope.GetChildScopesWithId<ITypeDefinition>("A").FirstOrDefault();
+            var typeB = globalScope.GetChildScopesWithId<ITypeDefinition>("B").FirstOrDefault();
+            var typeC = globalScope.GetChildScopesWithId<ITypeDefinition>("C").FirstOrDefault();
+            var typeD = globalScope.GetChildScopesWithId<ITypeDefinition>("D").FirstOrDefault();
 
             Assert.IsNotNull(typeA, "could not find class A");
             Assert.IsNotNull(typeB, "could not find class B");
@@ -792,9 +792,9 @@ namespace ABB.SrcML.Data.Test {
             globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(bUnit)) as INamespaceDefinition;
             globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(cUnit)) as INamespaceDefinition;
 
-            var typeA = globalScope.GetChildScopesWithId<TypeDefinition>("A").FirstOrDefault();
-            var typeB = globalScope.GetChildScopesWithId<TypeDefinition>("B").FirstOrDefault();
-            var typeC = globalScope.GetChildScopesWithId<TypeDefinition>("C").FirstOrDefault();
+            var typeA = globalScope.GetChildScopesWithId<ITypeDefinition>("A").FirstOrDefault();
+            var typeB = globalScope.GetChildScopesWithId<ITypeDefinition>("B").FirstOrDefault();
+            var typeC = globalScope.GetChildScopesWithId<ITypeDefinition>("C").FirstOrDefault();
 
             Assert.IsNotNull(typeA, "could not find class A");
             Assert.IsNotNull(typeB, "could not find class B");

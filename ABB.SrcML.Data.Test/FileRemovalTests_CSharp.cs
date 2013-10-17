@@ -41,7 +41,7 @@ namespace ABB.SrcML.Data.Test {
             var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(bazFileUnit));
 
             Assert.AreEqual(0, afterScope.ChildScopes.OfType<INamespaceDefinition>().Count());
-            Assert.AreEqual(2, afterScope.ChildScopes.OfType<TypeDefinition>().Count());
+            Assert.AreEqual(2, afterScope.ChildScopes.OfType<ITypeDefinition>().Count());
 
             afterScope.RemoveFile("Baz.cs");
 
@@ -106,7 +106,7 @@ namespace ABB.SrcML.Data.Test {
             var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(a2FileUnit));
 
             Assert.AreEqual(1, afterScope.ChildScopes.Count());
-            var typeA = afterScope.ChildScopes.First() as TypeDefinition;
+            var typeA = afterScope.ChildScopes.First() as ITypeDefinition;
             Assert.IsNotNull(typeA);
             Assert.AreEqual(2, typeA.ChildScopes.OfType<MethodDefinition>().Count());
             Assert.IsTrue(typeA.ChildScopes.OfType<MethodDefinition>().Any(m => m.Name == "Execute"));
@@ -139,7 +139,7 @@ namespace ABB.SrcML.Data.Test {
             var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(a1FileUnit));
 
             Assert.AreEqual(1, afterScope.ChildScopes.Count());
-            var typeA = afterScope.ChildScopes.First() as TypeDefinition;
+            var typeA = afterScope.ChildScopes.First() as ITypeDefinition;
             Assert.IsNotNull(typeA);
             Assert.AreEqual(1, typeA.ChildScopes.OfType<MethodDefinition>().Count());
             var foo = typeA.ChildScopes.First() as MethodDefinition;
@@ -173,7 +173,7 @@ namespace ABB.SrcML.Data.Test {
             var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(a2FileUnit));
 
             Assert.AreEqual(1, afterScope.ChildScopes.Count());
-            var typeA = afterScope.ChildScopes.First() as TypeDefinition;
+            var typeA = afterScope.ChildScopes.First() as ITypeDefinition;
             Assert.IsNotNull(typeA);
             Assert.AreEqual(1, typeA.ChildScopes.OfType<MethodDefinition>().Count());
             var foo = typeA.ChildScopes.First() as MethodDefinition;
@@ -207,7 +207,7 @@ namespace ABB.SrcML.Data.Test {
             var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(a2FileUnit));
 
             Assert.AreEqual(1, afterScope.ChildScopes.OfType<INamespaceDefinition>().Count());
-            Assert.AreEqual(2, afterScope.ChildScopes.First().ChildScopes.OfType<TypeDefinition>().Count());
+            Assert.AreEqual(2, afterScope.ChildScopes.First().ChildScopes.OfType<ITypeDefinition>().Count());
 
             afterScope.RemoveFile("A2.cs");
 

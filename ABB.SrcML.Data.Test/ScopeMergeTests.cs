@@ -60,7 +60,7 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("A", namespaceA.Name);
             Assert.AreEqual(1, namespaceA.ChildScopes.Count());
 
-            var typeB = namespaceA.ChildScopes.First() as TypeDefinition;
+            var typeB = namespaceA.ChildScopes.First() as ITypeDefinition;
             Assert.AreEqual("A.B", typeB.GetFullName());
             Assert.AreEqual(1, typeB.ChildScopes.Count());
 
@@ -98,7 +98,7 @@ namespace ABB.SrcML.Data.Test {
 
             Assert.AreEqual(1, globalScope.ChildScopes.Count());
 
-            var typeA = globalScope.ChildScopes.First() as TypeDefinition;
+            var typeA = globalScope.ChildScopes.First() as ITypeDefinition;
             Assert.AreEqual("A", typeA.Name);
             Assert.AreEqual(1, typeA.ChildScopes.Count());
             Assert.AreEqual("A.h", typeA.PrimaryLocation.SourceFileName);
@@ -175,7 +175,7 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("D", namespaceD.GetFullName());
 
             var namespaceB = namespaceA.ChildScopes.First() as INamespaceDefinition;
-            var typeF = namespaceD.ChildScopes.First() as TypeDefinition;
+            var typeF = namespaceD.ChildScopes.First() as ITypeDefinition;
 
             Assert.AreEqual("B", namespaceB.Name);
             Assert.AreEqual("F", typeF.Name);
@@ -185,8 +185,8 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("C", namespaceC.Name);
             Assert.AreEqual("A.B", namespaceC.GetFirstParent<INamespaceDefinition>().GetFullName());
             Assert.AreEqual(2, namespaceC.ChildScopes.Count());
-            var typeD = namespaceC.ChildScopes.First() as TypeDefinition;
-            var typeE = namespaceC.ChildScopes.Last() as TypeDefinition;
+            var typeD = namespaceC.ChildScopes.First() as ITypeDefinition;
+            var typeE = namespaceC.ChildScopes.Last() as ITypeDefinition;
 
             Assert.That(typeD.ParentScope == typeE.ParentScope);
             Assert.That(typeD.ParentScope == namespaceC);
@@ -243,9 +243,9 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("C", packageABC.Name);
             Assert.AreEqual("A.B.C", packageABC.GetFullName());
 
-            var typeD = packageABC.ChildScopes.First() as TypeDefinition;
-            var typeE = packageABC.ChildScopes.Last() as TypeDefinition;
-            var typeF = packageD.ChildScopes.First() as TypeDefinition;
+            var typeD = packageABC.ChildScopes.First() as ITypeDefinition;
+            var typeE = packageABC.ChildScopes.Last() as ITypeDefinition;
+            var typeF = packageD.ChildScopes.First() as ITypeDefinition;
 
             Assert.AreEqual("D", typeD.Name);
             Assert.AreEqual("E", typeE.Name);
@@ -284,7 +284,7 @@ namespace ABB.SrcML.Data.Test {
             globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(a2FileUnit)) as INamedScope;
 
             Assert.AreEqual(1, globalScope.ChildScopes.Count());
-            var typeA = globalScope.ChildScopes.First() as TypeDefinition;
+            var typeA = globalScope.ChildScopes.First() as ITypeDefinition;
             Assert.IsNotNull(typeA);
             Assert.AreEqual(2, typeA.ChildScopes.OfType<MethodDefinition>().Count());
             Assert.IsTrue(typeA.ChildScopes.OfType<MethodDefinition>().Any(m => m.Name == "Execute"));
@@ -313,7 +313,7 @@ namespace ABB.SrcML.Data.Test {
             globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(a2FileUnit)) as INamedScope;
 
             Assert.AreEqual(1, globalScope.ChildScopes.Count());
-            var typeA = globalScope.ChildScopes.First() as TypeDefinition;
+            var typeA = globalScope.ChildScopes.First() as ITypeDefinition;
             Assert.IsNotNull(typeA);
             Assert.AreEqual(1, typeA.ChildScopes.OfType<MethodDefinition>().Count());
             var foo = typeA.ChildScopes.First() as MethodDefinition;
@@ -344,14 +344,14 @@ namespace ABB.SrcML.Data.Test {
             var globalScope = CodeParser[Language.CPlusPlus].ParseFileUnit(xmlHeader) as INamedScope;
             Assert.AreEqual(1, globalScope.ChildScopes.Count());
 
-            var typeA = globalScope.ChildScopes.First() as TypeDefinition;
+            var typeA = globalScope.ChildScopes.First() as ITypeDefinition;
             Assert.AreEqual("A", typeA.Name);
             Assert.AreEqual(0, typeA.ChildScopes.Count());
 
             globalScope = globalScope.Merge(CodeParser[Language.CPlusPlus].ParseFileUnit(xmlImpl)) as INamedScope;
             Assert.AreEqual(1, globalScope.ChildScopes.Count());
 
-            typeA = globalScope.ChildScopes.First() as TypeDefinition;
+            typeA = globalScope.ChildScopes.First() as ITypeDefinition;
             Assert.AreEqual(2, typeA.ChildScopes.Count());
 
             var aDotFoo = typeA.ChildScopes.First() as MethodDefinition;
@@ -406,7 +406,7 @@ namespace ABB.SrcML.Data.Test {
 
             Assert.AreEqual(1, globalScope.ChildScopes.Count());
 
-            var typeA = globalScope.ChildScopes.First() as TypeDefinition;
+            var typeA = globalScope.ChildScopes.First() as ITypeDefinition;
             Assert.AreEqual(2, typeA.ChildScopes.Count());
 
             var aDotFoo = typeA.ChildScopes.First() as MethodDefinition;

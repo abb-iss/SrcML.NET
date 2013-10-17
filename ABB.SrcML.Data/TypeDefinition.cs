@@ -23,7 +23,7 @@ namespace ABB.SrcML.Data {
     /// </summary>
     [DebuggerTypeProxy(typeof(ScopeDebugView))]
     [Serializable]
-    public class TypeDefinition : NamedScope {
+    public class TypeDefinition : NamedScope, ITypeDefinition {
         private Collection<TypeUse> ParentTypeCollection;
 
         /// <summary>
@@ -75,12 +75,12 @@ namespace ABB.SrcML.Data {
         /// <typeparam name="T">The use type</typeparam>
         /// <param name="use">The use to find the containing class for</param>
         /// <returns>The class referred to by the keyword</returns>
-        public static IEnumerable<TypeDefinition> GetTypeForKeyword<T>(AbstractUse<T> use) where T : class {
-            var typeDefinitions = Enumerable.Empty<TypeDefinition>();
+        public static IEnumerable<ITypeDefinition> GetTypeForKeyword<T>(AbstractUse<T> use) where T : class {
+            var typeDefinitions = Enumerable.Empty<ITypeDefinition>();
             if(use.Name == "this") {
-                typeDefinitions = use.ParentScopes.OfType<TypeDefinition>().Take(1);
+                typeDefinitions = use.ParentScopes.OfType<ITypeDefinition>().Take(1);
             } else if(use.Name == "base" && use.ProgrammingLanguage == Language.CSharp) {
-                typeDefinitions = from containingType in use.ParentScopes.OfType<TypeDefinition>()
+                typeDefinitions = from containingType in use.ParentScopes.OfType<ITypeDefinition>()
                                   from parentType in containingType.GetParentTypes()
                                   select parentType;
             }
@@ -142,7 +142,7 @@ namespace ABB.SrcML.Data {
         /// Resolves all of the parent type uses for this type definition
         /// </summary>
         /// <returns>Matching parent types for this type</returns>
-        public IEnumerable<TypeDefinition> GetParentTypes() {
+        public IEnumerable<ITypeDefinition> GetParentTypes() {
             var results = from typeUse in ParentTypes
                           from type in typeUse.FindMatchingTypes()
                           from nextType in type.GetParentTypesAndSelf()
@@ -156,7 +156,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <returns>An enumerable consisting of this object followed by the results of see
         /// cref="GetParentTypes()"/></returns>
-        public IEnumerable<TypeDefinition> GetParentTypesAndSelf() {
+        public IEnumerable<ITypeDefinition> GetParentTypesAndSelf() {
             yield return this;
             foreach(var parentType in GetParentTypes()) {
                 yield return parentType;
@@ -172,7 +172,7 @@ namespace ABB.SrcML.Data {
         /// <returns>a new type definition from this and otherScope, or null if they couldn't be
         /// merged</returns>
         public override INamedScope Merge(INamedScope otherScope) {
-            TypeDefinition mergedScope = null;
+            ITypeDefinition mergedScope = null;
             if(otherScope != null) {
                 if(otherScope.CanBeMergedInto(this)) {
                     mergedScope = new TypeDefinition(this);
@@ -182,7 +182,7 @@ namespace ABB.SrcML.Data {
                     }
                 }
             }
-            return mergedScope;
+            return mergedScope as INamedScope;
         }
 
         /// <summary>
