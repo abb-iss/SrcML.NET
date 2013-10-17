@@ -318,7 +318,7 @@ namespace ABB.SrcML.Data {
             public ParameterDeclaration[] Parameters { get { return method.Parameters.ToArray(); } }
 
             [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-            public VariableDeclaration[] Variables { get { return this.method.DeclaredVariables.ToArray(); } }
+            public IVariableDeclaration[] Variables { get { return this.method.DeclaredVariables.ToArray(); } }
 
             public override string ToString() {
                 return method.ToString();

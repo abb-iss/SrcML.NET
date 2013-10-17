@@ -9,7 +9,7 @@ namespace ABB.SrcML.Data {
 
         IEnumerable<IScope> ChildScopes { get; }
 
-        IEnumerable<VariableDeclaration> DeclaredVariables { get; }
+        IEnumerable<IVariableDeclaration> DeclaredVariables { get; }
 
         IEnumerable<SrcMLLocation> DefinitionLocations { get; }
 
@@ -29,7 +29,7 @@ namespace ABB.SrcML.Data {
 
         void AddChildScope(IScope childScope);
 
-        void AddDeclaredVariable(VariableDeclaration declaration);
+        void AddDeclaredVariable(IVariableDeclaration declaration);
 
         IScope AddFrom(IScope otherScope);
 
@@ -47,7 +47,7 @@ namespace ABB.SrcML.Data {
 
         IEnumerable<T> GetChildScopesWithId<T>(string id) where T : IScope;
 
-        IEnumerable<VariableDeclaration> GetDeclarationsForVariableName(string variableName, string xpath);
+        IEnumerable<IVariableDeclaration> GetDeclarationsForVariableName(string variableName, string xpath);
 
         IEnumerable<IScope> GetDescendantScopes();
 

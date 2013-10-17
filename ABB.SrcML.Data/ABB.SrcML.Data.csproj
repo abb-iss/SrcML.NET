@@ -60,6 +60,7 @@
     <Compile Include="CSharpVarTypeUse.cs" />
     <Compile Include="IResolvesToType.cs" />
     <Compile Include="IScope.cs" />
+    <Compile Include="IVariableDeclaration.cs" />
     <Compile Include="LiteralType.cs" />
     <Compile Include="LiteralUse.cs" />
     <Compile Include="CSharpCodeParser.cs" />

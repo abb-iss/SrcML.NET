@@ -335,7 +335,7 @@ namespace ABB.SrcML.Data {
         /// <param name="context">The parser context</param>
         /// <returns>One variable declaration object for each declaration in
         /// <paramref name="declarationElement"/></returns>
-        public virtual IEnumerable<VariableDeclaration> ParseDeclarationElement(XElement declarationElement, ParserContext context) {
+        public virtual IEnumerable<IVariableDeclaration> ParseDeclarationElement(XElement declarationElement, ParserContext context) {
             if(declarationElement == null)
                 throw new ArgumentNullException("declaration");
             if(!VariableDeclarationElementNames.Contains(declarationElement.Name))

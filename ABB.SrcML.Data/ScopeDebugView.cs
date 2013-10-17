@@ -19,7 +19,7 @@ namespace ABB.SrcML.Data {
         public MethodCall[] MethodCalls { get { return this.scope.MethodCalls.ToArray(); } }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public VariableDeclaration[] Variables { get { return this.scope.DeclaredVariables.ToArray(); } }
+        public IVariableDeclaration[] Variables { get { return this.scope.DeclaredVariables.ToArray(); } }
 
         public override string ToString() {
             return scope.ToString();

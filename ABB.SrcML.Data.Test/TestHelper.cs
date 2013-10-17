@@ -93,7 +93,7 @@ namespace ABB.SrcML.Data.Test {
                    IResolvesToTypesAreEqual(a.CallingObject, b.CallingObject);
         }
 
-        public static bool VariableDeclarationsAreEqual(VariableDeclaration a, VariableDeclaration b) {
+        public static bool VariableDeclarationsAreEqual(IVariableDeclaration a, IVariableDeclaration b) {
             if(a == b) { return true; }
             return a.Accessibility == b.Accessibility &&
                    LocationsAreEqual(a.Location, b.Location) &&

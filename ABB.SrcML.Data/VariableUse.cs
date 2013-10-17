@@ -19,7 +19,7 @@ namespace ABB.SrcML.Data {
     /// The variable use class represents a use of a variable.
     /// </summary>
     [Serializable]
-    public class VariableUse : AbstractUse<VariableDeclaration>, IResolvesToType {
+    public class VariableUse : AbstractUse<IVariableDeclaration>, IResolvesToType {
 
         /// <summary>
         /// The calling object for a use is used when you have <c>a.b</c> -- this variable use would
@@ -53,11 +53,11 @@ namespace ABB.SrcML.Data {
 
         /// <summary>
         /// Searches through the <see cref="IScope.DeclaredVariables"/> to see if any of them
-        /// <see cref="Matches(VariableDeclaration)">matches</see>
+        /// <see cref="Matches(IVariableDeclaration)">matches</see>
         /// </summary>
         /// <returns>An enumerable of matching variable declarations.</returns>
-        public override IEnumerable<VariableDeclaration> FindMatches() {
-            IEnumerable<VariableDeclaration> matchingVariables = Enumerable.Empty<VariableDeclaration>();
+        public override IEnumerable<IVariableDeclaration> FindMatches() {
+            IEnumerable<IVariableDeclaration> matchingVariables = Enumerable.Empty<IVariableDeclaration>();
 
             if(CallingObject != null) {
                 matchingVariables = from matchingType in CallingObject.FindMatchingTypes()
@@ -146,7 +146,7 @@ namespace ABB.SrcML.Data {
         /// <paramref name="definition"/></summary>
         /// <param name="definition">The variable declaration to test</param>
         /// <returns>true if this matches the variable declaration; false otherwise</returns>
-        public override bool Matches(VariableDeclaration definition) {
+        public override bool Matches(IVariableDeclaration definition) {
             return definition != null && definition.Name == this.Name;
         }
     }

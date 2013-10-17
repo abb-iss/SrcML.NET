@@ -35,7 +35,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Holds all of the variable declarations declared here. The key is the variable name.
         /// </summary>
-        protected Dictionary<string, VariableDeclaration> DeclaredVariablesDictionary;
+        protected Dictionary<string, IVariableDeclaration> DeclaredVariablesDictionary;
 
         /// <summary>
         /// Holds all of the source locations for this scope. The key is a filename. the value is a
@@ -52,7 +52,7 @@ namespace ABB.SrcML.Data {
         /// Initializes an empty variable scope.
         /// </summary>
         public Scope() {
-            DeclaredVariablesDictionary = new Dictionary<string, VariableDeclaration>();
+            DeclaredVariablesDictionary = new Dictionary<string, IVariableDeclaration>();
             ChildScopeMap = new Dictionary<string, List<IScope>>();
             MethodCallCollection = new Collection<MethodCall>();
             LocationDictionary = new Dictionary<string, Collection<SrcMLLocation>>();
@@ -66,7 +66,7 @@ namespace ABB.SrcML.Data {
             ProgrammingLanguage = otherScope.ProgrammingLanguage;
 
             ChildScopeMap = new Dictionary<string, List<IScope>>(otherScope.ChildScopeMap.Count);
-            DeclaredVariablesDictionary = new Dictionary<string, VariableDeclaration>(otherScope.DeclaredVariablesDictionary.Count);
+            DeclaredVariablesDictionary = new Dictionary<string, IVariableDeclaration>(otherScope.DeclaredVariablesDictionary.Count);
             MethodCallCollection = new Collection<MethodCall>();
             LocationDictionary = new Dictionary<string, Collection<SrcMLLocation>>(otherScope.LocationDictionary.Count);
 
@@ -89,7 +89,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Iterates over all of the variable declarations for this scope
         /// </summary>
-        public virtual IEnumerable<VariableDeclaration> DeclaredVariables { get { return this.DeclaredVariablesDictionary.Values.AsEnumerable(); } }
+        public virtual IEnumerable<IVariableDeclaration> DeclaredVariables { get { return this.DeclaredVariablesDictionary.Values.AsEnumerable(); } }
 
         /// <summary>
         /// An enumerable of all the locations where <see cref="SrcMLLocation.IsReference"/> is
@@ -189,7 +189,7 @@ namespace ABB.SrcML.Data {
         /// Add a variable declaration to this scope
         /// </summary>
         /// <param name="declaration">The variable declaration to add.</param>
-        public void AddDeclaredVariable(VariableDeclaration declaration) {
+        public void AddDeclaredVariable(IVariableDeclaration declaration) {
             DeclaredVariablesDictionary[declaration.Name] = declaration;
             declaration.Scope = this;
         }
@@ -297,10 +297,10 @@ namespace ABB.SrcML.Data {
         /// <param name="variableName">the variable name to search for.</param>
         /// <param name="xpath">the xpath for the variable name</param>
         /// <returns>An enumerable of matching variable declarations.</returns>
-        public IEnumerable<VariableDeclaration> GetDeclarationsForVariableName(string variableName, string xpath) {
+        public IEnumerable<IVariableDeclaration> GetDeclarationsForVariableName(string variableName, string xpath) {
             var lowestScope = GetScopeForLocation(xpath);
             foreach(var scope in lowestScope.GetParentScopesAndSelf<Scope>()) {
-                VariableDeclaration declaration;
+                IVariableDeclaration declaration;
                 if(scope.DeclaredVariablesDictionary.TryGetValue(variableName, out declaration)) {
                     yield return declaration;
                 }

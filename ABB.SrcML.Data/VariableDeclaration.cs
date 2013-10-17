@@ -18,7 +18,7 @@ namespace ABB.SrcML.Data {
     /// Represents a variable declaration
     /// </summary>
     [Serializable]
-    public class VariableDeclaration {
+    public class VariableDeclaration : IVariableDeclaration {
         private IScope parentScope;
 
         /// <summary>
