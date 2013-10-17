@@ -302,15 +302,15 @@ namespace ABB.SrcML.Data.Test {
             var globalScope = codeParser.ParseFileUnit(fooFileUnit);
 
             Assert.AreEqual(1, globalScope.ChildScopes.Count());
-            var example = globalScope.ChildScopes.First() as NamespaceDefinition;
+            var example = globalScope.ChildScopes.First() as INamespaceDefinition;
             Assert.IsNotNull(example);
             Assert.AreEqual("Example", example.Name);
             Assert.AreEqual(1, example.ChildScopes.Count());
-            var level2 = example.ChildScopes.First() as NamespaceDefinition;
+            var level2 = example.ChildScopes.First() as INamespaceDefinition;
             Assert.IsNotNull(level2);
             Assert.AreEqual("Level2", level2.Name);
             Assert.AreEqual(1, level2.ChildScopes.Count());
-            var level3 = level2.ChildScopes.First() as NamespaceDefinition;
+            var level3 = level2.ChildScopes.First() as INamespaceDefinition;
             Assert.IsNotNull(level3);
             Assert.AreEqual("Level3", level3.Name);
             Assert.AreEqual(1, level3.ChildScopes.Count());
@@ -359,7 +359,7 @@ namespace ABB.SrcML.Data.Test {
             var globalScope = codeParser.ParseFileUnit(fooFileUnit);
 
             Assert.AreEqual(1, globalScope.ChildScopes.Count());
-            var example = globalScope.ChildScopes.First() as NamespaceDefinition;
+            var example = globalScope.ChildScopes.First() as INamespaceDefinition;
             Assert.IsNotNull(example);
             Assert.AreEqual("Example", example.Name);
             Assert.AreEqual(1, example.ChildScopes.Count());
@@ -391,19 +391,19 @@ namespace ABB.SrcML.Data.Test {
             var globalScope = codeParser.ParseFileUnit(fooFileUnit);
 
             Assert.AreEqual(1, globalScope.ChildScopes.Count());
-            var watermelon = globalScope.ChildScopes.First() as NamespaceDefinition;
+            var watermelon = globalScope.ChildScopes.First() as INamespaceDefinition;
             Assert.IsNotNull(watermelon);
             Assert.AreEqual("Watermelon", watermelon.Name);
             Assert.AreEqual(1, watermelon.ChildScopes.Count());
-            var example = watermelon.ChildScopes.First() as NamespaceDefinition;
+            var example = watermelon.ChildScopes.First() as INamespaceDefinition;
             Assert.IsNotNull(example);
             Assert.AreEqual("Example", example.Name);
             Assert.AreEqual(1, example.ChildScopes.Count());
-            var level2 = example.ChildScopes.First() as NamespaceDefinition;
+            var level2 = example.ChildScopes.First() as INamespaceDefinition;
             Assert.IsNotNull(level2);
             Assert.AreEqual("Level2", level2.Name);
             Assert.AreEqual(1, level2.ChildScopes.Count());
-            var level3 = level2.ChildScopes.First() as NamespaceDefinition;
+            var level3 = level2.ChildScopes.First() as INamespaceDefinition;
             Assert.IsNotNull(level3);
             Assert.AreEqual("Level3", level3.Name);
             Assert.AreEqual(1, level3.ChildScopes.Count());
@@ -476,7 +476,7 @@ namespace ABB.SrcML.Data.Test {
             var globalScope = codeParser.ParseFileUnit(xmlElement);
 
             Assert.AreEqual(1, globalScope.ChildScopes.Count());
-            var foo = globalScope.ChildScopes.First() as NamespaceDefinition;
+            var foo = globalScope.ChildScopes.First() as INamespaceDefinition;
             Assert.IsNotNull(foo);
             Assert.AreEqual(1, foo.ChildScopes.Count());
             var typeA = foo.ChildScopes.First() as TypeDefinition;
@@ -486,11 +486,11 @@ namespace ABB.SrcML.Data.Test {
             Assert.IsNotNull(typeB);
 
             Assert.AreEqual("A", typeA.Name);
-            Assert.AreEqual("Foo", typeA.GetFirstParent<NamespaceDefinition>().GetFullName());
+            Assert.AreEqual("Foo", typeA.GetFirstParent<INamespaceDefinition>().GetFullName());
             Assert.AreEqual("Foo.A", typeA.GetFullName());
 
             Assert.AreEqual("B", typeB.Name);
-            Assert.AreEqual("Foo", typeB.GetFirstParent<NamespaceDefinition>().GetFullName());
+            Assert.AreEqual("Foo", typeB.GetFirstParent<INamespaceDefinition>().GetFullName());
             Assert.AreEqual("Foo.A.B", typeB.GetFullName());
         }
 

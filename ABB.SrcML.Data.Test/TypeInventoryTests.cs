@@ -407,9 +407,9 @@ namespace ABB.SrcML.Data.Test {
             var bUnit = FileUnitSetup[Language.CSharp].GetFileUnitForXmlSnippet(b_xml, "B.cs");
             var cUnit = FileUnitSetup[Language.CSharp].GetFileUnitForXmlSnippet(c_xml, "C.cs");
 
-            var globalScope = CodeParser[Language.CSharp].ParseFileUnit(aUnit);
-            globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(bUnit)) as NamespaceDefinition;
-            globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(cUnit)) as NamespaceDefinition;
+            INamespaceDefinition globalScope = CodeParser[Language.CSharp].ParseFileUnit(aUnit);
+            globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(bUnit)) as INamespaceDefinition;
+            globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(cUnit)) as INamespaceDefinition;
 
             var typeA = globalScope.GetChildScopesWithId<TypeDefinition>("A").FirstOrDefault();
             var typeB = globalScope.GetChildScopesWithId<TypeDefinition>("B").FirstOrDefault();
@@ -446,8 +446,8 @@ namespace ABB.SrcML.Data.Test {
             var aUnit = FileUnitSetup[Language.CSharp].GetFileUnitForXmlSnippet(a_xml, "A.cs");
             var bUnit = FileUnitSetup[Language.CSharp].GetFileUnitForXmlSnippet(b_xml, "B.cs");
 
-            var globalScope = CodeParser[Language.CSharp].ParseFileUnit(aUnit);
-            globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(bUnit)) as NamespaceDefinition;
+            INamespaceDefinition globalScope = CodeParser[Language.CSharp].ParseFileUnit(aUnit);
+            globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(bUnit)) as INamespaceDefinition;
 
             var typeA = globalScope.GetChildScopesWithId<TypeDefinition>("A").FirstOrDefault();
             var typeB = globalScope.GetChildScopesWithId<TypeDefinition>("B").FirstOrDefault();
@@ -508,8 +508,8 @@ namespace ABB.SrcML.Data.Test {
             var cUnit = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(c_xml, "C.cpp");
             var eUnit = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(e_xml, "E.cpp");
 
-            var globalScope = CodeParser[Language.CPlusPlus].ParseFileUnit(cUnit);
-            globalScope = globalScope.Merge(CodeParser[Language.CPlusPlus].ParseFileUnit(eUnit)) as NamespaceDefinition;
+            INamespaceDefinition globalScope = CodeParser[Language.CPlusPlus].ParseFileUnit(cUnit);
+            globalScope = globalScope.Merge(CodeParser[Language.CPlusPlus].ParseFileUnit(eUnit)) as INamespaceDefinition;
 
             var typeC = globalScope.GetDescendantScopes<TypeDefinition>().Where(t => t.Name == "C").FirstOrDefault();
             var typeE = globalScope.GetDescendantScopes<TypeDefinition>().Where(t => t.Name == "E").FirstOrDefault();
@@ -572,8 +572,8 @@ namespace ABB.SrcML.Data.Test {
             var cUnit = FileUnitSetup[Language.CSharp].GetFileUnitForXmlSnippet(c_xml, "C.cpp");
             var eUnit = FileUnitSetup[Language.CSharp].GetFileUnitForXmlSnippet(e_xml, "E.cpp");
 
-            var globalScope = CodeParser[Language.CSharp].ParseFileUnit(cUnit);
-            globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(eUnit)) as NamespaceDefinition;
+            INamespaceDefinition globalScope = CodeParser[Language.CSharp].ParseFileUnit(cUnit);
+            globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(eUnit)) as INamespaceDefinition;
 
             var typeC = globalScope.GetDescendantScopes<TypeDefinition>().Where(t => t.Name == "C").FirstOrDefault();
             var typeE = globalScope.GetDescendantScopes<TypeDefinition>().Where(t => t.Name == "E").FirstOrDefault();
@@ -632,8 +632,8 @@ namespace ABB.SrcML.Data.Test {
             var cUnit = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(c_xml, "C.java");
             var eUnit = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(e_xml, "E.java");
 
-            var globalScope = CodeParser[Language.Java].ParseFileUnit(cUnit);
-            globalScope = globalScope.Merge(CodeParser[Language.Java].ParseFileUnit(eUnit)) as NamespaceDefinition;
+            INamespaceDefinition globalScope = CodeParser[Language.Java].ParseFileUnit(cUnit);
+            globalScope = globalScope.Merge(CodeParser[Language.Java].ParseFileUnit(eUnit)) as INamespaceDefinition;
 
             var typeC = globalScope.GetDescendantScopes<TypeDefinition>().Where(t => t.Name == "C").FirstOrDefault();
             var typeE = globalScope.GetDescendantScopes<TypeDefinition>().Where(t => t.Name == "E").FirstOrDefault();
@@ -686,10 +686,10 @@ namespace ABB.SrcML.Data.Test {
             var cUnit = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(c_xml, "C.h");
             var dUnit = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(d_xml, "D.h");
 
-            var globalScope = CodeParser[Language.CPlusPlus].ParseFileUnit(aUnit);
-            globalScope = globalScope.Merge(CodeParser[Language.CPlusPlus].ParseFileUnit(bUnit)) as NamespaceDefinition;
-            globalScope = globalScope.Merge(CodeParser[Language.CPlusPlus].ParseFileUnit(cUnit)) as NamespaceDefinition;
-            globalScope = globalScope.Merge(CodeParser[Language.CPlusPlus].ParseFileUnit(dUnit)) as NamespaceDefinition;
+            INamespaceDefinition globalScope = CodeParser[Language.CPlusPlus].ParseFileUnit(aUnit);
+            globalScope = globalScope.Merge(CodeParser[Language.CPlusPlus].ParseFileUnit(bUnit)) as INamespaceDefinition;
+            globalScope = globalScope.Merge(CodeParser[Language.CPlusPlus].ParseFileUnit(cUnit)) as INamespaceDefinition;
+            globalScope = globalScope.Merge(CodeParser[Language.CPlusPlus].ParseFileUnit(dUnit)) as INamespaceDefinition;
 
             var typeA = globalScope.GetChildScopesWithId<TypeDefinition>("A").FirstOrDefault();
             var typeB = globalScope.GetChildScopesWithId<TypeDefinition>("B").FirstOrDefault();
@@ -742,10 +742,10 @@ namespace ABB.SrcML.Data.Test {
             var cUnit = FileUnitSetup[Language.CSharp].GetFileUnitForXmlSnippet(c_xml, "C.cs");
             var dUnit = FileUnitSetup[Language.CSharp].GetFileUnitForXmlSnippet(d_xml, "D.cs");
 
-            var globalScope = CodeParser[Language.CSharp].ParseFileUnit(aUnit);
-            globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(bUnit)) as NamespaceDefinition;
-            globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(cUnit)) as NamespaceDefinition;
-            globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(dUnit)) as NamespaceDefinition;
+            INamespaceDefinition globalScope = CodeParser[Language.CSharp].ParseFileUnit(aUnit);
+            globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(bUnit)) as INamespaceDefinition;
+            globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(cUnit)) as INamespaceDefinition;
+            globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(dUnit)) as INamespaceDefinition;
 
             var typeA = globalScope.GetChildScopesWithId<TypeDefinition>("A").FirstOrDefault();
             var typeB = globalScope.GetChildScopesWithId<TypeDefinition>("B").FirstOrDefault();
@@ -788,9 +788,9 @@ namespace ABB.SrcML.Data.Test {
             var bUnit = FileUnitSetup[Language.CSharp].GetFileUnitForXmlSnippet(b_xml, "B.cs");
             var cUnit = FileUnitSetup[Language.CSharp].GetFileUnitForXmlSnippet(c_xml, "C.cs");
 
-            var globalScope = CodeParser[Language.CSharp].ParseFileUnit(aUnit);
-            globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(bUnit)) as NamespaceDefinition;
-            globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(cUnit)) as NamespaceDefinition;
+            INamespaceDefinition globalScope = CodeParser[Language.CSharp].ParseFileUnit(aUnit);
+            globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(bUnit)) as INamespaceDefinition;
+            globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(cUnit)) as INamespaceDefinition;
 
             var typeA = globalScope.GetChildScopesWithId<TypeDefinition>("A").FirstOrDefault();
             var typeB = globalScope.GetChildScopesWithId<TypeDefinition>("B").FirstOrDefault();

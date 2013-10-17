@@ -23,7 +23,7 @@ namespace ABB.SrcML.Data {
     /// </summary>
     [DebuggerTypeProxy(typeof(ScopeDebugView))]
     [Serializable]
-    public class NamespaceDefinition : NamedScope {
+    public class NamespaceDefinition : NamedScope, INamespaceDefinition {
 
         /// <summary>
         /// Creates a new namespace definition object

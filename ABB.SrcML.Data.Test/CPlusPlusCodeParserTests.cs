@@ -154,7 +154,7 @@ namespace ABB.SrcML.Data.Test {
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "B.h");
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
-            var namespaceA = globalScope.ChildScopes.First() as NamespaceDefinition;
+            var namespaceA = globalScope.ChildScopes.First() as INamespaceDefinition;
             var typeB = namespaceA.ChildScopes.First() as TypeDefinition;
 
             Assert.AreEqual("A", namespaceA.Name);
@@ -244,7 +244,7 @@ namespace ABB.SrcML.Data.Test {
             var typeA = mainMethod.ChildScopes.First() as TypeDefinition;
             Assert.AreEqual("A", typeA.Name);
             Assert.AreEqual("main.A", typeA.GetFullName());
-            Assert.AreEqual(String.Empty, typeA.GetFirstParent<NamespaceDefinition>().GetFullName());
+            Assert.AreEqual(String.Empty, typeA.GetFirstParent<INamespaceDefinition>().GetFullName());
         }
 
         [Test]
@@ -300,7 +300,7 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "D.h");
             var actual = codeParser.ParseFileUnit(xmlElement).ChildScopes.First() as TypeDefinition;
-            var globalNamespace = actual.ParentScope as NamespaceDefinition;
+            var globalNamespace = actual.ParentScope as INamespaceDefinition;
 
             Assert.AreEqual("D", actual.Name);
             Assert.AreEqual(1, actual.ParentTypes.Count);
@@ -336,11 +336,11 @@ namespace ABB.SrcML.Data.Test {
             var inner = typeDefinitions.Last() as TypeDefinition;
 
             Assert.AreEqual("B", outer.Name);
-            Assert.AreEqual("A", outer.GetFirstParent<NamespaceDefinition>().GetFullName());
+            Assert.AreEqual("A", outer.GetFirstParent<INamespaceDefinition>().GetFullName());
             Assert.AreEqual("A.B", outer.GetFullName());
 
             Assert.AreEqual("C", inner.Name);
-            Assert.AreEqual("A", inner.GetFirstParent<NamespaceDefinition>().GetFullName());
+            Assert.AreEqual("A", inner.GetFirstParent<INamespaceDefinition>().GetFullName());
             Assert.AreEqual("A.B.C", inner.GetFullName());
         }
 
@@ -352,7 +352,7 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
             var actual = codeParser.ParseFileUnit(xmlElement).ChildScopes.First() as TypeDefinition;
-            var globalNamespace = actual.ParentScope as NamespaceDefinition;
+            var globalNamespace = actual.ParentScope as INamespaceDefinition;
 
             Assert.AreEqual("A", actual.Name);
             Assert.AreEqual(TypeKind.Struct, actual.Kind);
@@ -370,7 +370,7 @@ namespace ABB.SrcML.Data.Test {
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
             var actual = codeParser.ParseFileUnit(xmlElement).ChildScopes.First() as TypeDefinition;
-            var globalNamespace = actual.ParentScope as NamespaceDefinition;
+            var globalNamespace = actual.ParentScope as INamespaceDefinition;
             Assert.AreEqual(TypeKind.Union, actual.Kind);
             Assert.That(globalNamespace.IsGlobal);
         }
@@ -449,7 +449,7 @@ namespace ABB.SrcML.Data.Test {
 
             Assert.AreEqual(1, globalScope.ChildScopes.Count(), "TODO implement using statements in C++");
 
-            var namespaceA = globalScope.ChildScopes.First() as NamespaceDefinition;
+            var namespaceA = globalScope.ChildScopes.First() as INamespaceDefinition;
             Assert.AreEqual("A", namespaceA.Name);
             Assert.AreEqual(1, namespaceA.ChildScopes.Count());
 

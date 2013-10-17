@@ -174,7 +174,7 @@ namespace ABB.SrcML.Data.Test {
             var bFileunit = FileUnitSetup.GetFileUnitForXmlSnippet(bXml, "B.cpp");
             var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(bFileunit));
 
-            Assert.AreEqual(2, afterScope.ChildScopes.OfType<NamespaceDefinition>().Count());
+            Assert.AreEqual(2, afterScope.ChildScopes.OfType<INamespaceDefinition>().Count());
 
             afterScope.RemoveFile("B.cpp");
 
@@ -203,7 +203,7 @@ namespace ABB.SrcML.Data.Test {
             var a2Fileunit = FileUnitSetup.GetFileUnitForXmlSnippet(a2Xml, "A2.cpp");
             var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(a2Fileunit));
 
-            Assert.AreEqual(1, afterScope.ChildScopes.OfType<NamespaceDefinition>().Count());
+            Assert.AreEqual(1, afterScope.ChildScopes.OfType<INamespaceDefinition>().Count());
             Assert.AreEqual(2, afterScope.ChildScopes.First().ChildScopes.OfType<MethodDefinition>().Count());
 
             afterScope.RemoveFile("A2.cpp");

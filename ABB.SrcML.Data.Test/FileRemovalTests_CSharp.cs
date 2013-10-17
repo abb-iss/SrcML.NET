@@ -40,7 +40,7 @@ namespace ABB.SrcML.Data.Test {
             var bazFileUnit = FileUnitSetup.GetFileUnitForXmlSnippet(bazXml, "Baz.cs");
             var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(bazFileUnit));
 
-            Assert.AreEqual(0, afterScope.ChildScopes.OfType<NamespaceDefinition>().Count());
+            Assert.AreEqual(0, afterScope.ChildScopes.OfType<INamespaceDefinition>().Count());
             Assert.AreEqual(2, afterScope.ChildScopes.OfType<TypeDefinition>().Count());
 
             afterScope.RemoveFile("Baz.cs");
@@ -69,7 +69,7 @@ namespace ABB.SrcML.Data.Test {
             var bFileunit = FileUnitSetup.GetFileUnitForXmlSnippet(bXml, "B.cs");
             var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(bFileunit));
 
-            Assert.AreEqual(2, afterScope.ChildScopes.OfType<NamespaceDefinition>().Count());
+            Assert.AreEqual(2, afterScope.ChildScopes.OfType<INamespaceDefinition>().Count());
 
             afterScope.RemoveFile("B.cs");
 
@@ -206,7 +206,7 @@ namespace ABB.SrcML.Data.Test {
             var a2FileUnit = FileUnitSetup.GetFileUnitForXmlSnippet(a2Xml, "A2.cs");
             var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(a2FileUnit));
 
-            Assert.AreEqual(1, afterScope.ChildScopes.OfType<NamespaceDefinition>().Count());
+            Assert.AreEqual(1, afterScope.ChildScopes.OfType<INamespaceDefinition>().Count());
             Assert.AreEqual(2, afterScope.ChildScopes.First().ChildScopes.OfType<TypeDefinition>().Count());
 
             afterScope.RemoveFile("A2.cs");

@@ -40,7 +40,7 @@ namespace ABB.SrcML.Data.Test {
             var bazFileUnit = FileUnitSetup.GetFileUnitForXmlSnippet(bazXml, "Baz.java");
             var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(bazFileUnit));
 
-            Assert.AreEqual(0, afterScope.ChildScopes.OfType<NamespaceDefinition>().Count());
+            Assert.AreEqual(0, afterScope.ChildScopes.OfType<INamespaceDefinition>().Count());
             Assert.AreEqual(2, afterScope.ChildScopes.OfType<TypeDefinition>().Count());
 
             afterScope.RemoveFile("Baz.java");
@@ -77,7 +77,7 @@ namespace ABB.SrcML.Data.Test {
             var bazFileUnit = FileUnitSetup.GetFileUnitForXmlSnippet(bazXml, "Baz.java");
             var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(bazFileUnit));
 
-            Assert.AreEqual(1, afterScope.ChildScopes.OfType<NamespaceDefinition>().Count());
+            Assert.AreEqual(1, afterScope.ChildScopes.OfType<INamespaceDefinition>().Count());
 
             afterScope.RemoveFile("Baz.java");
 
@@ -113,9 +113,9 @@ namespace ABB.SrcML.Data.Test {
             var bazFileUnit = FileUnitSetup.GetFileUnitForXmlSnippet(bazXml, "Baz.java");
             var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(bazFileUnit));
 
-            var comDotAbb = afterScope.GetChildScopes<NamespaceDefinition>().First().GetChildScopes<NamespaceDefinition>().First();
+            var comDotAbb = afterScope.GetChildScopes<INamespaceDefinition>().First().GetChildScopes<INamespaceDefinition>().First();
             Assert.AreEqual("com.ABB", comDotAbb.GetFullName());
-            Assert.AreEqual(2, comDotAbb.GetChildScopes<NamespaceDefinition>().Count());
+            Assert.AreEqual(2, comDotAbb.GetChildScopes<INamespaceDefinition>().Count());
 
             afterScope.RemoveFile("Baz.java");
 

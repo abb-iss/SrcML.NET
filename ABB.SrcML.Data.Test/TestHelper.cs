@@ -170,7 +170,7 @@ namespace ABB.SrcML.Data.Test {
                    TestEquality((Scope) a, (Scope) b);
         }
 
-        private static bool TestEquality(NamespaceDefinition a, NamespaceDefinition b) {
+        private static bool TestEquality(INamespaceDefinition a, INamespaceDefinition b) {
             //Assert.AreEqual(a.IsAnonymous, b.IsAnonymous);
             //return TestEquality((NamedScope)a, (NamedScope)b);
             return a.IsAnonymous == b.IsAnonymous &&

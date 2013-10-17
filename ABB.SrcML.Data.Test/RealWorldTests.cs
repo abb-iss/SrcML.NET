@@ -227,7 +227,7 @@ namespace ABB.SrcML.Data.Test {
                               select scope;
             Console.WriteLine("{0,10:N0} named scopes", namedScopes.Count());
             var namespaceScopes = from scope in namedScopes
-                                  where (scope as NamespaceDefinition) != null
+                                  where (scope as INamespaceDefinition) != null
                                   select scope;
             var typeScopes = from scope in namedScopes
                              where (scope as TypeDefinition) != null
@@ -421,7 +421,7 @@ namespace ABB.SrcML.Data.Test {
             sw.Start();
 
             using(var fileLog = new StreamWriter(fileLogPath)) {
-                using(BlockingCollection<NamespaceDefinition> bc = new BlockingCollection<NamespaceDefinition>()) {
+                using(BlockingCollection<INamespaceDefinition> bc = new BlockingCollection<INamespaceDefinition>()) {
                     Task.Factory.StartNew(() => {
                         Parallel.ForEach(archive.FileUnits, unit => {
                             var currentFile = SrcMLElement.GetFileNameForUnit(unit);

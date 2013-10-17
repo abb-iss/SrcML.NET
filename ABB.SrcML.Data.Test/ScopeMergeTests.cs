@@ -50,12 +50,13 @@ namespace ABB.SrcML.Data.Test {
             var xmlHeader = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xmlh, "B.h");
             var xmlImpl = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xmlcpp, "B.cpp");
 
-            var globalScope = CodeParser[Language.CPlusPlus].ParseFileUnit(xmlHeader) as NamedScope;
-            globalScope = globalScope.Merge(CodeParser[Language.CPlusPlus].ParseFileUnit(xmlImpl));
+            var headerScope = CodeParser[Language.CPlusPlus].ParseFileUnit(xmlHeader) as INamedScope;
+            var implementationScope = CodeParser[Language.CPlusPlus].ParseFileUnit(xmlImpl) as INamedScope;
+            var globalScope = headerScope.Merge(implementationScope);
 
             Assert.AreEqual(1, globalScope.ChildScopes.Count());
 
-            var namespaceA = globalScope.ChildScopes.First() as NamespaceDefinition;
+            var namespaceA = globalScope.ChildScopes.First() as INamespaceDefinition;
             Assert.AreEqual("A", namespaceA.Name);
             Assert.AreEqual(1, namespaceA.ChildScopes.Count());
 
@@ -158,30 +159,31 @@ namespace ABB.SrcML.Data.Test {
             var fileUnitE = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(e_xml, "E.h");
             var fileUnitF = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(f_xml, "F.h");
 
-            var globalScope = CodeParser[Language.CPlusPlus].ParseFileUnit(fileUnitD) as NamedScope;
-            globalScope = globalScope.Merge(CodeParser[Language.CPlusPlus].ParseFileUnit(fileUnitE));
-            globalScope = globalScope.Merge(CodeParser[Language.CPlusPlus].ParseFileUnit(fileUnitF));
+            var scopeD = CodeParser[Language.CPlusPlus].ParseFileUnit(fileUnitD) as INamedScope;
+            var scopeE = CodeParser[Language.CPlusPlus].ParseFileUnit(fileUnitE) as INamedScope;
+            var scopeF = CodeParser[Language.CPlusPlus].ParseFileUnit(fileUnitF) as INamedScope;
+            var globalScope = scopeD.Merge(scopeE).Merge(scopeF);
 
             Assert.AreEqual(2, globalScope.ChildScopes.Count());
 
-            var namespaceA = globalScope.ChildScopes.First() as NamespaceDefinition;
-            var namespaceD = globalScope.ChildScopes.Last() as NamespaceDefinition;
+            var namespaceA = globalScope.ChildScopes.First() as INamespaceDefinition;
+            var namespaceD = globalScope.ChildScopes.Last() as INamespaceDefinition;
 
             Assert.AreEqual(1, namespaceA.ChildScopes.Count());
             Assert.AreEqual(1, namespaceD.ChildScopes.Count());
             Assert.AreEqual("A", namespaceA.GetFullName());
             Assert.AreEqual("D", namespaceD.GetFullName());
 
-            var namespaceB = namespaceA.ChildScopes.First() as NamespaceDefinition;
+            var namespaceB = namespaceA.ChildScopes.First() as INamespaceDefinition;
             var typeF = namespaceD.ChildScopes.First() as TypeDefinition;
 
             Assert.AreEqual("B", namespaceB.Name);
             Assert.AreEqual("F", typeF.Name);
             Assert.AreEqual(1, namespaceB.ChildScopes.Count());
 
-            var namespaceC = namespaceB.ChildScopes.First() as NamespaceDefinition;
+            var namespaceC = namespaceB.ChildScopes.First() as INamespaceDefinition;
             Assert.AreEqual("C", namespaceC.Name);
-            Assert.AreEqual("A.B", namespaceC.GetFirstParent<NamespaceDefinition>().GetFullName());
+            Assert.AreEqual("A.B", namespaceC.GetFirstParent<INamespaceDefinition>().GetFullName());
             Assert.AreEqual(2, namespaceC.ChildScopes.Count());
             var typeD = namespaceC.ChildScopes.First() as TypeDefinition;
             var typeE = namespaceC.ChildScopes.Last() as TypeDefinition;
@@ -218,23 +220,24 @@ namespace ABB.SrcML.Data.Test {
             var fileUnitE = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(e_xml, "E.java");
             var fileUnitF = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(f_xml, "F.java");
 
-            var globalScope = CodeParser[Language.Java].ParseFileUnit(fileUnitD) as NamedScope;
-            globalScope = globalScope.Merge(CodeParser[Language.Java].ParseFileUnit(fileUnitE));
-            globalScope = globalScope.Merge(CodeParser[Language.Java].ParseFileUnit(fileUnitF));
+            var globalScopeD = CodeParser[Language.Java].ParseFileUnit(fileUnitD) as INamespaceDefinition;
+            var globalScopeE = CodeParser[Language.Java].ParseFileUnit(fileUnitE) as INamespaceDefinition;
+            var globalScopeF = CodeParser[Language.Java].ParseFileUnit(fileUnitF) as INamespaceDefinition;
+            var globalScope = globalScopeD.Merge(globalScopeE).Merge(globalScopeF) as INamespaceDefinition;
 
             Assert.AreEqual(2, globalScope.ChildScopes.Count());
 
-            var packageA = globalScope.ChildScopes.First() as NamespaceDefinition;
-            var packageD = globalScope.ChildScopes.Last() as NamespaceDefinition;
+            var packageA = globalScope.ChildScopes.First() as INamespaceDefinition;
+            var packageD = globalScope.ChildScopes.Last() as INamespaceDefinition;
 
             Assert.AreEqual("A", packageA.Name);
             Assert.AreEqual("D", packageD.Name);
 
-            var packageAB = packageA.ChildScopes.First() as NamespaceDefinition;
+            var packageAB = packageA.ChildScopes.First() as INamespaceDefinition;
             Assert.AreEqual("B", packageAB.Name);
             Assert.AreEqual("A.B", packageAB.GetFullName());
 
-            var packageABC = packageAB.ChildScopes.First() as NamespaceDefinition;
+            var packageABC = packageAB.ChildScopes.First() as INamespaceDefinition;
             Assert.AreEqual("C", packageABC.Name);
 
             Assert.AreEqual("C", packageABC.Name);

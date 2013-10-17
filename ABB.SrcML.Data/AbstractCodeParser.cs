@@ -486,37 +486,37 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Parses a file unit and returns a <see cref="NamespaceDefinition.IsGlobal">global</see>
-        /// <see cref="NamespaceDefinition">namespace definition</see> object
+        /// Parses a file unit and returns a <see cref="INamespaceDefinition.IsGlobal">global</see>
+        /// <see cref="INamespaceDefinition">namespace definition</see> object
         /// </summary>
         /// <param name="fileUnit">The file unit to parse</param>
         /// <returns>a global namespace definition for
         /// <paramref name="fileUnit"/></returns>
-        public virtual NamespaceDefinition ParseFileUnit(XElement fileUnit) {
+        public virtual INamespaceDefinition ParseFileUnit(XElement fileUnit) {
             if(null == fileUnit)
                 throw new ArgumentNullException("fileUnit");
             if(SRC.Unit != fileUnit.Name)
                 throw new ArgumentException("should be a SRC.Unit", "fileUnit");
 
-            var globalScope = ParseElement(fileUnit, new ParserContext()) as NamespaceDefinition;
+            var globalScope = ParseElement(fileUnit, new ParserContext()) as INamespaceDefinition;
             return globalScope;
         }
 
         /// <summary>
         /// Concurrently parses a file unit and returns a
-        /// <see cref="NamespaceDefinition.IsGlobal">global</see>
-        /// <see cref="NamespaceDefinition">namespace definition</see> object
+        /// <see cref="INamespaceDefinition.IsGlobal">global</see>
+        /// <see cref="INamespaceDefinition">namespace definition</see> object
         /// </summary>
         /// <param name="fileUnit">The file unit to parse</param>
         /// <returns>a global namespace definition for
         /// <paramref name="fileUnit"/></returns>
-        public virtual NamespaceDefinition ParseFileUnit_Concurrent(XElement fileUnit) {
+        public virtual INamespaceDefinition ParseFileUnit_Concurrent(XElement fileUnit) {
             if(null == fileUnit)
                 throw new ArgumentNullException("fileUnit");
             if(SRC.Unit != fileUnit.Name)
                 throw new ArgumentException("should be a SRC.Unit", "fileUnit");
 
-            var globalScope = ParseElement_Concurrent(fileUnit, new ParserContext()) as NamespaceDefinition;
+            var globalScope = ParseElement_Concurrent(fileUnit, new ParserContext()) as INamespaceDefinition;
             return globalScope;
         }
 
@@ -620,7 +620,7 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Creates a <see cref="NamespaceDefinition"/> object for
+        /// Creates a <see cref="INamespaceDefinition"/> object for
         /// <paramref name="namespaceElement"/>and pushes it onto
         /// <paramref name="context"/></summary>
         /// <param name="namespaceElement">The element to parse</param>
@@ -723,7 +723,7 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Creates a global <see cref="NamespaceDefinition"/> object for
+        /// Creates a global <see cref="INamespaceDefinition"/> object for
         /// <paramref name="unitElement"/>and pushes it onto
         /// <paramref name="context"/></summary>
         /// <param name="unitElement">The element to parse</param>
@@ -739,7 +739,7 @@ namespace ABB.SrcML.Data {
 
             context.Aliases = new Collection<Alias>(aliases.ToList());
 
-            var namespaceForUnit = new NamespaceDefinition();
+            INamespaceDefinition namespaceForUnit = new NamespaceDefinition();
             context.Push(namespaceForUnit);
         }
 
