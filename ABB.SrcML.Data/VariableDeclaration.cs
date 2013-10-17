@@ -19,7 +19,7 @@ namespace ABB.SrcML.Data {
     /// </summary>
     [Serializable]
     public class VariableDeclaration {
-        private Scope parentScope;
+        private IScope parentScope;
 
         /// <summary>
         /// The access modifier assigned to this type
@@ -39,7 +39,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The scope where this variable is declared
         /// </summary>
-        public Scope Scope {
+        public IScope Scope {
             get { return this.parentScope; }
             set {
                 this.parentScope = value;

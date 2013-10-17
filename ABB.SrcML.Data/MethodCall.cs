@@ -57,7 +57,7 @@ namespace ABB.SrcML.Data {
         /// updates the parent scope of <see cref="CallingObject"/> and all of the
         /// <see cref="Arguments"/>
         /// </summary>
-        public override Scope ParentScope {
+        public override IScope ParentScope {
             get {
                 return base.ParentScope;
             }
@@ -82,8 +82,8 @@ namespace ABB.SrcML.Data {
 
         /// <summary>
         /// Finds matching <see cref="MethodDefinition">method definitions</see> from the
-        /// <see cref="Scope.GetParentScopes()"/> of this usage. Because method calls can also be to
-        /// constructors and destructors, this will also search for matching types and then
+        /// <see cref="IScope.GetParentScopes()"/> of this usage. Because method calls can also be
+        /// to constructors and destructors, this will also search for matching types and then
         /// constructors within those types
         /// </summary>
         /// <returns>An enumerable of method definitions that match this method call</returns>

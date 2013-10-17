@@ -317,7 +317,7 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Creates a <see cref="Scope"/> object for
+        /// Creates a <see cref="IScope"/> object for
         /// <paramref name="element"/>and pushes it onto
         /// <paramref name="context"/></summary>
         /// <param name="element">The element to parse</param>
@@ -371,7 +371,7 @@ namespace ABB.SrcML.Data {
         /// <param name="context">The parser context</param>
         /// <returns>The scope representing
         /// <paramref name="element"/></returns>
-        public virtual Scope ParseElement(XElement element, ParserContext context) {
+        public virtual IScope ParseElement(XElement element, ParserContext context) {
             try {
                 if(element.Name == SRC.Unit) {
                     ParseUnitElement(element, context);
@@ -427,7 +427,7 @@ namespace ABB.SrcML.Data {
         /// <param name="context">The parser context</param>
         /// <returns>The scope representing
         /// <paramref name="element"/></returns>
-        public virtual Scope ParseElement_Concurrent(XElement element, ParserContext context) {
+        public virtual IScope ParseElement_Concurrent(XElement element, ParserContext context) {
             if(element.Name == SRC.Unit) {
                 ParseUnitElement(element, context);
             } else if(TypeElementNames.Contains(element.Name)) {
@@ -456,7 +456,7 @@ namespace ABB.SrcML.Data {
             IEnumerable<XElement> children = GetChildContainers(element);
             ConcurrentQueue<Exception> exceptions = new ConcurrentQueue<Exception>();
 
-            ConcurrentQueue<Scope> cq = new ConcurrentQueue<Scope>();
+            ConcurrentQueue<IScope> cq = new ConcurrentQueue<IScope>();
             Parallel.ForEach(children, currentChild => {
                 try {
                     var subContext = new ParserContext() {
@@ -464,7 +464,7 @@ namespace ABB.SrcML.Data {
                         FileUnit = context.FileUnit,
                     };
 
-                    Scope childScope = ParseElement(currentChild, subContext);
+                    IScope childScope = ParseElement(currentChild, subContext);
                     cq.Enqueue(childScope);
                 } catch(Exception e) { exceptions.Enqueue(e); }
             });
@@ -473,7 +473,7 @@ namespace ABB.SrcML.Data {
                 throw new Exception();
 
             while(!cq.IsEmpty) {
-                Scope childScope = new Scope();
+                IScope childScope = new Scope();
                 cq.TryDequeue(out childScope);
                 context.CurrentScope.AddChildScope(childScope);
             }

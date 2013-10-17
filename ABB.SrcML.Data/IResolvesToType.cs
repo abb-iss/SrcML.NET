@@ -28,7 +28,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The parent scope for this calling object
         /// </summary>
-        Scope ParentScope { get; set; }
+        IScope ParentScope { get; set; }
 
         /// <summary>
         /// Returns the first matching type definition returned by <see cref="FindMatchingTypes()"/>

@@ -31,7 +31,7 @@ namespace ABB.SrcML.Data {
         /// The scope that contains this variable use. If the parent scope is updated, then the
         /// parent scope of the calling object is also updated.
         /// </summary>
-        public override Scope ParentScope {
+        public override IScope ParentScope {
             get {
                 return base.ParentScope;
             }
@@ -52,7 +52,7 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Searches through the <see cref="Scope.DeclaredVariables"/> to see if any of them
+        /// Searches through the <see cref="IScope.DeclaredVariables"/> to see if any of them
         /// <see cref="Matches(VariableDeclaration)">matches</see>
         /// </summary>
         /// <returns>An enumerable of matching variable declarations.</returns>

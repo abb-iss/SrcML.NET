@@ -25,8 +25,8 @@ namespace ABB.SrcML.Data {
         /// <param name="fileUnit">The file unit for this context</param>
         public ParserContext(XElement fileUnit) {
             this.FileUnit = fileUnit;
-            ParentScopeStack = new Stack<Scope>();
-            ScopeStack = new Stack<Scope>();
+            ParentScopeStack = new Stack<IScope>();
+            ScopeStack = new Stack<IScope>();
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace ABB.SrcML.Data {
         /// The current scope on <see cref="ParentScopeStack"/>. If the stack is empty, it returns
         /// null.
         /// </summary>
-        public Scope CurrentParentScope {
+        public IScope CurrentParentScope {
             get {
                 if(ParentScopeStack.Count > 0)
                     return ParentScopeStack.Peek();
@@ -50,7 +50,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The current scope on <see cref="ScopeStack"/>. If the stack is empty, it returns null.
         /// </summary>
-        public Scope CurrentScope {
+        public IScope CurrentScope {
             get {
                 if(ScopeStack.Count > 0)
                     return ScopeStack.Peek();
@@ -95,7 +95,7 @@ namespace ABB.SrcML.Data {
         /// ParentScopeStack and <see cref="ScopeStack"/> are not equal and it will
         /// <see cref="System.Collections.Stack.Pop()"/> elements off until they are.
         /// </summary>
-        private Stack<Scope> ParentScopeStack { get; set; }
+        private Stack<IScope> ParentScopeStack { get; set; }
 
         /// <summary>
         /// The scope stack stores all of the scopes being parsed. When
@@ -104,7 +104,7 @@ namespace ABB.SrcML.Data {
         /// <see cref="AbstractCodeParser.ParseElement(XElement,ParserContext)"/> on all of its
         /// children) , it removes it from the stack.
         /// </summary>
-        private Stack<Scope> ScopeStack { get; set; }
+        private Stack<IScope> ScopeStack { get; set; }
 
         /// <summary>
         /// Creates a location object for the given
@@ -136,7 +136,7 @@ namespace ABB.SrcML.Data {
         /// scopes were inserted, it calls <see cref="RevertToNextParent()"/>.
         /// </summary>
         /// <returns>the most recent scope.</returns>
-        public Scope Pop() {
+        public IScope Pop() {
             RevertToNextParent();
             ParentScopeStack.Pop();
             return ScopeStack.Pop();
@@ -145,10 +145,10 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// adds
         /// <paramref name="scope"/>to this scope stack. This simply calls
-        /// <see cref="Push(Scope,Scope)"/> with both arguments set to
+        /// <see cref="Push(IScope,IScope)"/> with both arguments set to
         /// <paramref name="scope"/></summary>
         /// <param name="scope">the scope to add.</param>
-        public void Push(Scope scope) {
+        public void Push(IScope scope) {
             Push(scope, scope);
         }
 
@@ -161,7 +161,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="scope"></param>
         /// <param name="parent"></param>
-        public void Push(Scope scope, Scope parent) {
+        public void Push(IScope scope, IScope parent) {
             ScopeStack.Push(scope);
             if(parent != CurrentParentScope) {
                 ParentScopeStack.Push(parent);

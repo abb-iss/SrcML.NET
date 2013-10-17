@@ -14,8 +14,8 @@ using System;
 namespace ABB.SrcML.Data {
 
     /// <summary>
-    /// Source locations indicate where in the original source code a <see cref="Scope"/> is located
-    /// It stores the file name, line number, &amp; startingPosition
+    /// Source locations indicate where in the original source code a <see cref="IScope"/> is
+    /// located It stores the file name, line number, &amp; startingPosition
     /// </summary>
     [Serializable]
     public class SourceLocation {

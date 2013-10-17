@@ -76,7 +76,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="otherScope">The scope to add data from</param>
         /// <returns>the new scope</returns>
-        public override Scope AddFrom(Scope otherScope) {
+        public override IScope AddFrom(IScope otherScope) {
             var otherMethod = otherScope as MethodDefinition;
             if(otherMethod != null) {
                 var parameters = Parameters.ToList();
@@ -166,7 +166,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Gets all the method calls in this method to
         /// <paramref name="callee"/>. This method searches this method and all of its
-        /// <see cref="Scope.ChildScopes"/>.
+        /// <see cref="IScope.ChildScopes"/>.
         /// </summary>
         /// <param name="callee">The method to find calls for.</param>
         /// <returns>All of the method calls to
@@ -211,7 +211,7 @@ namespace ABB.SrcML.Data {
         /// <param name="fileName">The file to remove.</param>
         /// <returns>A collection of any unresolved scopes that result from removing the file. The
         /// caller is responsible for re-resolving these as appropriate.</returns>
-        public override Collection<Scope> RemoveFile(string fileName) {
+        public override Collection<IScope> RemoveFile(string fileName) {
             if(LocationDictionary.ContainsKey(fileName)) {
                 if(LocationDictionary.Count == 1) {
                     //this scope exists solely in the file to be deleted
@@ -222,7 +222,7 @@ namespace ABB.SrcML.Data {
                 } else {
                     //Method is defined in more than one file, delete the stuff defined in the given file
                     //Remove the file from the children
-                    var unresolvedChildScopes = new List<Scope>();
+                    var unresolvedChildScopes = new List<IScope>();
                     foreach(var child in ChildScopes.ToList()) {
                         var result = child.RemoveFile(fileName);
                         if(result != null) {
@@ -307,7 +307,7 @@ namespace ABB.SrcML.Data {
             }
 
             [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-            public Scope[] ChildScopes {
+            public IScope[] ChildScopes {
                 get { return this.method.ChildScopes.ToArray(); }
             }
 

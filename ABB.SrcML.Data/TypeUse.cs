@@ -43,7 +43,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public bool IsGeneric { get { return this.internalTypeParameters.Count > 0; } }
 
-        public override Scope ParentScope {
+        public override IScope ParentScope {
             get {
                 return base.ParentScope;
             }

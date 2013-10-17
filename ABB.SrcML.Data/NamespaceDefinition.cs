@@ -111,8 +111,8 @@ namespace ABB.SrcML.Data {
         /// <param name="fileName">The file to remove.</param>
         /// <returns>A collection of any unresolved scopes that result from removing the file. The
         /// caller is responsible for re-resolving these as appropriate.</returns>
-        public override Collection<Scope> RemoveFile(string fileName) {
-            Collection<Scope> unresolvedScopes = null;
+        public override Collection<IScope> RemoveFile(string fileName) {
+            Collection<IScope> unresolvedScopes = null;
             if(LocationDictionary.ContainsKey(fileName)) {
                 if(LocationDictionary.Count == 1) {
                     //this namespace exists solely in the file to be deleted
@@ -123,7 +123,7 @@ namespace ABB.SrcML.Data {
                 } else {
                     //this namespace is defined in more than one file, delete only the parts in the given file
                     //remove children
-                    var unresolvedChildScopes = new List<Scope>();
+                    var unresolvedChildScopes = new List<IScope>();
                     foreach(var child in ChildScopes.ToList()) {
                         var result = child.RemoveFile(fileName);
                         if(result != null) {
@@ -190,7 +190,7 @@ namespace ABB.SrcML.Data {
                         foreach(var namedChild in unresolvedChildScopes.OfType<NamedScope>()) {
                             namedChild.UnresolvedParentScopeInUse = null;
                         }
-                        unresolvedScopes = new Collection<Scope>(unresolvedChildScopes);
+                        unresolvedScopes = new Collection<IScope>(unresolvedChildScopes);
                     }
                 }
             }

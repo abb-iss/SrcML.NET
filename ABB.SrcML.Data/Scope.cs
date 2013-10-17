@@ -25,12 +25,12 @@ namespace ABB.SrcML.Data {
     /// </summary>
     [DebuggerTypeProxy(typeof(ScopeDebugView))]
     [Serializable]
-    public class Scope {
+    public class Scope : IScope {
 
         /// <summary>
         /// Holds all of the children for this scope.
         /// </summary>
-        protected Dictionary<string, List<Scope>> ChildScopeMap;
+        protected Dictionary<string, List<IScope>> ChildScopeMap;
 
         /// <summary>
         /// Holds all of the variable declarations declared here. The key is the variable name.
@@ -53,7 +53,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public Scope() {
             DeclaredVariablesDictionary = new Dictionary<string, VariableDeclaration>();
-            ChildScopeMap = new Dictionary<string, List<Scope>>();
+            ChildScopeMap = new Dictionary<string, List<IScope>>();
             MethodCallCollection = new Collection<MethodCall>();
             LocationDictionary = new Dictionary<string, Collection<SrcMLLocation>>();
         }
@@ -65,7 +65,7 @@ namespace ABB.SrcML.Data {
         public Scope(Scope otherScope) {
             ProgrammingLanguage = otherScope.ProgrammingLanguage;
 
-            ChildScopeMap = new Dictionary<string, List<Scope>>(otherScope.ChildScopeMap.Count);
+            ChildScopeMap = new Dictionary<string, List<IScope>>(otherScope.ChildScopeMap.Count);
             DeclaredVariablesDictionary = new Dictionary<string, VariableDeclaration>(otherScope.DeclaredVariablesDictionary.Count);
             MethodCallCollection = new Collection<MethodCall>();
             LocationDictionary = new Dictionary<string, Collection<SrcMLLocation>>(otherScope.LocationDictionary.Count);
@@ -76,7 +76,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Iterates over all of the child scopes of this scope
         /// </summary>
-        public IEnumerable<Scope> ChildScopes {
+        public IEnumerable<IScope> ChildScopes {
             get {
                 foreach(var childList in this.ChildScopeMap.Values) {
                     foreach(var child in childList) {
@@ -130,7 +130,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The parent container for this scope.
         /// </summary>
-        public Scope ParentScope { get; set; }
+        public IScope ParentScope { get; set; }
 
         /// <summary>
         /// References the primary location where this location has been defined. For Scope objects,
@@ -161,10 +161,10 @@ namespace ABB.SrcML.Data {
         /// Adds a child scope to this scope
         /// </summary>
         /// <param name="childScope">The child scope to add.</param>
-        public virtual void AddChildScope(Scope childScope) {
+        public virtual void AddChildScope(IScope childScope) {
             int i;
-            Scope mergedScope = null;
-            List<Scope> listForChild;
+            IScope mergedScope = null;
+            List<IScope> listForChild;
             if(ChildScopeMap.TryGetValue(childScope.Id, out listForChild)) {
                 for(i = 0; i < listForChild.Count; i++) {
                     mergedScope = listForChild[i].Merge(childScope);
@@ -179,7 +179,7 @@ namespace ABB.SrcML.Data {
                     childScope.ParentScope = this;
                 }
             } else {
-                ChildScopeMap[childScope.Id] = new List<Scope>(1);
+                ChildScopeMap[childScope.Id] = new List<IScope>(1);
                 ChildScopeMap[childScope.Id].Add(childScope);
                 childScope.ParentScope = this;
             }
@@ -200,8 +200,8 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="otherScope">The scope to add data from</param>
         /// <returns>the new scope</returns>
-        public virtual Scope AddFrom(Scope otherScope) {
-            CopyFromOtherScope(otherScope);
+        public virtual IScope AddFrom(IScope otherScope) {
+            CopyFromOtherScope(otherScope as Scope);
             return this;
         }
 
@@ -234,7 +234,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="otherScope">The scope to compare to</param>
         /// <returns>True if the scopes are the same. False otherwise.</returns>
-        public virtual bool CanBeMergedInto(Scope otherScope) {
+        public virtual bool CanBeMergedInto(IScope otherScope) {
             return (null != otherScope && this.PrimaryLocation.XPath == otherScope.PrimaryLocation.XPath);
         }
 
@@ -255,7 +255,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <typeparam name="T">The type to filter child scopes with</typeparam>
         /// <returns>An enumerable of child scopes of type typeparamref name="T"/></returns>
-        public IEnumerable<T> GetChildScopes<T>() where T : Scope {
+        public IEnumerable<T> GetChildScopes<T>() where T : IScope {
             return GetScopesOfType<T>(this.ChildScopes);
         }
 
@@ -267,11 +267,11 @@ namespace ABB.SrcML.Data {
         /// <param name="id">The id to look for</param>
         /// <returns>All of the child scopes with the given id -- if there are none, it returns see
         /// cref="Enumerable.Empty{T}()"/></returns>
-        public IEnumerable<Scope> GetChildScopesWithId(string id) {
+        public IEnumerable<IScope> GetChildScopesWithId(string id) {
             if(ChildScopeMap.ContainsKey(id)) {
                 return ChildScopeMap[id];
             } else {
-                return Enumerable.Empty<Scope>();
+                return Enumerable.Empty<IScope>();
             }
         }
 
@@ -285,7 +285,7 @@ namespace ABB.SrcML.Data {
         /// <returns>All of the child scopes with the matching
         /// <paramref name="id"/>and type <typeparamref name="T"/> -- if there are none, it returns
         /// see cref="Enumerable.Empty{T}()"/></returns>
-        public IEnumerable<T> GetChildScopesWithId<T>(string id) where T : Scope {
+        public IEnumerable<T> GetChildScopesWithId<T>(string id) where T : IScope {
             return GetScopesOfType<T>(GetChildScopesWithId(id));
         }
 
@@ -299,7 +299,7 @@ namespace ABB.SrcML.Data {
         /// <returns>An enumerable of matching variable declarations.</returns>
         public IEnumerable<VariableDeclaration> GetDeclarationsForVariableName(string variableName, string xpath) {
             var lowestScope = GetScopeForLocation(xpath);
-            foreach(var scope in lowestScope.GetParentScopesAndSelf()) {
+            foreach(var scope in lowestScope.GetParentScopesAndSelf<Scope>()) {
                 VariableDeclaration declaration;
                 if(scope.DeclaredVariablesDictionary.TryGetValue(variableName, out declaration)) {
                     yield return declaration;
@@ -312,7 +312,7 @@ namespace ABB.SrcML.Data {
         /// scope.
         /// </summary>
         /// <returns>The descendants of this scope</returns>
-        public IEnumerable<Scope> GetDescendantScopes() {
+        public IEnumerable<IScope> GetDescendantScopes() {
             return GetDescendants(this, false);
         }
 
@@ -321,7 +321,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <typeparam name="T">The type to filter the descendant scopes by</typeparam>
         /// <returns>An enumerable of descendants of type typeparamref name="T"/></returns>
-        public IEnumerable<T> GetDescendantScopes<T>() where T : Scope {
+        public IEnumerable<T> GetDescendantScopes<T>() where T : IScope {
             return GetScopesOfType<T>(GetDescendants(this, false));
         }
 
@@ -329,7 +329,7 @@ namespace ABB.SrcML.Data {
         /// Gets all of the descendants from this scope as well as the scope itself.
         /// </summary>
         /// <returns>This scope, followed by all of it descendants</returns>
-        public IEnumerable<Scope> GetDescendantScopesAndSelf() {
+        public IEnumerable<IScope> GetDescendantScopesAndSelf() {
             return GetDescendants(this, true);
         }
 
@@ -339,7 +339,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <typeparam name="T">the type to filter by</typeparam>
         /// <returns>An enumerable of scopes of type typeparamref name="T"/></returns>
-        public IEnumerable<T> GetDescendantScopesAndSelf<T>() where T : Scope {
+        public IEnumerable<T> GetDescendantScopesAndSelf<T>() where T : IScope {
             return GetScopesOfType<T>(GetDescendants(this, true));
         }
 
@@ -348,7 +348,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <typeparam name="T">the tyep to filter by</typeparam>
         /// <returns>the first matching descendant of this scope</returns>
-        public T GetFirstDescendant<T>() where T : Scope {
+        public T GetFirstDescendant<T>() where T : IScope {
             return GetDescendantScopes<T>().FirstOrDefault();
         }
 
@@ -358,7 +358,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <typeparam name="T">The type to look for</typeparam>
         /// <returns>The first scope of type typeparamref name="T"/></returns>
-        public T GetFirstParent<T>() where T : Scope {
+        public T GetFirstParent<T>() where T : IScope {
             return GetParentScopes<T>().FirstOrDefault();
         }
 
@@ -382,7 +382,7 @@ namespace ABB.SrcML.Data {
         /// Gets all of the parent scopes of this scope
         /// </summary>
         /// <returns>An enumerable (in reverse order) of all of the parent scopes</returns>
-        public IEnumerable<Scope> GetParentScopes() {
+        public IEnumerable<IScope> GetParentScopes() {
             return GetParentsAndStartingPoint(this.ParentScope);
         }
 
@@ -392,7 +392,7 @@ namespace ABB.SrcML.Data {
         /// <typeparam name="T">The type to look for</typeparam>
         /// <returns>An enumerable (in reverse order) of all of the parent scopes of type
         /// typeparamref name="T"/></returns>
-        public IEnumerable<T> GetParentScopes<T>() where T : Scope {
+        public IEnumerable<T> GetParentScopes<T>() where T : IScope {
             return GetScopesOfType<T>(GetParentsAndStartingPoint(this.ParentScope));
         }
 
@@ -401,7 +401,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <returns>An enumerable (in reverse order) of this element and all of its
         /// parents</returns>
-        public IEnumerable<Scope> GetParentScopesAndSelf() {
+        public IEnumerable<IScope> GetParentScopesAndSelf() {
             return GetParentsAndStartingPoint(this);
         }
 
@@ -412,7 +412,7 @@ namespace ABB.SrcML.Data {
         /// <typeparam name="T">The type to look for</typeparam>
         /// <returns>An enumerable (in reverse order) of this element and all of its parents of type
         /// typeparamref name="T"/></returns>
-        public IEnumerable<T> GetParentScopesAndSelf<T>() where T : Scope {
+        public IEnumerable<T> GetParentScopesAndSelf<T>() where T : IScope {
             return GetScopesOfType<T>(GetParentsAndStartingPoint(this));
         }
 
@@ -422,7 +422,7 @@ namespace ABB.SrcML.Data {
         /// <param name="xpath">the xpath to find containers for.</param>
         /// <returns>The lowest child of this scope that contains the given xpath, or null if it
         /// cannot be found.</returns>
-        public Scope GetScopeForLocation(string xpath) {
+        public IScope GetScopeForLocation(string xpath) {
             //first search in children
             var foundScope = ChildScopes.Select(c => c.GetScopeForLocation(xpath)).FirstOrDefault(r => r != null);
             //if xpath not found, check ourselves
@@ -438,7 +438,7 @@ namespace ABB.SrcML.Data {
         /// <param name="loc">The source location to search for.</param>
         /// <returns>The lowest child of this scope that surrounds the given location, or null if it
         /// cannot be found.</returns>
-        public Scope GetScopeForLocation(SourceLocation loc) {
+        public IScope GetScopeForLocation(SourceLocation loc) {
             //first search in children
             var foundScope = ChildScopes.Select(c => c.GetScopeForLocation(loc)).FirstOrDefault(r => r != null);
             //if loc not found, check ourselves
@@ -446,6 +446,13 @@ namespace ABB.SrcML.Data {
                 foundScope = this;
             }
             return foundScope;
+        }
+
+        void IScope.RemoveChild(IScope childScope) {
+            var castedChildScope = childScope as Scope;
+            if(null != castedChildScope) {
+                RemoveChild(castedChildScope);
+            }
         }
 
         /// <summary>
@@ -490,7 +497,7 @@ namespace ABB.SrcML.Data {
         /// <param name="otherScope">The scope to merge with</param>
         /// <returns>A new variable scope if the scopes <see cref="CanBeMergedInto">could be
         /// merged</see>; null otherwise</returns>
-        public virtual Scope Merge(Scope otherScope) {
+        public virtual IScope Merge(IScope otherScope) {
             if(CanBeMergedInto(otherScope)) {
                 Scope mergedScope = new Scope(this);
                 mergedScope.AddFrom(otherScope);
@@ -534,7 +541,7 @@ namespace ABB.SrcML.Data {
         /// <param name="fileName">The file to remove.</param>
         /// <returns>A collection of any unresolved scopes that result from removing the file. The
         /// caller is responsible for re-resolving these as appropriate.</returns>
-        public virtual Collection<Scope> RemoveFile(string fileName) {
+        public virtual Collection<IScope> RemoveFile(string fileName) {
             if(LocationDictionary.ContainsKey(fileName)) {
                 if(LocationDictionary.Count == 1) {
                     //this scope exists solely in the file to be deleted
@@ -549,7 +556,7 @@ namespace ABB.SrcML.Data {
                     }
 
                     //Remove the file from the children
-                    var unresolvedChildScopes = new List<Scope>();
+                    var unresolvedChildScopes = new List<IScope>();
                     foreach(var child in ChildScopes.ToList()) {
                         var result = child.RemoveFile(fileName);
                         if(result != null) {
@@ -606,7 +613,7 @@ namespace ABB.SrcML.Data {
             return String.Format("{0}: {1}", typeName, identifier);
         }
 
-        private static IEnumerable<Scope> GetDescendants(Scope startingPoint, bool returnSelf) {
+        private static IEnumerable<IScope> GetDescendants(IScope startingPoint, bool returnSelf) {
             if(returnSelf) {
                 yield return startingPoint;
             }
@@ -618,7 +625,7 @@ namespace ABB.SrcML.Data {
             }
         }
 
-        private static IEnumerable<Scope> GetParentsAndStartingPoint(Scope startingPoint) {
+        private static IEnumerable<IScope> GetParentsAndStartingPoint(IScope startingPoint) {
             var current = startingPoint;
             while(current != null) {
                 yield return current;
@@ -626,11 +633,10 @@ namespace ABB.SrcML.Data {
             }
         }
 
-        private static IEnumerable<T> GetScopesOfType<T>(IEnumerable<Scope> scopes) where T : Scope {
+        private static IEnumerable<T> GetScopesOfType<T>(IEnumerable<IScope> scopes) where T : IScope {
             var results = from scope in scopes
-                          let scopeAsT = scope as T
-                          where scopeAsT != null
-                          select scopeAsT;
+                          where scope is T
+                          select (T) scope;
             return results;
         }
 

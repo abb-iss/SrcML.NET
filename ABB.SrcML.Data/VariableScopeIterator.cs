@@ -32,7 +32,7 @@ namespace ABB.SrcML.Data {
         /// <param name="scope">the root scope</param>
         /// <returns>An enumerable of all the scopes rooted at
         /// <paramref name="scope"/></returns>
-        public static IEnumerable<Scope> Visit(Scope scope) {
+        public static IEnumerable<IScope> Visit(IScope scope) {
             return (new VariableScopeIterator()).VisitScope(scope);
         }
 
@@ -42,7 +42,7 @@ namespace ABB.SrcML.Data {
         /// <param name="scope">the root scope</param>
         /// <returns>An enumerable of all the scopes rooted at
         /// <paramref name="scope"/></returns>
-        public IEnumerable<Scope> VisitScope(Scope scope) {
+        public IEnumerable<IScope> VisitScope(IScope scope) {
             yield return scope;
             foreach(var child in scope.ChildScopes) {
                 foreach(var descendant in VisitScope(child)) {

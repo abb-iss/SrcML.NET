@@ -49,7 +49,7 @@ namespace ABB.SrcML.Data {
     /// parentXml = data.ResolveType(parentType).GetXElement(); </code>
     /// </example>
     public class DataRepository : IDisposable {
-        private Scope globalScope;
+        private IScope globalScope;
         private Dictionary<Language, AbstractCodeParser> parsers;
         private ReadyNotifier ReadyState;
 
@@ -134,7 +134,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The top-level Scope for the data in the archive.
         /// </summary>
-        public Scope GlobalScope { get { return globalScope; } }
+        public IScope GlobalScope { get { return globalScope; } }
 
         /// <summary>
         /// True if this repository is idle; false if it is responding to file updates
@@ -248,7 +248,7 @@ namespace ABB.SrcML.Data {
         /// <param name="loc">The source location to search for.</param>
         /// <returns>The innermost scope containing the location, or null if it is not
         /// found.</returns>
-        public Scope FindScope(SourceLocation loc) {
+        public IScope FindScope(SourceLocation loc) {
             return globalScope.GetScopeForLocation(loc);
         }
 
@@ -258,7 +258,7 @@ namespace ABB.SrcML.Data {
         /// <param name="element">The element to search for.</param>
         /// <returns>The innermost scope containing the element, or null if it is not
         /// found.</returns>
-        public Scope FindScope(XElement element) {
+        public IScope FindScope(XElement element) {
             return globalScope.GetScopeForLocation(element.GetXPath(false));
         }
 
@@ -267,7 +267,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="xpath">The XPath to search for.</param>
         /// <returns>The innermost scope containing the XPath, or null if it is not found.</returns>
-        public Scope FindScope(string xpath) {
+        public IScope FindScope(string xpath) {
             return globalScope.GetScopeForLocation(xpath);
         }
 
@@ -427,7 +427,7 @@ namespace ABB.SrcML.Data {
             }
         }
 
-        private void MergeScope(Scope scopeForFile) {
+        private void MergeScope(IScope scopeForFile) {
             globalScope = (globalScope != null ? globalScope.Merge(scopeForFile) : scopeForFile);
         }
 
@@ -445,9 +445,9 @@ namespace ABB.SrcML.Data {
             }
         }
 
-        private Scope ParseFileUnit(XElement fileUnit) {
+        private IScope ParseFileUnit(XElement fileUnit) {
             var language = SrcMLElement.GetLanguageForUnit(fileUnit);
-            Scope scope = null;
+            IScope scope = null;
             AbstractCodeParser parser;
 
             if(parsers.TryGetValue(language, out parser)) {
@@ -476,7 +476,7 @@ namespace ABB.SrcML.Data {
 
         private void ReadArchiveConcurrent(TaskScheduler scheduler) {
             if(null != Archive) {
-                BlockingCollection<Scope> mergeQueue = new BlockingCollection<Scope>();
+                BlockingCollection<IScope> mergeQueue = new BlockingCollection<IScope>();
 
                 var task = new Task(() => {
                     Parallel.ForEach(Archive.FileUnits, currentUnit => {

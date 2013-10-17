@@ -78,7 +78,7 @@ namespace ABB.SrcML.Data.Test {
                    CollectionsAreEqual(a.Locations, b.Locations, LocationsAreEqual);
         }
 
-        public static bool ScopesAreEqual(Scope a, Scope b) {
+        public static bool ScopesAreEqual(IScope a, IScope b) {
             if(a == b) { return true; }
             //Assert.AreEqual(a.GetType(), b.GetType());
             if(a.GetType() != b.GetType()) { return false; }

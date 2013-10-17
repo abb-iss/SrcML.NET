@@ -21,7 +21,7 @@ namespace ABB.SrcML.Data {
     [Serializable]
     public abstract class AbstractUse<DEFINITION> where DEFINITION : class {
         private List<Alias> internalAliasCollection;
-        private Scope parentScope;
+        private IScope parentScope;
 
         /// <summary>
         /// Sets up the an abstract use object
@@ -49,7 +49,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The scope that contains this use
         /// </summary>
-        public virtual Scope ParentScope {
+        public virtual IScope ParentScope {
             get { return this.parentScope; }
             set { this.parentScope = value; }
         }
@@ -57,9 +57,9 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// All of the parent scopes of this usage (from closest to farthest)
         /// </summary>
-        public IEnumerable<Scope> ParentScopes {
+        public IEnumerable<IScope> ParentScopes {
             get {
-                Scope current = ParentScope;
+                IScope current = ParentScope;
                 while(null != current) {
                     yield return current;
                     current = current.ParentScope;

@@ -4,14 +4,14 @@ using System.Linq;
 namespace ABB.SrcML.Data {
 
     internal class ScopeDebugView {
-        private Scope scope;
+        private IScope scope;
 
-        public ScopeDebugView(Scope scope) {
+        public ScopeDebugView(IScope scope) {
             this.scope = scope;
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-        public Scope[] ChildScopes {
+        public IScope[] ChildScopes {
             get { return this.scope.ChildScopes.ToArray(); }
         }
 

@@ -91,7 +91,7 @@ namespace ABB.SrcML.Data {
         /// all of the unresolved links between this scope and the
         /// <paramref name="childScope"/></summary>
         /// <param name="childScope">the child scope to add</param>
-        public override void AddChildScope(Scope childScope) {
+        public override void AddChildScope(IScope childScope) {
             var cs = childScope as NamedScope;
             if(cs != null) {
                 AddNamedChildScope(cs);
@@ -106,7 +106,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="otherScope">The scope to add data from</param>
         /// <returns>the new scope</returns>
-        public override Scope AddFrom(Scope otherScope) {
+        public override IScope AddFrom(IScope otherScope) {
             var otherNamedScope = otherScope as NamedScope;
             if(otherNamedScope != null) {
                 foreach(var candidate in otherNamedScope.ParentScopeCandidates) {
@@ -117,12 +117,12 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Overrides <see cref="Scope.CanBeMergedInto"/> to call
+        /// Overrides <see cref="IScope.CanBeMergedInto"/> to call
         /// <see cref="CanBeMergedInto(NamedScope)"/>
         /// </summary>
         /// <param name="otherScope">the scope to test</param>
         /// <returns>true if the two objects can be merged, false otherwise</returns>
-        public override bool CanBeMergedInto(Scope otherScope) {
+        public override bool CanBeMergedInto(IScope otherScope) {
             return this.CanBeMergedInto(otherScope as NamedScope);
         }
 
@@ -161,7 +161,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="otherScope">The scope to merge with</param>
         /// <returns>The merged scope. null if they cannot be merged.</returns>
-        public override Scope Merge(Scope otherScope) {
+        public override IScope Merge(IScope otherScope) {
             return this.Merge(otherScope as NamedScope);
         }
 
@@ -199,8 +199,8 @@ namespace ABB.SrcML.Data {
         /// <param name="fileName">The file to remove.</param>
         /// <returns>A collection of any unresolved scopes that result from removing the file. The
         /// caller is responsible for re-resolving these as appropriate.</returns>
-        public override Collection<Scope> RemoveFile(string fileName) {
-            Collection<Scope> unresolvedScopes = null;
+        public override Collection<IScope> RemoveFile(string fileName) {
+            Collection<IScope> unresolvedScopes = null;
             if(LocationDictionary.ContainsKey(fileName)) {
                 if(LocationDictionary.Count == 1) {
                     //this scope exists solely in the file to be deleted
@@ -211,7 +211,7 @@ namespace ABB.SrcML.Data {
                 } else {
                     //this NamedScope is defined in more than one file, delete only the parts in the given file
                     //Remove the file from the children
-                    var unresolvedChildScopes = new List<Scope>();
+                    var unresolvedChildScopes = new List<IScope>();
                     foreach(var child in ChildScopes.ToList()) {
                         var result = child.RemoveFile(fileName);
                         if(result != null) {
@@ -278,7 +278,7 @@ namespace ABB.SrcML.Data {
                         foreach(var namedChild in unresolvedChildScopes.OfType<NamedScope>()) {
                             namedChild.UnresolvedParentScopeInUse = null;
                         }
-                        unresolvedScopes = new Collection<Scope>(unresolvedChildScopes);
+                        unresolvedScopes = new Collection<IScope>(unresolvedChildScopes);
                     }
                 }
             }
@@ -318,7 +318,7 @@ namespace ABB.SrcML.Data {
                 var selectedScope = childScope.SelectUnresolvedScope();
                 scopeToAdd = selectedScope.CreateScope();
 
-                Scope latest = scopeToAdd, current;
+                IScope latest = scopeToAdd, current;
                 do {
                     current = latest;
                     latest = current.ChildScopes.FirstOrDefault();

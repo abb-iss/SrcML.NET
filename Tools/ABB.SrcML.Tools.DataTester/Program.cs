@@ -70,7 +70,7 @@ namespace ABB.SrcML.Tools.DataTester {
             timer.Stop();
             Console.WriteLine("Updating archive for {0}... {1}", sourcePath, timer.Elapsed);
 
-            Scope globalScope = null;
+            IScope globalScope = null;
             timer.Reset();
 
             int numberOfFailures = 0;
@@ -142,7 +142,7 @@ namespace ABB.SrcML.Tools.DataTester {
             }
         }
 
-        private static void OutputCallGraphByType(Scope globalScope, string jsonPath) {
+        private static void OutputCallGraphByType(IScope globalScope, string jsonPath) {
             using(var writer = new JsonTextWriter(new StreamWriter(jsonPath))) {
                 writer.WriteStartArray();
                 foreach(var typeDefinition in globalScope.GetDescendantScopesAndSelf<TypeDefinition>()) {
@@ -177,7 +177,7 @@ namespace ABB.SrcML.Tools.DataTester {
             }
         }
 
-        private static void PrintMethodCallReport(Scope globalScope, string sourcePath, string csvDirectory, string callLogPath) {
+        private static void PrintMethodCallReport(IScope globalScope, string sourcePath, string csvDirectory, string callLogPath) {
             var csvPath = Path.Combine(csvDirectory, "methodcalls.csv");
             Console.WriteLine("\nMethod Call Report");
             Console.WriteLine("===============");
@@ -213,7 +213,7 @@ namespace ABB.SrcML.Tools.DataTester {
             File.AppendAllText(csvPath, String.Format("{0}{1}", String.Join(",", sourcePath, numMethodCalls, numMatchedMethodCalls, sw.ElapsedMilliseconds), Environment.NewLine));
         }
 
-        private static void PrintScopeReport(Scope globalScope, string sourcePath, string csvDirectory) {
+        private static void PrintScopeReport(IScope globalScope, string sourcePath, string csvDirectory) {
             var csvPath = Path.Combine(csvDirectory, "scopes.csv");
             Console.WriteLine("\nScope Report");
             Console.WriteLine("===============");
