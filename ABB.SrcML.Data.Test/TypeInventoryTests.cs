@@ -39,9 +39,9 @@ namespace ABB.SrcML.Data.Test {
             var fileUnitB = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(b_xml, "B.java");
             var fileUnitC = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(c_xml, "C.java");
 
-            var globalScope = CodeParser[Language.Java].ParseFileUnit(fileUnitA) as NamedScope;
-            globalScope = globalScope.Merge(CodeParser[Language.Java].ParseFileUnit(fileUnitB));
-            globalScope = globalScope.Merge(CodeParser[Language.Java].ParseFileUnit(fileUnitC));
+            var globalScope = CodeParser[Language.Java].ParseFileUnit(fileUnitA) as IScope;
+            globalScope = globalScope.Merge(CodeParser[Language.Java].ParseFileUnit(fileUnitB) as IScope);
+            globalScope = globalScope.Merge(CodeParser[Language.Java].ParseFileUnit(fileUnitC) as IScope);
 
             Assert.AreEqual(3, globalScope.ChildScopes.Count());
 
@@ -264,9 +264,9 @@ namespace ABB.SrcML.Data.Test {
             var implementationElement = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(implementationXml, "A.cpp");
             var mainElement = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(mainXml, "main.cpp");
 
-            var header = CodeParser[Language.CPlusPlus].ParseFileUnit(headerElement) as NamedScope;
-            var implementation = CodeParser[Language.CPlusPlus].ParseFileUnit(implementationElement) as NamedScope;
-            var main = CodeParser[Language.CPlusPlus].ParseFileUnit(mainElement) as NamedScope;
+            var header = CodeParser[Language.CPlusPlus].ParseFileUnit(headerElement) as INamedScope;
+            var implementation = CodeParser[Language.CPlusPlus].ParseFileUnit(implementationElement) as INamedScope;
+            var main = CodeParser[Language.CPlusPlus].ParseFileUnit(mainElement) as INamedScope;
 
             var unmergedMainMethod = main.ChildScopes.First() as MethodDefinition;
             Assert.That(unmergedMainMethod.MethodCalls.First().FindMatches(), Is.Empty);
@@ -275,7 +275,7 @@ namespace ABB.SrcML.Data.Test {
             globalScope = globalScope.Merge(header);
 
             var namedChildren = from child in globalScope.ChildScopes
-                                let namedChild = child as NamedScope
+                                let namedChild = child as INamedScope
                                 where namedChild != null
                                 orderby namedChild.Name
                                 select namedChild;
@@ -327,15 +327,15 @@ namespace ABB.SrcML.Data.Test {
             var implementationElement = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(implementationXml, "A.cpp");
             var mainElement = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(mainXml, "main.cpp");
 
-            var header = CodeParser[Language.CPlusPlus].ParseFileUnit(headerElement) as NamedScope;
-            var implementation = CodeParser[Language.CPlusPlus].ParseFileUnit(implementationElement) as NamedScope;
-            var main = CodeParser[Language.CPlusPlus].ParseFileUnit(mainElement) as NamedScope;
+            var header = CodeParser[Language.CPlusPlus].ParseFileUnit(headerElement) as INamedScope;
+            var implementation = CodeParser[Language.CPlusPlus].ParseFileUnit(implementationElement) as INamedScope;
+            var main = CodeParser[Language.CPlusPlus].ParseFileUnit(mainElement) as INamedScope;
 
             var globalScope = main.Merge(implementation);
             globalScope = globalScope.Merge(header);
 
             var namedChildren = from child in globalScope.ChildScopes
-                                let namedChild = child as NamedScope
+                                let namedChild = child as INamedScope
                                 where namedChild != null
                                 orderby namedChild.Name
                                 select namedChild;

@@ -220,7 +220,7 @@ namespace ABB.SrcML.Tools.DataTester {
 
             var allScopes = VariableScopeIterator.Visit(globalScope);
             int numScopes = allScopes.Count();
-            int numNamedScopes = allScopes.OfType<NamedScope>().Count();
+            int numNamedScopes = allScopes.OfType<INamedScope>().Count();
             int numNamespaces = allScopes.OfType<NamespaceDefinition>().Count();
             int numTypes = allScopes.OfType<TypeDefinition>().Count();
             int numMethods = allScopes.OfType<MethodDefinition>().Count();

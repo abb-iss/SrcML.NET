@@ -11,7 +11,7 @@ namespace ABB.SrcML.Data {
     /// <see cref="NamedScopeUse.CreateScope()"/>.
     /// </summary>
     [Serializable]
-    public class NamedScopeUse : AbstractScopeUse<NamedScope> {
+    public class NamedScopeUse : AbstractScopeUse<INamedScope> {
 
         /// <summary>
         /// The child of this scope
@@ -23,8 +23,8 @@ namespace ABB.SrcML.Data {
         /// descendants based on <see cref="ChildScopeUse"/>).
         /// </summary>
         /// <returns>A new named scope based on this use</returns>
-        public virtual NamedScope CreateScope() {
-            var scope = new NamedScope() {
+        public virtual INamedScope CreateScope() {
+            INamedScope scope = new NamedScope() {
                 Name = this.Name,
                 ProgrammingLanguage = this.ProgrammingLanguage,
             };
@@ -39,22 +39,22 @@ namespace ABB.SrcML.Data {
         /// Find named scopes that match this named scope use.
         /// </summary>
         /// <returns>An enumerable of named scopes with the same name as this use</returns>
-        public override IEnumerable<NamedScope> FindMatches() {
+        public override IEnumerable<INamedScope> FindMatches() {
             if(ChildScopeUse != null) {
                 var globalScope = ParentScope.GetParentScopesAndSelf<NamespaceDefinition>().Where(p => p.IsGlobal).FirstOrDefault();
 
                 NamedScopeUse current = ChildScopeUse;
 
-                IEnumerable<NamedScope> matches = null;
+                IEnumerable<INamedScope> matches = null;
                 while(current != null) {
                     if(matches == null) {
-                        matches = globalScope.GetChildScopesWithId<NamedScope>(current.Name);
+                        matches = globalScope.GetChildScopesWithId<INamedScope>(current.Name);
                     } else {
                         matches = GetChildScopesWithName(matches, current.Name);
                     }
                     current = current.ChildScopeUse;
                 }
-                return (matches == null ? Enumerable.Empty<NamedScope>() : matches);
+                return (matches == null ? Enumerable.Empty<INamedScope>() : matches);
             } else {
                 return base.FindMatches();
             }
@@ -84,7 +84,7 @@ namespace ABB.SrcML.Data {
         /// <paramref name="definition"/></summary>
         /// <param name="definition">The scope to check</param>
         /// <returns>True if this and definition have the same name</returns>
-        public override bool Matches(NamedScope definition) {
+        public override bool Matches(INamedScope definition) {
             if(null == definition)
                 return false;
             return definition.Name == this.Name;
@@ -97,9 +97,9 @@ namespace ABB.SrcML.Data {
             return GetFullName();
         }
 
-        private IEnumerable<NamedScope> GetChildScopesWithName(IEnumerable<NamedScope> scopes, string name) {
+        private IEnumerable<INamedScope> GetChildScopesWithName(IEnumerable<INamedScope> scopes, string name) {
             var matches = from scope in scopes
-                          from match in scope.GetChildScopesWithId<NamedScope>(name)
+                          from match in scope.GetChildScopesWithId<INamedScope>(name)
                           select match;
             return matches;
         }

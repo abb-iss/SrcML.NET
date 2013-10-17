@@ -106,7 +106,7 @@ namespace ABB.SrcML.Data.Test {
     <function_decl><type><name pos:line=""3"" pos:column=""5"">int</name></type> <name pos:line=""3"" pos:column=""9"">bar</name><parameter_list pos:line=""3"" pos:column=""12"">(<param><decl><type><name pos:line=""3"" pos:column=""13"">int</name></type></decl></param>)</parameter_list>;</function_decl>
 </public>}</block><decl/></class>";
             var hUnit = fileSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(hXml, "Foo.h");
-            NamedScope globalScope = parser[Language.CPlusPlus].ParseFileUnit(hUnit);
+            INamedScope globalScope = parser[Language.CPlusPlus].ParseFileUnit(hUnit);
             ////Foo.cpp
             //#include "Foo.h"
             //int Foo::bar(int baz) {
@@ -117,7 +117,7 @@ namespace ABB.SrcML.Data.Test {
     <return pos:line=""3"" pos:column=""5"">return <expr><name pos:line=""3"" pos:column=""12"">baz</name> <op:operator pos:line=""3"" pos:column=""16"">+</op:operator> <lit:literal type=""number"" pos:line=""3"" pos:column=""18"">1</lit:literal></expr>;</return>
 }</block></function>";
             var cppUnit = fileSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(cppXml, "Foo.cpp");
-            globalScope = globalScope.Merge(parser[Language.CPlusPlus].ParseFileUnit(cppUnit));
+            globalScope = globalScope.Merge(parser[Language.CPlusPlus].ParseFileUnit(cppUnit)) as INamedScope;
 
             var bar = globalScope.ChildScopes.First().ChildScopes.OfType<MethodDefinition>().First();
             Assert.AreEqual("bar", bar.Name);

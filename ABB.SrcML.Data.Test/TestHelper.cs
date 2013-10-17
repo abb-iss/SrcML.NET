@@ -144,7 +144,7 @@ namespace ABB.SrcML.Data.Test {
             return equal;
         }
 
-        private static bool TestEquality(Scope a, Scope b) {
+        private static bool TestEquality(IScope a, IScope b) {
             //Assert.IsTrue(CollectionsAreEqual(a.ChildScopes.ToList(), b.ChildScopes.ToList(), ScopesAreEqual));
             //Assert.IsTrue(CollectionsAreEqual(a.MethodCalls.ToList(), b.MethodCalls.ToList(), MethodCallsAreEqual));
             //Assert.IsTrue(CollectionsAreEqual(a.DeclaredVariables.ToList(), b.DeclaredVariables.ToList(), VariableDeclarationsAreEqual));
@@ -157,7 +157,7 @@ namespace ABB.SrcML.Data.Test {
                    a.ProgrammingLanguage == b.ProgrammingLanguage;
         }
 
-        private static bool TestEquality(NamedScope a, NamedScope b) {
+        private static bool TestEquality(INamedScope a, INamedScope b) {
             //Assert.AreEqual(a.Name, b.Name);
             ////Accessibility isn't undone right now, so don't check it
             ////Assert.AreEqual(a.Accessibility, b.Accessibility);
@@ -174,7 +174,7 @@ namespace ABB.SrcML.Data.Test {
             //Assert.AreEqual(a.IsAnonymous, b.IsAnonymous);
             //return TestEquality((NamedScope)a, (NamedScope)b);
             return a.IsAnonymous == b.IsAnonymous &&
-                   TestEquality((NamedScope) a, (NamedScope) b);
+                   TestEquality((INamedScope) a, (INamedScope) b);
         }
 
         private static bool TestEquality(TypeDefinition a, TypeDefinition b) {
@@ -185,7 +185,7 @@ namespace ABB.SrcML.Data.Test {
             return a.IsPartial == b.IsPartial &&
                    a.Kind == b.Kind &&
                    CollectionsAreEqual(a.ParentTypes, b.ParentTypes, TypeUsesAreEqual) &&
-                   TestEquality((NamedScope) a, (NamedScope) b);
+                   TestEquality((INamedScope) a, (INamedScope) b);
         }
 
         private static bool TestEquality(MethodDefinition a, MethodDefinition b) {
@@ -196,7 +196,7 @@ namespace ABB.SrcML.Data.Test {
             return a.IsConstructor == b.IsConstructor &&
                    a.IsDestructor == b.IsDestructor &&
                    OrderedCollectionsAreEqual(a.Parameters, b.Parameters, ParameterDeclarationsAreEqual) &&
-                   TestEquality((NamedScope) a, (NamedScope) b);
+                   TestEquality((INamedScope) a, (INamedScope) b);
         }
     }
 }

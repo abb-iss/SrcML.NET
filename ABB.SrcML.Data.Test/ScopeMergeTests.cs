@@ -90,8 +90,8 @@ namespace ABB.SrcML.Data.Test {
             var header = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(header_xml, "A.h");
             var implementation = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(impl_xml, "A.cpp");
 
-            var headerScope = CodeParser[Language.CPlusPlus].ParseFileUnit(header) as NamedScope;
-            var implementationScope = CodeParser[Language.CPlusPlus].ParseFileUnit(implementation) as NamedScope;
+            var headerScope = CodeParser[Language.CPlusPlus].ParseFileUnit(header) as INamedScope;
+            var implementationScope = CodeParser[Language.CPlusPlus].ParseFileUnit(implementation) as INamedScope;
 
             var globalScope = headerScope.Merge(implementationScope);
 
@@ -116,13 +116,14 @@ namespace ABB.SrcML.Data.Test {
             //int Foo(char);
             string declXml = "<function_decl><type><name>int</name></type> <name>Foo</name><parameter_list>(<param><decl><type><name>char</name></type></decl></param>)</parameter_list>;</function_decl>";
             var fileunitDecl = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(declXml, "Foo.h");
-            var globalScope = CodeParser[Language.CPlusPlus].ParseFileUnit(fileunitDecl) as NamedScope;
+            var declarationScope = CodeParser[Language.CPlusPlus].ParseFileUnit(fileunitDecl) as INamedScope;
 
             ////Foo.cpp
             //int Foo(char bar) { return 0; }
             string defXml = "<function><type><name>int</name></type> <name>Foo</name><parameter_list>(<param><decl><type><name>char</name></type> <name>bar</name></decl></param>)</parameter_list> <block>{ <return>return <expr><lit:literal type=\"number\">0</lit:literal></expr>;</return> }</block></function>";
             var fileUnitDef = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(defXml, "Foo.cpp");
-            globalScope = globalScope.Merge(CodeParser[Language.CPlusPlus].ParseFileUnit(fileUnitDef));
+            var definitionScope = CodeParser[Language.CPlusPlus].ParseFileUnit(fileUnitDef) as INamedScope;
+            var globalScope = declarationScope.Merge(definitionScope);
 
             Assert.AreEqual(1, globalScope.ChildScopes.Count());
             Assert.AreEqual("Foo", ((MethodDefinition) globalScope.ChildScopes.First()).Name);
@@ -264,7 +265,7 @@ namespace ABB.SrcML.Data.Test {
     }</block></function>
 }</block></class>";
             var a1FileUnit = FileUnitSetup[Language.CSharp].GetFileUnitForXmlSnippet(a1Xml, "A1.cs");
-            var globalScope = CodeParser[Language.CSharp].ParseFileUnit(a1FileUnit) as NamedScope;
+            var globalScope = CodeParser[Language.CSharp].ParseFileUnit(a1FileUnit) as INamedScope;
             ////A2.cs
             //public partial class A {
             //    private bool Foo() {
@@ -277,7 +278,7 @@ namespace ABB.SrcML.Data.Test {
     }</block></function>
 }</block></class>";
             var a2FileUnit = FileUnitSetup[Language.CSharp].GetFileUnitForXmlSnippet(a2Xml, "A2.cs");
-            globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(a2FileUnit));
+            globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(a2FileUnit)) as INamedScope;
 
             Assert.AreEqual(1, globalScope.ChildScopes.Count());
             var typeA = globalScope.ChildScopes.First() as TypeDefinition;
@@ -297,7 +298,7 @@ namespace ABB.SrcML.Data.Test {
     <function_decl><type><specifier>public</specifier> <specifier>partial</specifier> <name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list>;</function_decl>
 }</block></class>";
             var a1FileUnit = FileUnitSetup[Language.CSharp].GetFileUnitForXmlSnippet(a1Xml, "A1.cs");
-            var globalScope = CodeParser[Language.CSharp].ParseFileUnit(a1FileUnit) as NamedScope;
+            var globalScope = CodeParser[Language.CSharp].ParseFileUnit(a1FileUnit) as INamedScope;
             ////A2.cs
             //public partial class A {
             //    public partial int Foo() { return 42; }
@@ -306,7 +307,7 @@ namespace ABB.SrcML.Data.Test {
     <function><type><specifier>public</specifier> <specifier>partial</specifier> <name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><lit:literal type=""number"">42</lit:literal></expr>;</return> }</block></function>
 }</block></class>";
             var a2FileUnit = FileUnitSetup[Language.CSharp].GetFileUnitForXmlSnippet(a2Xml, "A2.cs");
-            globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(a2FileUnit));
+            globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(a2FileUnit)) as INamedScope;
 
             Assert.AreEqual(1, globalScope.ChildScopes.Count());
             var typeA = globalScope.ChildScopes.First() as TypeDefinition;
@@ -337,14 +338,14 @@ namespace ABB.SrcML.Data.Test {
             var xmlImpl = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xmlcpp, "A.cpp");
             var xmlHeader = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xmlh, "A.h");
 
-            var globalScope = CodeParser[Language.CPlusPlus].ParseFileUnit(xmlHeader) as NamedScope;
+            var globalScope = CodeParser[Language.CPlusPlus].ParseFileUnit(xmlHeader) as INamedScope;
             Assert.AreEqual(1, globalScope.ChildScopes.Count());
 
             var typeA = globalScope.ChildScopes.First() as TypeDefinition;
             Assert.AreEqual("A", typeA.Name);
             Assert.AreEqual(0, typeA.ChildScopes.Count());
 
-            globalScope = globalScope.Merge(CodeParser[Language.CPlusPlus].ParseFileUnit(xmlImpl));
+            globalScope = globalScope.Merge(CodeParser[Language.CPlusPlus].ParseFileUnit(xmlImpl)) as INamedScope;
             Assert.AreEqual(1, globalScope.ChildScopes.Count());
 
             typeA = globalScope.ChildScopes.First() as TypeDefinition;
@@ -383,10 +384,10 @@ namespace ABB.SrcML.Data.Test {
             var xmlImpl = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xmlcpp, "A.cpp");
             var xmlHeader = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xmlh, "A.h");
 
-            var globalScope = CodeParser[Language.CPlusPlus].ParseFileUnit(xmlImpl) as NamedScope;
+            var globalScope = CodeParser[Language.CPlusPlus].ParseFileUnit(xmlImpl) as INamedScope;
             Assert.AreEqual(1, globalScope.ChildScopes.Count());
 
-            var scopeA = globalScope.ChildScopes.FirstOrDefault() as NamedScope;
+            var scopeA = globalScope.ChildScopes.FirstOrDefault() as INamedScope;
             Assert.AreEqual("A", scopeA.Name);
             Assert.AreEqual(2, scopeA.ChildScopes.Count());
 
@@ -398,7 +399,7 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("Bar", methodBar.Name);
             Assert.AreEqual("A.Bar", methodBar.GetFullName());
 
-            globalScope = globalScope.Merge(CodeParser[Language.CPlusPlus].ParseFileUnit(xmlHeader));
+            globalScope = globalScope.Merge(CodeParser[Language.CPlusPlus].ParseFileUnit(xmlHeader)) as INamedScope;
 
             Assert.AreEqual(1, globalScope.ChildScopes.Count());
 

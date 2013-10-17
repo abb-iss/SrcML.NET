@@ -223,7 +223,7 @@ namespace ABB.SrcML.Data.Test {
 
             Console.WriteLine("{0,10:N0} scopes", VariableScopeIterator.Visit(globalScope).Count());
             var namedScopes = from scope in VariableScopeIterator.Visit(globalScope)
-                              where (scope as NamedScope) != null
+                              where (scope as INamedScope) != null
                               select scope;
             Console.WriteLine("{0,10:N0} named scopes", namedScopes.Count());
             var namespaceScopes = from scope in namedScopes

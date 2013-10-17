@@ -13,7 +13,7 @@ namespace ABB.SrcML.Data {
         /// descendants based on <see cref="NamedScopeUse.ChildScopeUse"/>).
         /// </summary>
         /// <returns>A new namespace definition based on this use</returns>
-        public override NamedScope CreateScope() {
+        public override INamedScope CreateScope() {
             var ns = new NamespaceDefinition {
                 Name = this.Name,
                 ProgrammingLanguage = this.ProgrammingLanguage

@@ -93,7 +93,7 @@ namespace ABB.SrcML.Data {
         /// <param name="otherScope">the scope to merge with</param>
         /// <returns>a new namespace definition from this and otherScope, or null if they couldn't
         /// be merged.</returns>
-        public override NamedScope Merge(NamedScope otherScope) {
+        public override INamedScope Merge(INamedScope otherScope) {
             NamespaceDefinition mergedScope = null;
             if(otherScope != null) {
                 if(otherScope.CanBeMergedInto(this)) {
@@ -187,7 +187,7 @@ namespace ABB.SrcML.Data {
                         }
                         unresolvedChildScopes.AddRange(ChildScopes);
                         //reset the UnresolvedParentScopeInUse so the children will be re-resolved by our parent
-                        foreach(var namedChild in unresolvedChildScopes.OfType<NamedScope>()) {
+                        foreach(var namedChild in unresolvedChildScopes.OfType<INamedScope>()) {
                             namedChild.UnresolvedParentScopeInUse = null;
                         }
                         unresolvedScopes = new Collection<IScope>(unresolvedChildScopes);

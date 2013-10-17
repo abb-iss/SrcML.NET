@@ -16,7 +16,8 @@ using System.Collections.ObjectModel;
 namespace ABB.SrcML.Data {
 
     /// <summary>
-    /// The base classes for use objects. Use objects represent a use of a <see cref="NamedScope"/>.
+    /// The base classes for use objects. Use objects represent a use of a
+    /// <see cref="INamedScope"/>.
     /// </summary>
     [Serializable]
     public abstract class AbstractUse<DEFINITION> where DEFINITION : class {

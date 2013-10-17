@@ -126,7 +126,7 @@ namespace ABB.SrcML.Data {
         /// <param name="namedScope">The named scope to check</param>
         /// <returns>True if this alias can apply to the provided named scope; false
         /// otherwise</returns>
-        public bool IsAliasFor(NamedScope namedScope) {
+        public bool IsAliasFor(INamedScope namedScope) {
             if(this.IsNamespaceImport)
                 return true;
             return false;

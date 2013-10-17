@@ -30,7 +30,7 @@ namespace ABB.SrcML.Tools.MethodCallSurvey {
             this.isExternal = false;
 
             this.Location = data.Location;
-            this.FullName = data.ParentScope.GetParentScopesAndSelf<ABB.SrcML.Data.NamedScope>().First().GetFullName();
+            this.FullName = data.ParentScope.GetParentScopesAndSelf<INamedScope>().First().GetFullName();
             this.Id = DataHelpers.GetLocation(data.Location);
             this.Path = this.Location.SourceFileName;
 

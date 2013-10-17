@@ -190,7 +190,7 @@ namespace ABB.SrcML.Data {
         /// <param name="otherScope">the scope to merge with</param>
         /// <returns>a new method definition from this and otherScope, or null if they couldn't be
         /// merged.</returns>
-        public override NamedScope Merge(NamedScope otherScope) {
+        public override INamedScope Merge(INamedScope otherScope) {
             MethodDefinition mergedScope = null;
             if(otherScope != null) {
                 if(otherScope.CanBeMergedInto(this)) {

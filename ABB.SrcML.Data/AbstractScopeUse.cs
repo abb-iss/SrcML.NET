@@ -11,7 +11,7 @@ namespace ABB.SrcML.Data {
     /// <typeparam name="DEFINITION">The type. Must be NamedScope or a subclass</typeparam>
     [Serializable]
     public abstract class AbstractScopeUse<DEFINITION> : AbstractUse<DEFINITION>
-        where DEFINITION : NamedScope {
+        where DEFINITION : class, INamedScope {
 
         /// <summary>
         /// Finds matching <typeparamref name="DEFINITION"/> from the

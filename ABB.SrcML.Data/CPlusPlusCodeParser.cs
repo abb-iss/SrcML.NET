@@ -236,7 +236,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Creates a method definition object from
         /// <paramref name="methodElement"/>. For C++, it looks for <code>int A::B::Foo(){ }</code>
-        /// and adds "A->B" to <see cref="NamedScope.ParentScopeCandidates"/>
+        /// and adds "A->B" to <see cref="INamedScope.ParentScopeCandidates"/>
         /// </summary>
         /// <param name="methodElement">The method typeUseElement</param>
         /// <param name="context">The parser context</param>
@@ -249,7 +249,7 @@ namespace ABB.SrcML.Data {
 
             var prefix = ParseNamedScopeUsePrefix(nameElement, context);
             if(null != prefix) {
-                (context.CurrentScope as NamedScope).ParentScopeCandidates.Add(prefix);
+                (context.CurrentScope as INamedScope).ParentScopeCandidates.Add(prefix);
             }
         }
 

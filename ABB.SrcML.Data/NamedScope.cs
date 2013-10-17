@@ -28,7 +28,7 @@ namespace ABB.SrcML.Data {
     /// </summary>
     [DebuggerTypeProxy(typeof(ScopeDebugView))]
     [Serializable]
-    public class NamedScope : Scope {
+    public class NamedScope : Scope, INamedScope {
 
         /// <summary>
         /// Create a new object
@@ -107,7 +107,7 @@ namespace ABB.SrcML.Data {
         /// <param name="otherScope">The scope to add data from</param>
         /// <returns>the new scope</returns>
         public override IScope AddFrom(IScope otherScope) {
-            var otherNamedScope = otherScope as NamedScope;
+            var otherNamedScope = otherScope as INamedScope;
             if(otherNamedScope != null) {
                 foreach(var candidate in otherNamedScope.ParentScopeCandidates) {
                     this.ParentScopeCandidates.Add(candidate);
@@ -118,7 +118,7 @@ namespace ABB.SrcML.Data {
 
         /// <summary>
         /// Overrides <see cref="IScope.CanBeMergedInto"/> to call
-        /// <see cref="CanBeMergedInto(NamedScope)"/>
+        /// <see cref="CanBeMergedInto(INamedScope)"/>
         /// </summary>
         /// <param name="otherScope">the scope to test</param>
         /// <returns>true if the two objects can be merged, false otherwise</returns>
@@ -141,7 +141,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <returns>The full name for this scope</returns>
         public string GetFullName() {
-            var names = from scope in GetParentScopesAndSelf<NamedScope>()
+            var names = from scope in GetParentScopesAndSelf<INamedScope>()
                         where !String.IsNullOrEmpty(scope.Name)
                         select scope.Name;
             return String.Join(".", names.Reverse()).TrimEnd('.');
@@ -175,8 +175,8 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="otherScope">The scope to merge with</param>
         /// <returns>The new merged scope; null if they couldn't be merged</returns>
-        public virtual NamedScope Merge(NamedScope otherScope) {
-            NamedScope mergedScope = null;
+        public virtual INamedScope Merge(INamedScope otherScope) {
+            INamedScope mergedScope = null;
             if(otherScope != null) {
                 if(otherScope.CanBeMergedInto(this)) {
                     // this and other scope can be merged normally either they are the same type or
@@ -275,7 +275,7 @@ namespace ABB.SrcML.Data {
                         }
                         unresolvedChildScopes.AddRange(ChildScopes);
                         //reset the UnresolvedParentScopeInUse so the children will be re-resolved by our parent
-                        foreach(var namedChild in unresolvedChildScopes.OfType<NamedScope>()) {
+                        foreach(var namedChild in unresolvedChildScopes.OfType<INamedScope>()) {
                             namedChild.UnresolvedParentScopeInUse = null;
                         }
                         unresolvedScopes = new Collection<IScope>(unresolvedChildScopes);
@@ -312,7 +312,7 @@ namespace ABB.SrcML.Data {
         /// <paramref name="childScope"/>if needed.
         /// </summary>
         /// <param name="childScope">The child scope to add</param>
-        protected void AddNamedChildScope(NamedScope childScope) {
+        protected void AddNamedChildScope(INamedScope childScope) {
             var scopeToAdd = childScope;
             if(childScope.UnresolvedParentScopeInUse == null && childScope.ParentScopeCandidates.Any()) {
                 var selectedScope = childScope.SelectUnresolvedScope();
