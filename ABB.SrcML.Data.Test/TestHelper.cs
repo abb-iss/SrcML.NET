@@ -60,7 +60,7 @@ namespace ABB.SrcML.Data.Test {
                    a.Name == b.Name;
         }
 
-        public static bool NamedScopeUsesAreEqual(NamedScopeUse a, NamedScopeUse b) {
+        public static bool NamedScopeUsesAreEqual(INamedScopeUse a, INamedScopeUse b) {
             if(a == b) { return true; }
             return a.Name == b.Name &&
                    LocationsAreEqual(a.Location, b.Location) &&
@@ -108,7 +108,7 @@ namespace ABB.SrcML.Data.Test {
                    IResolvesToTypesAreEqual(a.CallingObject, b.CallingObject);
         }
 
-        public static void VerifyPrefixValues(IEnumerable<string> expected, NamedScopeUse use) {
+        public static void VerifyPrefixValues(IEnumerable<string> expected, INamedScopeUse use) {
             var prefix = use;
             Collection<string> prefixes = new Collection<string>();
             do {

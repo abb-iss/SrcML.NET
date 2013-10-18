@@ -10,7 +10,7 @@ namespace ABB.SrcML.Data {
 
         /// <summary>
         /// Creates a <see cref="NamespaceDefinition"/> object from this use (along with all of its
-        /// descendants based on <see cref="NamedScopeUse.ChildScopeUse"/>).
+        /// descendants based on <see cref="INamedScopeUse.ChildScopeUse"/>).
         /// </summary>
         /// <returns>A new namespace definition based on this use</returns>
         public override INamedScope CreateScope() {

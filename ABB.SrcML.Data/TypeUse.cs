@@ -61,7 +61,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The prefix for this type use object
         /// </summary>
-        public NamedScopeUse Prefix { get; set; }
+        public INamedScopeUse Prefix { get; set; }
 
         /// <summary>
         /// Parameters for the type use (indicates that this is a generic type use)

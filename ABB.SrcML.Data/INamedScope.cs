@@ -11,14 +11,14 @@ namespace ABB.SrcML.Data {
 
         string Name { get; set; }
 
-        Collection<NamedScopeUse> ParentScopeCandidates { get; set; }
+        Collection<INamedScopeUse> ParentScopeCandidates { get; set; }
 
-        NamedScopeUse UnresolvedParentScopeInUse { get; set; }
+        INamedScopeUse UnresolvedParentScopeInUse { get; set; }
 
         string GetFullName();
 
         INamedScope Merge(INamedScope otherScope);
 
-        NamedScopeUse SelectUnresolvedScope();
+        INamedScopeUse SelectUnresolvedScope();
     }
 }

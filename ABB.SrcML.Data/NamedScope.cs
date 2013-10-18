@@ -38,7 +38,7 @@ namespace ABB.SrcML.Data {
             Accessibility = AccessModifier.None;
             Name = String.Empty;
             UnresolvedParentScopeInUse = null;
-            ParentScopeCandidates = new Collection<NamedScopeUse>();
+            ParentScopeCandidates = new Collection<INamedScopeUse>();
         }
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace ABB.SrcML.Data {
             : base(otherScope) {
             Accessibility = otherScope.Accessibility;
             Name = otherScope.Name;
-            ParentScopeCandidates = new Collection<NamedScopeUse>();
+            ParentScopeCandidates = new Collection<INamedScopeUse>();
             foreach(var candidate in otherScope.ParentScopeCandidates) {
                 ParentScopeCandidates.Add(candidate);
             }
@@ -78,13 +78,13 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Collection of possible parent scope candidates
         /// </summary>
-        public Collection<NamedScopeUse> ParentScopeCandidates { get; set; }
+        public Collection<INamedScopeUse> ParentScopeCandidates { get; set; }
 
         /// <summary>
         /// This indicates which unresolved parent scope has been used to link this object with a
         /// parent object
         /// </summary>
-        public NamedScopeUse UnresolvedParentScopeInUse { get; set; }
+        public INamedScopeUse UnresolvedParentScopeInUse { get; set; }
 
         /// <summary>
         /// Adds a child scope to this object. If the child scope is a <see cref="Scope"/> It setups
@@ -291,7 +291,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <returns><see cref="UnresolvedParentScopeInUse"/> unless there are no
         /// <see cref="ParentScopeCandidates"/>. Then it returns null</returns>
-        public NamedScopeUse SelectUnresolvedScope() {
+        public INamedScopeUse SelectUnresolvedScope() {
             if(ParentScopeCandidates.Any()) {
                 UnresolvedParentScopeInUse = ParentScopeCandidates.First();
                 return UnresolvedParentScopeInUse;

@@ -110,7 +110,7 @@ namespace ABB.SrcML.Data {
                     };
                     if(CallingObject != null) {
                         var caller = CallingObject as IVariableUse;
-                        Stack<NamedScopeUse> callerStack = new Stack<NamedScopeUse>();
+                        Stack<INamedScopeUse> callerStack = new Stack<INamedScopeUse>();
                         while(caller != null) {
                             var scopeUse = new NamedScopeUse() {
                                 Name = caller.Name,
@@ -120,7 +120,7 @@ namespace ABB.SrcML.Data {
                             caller = caller.CallingObject as IVariableUse;
                         }
 
-                        NamedScopeUse prefix = null, last = null;
+                        INamedScopeUse prefix = null, last = null;
 
                         foreach(var current in callerStack) {
                             if(null == prefix) {

@@ -8,15 +8,15 @@ namespace ABB.SrcML.Data {
     /// <summary>
     /// The NamedScopeUse class represents a use of a named scope. It can create a
     /// <see cref="NamedScope"/> based on itself by calling
-    /// <see cref="NamedScopeUse.CreateScope()"/>.
+    /// <see cref="INamedScopeUse.CreateScope()"/>.
     /// </summary>
     [Serializable]
-    public class NamedScopeUse : AbstractScopeUse<INamedScope> {
+    public class NamedScopeUse : AbstractScopeUse<INamedScope>, INamedScopeUse {
 
         /// <summary>
         /// The child of this scope
         /// </summary>
-        public NamedScopeUse ChildScopeUse { get; set; }
+        public INamedScopeUse ChildScopeUse { get; set; }
 
         /// <summary>
         /// Creates a <see cref="NamedScope"/> object from this use (along with all of its
@@ -43,7 +43,7 @@ namespace ABB.SrcML.Data {
             if(ChildScopeUse != null) {
                 var globalScope = ParentScope.GetParentScopesAndSelf<NamespaceDefinition>().Where(p => p.IsGlobal).FirstOrDefault();
 
-                NamedScopeUse current = ChildScopeUse;
+                INamedScopeUse current = ChildScopeUse;
 
                 IEnumerable<INamedScope> matches = null;
                 while(current != null) {
@@ -67,7 +67,7 @@ namespace ABB.SrcML.Data {
         /// <returns>The full name</returns>
         public string GetFullName() {
             StringBuilder sb = new StringBuilder();
-            var current = this;
+            INamedScopeUse current = this;
             while(current != null) {
                 sb.Append(current.Name);
                 current = current.ChildScopeUse;

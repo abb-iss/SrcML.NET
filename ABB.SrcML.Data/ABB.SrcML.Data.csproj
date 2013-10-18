@@ -60,6 +60,7 @@
     <Compile Include="CSharpVarTypeUse.cs" />
     <Compile Include="IMethodDefinition.cs" />
     <Compile Include="INamedScope.cs" />
+    <Compile Include="INamedScopeUse.cs" />
     <Compile Include="INamespaceDefinition.cs" />
     <Compile Include="IParameterDeclaration.cs" />
     <Compile Include="IResolvesToType.cs" />

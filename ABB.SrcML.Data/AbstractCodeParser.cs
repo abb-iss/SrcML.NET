@@ -591,11 +591,11 @@ namespace ABB.SrcML.Data {
         /// <param name="nameElement">The name element to parse</param>
         /// <param name="context">The parser context</param>
         /// <returns>A named scope use for this element</returns>
-        public NamedScopeUse ParseNamedScopeUsePrefix(XElement nameElement, ParserContext context) {
+        public INamedScopeUse ParseNamedScopeUsePrefix(XElement nameElement, ParserContext context) {
             IEnumerable<XElement> parentNameElements = Enumerable.Empty<XElement>();
 
             parentNameElements = NameHelper.GetNameElementsExceptLast(nameElement);
-            NamedScopeUse current = null, root = null;
+            INamedScopeUse current = null, root = null;
 
             if(parentNameElements.Any()) {
                 foreach(var element in parentNameElements) {
@@ -673,7 +673,7 @@ namespace ABB.SrcML.Data {
 
             XElement lastNameElement = null;                  // this is the name element that
                                                               // identifies the type being used
-            NamedScopeUse prefix = null;                      // This is the prefix (in A::B::C,
+            INamedScopeUse prefix = null;                     // This is the prefix (in A::B::C,
                                                               // this would be the chain A::B)
             XElement typeParameterArgumentList = null;        // the argument list element holds the
                                                               // parameters for generic type uses

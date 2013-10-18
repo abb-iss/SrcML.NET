@@ -8,7 +8,7 @@ namespace ABB.SrcML.Data {
     /// </summary>
     [Serializable]
     public class Alias {
-        private NamedScopeUse endPoint;
+        private INamedScopeUse endPoint;
         private NamespaceUse namespaceRoot;
 
         /// <summary>
@@ -22,7 +22,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// the specific object identified by this alias
         /// </summary>
-        public NamedScopeUse ImportedNamedScope {
+        public INamedScopeUse ImportedNamedScope {
             get { return endPoint; }
             set {
                 this.endPoint = value;
