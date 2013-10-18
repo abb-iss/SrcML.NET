@@ -357,7 +357,7 @@ namespace ABB.SrcML.Data {
                     VariableType = declarationType,
                     Name = nameElement.Value,
                     Location = context.CreateLocation(nameElement),
-                    Scope = context.CurrentScope,
+                    ParentScope = context.CurrentScope,
                 };
                 yield return variableDeclaration;
             }
@@ -579,7 +579,7 @@ namespace ABB.SrcML.Data {
                 VariableType = ParseTypeUseElement(typeElement, context),
                 Name = name,
                 HasDefaultValue = hasDefault,
-                Scope = context.CurrentScope
+                ParentScope = context.CurrentScope
             };
             parameterDeclaration.Locations.Add(context.CreateLocation(declElement));
             return parameterDeclaration;

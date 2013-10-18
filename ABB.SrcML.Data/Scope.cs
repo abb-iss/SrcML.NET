@@ -191,7 +191,7 @@ namespace ABB.SrcML.Data {
         /// <param name="declaration">The variable declaration to add.</param>
         public void AddDeclaredVariable(IVariableDeclaration declaration) {
             DeclaredVariablesDictionary[declaration.Name] = declaration;
-            declaration.Scope = this;
+            declaration.ParentScope = this;
         }
 
         /// <summary>

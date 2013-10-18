@@ -39,7 +39,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The scope where this variable is declared
         /// </summary>
-        public IScope Scope {
+        public IScope ParentScope {
             get { return this.parentScope; }
             set {
                 this.parentScope = value;
