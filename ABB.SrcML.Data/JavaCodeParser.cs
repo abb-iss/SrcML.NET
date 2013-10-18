@@ -174,7 +174,7 @@ namespace ABB.SrcML.Data {
             var aliases = from aliasStatement in GetAliasElementsForFile(unitElement)
                           select ParseAliasElement(aliasStatement, context);
 
-            context.Aliases = new Collection<Alias>(aliases.ToList());
+            context.Aliases = new Collection<IAlias>(aliases.ToList());
 
             ParseNamespaceElement(unitElement, context);
         }

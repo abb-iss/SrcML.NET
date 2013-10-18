@@ -33,7 +33,7 @@ namespace ABB.SrcML.Data {
         /// The aliases for this context. This should be set by a call to
         /// <see cref="AbstractCodeParser.ParseUnitElement"/>.
         /// </summary>
-        public Collection<Alias> Aliases { get; set; }
+        public Collection<IAlias> Aliases { get; set; }
 
         /// <summary>
         /// The current scope on <see cref="ParentScopeStack"/>. If the stack is empty, it returns

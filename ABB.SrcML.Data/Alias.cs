@@ -7,9 +7,9 @@ namespace ABB.SrcML.Data {
     /// Represents an import or using directive (usually found at the top of a source file)
     /// </summary>
     [Serializable]
-    public class Alias {
+    public class Alias : IAlias {
         private INamedScopeUse endPoint;
-        private NamespaceUse namespaceRoot;
+        private INamedScopeUse namespaceRoot;
 
         /// <summary>
         /// Constructs a new alias object
@@ -32,7 +32,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The namespace root identified by this alias
         /// </summary>
-        public NamespaceUse ImportedNamespace {
+        public INamedScopeUse ImportedNamespace {
             get { return namespaceRoot; }
             set { this.namespaceRoot = value; }
         }
@@ -59,10 +59,10 @@ namespace ABB.SrcML.Data {
         /// <param name="rootScope">the global scope to search from</param>
         /// <returns>namespace definitions rooted at
         /// <paramref name="rootScope"/>that match see cref="ImportedNamespace"/></returns>
-        public IEnumerable<NamespaceDefinition> FindMatchingNamespace(NamespaceDefinition rootScope) {
+        public IEnumerable<INamespaceDefinition> FindMatchingNamespace(INamespaceDefinition rootScope) {
             var currentNsUse = this.ImportedNamespace;
 
-            List<NamespaceDefinition> scopes = new List<NamespaceDefinition>();
+            List<INamespaceDefinition> scopes = new List<INamespaceDefinition>();
             scopes.Add(rootScope);
 
             // we will go through each namespace referenced by the alias
@@ -72,12 +72,12 @@ namespace ABB.SrcML.Data {
                 // iterations, scopes will contain matches for the parent of currentNsUse
                 int currentLength = scopes.Count;
                 for(int i = 0; i < currentLength; i++) {
-                    scopes.AddRange(scopes[i].GetChildScopesWithId<NamespaceDefinition>(currentNsUse.Name));
+                    scopes.AddRange(scopes[i].GetChildScopesWithId<INamespaceDefinition>(currentNsUse.Name));
                 }
                 // once we've found matches for currentNsUse, remove the previous scopes from the
                 // list and set currentNsUse to its child
                 scopes.RemoveRange(0, currentLength);
-                currentNsUse = currentNsUse.ChildScopeUse as NamespaceUse;
+                currentNsUse = currentNsUse.ChildScopeUse;
             }
 
             return scopes;

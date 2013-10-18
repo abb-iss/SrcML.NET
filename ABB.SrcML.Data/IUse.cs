@@ -7,7 +7,7 @@ namespace ABB.SrcML.Data {
     public interface IUse<DEFINITION> : IRootedObject
      where DEFINITION : class {
 
-        ReadOnlyCollection<Alias> Aliases { get; }
+        ReadOnlyCollection<IAlias> Aliases { get; }
 
         SrcMLLocation Location { get; set; }
 
@@ -17,9 +17,9 @@ namespace ABB.SrcML.Data {
 
         ABB.SrcML.Language ProgrammingLanguage { get; set; }
 
-        void AddAlias(Alias alias);
+        void AddAlias(IAlias alias);
 
-        void AddAliases(IEnumerable<Alias> aliasesToAdd);
+        void AddAliases(IEnumerable<IAlias> aliasesToAdd);
 
         IEnumerable<DEFINITION> FindMatches();
 

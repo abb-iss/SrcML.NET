@@ -9,7 +9,7 @@ namespace ABB.SrcML.Data.Test {
 
     public static class TestHelper {
 
-        public static bool AliasesAreEqual(Alias a, Alias b) {
+        public static bool AliasesAreEqual(IAlias a, IAlias b) {
             if(a == b) { return true; }
             return LocationsAreEqual(a.Location, b.Location) &&
                    NamedScopeUsesAreEqual(a.ImportedNamedScope, b.ImportedNamedScope) &&

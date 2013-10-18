@@ -58,6 +58,7 @@
     <Compile Include="Alias.cs" />
     <Compile Include="BuiltInTypeFactory.cs" />
     <Compile Include="CSharpVarTypeUse.cs" />
+    <Compile Include="IAlias.cs" />
     <Compile Include="IMethodCall.cs" />
     <Compile Include="IMethodDefinition.cs" />
     <Compile Include="INamedScope.cs" />

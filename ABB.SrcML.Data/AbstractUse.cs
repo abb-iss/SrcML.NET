@@ -21,21 +21,21 @@ namespace ABB.SrcML.Data {
     /// </summary>
     [Serializable]
     public abstract class AbstractUse<DEFINITION> : IUse<DEFINITION> where DEFINITION : class {
-        private List<Alias> internalAliasCollection;
+        private List<IAlias> internalAliasCollection;
         private IScope parentScope;
 
         /// <summary>
         /// Sets up the an abstract use object
         /// </summary>
         protected AbstractUse() {
-            internalAliasCollection = new List<Alias>();
-            Aliases = new ReadOnlyCollection<Alias>(internalAliasCollection);
+            internalAliasCollection = new List<IAlias>();
+            Aliases = new ReadOnlyCollection<IAlias>(internalAliasCollection);
         }
 
         /// <summary>
         /// The aliases for this type use
         /// </summary>
-        public ReadOnlyCollection<Alias> Aliases { get; private set; }
+        public ReadOnlyCollection<IAlias> Aliases { get; private set; }
 
         /// <summary>
         /// The location of this use in the original source file and in srcML
@@ -74,11 +74,11 @@ namespace ABB.SrcML.Data {
         public Language ProgrammingLanguage { get; set; }
 
         /// <summary>
-        /// Adds an alias. If <see cref="Alias.IsAliasFor{T}(AbstractUse{T})"/> returns false, then
+        /// Adds an alias. If <see cref="IAlias.IsAliasFor{T}(AbstractUse{T})"/> returns false, then
         /// the alias is not added.
         /// </summary>
         /// <param name="alias">The alias to add</param>
-        public void AddAlias(Alias alias) {
+        public void AddAlias(IAlias alias) {
             if(alias.IsAliasFor(this)) {
                 internalAliasCollection.Add(alias);
             }
@@ -88,7 +88,7 @@ namespace ABB.SrcML.Data {
         /// Adds an enumerable of aliases to this scope.
         /// </summary>
         /// <param name="aliasesToAdd">The aliases to add</param>
-        public void AddAliases(IEnumerable<Alias> aliasesToAdd) {
+        public void AddAliases(IEnumerable<IAlias> aliasesToAdd) {
             if(aliasesToAdd != null) {
                 foreach(var alias in aliasesToAdd) {
                     this.AddAlias(alias);

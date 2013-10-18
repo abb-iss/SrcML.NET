@@ -173,14 +173,14 @@ namespace ABB.SrcML.Data {
         public abstract IEnumerable<XElement> GetParentTypeUseElements(XElement typeElement);
 
         /// <summary>
-        /// Creates an <see cref="Alias"/> object from a using import (such as using in C++ and C#
+        /// Creates an <see cref="IAlias"/> object from a using import (such as using in C++ and C#
         /// and import in Java).
         /// </summary>
         /// <param name="aliasStatement">The statement to parse. Should be of type see
         /// cref="AliasElementName"/></param>
         /// <param name="context">The context to place the resulting alias in</param>
         /// <returns>a new alias object that represents this alias statement</returns>
-        public Alias ParseAliasElement(XElement aliasStatement, ParserContext context) {
+        public IAlias ParseAliasElement(XElement aliasStatement, ParserContext context) {
             if(null == aliasStatement)
                 throw new ArgumentNullException("aliasStatement");
             if(aliasStatement.Name != AliasElementName)
@@ -737,7 +737,7 @@ namespace ABB.SrcML.Data {
             var aliases = from aliasStatement in GetAliasElementsForFile(unitElement)
                           select ParseAliasElement(aliasStatement, context);
 
-            context.Aliases = new Collection<Alias>(aliases.ToList());
+            context.Aliases = new Collection<IAlias>(aliases.ToList());
 
             INamespaceDefinition namespaceForUnit = new NamespaceDefinition();
             context.Push(namespaceForUnit);
