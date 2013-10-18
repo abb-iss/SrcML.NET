@@ -108,7 +108,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="use">the type use to check</param>
         /// <returns>true if this alias may represent this type use.</returns>
-        public bool IsAliasFor<DEFINITION>(AbstractUse<DEFINITION> use) where DEFINITION : class {
+        public bool IsAliasFor<DEFINITION>(IUse<DEFINITION> use) where DEFINITION : class {
             if(null == use)
                 throw new ArgumentNullException("use");
 

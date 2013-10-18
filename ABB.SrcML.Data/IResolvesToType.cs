@@ -14,9 +14,9 @@ using System.Collections.Generic;
 namespace ABB.SrcML.Data {
 
     /// <summary>
-    /// This interface provides methods that <see cref="AbstractUse{T}"/> objects should implement
-    /// if they should resolve to a return type <see cref="FindFirstMatchingType()"/> should be a
-    /// call to <c><see cref="FindMatchingTypes()"/>.FirstOrDefault()</c>
+    /// This interface provides methods that <see cref="IUse{T}"/> objects should implement if they
+    /// should resolve to a return type <see cref="FindFirstMatchingType()"/> should be a call to
+    /// <c><see cref="FindMatchingTypes()"/>.FirstOrDefault()</c>
     /// </summary>
     public interface IResolvesToType {
 

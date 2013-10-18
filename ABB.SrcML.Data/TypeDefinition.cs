@@ -75,7 +75,7 @@ namespace ABB.SrcML.Data {
         /// <typeparam name="T">The use type</typeparam>
         /// <param name="use">The use to find the containing class for</param>
         /// <returns>The class referred to by the keyword</returns>
-        public static IEnumerable<ITypeDefinition> GetTypeForKeyword<T>(AbstractUse<T> use) where T : class {
+        public static IEnumerable<ITypeDefinition> GetTypeForKeyword<T>(IUse<T> use) where T : class {
             var typeDefinitions = Enumerable.Empty<ITypeDefinition>();
             if(use.Name == "this") {
                 typeDefinitions = use.ParentScopes.OfType<ITypeDefinition>().Take(1);

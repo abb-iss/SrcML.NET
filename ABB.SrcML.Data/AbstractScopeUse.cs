@@ -6,7 +6,7 @@ namespace ABB.SrcML.Data {
 
     /// <summary>
     /// Abstract Scope Use is a variable use for Named Scopes. It provides an implementation of
-    /// <see cref="AbstractUse{T}.FindMatches()"/> for resolving Named Scope uses
+    /// <see cref="IUse{T}.FindMatches()"/> for resolving Named Scope uses
     /// </summary>
     /// <typeparam name="DEFINITION">The type. Must be NamedScope or a subclass</typeparam>
     [Serializable]
@@ -15,10 +15,10 @@ namespace ABB.SrcML.Data {
 
         /// <summary>
         /// Finds matching <typeparamref name="DEFINITION"/> from the
-        /// <see cref="AbstractUse{T}.ParentScopes"/> of this usage.
+        /// <see cref="IUse{T}.ParentScopes"/> of this usage.
         /// </summary>
         /// <returns>An enumerable of <typeparamref name="DEFINITION"/> objects that
-        /// <see cref="AbstractUse{T}.Matches">matches</see> this usage.</returns>
+        /// <see cref="IUse{T}.Matches">matches</see> this usage.</returns>
         public override IEnumerable<DEFINITION> FindMatches() {
             DEFINITION definition = null;
             foreach(var parent in this.ParentScopes) {

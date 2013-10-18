@@ -20,7 +20,7 @@ namespace ABB.SrcML.Data {
     /// <see cref="INamedScope"/>.
     /// </summary>
     [Serializable]
-    public abstract class AbstractUse<DEFINITION> where DEFINITION : class {
+    public abstract class AbstractUse<DEFINITION> : IUse<DEFINITION> where DEFINITION : class {
         private List<Alias> internalAliasCollection;
         private IScope parentScope;
 
