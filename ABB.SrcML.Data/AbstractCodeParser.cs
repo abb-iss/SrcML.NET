@@ -233,7 +233,7 @@ namespace ABB.SrcML.Data {
         /// <param name="context">The parser context</param>
         /// <returns>A method call for
         /// <paramref name="callElement"/></returns>
-        public virtual MethodCall ParseCallElement(XElement callElement, ParserContext context) {
+        public virtual IMethodCall ParseCallElement(XElement callElement, ParserContext context) {
             XElement methodNameElement = null;
             string name = String.Empty;
             bool isConstructor = false;

@@ -46,7 +46,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Holds all of the method calls for this scope
         /// </summary>
-        protected Collection<MethodCall> MethodCallCollection;
+        protected Collection<IMethodCall> MethodCallCollection;
 
         /// <summary>
         /// Initializes an empty variable scope.
@@ -54,7 +54,7 @@ namespace ABB.SrcML.Data {
         public Scope() {
             DeclaredVariablesDictionary = new Dictionary<string, IVariableDeclaration>();
             ChildScopeMap = new Dictionary<string, List<IScope>>();
-            MethodCallCollection = new Collection<MethodCall>();
+            MethodCallCollection = new Collection<IMethodCall>();
             LocationDictionary = new Dictionary<string, Collection<SrcMLLocation>>();
         }
 
@@ -67,7 +67,7 @@ namespace ABB.SrcML.Data {
 
             ChildScopeMap = new Dictionary<string, List<IScope>>(otherScope.ChildScopeMap.Count);
             DeclaredVariablesDictionary = new Dictionary<string, IVariableDeclaration>(otherScope.DeclaredVariablesDictionary.Count);
-            MethodCallCollection = new Collection<MethodCall>();
+            MethodCallCollection = new Collection<IMethodCall>();
             LocationDictionary = new Dictionary<string, Collection<SrcMLLocation>>(otherScope.LocationDictionary.Count);
 
             CopyFromOtherScope(otherScope);
@@ -125,7 +125,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Iterates over all of the method calls in this scope
         /// </summary>
-        public IEnumerable<MethodCall> MethodCalls { get { return this.MethodCallCollection.AsEnumerable(); } }
+        public IEnumerable<IMethodCall> MethodCalls { get { return this.MethodCallCollection.AsEnumerable(); } }
 
         /// <summary>
         /// The parent container for this scope.
@@ -209,7 +209,7 @@ namespace ABB.SrcML.Data {
         /// Adds a method call
         /// </summary>
         /// <param name="methodCall">the method call to add</param>
-        public void AddMethodCall(MethodCall methodCall) {
+        public void AddMethodCall(IMethodCall methodCall) {
             MethodCallCollection.Add(methodCall);
             methodCall.ParentScope = this;
         }

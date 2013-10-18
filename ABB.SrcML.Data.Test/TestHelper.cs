@@ -25,7 +25,7 @@ namespace ABB.SrcML.Data.Test {
             if(aType.Name == "VariableUse") {
                 return VariableUsesAreEqual((IVariableUse) a, (IVariableUse) b);
             } else if(aType.Name == "MethodCall") {
-                return MethodCallsAreEqual((MethodCall) a, (MethodCall) b);
+                return MethodCallsAreEqual((IMethodCall) a, (IMethodCall) b);
             } else if(aType.Name == "TypeUse") {
                 return TypeUsesAreEqual((ITypeUse) a, (ITypeUse) b);
             } else if(aType.Name == "LiteralUse") {
@@ -50,7 +50,7 @@ namespace ABB.SrcML.Data.Test {
                    a.XPath == b.XPath;
         }
 
-        public static bool MethodCallsAreEqual(MethodCall a, MethodCall b) {
+        public static bool MethodCallsAreEqual(IMethodCall a, IMethodCall b) {
             if(a == b) { return true; }
             return CollectionsAreEqual(a.Arguments, b.Arguments, IResolvesToTypesAreEqual) &&
                    IResolvesToTypesAreEqual(a.CallingObject, b.CallingObject) &&

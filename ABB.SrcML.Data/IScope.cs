@@ -17,7 +17,7 @@ namespace ABB.SrcML.Data {
 
         IEnumerable<SrcMLLocation> Locations { get; }
 
-        IEnumerable<MethodCall> MethodCalls { get; }
+        IEnumerable<IMethodCall> MethodCalls { get; }
 
         SrcMLLocation PrimaryLocation { get; }
 
@@ -31,7 +31,7 @@ namespace ABB.SrcML.Data {
 
         IScope AddFrom(IScope otherScope);
 
-        void AddMethodCall(MethodCall methodCall);
+        void AddMethodCall(IMethodCall methodCall);
 
         void AddSourceLocation(SrcMLLocation location);
 

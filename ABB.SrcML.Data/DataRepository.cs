@@ -203,17 +203,17 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="loc">The source location to search for.</param>
         /// <returns>A collection of the method calls at the given location.</returns>
-        public Collection<MethodCall> FindMethodCalls(SourceLocation loc) {
+        public Collection<IMethodCall> FindMethodCalls(SourceLocation loc) {
             if(loc == null)
                 throw new ArgumentNullException("loc");
             var scope = globalScope.GetScopeForLocation(loc);
             if(scope == null) {
                 //TODO replace logger call
                 //Utilities.SrcMLFileLogger.DefaultLogger.InfoFormat("SourceLocation {0} not found in DataRepository", loc);
-                return new Collection<MethodCall>();
+                return new Collection<IMethodCall>();
             }
             var calls = scope.MethodCalls.Where(mc => mc.Location.Contains(loc));
-            return new Collection<MethodCall>(calls.OrderByDescending(mc => mc.Location, new SourceLocationComparer()).ToList());
+            return new Collection<IMethodCall>(calls.OrderByDescending(mc => mc.Location, new SourceLocationComparer()).ToList());
         }
 
         /// <summary>
@@ -222,7 +222,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="element">The XElement to search for.</param>
         /// <returns>A collection of the method calls at the given element.</returns>
-        public Collection<MethodCall> FindMethodCalls(XElement element) {
+        public Collection<IMethodCall> FindMethodCalls(XElement element) {
             if(element == null)
                 throw new ArgumentNullException("element");
             return FindMethodCalls(element.GetXPath(false));
@@ -234,12 +234,12 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="xpath">The path to search for.</param>
         /// <returns>A collection of the method calls at the given path.</returns>
-        public Collection<MethodCall> FindMethodCalls(string xpath) {
+        public Collection<IMethodCall> FindMethodCalls(string xpath) {
             if(xpath == null)
                 throw new ArgumentNullException("xpath");
             var scope = globalScope.GetScopeForLocation(xpath);
             var calls = scope.MethodCalls.Where(mc => xpath.StartsWith(mc.Location.XPath));
-            return new Collection<MethodCall>(calls.OrderByDescending(mc => mc.Location, new SourceLocationComparer()).ToList());
+            return new Collection<IMethodCall>(calls.OrderByDescending(mc => mc.Location, new SourceLocationComparer()).ToList());
         }
 
         /// <summary>

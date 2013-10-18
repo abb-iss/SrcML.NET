@@ -16,7 +16,7 @@ namespace ABB.SrcML.Data {
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public MethodCall[] MethodCalls { get { return this.scope.MethodCalls.ToArray(); } }
+        public IMethodCall[] MethodCalls { get { return this.scope.MethodCalls.ToArray(); } }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public IVariableDeclaration[] Variables { get { return this.scope.DeclaredVariables.ToArray(); } }

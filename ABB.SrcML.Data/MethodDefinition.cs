@@ -171,7 +171,7 @@ namespace ABB.SrcML.Data {
         /// <param name="callee">The method to find calls for.</param>
         /// <returns>All of the method calls to
         /// <paramref name="callee"/>in this method.</returns>
-        public IEnumerable<MethodCall> GetCallsTo(IMethodDefinition callee) {
+        public IEnumerable<IMethodCall> GetCallsTo(IMethodDefinition callee) {
             if(null == callee)
                 throw new ArgumentNullException("callee");
 
@@ -312,7 +312,7 @@ namespace ABB.SrcML.Data {
             }
 
             [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-            public MethodCall[] MethodCalls { get { return this.method.MethodCalls.ToArray(); } }
+            public IMethodCall[] MethodCalls { get { return this.method.MethodCalls.ToArray(); } }
 
             [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
             public IParameterDeclaration[] Parameters { get { return method.Parameters.ToArray(); } }
