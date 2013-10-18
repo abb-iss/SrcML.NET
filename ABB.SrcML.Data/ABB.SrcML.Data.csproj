@@ -67,6 +67,7 @@
     <Compile Include="ITypeDefinition.cs" />
     <Compile Include="IUse.cs" />
     <Compile Include="IVariableDeclaration.cs" />
+    <Compile Include="IVariableUse.cs" />
     <Compile Include="LiteralType.cs" />
     <Compile Include="LiteralUse.cs" />
     <Compile Include="CSharpCodeParser.cs" />

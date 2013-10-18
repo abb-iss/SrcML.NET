@@ -429,7 +429,7 @@ namespace ABB.SrcML.Data.Test {
 
             Assert.IsNotNull(callToFooFromC, "could not find any calls in C.main()");
             Assert.AreEqual("Foo", callToFooFromC.Name);
-            Assert.AreEqual("b", (callToFooFromC.CallingObject as VariableUse).Name);
+            Assert.AreEqual("b", (callToFooFromC.CallingObject as IVariableUse).Name);
 
             Assert.AreEqual(typeB, callToFooFromC.CallingObject.FindFirstMatchingType());
             Assert.AreEqual(aDotFoo, callToFooFromC.FindMatches().FirstOrDefault());

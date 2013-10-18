@@ -111,7 +111,7 @@ namespace ABB.SrcML.Data {
         /// <param name="context">The parser context</param>
         /// <returns>A variable use object</returns>
         // TODO make this fit in with the rest of the parse methods
-        public virtual VariableUse CreateVariableUse(XElement element, ParserContext context) {
+        public virtual IVariableUse CreateVariableUse(XElement element, ParserContext context) {
             XElement nameElement;
             if(element.Name == SRC.Name) {
                 nameElement = element;
@@ -125,7 +125,7 @@ namespace ABB.SrcML.Data {
 
             var lastNameElement = NameHelper.GetLastNameElement(nameElement);
 
-            var variableUse = new VariableUse() {
+            IVariableUse variableUse = new VariableUse() {
                 Location = context.CreateLocation(lastNameElement, true),
                 Name = lastNameElement.Value,
                 ParentScope = context.CurrentScope,

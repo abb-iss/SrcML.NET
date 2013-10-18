@@ -19,7 +19,7 @@ namespace ABB.SrcML.Data {
     /// The variable use class represents a use of a variable.
     /// </summary>
     [Serializable]
-    public class VariableUse : AbstractUse<IVariableDeclaration>, IResolvesToType {
+    public class VariableUse : AbstractUse<IVariableDeclaration>, IVariableUse {
 
         /// <summary>
         /// The calling object for a use is used when you have <c>a.b</c> -- this variable use would
@@ -109,7 +109,7 @@ namespace ABB.SrcML.Data {
                         ProgrammingLanguage = this.ProgrammingLanguage,
                     };
                     if(CallingObject != null) {
-                        var caller = CallingObject as VariableUse;
+                        var caller = CallingObject as IVariableUse;
                         Stack<NamedScopeUse> callerStack = new Stack<NamedScopeUse>();
                         while(caller != null) {
                             var scopeUse = new NamedScopeUse() {
@@ -117,7 +117,7 @@ namespace ABB.SrcML.Data {
                                 ProgrammingLanguage = this.ProgrammingLanguage,
                             };
                             callerStack.Push(scopeUse);
-                            caller = caller.CallingObject as VariableUse;
+                            caller = caller.CallingObject as IVariableUse;
                         }
 
                         NamedScopeUse prefix = null, last = null;

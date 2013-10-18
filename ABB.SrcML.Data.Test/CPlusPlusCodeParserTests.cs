@@ -424,8 +424,8 @@ namespace ABB.SrcML.Data.Test {
             var testCall = testScope.MethodCalls.FirstOrDefault();
             Assert.IsNotNull(testCall, "could not find any test calls");
             Assert.AreEqual("Foo", testCall.Name);
-            Assert.AreEqual("b", (testCall.CallingObject as VariableUse).Name);
-            Assert.AreEqual("a", (testCall.CallingObject.CallingObject as VariableUse).Name);
+            Assert.AreEqual("b", (testCall.CallingObject as IVariableUse).Name);
+            Assert.AreEqual("a", (testCall.CallingObject.CallingObject as IVariableUse).Name);
             Assert.IsNull(testCall.CallingObject.CallingObject.CallingObject);
         }
 
@@ -511,9 +511,9 @@ namespace ABB.SrcML.Data.Test {
             var methodCall = aDotContains.MethodCalls.First();
             var variableB = classA.DeclaredVariables.First();
 
-            Assert.AreEqual("b", (methodCall.CallingObject as VariableUse).Name);
+            Assert.AreEqual("b", (methodCall.CallingObject as IVariableUse).Name);
             Assert.AreEqual("b", variableB.Name);
-            Assert.AreSame(variableB, (methodCall.CallingObject as VariableUse).FindMatches().First());
+            Assert.AreSame(variableB, (methodCall.CallingObject as IVariableUse).FindMatches().First());
 
             Assert.AreSame(bDotContains, methodCall.FindMatches().First());
             Assert.AreNotSame(aDotContains, methodCall.FindMatches().First());

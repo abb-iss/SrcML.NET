@@ -23,7 +23,7 @@ namespace ABB.SrcML.Data.Test {
             var aType = a.GetType();
             if(aType != b.GetType()) { return false; }
             if(aType.Name == "VariableUse") {
-                return VariableUsesAreEqual((VariableUse) a, (VariableUse) b);
+                return VariableUsesAreEqual((IVariableUse) a, (IVariableUse) b);
             } else if(aType.Name == "MethodCall") {
                 return MethodCallsAreEqual((MethodCall) a, (MethodCall) b);
             } else if(aType.Name == "TypeUse") {
@@ -101,7 +101,7 @@ namespace ABB.SrcML.Data.Test {
                    TypeUsesAreEqual(a.VariableType, b.VariableType);
         }
 
-        public static bool VariableUsesAreEqual(VariableUse a, VariableUse b) {
+        public static bool VariableUsesAreEqual(IVariableUse a, IVariableUse b) {
             if(a == b) { return true; }
             return a.Name == b.Name &&
                    LocationsAreEqual(a.Location, b.Location) &&
