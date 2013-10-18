@@ -24,7 +24,7 @@ namespace ABB.SrcML.Data {
     /// </summary>
     [DebuggerTypeProxy(typeof(MethodDebugView))]
     [Serializable]
-    public class MethodDefinition : NamedScope {
+    public class MethodDefinition : NamedScope, IMethodDefinition {
         private List<ParameterDeclaration> _parameters;
 
         /// <summary>
@@ -156,7 +156,7 @@ namespace ABB.SrcML.Data {
         /// <param name="callee">The method to look for calls to</param>
         /// <returns>True if this method contains any <see cref="GetCallsTo">calls to</see>
         /// <paramref name="callee"/></returns>.
-        public bool ContainsCallTo(MethodDefinition callee) {
+        public bool ContainsCallTo(IMethodDefinition callee) {
             if(null == callee)
                 throw new ArgumentNullException("callee");
 
@@ -171,7 +171,7 @@ namespace ABB.SrcML.Data {
         /// <param name="callee">The method to find calls for.</param>
         /// <returns>All of the method calls to
         /// <paramref name="callee"/>in this method.</returns>
-        public IEnumerable<MethodCall> GetCallsTo(MethodDefinition callee) {
+        public IEnumerable<MethodCall> GetCallsTo(IMethodDefinition callee) {
             if(null == callee)
                 throw new ArgumentNullException("callee");
 
@@ -300,9 +300,9 @@ namespace ABB.SrcML.Data {
         }
 
         internal class MethodDebugView {
-            private MethodDefinition method;
+            private IMethodDefinition method;
 
-            public MethodDebugView(MethodDefinition method) {
+            public MethodDebugView(IMethodDefinition method) {
                 this.method = method;
             }
 

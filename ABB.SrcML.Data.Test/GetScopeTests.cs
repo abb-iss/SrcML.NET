@@ -90,7 +90,7 @@ namespace ABB.SrcML.Data.Test {
             var fileUnit = fileSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xml, "function_def.cpp");
             var globalScope = parser[Language.CPlusPlus].ParseFileUnit(fileUnit);
 
-            var main = globalScope.ChildScopes.OfType<MethodDefinition>().First(md => md.Name == "main");
+            var main = globalScope.ChildScopes.OfType<IMethodDefinition>().First(md => md.Name == "main");
             Assert.AreEqual(main, globalScope.GetScopeForLocation(new SourceLocation("function_def.cpp", 12, 20)));
         }
 
@@ -119,7 +119,7 @@ namespace ABB.SrcML.Data.Test {
             var cppUnit = fileSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(cppXml, "Foo.cpp");
             globalScope = globalScope.Merge(parser[Language.CPlusPlus].ParseFileUnit(cppUnit)) as INamedScope;
 
-            var bar = globalScope.ChildScopes.First().ChildScopes.OfType<MethodDefinition>().First();
+            var bar = globalScope.ChildScopes.First().ChildScopes.OfType<IMethodDefinition>().First();
             Assert.AreEqual("bar", bar.Name);
             Assert.AreEqual(bar, globalScope.GetScopeForLocation(new SourceLocation("Foo.cpp", 3, 2)));
         }

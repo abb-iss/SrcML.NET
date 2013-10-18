@@ -195,7 +195,7 @@ namespace ABB.SrcML.Data.Test {
             using(var callLog = new StreamWriter(callLogPath)) {
                 foreach(var call in methodCalls) {
                     sw.Start();
-                    MethodDefinition match = null;
+                    IMethodDefinition match = null;
                     try {
                         match = call.FindMatches().FirstOrDefault();
                     } catch(Exception e) {
@@ -233,7 +233,7 @@ namespace ABB.SrcML.Data.Test {
                              where (scope as ITypeDefinition) != null
                              select scope;
             var methodScopes = from scope in namedScopes
-                               where (scope as MethodDefinition) != null
+                               where (scope as IMethodDefinition) != null
                                select scope;
             Console.WriteLine("{0,10:N0} namespaces", namespaceScopes.Count());
             Console.WriteLine("{0,10:N0} types", typeScopes.Count());

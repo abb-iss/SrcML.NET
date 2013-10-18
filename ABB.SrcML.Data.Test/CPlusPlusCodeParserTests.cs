@@ -59,7 +59,7 @@ namespace ABB.SrcML.Data.Test {
             var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.h");
             var globalScope = codeParser.ParseFileUnit(unit);
 
-            var constructors = globalScope.GetDescendantScopes<MethodDefinition>();
+            var constructors = globalScope.GetDescendantScopes<IMethodDefinition>();
             var defaultConstructor = (from method in constructors
                                       where method.Parameters.Count == 0
                                       select method).FirstOrDefault();
@@ -95,7 +95,7 @@ namespace ABB.SrcML.Data.Test {
             var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.h");
             var globalScope = codeParser.ParseFileUnit(unit);
 
-            var constructors = globalScope.GetDescendantScopes<MethodDefinition>();
+            var constructors = globalScope.GetDescendantScopes<IMethodDefinition>();
             var subClassConstructor = (from method in constructors
                                        where method.GetParentScopes<ITypeDefinition>().First().Name == "SubClass"
                                        select method).FirstOrDefault();
@@ -179,7 +179,7 @@ namespace ABB.SrcML.Data.Test {
             var scopes = VariableScopeIterator.Visit(globalScope);
 
             var typeA = globalScope.ChildScopes.First() as ITypeDefinition;
-            var methodFoo = typeA.ChildScopes.First() as MethodDefinition;
+            var methodFoo = typeA.ChildScopes.First() as IMethodDefinition;
             Assert.AreEqual(3, scopes.Count());
 
             Assert.AreEqual("A", typeA.Name);
@@ -206,7 +206,7 @@ namespace ABB.SrcML.Data.Test {
             Assert.IsNotNull(example);
             Assert.AreEqual("Example", example.Name);
             Assert.AreEqual(1, example.ChildScopes.Count());
-            var foo = example.ChildScopes.OfType<MethodDefinition>().FirstOrDefault();
+            var foo = example.ChildScopes.OfType<IMethodDefinition>().FirstOrDefault();
             Assert.IsNotNull(foo, "TODO fix static methods");
             Assert.AreEqual("Foo", foo.Name);
         }
@@ -237,7 +237,7 @@ namespace ABB.SrcML.Data.Test {
 }</block></function>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "main.cpp");
-            var mainMethod = codeParser.ParseFileUnit(xmlElement).ChildScopes.First() as MethodDefinition;
+            var mainMethod = codeParser.ParseFileUnit(xmlElement).ChildScopes.First() as IMethodDefinition;
 
             Assert.AreEqual("main", mainMethod.Name);
 
@@ -457,7 +457,7 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("B", typeB.Name);
             Assert.AreEqual(1, typeB.ChildScopes.Count());
 
-            var methodFoo = typeB.ChildScopes.First() as MethodDefinition;
+            var methodFoo = typeB.ChildScopes.First() as IMethodDefinition;
             Assert.AreEqual("Foo", methodFoo);
             Assert.IsEmpty(typeB.ChildScopes);
 
@@ -502,8 +502,8 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("A", classA.Name);
             Assert.AreEqual("B", classB.Name);
 
-            var aDotContains = classA.ChildScopes.First() as MethodDefinition;
-            var bDotContains = classB.ChildScopes.First() as MethodDefinition;
+            var aDotContains = classA.ChildScopes.First() as IMethodDefinition;
+            var bDotContains = classB.ChildScopes.First() as IMethodDefinition;
 
             Assert.AreEqual("A.Contains", aDotContains.GetFullName());
             Assert.AreEqual("B.Contains", bDotContains.GetFullName());
@@ -541,9 +541,9 @@ namespace ABB.SrcML.Data.Test {
             var fileUnit = fileSetup.GetFileUnitForXmlSnippet(a_xml, "A.java");
             var globalScope = codeParser.ParseFileUnit(fileUnit);
 
-            var aDotBar = globalScope.ChildScopes.First().ChildScopes.First() as MethodDefinition;
-            var aDotBDotFoo = globalScope.ChildScopes.First().ChildScopes.Last().ChildScopes.First() as MethodDefinition;
-            var aDotBDotBar = globalScope.ChildScopes.First().ChildScopes.Last().ChildScopes.Last() as MethodDefinition;
+            var aDotBar = globalScope.ChildScopes.First().ChildScopes.First() as IMethodDefinition;
+            var aDotBDotFoo = globalScope.ChildScopes.First().ChildScopes.Last().ChildScopes.First() as IMethodDefinition;
+            var aDotBDotBar = globalScope.ChildScopes.First().ChildScopes.Last().ChildScopes.Last() as IMethodDefinition;
 
             Assert.AreEqual("A.Bar", aDotBar.GetFullName());
             Assert.AreEqual("A.B.Foo", aDotBDotFoo.GetFullName());
@@ -562,7 +562,7 @@ namespace ABB.SrcML.Data.Test {
 
             var testScope = codeParser.ParseFileUnit(testUnit);
 
-            var method = testScope.GetChildScopesWithId<MethodDefinition>("Foo").FirstOrDefault();
+            var method = testScope.GetChildScopesWithId<IMethodDefinition>("Foo").FirstOrDefault();
             Assert.IsNotNull(method, "could not find the test method");
 
             Assert.AreEqual("int", method.ReturnType.Name);
@@ -578,7 +578,7 @@ namespace ABB.SrcML.Data.Test {
 
             var testScope = codeParser.ParseFileUnit(testUnit);
 
-            var method = testScope.GetChildScopesWithId<MethodDefinition>("Foo").FirstOrDefault();
+            var method = testScope.GetChildScopesWithId<IMethodDefinition>("Foo").FirstOrDefault();
             Assert.IsNotNull(method, "could not find the test method");
 
             Assert.AreEqual("int", method.ReturnType.Name);
@@ -593,7 +593,7 @@ namespace ABB.SrcML.Data.Test {
 
             var testScope = codeParser.ParseFileUnit(testUnit);
 
-            var method = testScope.GetChildScopesWithId<MethodDefinition>("Foo").FirstOrDefault();
+            var method = testScope.GetChildScopesWithId<IMethodDefinition>("Foo").FirstOrDefault();
             Assert.IsNotNull(method, "could not find the test method");
 
             Assert.AreEqual(0, method.Parameters.Count);
@@ -608,7 +608,7 @@ namespace ABB.SrcML.Data.Test {
 
             var testScope = codeParser.ParseFileUnit(testUnit);
 
-            var method = testScope.GetChildScopesWithId<MethodDefinition>("Foo").FirstOrDefault();
+            var method = testScope.GetChildScopesWithId<IMethodDefinition>("Foo").FirstOrDefault();
             Assert.IsNotNull(method, "could not find the test method");
 
             Assert.IsNull(method.ReturnType, "return type should be null");
@@ -639,8 +639,8 @@ namespace ABB.SrcML.Data.Test {
             var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cpp");
             var globalScope = codeParser.ParseFileUnit(unit);
 
-            var fooMethod = globalScope.GetChildScopesWithId<MethodDefinition>("foo").FirstOrDefault();
-            var mainMethod = globalScope.GetChildScopesWithId<MethodDefinition>("main").FirstOrDefault();
+            var fooMethod = globalScope.GetChildScopesWithId<IMethodDefinition>("foo").FirstOrDefault();
+            var mainMethod = globalScope.GetChildScopesWithId<IMethodDefinition>("main").FirstOrDefault();
 
             Assert.IsNotNull(fooMethod);
             Assert.IsNotNull(mainMethod);

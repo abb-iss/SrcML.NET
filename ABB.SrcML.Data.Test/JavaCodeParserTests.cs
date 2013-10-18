@@ -123,7 +123,7 @@ namespace ABB.SrcML.Data.Test {
             var globalScope = codeParser.ParseFileUnit(xmlElement);
 
             var typeA = globalScope.ChildScopes.First() as ITypeDefinition;
-            var fooMethod = typeA.ChildScopes.First() as MethodDefinition;
+            var fooMethod = typeA.ChildScopes.First() as IMethodDefinition;
             var typeB = fooMethod.ChildScopes.First() as ITypeDefinition;
 
             Assert.AreEqual("A", typeA.GetFullName());
@@ -424,7 +424,7 @@ namespace ABB.SrcML.Data.Test {
 
             var globalScope = codeParser.ParseFileUnit(fileUnit);
 
-            var executeMethod = globalScope.ChildScopes.First().ChildScopes.First() as MethodDefinition;
+            var executeMethod = globalScope.ChildScopes.First().ChildScopes.First() as IMethodDefinition;
 
             var callToNewB = executeMethod.MethodCalls.First();
             Assert.AreEqual("B", callToNewB.Name);
@@ -483,8 +483,8 @@ namespace ABB.SrcML.Data.Test {
             var scopeForB = codeParser.ParseFileUnit(fileUnitB);
             var globalScope = scopeForA.Merge(scopeForB);
 
-            var aDotContains = globalScope.ChildScopes.First().ChildScopes.First() as MethodDefinition;
-            var bDotContains = globalScope.ChildScopes.Last().ChildScopes.First() as MethodDefinition;
+            var aDotContains = globalScope.ChildScopes.First().ChildScopes.First() as IMethodDefinition;
+            var bDotContains = globalScope.ChildScopes.Last().ChildScopes.First() as IMethodDefinition;
 
             Assert.AreEqual("A.Contains", aDotContains.GetFullName());
             Assert.AreEqual("B.Contains", bDotContains.GetFullName());
@@ -515,9 +515,9 @@ namespace ABB.SrcML.Data.Test {
             var fileUnit = fileSetup.GetFileUnitForXmlSnippet(a_xml, "A.java");
             var globalScope = codeParser.ParseFileUnit(fileUnit);
 
-            var aDotBar = globalScope.ChildScopes.First().ChildScopes.First() as MethodDefinition;
-            var aDotBDotFoo = globalScope.ChildScopes.First().ChildScopes.Last().ChildScopes.First() as MethodDefinition;
-            var aDotBDotBar = globalScope.ChildScopes.First().ChildScopes.Last().ChildScopes.Last() as MethodDefinition;
+            var aDotBar = globalScope.ChildScopes.First().ChildScopes.First() as IMethodDefinition;
+            var aDotBDotFoo = globalScope.ChildScopes.First().ChildScopes.Last().ChildScopes.First() as IMethodDefinition;
+            var aDotBDotBar = globalScope.ChildScopes.First().ChildScopes.Last().ChildScopes.Last() as IMethodDefinition;
 
             Assert.AreEqual("A.Bar", aDotBar.GetFullName());
             Assert.AreEqual("A.B.Foo", aDotBDotFoo.GetFullName());

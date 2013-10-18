@@ -188,7 +188,7 @@ namespace ABB.SrcML.Data.Test {
                    TestEquality((INamedScope) a, (INamedScope) b);
         }
 
-        private static bool TestEquality(MethodDefinition a, MethodDefinition b) {
+        private static bool TestEquality(IMethodDefinition a, IMethodDefinition b) {
             //Assert.AreEqual(a.IsConstructor, b.IsConstructor);
             //Assert.AreEqual(a.IsDestructor, b.IsDestructor);
             //Assert.IsTrue(OrderedCollectionsAreEqual(a.Parameters, b.Parameters, ParameterDeclarationsAreEqual));

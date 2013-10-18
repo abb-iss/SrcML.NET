@@ -65,7 +65,7 @@ namespace ABB.SrcML.Data.Test {
             var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(fileunitDecl));
 
             Assert.AreEqual(1, afterScope.ChildScopes.Count());
-            Assert.AreEqual("Foo", ((MethodDefinition) afterScope.ChildScopes.First()).Name);
+            Assert.AreEqual("Foo", ((IMethodDefinition) afterScope.ChildScopes.First()).Name);
 
             afterScope.RemoveFile("Foo.h");
 
@@ -125,7 +125,7 @@ namespace ABB.SrcML.Data.Test {
             var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(fileUnitDef));
 
             Assert.AreEqual(1, afterScope.ChildScopes.Count());
-            Assert.AreEqual("Foo", ((MethodDefinition) afterScope.ChildScopes.First()).Name);
+            Assert.AreEqual("Foo", ((IMethodDefinition) afterScope.ChildScopes.First()).Name);
 
             afterScope.RemoveFile("Foo.cpp");
 
@@ -145,7 +145,7 @@ namespace ABB.SrcML.Data.Test {
             string bazXml = "<function><type><name>char</name><type:modifier>*</type:modifier></type> <name>Baz</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><lit:literal type=\"string\">\"Hello, World!\"</lit:literal></expr>;</return> }</block></function>";
             var fileunitBaz = FileUnitSetup.GetFileUnitForXmlSnippet(bazXml, "Baz.cpp");
             var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(fileunitBaz));
-            Assert.AreEqual(2, afterScope.ChildScopes.OfType<MethodDefinition>().Count());
+            Assert.AreEqual(2, afterScope.ChildScopes.OfType<IMethodDefinition>().Count());
 
             afterScope.RemoveFile("Baz.cpp");
 
@@ -204,7 +204,7 @@ namespace ABB.SrcML.Data.Test {
             var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(a2Fileunit));
 
             Assert.AreEqual(1, afterScope.ChildScopes.OfType<INamespaceDefinition>().Count());
-            Assert.AreEqual(2, afterScope.ChildScopes.First().ChildScopes.OfType<MethodDefinition>().Count());
+            Assert.AreEqual(2, afterScope.ChildScopes.First().ChildScopes.OfType<IMethodDefinition>().Count());
 
             afterScope.RemoveFile("A2.cpp");
 

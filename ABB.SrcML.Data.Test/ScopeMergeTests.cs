@@ -64,7 +64,7 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("A.B", typeB.GetFullName());
             Assert.AreEqual(1, typeB.ChildScopes.Count());
 
-            var methodFoo = typeB.ChildScopes.First() as MethodDefinition;
+            var methodFoo = typeB.ChildScopes.First() as IMethodDefinition;
             Assert.AreEqual("A.B.Foo", methodFoo.GetFullName());
             Assert.AreEqual(0, methodFoo.ChildScopes.Count());
 
@@ -103,7 +103,7 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual(1, typeA.ChildScopes.Count());
             Assert.AreEqual("A.h", typeA.PrimaryLocation.SourceFileName);
 
-            var methodFoo = typeA.ChildScopes.First() as MethodDefinition;
+            var methodFoo = typeA.ChildScopes.First() as IMethodDefinition;
             Assert.AreEqual("Foo", methodFoo.Name);
             Assert.AreEqual(0, methodFoo.ChildScopes.Count());
             Assert.AreEqual(1, methodFoo.DeclaredVariables.Count());
@@ -127,7 +127,7 @@ namespace ABB.SrcML.Data.Test {
             var globalScope = declarationScope.Merge(definitionScope);
 
             Assert.AreEqual(1, globalScope.ChildScopes.Count());
-            Assert.AreEqual("Foo", ((MethodDefinition) globalScope.ChildScopes.First()).Name);
+            Assert.AreEqual("Foo", ((IMethodDefinition) globalScope.ChildScopes.First()).Name);
         }
 
         [Test]
@@ -286,9 +286,9 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual(1, globalScope.ChildScopes.Count());
             var typeA = globalScope.ChildScopes.First() as ITypeDefinition;
             Assert.IsNotNull(typeA);
-            Assert.AreEqual(2, typeA.ChildScopes.OfType<MethodDefinition>().Count());
-            Assert.IsTrue(typeA.ChildScopes.OfType<MethodDefinition>().Any(m => m.Name == "Execute"));
-            Assert.IsTrue(typeA.ChildScopes.OfType<MethodDefinition>().Any(m => m.Name == "Foo"));
+            Assert.AreEqual(2, typeA.ChildScopes.OfType<IMethodDefinition>().Count());
+            Assert.IsTrue(typeA.ChildScopes.OfType<IMethodDefinition>().Any(m => m.Name == "Execute"));
+            Assert.IsTrue(typeA.ChildScopes.OfType<IMethodDefinition>().Any(m => m.Name == "Foo"));
         }
 
         [Test]
@@ -315,8 +315,8 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual(1, globalScope.ChildScopes.Count());
             var typeA = globalScope.ChildScopes.First() as ITypeDefinition;
             Assert.IsNotNull(typeA);
-            Assert.AreEqual(1, typeA.ChildScopes.OfType<MethodDefinition>().Count());
-            var foo = typeA.ChildScopes.First() as MethodDefinition;
+            Assert.AreEqual(1, typeA.ChildScopes.OfType<IMethodDefinition>().Count());
+            var foo = typeA.ChildScopes.First() as IMethodDefinition;
             Assert.IsNotNull(foo);
             Assert.AreEqual("Foo", foo.Name);
         }
@@ -354,8 +354,8 @@ namespace ABB.SrcML.Data.Test {
             typeA = globalScope.ChildScopes.First() as ITypeDefinition;
             Assert.AreEqual(2, typeA.ChildScopes.Count());
 
-            var aDotFoo = typeA.ChildScopes.First() as MethodDefinition;
-            var aDotBar = typeA.ChildScopes.Last() as MethodDefinition;
+            var aDotFoo = typeA.ChildScopes.First() as IMethodDefinition;
+            var aDotBar = typeA.ChildScopes.Last() as IMethodDefinition;
 
             Assert.AreEqual("A.Foo", aDotFoo.GetFullName());
             Assert.AreEqual("A.Bar", aDotBar.GetFullName());
@@ -394,8 +394,8 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("A", scopeA.Name);
             Assert.AreEqual(2, scopeA.ChildScopes.Count());
 
-            var methodFoo = scopeA.ChildScopes.First() as MethodDefinition;
-            var methodBar = scopeA.ChildScopes.Last() as MethodDefinition;
+            var methodFoo = scopeA.ChildScopes.First() as IMethodDefinition;
+            var methodBar = scopeA.ChildScopes.Last() as IMethodDefinition;
 
             Assert.AreEqual("Foo", methodFoo.Name);
             Assert.AreEqual("A.Foo", methodFoo.GetFullName());
@@ -409,8 +409,8 @@ namespace ABB.SrcML.Data.Test {
             var typeA = globalScope.ChildScopes.First() as ITypeDefinition;
             Assert.AreEqual(2, typeA.ChildScopes.Count());
 
-            var aDotFoo = typeA.ChildScopes.First() as MethodDefinition;
-            var aDotBar = typeA.ChildScopes.Last() as MethodDefinition;
+            var aDotFoo = typeA.ChildScopes.First() as IMethodDefinition;
+            var aDotBar = typeA.ChildScopes.Last() as IMethodDefinition;
 
             Assert.AreEqual("A.Foo", aDotFoo.GetFullName());
             Assert.AreEqual("A.Bar", aDotBar.GetFullName());

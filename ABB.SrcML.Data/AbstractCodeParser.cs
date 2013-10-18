@@ -521,7 +521,7 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Creates a <see cref="MethodDefinition"/> object for
+        /// Creates a <see cref="IMethodDefinition"/> object for
         /// <paramref name="methodElement"/>and pushes it onto
         /// <paramref name="context"/></summary>
         /// <param name="methodElement">The element to parse</param>

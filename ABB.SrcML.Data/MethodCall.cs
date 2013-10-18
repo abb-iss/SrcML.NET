@@ -20,7 +20,7 @@ namespace ABB.SrcML.Data {
     /// Represents a method call
     /// </summary>
     [Serializable]
-    public class MethodCall : AbstractScopeUse<MethodDefinition>, IResolvesToType {
+    public class MethodCall : AbstractScopeUse<IMethodDefinition>, IResolvesToType {
 
         /// <summary>
         /// Creates a new MethodCall object
@@ -81,14 +81,14 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Finds matching <see cref="MethodDefinition">method definitions</see> from the
+        /// Finds matching <see cref="IMethodDefinition">method definitions</see> from the
         /// <see cref="IScope.GetParentScopes()"/> of this usage. Because method calls can also be
         /// to constructors and destructors, this will also search for matching types and then
         /// constructors within those types
         /// </summary>
         /// <returns>An enumerable of method definitions that match this method call</returns>
-        public override IEnumerable<MethodDefinition> FindMatches() {
-            IEnumerable<MethodDefinition> matchingMethods = Enumerable.Empty<MethodDefinition>();
+        public override IEnumerable<IMethodDefinition> FindMatches() {
+            IEnumerable<IMethodDefinition> matchingMethods = Enumerable.Empty<IMethodDefinition>();
 
             if(IsConstructor || IsDestructor) {
                 IEnumerable<ITypeDefinition> typeDefinitions;
@@ -104,20 +104,20 @@ namespace ABB.SrcML.Data {
                 }
 
                 matchingMethods = from typeDefinition in typeDefinitions
-                                  from method in typeDefinition.GetChildScopesWithId<MethodDefinition>(typeDefinition.Name)
+                                  from method in typeDefinition.GetChildScopesWithId<IMethodDefinition>(typeDefinition.Name)
                                   where Matches(method)
                                   select method;
             } else if(CallingObject != null) {
                 matchingMethods = from matchingType in CallingObject.FindMatchingTypes()
                                   from typeDefinition in matchingType.GetParentTypesAndSelf()
-                                  from method in typeDefinition.GetChildScopesWithId<MethodDefinition>(this.Name)
+                                  from method in typeDefinition.GetChildScopesWithId<IMethodDefinition>(this.Name)
                                   where Matches(method)
                                   select method;
             } else {
                 var matches = base.FindMatches();
                 var matchingTypeMethods = from containingType in ParentScope.GetParentScopesAndSelf<ITypeDefinition>()
                                           from typeDefinition in containingType.GetParentTypes()
-                                          from method in typeDefinition.GetChildScopesWithId<MethodDefinition>(this.Name)
+                                          from method in typeDefinition.GetChildScopesWithId<IMethodDefinition>(this.Name)
                                           where Matches(method)
                                           select method;
                 matchingMethods = matches.Concat(matchingTypeMethods);
@@ -171,7 +171,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="definition">The method definition to test</param>
         /// <returns>True if this method call matches the provided method definition</returns>
-        public override bool Matches(MethodDefinition definition) {
+        public override bool Matches(IMethodDefinition definition) {
             if(null == definition)
                 return false;
 

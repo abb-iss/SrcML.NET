@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Xml.XPath;
 using CallData = ABB.SrcML.Data.MethodCall;
-using MethodData = ABB.SrcML.Data.MethodDefinition;
+using MethodData = ABB.SrcML.Data.IMethodDefinition;
 
 namespace ABB.SrcML.Tools.MethodCallSurvey {
 

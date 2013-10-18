@@ -124,13 +124,13 @@ namespace ABB.SrcML.Data.Test {
             Assert.IsNotNull(typeC, "Could not find class C");
             Assert.IsNotNull(typeE, "Could not find class E");
 
-            var constructorForC = typeC.GetChildScopes<MethodDefinition>().FirstOrDefault();
+            var constructorForC = typeC.GetChildScopes<IMethodDefinition>().FirstOrDefault();
 
             Assert.IsNotNull(constructorForC, "C has no methods");
             Assert.AreEqual("C", constructorForC.Name);
             Assert.That(constructorForC.IsConstructor);
 
-            var eDotMain = typeE.GetChildScopesWithId<MethodDefinition>("main").FirstOrDefault();
+            var eDotMain = typeE.GetChildScopesWithId<IMethodDefinition>("main").FirstOrDefault();
 
             Assert.IsNotNull(eDotMain, "could not find main method in E");
             Assert.AreEqual("main", eDotMain.Name);
@@ -166,9 +166,9 @@ namespace ABB.SrcML.Data.Test {
 
             var globalScope = CodeParser[Language.CPlusPlus].ParseFileUnit(unit);
 
-            var methodFoo = globalScope.GetDescendantScopes<MethodDefinition>().FirstOrDefault();
-            var methodBar = globalScope.GetDescendantScopes<MethodDefinition>().Skip(1).FirstOrDefault();
-            var methodStar = globalScope.GetDescendantScopes<MethodDefinition>().LastOrDefault();
+            var methodFoo = globalScope.GetDescendantScopes<IMethodDefinition>().FirstOrDefault();
+            var methodBar = globalScope.GetDescendantScopes<IMethodDefinition>().Skip(1).FirstOrDefault();
+            var methodStar = globalScope.GetDescendantScopes<IMethodDefinition>().LastOrDefault();
 
             Assert.IsNotNull(methodFoo, "could not find method foo");
             Assert.IsNotNull(methodBar, "could not find method bar");
@@ -225,7 +225,7 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("A", globalAObject.VariableType.Name);
             Assert.AreEqual(typeA, globalAObject.VariableType.FindFirstMatchingType());
 
-            var mainFunction = globalScope.GetChildScopesWithId<MethodDefinition>("main").FirstOrDefault();
+            var mainFunction = globalScope.GetChildScopesWithId<IMethodDefinition>("main").FirstOrDefault();
 
             Assert.IsNotNull(mainFunction, "could not find main function");
 
@@ -268,7 +268,7 @@ namespace ABB.SrcML.Data.Test {
             var implementation = CodeParser[Language.CPlusPlus].ParseFileUnit(implementationElement) as INamedScope;
             var main = CodeParser[Language.CPlusPlus].ParseFileUnit(mainElement) as INamedScope;
 
-            var unmergedMainMethod = main.ChildScopes.First() as MethodDefinition;
+            var unmergedMainMethod = main.ChildScopes.First() as IMethodDefinition;
             Assert.That(unmergedMainMethod.MethodCalls.First().FindMatches(), Is.Empty);
 
             var globalScope = main.Merge(implementation);
@@ -283,13 +283,13 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual(2, namedChildren.Count());
 
             var typeA = namedChildren.First() as ITypeDefinition;
-            var mainMethod = namedChildren.Last() as MethodDefinition;
+            var mainMethod = namedChildren.Last() as IMethodDefinition;
 
             Assert.AreEqual("A", typeA.Name);
             Assert.AreEqual("main", mainMethod.Name);
 
             var callInMain = mainMethod.MethodCalls.First();
-            var constructor = typeA.ChildScopes.First() as MethodDefinition;
+            var constructor = typeA.ChildScopes.First() as IMethodDefinition;
 
             Assert.IsTrue(callInMain.IsConstructor);
             Assert.IsTrue(constructor.IsConstructor);
@@ -343,13 +343,13 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual(2, namedChildren.Count());
 
             var typeA = namedChildren.First() as ITypeDefinition;
-            var mainMethod = namedChildren.Last() as MethodDefinition;
+            var mainMethod = namedChildren.Last() as IMethodDefinition;
 
             Assert.AreEqual("A", typeA.Name);
             Assert.AreEqual("main", mainMethod.Name);
 
             var callInMain = mainMethod.MethodCalls.First();
-            var constructor = typeA.ChildScopes.First() as MethodDefinition;
+            var constructor = typeA.ChildScopes.First() as IMethodDefinition;
 
             Assert.IsTrue(callInMain.IsConstructor);
             Assert.IsTrue(constructor.IsConstructor);
@@ -367,13 +367,13 @@ namespace ABB.SrcML.Data.Test {
 
             var testScope = CodeParser[Language.CPlusPlus].ParseFileUnit(testUnit);
 
-            var methodCallFoo = testScope.GetChildScopesWithId<MethodDefinition>("CallFoo").FirstOrDefault();
+            var methodCallFoo = testScope.GetChildScopesWithId<IMethodDefinition>("CallFoo").FirstOrDefault();
             var classB = testScope.GetChildScopesWithId<ITypeDefinition>("B").FirstOrDefault();
 
             Assert.IsNotNull(methodCallFoo, "can't find CallFoo");
             Assert.IsNotNull(classB, "can't find class B");
 
-            var bDotFoo = classB.GetChildScopesWithId<MethodDefinition>("Foo").FirstOrDefault();
+            var bDotFoo = classB.GetChildScopesWithId<IMethodDefinition>("Foo").FirstOrDefault();
             Assert.IsNotNull(bDotFoo, "can't find B.Foo()");
 
             var callToFoo = methodCallFoo.MethodCalls.FirstOrDefault();
@@ -419,8 +419,8 @@ namespace ABB.SrcML.Data.Test {
             Assert.IsNotNull(typeB, "could not find class B");
             Assert.IsNotNull(typeC, "could not find class C");
 
-            var aDotFoo = typeA.GetChildScopesWithId<MethodDefinition>("Foo").FirstOrDefault();
-            var cDotMain = typeC.GetChildScopesWithId<MethodDefinition>("main").FirstOrDefault();
+            var aDotFoo = typeA.GetChildScopesWithId<IMethodDefinition>("Foo").FirstOrDefault();
+            var cDotMain = typeC.GetChildScopesWithId<IMethodDefinition>("main").FirstOrDefault();
 
             Assert.IsNotNull(aDotFoo, "could not find method A.Foo()");
             Assert.IsNotNull(cDotMain, "could not find method C.main()");
@@ -455,8 +455,8 @@ namespace ABB.SrcML.Data.Test {
             Assert.IsNotNull(typeA, "could not find class A");
             Assert.IsNotNull(typeB, "could not find class B");
 
-            var aDotFoo = typeA.GetChildScopesWithId<MethodDefinition>("Foo").FirstOrDefault();
-            var bDotBar = typeB.GetChildScopesWithId<MethodDefinition>("Bar").FirstOrDefault();
+            var aDotFoo = typeA.GetChildScopesWithId<IMethodDefinition>("Foo").FirstOrDefault();
+            var bDotBar = typeB.GetChildScopesWithId<IMethodDefinition>("Bar").FirstOrDefault();
 
             Assert.IsNotNull(aDotFoo, "could not find method A.Foo()");
             Assert.IsNotNull(bDotBar, "could not find method B.Bar()");
@@ -514,11 +514,11 @@ namespace ABB.SrcML.Data.Test {
             var typeC = globalScope.GetDescendantScopes<ITypeDefinition>().Where(t => t.Name == "C").FirstOrDefault();
             var typeE = globalScope.GetDescendantScopes<ITypeDefinition>().Where(t => t.Name == "E").FirstOrDefault();
 
-            var mainMethod = typeE.ChildScopes.First() as MethodDefinition;
+            var mainMethod = typeE.ChildScopes.First() as IMethodDefinition;
             Assert.IsNotNull(mainMethod, "is not a method definition");
             Assert.AreEqual("main", mainMethod.Name);
 
-            var fooMethod = typeC.GetChildScopes<MethodDefinition>().FirstOrDefault();
+            var fooMethod = typeC.GetChildScopes<IMethodDefinition>().FirstOrDefault();
             Assert.IsNotNull(fooMethod, "no method foo found");
             Assert.AreEqual("Foo", fooMethod.Name);
 
@@ -578,11 +578,11 @@ namespace ABB.SrcML.Data.Test {
             var typeC = globalScope.GetDescendantScopes<ITypeDefinition>().Where(t => t.Name == "C").FirstOrDefault();
             var typeE = globalScope.GetDescendantScopes<ITypeDefinition>().Where(t => t.Name == "E").FirstOrDefault();
 
-            var mainMethod = typeE.ChildScopes.First() as MethodDefinition;
+            var mainMethod = typeE.ChildScopes.First() as IMethodDefinition;
             Assert.IsNotNull(mainMethod, "is not a method definition");
             Assert.AreEqual("main", mainMethod.Name);
 
-            var fooMethod = typeC.GetChildScopes<MethodDefinition>().FirstOrDefault();
+            var fooMethod = typeC.GetChildScopes<IMethodDefinition>().FirstOrDefault();
             Assert.IsNotNull(fooMethod, "no method foo found");
             Assert.AreEqual("Foo", fooMethod.Name);
 
@@ -638,11 +638,11 @@ namespace ABB.SrcML.Data.Test {
             var typeC = globalScope.GetDescendantScopes<ITypeDefinition>().Where(t => t.Name == "C").FirstOrDefault();
             var typeE = globalScope.GetDescendantScopes<ITypeDefinition>().Where(t => t.Name == "E").FirstOrDefault();
 
-            var mainMethod = typeE.ChildScopes.First() as MethodDefinition;
+            var mainMethod = typeE.ChildScopes.First() as IMethodDefinition;
             Assert.IsNotNull(mainMethod, "is not a method definition");
             Assert.AreEqual("main", mainMethod.Name);
 
-            var fooMethod = typeC.GetChildScopes<MethodDefinition>().FirstOrDefault();
+            var fooMethod = typeC.GetChildScopes<IMethodDefinition>().FirstOrDefault();
             Assert.IsNotNull(fooMethod, "no method foo found");
             Assert.AreEqual("Foo", fooMethod.Name);
 
@@ -705,10 +705,10 @@ namespace ABB.SrcML.Data.Test {
             Assert.IsNotNull(adotB, "could not find variable A.b");
             Assert.AreEqual("b", adotB.Name);
 
-            var bDotFoo = typeB.GetChildScopesWithId<MethodDefinition>("Foo").FirstOrDefault();
+            var bDotFoo = typeB.GetChildScopesWithId<IMethodDefinition>("Foo").FirstOrDefault();
             Assert.IsNotNull(bDotFoo, "could not method B.Foo()");
 
-            var dDotBar = typeD.GetChildScopesWithId<MethodDefinition>("Bar").FirstOrDefault();
+            var dDotBar = typeD.GetChildScopesWithId<IMethodDefinition>("Bar").FirstOrDefault();
             Assert.IsNotNull(dDotBar, "could not find method D.Bar()");
 
             var callToFoo = dDotBar.MethodCalls.FirstOrDefault();
@@ -761,10 +761,10 @@ namespace ABB.SrcML.Data.Test {
             Assert.IsNotNull(adotB, "could not find variable A.b");
             Assert.AreEqual("b", adotB.Name);
 
-            var bDotFoo = typeB.GetChildScopesWithId<MethodDefinition>("Foo").FirstOrDefault();
+            var bDotFoo = typeB.GetChildScopesWithId<IMethodDefinition>("Foo").FirstOrDefault();
             Assert.IsNotNull(bDotFoo, "could not method B.Foo()");
 
-            var dDotBar = typeD.GetChildScopesWithId<MethodDefinition>("Bar").FirstOrDefault();
+            var dDotBar = typeD.GetChildScopesWithId<IMethodDefinition>("Bar").FirstOrDefault();
             Assert.IsNotNull(dDotBar, "could not find method D.Bar()");
 
             var callToFoo = dDotBar.MethodCalls.FirstOrDefault();
@@ -800,10 +800,10 @@ namespace ABB.SrcML.Data.Test {
             Assert.IsNotNull(typeB, "could not find class B");
             Assert.IsNotNull(typeC, "could not find class C");
 
-            var aDotFoo = typeA.GetChildScopesWithId<MethodDefinition>("Foo").FirstOrDefault();
+            var aDotFoo = typeA.GetChildScopesWithId<IMethodDefinition>("Foo").FirstOrDefault();
             Assert.IsNotNull(aDotFoo, "could not find method A.Foo()");
 
-            var cDotBar = typeC.GetChildScopesWithId<MethodDefinition>("Bar").FirstOrDefault();
+            var cDotBar = typeC.GetChildScopesWithId<IMethodDefinition>("Bar").FirstOrDefault();
             Assert.IsNotNull(cDotBar, "could not find method C.Bar()");
 
             var bDotA = typeB.DeclaredVariables.FirstOrDefault();

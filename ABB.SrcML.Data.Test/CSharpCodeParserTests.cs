@@ -45,8 +45,8 @@ namespace ABB.SrcML.Data.Test {
 
             var scope = codeParser.ParseFileUnit(unit);
 
-            var foo = scope.GetDescendantScopes<MethodDefinition>().Where(m => m.Name == "Foo").FirstOrDefault();
-            var bar = scope.GetDescendantScopes<MethodDefinition>().Where(m => m.Name == "Bar").FirstOrDefault();
+            var foo = scope.GetDescendantScopes<IMethodDefinition>().Where(m => m.Name == "Foo").FirstOrDefault();
+            var bar = scope.GetDescendantScopes<IMethodDefinition>().Where(m => m.Name == "Bar").FirstOrDefault();
 
             Assert.IsNotNull(foo);
             Assert.IsNotNull(bar);
@@ -75,8 +75,8 @@ namespace ABB.SrcML.Data.Test {
 
             var scope = codeParser.ParseFileUnit(unit);
 
-            var bDotFoo = scope.GetDescendantScopes<MethodDefinition>().Where(m => m.Name == "Foo").FirstOrDefault();
-            var dDotBar = scope.GetDescendantScopes<MethodDefinition>().Where(m => m.Name == "Bar").FirstOrDefault();
+            var bDotFoo = scope.GetDescendantScopes<IMethodDefinition>().Where(m => m.Name == "Foo").FirstOrDefault();
+            var dDotBar = scope.GetDescendantScopes<IMethodDefinition>().Where(m => m.Name == "Bar").FirstOrDefault();
 
             Assert.IsNotNull(bDotFoo);
             Assert.IsNotNull(dDotBar);
@@ -117,8 +117,8 @@ namespace ABB.SrcML.Data.Test {
             var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
             var scope = codeParser.ParseFileUnit(unit);
 
-            var queryMethod = scope.GetDescendantScopes<MethodDefinition>().Where(m => m.Name == "Query").FirstOrDefault();
-            var test1Method = scope.GetDescendantScopes<MethodDefinition>().Where(m => m.Name == "Test1").FirstOrDefault();
+            var queryMethod = scope.GetDescendantScopes<IMethodDefinition>().Where(m => m.Name == "Query").FirstOrDefault();
+            var test1Method = scope.GetDescendantScopes<IMethodDefinition>().Where(m => m.Name == "Test1").FirstOrDefault();
             var callToQuery = test1Method.MethodCalls.LastOrDefault();
 
             Assert.AreSame(queryMethod, callToQuery.FindMatches().FirstOrDefault());
@@ -138,7 +138,7 @@ namespace ABB.SrcML.Data.Test {
             var cScope = codeParser.ParseFileUnit(cUnit);
             var globalScope = bScope.Merge(cScope);
 
-            var constructors = from methodDefinition in globalScope.GetDescendantScopes<MethodDefinition>()
+            var constructors = from methodDefinition in globalScope.GetDescendantScopes<IMethodDefinition>()
                                where methodDefinition.IsConstructor
                                select methodDefinition;
 
@@ -180,7 +180,7 @@ namespace ABB.SrcML.Data.Test {
 
             var globalScope = codeParser.ParseFileUnit(bUnit);
 
-            var constructors = from methodDefinition in globalScope.GetDescendantScopes<MethodDefinition>()
+            var constructors = from methodDefinition in globalScope.GetDescendantScopes<IMethodDefinition>()
                                where methodDefinition.IsConstructor
                                select methodDefinition;
 
@@ -542,7 +542,7 @@ namespace ABB.SrcML.Data.Test {
                          where type.Name == "B"
                          select type).FirstOrDefault();
 
-            var mainMethod = (from method in scope.GetDescendantScopes<MethodDefinition>()
+            var mainMethod = (from method in scope.GetDescendantScopes<IMethodDefinition>()
                               where method.Name == "main"
                               select method).FirstOrDefault();
 
@@ -857,7 +857,7 @@ namespace ABB.SrcML.Data.Test {
             var fileUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
             var globalScope = codeParser.ParseFileUnit(fileUnit);
 
-            var executeMethod = globalScope.ChildScopes.First().ChildScopes.First() as MethodDefinition;
+            var executeMethod = globalScope.ChildScopes.First().ChildScopes.First() as IMethodDefinition;
             Assert.IsNotNull(executeMethod);
 
             Assert.AreEqual(1, executeMethod.MethodCalls.Count());
@@ -917,7 +917,7 @@ namespace ABB.SrcML.Data.Test {
             var cScope = codeParser.ParseFileUnit(cUnit);
             var globalScope = bScope.Merge(cScope);
 
-            var fooMethods = from methodDefinition in globalScope.GetDescendantScopes<MethodDefinition>()
+            var fooMethods = from methodDefinition in globalScope.GetDescendantScopes<IMethodDefinition>()
                              select methodDefinition;
 
             var bDotFoo = (from method in fooMethods
@@ -946,7 +946,7 @@ namespace ABB.SrcML.Data.Test {
 
             var testScope = codeParser.ParseFileUnit(testUnit);
 
-            var method = testScope.GetChildScopesWithId<MethodDefinition>("Foo").FirstOrDefault();
+            var method = testScope.GetChildScopesWithId<IMethodDefinition>("Foo").FirstOrDefault();
             Assert.IsNotNull(method, "could not find the test method");
 
             Assert.AreEqual("int", method.ReturnType.Name);
@@ -961,7 +961,7 @@ namespace ABB.SrcML.Data.Test {
 
             var testScope = codeParser.ParseFileUnit(testUnit);
 
-            var method = testScope.GetChildScopesWithId<MethodDefinition>("Foo").FirstOrDefault();
+            var method = testScope.GetChildScopesWithId<IMethodDefinition>("Foo").FirstOrDefault();
             Assert.IsNotNull(method, "could not find the test method");
 
             Assert.AreEqual("int", method.ReturnType.Name);
@@ -976,7 +976,7 @@ namespace ABB.SrcML.Data.Test {
 
             var testScope = codeParser.ParseFileUnit(testUnit);
 
-            var method = testScope.GetChildScopesWithId<MethodDefinition>("Foo").FirstOrDefault();
+            var method = testScope.GetChildScopesWithId<IMethodDefinition>("Foo").FirstOrDefault();
             Assert.IsNotNull(method, "could not find the test method");
 
             Assert.IsNull(method.ReturnType, "return type should be null");
@@ -1061,8 +1061,8 @@ namespace ABB.SrcML.Data.Test {
             Assert.IsNotNull(classB);
             Assert.IsNotNull(classC);
 
-            var mainMethod = classC.GetChildScopesWithId<MethodDefinition>("main").FirstOrDefault();
-            var barMethod = classC.GetChildScopesWithId<MethodDefinition>("Bar").FirstOrDefault();
+            var mainMethod = classC.GetChildScopesWithId<IMethodDefinition>("main").FirstOrDefault();
+            var barMethod = classC.GetChildScopesWithId<IMethodDefinition>("Bar").FirstOrDefault();
 
             Assert.IsNotNull(mainMethod);
             Assert.IsNotNull(barMethod);
@@ -1090,10 +1090,10 @@ namespace ABB.SrcML.Data.Test {
 
             var globalScope = bScope.Merge(cScope);
 
-            var fooMethod = (from method in globalScope.GetDescendantScopes<MethodDefinition>()
+            var fooMethod = (from method in globalScope.GetDescendantScopes<IMethodDefinition>()
                              where method.Name == "Foo"
                              select method).FirstOrDefault();
-            var barMethod = (from method in globalScope.GetDescendantScopes<MethodDefinition>()
+            var barMethod = (from method in globalScope.GetDescendantScopes<IMethodDefinition>()
                              where method.Name == "Bar"
                              select method).FirstOrDefault();
 
@@ -1121,10 +1121,10 @@ namespace ABB.SrcML.Data.Test {
 
             var globalScope = bScope.Merge(dScope);
 
-            var fooMethod = (from method in globalScope.GetDescendantScopes<MethodDefinition>()
+            var fooMethod = (from method in globalScope.GetDescendantScopes<IMethodDefinition>()
                              where method.Name == "Foo"
                              select method).FirstOrDefault();
-            var barMethod = (from method in globalScope.GetDescendantScopes<MethodDefinition>()
+            var barMethod = (from method in globalScope.GetDescendantScopes<IMethodDefinition>()
                              where method.Name == "Bar"
                              select method).FirstOrDefault();
 

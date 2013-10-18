@@ -108,9 +108,9 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual(1, afterScope.ChildScopes.Count());
             var typeA = afterScope.ChildScopes.First() as ITypeDefinition;
             Assert.IsNotNull(typeA);
-            Assert.AreEqual(2, typeA.ChildScopes.OfType<MethodDefinition>().Count());
-            Assert.IsTrue(typeA.ChildScopes.OfType<MethodDefinition>().Any(m => m.Name == "Execute"));
-            Assert.IsTrue(typeA.ChildScopes.OfType<MethodDefinition>().Any(m => m.Name == "Foo"));
+            Assert.AreEqual(2, typeA.ChildScopes.OfType<IMethodDefinition>().Count());
+            Assert.IsTrue(typeA.ChildScopes.OfType<IMethodDefinition>().Any(m => m.Name == "Execute"));
+            Assert.IsTrue(typeA.ChildScopes.OfType<IMethodDefinition>().Any(m => m.Name == "Foo"));
 
             afterScope.RemoveFile("A2.cs");
 
@@ -141,8 +141,8 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual(1, afterScope.ChildScopes.Count());
             var typeA = afterScope.ChildScopes.First() as ITypeDefinition;
             Assert.IsNotNull(typeA);
-            Assert.AreEqual(1, typeA.ChildScopes.OfType<MethodDefinition>().Count());
-            var foo = typeA.ChildScopes.First() as MethodDefinition;
+            Assert.AreEqual(1, typeA.ChildScopes.OfType<IMethodDefinition>().Count());
+            var foo = typeA.ChildScopes.First() as IMethodDefinition;
             Assert.IsNotNull(foo);
             Assert.AreEqual("Foo", foo.Name);
 
@@ -175,8 +175,8 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual(1, afterScope.ChildScopes.Count());
             var typeA = afterScope.ChildScopes.First() as ITypeDefinition;
             Assert.IsNotNull(typeA);
-            Assert.AreEqual(1, typeA.ChildScopes.OfType<MethodDefinition>().Count());
-            var foo = typeA.ChildScopes.First() as MethodDefinition;
+            Assert.AreEqual(1, typeA.ChildScopes.OfType<IMethodDefinition>().Count());
+            var foo = typeA.ChildScopes.First() as IMethodDefinition;
             Assert.IsNotNull(foo);
             Assert.AreEqual("Foo", foo.Name);
 

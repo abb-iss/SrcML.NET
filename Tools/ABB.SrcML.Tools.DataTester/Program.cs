@@ -223,7 +223,7 @@ namespace ABB.SrcML.Tools.DataTester {
             int numNamedScopes = allScopes.OfType<INamedScope>().Count();
             int numNamespaces = allScopes.OfType<NamespaceDefinition>().Count();
             int numTypes = allScopes.OfType<ITypeDefinition>().Count();
-            int numMethods = allScopes.OfType<MethodDefinition>().Count();
+            int numMethods = allScopes.OfType<IMethodDefinition>().Count();
 
             Console.WriteLine("{0,10:N0} scopes", numScopes);
 

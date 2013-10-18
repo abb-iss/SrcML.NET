@@ -71,7 +71,7 @@ namespace ABB.SrcML.Data {
                               where Matches(variable)
                               select variable;
 
-                var parameterMatches = from method in ParentScope.GetParentScopesAndSelf<MethodDefinition>()
+                var parameterMatches = from method in ParentScope.GetParentScopesAndSelf<IMethodDefinition>()
                                        from parameter in method.Parameters
                                        where Matches(parameter)
                                        select parameter;
