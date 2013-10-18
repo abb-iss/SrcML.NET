@@ -24,12 +24,12 @@ namespace ABB.SrcML.Data.Test {
     [TestFixture]
     [Category("LongRunning")]
     internal class RealWorldTests {
-        private Dictionary<Language, AbstractCodeParser> CodeParser;
+        private Dictionary<Language, ICodeParser> CodeParser;
         private bool shouldRegenerateSrcML = true;
 
         [TestFixtureSetUp]
         public void ClassSetup() {
-            CodeParser = new Dictionary<Language, AbstractCodeParser>() {
+            CodeParser = new Dictionary<Language, ICodeParser>() {
                 { Language.CPlusPlus, new CPlusPlusCodeParser() },
                 { Language.Java, new JavaCodeParser() },
                 { Language.CSharp, new CSharpCodeParser() }

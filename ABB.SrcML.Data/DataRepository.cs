@@ -50,7 +50,7 @@ namespace ABB.SrcML.Data {
     /// </example>
     public class DataRepository : IDataRepository {
         private IScope globalScope;
-        private Dictionary<Language, AbstractCodeParser> parsers;
+        private Dictionary<Language, ICodeParser> parsers;
         private ReadyNotifier ReadyState;
 
         /// <summary>
@@ -448,7 +448,7 @@ namespace ABB.SrcML.Data {
         private IScope ParseFileUnit(XElement fileUnit) {
             var language = SrcMLElement.GetLanguageForUnit(fileUnit);
             IScope scope = null;
-            AbstractCodeParser parser;
+            ICodeParser parser;
 
             if(parsers.TryGetValue(language, out parser)) {
                 try {
@@ -499,7 +499,7 @@ namespace ABB.SrcML.Data {
         }
 
         private void SetupParsers() {
-            parsers = new Dictionary<Language, AbstractCodeParser>() {
+            parsers = new Dictionary<Language, ICodeParser>() {
                 { Language.C, new CPlusPlusCodeParser() },
                 { Language.CPlusPlus, new CPlusPlusCodeParser() },
                 { Language.Java, new JavaCodeParser() },

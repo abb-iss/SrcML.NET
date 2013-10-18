@@ -15,7 +15,7 @@ namespace ABB.SrcML.Tools.DataTester {
     internal class Program {
 
         private static void GenerateData(string sourcePath, string dataPath, string csvDirectory) {
-            Dictionary<Language, AbstractCodeParser> CodeParser = new Dictionary<Language, AbstractCodeParser>() {
+            Dictionary<Language, ICodeParser> CodeParser = new Dictionary<Language, ICodeParser>() {
                 { Language.CPlusPlus, new CPlusPlusCodeParser() },
                 { Language.Java, new JavaCodeParser() },
                 { Language.CSharp, new CSharpCodeParser() }

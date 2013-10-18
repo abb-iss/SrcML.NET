@@ -26,7 +26,7 @@ namespace ABB.SrcML.Data {
     /// useful data from the class.</para> <para>The entry point for this class is the
     /// <see cref="ParseFileUnit(XElement)"/> method.</para>
     /// </summary>
-    public abstract class AbstractCodeParser {
+    public abstract class AbstractCodeParser : ICodeParser {
 
         /// <summary>
         /// Creates a new abstract code parser object. Should only be called by child classes.
