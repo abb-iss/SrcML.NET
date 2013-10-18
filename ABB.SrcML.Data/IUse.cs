@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 
 namespace ABB.SrcML.Data {
 
-    public interface IUse<DEFINITION>
+    public interface IUse<DEFINITION> : IRootedObject
      where DEFINITION : class {
 
         ReadOnlyCollection<Alias> Aliases { get; }
@@ -12,8 +12,6 @@ namespace ABB.SrcML.Data {
         SrcMLLocation Location { get; set; }
 
         string Name { get; set; }
-
-        IScope ParentScope { get; set; }
 
         IEnumerable<IScope> ParentScopes { get; }
 

@@ -64,6 +64,7 @@
     <Compile Include="INamespaceDefinition.cs" />
     <Compile Include="IParameterDeclaration.cs" />
     <Compile Include="IResolvesToType.cs" />
+    <Compile Include="IRootedObject.cs" />
     <Compile Include="IScope.cs" />
     <Compile Include="ITypeDefinition.cs" />
     <Compile Include="IUse.cs" />

@@ -5,7 +5,7 @@ using System.Xml.Linq;
 
 namespace ABB.SrcML.Data {
 
-    public interface IScope {
+    public interface IScope : IRootedObject {
 
         IEnumerable<IScope> ChildScopes { get; }
 
@@ -18,8 +18,6 @@ namespace ABB.SrcML.Data {
         IEnumerable<SrcMLLocation> Locations { get; }
 
         IEnumerable<MethodCall> MethodCalls { get; }
-
-        IScope ParentScope { get; set; }
 
         SrcMLLocation PrimaryLocation { get; }
 

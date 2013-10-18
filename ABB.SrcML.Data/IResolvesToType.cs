@@ -18,17 +18,12 @@ namespace ABB.SrcML.Data {
     /// should resolve to a return type <see cref="FindFirstMatchingType()"/> should be a call to
     /// <c><see cref="FindMatchingTypes()"/>.FirstOrDefault()</c>
     /// </summary>
-    public interface IResolvesToType {
+    public interface IResolvesToType : IRootedObject {
 
         /// <summary>
         /// The calling object
         /// </summary>
         IResolvesToType CallingObject { get; set; }
-
-        /// <summary>
-        /// The parent scope for this calling object
-        /// </summary>
-        IScope ParentScope { get; set; }
 
         /// <summary>
         /// Returns the first matching type definition returned by <see cref="FindMatchingTypes()"/>
