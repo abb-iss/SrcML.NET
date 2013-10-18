@@ -48,7 +48,7 @@ namespace ABB.SrcML.Data {
     /// typeInfo.GetXElement(); TypeUse parentType = typeInfo.ParentTypes.First(); XElement
     /// parentXml = data.ResolveType(parentType).GetXElement(); </code>
     /// </example>
-    public class DataRepository : IDisposable {
+    public class DataRepository : IDataRepository {
         private IScope globalScope;
         private Dictionary<Language, AbstractCodeParser> parsers;
         private ReadyNotifier ReadyState;

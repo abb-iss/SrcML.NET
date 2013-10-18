@@ -21,7 +21,7 @@ namespace ABB.SrcML.Tools.MethodCallSurvey {
             : this(null, null, sampleSize) {
         }
 
-        public MethodCallSample(ISrcMLArchive archive, DataRepository data, int sampleSize) {
+        public MethodCallSample(ISrcMLArchive archive, IDataRepository data, int sampleSize) {
             this.Archive = archive;
             this.Data = data;
             this.Date = DateTime.Now;
@@ -73,7 +73,7 @@ namespace ABB.SrcML.Tools.MethodCallSurvey {
             }
         }
 
-        public DataRepository Data { get; set; }
+        public IDataRepository Data { get; set; }
 
         public DateTime Date {
             get { return this._dateCreated; }

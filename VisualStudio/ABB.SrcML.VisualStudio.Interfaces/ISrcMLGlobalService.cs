@@ -67,7 +67,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="pathToDirectory">The directory path to start monitoring</param>
         void AddDirectoryToMonitor(string pathToDirectory);
 
-        DataRepository GetDataRepository();
+        IDataRepository GetDataRepository();
 
         /// <summary>
         /// Gets the current SrcML Archive

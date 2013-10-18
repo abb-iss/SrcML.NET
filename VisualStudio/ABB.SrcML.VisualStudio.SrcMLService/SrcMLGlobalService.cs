@@ -38,7 +38,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
         private uint cookie = 0;
 
-        private DataRepository CurrentDataRepository;
+        private IDataRepository CurrentDataRepository;
 
         /// <summary>
         /// SrcML.NET's Solution Monitor.
@@ -138,7 +138,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             CurrentMonitor.AddDirectory(pathToDirectory);
         }
 
-        public DataRepository GetDataRepository() {
+        public IDataRepository GetDataRepository() {
             return CurrentDataRepository;
         }
 
