@@ -209,7 +209,7 @@ namespace ABB.SrcML.Data {
         /// <param name="typeUseElement">The XML type use element</param>
         /// <param name="context">The parser context</param>
         /// <returns>A new TypeUse object</returns>
-        public override TypeUse ParseTypeUseElement(XElement typeUseElement, ParserContext context) {
+        public override ITypeUse ParseTypeUseElement(XElement typeUseElement, ParserContext context) {
             if(typeUseElement == null)
                 throw new ArgumentNullException("typeUseElement");
 

@@ -19,7 +19,7 @@ namespace ABB.SrcML.Data {
     /// The Built-In type factory creates on-demand instances of built-in types for each language.
     /// It creates and stores one <see cref="ITypeDefinition"/> object for each
     /// <see cref="ABB.SrcML.Language"/>/built-in type pair. This factory is primarily used by when
-    /// comparing <see cref="TypeUse"/> objects for method parameters. A parameter and an argument
+    /// comparing <see cref="ITypeUse"/> objects for method parameters. A parameter and an argument
     /// should have the same <see cref="ITypeDefinition"/> object.
     /// </summary>
     public static class BuiltInTypeFactory {
@@ -43,7 +43,7 @@ namespace ABB.SrcML.Data {
         /// <param name="use">the type use to locate</param>
         /// <returns>A type definition that matches the type use; null if this is not a
         /// built-in</returns>
-        public static ITypeDefinition GetBuiltIn(TypeUse use) {
+        public static ITypeDefinition GetBuiltIn(ITypeUse use) {
             if(!IsBuiltIn(use))
                 return null;
 
@@ -67,7 +67,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="use">The type use to test</param>
         /// <returns>true if this is a built-in type; false otherwise</returns>
-        public static bool IsBuiltIn(TypeUse use) {
+        public static bool IsBuiltIn(ITypeUse use) {
             if(use == null)
                 throw new ArgumentNullException("use");
 

@@ -10,9 +10,9 @@ namespace ABB.SrcML.Data {
 
         TypeKind Kind { get; set; }
 
-        ReadOnlyCollection<TypeUse> ParentTypes { get; }
+        ReadOnlyCollection<ITypeUse> ParentTypes { get; }
 
-        void AddParentType(TypeUse parentTypeUse);
+        void AddParentType(ITypeUse parentTypeUse);
 
         IEnumerable<ITypeDefinition> GetParentTypes();
 

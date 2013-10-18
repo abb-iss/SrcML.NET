@@ -68,7 +68,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The return type for this method
         /// </summary>
-        public TypeUse ReturnType { get; set; }
+        public ITypeUse ReturnType { get; set; }
 
         /// <summary>
         /// The AddFrom function adds all of the declarations and children from

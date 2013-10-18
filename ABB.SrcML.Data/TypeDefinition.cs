@@ -24,7 +24,7 @@ namespace ABB.SrcML.Data {
     [DebuggerTypeProxy(typeof(ScopeDebugView))]
     [Serializable]
     public class TypeDefinition : NamedScope, ITypeDefinition {
-        private Collection<TypeUse> ParentTypeCollection;
+        private Collection<ITypeUse> ParentTypeCollection;
 
         /// <summary>
         /// Creates a new type definition object
@@ -33,8 +33,8 @@ namespace ABB.SrcML.Data {
             : base() {
             // this.ParentTypes = new Collection<TypeUse>();
             this.IsPartial = false;
-            this.ParentTypeCollection = new Collection<TypeUse>();
-            this.ParentTypes = new ReadOnlyCollection<TypeUse>(ParentTypeCollection);
+            this.ParentTypeCollection = new Collection<ITypeUse>();
+            this.ParentTypes = new ReadOnlyCollection<ITypeUse>(ParentTypeCollection);
         }
 
         /// <summary>
@@ -46,11 +46,11 @@ namespace ABB.SrcML.Data {
             this.IsPartial = otherDefinition.IsPartial;
             this.Kind = otherDefinition.Kind;
 
-            this.ParentTypeCollection = new Collection<TypeUse>();
+            this.ParentTypeCollection = new Collection<ITypeUse>();
             foreach(var parent in otherDefinition.ParentTypes) {
                 this.AddParentType(parent);
             }
-            this.ParentTypes = new ReadOnlyCollection<TypeUse>(this.ParentTypeCollection);
+            this.ParentTypes = new ReadOnlyCollection<ITypeUse>(this.ParentTypeCollection);
         }
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The parent types that this type inherits from
         /// </summary>
-        public ReadOnlyCollection<TypeUse> ParentTypes { get; protected set; }
+        public ReadOnlyCollection<ITypeUse> ParentTypes { get; protected set; }
 
         /// <summary>
         /// This handles the "base" keyword (C# only) and the "this" keyword. It searches for the
@@ -108,7 +108,7 @@ namespace ABB.SrcML.Data {
         /// <paramref name="parentTypeUse"/>as a parent type for this type definition
         /// </summary>
         /// <param name="parentTypeUse">The parent type to add</param>
-        public void AddParentType(TypeUse parentTypeUse) {
+        public void AddParentType(ITypeUse parentTypeUse) {
             if(null == parentTypeUse)
                 throw new ArgumentNullException("parentTypeUse");
 

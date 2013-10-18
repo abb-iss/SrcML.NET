@@ -12,6 +12,6 @@ namespace ABB.SrcML.Data {
 
         IScope Scope { get; set; }
 
-        TypeUse VariableType { get; set; }
+        ITypeUse VariableType { get; set; }
     }
 }

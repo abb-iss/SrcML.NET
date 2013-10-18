@@ -21,16 +21,16 @@ namespace ABB.SrcML.Data {
     /// Represents a use of a type. It is used in declarations and inheritance specifications.
     /// </summary>
     [Serializable]
-    public class TypeUse : AbstractScopeUse<ITypeDefinition>, IResolvesToType {
-        private List<TypeUse> internalTypeParameters;
+    public class TypeUse : AbstractScopeUse<ITypeDefinition>, ITypeUse {
+        private List<ITypeUse> internalTypeParameters;
 
         /// <summary>
         /// Create a new type use object.
         /// </summary>
         public TypeUse() {
             this.Name = String.Empty;
-            this.internalTypeParameters = new List<TypeUse>();
-            this.TypeParameters = new ReadOnlyCollection<TypeUse>(this.internalTypeParameters);
+            this.internalTypeParameters = new List<ITypeUse>();
+            this.TypeParameters = new ReadOnlyCollection<ITypeUse>(this.internalTypeParameters);
         }
 
         /// <summary>
@@ -66,13 +66,13 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Parameters for the type use (indicates that this is a generic type use)
         /// </summary>
-        public ReadOnlyCollection<TypeUse> TypeParameters { get; private set; }
+        public ReadOnlyCollection<ITypeUse> TypeParameters { get; private set; }
 
         /// <summary>
         /// Adds a generic type parameter to this type use
         /// </summary>
         /// <param name="typeParameter">The type parameter to add</param>
-        public void AddTypeParameter(TypeUse typeParameter) {
+        public void AddTypeParameter(ITypeUse typeParameter) {
             this.internalTypeParameters.Add(typeParameter);
         }
 
@@ -80,7 +80,7 @@ namespace ABB.SrcML.Data {
         /// Adds all of the type parameters to this type use element
         /// </summary>
         /// <param name="typeParameters">An enumerable of type use elements to add</param>
-        public void AddTypeParameters(IEnumerable<TypeUse> typeParameters) {
+        public void AddTypeParameters(IEnumerable<ITypeUse> typeParameters) {
             this.internalTypeParameters.AddRange(typeParameters);
         }
 

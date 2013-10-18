@@ -656,7 +656,7 @@ namespace ABB.SrcML.Data {
         /// <see cref="ABB.SrcML.SRC.Type"/> or see cref="ABB.SrcML.SRC.Name"/></param>
         /// <param name="context">the parser context</param>
         /// <returns>A Type Use object</returns>
-        public virtual TypeUse ParseTypeUseElement(XElement typeUseElement, ParserContext context) {
+        public virtual ITypeUse ParseTypeUseElement(XElement typeUseElement, ParserContext context) {
             if(typeUseElement == null)
                 throw new ArgumentNullException("typeUseElement");
 
@@ -677,8 +677,8 @@ namespace ABB.SrcML.Data {
                                                               // this would be the chain A::B)
             XElement typeParameterArgumentList = null;        // the argument list element holds the
                                                               // parameters for generic type uses
-            var typeParameters = Enumerable.Empty<TypeUse>(); // enumerable for the actual generic
-                                                              // parameters
+            var typeParameters = Enumerable.Empty<ITypeUse>(); // enumerable for the actual generic
+                                                               // parameters
 
             // get the last name element and the prefix
             if(typeNameElement != null) {

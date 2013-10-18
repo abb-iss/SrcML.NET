@@ -12,7 +12,7 @@ namespace ABB.SrcML.Data {
 
         ReadOnlyCollection<IParameterDeclaration> Parameters { get; }
 
-        TypeUse ReturnType { get; set; }
+        ITypeUse ReturnType { get; set; }
 
         void AddMethodParameter(IParameterDeclaration parameter);
 

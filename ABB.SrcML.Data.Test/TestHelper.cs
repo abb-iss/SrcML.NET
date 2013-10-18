@@ -27,7 +27,7 @@ namespace ABB.SrcML.Data.Test {
             } else if(aType.Name == "MethodCall") {
                 return MethodCallsAreEqual((MethodCall) a, (MethodCall) b);
             } else if(aType.Name == "TypeUse") {
-                return TypeUsesAreEqual((TypeUse) a, (TypeUse) b);
+                return TypeUsesAreEqual((ITypeUse) a, (ITypeUse) b);
             } else if(aType.Name == "LiteralUse") {
                 return LiteralUsesAreEqual((LiteralUse) a, (LiteralUse) b);
             }
@@ -85,7 +85,7 @@ namespace ABB.SrcML.Data.Test {
             return TestEquality((dynamic) a, (dynamic) b);
         }
 
-        public static bool TypeUsesAreEqual(TypeUse a, TypeUse b) {
+        public static bool TypeUsesAreEqual(ITypeUse a, ITypeUse b) {
             if(a == b) { return true; }
             return LocationsAreEqual(a.Location, b.Location) &&
                    NamedScopeUsesAreEqual(a.Prefix, b.Prefix) &&

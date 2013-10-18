@@ -95,7 +95,7 @@ namespace ABB.SrcML.Data {
                 if(this.Name == "this" || (this.Name == "base" && this.ProgrammingLanguage == Language.CSharp)) {
                     typeDefinitions = TypeDefinition.GetTypeForKeyword(this);
                 } else {
-                    TypeUse tempTypeUse = new TypeUse() {
+                    ITypeUse tempTypeUse = new TypeUse() {
                         Name = this.Name,
                         ParentScope = this.ParentScope,
                     };

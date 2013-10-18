@@ -67,6 +67,7 @@
     <Compile Include="IRootedObject.cs" />
     <Compile Include="IScope.cs" />
     <Compile Include="ITypeDefinition.cs" />
+    <Compile Include="ITypeUse.cs" />
     <Compile Include="IUse.cs" />
     <Compile Include="IVariableDeclaration.cs" />
     <Compile Include="IVariableUse.cs" />

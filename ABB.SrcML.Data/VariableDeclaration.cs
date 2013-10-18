@@ -52,7 +52,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Description of the type for this variable
         /// </summary>
-        public virtual TypeUse VariableType { get; set; }
+        public virtual ITypeUse VariableType { get; set; }
 
         /// <summary>
         /// Returns a string representation of this object.
