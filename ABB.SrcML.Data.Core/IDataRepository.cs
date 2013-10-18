@@ -1,30 +1,56 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace ABB.SrcML.Data.Core
-{
-    public interface IDataRepository
-    {
-        ISrcMLArchive Archive { get; }
-        bool IsReady { get; }
+namespace ABB.SrcML.Data {
 
-        event EventHandler<FileEventRaisedArgs> FileProcessed;
+    public interface IDataRepository : IDisposable {
+
         event EventHandler<ErrorRaisedArgs> ErrorRaised;
 
-        IScope FindScope(SourceLocation location);
+        event EventHandler<FileEventRaisedArgs> FileProcessed;
 
-        IScope FindScope(XElement element);
+        event EventHandler<IsReadyChangedEventArgs> IsReadyChanged;
+
+        ISrcMLArchive Archive { get; }
+
+        string FileName { get; }
+
+        IScope GlobalScope { get; }
+
+        bool IsReady { get; }
+
+        void AddFile(string sourceFile);
+
+        void AddFile(XElement fileUnitElement);
+
+        void Clear();
+
+        Collection<IMethodCall> FindMethodCalls(SourceLocation loc);
+
+        Collection<IMethodCall> FindMethodCalls(string xpath);
+
+        Collection<IMethodCall> FindMethodCalls(XElement element);
+
+        IScope FindScope(SourceLocation loc);
 
         IScope FindScope(string xpath);
 
-        ICollection<IMethodCall> FindMethodCalls(SourceLocation location);
+        IScope FindScope(XElement element);
 
-        ICollection<IMethodCall> FindMethodCalls(XElement element);
+        void InitializeData();
 
-        ICollection<IMethodCall> FindMethodCalls(string xpath);
+        void InitializeDataConcurrent();
+
+        void InitializeDataConcurrent(TaskScheduler scheduler);
+
+        void Load(string fileName);
+
+        void RemoveFile(string sourceFile);
+
+        void Save();
+
+        void Save(string fileName);
     }
 }
