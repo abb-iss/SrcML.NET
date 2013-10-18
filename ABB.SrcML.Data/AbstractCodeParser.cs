@@ -564,7 +564,7 @@ namespace ABB.SrcML.Data {
         /// cref="ABB.SrcML.SRC.FunctionDeclaration"/></param>
         /// <param name="context">the parser context</param>
         /// <returns>A parameter declaration object</returns>
-        public virtual ParameterDeclaration ParseMethodParameterElement(XElement declElement, ParserContext context) {
+        public virtual IParameterDeclaration ParseMethodParameterElement(XElement declElement, ParserContext context) {
             if(declElement == null)
                 throw new ArgumentNullException("declElement");
             if(declElement.Name != SRC.Declaration && declElement.Name != SRC.FunctionDeclaration)
@@ -575,7 +575,7 @@ namespace ABB.SrcML.Data {
             var name = (nameElement == null ? String.Empty : nameElement.Value);
             var hasDefault = (declElement.Element(SRC.Init) != null);
 
-            var parameterDeclaration = new ParameterDeclaration {
+            IParameterDeclaration parameterDeclaration = new ParameterDeclaration {
                 VariableType = ParseTypeUseElement(typeElement, context),
                 Name = name,
                 HasDefaultValue = hasDefault,

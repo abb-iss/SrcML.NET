@@ -68,7 +68,7 @@ namespace ABB.SrcML.Data.Test {
                    NamedScopeUsesAreEqual(a.ChildScopeUse, b.ChildScopeUse);
         }
 
-        public static bool ParameterDeclarationsAreEqual(ParameterDeclaration a, ParameterDeclaration b) {
+        public static bool ParameterDeclarationsAreEqual(IParameterDeclaration a, IParameterDeclaration b) {
             if(a == b) { return true; }
             //we intentially don't test parameter names, because those may differ between signatures
             //we also intentionally ignore the parameter type locations

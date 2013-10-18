@@ -20,7 +20,7 @@ namespace ABB.SrcML.Data {
     /// Represents a parameter declaration in a method.
     /// </summary>
     [Serializable]
-    public class ParameterDeclaration : VariableDeclaration {
+    public class ParameterDeclaration : VariableDeclaration, IParameterDeclaration {
 
         /// <summary>
         /// Default constructor

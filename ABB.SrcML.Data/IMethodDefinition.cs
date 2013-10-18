@@ -10,13 +10,13 @@ namespace ABB.SrcML.Data {
 
         bool IsDestructor { get; set; }
 
-        ReadOnlyCollection<ParameterDeclaration> Parameters { get; }
+        ReadOnlyCollection<IParameterDeclaration> Parameters { get; }
 
         TypeUse ReturnType { get; set; }
 
-        void AddMethodParameter(ParameterDeclaration parameter);
+        void AddMethodParameter(IParameterDeclaration parameter);
 
-        void AddMethodParameters(IEnumerable<ParameterDeclaration> parameters);
+        void AddMethodParameters(IEnumerable<IParameterDeclaration> parameters);
 
         bool ContainsCallTo(IMethodDefinition callee);
 

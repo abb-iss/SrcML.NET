@@ -25,15 +25,15 @@ namespace ABB.SrcML.Data {
     [DebuggerTypeProxy(typeof(MethodDebugView))]
     [Serializable]
     public class MethodDefinition : NamedScope, IMethodDefinition {
-        private List<ParameterDeclaration> _parameters;
+        private List<IParameterDeclaration> _parameters;
 
         /// <summary>
         /// Creates a new method definition object
         /// </summary>
         public MethodDefinition()
             : base() {
-            _parameters = new List<ParameterDeclaration>();
-            Parameters = new ReadOnlyCollection<ParameterDeclaration>(_parameters);
+            _parameters = new List<IParameterDeclaration>();
+            Parameters = new ReadOnlyCollection<IParameterDeclaration>(_parameters);
         }
 
         /// <summary>
@@ -44,8 +44,8 @@ namespace ABB.SrcML.Data {
             : base(otherDefinition) {
             IsConstructor = otherDefinition.IsConstructor;
             IsDestructor = otherDefinition.IsDestructor;
-            _parameters = new List<ParameterDeclaration>();
-            Parameters = new ReadOnlyCollection<ParameterDeclaration>(_parameters);
+            _parameters = new List<IParameterDeclaration>();
+            Parameters = new ReadOnlyCollection<IParameterDeclaration>(_parameters);
 
             AddMethodParameters(otherDefinition.Parameters);
         }
@@ -63,7 +63,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The parameters for this method.
         /// </summary>
-        public ReadOnlyCollection<ParameterDeclaration> Parameters { get; private set; }
+        public ReadOnlyCollection<IParameterDeclaration> Parameters { get; private set; }
 
         /// <summary>
         /// The return type for this method
@@ -107,7 +107,7 @@ namespace ABB.SrcML.Data {
         /// Adds a method parameter to this method
         /// </summary>
         /// <param name="parameter">The parameter to add</param>
-        public void AddMethodParameter(ParameterDeclaration parameter) {
+        public void AddMethodParameter(IParameterDeclaration parameter) {
             parameter.Scope = this;
             _parameters.Add(parameter);
         }
@@ -116,7 +116,7 @@ namespace ABB.SrcML.Data {
         /// Adds an enumerable of method parameters to this method.
         /// </summary>
         /// <param name="parameters">The parameters to add</param>
-        public void AddMethodParameters(IEnumerable<ParameterDeclaration> parameters) {
+        public void AddMethodParameters(IEnumerable<IParameterDeclaration> parameters) {
             foreach(var parameter in parameters) {
                 AddMethodParameter(parameter);
             }
@@ -315,7 +315,7 @@ namespace ABB.SrcML.Data {
             public MethodCall[] MethodCalls { get { return this.method.MethodCalls.ToArray(); } }
 
             [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-            public ParameterDeclaration[] Parameters { get { return method.Parameters.ToArray(); } }
+            public IParameterDeclaration[] Parameters { get { return method.Parameters.ToArray(); } }
 
             [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
             public IVariableDeclaration[] Variables { get { return this.method.DeclaredVariables.ToArray(); } }

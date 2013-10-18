@@ -199,7 +199,7 @@ namespace ABB.SrcML.Data {
         /// cref="MethodDefinition.Parameters"/></param>
         /// <returns>true if the argument and the parameter have a matching type in common; false
         /// otherwise</returns>
-        private bool ArgumentMatchesDefinition(IResolvesToType argument, ParameterDeclaration parameter) {
+        private bool ArgumentMatchesDefinition(IResolvesToType argument, IParameterDeclaration parameter) {
             var possibleArgumentTypes = argument.FindMatchingTypes();
             var possibleParameterTypes = parameter.VariableType.FindMatchingTypes();
 
