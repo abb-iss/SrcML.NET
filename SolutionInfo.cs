@@ -11,8 +11,8 @@
 
 using System.Reflection;
 using System.Resources;
-[assembly: AssemblyCompany("ABB")]
 
+[assembly: AssemblyCompany("ABB")]
 #if DEBUG
 [assembly: AssemblyConfiguration("Debug")]
 #else
@@ -20,4 +20,4 @@ using System.Resources;
 #endif
 
 [assembly: NeutralResourcesLanguage("en-US")]
-[assembly: AssemblyVersion("2.0.48.0")]
+[assembly: AssemblyVersion("2.0.2700.3200")]
