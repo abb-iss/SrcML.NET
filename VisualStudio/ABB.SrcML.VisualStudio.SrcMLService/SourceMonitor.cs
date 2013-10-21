@@ -70,20 +70,37 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             List<string> solutionFiles = new List<string>();
             var projectEnumerator = solution.Projects.GetEnumerator();
             while(projectEnumerator.MoveNext()) {
-                var project = projectEnumerator.Current as Project;
-                if(project.ProjectItems != null) {
-                    var itemEnumerator = project.ProjectItems.GetEnumerator();
-                    while(itemEnumerator.MoveNext()) {
+                SearchProjectForFiles(solutionFiles, projectEnumerator.Current as Project);
+            }            
+            return solutionFiles;
+        }
+
+        private static void SearchProjectForFiles(List<string> solutionFiles, Project project)
+        {            
+            if(project!=null)
+                if (project.ProjectItems != null)
+                {
+                    var itemEnumerator = project.ProjectItems.GetEnumerator();                    
+                    while (itemEnumerator.MoveNext())
+                    {
                         var item = itemEnumerator.Current as ProjectItem;
-                        if(item != null && item.Name != null && item.FileCount > 0) {
-                            try {
-                                solutionFiles.Add(Path.GetFullPath(item.FileNames[0]));
-                            } catch(ArgumentException) { }
+                        if (item != null && item.Name != null && item.FileCount > 0)
+                        {
+                            try
+                            {
+                                var myPath = Path.GetFullPath(item.FileNames[0]);
+                                if(!String.IsNullOrEmpty(Path.GetExtension(myPath)))
+                                    solutionFiles.Add(myPath);
+                            }
+                            catch (ArgumentException) { }
+                            var proj = item.SubProject as Project;
+                            if (proj != null)
+                            {
+                                SearchProjectForFiles(solutionFiles, proj);
+                            }
                         }
                     }
                 }
-            }
-            return solutionFiles;
         }
 
         /// <summary>

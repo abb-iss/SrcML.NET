@@ -1,8 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML", "ABB.SrcML\ABB.SrcML.csproj", "{D52626E7-A4CA-471A-8A6A-FE0110430FE6}"
-EndProject
+# Visual Studio 2013
+VisualStudioVersion = 12.0.20827.3
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D4CB6CC1-0630-4FCA-BD07-C7E3DEF24AD6}"
 	ProjectSection(SolutionItems) = preProject
 		epl-v10.html = epl-v10.html
@@ -15,23 +15,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		UnitTests.testsettings = UnitTests.testsettings
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML.Test", "ABB.SrcML.Test\ABB.SrcML.Test.csproj", "{86EFC1F8-3E42-4130-B290-FEBE98C3D784}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML.Tools.Converter", "Tools\ABB.SrcML.Tools.Converter\ABB.SrcML.Tools.Converter.csproj", "{F5A50144-E874-4B1F-9A3C-C82D918F7A0A}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{1C12F8F6-3898-4793-9D93-13E9D5614C6C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML.Tools.Src2SrcMLPreview", "Tools\ABB.SrcML.Tools.Src2SrcMLPreview\ABB.SrcML.Tools.Src2SrcMLPreview.csproj", "{840DE623-4378-4D9B-96F9-776980986424}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "VisualStudio", "VisualStudio", "{E9F6AFA3-6494-4C3E-9807-5270E91268BA}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML.VisualStudio.PreviewAddIn", "VisualStudio\ABB.SrcML.VisualStudio.PreviewAddIn\ABB.SrcML.VisualStudio.PreviewAddIn.csproj", "{3A84638C-3C36-4884-BD71-F8E179351007}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDML.SrcMLVSAddin.SyntaticCategory", "VisualStudio\SDML.SrcMLVSAddin.SyntaticCategory\SDML.SrcMLVSAddin.SyntaticCategory.csproj", "{6A36C287-9889-4809-A189-E27D322386EB}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDML.SrcMLVSAddin.SyntaticCategory.Test", "VisualStudio\SDML.SrcMLVSAddin.SyntaticCategory.Test\SDML.SrcMLVSAddin.SyntaticCategory.Test.csproj", "{88391431-32B4-4D34-B9AD-0E1F4ACA961B}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML.VisualStudio.TransformTemplate", "VisualStudio\ABB.SrcML.VisualStudio.TransformTemplate\ABB.SrcML.VisualStudio.TransformTemplate.csproj", "{648A1C26-197D-482A-A368-1A92D54BF7E6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Templates", "Templates", "{CF76541B-8289-416C-BAA6-34F586FB6F79}"
 	ProjectSection(SolutionItems) = preProject
@@ -46,6 +32,22 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{739014
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 		.nuget\packages.config = .nuget\packages.config
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML", "ABB.SrcML\ABB.SrcML.csproj", "{D52626E7-A4CA-471A-8A6A-FE0110430FE6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML.Test", "ABB.SrcML.Test\ABB.SrcML.Test.csproj", "{86EFC1F8-3E42-4130-B290-FEBE98C3D784}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML.Tools.Converter", "Tools\ABB.SrcML.Tools.Converter\ABB.SrcML.Tools.Converter.csproj", "{F5A50144-E874-4B1F-9A3C-C82D918F7A0A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML.Tools.Src2SrcMLPreview", "Tools\ABB.SrcML.Tools.Src2SrcMLPreview\ABB.SrcML.Tools.Src2SrcMLPreview.csproj", "{840DE623-4378-4D9B-96F9-776980986424}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML.VisualStudio.PreviewAddIn", "VisualStudio\ABB.SrcML.VisualStudio.PreviewAddIn\ABB.SrcML.VisualStudio.PreviewAddIn.csproj", "{3A84638C-3C36-4884-BD71-F8E179351007}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDML.SrcMLVSAddin.SyntaticCategory", "VisualStudio\SDML.SrcMLVSAddin.SyntaticCategory\SDML.SrcMLVSAddin.SyntaticCategory.csproj", "{6A36C287-9889-4809-A189-E27D322386EB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDML.SrcMLVSAddin.SyntaticCategory.Test", "VisualStudio\SDML.SrcMLVSAddin.SyntaticCategory.Test\SDML.SrcMLVSAddin.SyntaticCategory.Test.csproj", "{88391431-32B4-4D34-B9AD-0E1F4ACA961B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML.VisualStudio.TransformTemplate", "VisualStudio\ABB.SrcML.VisualStudio.TransformTemplate\ABB.SrcML.VisualStudio.TransformTemplate.csproj", "{648A1C26-197D-482A-A368-1A92D54BF7E6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML.Tools.ArchiveUpdater", "Tools\ABB.SrcML.Tools.ArchiveUpdater\ABB.SrcML.Tools.ArchiveUpdater.csproj", "{273ADE66-8AF4-4736-8068-BF5C593C7F06}"
 EndProject
@@ -316,11 +318,11 @@ Global
 		{273ADE66-8AF4-4736-8068-BF5C593C7F06} = {1C12F8F6-3898-4793-9D93-13E9D5614C6C}
 		{B2FD5071-9B3B-4DE5-A1D2-3233989DEF77} = {1C12F8F6-3898-4793-9D93-13E9D5614C6C}
 		{4D1DE8A4-0C55-49E2-AF37-3B47A8A447B2} = {1C12F8F6-3898-4793-9D93-13E9D5614C6C}
+		{CF76541B-8289-416C-BAA6-34F586FB6F79} = {E9F6AFA3-6494-4C3E-9807-5270E91268BA}
 		{3A84638C-3C36-4884-BD71-F8E179351007} = {E9F6AFA3-6494-4C3E-9807-5270E91268BA}
 		{6A36C287-9889-4809-A189-E27D322386EB} = {E9F6AFA3-6494-4C3E-9807-5270E91268BA}
 		{88391431-32B4-4D34-B9AD-0E1F4ACA961B} = {E9F6AFA3-6494-4C3E-9807-5270E91268BA}
 		{648A1C26-197D-482A-A368-1A92D54BF7E6} = {E9F6AFA3-6494-4C3E-9807-5270E91268BA}
-		{CF76541B-8289-416C-BAA6-34F586FB6F79} = {E9F6AFA3-6494-4C3E-9807-5270E91268BA}
 		{873DD65E-2C15-413D-9441-9850AC9A6B84} = {E9F6AFA3-6494-4C3E-9807-5270E91268BA}
 		{C3FC3845-B74F-498E-A8E5-80F5AE013DA0} = {E9F6AFA3-6494-4C3E-9807-5270E91268BA}
 		{A1D86129-0342-4D94-8329-5F46FB75E92A} = {E9F6AFA3-6494-4C3E-9807-5270E91268BA}
