@@ -41,7 +41,7 @@ namespace ABB.SrcML.Data {
         /// <returns>An enumerable of named scopes with the same name as this use</returns>
         public override IEnumerable<INamedScope> FindMatches() {
             if(ChildScopeUse != null) {
-                var globalScope = ParentScope.GetParentScopesAndSelf<NamespaceDefinition>().Where(p => p.IsGlobal).FirstOrDefault();
+                var globalScope = ParentScope.GetParentScopesAndSelf<INamespaceDefinition>().Where(p => p.IsGlobal).FirstOrDefault();
 
                 INamedScopeUse current = ChildScopeUse;
 

@@ -37,7 +37,7 @@ namespace ABB.SrcML.Data {
                 }
             }
 
-            NamespaceDefinition globalScope = this.ParentScope.GetParentScopesAndSelf<NamespaceDefinition>().Where(n => n.IsGlobal).FirstOrDefault();
+            var globalScope = this.ParentScope.GetParentScopesAndSelf<INamespaceDefinition>().Where(n => n.IsGlobal).FirstOrDefault();
 
             if(globalScope != null) {
                 foreach(var alias in Aliases) {
