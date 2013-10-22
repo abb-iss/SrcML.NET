@@ -18,8 +18,6 @@ namespace ABB.SrcML.Data {
 
         AccessModifier Accessibility { get; set; }
 
-        string Id { get; }
-
         string Name { get; set; }
 
         Collection<INamedScopeUse> ParentScopeCandidates { get; set; }
