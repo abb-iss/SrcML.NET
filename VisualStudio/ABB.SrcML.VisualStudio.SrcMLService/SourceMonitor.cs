@@ -264,7 +264,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             IVsHierarchy hierarchy;
             IntPtr documentData;
             int status = DocumentTable.GetDocumentInfo(docCookie, out flags, out readingLocks, out editLocks, out filePath, out hierarchy, out documentId, out documentData);
-            if(status == VSConstants.S_OK && IsMonitoringFile(filePath)) {
+            var archive = GetArchiveForFile(filePath);
+            if(status == VSConstants.S_OK && IsMonitoringFile(filePath) && archive.IsOutdated(filePath)) {
                 UpdateFile(filePath);
             }
             return status;
