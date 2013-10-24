@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace ABB.SrcML.Data {
-
+    [Serializable]
     public class CSharpVarTypeUse : TypeUse {
 
         public IResolvesToType Initializer { get; set; }
