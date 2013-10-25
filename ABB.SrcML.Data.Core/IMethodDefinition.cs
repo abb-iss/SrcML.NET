@@ -32,5 +32,9 @@ namespace ABB.SrcML.Data {
         bool ContainsCallTo(IMethodDefinition callee);
 
         IEnumerable<IMethodCall> GetCallsTo(IMethodDefinition callee);
+
+        IEnumerable<IMethodCall> GetCallsToSelf();
+
+        IEnumerable<IMethodCall> GetCallsToSelf(IScope rootScope);
     }
 }

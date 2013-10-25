@@ -182,6 +182,24 @@ namespace ABB.SrcML.Data {
             return callsToMethod;
         }
 
+        public IEnumerable<IMethodCall> GetCallsToSelf() {
+            var globalScope = GetParentScopesAndSelf<INamespaceDefinition>().Where(n => n.IsGlobal).FirstOrDefault();
+            if(null == globalScope)
+                throw new SrcMLException(String.Format("{0} is disconnected from the global namespace", this.GetFullName()));
+
+            return GetCallsToSelf(globalScope);
+        }
+
+        public IEnumerable<IMethodCall> GetCallsToSelf(IScope rootScope) {
+            if(null == rootScope)
+                throw new ArgumentNullException("scope");
+            var calls = from scope in rootScope.GetDescendantScopes()
+                        from call in scope.MethodCalls
+                        where call.Name == this.Name
+                        where call.Matches(this)
+                        select call;
+            return calls;
+        }
         /// <summary>
         /// Merges this method definition with
         /// <paramref name="otherScope"/>. This happens when <c>otherScope.CanBeMergedInto(this)</c>
