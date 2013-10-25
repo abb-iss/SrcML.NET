@@ -259,8 +259,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
         private void InitDataWhenReady(object sender, IsReadyChangedEventArgs e) {
             if(e.ReadyState) {
-                CurrentDataRepository.InitializeDataConcurrent();
                 CurrentSrcMLArchive.IsReadyChanged -= InitDataWhenReady;
+                CurrentDataRepository.InitializeDataConcurrent();
             }
         }
 

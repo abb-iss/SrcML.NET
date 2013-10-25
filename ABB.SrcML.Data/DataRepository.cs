@@ -85,20 +85,8 @@ namespace ABB.SrcML.Data {
             this.Archive = archive;
             this.FileName = fileName;
 
-            bool loadedFromDisk = false;
-
-            if(FileName != null) {
-                if(File.Exists(this.FileName)) {
-                    Load(this.FileName);
-                    loadedFromDisk = true;
-                }
-            }
-
             if(this.Archive != null) {
-                this.Archive.FileChanged += Archive_SourceFileChanged;
-                if(!loadedFromDisk) {
-                    InitializeData();
-                }
+                
             }
         }
 
@@ -295,6 +283,7 @@ namespace ABB.SrcML.Data {
                 ReadArchive();
             }
             IsReady = true;
+            SubscribeToArchive();
         }
 
         /// <summary>
@@ -330,6 +319,7 @@ namespace ABB.SrcML.Data {
                 ReadArchiveConcurrent(scheduler);
             }
             IsReady = true;
+            SubscribeToArchive();
         }
 
         /// <summary>
@@ -345,7 +335,7 @@ namespace ABB.SrcML.Data {
             }
             using(var f = File.OpenRead(fileName)) {
                 var formatter = new BinaryFormatter();
-                var tempScope = (Scope) formatter.Deserialize(f);
+                var tempScope = formatter.Deserialize(f) as IScope;
                 //Will throw an exception if it doesn't deserialize correctly
                 this.FileName = fileName;
                 this.globalScope = tempScope;
@@ -361,9 +351,7 @@ namespace ABB.SrcML.Data {
         /// Disposes of the repository
         /// </summary>
         public void Dispose() {
-            if(this.Archive != null) {
-                this.Archive.FileChanged -= Archive_SourceFileChanged;
-            }
+            UnsubscribeFromArchive();
             this.FileProcessed = null;
             this.ErrorRaised = null;
             ReadyState.Dispose();
@@ -507,6 +495,17 @@ namespace ABB.SrcML.Data {
             };
         }
 
+        private void SubscribeToArchive() {
+            if(null != Archive) {
+                Archive.FileChanged += Archive_SourceFileChanged;
+            }
+        }
+
+        private void UnsubscribeFromArchive() {
+            if(null != Archive) {
+                Archive.FileChanged -= Archive_SourceFileChanged;
+            }
+        }
         #endregion Private Methods
 
         private class SourceLocationComparer : Comparer<SourceLocation> {
