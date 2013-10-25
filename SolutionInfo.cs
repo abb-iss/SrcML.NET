@@ -20,4 +20,4 @@ using System.Resources;
 #endif
 
 [assembly: NeutralResourcesLanguage("en-US")]
-[assembly: AssemblyVersion("2.0.2700.3200")]
+[assembly: AssemblyVersion("2.0.2800.3300")]
