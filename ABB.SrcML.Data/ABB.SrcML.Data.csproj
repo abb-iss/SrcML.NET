@@ -55,6 +55,7 @@
     <Compile Include="AbstractScopeUse.cs" />
     <Compile Include="AbstractUse.cs" />
     <Compile Include="Alias.cs" />
+    <Compile Include="BinaryLoader.cs" />
     <Compile Include="BuiltInTypeFactory.cs" />
     <Compile Include="CSharpVarTypeUse.cs" />
     <Compile Include="LiteralType.cs" />

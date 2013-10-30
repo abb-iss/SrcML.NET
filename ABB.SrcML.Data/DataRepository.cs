@@ -333,10 +333,9 @@ namespace ABB.SrcML.Data {
             if(fileName == null) {
                 throw new ArgumentNullException("fileName");
             }
-            using(var f = File.OpenRead(fileName)) {
-                var formatter = new BinaryFormatter();
-                var tempScope = formatter.Deserialize(f) as IScope;
-                //Will throw an exception if it doesn't deserialize correctly
+
+            using(var loader = new BinaryLoader()) {
+                var tempScope = loader.Load(fileName) as IScope;
                 this.FileName = fileName;
                 this.globalScope = tempScope;
                 SetupParsers();
