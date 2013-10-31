@@ -1163,5 +1163,90 @@ namespace ABB.SrcML.Data.Test {
                 CollectionAssert.Contains(expectedVariableTypes, declaration.VariableType.Name);
             }
         }
+
+        [Test]
+        public void TestStaticInstanceVariable() {
+            //namespace A {
+            //	class B {
+            //		public static B Instance { get; set; }
+            //		public void Bar() { }
+            //	}
+            //	
+            //	class C { public void Foo() { B.Instance.Bar(); } }
+            //}
+            var xml = @"<namespace>namespace <name>A</name> <block>{
+	<class>class <name>B</name> <block>{
+		<decl_stmt><decl><type><specifier>public</specifier> <specifier>static</specifier> <name>B</name></type> <name>Instance</name> <block>{ <function_decl><name>get</name>;</function_decl> <function_decl><name>set</name>;</function_decl> }</block></decl></decl_stmt>
+		<function><type><specifier>public</specifier> <name>void</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ }</block></function>
+	}</block></class>
+	
+	<class>class <name>C</name> <block>{ <function><type><specifier>public</specifier> <name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ <expr_stmt><expr><call><name><name>B</name><op:operator>.</op:operator><name>Instance</name><op:operator>.</op:operator><name>Bar</name></name><argument_list>()</argument_list></call></expr>;</expr_stmt> }</block></function> }</block></class>
+}</block></namespace>";
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
+
+            var globalScope = codeParser.ParseFileUnit(unit);
+
+            var methodBar = (from method in globalScope.GetDescendantScopesAndSelf<IMethodDefinition>()
+                             where method.Name == "Bar"
+                             select method).FirstOrDefault();
+            var callToBar = (from scope in globalScope.GetDescendantScopesAndSelf()
+                             from call in scope.MethodCalls
+                             where call.Name == "Bar"
+                             select call).FirstOrDefault();
+
+            Assert.IsNotNull(methodBar);
+            Assert.IsNotNull(callToBar);
+            Assert.AreSame(methodBar, callToBar.FindMatches().FirstOrDefault());
+        }
+
+        [Test]
+        public void TestStaticInstanceVariableInDifferentNamespace() {
+            //namespace A {
+            //	class B {
+            //		public static B Instance { get; set; }
+            //		public void Bar() { }
+            //	}
+            //	
+            //	class C { public void Foo() { B.Instance.Bar(); } }
+            //}
+            var aXml = @"<namespace>namespace <name>A</name> <block>{
+	<class>class <name>B</name> <block>{
+		<decl_stmt><decl><type><specifier>public</specifier> <specifier>static</specifier> <name>B</name></type> <name>Instance</name> <block>{ <function_decl><name>get</name>;</function_decl> <function_decl><name>set</name>;</function_decl> }</block></decl></decl_stmt>
+		<function><type><specifier>public</specifier> <name>void</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ }</block></function>
+	}</block></class>
+}</block></namespace>";
+
+            //using A;
+            //
+            //namespace C {
+            //	class D {
+            //		public void Foo() { B.Instance.Bar(); }
+            //	}
+            //}
+            var cXml = @"<using>using <name>A</name>;</using>
+
+<namespace>namespace <name>C</name> <block>{
+	<class>class <name>D</name> <block>{
+		<function><type><specifier>public</specifier> <name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ <expr_stmt><expr><call><name><name>B</name><op:operator>.</op:operator><name>Instance</name><op:operator>.</op:operator><name>Bar</name></name><argument_list>()</argument_list></call></expr>;</expr_stmt> }</block></function>
+	}</block></class>
+}</block></namespace>";
+            var aUnit = fileSetup.GetFileUnitForXmlSnippet(aXml, "A.cs");
+            var cUnit = fileSetup.GetFileUnitForXmlSnippet(cXml, "C.cs");
+            var aScope = codeParser.ParseFileUnit(aUnit);
+            var cScope = codeParser.ParseFileUnit(cUnit);
+            var globalScope = aScope.Merge(cScope);
+
+            var methodBar = (from method in globalScope.GetDescendantScopesAndSelf<IMethodDefinition>()
+                             where method.Name == "Bar"
+                             select method).FirstOrDefault();
+            var callToBar = (from scope in globalScope.GetDescendantScopesAndSelf()
+                             from call in scope.MethodCalls
+                             where call.Name == "Bar"
+                             select call).FirstOrDefault();
+
+            Assert.IsNotNull(methodBar);
+            Assert.IsNotNull(callToBar);
+            Assert.AreSame(methodBar, callToBar.FindMatches().FirstOrDefault());
+        }
     }
 }

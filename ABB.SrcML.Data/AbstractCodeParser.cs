@@ -311,8 +311,9 @@ namespace ABB.SrcML.Data {
             }
             if(methodCall.CallingObject == null) {
                 methodCall.AddAliases(context.Aliases);
+            } else if(current != null && current is IVariableUse) { 
+                ((IVariableUse) current).AddAliases(context.Aliases);
             }
-            // TODO can we add aliases to calling object?
             return methodCall;
         }
 
