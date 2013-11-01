@@ -55,6 +55,11 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <see cref="RemoveDirectoryFromMonitor(string)"/>
         /// </summary>
         ReadOnlyCollection<string> MonitoredDirectories { get; }
+        
+        /// <summary>
+        /// The interval at which the service persists its data to disk (in seconds).
+        /// </summary>
+        double SaveInterval { get; set; }
 
         /// <summary>
         /// The interval at which the service scans <see cref="MonitoredDirectories"/>

@@ -17,6 +17,8 @@ using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Threading;
+using System.Timers;
 using System.Xml.Linq;
 
 namespace ABB.SrcML.VisualStudio.SrcMLService {
@@ -54,6 +56,11 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
         private int frozen;
         private ReadyNotifier ReadyState;
+        private System.Timers.Timer SaveTimer;
+        private int syncPoint;
+        private const int RUNNING = 1;
+        private const int IDLE = 0;
+        private const int STOPPED = -1;
 
         /// <summary>
         /// Store in this variable the service provider that will be used to query for other
@@ -71,6 +78,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// </summary>
         private IVsStatusbar statusBar;
 
+        public const int DEFAULT_SAVE_INTERVAL = 300;
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -80,7 +89,10 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             SrcMLFileLogger.DefaultLogger.InfoFormat("Constructing a new instance of SrcMLGlobalService in {0}", extensionDirectory);
             numRunningSources = 0;
             ReadyState = new ReadyNotifier(this);
-
+            SaveTimer = new System.Timers.Timer();
+            SaveInterval = DEFAULT_SAVE_INTERVAL;
+            SaveTimer.Elapsed += SaveTimer_Elapsed;
+            syncPoint = STOPPED;
             serviceProvider = sp;
             SrcMLServiceDirectory = extensionDirectory;
             statusBar = (IVsStatusbar) Package.GetGlobalService(typeof(SVsStatusbar));
@@ -116,6 +128,11 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         }
 
         public ReadOnlyCollection<string> MonitoredDirectories { get { return (CurrentMonitor == null ? null : this.CurrentMonitor.MonitoredDirectories); } }
+
+        public double SaveInterval {
+            get { return SaveTimer.Interval / 1000; }
+            set { SaveTimer.Interval = value * 1000; }
+        }
 
         public double ScanInterval {
             get { return (CurrentMonitor == null ? Double.NaN : CurrentMonitor.ScanInterval); }
@@ -223,6 +240,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                     duringStartup = true;
                     CurrentMonitor.UpdateArchives();
                     CurrentMonitor.StartMonitoring();
+                    StartSaveTimer();
                 }
             } catch(Exception e) {
                 SrcMLFileLogger.DefaultLogger.Error(SrcMLExceptionFormatter.CreateMessage(e, "Exception in SrcMLGlobalService.StartMonitoring()"));
@@ -244,6 +262,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             SrcMLFileLogger.DefaultLogger.Info("SrcMLGlobalService.StopMonitoring()");
             try {
                 if(CurrentMonitor != null && CurrentSrcMLArchive != null) {
+                    StopSaveTimer();
                     CurrentMonitor.StopMonitoring();
                     CurrentMonitor.Dispose();
                     CurrentDataRepository.Dispose();
@@ -397,6 +416,30 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         private void RespondToMonitoringStoppedEvent(object sender, EventArgs eventArgs) {
             SrcMLFileLogger.DefaultLogger.Info("SrcMLService: RespondToMonitoringStoppedEvent()");
             OnMonitoringStopped(eventArgs);
+        }
+
+        void SaveTimer_Elapsed(object sender, ElapsedEventArgs e) {
+            int sync = Interlocked.CompareExchange(ref syncPoint, RUNNING, IDLE);
+            if(IDLE == sync) {
+                CurrentMonitor.Save();
+                syncPoint = IDLE;
+            }
+        }
+
+        private void StartSaveTimer() {
+            if(STOPPED == Interlocked.CompareExchange(ref syncPoint, IDLE, STOPPED)) {
+                SaveTimer.Start();
+            }
+        }
+
+        private void StopSaveTimer() {
+            if(SaveTimer.Enabled) {
+                SaveTimer.Stop();
+
+                while(RUNNING == Interlocked.CompareExchange(ref syncPoint, STOPPED, IDLE)) {
+                    System.Threading.Thread.Sleep(1);
+                }
+            }
         }
 
         /// <summary>
