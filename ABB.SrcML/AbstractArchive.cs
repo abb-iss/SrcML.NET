@@ -220,10 +220,13 @@ namespace ABB.SrcML
             }, TaskContinuationOptions.OnlyOnFaulted);
         }
 
+        public abstract void Save();
+
         /// <summary>
         /// Disposes of this object
         /// </summary>
         public virtual void Dispose() {
+            Save();
             _taskManager.Dispose();
             FileChanged = null;
         }

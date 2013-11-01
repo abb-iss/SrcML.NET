@@ -249,6 +249,10 @@ namespace ABB.SrcML {
             }
         }
 
+        public override void Save() {
+            WriteMonitoringList();
+            base.Save();
+        }
         /// <summary>
         /// Start scanning <see cref="MonitoredDirectories">monitored directories</see> every
         /// <see cref="ScanInterval"/> seconds.

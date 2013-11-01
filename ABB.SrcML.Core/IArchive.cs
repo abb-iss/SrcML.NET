@@ -48,5 +48,7 @@ namespace ABB.SrcML
         bool IsOutdated(string fileName);
 
         Collection<string> GetFiles();
+
+        void Save();
     }
 }

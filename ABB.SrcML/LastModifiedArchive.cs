@@ -141,6 +141,10 @@ namespace ABB.SrcML {
             }
         }
 
+        public override void Save() {
+            SaveMap();
+        }
+
         /// <summary>
         /// Saves this map to disk (at <see cref="AbstractArchive.ArchivePath"/>
         /// </summary>

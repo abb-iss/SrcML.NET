@@ -271,6 +271,11 @@ namespace ABB.SrcML {
             GenerateXmlForSource(newFileName);
             OnFileChanged(new FileEventRaisedArgs(FileEventType.FileRenamed, newFileName, oldFileName, true));
         }
+
+        public override void Save() {
+            xmlFileNameMapping.SaveMapping();
+        }
+
         #endregion AbstractArchive Members
 
         /// <summary>

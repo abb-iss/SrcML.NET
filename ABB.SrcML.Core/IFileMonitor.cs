@@ -61,6 +61,8 @@ namespace ABB.SrcML {
         void UpdateFile(string filePath);
 
         void RenameFile(string oldFilePath, string newFilePath);
+
+        void Save();
     }
 
     /// <summary>

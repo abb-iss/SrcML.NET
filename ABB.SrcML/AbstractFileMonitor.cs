@@ -232,6 +232,12 @@ namespace ABB.SrcML {
             }
         }
 
+        public virtual void Save() {
+            foreach(var archive in registeredArchives) {
+                archive.Save();
+            }
+        }
+
         /// <summary>
         /// Starts monitoring
         /// </summary>
