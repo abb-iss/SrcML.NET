@@ -14,7 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace ABB.SrcML.Core.Exceptions {
+namespace ABB.SrcML {
 
     /// <summary>
     /// This exception is thrown exclusively by

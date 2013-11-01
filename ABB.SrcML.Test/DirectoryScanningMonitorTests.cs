@@ -9,7 +9,6 @@
  *    Vinay Augustine (ABB Group) - Initial implementation
  *****************************************************************************/
 
-using ABB.SrcML.Core.Exceptions;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
