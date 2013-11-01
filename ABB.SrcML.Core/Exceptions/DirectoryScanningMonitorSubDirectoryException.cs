@@ -14,7 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace ABB.SrcML {
+namespace ABB.SrcML.Core.Exceptions {
 
     /// <summary>
     /// This exception is thrown exclusively by
@@ -31,11 +31,10 @@ namespace ABB.SrcML {
         /// cref="DirectoryScanningMonitor.AddDirectory(string)"/></param>
         /// <param name="parentDirectory">The parent directory that caused the exception</param>
         /// <param name="monitor">The monitor</param>
-        public DirectoryScanningMonitorSubDirectoryException(string directory, string parentDirectory, DirectoryScanningMonitor monitor)
+        public DirectoryScanningMonitorSubDirectoryException(string directory, string parentDirectory)
             : base(String.Format("{0} is a subdirectory of {1}", directory, parentDirectory)) {
             Directory = directory;
-            ParentDirectory = parentDirectory;
-            Monitor = monitor;
+            ParentDirectory = parentDirectory;            
         }
 
         /// <summary>
@@ -44,10 +43,6 @@ namespace ABB.SrcML {
         /// </summary>
         public string Directory { get; set; }
 
-        /// <summary>
-        /// The monitor
-        /// </summary>
-        public DirectoryScanningMonitor Monitor { get; set; }
 
         /// <summary>
         /// The parent directory that caused the exception.

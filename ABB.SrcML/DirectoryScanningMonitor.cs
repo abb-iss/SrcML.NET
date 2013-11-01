@@ -9,6 +9,7 @@
  *    Vinay Augustine (ABB Group) - Initial implementation
  *****************************************************************************/
 
+using ABB.SrcML.Core.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -149,7 +150,7 @@ namespace ABB.SrcML {
                     if(alreadyMonitoringDirectory) {
                         break;
                     }
-                    throw new DirectoryScanningMonitorSubDirectoryException(directoryPath, directory, this);
+                    throw new DirectoryScanningMonitorSubDirectoryException(directoryPath, directory);
                 }
             }
 
