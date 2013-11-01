@@ -176,18 +176,31 @@ namespace ABB.SrcML {
             bool isExcluded = Exclusions.Contains(dirName);
 
             if(!(startsWithDot || isExcluded)) {
-                foreach(var dir in Directory.EnumerateDirectories(directory, "*", SearchOption.TopDirectoryOnly)) {
+                String[] subdirectories;
+                String[] files;
+                try {
+                    subdirectories = Directory.GetDirectories(directory, "*", SearchOption.TopDirectoryOnly);
+                } catch(Exception) {
+                    subdirectories = new string[0];
+                }
+                
+                foreach(var dir in subdirectories) {
                     foreach(var filePath in EnumerateDirectory(dir)) {
                         yield return filePath;
                     }
                 }
+                
+                try {
+                    files = Directory.GetFiles(directory, "*", SearchOption.TopDirectoryOnly);
+                } catch(Exception) {
+                    files = new string[0];
+                }
+                var validFiles = from filePath in files
+                                 let fileName = Path.GetFileName(filePath)
+                                 where fileName[0] != '.'
+                                 select filePath;
 
-                var files = from filePath in Directory.EnumerateFiles(directory, "*", SearchOption.TopDirectoryOnly)
-                            let fileName = Path.GetFileName(filePath)
-                            where fileName[0] != '.'
-                            select filePath;
-
-                foreach(var filePath in files) {
+                foreach(var filePath in validFiles) {
                     yield return filePath;
                 }
             }
