@@ -44,9 +44,35 @@ namespace ABB.SrcML {
             "bin", "obj", "TestResults"
         }, StringComparer.InvariantCultureIgnoreCase);
 
+        private static HashSet<string> ForbiddenDirectories = GetForbiddenDirectories();
         private List<string> folders;
         private Timer ScanTimer;
         private int syncPoint;
+
+        private static HashSet<string> GetForbiddenDirectories() {
+            var forbiddenDirectories = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
+            var userProfile = Environment.GetEnvironmentVariable("USERPROFILE");
+            if(null != userProfile) {
+                forbiddenDirectories.Add(GetFullPath(userProfile));
+            }
+
+            string myDocuments = null;
+            foreach(var specialFolder in (Environment.SpecialFolder[]) Enum.GetValues(typeof(Environment.SpecialFolder))) {
+                var directory = Environment.GetFolderPath(specialFolder);
+                forbiddenDirectories.Add(directory.TrimEnd(Path.PathSeparator));
+                if(specialFolder == Environment.SpecialFolder.MyDocuments) {
+                    myDocuments = directory;
+                }
+            }
+
+            foreach(var year in new[] { "2005", "2008", "2010", "2012", "2013" }) {
+                var directory = "Visual Studio " + year;
+                forbiddenDirectories.Add(GetFullPath(Path.Combine(myDocuments, directory)));
+                forbiddenDirectories.Add(GetFullPath(Path.Combine(myDocuments, directory, "Projects")));
+            }
+
+            return forbiddenDirectories;
+        }
 
         /// <summary>
         /// Create a new directory scanning monitor
@@ -142,6 +168,10 @@ namespace ABB.SrcML {
             var fullPath = GetFullPath(directoryPath);
             bool alreadyMonitoringDirectory = false;
 
+            if(DirectoryIsForbidden(fullPath)) {
+                throw new ForbiddenDirectoryException(fullPath, (ForbiddenDirectories.Contains(fullPath) ? ForbiddenDirectoryException.ISSPECIALDIR : ForbiddenDirectoryException.ISROOT));
+            }
+
             foreach(var directory in MonitoredDirectories) {
                 if(fullPath.StartsWith(directory, StringComparison.InvariantCultureIgnoreCase)) {
                     // if full path starts with directory, then check to see if they
@@ -161,6 +191,14 @@ namespace ABB.SrcML {
                     }
                 }
             }
+        }
+
+        public static bool DirectoryIsForbidden(string directoryPath) {
+            if(null == directoryPath)
+                throw new ArgumentNullException("directoryPath");
+            var info = new DirectoryInfo(directoryPath);
+            
+            return (info.Parent == null) || ForbiddenDirectories.Contains(GetFullPath(directoryPath));
         }
 
         /// <summary>
@@ -315,7 +353,7 @@ namespace ABB.SrcML {
         /// <param name="path">The path to get a full path for</param>
         /// <returns>The full path for
         /// <paramref name="path"/>with no trailing path separators</returns>
-        private string GetFullPath(string path) {
+        private static string GetFullPath(string path) {
             if(null == path)
                 throw new ArgumentNullException("path");
 

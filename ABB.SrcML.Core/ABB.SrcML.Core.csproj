@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Exceptions\DirectoryScanningMonitorSubDirectoryException.cs" />
+    <Compile Include="Exceptions\ForbiddenDirectoryException.cs" />
     <Compile Include="IArchive.cs" />
     <Compile Include="IFileMonitor.cs" />
     <Compile Include="ISrcMLArchive.cs" />

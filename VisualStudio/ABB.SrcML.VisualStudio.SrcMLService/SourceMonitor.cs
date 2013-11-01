@@ -116,6 +116,9 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             string solutionFilePath = Path.GetFullPath(Path.GetDirectoryName(solution.FullName));
             var solutionFiles = GetSolutionFiles(solution);
             string commonPath = Utilities.FileHelper.GetCommonPath(solutionFilePath, solutionFiles);
+            if(DirectoryIsForbidden(commonPath)) {
+                commonPath = solutionFilePath;
+            }
             return commonPath;
         }
 
