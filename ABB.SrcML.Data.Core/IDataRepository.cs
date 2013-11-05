@@ -28,7 +28,7 @@ namespace ABB.SrcML.Data {
 
         string FileName { get; }
 
-        IScope GlobalScope { get; }
+        IScope GetGlobalScope();
 
         bool IsReady { get; }
 

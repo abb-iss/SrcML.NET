@@ -19,6 +19,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -52,6 +53,7 @@ namespace ABB.SrcML.Data {
         private IScope globalScope;
         private Dictionary<Language, ICodeParser> parsers;
         private ReadyNotifier ReadyState;
+        private ReaderWriterLockSlim scopeLock;
 
         /// <summary>
         /// Create a data archive for the given srcML archive. It will subscribe to the
@@ -81,6 +83,7 @@ namespace ABB.SrcML.Data {
         /// will be loaded.</param>
         public DataRepository(ISrcMLArchive archive, string fileName) {
             SetupParsers();
+            scopeLock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
             this.ReadyState = new ReadyNotifier(this);
             this.Archive = archive;
             this.FileName = fileName;
@@ -120,11 +123,6 @@ namespace ABB.SrcML.Data {
         public string FileName { get; private set; }
 
         /// <summary>
-        /// The top-level Scope for the data in the archive.
-        /// </summary>
-        public IScope GlobalScope { get { return globalScope; } }
-
-        /// <summary>
         /// True if this repository is idle; false if it is responding to file updates
         /// </summary>
         public bool IsReady {
@@ -149,26 +147,36 @@ namespace ABB.SrcML.Data {
         /// <param name="fileUnitElement">The <see cref="SRC.Unit"/> XElement for the file to
         /// add.</param>
         public void AddFile(XElement fileUnitElement) {
-            bool wasIdle = IsReady;
-            if(wasIdle) {
-                IsReady = false;
+            scopeLock.EnterWriteLock();
+            try {
+                bool wasIdle = IsReady;
+                if(wasIdle) {
+                    IsReady = false;
+                }
+                var scope = ParseFileUnit(fileUnitElement);
+                if(scope != null) {
+                    MergeScope(scope);
+                }
+                if(wasIdle) {
+                    IsReady = true;
+                }
+                //TODO: update other data structures as necessary
+            } finally {
+                scopeLock.ExitWriteLock();
             }
-            var scope = ParseFileUnit(fileUnitElement);
-            if(scope != null) {
-                MergeScope(scope);
-            }
-            if(wasIdle) {
-                IsReady = true;
-            }
-            //TODO: update other data structures as necessary
         }
 
         /// <summary>
         /// Removes any data from the archive.
         /// </summary>
         public void Clear() {
-            globalScope = null;
-            //TODO: clear any other data structures as necessary
+            scopeLock.EnterWriteLock();
+            try {
+                globalScope = null;
+                //TODO: clear any other data structures as necessary
+            } finally {
+                scopeLock.ExitWriteLock();
+            }
         }
 
         /// <summary>
@@ -176,9 +184,14 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="sourceFile">The path of the file to remove.</param>
         public void RemoveFile(string sourceFile) {
-            IsReady = false;
-            globalScope.RemoveFile(sourceFile);
-            IsReady = true;
+            scopeLock.EnterWriteLock();
+            try {
+                IsReady = false;
+                globalScope.RemoveFile(sourceFile);
+                IsReady = true;
+            } finally {
+                scopeLock.ExitWriteLock();
+            }
         }
 
         #endregion Modification methods
@@ -194,14 +207,19 @@ namespace ABB.SrcML.Data {
         public Collection<IMethodCall> FindMethodCalls(SourceLocation loc) {
             if(loc == null)
                 throw new ArgumentNullException("loc");
-            var scope = globalScope.GetScopeForLocation(loc);
-            if(scope == null) {
-                //TODO replace logger call
-                //Utilities.SrcMLFileLogger.DefaultLogger.InfoFormat("SourceLocation {0} not found in DataRepository", loc);
-                return new Collection<IMethodCall>();
+            scopeLock.EnterReadLock();
+            try {
+                var scope = globalScope.GetScopeForLocation(loc);
+                if(scope == null) {
+                    //TODO replace logger call
+                    //Utilities.SrcMLFileLogger.DefaultLogger.InfoFormat("SourceLocation {0} not found in DataRepository", loc);
+                    return new Collection<IMethodCall>();
+                }
+                var calls = scope.MethodCalls.Where(mc => mc.Location.Contains(loc));
+                return new Collection<IMethodCall>(calls.OrderByDescending(mc => mc.Location, new SourceLocationComparer()).ToList());
+            } finally {
+                scopeLock.ExitReadLock();
             }
-            var calls = scope.MethodCalls.Where(mc => mc.Location.Contains(loc));
-            return new Collection<IMethodCall>(calls.OrderByDescending(mc => mc.Location, new SourceLocationComparer()).ToList());
         }
 
         /// <summary>
@@ -225,9 +243,15 @@ namespace ABB.SrcML.Data {
         public Collection<IMethodCall> FindMethodCalls(string xpath) {
             if(xpath == null)
                 throw new ArgumentNullException("xpath");
-            var scope = globalScope.GetScopeForLocation(xpath);
-            var calls = scope.MethodCalls.Where(mc => xpath.StartsWith(mc.Location.XPath));
-            return new Collection<IMethodCall>(calls.OrderByDescending(mc => mc.Location, new SourceLocationComparer()).ToList());
+
+            scopeLock.EnterReadLock();
+            try {
+                var scope = globalScope.GetScopeForLocation(xpath);
+                var calls = scope.MethodCalls.Where(mc => xpath.StartsWith(mc.Location.XPath));
+                return new Collection<IMethodCall>(calls.OrderByDescending(mc => mc.Location, new SourceLocationComparer()).ToList());
+            } finally {
+                scopeLock.ExitReadLock();
+            }
         }
 
         /// <summary>
@@ -237,7 +261,12 @@ namespace ABB.SrcML.Data {
         /// <returns>The innermost scope containing the location, or null if it is not
         /// found.</returns>
         public IScope FindScope(SourceLocation loc) {
-            return globalScope.GetScopeForLocation(loc);
+            scopeLock.EnterReadLock();
+            try {
+                return globalScope.GetScopeForLocation(loc);
+            } finally {
+                scopeLock.ExitReadLock();
+            }
         }
 
         /// <summary>
@@ -247,7 +276,12 @@ namespace ABB.SrcML.Data {
         /// <returns>The innermost scope containing the element, or null if it is not
         /// found.</returns>
         public IScope FindScope(XElement element) {
-            return globalScope.GetScopeForLocation(element.GetXPath(false));
+            scopeLock.EnterReadLock();
+            try {
+                return globalScope.GetScopeForLocation(element.GetXPath(false));
+            } finally {
+                scopeLock.ExitReadLock();
+            }
         }
 
         /// <summary>
@@ -256,7 +290,20 @@ namespace ABB.SrcML.Data {
         /// <param name="xpath">The XPath to search for.</param>
         /// <returns>The innermost scope containing the XPath, or null if it is not found.</returns>
         public IScope FindScope(string xpath) {
-            return globalScope.GetScopeForLocation(xpath);
+            scopeLock.EnterReadLock();
+            try {
+                return globalScope.GetScopeForLocation(xpath);
+            } finally {
+                scopeLock.ExitReadLock();
+            }
+        }
+        public IScope GetGlobalScope() {
+            scopeLock.EnterReadLock();
+            try {
+                return this.globalScope;
+            } finally {
+                scopeLock.ExitReadLock();
+            }
         }
 
         #endregion Query methods
@@ -337,7 +384,13 @@ namespace ABB.SrcML.Data {
             using(var loader = new BinaryLoader()) {
                 var tempScope = loader.Load(fileName) as IScope;
                 this.FileName = fileName;
-                this.globalScope = tempScope;
+                scopeLock.EnterWriteLock();
+                try {
+                    this.globalScope = tempScope;
+                } finally {
+                    scopeLock.ExitWriteLock();
+                }
+
                 SetupParsers();
             }
         }
@@ -355,6 +408,7 @@ namespace ABB.SrcML.Data {
             this.ErrorRaised = null;
             ReadyState.Dispose();
             Save();
+            scopeLock.Dispose();
         }
 
         /// <summary>
@@ -367,7 +421,12 @@ namespace ABB.SrcML.Data {
             }
             var formatter = new BinaryFormatter();
             using(var f = File.OpenWrite(fileName)) {
-                formatter.Serialize(f, globalScope);
+                scopeLock.EnterReadLock();
+                try {
+                    formatter.Serialize(f, globalScope);
+                } finally {
+                    scopeLock.ExitReadLock();
+                }
             }
             this.FileName = fileName;
         }
@@ -387,6 +446,7 @@ namespace ABB.SrcML.Data {
 
         private void Archive_SourceFileChanged(object sender, FileEventRaisedArgs e) {
             try {
+                scopeLock.EnterWriteLock();
                 switch(e.EventType) {
                     case FileEventType.FileChanged:
                         // Treat a changed source file as deleted then added
@@ -411,11 +471,22 @@ namespace ABB.SrcML.Data {
             } catch(Exception ex) {
                 // TODO log exception
                 Console.Error.WriteLine("Error: {0} ({1} {2})", ex.Message, e.EventType, e.FilePath);
+            } finally {
+                scopeLock.ExitWriteLock();
             }
         }
 
+        private T GetFirstAncestor<T>(IScope scope) where T : class, IScope {
+            return (scope != null ? scope.GetParentScopesAndSelf<T>().FirstOrDefault() : null);
+        }
+
         private void MergeScope(IScope scopeForFile) {
-            globalScope = (globalScope != null ? globalScope.Merge(scopeForFile) : scopeForFile);
+            scopeLock.EnterWriteLock();
+            try {
+                globalScope = (globalScope != null ? globalScope.Merge(scopeForFile) : scopeForFile);
+            } finally {
+                scopeLock.ExitWriteLock();
+            }
         }
 
         private void OnErrorRaised(ErrorRaisedArgs e) {
@@ -449,14 +520,19 @@ namespace ABB.SrcML.Data {
 
         private void ReadArchive() {
             if(null != Archive) {
-                foreach(var unit in Archive.FileUnits) {
-                    try {
-                        string fileName = SrcMLElement.GetFileNameForUnit(unit);
-                        AddFile(unit);
-                        OnFileProcessed(new FileEventRaisedArgs(FileEventType.FileAdded, fileName));
-                    } catch(Exception ex) {
-                        OnErrorRaised(new ErrorRaisedArgs(ex));
+                scopeLock.EnterWriteLock();
+                try {
+                    foreach(var unit in Archive.FileUnits) {
+                        try {
+                            string fileName = SrcMLElement.GetFileNameForUnit(unit);
+                            AddFile(unit);
+                            OnFileProcessed(new FileEventRaisedArgs(FileEventType.FileAdded, fileName));
+                        } catch(Exception ex) {
+                            OnErrorRaised(new ErrorRaisedArgs(ex));
+                        }
                     }
+                } finally {
+                    scopeLock.ExitWriteLock();
                 }
             }
         }
@@ -477,10 +553,15 @@ namespace ABB.SrcML.Data {
 
                 task.Start(scheduler);
 
-                foreach(var scope in mergeQueue.GetConsumingEnumerable()) {
-                    var fileName = scope.PrimaryLocation.SourceFileName;
-                    MergeScope(scope);
-                    OnFileProcessed(new FileEventRaisedArgs(FileEventType.FileAdded, fileName));
+                scopeLock.EnterWriteLock();
+                try {
+                    foreach(var scope in mergeQueue.GetConsumingEnumerable()) {
+                        var fileName = scope.PrimaryLocation.SourceFileName;
+                        MergeScope(scope);
+                        OnFileProcessed(new FileEventRaisedArgs(FileEventType.FileAdded, fileName));
+                    }
+                } finally {
+                    scopeLock.ExitWriteLock();
                 }
             }
         }

@@ -37,7 +37,7 @@ namespace ABB.SrcML.Data.Test {
 
             var newData = new DataRepository(@"DataRepositoryTests\saved.dar");
             newData.InitializeData();
-            Assert.IsTrue(TestHelper.ScopesAreEqual(data.GlobalScope, newData.GlobalScope));
+            Assert.IsTrue(TestHelper.ScopesAreEqual(data.GetGlobalScope(), newData.GetGlobalScope()));
         }
 
         [Test]
@@ -54,7 +54,7 @@ namespace ABB.SrcML.Data.Test {
             var newData = new DataRepository(archive, @"DataRepositoryTests\saved.dar");
             newData.InitializeData();
 
-            Assert.IsTrue(TestHelper.ScopesAreEqual(data.GlobalScope, newData.GlobalScope));
+            Assert.IsTrue(TestHelper.ScopesAreEqual(data.GetGlobalScope(), newData.GetGlobalScope()));
         }
     }
 }

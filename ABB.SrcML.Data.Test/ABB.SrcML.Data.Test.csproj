@@ -58,6 +58,7 @@
     <Compile Include="FileRemovalTests_CSharp.cs" />
     <Compile Include="FileRemovalTests_Java.cs" />
     <Compile Include="GetScopeTests.cs" />
+    <Compile Include="MultithreadedAccessTests.cs" />
     <Compile Include="NameHelperTests.cs" />
     <Compile Include="RealWorldTests.cs" />
     <Compile Include="ScopeMergeTests.cs" />

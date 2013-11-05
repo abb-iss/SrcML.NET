@@ -114,7 +114,7 @@ namespace ABB.SrcML.Tools.MethodCallSurvey {
         }
 
         public ObservableCollection<MethodCall> GetSampleOfMethodCalls(BackgroundWorker worker) {
-            var allCalls = from scope in Data.GlobalScope.GetDescendantScopes()
+            var allCalls = from scope in Data.GetGlobalScope().GetDescendantScopes()
                            from call in scope.MethodCalls
                            select call;
             int numberOfCalls = allCalls.Count();
