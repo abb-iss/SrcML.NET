@@ -350,8 +350,8 @@ namespace ABB.SrcML.Data.Test {
                         Console.WriteLine("{0} to generate data", end - start);
                         Console.WriteLine(fileLogPath);
 
-                        PrintScopeReport(data.GlobalScope);
-                        PrintMethodCallReport(data.GlobalScope, callLogPath);
+                        PrintScopeReport(data.GetGlobalScope());
+                        PrintMethodCallReport(data.GetGlobalScope(), callLogPath);
                         PrintErrorReport(errors);
                     }
                 }
