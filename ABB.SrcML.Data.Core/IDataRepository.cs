@@ -28,8 +28,6 @@ namespace ABB.SrcML.Data {
 
         string FileName { get; }
 
-        IScope GetGlobalScope();
-
         bool IsReady { get; }
 
         void AddFile(string sourceFile);
@@ -44,6 +42,8 @@ namespace ABB.SrcML.Data {
 
         Collection<IMethodCall> FindMethodCalls(XElement element);
 
+        IScope Findscope<T>(XElement element) where T : class, IScope;
+
         IScope FindScope(SourceLocation loc);
 
         IScope FindScope(string xpath);
@@ -54,7 +54,7 @@ namespace ABB.SrcML.Data {
 
         IScope FindScope<T>(string xpath) where T : class, IScope;
 
-        IScope Findscope<T>(XElement element) where T : class, IScope;
+        IScope GetGlobalScope();
 
         void InitializeData();
 

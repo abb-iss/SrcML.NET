@@ -250,6 +250,10 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        public IScope Findscope<T>(XElement element) where T : class, IScope {
+            return GetFirstAncestor<T>(FindScope(element));
+        }
+
         /// <summary>
         /// Finds the innermost scope that contains the given source location.
         /// </summary>
@@ -292,10 +296,6 @@ namespace ABB.SrcML.Data {
             } finally {
                 scopeLock.ExitReadLock();
             }
-        }
-
-        public IScope Findscope<T>(XElement element) where T : class, IScope {
-            return GetFirstAncestor<T>(FindScope(element));
         }
 
         public IScope FindScope<T>(SourceLocation loc) where T : class, IScope {
