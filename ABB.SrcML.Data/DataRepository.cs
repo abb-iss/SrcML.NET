@@ -87,10 +87,6 @@ namespace ABB.SrcML.Data {
             this.ReadyState = new ReadyNotifier(this);
             this.Archive = archive;
             this.FileName = fileName;
-
-            if(this.Archive != null) {
-                
-            }
         }
 
         /// <summary>
@@ -599,6 +595,7 @@ namespace ABB.SrcML.Data {
                 Archive.FileChanged -= Archive_SourceFileChanged;
             }
         }
+
         #endregion Private Methods
 
         private class SourceLocationComparer : Comparer<SourceLocation> {
