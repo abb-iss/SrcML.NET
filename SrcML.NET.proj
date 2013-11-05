@@ -44,7 +44,7 @@
           Condition="Exists('External\MSBuild\MSBuildCommunityTasks\MSBuild.Community.Tasks.Targets')" />
   <Target Name="BeforeBuild" Condition="Exists('External\MSBuild\MSBuildCommunityTasks\MSBuild.Community.Tasks.Targets')">
     <Message Text="$(Configuration) Build: $(Major).$(Minor).$(Build).$(Revision)" />
-    <Message Text="Interface File Version: $(Major).$(Minor).$(Revision).$(Build)" />
+    <!--Message Text="Interface File Version: $(Major).$(Minor).$(Revision).$(Build)" /-->
     <WriteLinesToFile File="SolutionInfo.cs"
                       Lines="[assembly: System.Reflection.AssemblyCompany(&quot;ABB&quot;)]
 
@@ -58,10 +58,10 @@
 [assembly: System.Reflection.AssemblyVersion(&quot;2.0.48.0&quot;)]"
                       Overwrite="true"
                       Condition="$(BUILD_NUMBER) != '' " />
-    <WriteLinesToFile File="%(CoreLibs.FullPath)"
+    <!--WriteLinesToFile File="%(CoreLibs.FullPath)"
                       Lines="[assembly: AssemblyFileVersion(&quot;$(Major).$(Minor).$(Revision).$(Build)&quot;)]"
                       Overwrite="false"
-                      Condition="$(BUILD_NUMBER) != '' " />
+                      Condition="$(BUILD_NUMBER) != '' " /-->
   </Target>
   
   <Target Name="Docs" Condition="Exists('$(SHFBROOT)\SandcastleHelpFileBuilder.targets')">
