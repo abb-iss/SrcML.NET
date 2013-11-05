@@ -297,6 +297,19 @@ namespace ABB.SrcML.Data {
                 scopeLock.ExitReadLock();
             }
         }
+
+        public IScope Findscope<T>(XElement element) where T : class, IScope {
+            return GetFirstAncestor<T>(FindScope(element));
+        }
+
+        public IScope FindScope<T>(SourceLocation loc) where T : class, IScope {
+            return GetFirstAncestor<T>(FindScope(loc));
+        }
+
+        public IScope FindScope<T>(string xpath) where T : class, IScope {
+            return GetFirstAncestor<T>(FindScope(xpath));
+        }
+
         public IScope GetGlobalScope() {
             scopeLock.EnterReadLock();
             try {

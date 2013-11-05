@@ -50,6 +50,12 @@ namespace ABB.SrcML.Data {
 
         IScope FindScope(XElement element);
 
+        IScope FindScope<T>(SourceLocation loc) where T : class, IScope;
+
+        IScope FindScope<T>(string xpath) where T : class, IScope;
+
+        IScope Findscope<T>(XElement element) where T : class, IScope;
+
         void InitializeData();
 
         void InitializeDataConcurrent();
