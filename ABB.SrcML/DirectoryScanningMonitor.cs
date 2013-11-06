@@ -15,6 +15,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using ElapsedEventArgs = System.Timers.ElapsedEventArgs;
@@ -45,34 +46,11 @@ namespace ABB.SrcML {
         }, StringComparer.InvariantCultureIgnoreCase);
 
         private static HashSet<string> ForbiddenDirectories = GetForbiddenDirectories();
+        private static Regex BackupDirectoryRegex = new Regex(@"^backup\d*$", RegexOptions.IgnoreCase);
+
         private List<string> folders;
         private Timer ScanTimer;
         private int syncPoint;
-
-        private static HashSet<string> GetForbiddenDirectories() {
-            var forbiddenDirectories = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
-            var userProfile = Environment.GetEnvironmentVariable("USERPROFILE");
-            if(null != userProfile) {
-                forbiddenDirectories.Add(GetFullPath(userProfile));
-            }
-
-            string myDocuments = null;
-            foreach(var specialFolder in (Environment.SpecialFolder[]) Enum.GetValues(typeof(Environment.SpecialFolder))) {
-                var directory = Environment.GetFolderPath(specialFolder);
-                forbiddenDirectories.Add(directory.TrimEnd(Path.PathSeparator));
-                if(specialFolder == Environment.SpecialFolder.MyDocuments) {
-                    myDocuments = directory;
-                }
-            }
-
-            foreach(var year in new[] { "2005", "2008", "2010", "2012", "2013" }) {
-                var directory = "Visual Studio " + year;
-                forbiddenDirectories.Add(GetFullPath(Path.Combine(myDocuments, directory)));
-                forbiddenDirectories.Add(GetFullPath(Path.Combine(myDocuments, directory, "Projects")));
-            }
-
-            return forbiddenDirectories;
-        }
 
         /// <summary>
         /// Create a new directory scanning monitor
@@ -144,6 +122,20 @@ namespace ABB.SrcML {
         /// </summary>
         protected string MonitoredDirectoriesFilePath { get; private set; }
 
+        public bool DirectoryIsExcluded(string directoryPath) {
+            var dirName = Path.GetFileName(directoryPath);
+            bool startsWithDot = (dirName[0] == '.');
+            return Exclusions.Contains(dirName) || startsWithDot || BackupDirectoryRegex.IsMatch(dirName);
+        }
+
+        public static bool DirectoryIsForbidden(string directoryPath) {
+            if(null == directoryPath)
+                throw new ArgumentNullException("directoryPath");
+            var info = new DirectoryInfo(directoryPath);
+
+            return (info.Parent == null) || ForbiddenDirectories.Contains(GetFullPath(directoryPath));
+        }
+
         /// <summary>
         /// Loads the list of monitored directories from <see cref="MonitoredDirectoriesFilePath"/>.
         /// </summary>
@@ -193,14 +185,6 @@ namespace ABB.SrcML {
             }
         }
 
-        public static bool DirectoryIsForbidden(string directoryPath) {
-            if(null == directoryPath)
-                throw new ArgumentNullException("directoryPath");
-            var info = new DirectoryInfo(directoryPath);
-            
-            return (info.Parent == null) || ForbiddenDirectories.Contains(GetFullPath(directoryPath));
-        }
-
         /// <summary>
         /// Returns an enumerable of all the files in
         /// <paramref name="directory"/>.
@@ -209,11 +193,10 @@ namespace ABB.SrcML {
         /// <returns>An enumerable of the full file names in
         /// <paramref name="directory"/></returns>
         public IEnumerable<string> EnumerateDirectory(string directory) {
-            var dirName = Path.GetFileName(directory);
-            bool startsWithDot = (dirName[0] == '.');
-            bool isExcluded = Exclusions.Contains(dirName);
+            if(null == directory)
+                throw new ArgumentNullException("directory");
 
-            if(!(startsWithDot || isExcluded)) {
+            if(!DirectoryIsExcluded(directory)) {
                 String[] subdirectories;
                 String[] files;
                 try {
@@ -221,13 +204,13 @@ namespace ABB.SrcML {
                 } catch(Exception) {
                     subdirectories = new string[0];
                 }
-                
+
                 foreach(var dir in subdirectories) {
                     foreach(var filePath in EnumerateDirectory(dir)) {
                         yield return filePath;
                     }
                 }
-                
+
                 try {
                     files = Directory.GetFiles(directory, "*", SearchOption.TopDirectoryOnly);
                 } catch(Exception) {
@@ -347,6 +330,31 @@ namespace ABB.SrcML {
                 WriteMonitoringList();
             }
             base.Dispose(disposing);
+        }
+
+        private static HashSet<string> GetForbiddenDirectories() {
+            var forbiddenDirectories = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
+            var userProfile = Environment.GetEnvironmentVariable("USERPROFILE");
+            if(null != userProfile) {
+                forbiddenDirectories.Add(GetFullPath(userProfile));
+            }
+
+            string myDocuments = null;
+            foreach(var specialFolder in (Environment.SpecialFolder[]) Enum.GetValues(typeof(Environment.SpecialFolder))) {
+                var directory = Environment.GetFolderPath(specialFolder);
+                forbiddenDirectories.Add(directory.TrimEnd(Path.PathSeparator));
+                if(specialFolder == Environment.SpecialFolder.MyDocuments) {
+                    myDocuments = directory;
+                }
+            }
+
+            foreach(var year in new[] { "2005", "2008", "2010", "2012", "2013" }) {
+                var directory = "Visual Studio " + year;
+                forbiddenDirectories.Add(GetFullPath(Path.Combine(myDocuments, directory)));
+                forbiddenDirectories.Add(GetFullPath(Path.Combine(myDocuments, directory, "Projects")));
+            }
+
+            return forbiddenDirectories;
         }
 
         /// <summary>
