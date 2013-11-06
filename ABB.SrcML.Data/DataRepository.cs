@@ -250,7 +250,7 @@ namespace ABB.SrcML.Data {
             }
         }
 
-        public IScope Findscope<T>(XElement element) where T : class, IScope {
+        public T Findscope<T>(XElement element) where T : class, IScope {
             return GetFirstAncestor<T>(FindScope(element));
         }
 
@@ -298,11 +298,11 @@ namespace ABB.SrcML.Data {
             }
         }
 
-        public IScope FindScope<T>(SourceLocation loc) where T : class, IScope {
+        public T FindScope<T>(SourceLocation loc) where T : class, IScope {
             return GetFirstAncestor<T>(FindScope(loc));
         }
 
-        public IScope FindScope<T>(string xpath) where T : class, IScope {
+        public T FindScope<T>(string xpath) where T : class, IScope {
             return GetFirstAncestor<T>(FindScope(xpath));
         }
 

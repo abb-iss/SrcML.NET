@@ -42,7 +42,7 @@ namespace ABB.SrcML.Data {
 
         Collection<IMethodCall> FindMethodCalls(XElement element);
 
-        IScope Findscope<T>(XElement element) where T : class, IScope;
+        T Findscope<T>(XElement element) where T : class, IScope;
 
         IScope FindScope(SourceLocation loc);
 
@@ -50,9 +50,9 @@ namespace ABB.SrcML.Data {
 
         IScope FindScope(XElement element);
 
-        IScope FindScope<T>(SourceLocation loc) where T : class, IScope;
+        T FindScope<T>(SourceLocation loc) where T : class, IScope;
 
-        IScope FindScope<T>(string xpath) where T : class, IScope;
+        T FindScope<T>(string xpath) where T : class, IScope;
 
         IScope GetGlobalScope();
 
