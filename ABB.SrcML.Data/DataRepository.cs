@@ -126,6 +126,18 @@ namespace ABB.SrcML.Data {
             private set { this.ReadyState.IsReady = value; }
         }
 
+        #region Locking methods
+
+        public void ReleaseGlobalScopeLock() {
+            scopeLock.ExitReadLock();
+        }
+
+        public bool TryLockGlobalScope(int millisecondsTimeout) {
+            return scopeLock.TryEnterReadLock(millisecondsTimeout);
+        }
+
+        #endregion Locking methods
+
         #region Modification methods
 
         /// <summary>

@@ -64,10 +64,22 @@ namespace ABB.SrcML.Data {
 
         void Load(string fileName);
 
+        /// <summary>
+        /// Releases the global scope lock
+        /// </summary>
+        void ReleaseGlobalScopeLock();
+
         void RemoveFile(string sourceFile);
 
         void Save();
 
         void Save(string fileName);
+
+        /// <summary>
+        /// try to look the global scope. Returns true if the lock is obtained. Returns false after <paramref name="millisecondsTimeout"/> passes.
+        /// </summary>
+        /// <param name="millisecondsTimeout">Timeout (in milliseconds)</param>
+        /// <returns>True if the lock is obtained; false otherwise</returns>
+        bool TryLockGlobalScope(int millisecondsTimeout);
     }
 }
