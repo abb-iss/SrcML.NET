@@ -17,14 +17,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ABB.SrcML.VisualStudio.SrcMLService {
 
     public class SourceMonitor : DirectoryScanningMonitor, IVsRunningDocTableEvents {
+        private const int MaxNumberOfFilesInSolutionDirectory = 1000;
         private IVsRunningDocumentTable DocumentTable;
         private uint DocumentTableItemId;
+        private ISrcMLArchive sourceArchive;
 
         /// <summary>
         /// Creates a new source monitor
@@ -36,8 +36,10 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="baseDirectory">The base directory for this monitor</param>
         /// <param name="defaultArchive">The default archive to route files to</param>
         /// <param name="otherArchives">Other archives to route files to</param>
-        public SourceMonitor(Solution solution, double scanInterval, string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
+        public SourceMonitor(Solution solution, double scanInterval, string baseDirectory, IArchive defaultArchive, ISrcMLArchive sourceArchive, params IArchive[] otherArchives)
             : base(scanInterval, baseDirectory, defaultArchive, otherArchives) {
+            RegisterArchive(sourceArchive, false);
+            this.sourceArchive = sourceArchive;
             this.UseAsyncMethods = true;
             this.MonitoredSolution = solution;
         }
@@ -50,8 +52,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="baseDirectory">The base directory for this monitor</param>
         /// <param name="defaultArchive">The default archive to route files to</param>
         /// <param name="otherArchives">Other archives to route files to</param>
-        public SourceMonitor(Solution solution, string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
-            : this(solution, DEFAULT_SCAN_INTERVAL, baseDirectory, defaultArchive, otherArchives) { }
+        public SourceMonitor(Solution solution, string baseDirectory, IArchive defaultArchive, ISrcMLArchive sourceArchive, params IArchive[] otherArchives)
+            : this(solution, DEFAULT_SCAN_INTERVAL, baseDirectory, defaultArchive, sourceArchive, otherArchives) { }
 
         /// <summary>
         /// The solution being monitored
@@ -99,7 +101,10 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// to <see cref="DirectoryScanningMonitor.MonitoredDirectories"/>.
         /// </summary>
         public void AddSolutionDirectory() {
-            AddDirectory(GetSolutionPath(MonitoredSolution));
+            var solutionPath = GetSolutionPath(MonitoredSolution);
+            if(!DirectoryHasTooManyFiles(solutionPath)) {
+                AddDirectory(GetSolutionPath(MonitoredSolution));
+            }
         }
 
         /// <summary>
@@ -225,6 +230,13 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                         }
                     }
                 }
+        }
+
+        private bool DirectoryHasTooManyFiles(string directoryPath) {
+            int numberOfFiles = (from filePath in EnumerateDirectory(directoryPath)
+                                 where sourceArchive.IsValidFileExtension(filePath)
+                                 select filePath).Take(MaxNumberOfFilesInSolutionDirectory).Count();
+            return numberOfFiles >= MaxNumberOfFilesInSolutionDirectory;
         }
 
         /// <summary>
