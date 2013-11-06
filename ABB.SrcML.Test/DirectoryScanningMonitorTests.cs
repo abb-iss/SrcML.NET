@@ -66,16 +66,23 @@ namespace ABB.SrcML.Test {
 
         [Test]
         public void TestExcludedDirectory() {
-            var testResultsPath = Path.Combine(testFolder, "TestResults");
+            var testExcludedDirectoryPath = Path.Combine(testFolder, "TestExcludedDirectory");
+            var excludedFolders = new string[] {
+                Path.Combine(testExcludedDirectoryPath, "TestResults"),
+                Path.Combine(testExcludedDirectoryPath, "Backup"),
+                Path.Combine(testExcludedDirectoryPath, "Backup1"),
+                Path.Combine(testExcludedDirectoryPath, "backup111"),
+                Path.Combine(testExcludedDirectoryPath, ".test")
+            };
 
-            Directory.CreateDirectory(testResultsPath);
-
-            var excludedFilePath = Path.Combine(testResultsPath, "test.txt");
-
-            File.Create(excludedFilePath).Close();
+            foreach(var folder in excludedFolders) {
+                Directory.CreateDirectory(folder);
+                File.Create(Path.Combine(folder, "test.txt")).Close();
+            }
 
             var archive = new LastModifiedArchive(monitorFolder);
             using(var monitor = new DirectoryScanningMonitor(monitorFolder, archive)) {
+                monitor.AddDirectory(testExcludedDirectoryPath);
                 Assert.AreEqual(0, monitor.GetFilesFromSource().Count);
             }
         }
