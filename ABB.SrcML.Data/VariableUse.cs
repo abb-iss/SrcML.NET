@@ -108,7 +108,7 @@ namespace ABB.SrcML.Data {
                         ParentScope = this.ParentScope,
                         ProgrammingLanguage = this.ProgrammingLanguage,
                     };
-                    if(CallingObject != null) {
+                    if(CallingObject != null && CallingObject is IVariableUse) {
                         var caller = CallingObject as IVariableUse;
                         Stack<INamedScopeUse> callerStack = new Stack<INamedScopeUse>();
                         while(caller != null) {

@@ -1248,5 +1248,67 @@ namespace ABB.SrcML.Data.Test {
             Assert.IsNotNull(callToBar);
             Assert.AreSame(methodBar, callToBar.FindMatches().FirstOrDefault());
         }
+
+        [Test]
+        public void TestCallAsCallingObject() {
+            //namespace A {
+            //	public class B {
+            //		void main() {
+            //			Foo().Bar();
+            //		}
+            //
+            //		C Foo() { return new C(); }
+            //	}
+            //
+            //	public class C {
+            //		C Foo() { return new C(); }
+            //		void Bar() { }
+            //	}
+            //}
+            var xml = @"<namespace>namespace <name>A</name> <block>{
+	<class><specifier>public</specifier> class <name>B</name> <block>{
+		<function><type><name>void</name></type> <name>main</name><parameter_list>()</parameter_list> <block>{
+			<expr_stmt><expr><call><name>Foo</name><argument_list>()</argument_list></call><op:operator>.</op:operator><call><name>Bar</name><argument_list>()</argument_list></call></expr>;</expr_stmt>
+		}</block></function>
+
+		<function><type><name>C</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><op:operator>new</op:operator> <call><name>C</name><argument_list>()</argument_list></call></expr>;</return> }</block></function>
+	}</block></class>
+
+	<class><specifier>public</specifier> class <name>C</name> <block>{
+		<function><type><name>C</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><op:operator>new</op:operator> <call><name>C</name><argument_list>()</argument_list></call></expr>;</return> }</block></function>
+		<function><type><name>void</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ }</block></function>
+	}</block></class>
+}</block></namespace>";
+
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "B.cs");
+            var globalScope = codeParser.ParseFileUnit(unit);
+
+            var mainMethod = (from method in globalScope.GetDescendantScopesAndSelf<IMethodDefinition>()
+                              where method.Name == "main"
+                              select method).FirstOrDefault();
+            var fooMethod = (from method in globalScope.GetDescendantScopesAndSelf<IMethodDefinition>()
+                             where method.Name == "Foo"
+                             select method).FirstOrDefault();
+            var barMethod = (from method in globalScope.GetDescendantScopesAndSelf<IMethodDefinition>()
+                             where method.Name == "Bar"
+                             select method).FirstOrDefault();
+
+            Assert.IsNotNull(mainMethod);
+            Assert.IsNotNull(fooMethod);
+            Assert.IsNotNull(barMethod);
+
+            var callToFoo = (from call in mainMethod.MethodCalls
+                             where call.Name == "Foo"
+                             select call).FirstOrDefault();
+            var callToBar = (from call in mainMethod.MethodCalls
+                             where call.Name == "Bar"
+                             select call).FirstOrDefault();
+
+            Assert.IsNotNull(callToFoo);
+            Assert.IsNotNull(callToBar);
+
+            Assert.AreSame(fooMethod, callToFoo.FindMatches().FirstOrDefault());
+            Assert.AreSame(barMethod, callToBar.FindMatches().FirstOrDefault());
+        }
     }
 }

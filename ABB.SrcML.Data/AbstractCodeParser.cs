@@ -302,16 +302,27 @@ namespace ABB.SrcML.Data {
             while(i > 0 && elementsBeforeCall[i].Name == OP.Operator &&
                   (elementsBeforeCall[i].Value == "." || elementsBeforeCall[i].Value == "->")) {
                 i--;
-                if(i >= 0 && elementsBeforeCall[i].Name == SRC.Name) {
-                    var callingObject = CreateVariableUse(elementsBeforeCall[i], context);
-                    current.CallingObject = callingObject;
-                    current = callingObject;
+                if(i >= 0) {
+                    if(elementsBeforeCall[i].Name == SRC.Name) {
+                        var callingObject = CreateVariableUse(elementsBeforeCall[i], context);
+                        current.CallingObject = callingObject;
+                        current = callingObject;
+                    } else if(elementsBeforeCall[i].Name == SRC.Call) {
+                        var callingObject = ParseCallElement(elementsBeforeCall[i], context);
+                        current.CallingObject = callingObject;
+                        current = callingObject;
+                    }
                 }
+                //if(i >= 0 && elementsBeforeCall[i].Name == SRC.Name) {
+                //    var callingObject = CreateVariableUse(elementsBeforeCall[i], context);
+                //    current.CallingObject = callingObject;
+                //    current = callingObject;
+                //}
                 i--;
             }
             if(methodCall.CallingObject == null) {
                 methodCall.AddAliases(context.Aliases);
-            } else if(current != null && current is IVariableUse) { 
+            } else if(current != null && current is IVariableUse) {
                 ((IVariableUse) current).AddAliases(context.Aliases);
             }
             return methodCall;
