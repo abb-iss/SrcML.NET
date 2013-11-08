@@ -213,5 +213,24 @@ namespace ABB.SrcML.Data.Test {
 
             Assert.IsTrue(TestHelper.ScopesAreEqual(beforeScope, afterScope));
         }
+
+        [Test]
+        public void TestFileRemovalWithDifferentCase() {
+            // namespace A { class B { } }
+            string bXml = @"<namespace>namespace <name>A</name> <block>{ <class>class <name>B</name> <block>{ }</block></class> }</block></namespace>";
+
+            // namespace C { class D { } }
+            string dXml = @"<namespace>namespace <name>C</name> <block>{ <class>class <name>D</name> <block>{ }</block></class> }</block></namespace>";
+
+            var bUnit = FileUnitSetup.GetFileUnitForXmlSnippet(bXml, "B.cs");
+            var dUnit = FileUnitSetup.GetFileUnitForXmlSnippet(dXml, "D.cs");
+
+            var bScope = CodeParser.ParseFileUnit(bUnit);
+            var dScope = CodeParser.ParseFileUnit(dUnit);
+            var globalScope = bScope.Merge(dScope);
+
+            globalScope.RemoveFile("b.cs");
+            Assert.AreEqual(1, globalScope.ChildScopes.Count());
+        }
     }
 }

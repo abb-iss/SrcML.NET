@@ -55,7 +55,7 @@ namespace ABB.SrcML.Data {
             DeclaredVariablesDictionary = new Dictionary<string, IVariableDeclaration>();
             ChildScopeMap = new Dictionary<string, List<IScope>>();
             MethodCallCollection = new Collection<IMethodCall>();
-            LocationDictionary = new Dictionary<string, Collection<SrcMLLocation>>();
+            LocationDictionary = new Dictionary<string, Collection<SrcMLLocation>>(StringComparer.InvariantCultureIgnoreCase);
         }
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace ABB.SrcML.Data {
             ChildScopeMap = new Dictionary<string, List<IScope>>(otherScope.ChildScopeMap.Count);
             DeclaredVariablesDictionary = new Dictionary<string, IVariableDeclaration>(otherScope.DeclaredVariablesDictionary.Count);
             MethodCallCollection = new Collection<IMethodCall>();
-            LocationDictionary = new Dictionary<string, Collection<SrcMLLocation>>(otherScope.LocationDictionary.Count);
+            LocationDictionary = new Dictionary<string, Collection<SrcMLLocation>>(otherScope.LocationDictionary.Count, StringComparer.InvariantCultureIgnoreCase);
 
             CopyFromOtherScope(otherScope);
         }
