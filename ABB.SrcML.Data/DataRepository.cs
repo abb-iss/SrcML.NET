@@ -468,7 +468,6 @@ namespace ABB.SrcML.Data {
         private void Archive_SourceFileChanged(object sender, FileEventRaisedArgs e) {
             try {
                 scopeLock.EnterWriteLock();
-                e.FilePath = e.FilePath.ToLowerInvariant();
                 switch(e.EventType) {
                     case FileEventType.FileChanged:
                         // Treat a changed source file as deleted then added
