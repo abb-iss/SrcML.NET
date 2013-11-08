@@ -219,10 +219,10 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="location">the location to add</param>
         public virtual void AddSourceLocation(SrcMLLocation location) {
-            Collection<SrcMLLocation> locationsForFile;
-            if(!LocationDictionary.TryGetValue(location.SourceFileName, out locationsForFile)) {
+            Collection<SrcMLLocation> locationsForFile;            
+            if(!LocationDictionary.TryGetValue(location.SourceFileName.ToLowerInvariant(), out locationsForFile)) {
                 locationsForFile = new Collection<SrcMLLocation>();
-                LocationDictionary[location.SourceFileName] = locationsForFile;
+                LocationDictionary[location.SourceFileName.ToLowerInvariant()] = locationsForFile;
             }
             locationsForFile.Add(location);
         }
@@ -520,7 +520,7 @@ namespace ABB.SrcML.Data {
                 }
                 //update locations
                 foreach(var childKvp in childScope.LocationDictionary) {
-                    var fileName = childKvp.Key;
+                    var fileName = childKvp.Key.ToLowerInvariant();
                     if(LocationDictionary.ContainsKey(fileName)) {
                         var fileLocations = LocationDictionary[fileName];
                         foreach(var childLoc in childKvp.Value) {
