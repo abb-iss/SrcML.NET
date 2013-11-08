@@ -52,6 +52,8 @@ namespace ABB.SrcML.Data {
                         }
                     }
                 }
+            } else {
+                throw new ScopeDetachedException(this.ParentScope);
             }
         }
     }

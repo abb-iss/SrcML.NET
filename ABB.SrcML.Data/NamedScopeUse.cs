@@ -43,6 +43,10 @@ namespace ABB.SrcML.Data {
             if(ChildScopeUse != null) {
                 var globalScope = ParentScope.GetParentScopesAndSelf<INamespaceDefinition>().Where(p => p.IsGlobal).FirstOrDefault();
 
+                if(null == globalScope) {
+                    throw new ScopeDetachedException(this.ParentScope);
+                }
+
                 INamedScopeUse current = ChildScopeUse;
 
                 IEnumerable<INamedScope> matches = null;
