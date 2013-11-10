@@ -106,11 +106,9 @@ namespace ABB.SrcML.Utilities
                 p.StartInfo.CreateNoWindow = true;
 
                 p.StartInfo.UseShellExecute = false;
-                p.StartInfo.RedirectStandardInput = true;
-                p.StartInfo.RedirectStandardOutput = true;
 
                 p.Start();
-
+                
                 p.WaitForExit();
                 RaiseExceptionOnError(executableFileName, arguments, (ExecutableReturnValue) p.ExitCode);
             }
