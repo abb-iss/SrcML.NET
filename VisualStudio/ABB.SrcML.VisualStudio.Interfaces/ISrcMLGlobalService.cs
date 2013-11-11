@@ -93,6 +93,11 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// </summary>
         /// <param name="pathToDirectory">The directory to stop monitoring</param>
         void RemoveDirectoryFromMonitor(string pathToDirectory);
+        
+        /// <summary>
+        /// Tells the srcML service to delete all of the data for this solution the next time it is opened
+        /// </summary>
+        void Reset();
 
         /// <summary>
         /// Start monitoring the current solution

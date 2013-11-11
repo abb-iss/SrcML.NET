@@ -36,6 +36,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// </summary>
         private const string srcMLArchivesFolderString = "\\SrcMLArchives";
 
+        private const string ResetFileName = "RESETSOLUTION";
+
         private uint amountCompleted = 0;
 
         private uint cookie = 0;
@@ -187,23 +189,37 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             CurrentMonitor.RemoveDirectory(pathToDirectory);
         }
 
+        public void Reset() {
+            var openSolution = GetOpenSolution();
+            if(null != openSolution) {
+                var baseDirectory = GetSrcMLArchiveFolder(openSolution);
+                File.Create(Path.Combine(baseDirectory, ResetFileName)).Close();
+            }
+        }
+
         /// <summary>
         /// SrcML service starts to monitor the opened solution.
         /// </summary>
         /// <param name="srcMLArchiveDirectory"></param>
-        /// <param name="useExistingSrcML"></param>
-        public void StartMonitoring(bool useExistingSrcML, string srcMLBinaryDirectory) {
+        /// <param name="shouldReset"></param>
+        public void StartMonitoring(bool shouldReset, string srcMLBinaryDirectory) {
             // Get the path of the folder that storing the srcML archives
             var openSolution = GetOpenSolution();
             string baseDirectory = GetSrcMLArchiveFolder(openSolution);
 
             SrcMLFileLogger.DefaultLogger.Info("SrcMLGlobalService.StartMonitoring( " + baseDirectory + " )");
             try {
+
+                if(shouldReset) {
+                    SrcMLFileLogger.DefaultLogger.Info("Reset flag is set - Removing " + baseDirectory);
+                    Directory.Delete(baseDirectory, true);
+                }
+
                 // Create a new instance of SrcML.NET's LastModifiedArchive
                 LastModifiedArchive lastModifiedArchive = new LastModifiedArchive(baseDirectory);
 
                 // Create a new instance of SrcML.NET's SrcMLArchive
-                SrcMLArchive sourceArchive = new SrcMLArchive(baseDirectory, useExistingSrcML, new SrcMLGenerator(srcMLBinaryDirectory));
+                SrcMLArchive sourceArchive = new SrcMLArchive(baseDirectory, true, new SrcMLGenerator(srcMLBinaryDirectory));
                 CurrentSrcMLArchive = sourceArchive;
                 CurrentDataRepository = new DataRepository(CurrentSrcMLArchive, Path.Combine(CurrentSrcMLArchive.ArchivePath, "solution.sdd"));
 
@@ -252,7 +268,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// </summary>
         public void StartMonitoring() {
             SrcMLFileLogger.DefaultLogger.Info("SrcMLGlobalService.StartMonitoring() - default");
-            StartMonitoring(true, SrcMLHelper.GetSrcMLDefaultDirectory(SrcMLServiceDirectory));
+            StartMonitoring(ShouldReset(), SrcMLHelper.GetSrcMLDefaultDirectory(SrcMLServiceDirectory));
         }
 
         /// <summary>
@@ -407,17 +423,15 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 NumRunningSources++;
             }
         }
-
-        /// <summary>
-        /// Respond to the MonitorStopped event from SrcMLArchive.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="eventArgs"></param>
-        private void RespondToMonitoringStoppedEvent(object sender, EventArgs eventArgs) {
-            SrcMLFileLogger.DefaultLogger.Info("SrcMLService: RespondToMonitoringStoppedEvent()");
-            OnMonitoringStopped(eventArgs);
+        
+        private bool ShouldReset() {
+            var openSolution = GetOpenSolution();
+            if(null != openSolution) {
+                var baseDirectory = GetSrcMLArchiveFolder(openSolution);
+                return File.Exists(Path.Combine(baseDirectory, ResetFileName));
+            }
+            return false;
         }
-
         void SaveTimer_Elapsed(object sender, ElapsedEventArgs e) {
             int sync = Interlocked.CompareExchange(ref syncPoint, RUNNING, IDLE);
             if(IDLE == sync) {
@@ -440,6 +454,15 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                     System.Threading.Thread.Sleep(1);
                 }
             }
+        }
+        /// <summary>
+        /// Respond to the MonitorStopped event from SrcMLArchive.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="eventArgs"></param>
+        private void RespondToMonitoringStoppedEvent(object sender, EventArgs eventArgs) {
+            SrcMLFileLogger.DefaultLogger.Info("SrcMLService: RespondToMonitoringStoppedEvent()");
+            OnMonitoringStopped(eventArgs);
         }
 
         /// <summary>
