@@ -302,13 +302,22 @@ namespace ABB.SrcML {
                 Directory.CreateDirectory(directory);
             }
 
+            // get the file info for the source file
+            FileInfo srcFI = new FileInfo(sourcePath);
+
+            // get a temp file for the XML output
+            var tempFileName = Path.GetTempFileName();
+            this.XmlGenerator.GenerateSrcMLFromFile(sourcePath, tempFileName);
+
+            if(File.Exists(xmlPath)) {
+                File.Delete(xmlPath);
+            }
+            File.Move(tempFileName, xmlPath);
+
             // Set the timestamp to the same as the source file
             // Will be useful in the method of public override bool IsOutdated(string fileName)
-            this.XmlGenerator.GenerateSrcMLFromFile(sourcePath, xmlPath);
-            FileInfo srcFI = new FileInfo(sourcePath);
             File.SetLastWriteTime(xmlPath, srcFI.LastWriteTime);
         }
-
         
         /// <summary>
         /// Concurrency Generate SrcML from source file: ZL 03/11/2013
