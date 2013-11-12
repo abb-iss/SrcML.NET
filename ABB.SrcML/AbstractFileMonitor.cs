@@ -397,7 +397,7 @@ namespace ABB.SrcML {
                                 select filePath;
 
             var deletedFiles = from filePath in GetArchivedFiles()
-                               where !monitoredFiles.Contains(filePath)
+                               where filePath != null && !monitoredFiles.Contains(filePath)
                                select filePath;
 
             foreach(var filePath in outdatedFiles) {
