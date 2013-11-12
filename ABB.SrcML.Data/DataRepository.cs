@@ -401,9 +401,10 @@ namespace ABB.SrcML.Data {
             if(fileName == null) {
                 throw new ArgumentNullException("fileName");
             }
-
-            using(var loader = new BinaryLoader()) {
-                var tempScope = loader.Load(fileName) as IScope;
+            using(var f = File.OpenRead(fileName)) {
+                var formatter = new BinaryFormatter();
+                var tempScope = formatter.Deserialize(f) as IScope;
+                //Will throw an exception if it doesn't deserialize correctly
                 this.FileName = fileName;
                 scopeLock.EnterWriteLock();
                 try {
