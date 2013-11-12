@@ -442,7 +442,7 @@ namespace ABB.SrcML {
             if(null == fileName)
                 throw new ArgumentNullException("fileName");
 
-            IArchive selectedArchive = null;
+            IArchive selectedArchive;
             var extension = Path.GetExtension(fileName);
 
             if(!this.archiveMap.TryGetValue(extension, out selectedArchive)) {
