@@ -201,6 +201,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
             //SetUpCommand(); // SrcML.NET does not need any command so far.
 
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+
             SetUpSrcMLService();
 
             SetUpDTEEvents();
@@ -387,6 +389,17 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             //srcMLService.StartMonitoring(true, SrcMLHelper.GetSrcMLDefaultDirectory(extensionDirectory));
             SrcMLFileLogger.DefaultLogger.Info("srcml service starts monitoring");
             srcMLService.StartMonitoring();
+        }
+
+        Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args) {
+            var assemblyName = new AssemblyName(args.Name);
+            string assemblyFilePath = Path.Combine(extensionDirectory, assemblyName.Name + ".dll");
+            
+            Assembly assembly = null;
+            if(!String.IsNullOrWhiteSpace(assemblyFilePath) && File.Exists(assemblyFilePath)) {
+                assembly = Assembly.LoadFrom(assemblyFilePath);
+            }
+            return assembly;
         }
 
         /// <summary>
