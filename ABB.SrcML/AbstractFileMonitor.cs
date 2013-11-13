@@ -393,7 +393,7 @@ namespace ABB.SrcML {
                                 select filePath;
 
             var deletedFiles = from filePath in GetArchivedFiles()
-                               where !monitoredFiles.Contains(filePath)
+                               where filePath != null && !monitoredFiles.Contains(filePath)
                                select filePath;
 
             foreach(var filePath in outdatedFiles) {
@@ -442,7 +442,7 @@ namespace ABB.SrcML {
             if(null == fileName)
                 throw new ArgumentNullException("fileName");
 
-            IArchive selectedArchive = null;
+            IArchive selectedArchive;
             var extension = Path.GetExtension(fileName);
 
             if(!this.archiveMap.TryGetValue(extension, out selectedArchive)) {
