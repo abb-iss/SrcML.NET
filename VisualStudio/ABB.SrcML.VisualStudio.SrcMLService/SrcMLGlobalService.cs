@@ -221,7 +221,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 // Create a new instance of SrcML.NET's SrcMLArchive
                 SrcMLArchive sourceArchive = new SrcMLArchive(baseDirectory, true, new SrcMLGenerator(srcMLBinaryDirectory));
                 CurrentSrcMLArchive = sourceArchive;
-                CurrentDataRepository = new DataRepository(CurrentSrcMLArchive, Path.Combine(baseDirectory, "solution.sdd"));
+                CurrentDataRepository = new DataRepository(CurrentSrcMLArchive);
 
                 if(CurrentSrcMLArchive.IsEmpty) {
                     CurrentSrcMLArchive.IsReadyChanged += InitDataWhenReady;
