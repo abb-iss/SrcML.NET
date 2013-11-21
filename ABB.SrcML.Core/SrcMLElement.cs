@@ -128,7 +128,9 @@ namespace ABB.SrcML {
         /// <param name="xmlFileName">The srcml file name</param>
         /// <returns>An XElement</returns>
         public static XElement Load(string xmlFileName) {
-            return XElement.Load(xmlFileName, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo);
+            using(var f = File.Open(xmlFileName, FileMode.Open, FileAccess.Read, FileShare.Read)) {
+                return XElement.Load(f, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo);
+            }
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
