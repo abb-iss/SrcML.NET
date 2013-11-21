@@ -175,7 +175,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="sourceFilePath"></param>
         /// <returns></returns>
         public XElement GetXElementForSourceFile(string sourceFilePath) {
-            return CurrentSrcMLArchive.GetXElementForSourceFile(sourceFilePath);
+            return(CurrentSrcMLArchive == null ? null : CurrentSrcMLArchive.GetXElementForSourceFile(sourceFilePath));
         }
 
         public void RemoveDirectoryFromMonitor(string pathToDirectory) {
