@@ -81,6 +81,9 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         private IVsStatusbar statusBar;
 
         public const int DEFAULT_SAVE_INTERVAL = 300;
+        public const string GENERATE_DATA_INDICATOR_FILENAME = "GENDATA";
+
+        public bool DataEnabled { get; private set; }
 
         /// <summary>
         /// Constructor.
@@ -97,7 +100,16 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             syncPoint = STOPPED;
             serviceProvider = sp;
             SrcMLServiceDirectory = extensionDirectory;
+            DataEnabled = ShouldGenerateData(extensionDirectory);
             statusBar = (IVsStatusbar) Package.GetGlobalService(typeof(SVsStatusbar));
+        }
+
+        private static bool ShouldGenerateData(string extensionDirectory) {
+            if(null != extensionDirectory) {
+                var fileName = Path.Combine(extensionDirectory, GENERATE_DATA_INDICATOR_FILENAME);
+                return File.Exists(fileName);
+            }
+            return false;
         }
 
         private int numRunningSources { get; set; }
@@ -221,12 +233,14 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 // Create a new instance of SrcML.NET's SrcMLArchive
                 SrcMLArchive sourceArchive = new SrcMLArchive(baseDirectory, true, new SrcMLGenerator(srcMLBinaryDirectory));
                 CurrentSrcMLArchive = sourceArchive;
-                CurrentDataRepository = new DataRepository(CurrentSrcMLArchive);
+                if(DataEnabled) {
+                    CurrentDataRepository = new DataRepository(CurrentSrcMLArchive);
 
-                if(CurrentSrcMLArchive.IsEmpty) {
-                    CurrentSrcMLArchive.IsReadyChanged += InitDataWhenReady;
-                } else {
-                    InitDataWhenReady(this, new IsReadyChangedEventArgs(true));
+                    if(CurrentSrcMLArchive.IsEmpty) {
+                        CurrentSrcMLArchive.IsReadyChanged += InitDataWhenReady;
+                    } else {
+                        InitDataWhenReady(this, new IsReadyChangedEventArgs(true));
+                    }
                 }
 
                 // Create a new instance of SrcML.NET's solution monitor
@@ -239,14 +253,13 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 // Subscribe events from Solution Monitor
                 if(CurrentMonitor != null) {
                     CurrentMonitor.FileChanged += RespondToFileChangedEvent;
-
-                    CurrentDataRepository.FileProcessed += RespondToFileChangedEvent;
-
                     CurrentMonitor.IsReadyChanged += RespondToIsReadyChangedEvent;
-                    CurrentDataRepository.IsReadyChanged += RespondToIsReadyChangedEvent;
-
                     CurrentMonitor.MonitoringStopped += RespondToMonitoringStoppedEvent;
 
+                    if(DataEnabled) {
+                        CurrentDataRepository.FileProcessed += RespondToFileChangedEvent;
+                        CurrentDataRepository.IsReadyChanged += RespondToIsReadyChangedEvent;
+                    }
                     // Initialize the progress bar.
                     if(statusBar != null) {
                         statusBar.Progress(ref cookie, 1, "", 0, 0);
@@ -281,7 +294,10 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                     StopSaveTimer();
                     CurrentMonitor.StopMonitoring();
                     CurrentMonitor.Dispose();
-                    CurrentDataRepository.Dispose();
+                    
+                    if(DataEnabled) {
+                        CurrentDataRepository.Dispose();
+                    }
 
                     CurrentSrcMLArchive = null;
                     CurrentDataRepository = null;
