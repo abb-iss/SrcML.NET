@@ -134,6 +134,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="GENDATA">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <None Include="packages.config" />
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
