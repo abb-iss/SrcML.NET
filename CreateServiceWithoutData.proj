@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003"
+		 ToolsVersion="4.0"
+		 DefaultTargets="RemoveGenDataFile">
+  <PropertyGroup>
+    <MSBuildCommunityTasksPath>$(MSBuildThisFileDirectory)External\MSBuild\MSBuildCommunityTasks</MSBuildCommunityTasksPath>
+    <Configuration Condition="'$(Configuration)'==''">Release</Configuration>
+    <BuildFolder>Build</BuildFolder>
+    <VsixName>ABB.SrcML.VisualStudio.SrcMLService.vsix</VsixName>
+    <OutputVsixName>ABB.SrcML.VisualStudio.SrcMLService_DataDisabled.vsix</OutputVsixName>
+    <VsixPath>$(BuildFolder)\$(Configuration)\$(VsixName)</VsixPath>
+    <OutputVsixPath>$(BuildFolder)\$(Configuration)\$(OutputVsixName)</OutputVsixPath>
+    <TempDirectory>_vsix\</TempDirectory>
+    <GenDataFileName>GENDATA</GenDataFileName>
+  </PropertyGroup>
+  
+  <Import Project="$(MSBuildCommunityTasksPath)\MSBuild.Community.Tasks.Targets"
+          Condition="Exists('$(MSBuildCommunityTasksPath)\MSBuild.Community.Tasks.Targets')" />
+  
+  <Target Name="RemoveGenDataFile" Inputs="$(VsixPath)" Outputs="$(OutputVsixPath)" DependsOnTargets="Clean">
+    <Message Text="$(VsixPath) -> $(OutputVsixPath)" />
+    <Unzip ZipFileName="$(VsixPath)" TargetDirectory="$(TempDirectory)" />
+
+    <ItemGroup>
+      <Content Include="$(TempDirectory)**\*.*" Exclude="$(TempDirectory)$(GenDataFileName)" />
+    </ItemGroup>
+    <Zip ZipFileName="$(OutputVsixPath)" WorkingDirectory="$(TempDirectory)" Files="@(Content)" />
+    <RemoveDir Directories="$(TempDirectory)" />
+  </Target>
+
+  <Target Name="Clean">
+    <RemoveDir Directories="$(TempDirectory)" />
+    <Delete Files="$(OutputVsixPath)" />
+  </Target>
+</Project>
