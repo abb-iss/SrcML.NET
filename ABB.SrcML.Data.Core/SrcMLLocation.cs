@@ -12,6 +12,7 @@
 using System;
 using System.Linq;
 using System.Xml.Linq;
+using System.Xml.XPath;
 
 namespace ABB.SrcML.Data {
 
@@ -92,6 +93,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public string XPath { get; set; }
 
+
         /// <summary>
         /// Determines whether the given source location occurs within this location. This will be
         /// determined using the XPath, if set.
@@ -108,6 +110,23 @@ namespace ABB.SrcML.Data {
                 return otherSrcMLLoc.XPath.StartsWith(this.XPath);
             }
             return base.Contains(otherLoc);
+        }
+
+        /// <summary>
+        /// Gets the XElement referred to by <see cref="XPath"/>.
+        /// </summary>
+        /// <param name="archive">The archive for this location</param>
+        /// <returns>The XElement referred to by <see cref="XPath"/></returns>
+        public XElement GetXElement(ISrcMLArchive archive) {
+            if(null == archive)
+                throw new ArgumentNullException("archive");
+
+            var unit = archive.GetXElementForSourceFile(this.SourceFileName);
+            if(unit != null) {
+                return unit.XPathSelectElement(this.XPath, SrcMLNamespaces.Manager);
+            }
+
+            return null;
         }
 
         private void SetEndingLocation(XElement element) {

@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using System.IO;
 using System.Linq;
 
 namespace ABB.SrcML.Data.Test {
@@ -85,6 +86,29 @@ namespace ABB.SrcML.Data.Test {
             var namespaceLoc = new SrcMLLocation(namespaceElement, "Example.cs");
             var methodLoc = new SrcMLLocation(methodElement, "Example.cs");
             Assert.IsTrue(namespaceLoc.Contains(methodLoc));
+        }
+
+        [Test]
+        public void TestGetXElement() {
+            var archive = new SrcMLArchive("SrcMLLocationTest");
+            var sourcePath = Path.GetFullPath(@"..\..\TestInputs\class_test.h");
+            archive.AddOrUpdateFile(sourcePath);
+
+            var unit = archive.GetXElementForSourceFile(sourcePath);
+            Assert.IsNotNull(unit);
+            var classElement = unit.Descendants(SRC.Class).FirstOrDefault();
+            Assert.IsNotNull(classElement);
+            
+            var parser = new CPlusPlusCodeParser();
+            var globalScope = parser.ParseFileUnit(unit);
+            var typeScope = globalScope.GetChildScopes<TypeDefinition>().FirstOrDefault();
+            Assert.IsNotNull(typeScope);
+
+            var element = typeScope.PrimaryLocation.GetXElement(archive);
+            Assert.IsNotNull(element);
+            Assert.AreEqual(classElement.GetSrcLineNumber(), element.GetSrcLineNumber());
+            Assert.AreEqual(classElement.GetSrcLinePosition(), element.GetSrcLinePosition());
+            Assert.AreEqual(classElement.GetXPath(), element.GetXPath());
         }
     }
 }
