@@ -59,7 +59,7 @@ namespace ABB.SrcML.Data {
             this.SourceFileName = SrcMLElement.GetFileNameForUnit(fileUnit);
             this.StartingLineNumber = element.GetSrcLineNumber();
             this.StartingColumnNumber = element.GetSrcLinePosition();
-            this.XPath = element.GetXPath(false);
+            this.XPath = element.GetXPath();
             this.IsReference = isReferenceLocation;
             SetEndingLocation(element);
         }
@@ -77,7 +77,7 @@ namespace ABB.SrcML.Data {
             this.SourceFileName = fileName;
             this.StartingLineNumber = element.GetSrcLineNumber();
             this.StartingColumnNumber = element.GetSrcLinePosition();
-            this.XPath = element.GetXPath(false);
+            this.XPath = element.GetXPath();
             this.IsReference = isReferenceLocation;
             SetEndingLocation(element);
         }

@@ -239,7 +239,7 @@ namespace ABB.SrcML.Data {
         public Collection<IMethodCall> FindMethodCalls(XElement element) {
             if(element == null)
                 throw new ArgumentNullException("element");
-            return FindMethodCalls(element.GetXPath(false));
+            return FindMethodCalls(element.GetXPath());
         }
 
         /// <summary>
@@ -290,7 +290,7 @@ namespace ABB.SrcML.Data {
         public IScope FindScope(XElement element) {
             scopeLock.EnterReadLock();
             try {
-                return globalScope.GetScopeForLocation(element.GetXPath(false));
+                return globalScope.GetScopeForLocation(element.GetXPath());
             } finally {
                 scopeLock.ExitReadLock();
             }
