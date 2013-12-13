@@ -12,12 +12,21 @@
 using System.Reflection;
 using System.Resources;
 
+// Version information for an assembly consists of the following four values:
+//
+//      Major Version
+//      Minor Version 
+//      Revision
+//      Build Number
+
 [assembly: AssemblyCompany("ABB")]
+[assembly: NeutralResourcesLanguage("en-US")]
+[assembly: AssemblyVersion("0.0.0.0")]
+
 #if DEBUG
 [assembly: AssemblyConfiguration("Debug")]
+[assembly: AssemblyInformationalVersion("0.0.0.0-Debug-dev")]
 #else
 [assembly: AssemblyConfiguration("Release")]
+[assembly: AssemblyInformationalVersion("0.0.0.0-Release-dev")]
 #endif
-
-[assembly: NeutralResourcesLanguage("en-US")]
-[assembly: AssemblyVersion("2.0.2800.3300")]
