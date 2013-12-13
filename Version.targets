@@ -30,11 +30,10 @@
 		</XmlNamespaces>
 	</PropertyGroup>
 	
-	<Target Name="CreateAssemblyInfo" DependsOnTargets="SetVersion"
-			Inputs="@(AssemblyInfoFiles)" Outputs="@(AssemblyInfoFiles -> '%(Identity)')">
-		<WriteLinesToFile File="@(AssemblyInfoFiles -> '%(Identity)')" Overwrite="true"
-						  Lines="using System.Reflection;
-using System.Resources;
+	<Target Name="CreateAssemblyInfo" DependsOnTargets="SetVersion">
+		<WriteLinesToFile File="%(AssemblyInfoFiles.Identity)" Overwrite="true"
+						  Lines="using System.Reflection%3B
+using System.Resources%3B
 
 [assembly: AssemblyCompany(&quot;$(Company)&quot;)]
 [assembly: NeutralResourcesLanguage(&quot;$(NeutralResourcesLanguage)&quot;)]
@@ -49,9 +48,8 @@ using System.Resources;
 #endif" />
 	</Target>
 	
-	<Target Name="SetVsixVersion" DependsOnTargets="SetVersion"
-			Inputs="@(SourceManifests)" Outputs="@(SourceManifests -> '%(Identity)')">
-		<XmlPoke Namespaces="$(XmlNamespaces)" XmlInputPath="@(SourceManifests -> '%(Identity)')"
+	<Target Name="SetVsixVersion" DependsOnTargets="SetVersion">
+		<XmlPoke Namespaces="$(XmlNamespaces)" XmlInputPath="%(SourceManifests.Identity)"
 				 Query="/v:Vsix/v:Identifier/v:Version" Value="$(Version)"/>
 	</Target>
 	
