@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <ItemGroup>
     <SolutionToBuild Include="SrcML.NET.sln" />
     <DocumentationProject Include="SrcML.NET.shfbproj" />
@@ -7,22 +7,23 @@
 	<TestRunner Include="packages\NUnit.Runners.2.6.1\tools\nunit-console.exe" />
     <Configuration Include="Debug;Release" />
     <ExternalFiles Include="External\**\*.*" Exclude="External\MSBuild\**\*.*" />
-    <CoreLibs Include="ABB.SrcML.Core\Properties\AssemblyInfo.cs;VisualStudio\ABB.SrcML.VisualStudio.Interfaces\Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <PropertyGroup>
+    <MSBuildCommunityTasksPath>$(MSBuildThisFileDirectory)External\MSBuild\MSBuildCommunityTasks</MSBuildCommunityTasksPath>
     <Configuration Condition="'$(Configuration)'==''">Debug</Configuration>
     <DeployExtension Condition="'$(DeployExtension)'==''">False</DeployExtension>
     <OutDir>Build</OutDir>
-    <Major>2</Major>
-    <Minor>0</Minor>
-    <Revision>0</Revision>
-    <Build>$(BUILD_NUMBER)</Build>
   </PropertyGroup>
-
-  <Target Name="Build" Inputs="@(Configuration)" Outputs="$(OutDir)\%(Configuration.Identity)" DependsOnTargets="BeforeBuild">
+  <ItemGroup>
+	  <AssemblyInfoFiles Include="SolutionInfo.cs" />
+	  <SourceManifests Include="VisualStudio\ABB.SrcML.VisualStudio.SrcMLService\source.extension.vsixmanifest" />
+  </ItemGroup>
+  <Import Project="Version.targets" />
+  
+  <Target Name="Build" Inputs="@(Configuration)" Outputs="$(OutDir)\%(Configuration.Identity)" DependsOnTargets="CreateAssemblyInfo;SetVsixVersion">
     <MSBuild Projects="@(SolutionToBuild)" Properties="Configuration=%(Configuration.Identity);Platform=Any CPU" />
   </Target>
-
+  
   <Target Name="CopyExternals">
     <MakeDir Directories="$(OutDir)\External" />
     <Copy SourceFiles="@(ExternalFiles)"
@@ -40,31 +41,7 @@
   <Target Name="TestAll" DependsOnTargets="Build" Condition="Exists('@(TestRunner)')">
 	<Exec Command="@(TestRunner) @(TestProject)" />
   </Target>
-  
-  <Import Project="External\MSBuild\MSBuildCommunityTasks\MSBuild.Community.Tasks.Targets"
-          Condition="Exists('External\MSBuild\MSBuildCommunityTasks\MSBuild.Community.Tasks.Targets')" />
-  <Target Name="BeforeBuild" Condition="Exists('External\MSBuild\MSBuildCommunityTasks\MSBuild.Community.Tasks.Targets')">
-    <Message Text="$(Configuration) Build: $(Major).$(Minor).$(Build).$(Revision)" />
-    <!--Message Text="Interface File Version: $(Major).$(Minor).$(Revision).$(Build)" /-->
-    <WriteLinesToFile File="SolutionInfo.cs"
-                      Lines="[assembly: System.Reflection.AssemblyCompany(&quot;ABB&quot;)]
 
-#if DEBUG
-[assembly: System.Reflection.AssemblyConfiguration(&quot;Debug&quot;)]
-#else
-[assembly: System.Reflection.AssemblyConfiguration(&quot;Release&quot;)]
-#endif
-
-[assembly: System.Resources.NeutralResourcesLanguage(&quot;en-US&quot;)]
-[assembly: System.Reflection.AssemblyVersion(&quot;2.0.48.0&quot;)]"
-                      Overwrite="true"
-                      Condition="$(BUILD_NUMBER) != '' " />
-    <!--WriteLinesToFile File="%(CoreLibs.FullPath)"
-                      Lines="[assembly: AssemblyFileVersion(&quot;$(Major).$(Minor).$(Revision).$(Build)&quot;)]"
-                      Overwrite="false"
-                      Condition="$(BUILD_NUMBER) != '' " /-->
-  </Target>
-  
   <Target Name="Docs" Condition="Exists('$(SHFBROOT)\SandcastleHelpFileBuilder.targets')">
     <MSBuild Projects="@(DocumentationProject)" />
   </Target>

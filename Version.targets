@@ -1,0 +1,78 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+	<!-- Configuration
+		 There are three steps to using these targets in an MSBuild file:
+		 
+		 1. Create two ItemGroups:
+		    * AssemblyInfoFiles (each item will be an assembly file to generate)
+			* SourceManifests (each item will be a source manifest file to update)
+		 2. Set the $(MSBuildCommunityTasksPath) property (SetVersion will fail otherwise)
+		 3. Override any of the following properties if you need to change the default:
+		    * ReleaseSuffix: suffix that should be removed from a tag to produce the
+		      version number. For instance, if tags are in the format "v1.0" the release suffix will be "v" (this is the default)
+		    * Company: The company attribute ("ABB" is the default)
+		    * NeutralResourcesLanguage: The neutral resources language (en-US is the default)
+		 4. Include the two targets as "DependsOnTargets" of your build target
+	-->
+	<PropertyGroup>
+		<ReleaseSuffix Condition="'$(ReleaseSuffix)'==''">v</ReleaseSuffix>
+		<Company Condition="'$(Company)'==''">ABB</Company>
+		<NeutralResourcesLanguage Condition="'$(NeutralResourcesLanguage)'==''">en-US</NeutralResourcesLanguage>
+	</PropertyGroup>
+	
+	<PropertyGroup>
+		<ReleaseTag>0.0</ReleaseTag>
+		<Revision>0</Revision>
+		<BUILD_NUMBER Condition="'$(BUILD_NUMBER)'==''">0</BUILD_NUMBER>
+		<Version>0.0.0.0</Version>
+		<XmlNamespaces>
+			<Namespace Prefix="v"
+					   Uri="http://schemas.microsoft.com/developer/vsx-schema/2010" />
+		</XmlNamespaces>
+	</PropertyGroup>
+	
+	<Target Name="CreateAssemblyInfo" DependsOnTargets="SetVersion"
+			Inputs="@(AssemblyInfoFiles)" Outputs="@(AssemblyInfoFiles -> '%(Identity)')">
+		<WriteLinesToFile File="@(AssemblyInfoFiles -> '%(Identity)')" Overwrite="true"
+						  Lines="using System.Reflection;
+using System.Resources;
+
+[assembly: AssemblyCompany(&quot;$(Company)&quot;)]
+[assembly: NeutralResourcesLanguage(&quot;$(NeutralResourcesLanguage)&quot;)]
+[assembly: AssemblyVersion(&quot;$(Version)&quot;)]
+
+#if DEBUG
+[assembly: AssemblyConfiguration(&quot;Debug&quot;)]
+[assembly: AssemblyInformationalVersion(&quot;$(Version)-Debug-$(CommitHash)&quot;)]
+#else
+[assembly: AssemblyConfiguration(&quot;Release&quot;)]
+[assembly: AssemblyInformationalVersion(&quot;$(Version)-Release-$(CommitHash)&quot;)]
+#endif" />
+	</Target>
+	
+	<Target Name="SetVsixVersion" DependsOnTargets="SetVersion"
+			Inputs="@(SourceManifests)" Outputs="@(SourceManifests -> '%(Identity)')">
+		<XmlPoke Namespaces="$(XmlNamespaces)" XmlInputPath="@(SourceManifests -> '%(Identity)')"
+				 Query="/v:Vsix/v:Identifier/v:Version" Value="$(Version)"/>
+	</Target>
+	
+	<Target Name="PrintVersion" DependsOnTargets="SetVersion">
+		<Message Text="Version: $(Version)" />
+		<Message Text="Configuration: $(Configuration)" />
+		<Message Text="Commit: $(CommitHash)" />
+	</Target>
+  
+	<Import Project="$(MSBuildCommunityTasksPath)\MSBuild.Community.Tasks.Targets"
+			Condition="Exists('$(MSBuildCommunityTasksPath)\MSBuild.Community.Tasks.Targets')" />
+	
+	<Target Name="SetVersion">
+		<GitDescribe LocalPath="$(MSBuildProjectDirectory)">
+		  <Output TaskParameter="Tag" PropertyName="ReleaseTag" />
+		  <Output TaskParameter="CommitCount" PropertyName="Revision" />
+		  <Output TaskParameter="CommitHash" PropertyName="CommitHash" />
+		</GitDescribe>
+		<PropertyGroup>
+			<ReleaseTag>$(ReleaseTag.Substring($(ReleaseSuffix.Length)))</ReleaseTag>
+			<Version>$(ReleaseTag).$(Revision).$(BUILD_NUMBER)</Version>
+		</PropertyGroup>
+  </Target>
+</Project>
