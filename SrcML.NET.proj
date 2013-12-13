@@ -11,6 +11,7 @@
   </ItemGroup>
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)'==''">Debug</Configuration>
+    <DeployExtension Condition="'$(DeployExtension)'==''">False</DeployExtension>
     <OutDir>Build</OutDir>
     <Major>2</Major>
     <Minor>0</Minor>
