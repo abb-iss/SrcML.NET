@@ -6,7 +6,7 @@
 	<TestProject Include="SrcML.NET.nunit" />
 	<TestRunner Include="packages\NUnit.Runners.2.6.1\tools\nunit-console.exe" />
     <Configuration Include="Debug;Release" />
-    <ExternalFiles Include="External\**\*.*" Exclude="External\MSBuild\**\*.*" />
+    <ExternalFiles Include="External\**\*.*" Exclude="External\MSBuildTasks\*.*;External\NuGet\*.*" />
   </ItemGroup>
   <PropertyGroup>
     <MSBuildCommunityTasksPath>$(MSBuildThisFileDirectory)\External\MSBuildTasks</MSBuildCommunityTasksPath>
