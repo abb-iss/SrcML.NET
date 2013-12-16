@@ -2,7 +2,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0" DefaultTargets="Clean;Build">
   <ItemGroup>
     <SolutionToBuild Include="SrcML.NET.sln" />
-    <DocumentationProject Include="SrcML.NET.shfbproj" />
 	<TestProject Include="SrcML.NET.nunit" />
 	<TestRunner Include="packages\NUnit.Runners.2.6.1\tools\nunit-console.exe" />
     <Configuration Include="Debug;Release" />
@@ -41,10 +40,6 @@
   
   <Target Name="TestAll" DependsOnTargets="Build" Condition="Exists('@(TestRunner)')">
 	<Exec Command="@(TestRunner) @(TestProject)" />
-  </Target>
-
-  <Target Name="Docs" Condition="Exists('$(SHFBROOT)\SandcastleHelpFileBuilder.targets')">
-    <MSBuild Projects="@(DocumentationProject)" />
   </Target>
   
   <Target Name="Clean">
