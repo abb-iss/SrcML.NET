@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0" DefaultTargets="Clean;Build">
   <ItemGroup>
     <SolutionToBuild Include="SrcML.NET.sln" />
     <DocumentationProject Include="SrcML.NET.shfbproj" />
@@ -18,6 +18,7 @@
 	  <AssemblyInfoFiles Include="SolutionInfo.cs" />
 	  <SourceManifests Include="VisualStudio\ABB.SrcML.VisualStudio.SrcMLService\source.extension.vsixmanifest" />
   </ItemGroup>
+  
   <Import Project="Version.targets" />
   
   <Target Name="Build" Inputs="@(Configuration)" Outputs="$(OutDir)\%(Configuration.Identity)" DependsOnTargets="CreateAssemblyInfo;SetVsixVersion">
@@ -29,7 +30,7 @@
     <Copy SourceFiles="@(ExternalFiles)"
           Destinationfiles="@(ExternalFiles->'$(OutDir)\External\%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
-
+  
   <Target Name="Test" DependsOnTargets="Build" Condition="Exists('@(TestRunner)')">
     <Exec Command="@(TestRunner) @(TestProject) /exclude=Todo,LongRunning" />
   </Target>
