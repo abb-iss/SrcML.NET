@@ -9,7 +9,7 @@
     <ExternalFiles Include="External\**\*.*" Exclude="External\MSBuild\**\*.*" />
   </ItemGroup>
   <PropertyGroup>
-    <MSBuildCommunityTasksPath>$(MSBuildThisFileDirectory)External\MSBuild\MSBuildCommunityTasks</MSBuildCommunityTasksPath>
+    <MSBuildCommunityTasksPath>$(MSBuildThisFileDirectory)\External\MSBuildTasks</MSBuildCommunityTasksPath>
     <Configuration Condition="'$(Configuration)'==''">Debug</Configuration>
     <DeployExtension Condition="'$(DeployExtension)'==''">False</DeployExtension>
     <OutDir>Build</OutDir>
@@ -48,5 +48,9 @@
   
   <Target Name="Clean">
     <RemoveDir Directories="$(OutDir)\Release;$(OutDir)\Debug;$(OutDir)\External;$(OutDir)\Documentation;$(OutDir)" />
+  </Target>
+  
+  <Target Name="RestorePackages" BeforeTargets="Build;Test;TestData;TestAll">
+    <Exec Command="&quot;$(MSBuildThisFileDirectory)External\NuGet\nuget.exe&quot; restore &quot;%(SolutionToBuild.Identity)&quot;" />
   </Target>
 </Project>
