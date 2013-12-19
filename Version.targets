@@ -7,14 +7,14 @@
 			* SourceManifests (each item will be a source manifest file to update)
 		 2. Set the $(MSBuildCommunityTasksPath) property (SetVersion will fail otherwise)
 		 3. Override any of the following properties if you need to change the default:
-		    * ReleaseSuffix: suffix that should be removed from a tag to produce the
-		      version number. For instance, if tags are in the format "v1.0" the release suffix will be "v" (this is the default)
+		    * ReleasePrefix: prefix that should be removed from a tag to produce the
+		      version number. For instance, if tags are in the format "v1.0" the release prefix will be "v" (this is the default)
 		    * Company: The company attribute ("ABB" is the default)
 		    * NeutralResourcesLanguage: The neutral resources language (en-US is the default)
 		 4. Include the two targets as "DependsOnTargets" of your build target
 	-->
 	<PropertyGroup>
-		<ReleaseSuffix Condition="'$(ReleaseSuffix)'==''">v</ReleaseSuffix>
+		<ReleasePrefix Condition="'$(ReleasePrefix)'==''">v</ReleasePrefix>
 		<Company Condition="'$(Company)'==''">ABB</Company>
 		<NeutralResourcesLanguage Condition="'$(NeutralResourcesLanguage)'==''">en-US</NeutralResourcesLanguage>
 	</PropertyGroup>
@@ -69,7 +69,7 @@ using System.Resources%3B
 		  <Output TaskParameter="CommitHash" PropertyName="CommitHash" />
 		</GitDescribe>
 		<PropertyGroup>
-			<ReleaseTag>$(ReleaseTag.Substring($(ReleaseSuffix.Length)))</ReleaseTag>
+			<ReleaseTag>$(ReleaseTag.Substring($(ReleasePrefix.Length)))</ReleaseTag>
 			<Version>$(ReleaseTag).$(Revision).$(BUILD_NUMBER)</Version>
 		</PropertyGroup>
   </Target>
