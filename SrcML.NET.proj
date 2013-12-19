@@ -4,7 +4,6 @@
     <SolutionToBuild Include="SrcML.NET.sln" />
 	<TestProject Include="SrcML.NET.nunit" />
 	<TestRunner Include="packages\NUnit.Runners.2.6.3\tools\nunit-console.exe" />
-    <Configuration Include="Debug;Release" />
     <ExternalFiles Include="External\**\*.*" Exclude="External\MSBuildTasks\*.*;External\NuGet\*.*" />
   </ItemGroup>
   <PropertyGroup>
@@ -20,8 +19,8 @@
   
   <Import Project="Version.targets" />
   
-  <Target Name="Build" Inputs="@(Configuration)" Outputs="$(OutDir)\%(Configuration.Identity)" DependsOnTargets="CreateAssemblyInfo;SetVsixVersion">
-    <MSBuild Projects="@(SolutionToBuild)" Properties="Configuration=%(Configuration.Identity);Platform=Any CPU" />
+  <Target Name="Build" Outputs="$(OutDir)\$(Configuration)" DependsOnTargets="CreateAssemblyInfo;SetVsixVersion">
+    <MSBuild Projects="@(SolutionToBuild)" Properties="Configuration=$(Configuration);Platform=Any CPU" />
   </Target>
   
   <Target Name="CopyExternals">
