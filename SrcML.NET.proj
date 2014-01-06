@@ -17,7 +17,7 @@
 	  <SourceManifests Include="VisualStudio\ABB.SrcML.VisualStudio.SrcMLService\source.extension.vsixmanifest" />
   </ItemGroup>
   
-  <Import Project="Version.targets" />
+  <Import Project="External\BuildScripts\Version.targets" />
   
   <Target Name="Build" Outputs="$(OutDir)\$(Configuration)" DependsOnTargets="CreateAssemblyInfo;SetVsixVersion">
     <MSBuild Projects="@(SolutionToBuild)" Properties="Configuration=$(Configuration);Platform=Any CPU" />
