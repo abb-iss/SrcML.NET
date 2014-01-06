@@ -15,7 +15,7 @@ This would look like this:
 
 If you later need to update the build scripts, you can do it like this:
 
-    got fetch BuildScripts
+    git fetch BuildScripts
     git subtree pull --prefix External/BuildScripts BuildScripts master --squash
 
 ## Using the scripts
