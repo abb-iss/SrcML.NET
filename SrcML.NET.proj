@@ -7,7 +7,7 @@
     <ExternalFiles Include="External\**\*.*" Exclude="External\MSBuildTasks\*.*;External\NuGet\*.*" />
   </ItemGroup>
   <PropertyGroup>
-    <MSBuildCommunityTasksPath>$(MSBuildThisFileDirectory)\External\MSBuildTasks</MSBuildCommunityTasksPath>
+    <MSBuildCommunityTasksPath>$(MSBuildThisFileDirectory)\External\BuildScripts\MSBuildTasks</MSBuildCommunityTasksPath>
     <Configuration Condition="'$(Configuration)'==''">Debug</Configuration>
     <DeployExtension Condition="'$(DeployExtension)'==''">False</DeployExtension>
     <OutDir>Build</OutDir>
