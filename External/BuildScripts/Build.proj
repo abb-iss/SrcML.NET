@@ -11,7 +11,7 @@
 -->
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0" DefaultTargets="Build">
   <PropertyGroup>
-    <MSBuildCommunityTasksPath>$(MSBuildThisFileDirectory)\..\External\MSBuildTasks</MSBuildCommunityTasksPath>
+    <MSBuildCommunityTasksPath>$(MSBuildThisFileDirectory)\MSBuildTasks</MSBuildCommunityTasksPath>
     <SolutionToBuild Condition="'$(SolutionToBuild)'==''"></SolutionToBuild>
     <SolutionFullPath Condition="'$(SolutionToBuild)'!=''">$([System.IO.Path]::GetFullPath($(SolutionToBuild)))</SolutionFullPath>
     <RootDirectory Condition="'$(SolutionFullPath)'!=''">$([System.IO.Path]::GetDirectoryName($(SolutionFullPath)))</RootDirectory>
