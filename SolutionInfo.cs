@@ -21,7 +21,7 @@ using System.Resources;
 
 [assembly: AssemblyCompany("ABB")]
 [assembly: NeutralResourcesLanguage("en-US")]
-[assembly: AssemblyVersion("0.0.0.0")]
+[assembly: AssemblyVersion("99.99.0.0")]
 
 #if DEBUG
 [assembly: AssemblyConfiguration("Debug")]
