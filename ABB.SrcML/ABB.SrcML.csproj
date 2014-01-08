@@ -101,6 +101,7 @@
     <Compile Include="XmlHelper.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="ABB.SrcML.nuspec" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

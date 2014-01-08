@@ -4,6 +4,7 @@
     <SolutionToBuild Include="SrcML.NET.sln" />
 	<TestProject Include="SrcML.NET.nunit" />
 	<TestRunner Include="packages\NUnit.Runners.2.6.3\tools\nunit-console.exe" />
+	<NugetExe Include="External\Nuget\nuget.exe" />
     <ExternalFiles Include="External\**\*.*" Exclude="External\MSBuildTasks\*.*;External\NuGet\*.*" />
   </ItemGroup>
   <PropertyGroup>
@@ -15,6 +16,7 @@
   <ItemGroup>
 	  <AssemblyInfoFiles Include="SolutionInfo.cs" />
 	  <SourceManifests Include="VisualStudio\ABB.SrcML.VisualStudio.SrcMLService\source.extension.vsixmanifest" />
+	  <NuspecFiles Include="**/*.nuspec" />
   </ItemGroup>
   
   <Import Project="External\BuildScripts\Version.targets" />
@@ -41,6 +43,13 @@
 	<Exec Command="@(TestRunner) @(TestProject)" />
   </Target>
   
+  <Target Name="CreatePackages" DependsOnTargets="SetNuspecVersion;Build">
+	<Exec Command="@(NugetExe) pack %(NuspecFiles.RelativeDir)%(NuspecFiles.Filename).csproj -IncludeReferencedProjects -OutputDirectory $(OutDir)\$(Configuration) -Prop Configuration=$(Configuration)" />
+  </Target>
+  
+  <Target Name="PublishPackages" DependsOnTargets="CreatePackages" Condition="'$(Configuration)'=='Release'">
+	<Exec Command="@(NugetExe) push $(OutDir)\$(Configuration)\%(NuspecFiles.Filename).nupkg" />
+  </Target>
   <Target Name="Clean">
     <RemoveDir Directories="$(OutDir)\Release;$(OutDir)\Debug;$(OutDir)\External;$(OutDir)\Documentation;$(OutDir)" />
   </Target>
