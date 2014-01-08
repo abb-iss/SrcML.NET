@@ -31,12 +31,14 @@
 	</PropertyGroup>
 	
 	<PropertyGroup>
-		<ReleaseTag>0.0</ReleaseTag>
+		<ReleaseTag>99.99</ReleaseTag>
 		<Revision>0</Revision>
 		<BUILD_NUMBER Condition="'$(BUILD_NUMBER)'==''">0</BUILD_NUMBER>
-		<Version>0.0.0.0</Version>
+		<Version>$(ReleaseTag).0.0</Version>
 		<RootDirectory Condition="'$(RootDirectory)'==''">$(MSBuildStartupDirectory)</RootDirectory>
 		<XmlNamespaces>
+			<Namespace Prefix="nuget"
+			           Uri="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd" />
 			<Namespace Prefix="v"
 					   Uri="http://schemas.microsoft.com/developer/vsx-schema/2010" />
 		</XmlNamespaces>
@@ -60,15 +62,18 @@ using System.Resources%3B
 #endif" />
 	</Target>
 	
+	<Target Name="SetNuspecVersion" DependsOnTargets="SetVersion">
+		<XmlPoke Namespaces="$(XmlNamespaces)" XmlInputPath="%(NuspecFiles.FullPath)"
+		         Query="/nuget:package/nuget:metadata/nuget:version" Value="$(Version)" />
+	</Target>
+	
 	<Target Name="SetVsixVersion" DependsOnTargets="SetVersion">
 		<XmlPoke Namespaces="$(XmlNamespaces)" XmlInputPath="%(SourceManifests.FullPath)"
 				 Query="/v:Vsix/v:Identifier/v:Version" Value="$(Version)"/>
 	</Target>
 	
 	<Target Name="PrintVersion" DependsOnTargets="SetVersion">
-		<Message Text="Version: $(Version)" />
-		<Message Text="Configuration: $(Configuration)" />
-		<Message Text="Commit: $(CommitHash)" />
+		<Message Text="$(Version)" />
 	</Target>
   
 	<Import Project="$(MSBuildCommunityTasksPath)\MSBuild.Community.Tasks.Targets"
