@@ -85,9 +85,7 @@ namespace ABB.SrcML.Utilities {
         /// </summary>
         private void IncrementTask() {
             Interlocked.Increment(ref _runningTasks);
-            if(IsReady) {
-                IsReady = false;
-            }
+            IsReady = false;
         }
 
         /// <summary>
@@ -95,10 +93,7 @@ namespace ABB.SrcML.Utilities {
         /// If the number of tasks becomes zero, then <see cref="IsReady"/> is set to true.
         /// </summary>
         private void DecrementTask() {
-            Interlocked.Decrement(ref _runningTasks);
-            if(_runningTasks <= 0) {
-                IsReady = true;
-            }
+            IsReady = (0 >= Interlocked.Decrement(ref _runningTasks));
         }
 
         public void Dispose() {
