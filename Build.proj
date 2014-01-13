@@ -15,6 +15,7 @@
     <SolutionToBuild Condition="'$(SolutionToBuild)'==''"></SolutionToBuild>
     <SolutionFullPath Condition="'$(SolutionToBuild)'!=''">$([System.IO.Path]::GetFullPath($(SolutionToBuild)))</SolutionFullPath>
     <RootDirectory Condition="'$(SolutionFullPath)'!=''">$([System.IO.Path]::GetDirectoryName($(SolutionFullPath)))</RootDirectory>
+    <VersionOutputFile>$(MSBuildThisFileDirectory)\Version.txt</VersionOutputFile>
   </PropertyGroup>
   
   <ItemGroup>
