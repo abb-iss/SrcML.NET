@@ -12,6 +12,7 @@
     <Configuration Condition="'$(Configuration)'==''">Debug</Configuration>
     <DeployExtension Condition="'$(DeployExtension)'==''">False</DeployExtension>
     <OutDir>Build</OutDir>
+    <VersionOutputFile>$(MSBuildThisFileDirectory)\Version.txt</VersionOutputFile>
   </PropertyGroup>
   <ItemGroup>
 	  <AssemblyInfoFiles Include="SolutionInfo.cs" />
