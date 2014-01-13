@@ -28,6 +28,8 @@ namespace ABB.SrcML {
     /// the archive directory
     /// </summary>
     public class SrcMLArchive : AbstractArchive, ISrcMLArchive {
+        public const string DEFAULT_ARCHIVE_DIRECTORY = "srcML";
+
         private XmlFileNameMapping xmlFileNameMapping;
 
         /// <summary>
@@ -35,7 +37,7 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="baseDirectory">the base directory</param>
         public SrcMLArchive(string baseDirectory)
-            : this(baseDirectory, "srcML") {
+            : this(baseDirectory, DEFAULT_ARCHIVE_DIRECTORY) {
         }
 
         /// <summary>
@@ -44,7 +46,7 @@ namespace ABB.SrcML {
         /// <param name="baseDirectory">the base directory</param>
         /// <param name="useExistingSrcML">If True, any existing SrcML files in <see cref="AbstractArchive.ArchivePath"/> will be used. If False, these files will be deleted and potentially recreated.</param>
         public SrcMLArchive(string baseDirectory, bool useExistingSrcML)
-            : this(baseDirectory, "srcML", useExistingSrcML) {
+            : this(baseDirectory, DEFAULT_ARCHIVE_DIRECTORY, useExistingSrcML) {
         }
 
         /// <summary>
@@ -54,7 +56,7 @@ namespace ABB.SrcML {
         /// <param name="useExistingSrcML">If True, any existing SrcML files in <see cref="AbstractArchive.ArchivePath"/> will be used. If False, these files will be deleted and potentially recreated.</param>
         /// <param name="generator">The SrcMLGenerator to use to convert source files to SrcML.</param>
         public SrcMLArchive(string baseDirectory, bool useExistingSrcML, SrcMLGenerator generator)
-            : this(baseDirectory, "srcML", useExistingSrcML, generator) {
+            : this(baseDirectory, DEFAULT_ARCHIVE_DIRECTORY, useExistingSrcML, generator) {
         }
 
         /// <summary>
@@ -65,7 +67,7 @@ namespace ABB.SrcML {
         /// <param name="generator">The SrcMLGenerator to use to convert source files to SrcML.</param>
         /// <param name="xmlMapping">The XmlFileNameMapping to use to map source paths to xml file paths.</param>
         public SrcMLArchive(string baseDirectory, bool useExistingSrcML, SrcMLGenerator generator, XmlFileNameMapping xmlMapping)
-            : this(baseDirectory, "srcML", useExistingSrcML, generator, xmlMapping, TaskScheduler.Default) {
+            : this(baseDirectory, DEFAULT_ARCHIVE_DIRECTORY, useExistingSrcML, generator, xmlMapping, TaskScheduler.Default) {
         }
         /// <summary>
         /// Creates a new SrcMLArchive. By default, any existing srcML will be used.
