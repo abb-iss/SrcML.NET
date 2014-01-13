@@ -25,6 +25,8 @@ using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using log4net;
 using ABB.SrcML.Utilities;
+using ABB.VisualStudio.Interfaces;
+using ABB.VisualStudio;
 
 namespace ABB.SrcML.VisualStudio.SrcMLService {
     /// <summary>
@@ -146,6 +148,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             ServiceCreatorCallback callback = new ServiceCreatorCallback(CreateService);
             serviceContainer.AddService(typeof(SSrcMLGlobalService), callback, true);
             serviceContainer.AddService(typeof(SSrcMLLocalService), callback);
+            serviceContainer.AddService(typeof(STaskManagerService), callback, true);
         }
 
         /// <summary>
@@ -177,6 +180,9 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 return new SrcMLLocalService(this);
             }
 
+            if(typeof(STaskManagerService) == serviceType) {
+                return new TaskManagerService(this, new SingleCoreStrategy());
+            }
             // If we are here the service type is unknown, so write a message on the debug output
             // and return null.
             Trace.WriteLine("ServicesPackage.CreateService called for an unknown service type.");

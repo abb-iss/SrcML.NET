@@ -11,6 +11,7 @@
 
 using ABB.SrcML.Data;
 using ABB.SrcML.Utilities;
+using ABB.VisualStudio.Interfaces;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -75,6 +76,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// </summary>
         private string SrcMLServiceDirectory;
 
+        private ITaskManagerService _taskManager;
+
         /// <summary>
         /// Status bar service.
         /// </summary>
@@ -102,6 +105,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             SrcMLServiceDirectory = extensionDirectory;
             DataEnabled = ShouldGenerateData(extensionDirectory);
             statusBar = (IVsStatusbar) Package.GetGlobalService(typeof(SVsStatusbar));
+            _taskManager = (ITaskManagerService) Package.GetGlobalService(typeof(STaskManagerService));
         }
 
         private static bool ShouldGenerateData(string extensionDirectory) {
@@ -228,10 +232,13 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 }
 
                 // Create a new instance of SrcML.NET's LastModifiedArchive
-                LastModifiedArchive lastModifiedArchive = new LastModifiedArchive(baseDirectory);
+                LastModifiedArchive lastModifiedArchive = new LastModifiedArchive(baseDirectory, LastModifiedArchive.DEFAULT_FILENAME, _taskManager.GlobalScheduler);
 
                 // Create a new instance of SrcML.NET's SrcMLArchive
-                SrcMLArchive sourceArchive = new SrcMLArchive(baseDirectory, true, new SrcMLGenerator(srcMLBinaryDirectory));
+                SrcMLArchive sourceArchive = new SrcMLArchive(baseDirectory, SrcMLArchive.DEFAULT_ARCHIVE_DIRECTORY, true,
+                                                              new SrcMLGenerator(srcMLBinaryDirectory),
+                                                              new ShortXmlFileNameMapping(Path.Combine(baseDirectory, SrcMLArchive.DEFAULT_ARCHIVE_DIRECTORY)),
+                                                              _taskManager.GlobalScheduler);
                 CurrentSrcMLArchive = sourceArchive;
                 if(DataEnabled) {
                     CurrentDataRepository = new DataRepository(CurrentSrcMLArchive);
@@ -311,7 +318,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         private void InitDataWhenReady(object sender, IsReadyChangedEventArgs e) {
             if(e.ReadyState) {
                 CurrentSrcMLArchive.IsReadyChanged -= InitDataWhenReady;
-                CurrentDataRepository.InitializeDataConcurrent();
+                CurrentDataRepository.InitializeDataConcurrent(_taskManager.GlobalScheduler);
             }
         }
 
