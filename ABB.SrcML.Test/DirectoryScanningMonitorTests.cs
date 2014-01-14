@@ -179,6 +179,12 @@ namespace ABB.SrcML.Test {
             monitor.UpdateArchives();
             monitor.StartMonitoring();
 
+            for(int i = 0; i < 5; i++) {
+                if(monitor.IsReady) {
+                    break;
+                }
+                Thread.Sleep(100);
+            }
             Assert.IsTrue(monitor.IsReady, "monitor is not ready");
             Assert.IsTrue(archive.IsReady, "archive is not ready");
             monitor.StopMonitoring();
