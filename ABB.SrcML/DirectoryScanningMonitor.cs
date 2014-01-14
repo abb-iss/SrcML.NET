@@ -9,6 +9,7 @@
  *    Vinay Augustine (ABB Group) - Initial implementation
  *****************************************************************************/
 
+using ABB.SrcML.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -36,10 +37,7 @@ namespace ABB.SrcML {
     /// </remarks>
     public class DirectoryScanningMonitor : AbstractFileMonitor {
         public const int DEFAULT_SCAN_INTERVAL = 60;
-        private const int IDLE = 0;
         private const string MONITOR_LIST_FILENAME = "monitored_directories.txt";
-        private const int RUNNING = 1;
-        private const int STOPPED = -1;
 
         private static HashSet<string> Exclusions = new HashSet<string>(new List<string>() {
             "bin", "obj", "TestResults"
@@ -49,7 +47,7 @@ namespace ABB.SrcML {
         private static Regex BackupDirectoryRegex = new Regex(@"^backup\d*$", RegexOptions.IgnoreCase);
 
         private List<string> folders;
-        private Timer ScanTimer;
+        private ReentrantTimer ScanTimer;
         private int syncPoint;
 
         /// <summary>
@@ -68,11 +66,10 @@ namespace ABB.SrcML {
             folders = new List<string>();
             MonitoredDirectories = new ReadOnlyCollection<string>(folders);
 
-            ScanTimer = new Timer();
-            ScanInterval = scanInterval;
+            ScanTimer = new ReentrantTimer();
             ScanTimer.AutoReset = true;
             ScanTimer.Elapsed += ScanTimer_Elapsed;
-            syncPoint = STOPPED;
+            ScanInterval = scanInterval;
         }
 
         /// <summary>
@@ -176,12 +173,14 @@ namespace ABB.SrcML {
             }
 
             if(!alreadyMonitoringDirectory) {
-                folders.Add(fullPath);
-                if(ScanTimer.Enabled) {
-                    foreach(var fileName in EnumerateDirectory(directoryPath)) {
-                        UpdateFile(fileName);
+                ScanTimer.ExecuteWhenIdle(() => {
+                    folders.Add(fullPath);
+                    if(ScanTimer.Enabled) {
+                        foreach(var fileName in EnumerateDirectory(directoryPath)) {
+                            UpdateFile(fileName);
+                        }
                     }
-                }
+                });
             }
         }
 
@@ -261,26 +260,18 @@ namespace ABB.SrcML {
         /// has no effect.
         /// </remarks>
         public void RemoveDirectory(string directoryPath) {
-            bool isRunning = ScanTimer.Enabled;
-            if(isRunning) {
-                while(RUNNING == Interlocked.CompareExchange(ref syncPoint, RUNNING, IDLE)) {
-                    Thread.Sleep(1);
-                }
-            }
-            var directoryFullPath = GetFullPath(directoryPath);
+            ScanTimer.ExecuteWhenIdle(() => {
+                var directoryFullPath = GetFullPath(directoryPath);
 
-            if(folders.Contains(directoryFullPath, StringComparer.InvariantCultureIgnoreCase)) {
-                folders.Remove(directoryFullPath);
-                foreach(var fileName in GetArchivedFiles()) {
-                    if(fileName.StartsWith(directoryFullPath, StringComparison.InvariantCultureIgnoreCase)) {
-                        DeleteFile(fileName);
+                if(folders.Contains(directoryFullPath, StringComparer.InvariantCultureIgnoreCase)) {
+                    folders.Remove(directoryFullPath);
+                    foreach(var fileName in GetArchivedFiles()) {
+                        if(fileName.StartsWith(directoryFullPath, StringComparison.InvariantCultureIgnoreCase)) {
+                            DeleteFile(fileName);
+                        }
                     }
                 }
-            }
-
-            if(isRunning) {
-                syncPoint = IDLE;
-            }
+            });
         }
 
         public override void Save() {
@@ -295,9 +286,7 @@ namespace ABB.SrcML {
         /// Has no effect if the monitor is already running.
         /// </remarks>
         public override void StartMonitoring() {
-            if(STOPPED == Interlocked.CompareExchange(ref syncPoint, IDLE, STOPPED)) {
-                ScanTimer.Start();
-            }
+            ScanTimer.Start();
         }
 
         /// <summary>
@@ -309,10 +298,6 @@ namespace ABB.SrcML {
         public override void StopMonitoring() {
             if(ScanTimer.Enabled) {
                 ScanTimer.Stop();
-
-                while(RUNNING == Interlocked.CompareExchange(ref syncPoint, STOPPED, IDLE)) {
-                    Thread.Sleep(1);
-                }
                 base.StopMonitoring();
             }
         }
@@ -382,11 +367,7 @@ namespace ABB.SrcML {
         /// <see cref="StopMonitoring()"/> hasn't been called.
         /// </remarks>
         private void ScanTimer_Elapsed(object sender, ElapsedEventArgs e) {
-            int sync = Interlocked.CompareExchange(ref syncPoint, RUNNING, IDLE);
-            if(IDLE == sync) {
-                UpdateArchives();
-                syncPoint = IDLE;
-            }
+            UpdateArchives();
         }
     }
 }

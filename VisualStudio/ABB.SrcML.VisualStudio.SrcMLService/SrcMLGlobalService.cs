@@ -59,11 +59,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
         private int frozen;
         private ReadyNotifier ReadyState;
-        private System.Timers.Timer SaveTimer;
-        private int syncPoint;
-        private const int RUNNING = 1;
-        private const int IDLE = 0;
-        private const int STOPPED = -1;
+        private ReentrantTimer SaveTimer;
+        
 
         /// <summary>
         /// Store in this variable the service provider that will be used to query for other
@@ -97,10 +94,9 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             SrcMLFileLogger.DefaultLogger.InfoFormat("Constructing a new instance of SrcMLGlobalService in {0}", extensionDirectory);
             numRunningSources = 0;
             ReadyState = new ReadyNotifier(this);
-            SaveTimer = new System.Timers.Timer();
-            SaveInterval = DEFAULT_SAVE_INTERVAL;
+            SaveTimer = new ReentrantTimer();
             SaveTimer.Elapsed += SaveTimer_Elapsed;
-            syncPoint = STOPPED;
+            SaveInterval = DEFAULT_SAVE_INTERVAL;
             serviceProvider = sp;
             SrcMLServiceDirectory = extensionDirectory;
             DataEnabled = ShouldGenerateData(extensionDirectory);
@@ -276,7 +272,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                     duringStartup = true;
                     CurrentMonitor.UpdateArchives();
                     CurrentMonitor.StartMonitoring();
-                    StartSaveTimer();
+                    SaveTimer.Start();
                 }
             } catch(Exception e) {
                 SrcMLFileLogger.DefaultLogger.Error(SrcMLExceptionFormatter.CreateMessage(e, "Exception in SrcMLGlobalService.StartMonitoring()"));
@@ -298,7 +294,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             SrcMLFileLogger.DefaultLogger.Info("SrcMLGlobalService.StopMonitoring()");
             try {
                 if(CurrentMonitor != null && CurrentSrcMLArchive != null) {
-                    StopSaveTimer();
+                    SaveTimer.Stop();
                     CurrentMonitor.StopMonitoring();
                     CurrentMonitor.Dispose();
                     
@@ -456,28 +452,9 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             return false;
         }
         void SaveTimer_Elapsed(object sender, ElapsedEventArgs e) {
-            int sync = Interlocked.CompareExchange(ref syncPoint, RUNNING, IDLE);
-            if(IDLE == sync) {
-                CurrentMonitor.Save();
-                syncPoint = IDLE;
-            }
+            CurrentMonitor.Save();
         }
 
-        private void StartSaveTimer() {
-            if(STOPPED == Interlocked.CompareExchange(ref syncPoint, IDLE, STOPPED)) {
-                SaveTimer.Start();
-            }
-        }
-
-        private void StopSaveTimer() {
-            if(SaveTimer.Enabled) {
-                SaveTimer.Stop();
-
-                while(RUNNING == Interlocked.CompareExchange(ref syncPoint, STOPPED, IDLE)) {
-                    System.Threading.Thread.Sleep(1);
-                }
-            }
-        }
         /// <summary>
         /// Respond to the MonitorStopped event from SrcMLArchive.
         /// </summary>
