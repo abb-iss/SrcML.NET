@@ -66,6 +66,7 @@
     <Compile Include="FileSystemFolderMonitor.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="LastModifiedArchive.cs" />
+    <Compile Include="Utilities\ConservativeAbbCoreStrategy.cs" />
     <Compile Include="Utilities\LimitedConcurrencyLevelTaskScheduler.cs" />
     <Compile Include="Utilities\ReadyNotifier.cs" />
     <Compile Include="ShortXmlFileNameMapping.cs" />

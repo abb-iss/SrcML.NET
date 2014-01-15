@@ -181,7 +181,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             }
 
             if(typeof(STaskManagerService) == serviceType) {
-                return new TaskManagerService(this, new SingleCoreStrategy());
+                return new TaskManagerService(this, new ConservativeAbbCoreStrategy());
             }
             // If we are here the service type is unknown, so write a message on the debug output
             // and return null.
