@@ -11,6 +11,7 @@
 
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Timers;
 using Timer = System.Timers.Timer;
 
@@ -32,6 +33,8 @@ namespace ABB.SrcML.Utilities {
         private int syncPoint;
 
         private Timer _timer;
+        private readonly Action _timerAction;
+        private TaskManager _taskManager;
 
         /// <summary>
         /// A client can subscribe to this event in order to execute in <see cref="Interval"/>. If <see cref="AutoReset"/> is set to false, then this event
@@ -43,21 +46,18 @@ namespace ABB.SrcML.Utilities {
         /// </summary>
         public event ElapsedEventHandler Elapsed;
 
-        /// <summary>
-        /// Create a reentrant timer with an <see cref="Interval"/> of 100ms.
-        /// </summary>
-        public ReentrantTimer()
-            : this(100) {
+        public ReentrantTimer(double interval, Action action, TaskManager taskManager) {
+            this._timer = new Timer(interval);
+            this._timerAction = action;
+            this._taskManager = taskManager;
+            this._timer.Elapsed += _timer_Elapsed;
         }
 
         /// <summary>
-        /// Create a reentrant timer with the specified <paramref name="interval"/>
+        /// Create a reentrant timer with an <see cref="Interval"/> of 100ms.
         /// </summary>
-        /// <param name="interval">The value for <see cref="Interval"/> (ms)</param>
-        public ReentrantTimer(double interval) {
-            _timer = new Timer(interval);
-            syncPoint = IDLE;
-            _timer.Elapsed += _timer_Elapsed;
+        public ReentrantTimer(Action action, TaskManager taskManager)
+            : this(100, action, taskManager) {
         }
 
         /// <summary>
@@ -89,11 +89,14 @@ namespace ABB.SrcML.Utilities {
         /// </summary>
         /// <param name="action">The action to execute</param>
         public void ExecuteWhenIdle(Action action) {
-            while(RUNNING == Interlocked.CompareExchange(ref syncPoint, RUNNING, IDLE)) {
-                Thread.Sleep(1);
-            }
-            action();
-            syncPoint = IDLE;
+            var task = new Task(() => {
+                while(RUNNING == Interlocked.CompareExchange(ref syncPoint, RUNNING, IDLE)) {
+                    Thread.Sleep(1);
+                }
+                action();
+            });
+            SetSyncToIdleOnCompletion(task);
+            _taskManager.RunAsync(task);
         }
 
         /// <summary>
@@ -128,11 +131,17 @@ namespace ABB.SrcML.Utilities {
             }
         }
 
+        private void SetSyncToIdleOnCompletion(Task task) {
+            task.ContinueWith(t => syncPoint = IDLE);
+        }
+        
         private void _timer_Elapsed(object sender, ElapsedEventArgs e) {
             int sync = Interlocked.CompareExchange(ref syncPoint, RUNNING, IDLE);
+            
             if(IDLE == sync) {
-                OnElapsed(e);
-                syncPoint = IDLE;
+                var task = new Task(_timerAction);
+                SetSyncToIdleOnCompletion(task);
+                _taskManager.RunAsync(task);
             }
         }
     }

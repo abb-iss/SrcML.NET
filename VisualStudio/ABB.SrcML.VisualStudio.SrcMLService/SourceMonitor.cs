@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace ABB.SrcML.VisualStudio.SrcMLService {
 
@@ -36,8 +37,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="baseDirectory">The base directory for this monitor</param>
         /// <param name="defaultArchive">The default archive to route files to</param>
         /// <param name="otherArchives">Other archives to route files to</param>
-        public SourceMonitor(Solution solution, double scanInterval, string baseDirectory, IArchive defaultArchive, ISrcMLArchive sourceArchive, params IArchive[] otherArchives)
-            : base(scanInterval, baseDirectory, defaultArchive, otherArchives) {
+        public SourceMonitor(Solution solution, double scanInterval, TaskScheduler scheduler, string baseDirectory, IArchive defaultArchive, ISrcMLArchive sourceArchive, params IArchive[] otherArchives)
+            : base(DirectoryScanningMonitor.MONITOR_LIST_FILENAME, scanInterval, scheduler, baseDirectory, defaultArchive, otherArchives) {
             RegisterArchive(sourceArchive, false);
             this.sourceArchive = sourceArchive;
             this.UseAsyncMethods = true;
@@ -53,7 +54,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="defaultArchive">The default archive to route files to</param>
         /// <param name="otherArchives">Other archives to route files to</param>
         public SourceMonitor(Solution solution, string baseDirectory, IArchive defaultArchive, ISrcMLArchive sourceArchive, params IArchive[] otherArchives)
-            : this(solution, DEFAULT_SCAN_INTERVAL, baseDirectory, defaultArchive, sourceArchive, otherArchives) { }
+            : this(solution, DEFAULT_SCAN_INTERVAL, TaskScheduler.Default, baseDirectory, defaultArchive, sourceArchive, otherArchives) { }
 
         /// <summary>
         /// The solution being monitored

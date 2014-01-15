@@ -94,14 +94,14 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             SrcMLFileLogger.DefaultLogger.InfoFormat("Constructing a new instance of SrcMLGlobalService in {0}", extensionDirectory);
             numRunningSources = 0;
             ReadyState = new ReadyNotifier(this);
-            SaveTimer = new ReentrantTimer();
-            SaveTimer.Elapsed += SaveTimer_Elapsed;
-            SaveInterval = DEFAULT_SAVE_INTERVAL;
             serviceProvider = sp;
             SrcMLServiceDirectory = extensionDirectory;
             DataEnabled = ShouldGenerateData(extensionDirectory);
             statusBar = (IVsStatusbar) Package.GetGlobalService(typeof(SVsStatusbar));
             _taskManager = (ITaskManagerService) Package.GetGlobalService(typeof(STaskManagerService));
+
+            SaveTimer = new ReentrantTimer(() => CurrentMonitor.Save(), new TaskManager(this, _taskManager.GlobalScheduler));
+            SaveInterval = DEFAULT_SAVE_INTERVAL;
         }
 
         private static bool ShouldGenerateData(string extensionDirectory) {
@@ -228,7 +228,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 }
 
                 // Create a new instance of SrcML.NET's LastModifiedArchive
-                LastModifiedArchive lastModifiedArchive = new LastModifiedArchive(baseDirectory, LastModifiedArchive.DEFAULT_FILENAME, _taskManager.GlobalScheduler);
+                LastModifiedArchive lastModifiedArchive = new LastModifiedArchive(baseDirectory, LastModifiedArchive.DEFAULT_FILENAME,
+                                                                                  _taskManager.GlobalScheduler);
 
                 // Create a new instance of SrcML.NET's SrcMLArchive
                 SrcMLArchive sourceArchive = new SrcMLArchive(baseDirectory, SrcMLArchive.DEFAULT_ARCHIVE_DIRECTORY, true,
@@ -248,7 +249,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
                 // Create a new instance of SrcML.NET's solution monitor
                 if(openSolution != null) {
-                    CurrentMonitor = new SourceMonitor(openSolution, DirectoryScanningMonitor.DEFAULT_SCAN_INTERVAL, baseDirectory, lastModifiedArchive, sourceArchive);
+                    CurrentMonitor = new SourceMonitor(openSolution, DirectoryScanningMonitor.DEFAULT_SCAN_INTERVAL,
+                                                       _taskManager.GlobalScheduler, baseDirectory, lastModifiedArchive, sourceArchive);
                     CurrentMonitor.AddDirectoriesFromSaveFile();
                     CurrentMonitor.AddSolutionDirectory();
                 }
