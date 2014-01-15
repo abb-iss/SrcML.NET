@@ -37,7 +37,7 @@ namespace ABB.SrcML {
     /// </remarks>
     public class DirectoryScanningMonitor : AbstractFileMonitor {
         public const int DEFAULT_SCAN_INTERVAL = 60;
-        private const string MONITOR_LIST_FILENAME = "monitored_directories.txt";
+        public const string MONITOR_LIST_FILENAME = "monitored_directories.txt";
 
         private static HashSet<string> Exclusions = new HashSet<string>(new List<string>() {
             "bin", "obj", "TestResults"
