@@ -26,7 +26,7 @@ namespace ABB.SrcML.Test {
         private const string monitorFolder = "monitor";
         private const int numStartingFiles = 100;
         private const string testFolder = "test";
-
+        private const int WaitInterval = 2000;
         #region test setup
 
         [TearDown]
@@ -54,10 +54,10 @@ namespace ABB.SrcML.Test {
             monitor.DirectoryAdded += (o, e) => { are.Set(); };
             
             monitor.AddDirectory(testFolder);
-            Assert.IsTrue(are.WaitOne(500));
+            Assert.IsTrue(are.WaitOne(WaitInterval));
 
             monitor.AddDirectory(testFolder);
-            Assert.IsFalse(are.WaitOne(500));
+            Assert.IsFalse(are.WaitOne(WaitInterval));
 
             Assert.AreEqual(1, monitor.MonitoredDirectories.Count);
         }
@@ -70,9 +70,9 @@ namespace ABB.SrcML.Test {
             monitor.DirectoryAdded += (o, e) => are.Set();
             
             monitor.AddDirectory(testFolder);
-            Assert.IsTrue(are.WaitOne(500));
+            Assert.IsTrue(are.WaitOne(WaitInterval));
             monitor.AddDirectory(Path.Combine(testFolder, "test"));
-            //Assert.IsFalse(are.WaitOne(500));
+            //Assert.IsFalse(are.WaitOne(WaitInterval));
         }
 
         [Test]
@@ -120,17 +120,17 @@ namespace ABB.SrcML.Test {
             Assert.IsTrue(archive.IsReady, "archive is not ready");
 
             File.Create(expectedFileName).Close();
-            Assert.IsTrue(are.WaitOne(1500));
+            Assert.IsTrue(are.WaitOne(WaitInterval));
 
             expectedEventType = FileEventType.FileChanged;
             var expectedLastWriteTime = DateTime.Now;
             File.SetLastWriteTime(expectedFileName, expectedLastWriteTime);
-            Assert.IsTrue(are.WaitOne(1500));
+            Assert.IsTrue(are.WaitOne(WaitInterval));
             Assert.AreEqual(expectedLastWriteTime, archive.GetLastModifiedTime(expectedFileName));
 
             expectedEventType = FileEventType.FileDeleted;
             File.Delete(expectedFileName);
-            Assert.IsTrue(are.WaitOne(1500));
+            Assert.IsTrue(are.WaitOne(WaitInterval));
         }
 
         [Test]
@@ -174,16 +174,16 @@ namespace ABB.SrcML.Test {
             monitor.DirectoryRemoved += (o, e) => are.Set();
 
             monitor.AddDirectory(testFolder);
-            Assert.IsTrue(are.WaitOne(500));
+            Assert.IsTrue(are.WaitOne(WaitInterval));
             monitor.UpdateArchives();
 
             Assert.AreEqual(numStartingFiles, monitor.GetArchivedFiles().Count());
             monitor.RemoveDirectory("test1");
-            Assert.IsFalse(are.WaitOne(500));
+            Assert.IsFalse(are.WaitOne(WaitInterval));
             Assert.AreEqual(numStartingFiles, monitor.GetArchivedFiles().Count());
 
             monitor.RemoveDirectory(testFolder);
-            Assert.IsTrue(are.WaitOne(500));
+            Assert.IsTrue(are.WaitOne(WaitInterval));
             
             int count = numStartingFiles;
             monitor.FileChanged += (o, e) => {
@@ -193,7 +193,7 @@ namespace ABB.SrcML.Test {
                         are.Set();
                 }
             };
-            Assert.IsTrue(are.WaitOne(100));
+            Assert.IsTrue(are.WaitOne(WaitInterval));
             Assert.AreEqual(0, monitor.GetArchivedFiles().Count());
             foreach(var fileName in Directory.EnumerateFiles(testFolder)) {
                 Assert.IsTrue(File.Exists(fileName));
@@ -208,7 +208,7 @@ namespace ABB.SrcML.Test {
             
             monitor.DirectoryAdded += (o, e) => { are.Set(); };
             monitor.AddDirectory(testFolder);
-            Assert.IsTrue(are.WaitOne(500));
+            Assert.IsTrue(are.WaitOne(WaitInterval));
             
             int count = 0;
             monitor.FileChanged += (o, e) => {
@@ -221,7 +221,7 @@ namespace ABB.SrcML.Test {
             };
             monitor.UpdateArchives();
 
-            Assert.IsTrue(are.WaitOne(500));
+            Assert.IsTrue(are.WaitOne(WaitInterval));
             Assert.AreEqual(numStartingFiles, archive.GetFiles().Count(), String.Format("only found {0} files in the archive", archive.GetFiles().Count()));
 
             foreach(var fileName in Directory.EnumerateFiles(testFolder)) {
