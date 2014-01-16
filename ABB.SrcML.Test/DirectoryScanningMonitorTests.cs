@@ -168,14 +168,32 @@ namespace ABB.SrcML.Test {
         public void TestRemoveDirectory() {
             var archive = new LastModifiedArchive(monitorFolder);
             DirectoryScanningMonitor monitor = new DirectoryScanningMonitor(monitorFolder, archive);
+            AutoResetEvent are = new AutoResetEvent(false);
+            
+            monitor.DirectoryAdded += (o, e) => are.Set();
+            monitor.DirectoryRemoved += (o, e) => are.Set();
+
             monitor.AddDirectory(testFolder);
+            Assert.IsTrue(are.WaitOne(500));
             monitor.UpdateArchives();
 
             Assert.AreEqual(numStartingFiles, monitor.GetArchivedFiles().Count());
             monitor.RemoveDirectory("test1");
+            Assert.IsFalse(are.WaitOne(500));
             Assert.AreEqual(numStartingFiles, monitor.GetArchivedFiles().Count());
 
             monitor.RemoveDirectory(testFolder);
+            Assert.IsTrue(are.WaitOne(500));
+            
+            int count = numStartingFiles;
+            monitor.FileChanged += (o, e) => {
+                if(e.EventType == FileEventType.FileDeleted) {
+                    count--;
+                    if(count == 0)
+                        are.Set();
+                }
+            };
+            Assert.IsTrue(are.WaitOne(100));
             Assert.AreEqual(0, monitor.GetArchivedFiles().Count());
             foreach(var fileName in Directory.EnumerateFiles(testFolder)) {
                 Assert.IsTrue(File.Exists(fileName));
@@ -192,13 +210,18 @@ namespace ABB.SrcML.Test {
             monitor.AddDirectory(testFolder);
             Assert.IsTrue(are.WaitOne(500));
             
+            int count = 0;
+            monitor.FileChanged += (o, e) => {
+                if(e.EventType == FileEventType.FileAdded) {
+                    count++;
+                    if(count == numStartingFiles) {
+                        are.Set();
+                    }
+                }
+            };
             monitor.UpdateArchives();
-            monitor.StartMonitoring();
-            
-            Assert.IsTrue(monitor.IsReady, "monitor is not ready");
-            Assert.IsTrue(archive.IsReady, "archive is not ready");
-            monitor.StopMonitoring();
 
+            Assert.IsTrue(are.WaitOne(500));
             Assert.AreEqual(numStartingFiles, archive.GetFiles().Count(), String.Format("only found {0} files in the archive", archive.GetFiles().Count()));
 
             foreach(var fileName in Directory.EnumerateFiles(testFolder)) {
