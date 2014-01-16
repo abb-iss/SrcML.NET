@@ -11,6 +11,7 @@
 
 using ABB.SrcML.Utilities;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -19,8 +20,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using ElapsedEventArgs = System.Timers.ElapsedEventArgs;
-using Timer = System.Timers.Timer;
 
 namespace ABB.SrcML {
 
@@ -50,6 +49,9 @@ namespace ABB.SrcML {
         private ReentrantTimer ScanTimer;
         private int syncPoint;
 
+        public event EventHandler<DirectoryScanningMonitorEventArgs> DirectoryAdded;
+        public event EventHandler<DirectoryScanningMonitorEventArgs> DirectoryRemoved;
+
         /// <summary>
         /// Create a new directory scanning monitor
         /// </summary>
@@ -64,7 +66,6 @@ namespace ABB.SrcML {
             : base(baseDirectory, defaultArchive, otherArchives) {
             MonitoredDirectoriesFilePath = Path.Combine(baseDirectory, monitorFileName);
             folders = new List<string>();
-            MonitoredDirectories = new ReadOnlyCollection<string>(folders);
 
             ScanTimer = new ReentrantTimer(() => UpdateArchives(), this._taskManager);
             ScanTimer.AutoReset = true;
@@ -85,7 +86,6 @@ namespace ABB.SrcML {
             : base(scheduler, baseDirectory, defaultArchive, otherArchives) {
             MonitoredDirectoriesFilePath = Path.Combine(baseDirectory, monitorFileName);
             folders = new List<string>();
-            MonitoredDirectories = new ReadOnlyCollection<string>(folders);
 
             ScanTimer = new ReentrantTimer(() => UpdateArchives(), this._taskManager);
             ScanTimer.AutoReset = true;
@@ -122,7 +122,16 @@ namespace ABB.SrcML {
         /// <see cref="AddDirectory(string)"/> to add a directory and
         /// <see cref="RemoveDirectory(string)"/> to remove one.</para>
         /// </summary>
-        public ReadOnlyCollection<string> MonitoredDirectories { get; private set; }
+        public ReadOnlyCollection<string> MonitoredDirectories {
+            get {
+                var answer = new List<string>();
+                var foldersAsCollection = folders as ICollection;
+                lock(foldersAsCollection.SyncRoot) {
+                    answer.AddRange(folders);
+                }
+                return new ReadOnlyCollection<string>(answer);
+            }
+        }
 
         /// <summary>
         /// The scan interval is the number of seconds between each scan. By default it is set to
@@ -173,7 +182,6 @@ namespace ABB.SrcML {
         /// <paramref name="directoryPath"/>is a subdirectory of an existing directory.
         /// </remarks>
         public void AddDirectory(string directoryPath) {
-            // get the full path to the directory with any trailing path separators trimmed off
             var fullPath = GetFullPath(directoryPath);
             bool alreadyMonitoringDirectory = false;
 
@@ -181,26 +189,29 @@ namespace ABB.SrcML {
                 throw new ForbiddenDirectoryException(fullPath, (ForbiddenDirectories.Contains(fullPath) ? ForbiddenDirectoryException.ISSPECIALDIR : ForbiddenDirectoryException.ISROOT));
             }
 
-            foreach(var directory in MonitoredDirectories) {
-                if(fullPath.StartsWith(directory, StringComparison.InvariantCultureIgnoreCase)) {
-                    // if full path starts with directory, then check to see if they
-                    alreadyMonitoringDirectory = (fullPath.Length == directory.Length);
-                    if(alreadyMonitoringDirectory) {
-                        break;
-                    }
-                    throw new DirectoryScanningMonitorSubDirectoryException(directoryPath, directory);
-                }
-            }
-
-            if(!alreadyMonitoringDirectory) {
-                ScanTimer.ExecuteWhenIdle(() => {
-                    folders.Add(fullPath);
-                    if(ScanTimer.Enabled) {
-                        foreach(var fileName in EnumerateDirectory(directoryPath)) {
-                            UpdateFile(fileName);
+            var foldersAsCollection = folders as ICollection;
+            lock(foldersAsCollection.SyncRoot) {
+                foreach(var directory in folders) {
+                    if(fullPath.StartsWith(directory, StringComparison.InvariantCultureIgnoreCase)) {
+                        alreadyMonitoringDirectory = (fullPath.Length == directory.Length);
+                        if(alreadyMonitoringDirectory) {
+                            break;
                         }
+                        throw new DirectoryScanningMonitorSubDirectoryException(directoryPath, directory);
                     }
-                });
+                }
+                if(!alreadyMonitoringDirectory) {
+                    folders.Add(fullPath);
+                    OnDirectoryAdded(new DirectoryScanningMonitorEventArgs(fullPath));
+
+                    if(ScanTimer.Enabled) {
+                        ScanTimer.ExecuteWhenIdle(() => {
+                            foreach(var fileName in EnumerateDirectory(fullPath)) {
+                                UpdateFile(fileName);
+                            }
+                        });
+                    }
+                }
             }
         }
 
@@ -280,18 +291,29 @@ namespace ABB.SrcML {
         /// has no effect.
         /// </remarks>
         public void RemoveDirectory(string directoryPath) {
-            ScanTimer.ExecuteWhenIdle(() => {
-                var directoryFullPath = GetFullPath(directoryPath);
+            var directoryFullPath = GetFullPath(directoryPath);
 
-                if(folders.Contains(directoryFullPath, StringComparer.InvariantCultureIgnoreCase)) {
+            bool directoryIsMonitored = false;
+
+            var folderAsCollection = folders as ICollection;
+            lock(folderAsCollection.SyncRoot) {
+                directoryIsMonitored = folders.Contains(directoryFullPath, StringComparer.InvariantCultureIgnoreCase);
+                if(directoryIsMonitored) {
                     folders.Remove(directoryFullPath);
+                }
+            }
+            
+            if(directoryIsMonitored) {
+                OnDirectoryRemoved(new DirectoryScanningMonitorEventArgs(directoryFullPath));
+                ScanTimer.ExecuteWhenIdle(() => {
                     foreach(var fileName in GetArchivedFiles()) {
                         if(fileName.StartsWith(directoryFullPath, StringComparison.InvariantCultureIgnoreCase)) {
                             DeleteFile(fileName);
                         }
                     }
-                }
-            });
+                });
+            }
+            
         }
 
         public override void Save() {
@@ -335,6 +357,20 @@ namespace ABB.SrcML {
                 WriteMonitoringList();
             }
             base.Dispose(disposing);
+        }
+
+        protected virtual void OnDirectoryAdded(DirectoryScanningMonitorEventArgs e) {
+            EventHandler<DirectoryScanningMonitorEventArgs> handler = DirectoryAdded;
+            if(null != handler) {
+                handler(this, e);
+            }
+        }
+
+        protected virtual void OnDirectoryRemoved(DirectoryScanningMonitorEventArgs e) {
+            EventHandler<DirectoryScanningMonitorEventArgs> handler = DirectoryRemoved;
+            if(null != handler) {
+                handler(this, e);
+            }
         }
 
         private static HashSet<string> GetForbiddenDirectories() {

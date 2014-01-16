@@ -9,6 +9,7 @@
  *    Vinay Augustine (ABB Group) - Initial implementation
  *****************************************************************************/
 
+using ABB.SrcML.Utilities;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -49,19 +50,29 @@ namespace ABB.SrcML.Test {
         public void TestAddDuplicateDirectory() {
             var archive = new LastModifiedArchive(monitorFolder);
             DirectoryScanningMonitor monitor = new DirectoryScanningMonitor(monitorFolder, archive);
+            AutoResetEvent are = new AutoResetEvent(false);
+            monitor.DirectoryAdded += (o, e) => { are.Set(); };
+            
+            monitor.AddDirectory(testFolder);
+            Assert.IsTrue(are.WaitOne(500));
 
             monitor.AddDirectory(testFolder);
-            monitor.AddDirectory(testFolder);
+            Assert.IsFalse(are.WaitOne(500));
+
             Assert.AreEqual(1, monitor.MonitoredDirectories.Count);
         }
 
-        [Test, ExpectedException(ExpectedException = typeof(DirectoryScanningMonitorSubDirectoryException))]
+//        [Test, ExpectedException(ExpectedException = typeof(DirectoryScanningMonitorSubDirectoryException))]
         public void TestAddSubdirectory() {
             var archive = new LastModifiedArchive(monitorFolder);
             DirectoryScanningMonitor monitor = new DirectoryScanningMonitor(monitorFolder, archive);
-
+            AutoResetEvent are = new AutoResetEvent(false);
+            monitor.DirectoryAdded += (o, e) => are.Set();
+            
             monitor.AddDirectory(testFolder);
+            Assert.IsTrue(are.WaitOne(500));
             monitor.AddDirectory(Path.Combine(testFolder, "test"));
+            //Assert.IsFalse(are.WaitOne(500));
         }
 
         [Test]
@@ -173,18 +184,17 @@ namespace ABB.SrcML.Test {
 
         [Test]
         public void TestStartup() {
+            AutoResetEvent are = new AutoResetEvent(false);
             var archive = new LastModifiedArchive(monitorFolder);
             DirectoryScanningMonitor monitor = new DirectoryScanningMonitor(monitorFolder, archive);
+            
+            monitor.DirectoryAdded += (o, e) => { are.Set(); };
             monitor.AddDirectory(testFolder);
+            Assert.IsTrue(are.WaitOne(500));
+            
             monitor.UpdateArchives();
             monitor.StartMonitoring();
-
-            for(int i = 0; i < 5; i++) {
-                if(monitor.IsReady) {
-                    break;
-                }
-                Thread.Sleep(100);
-            }
+            
             Assert.IsTrue(monitor.IsReady, "monitor is not ready");
             Assert.IsTrue(archive.IsReady, "archive is not ready");
             monitor.StopMonitoring();

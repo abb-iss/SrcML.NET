@@ -45,6 +45,7 @@
     <Compile Include="..\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
+    <Compile Include="DirectoryScanningMonitorEventArgs.cs" />
     <Compile Include="Exceptions\DirectoryScanningMonitorSubDirectoryException.cs" />
     <Compile Include="Exceptions\ForbiddenDirectoryException.cs" />
     <Compile Include="IArchive.cs" />
