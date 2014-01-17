@@ -98,6 +98,13 @@ namespace ABB.SrcML.Test {
             }
         }
 
+        [Test, ExpectedException(ExpectedException=typeof(ForbiddenDirectoryException))]
+        public void TestForbiddenDirectory() {
+            var forbiddenDirectory = Environment.GetEnvironmentVariable("USERPROFILE");
+            var archive = new LastModifiedArchive(monitorFolder);
+            var monitor = new DirectoryScanningMonitor(monitorFolder, archive);
+            monitor.AddDirectory(forbiddenDirectory);
+        }
         [Test]
         public void TestFileChanges() {
             var archive = new LastModifiedArchive(monitorFolder);
