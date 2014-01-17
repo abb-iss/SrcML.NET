@@ -21,7 +21,7 @@ using System.Threading;
 
 namespace ABB.SrcML.Test {
 
-    [TestFixture]
+    [TestFixture, Category("Build")]
     public class DirectoryScanningMonitorTests {
         private const string monitorFolder = "monitor";
         private const int numStartingFiles = 100;
@@ -62,7 +62,7 @@ namespace ABB.SrcML.Test {
             Assert.AreEqual(1, monitor.MonitoredDirectories.Count);
         }
 
-//        [Test, ExpectedException(ExpectedException = typeof(DirectoryScanningMonitorSubDirectoryException))]
+        [Test, ExpectedException(ExpectedException = typeof(DirectoryScanningMonitorSubDirectoryException))]
         public void TestAddSubdirectory() {
             var archive = new LastModifiedArchive(monitorFolder);
             DirectoryScanningMonitor monitor = new DirectoryScanningMonitor(monitorFolder, archive);
