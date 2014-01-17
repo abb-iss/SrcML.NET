@@ -188,8 +188,7 @@ namespace ABB.SrcML.Test {
             int count = numStartingFiles;
             monitor.FileChanged += (o, e) => {
                 if(e.EventType == FileEventType.FileDeleted) {
-                    count--;
-                    if(count == 0)
+                    if(--count == 0)
                         are.Set();
                 }
             };
