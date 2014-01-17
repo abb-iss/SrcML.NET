@@ -303,9 +303,15 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 if(CurrentMonitor != null && CurrentSrcMLArchive != null) {
                     SaveTimer.Stop();
                     CurrentMonitor.StopMonitoring();
+                    CurrentMonitor.FileChanged -= RespondToFileChangedEvent;
+                    CurrentMonitor.DirectoryAdded -= RespondToDirectoryAddedEvent;
+                    CurrentMonitor.DirectoryRemoved -= RespondToDirectoryRemovedEvent;
+                    CurrentMonitor.IsReadyChanged -= RespondToIsReadyChangedEvent;
+                    CurrentMonitor.MonitoringStopped -= RespondToMonitoringStoppedEvent;
                     CurrentMonitor.Dispose();
                     
                     if(DataEnabled) {
+                        CurrentDataRepository.FileProcessed -= RespondToFileChangedEvent;
                         CurrentDataRepository.Dispose();
                     }
 
