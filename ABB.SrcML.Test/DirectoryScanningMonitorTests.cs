@@ -26,7 +26,7 @@ namespace ABB.SrcML.Test {
         private const string monitorFolder = "monitor";
         private const int numStartingFiles = 100;
         private const string testFolder = "test";
-        private const int WaitInterval = 2000;
+        private const int WaitInterval = 5000;
         #region test setup
 
         [TearDown]
