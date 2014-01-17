@@ -168,31 +168,33 @@ namespace ABB.SrcML.Test {
         public void TestRemoveDirectory() {
             var archive = new LastModifiedArchive(monitorFolder);
             DirectoryScanningMonitor monitor = new DirectoryScanningMonitor(monitorFolder, archive);
-            AutoResetEvent are = new AutoResetEvent(false);
+            AutoResetEvent directoryResetEvent = new AutoResetEvent(false);
             
-            monitor.DirectoryAdded += (o, e) => are.Set();
-            monitor.DirectoryRemoved += (o, e) => are.Set();
+            monitor.DirectoryAdded += (o, e) => directoryResetEvent.Set();
+            monitor.DirectoryRemoved += (o, e) => directoryResetEvent.Set();
 
             monitor.AddDirectory(testFolder);
-            Assert.IsTrue(are.WaitOne(WaitInterval));
+            Assert.IsTrue(directoryResetEvent.WaitOne(WaitInterval));
             monitor.UpdateArchives();
 
             Assert.AreEqual(numStartingFiles, monitor.GetArchivedFiles().Count());
             monitor.RemoveDirectory("test1");
-            Assert.IsFalse(are.WaitOne(WaitInterval));
+            Assert.IsFalse(directoryResetEvent.WaitOne(WaitInterval));
             Assert.AreEqual(numStartingFiles, monitor.GetArchivedFiles().Count());
 
-            monitor.RemoveDirectory(testFolder);
-            Assert.IsTrue(are.WaitOne(WaitInterval));
-            
+            AutoResetEvent fileDeletionResetEvent = new AutoResetEvent(false);
             int count = numStartingFiles;
             monitor.FileChanged += (o, e) => {
                 if(e.EventType == FileEventType.FileDeleted) {
                     if(--count == 0)
-                        are.Set();
+                        fileDeletionResetEvent.Set();
                 }
             };
-            Assert.IsTrue(are.WaitOne(WaitInterval));
+
+            monitor.RemoveDirectory(testFolder);
+            Assert.IsTrue(directoryResetEvent.WaitOne(WaitInterval));
+            Assert.IsTrue(fileDeletionResetEvent.WaitOne(WaitInterval));
+
             Assert.AreEqual(0, monitor.GetArchivedFiles().Count());
             foreach(var fileName in Directory.EnumerateFiles(testFolder)) {
                 Assert.IsTrue(File.Exists(fileName));
