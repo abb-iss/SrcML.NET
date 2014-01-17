@@ -127,6 +127,9 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
         #region ISrcMLGlobalService Members
 
+        public event EventHandler<DirectoryScanningMonitorEventArgs> DirectoryAdded;
+        public event EventHandler<DirectoryScanningMonitorEventArgs> DirectoryRemoved;
+
         public event EventHandler<IsReadyChangedEventArgs> IsReadyChanged {
             add { this.ReadyState.IsReadyChanged += value; }
             remove { this.ReadyState.IsReadyChanged -= value; }
@@ -258,6 +261,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 // Subscribe events from Solution Monitor
                 if(CurrentMonitor != null) {
                     CurrentMonitor.FileChanged += RespondToFileChangedEvent;
+                    CurrentMonitor.DirectoryAdded += RespondToDirectoryAddedEvent;
+                    CurrentMonitor.DirectoryRemoved += RespondToDirectoryRemovedEvent;
                     CurrentMonitor.IsReadyChanged += RespondToIsReadyChangedEvent;
                     CurrentMonitor.MonitoringStopped += RespondToMonitoringStoppedEvent;
 
@@ -329,6 +334,20 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <returns></returns>
         public string GetSrcMLArchiveFolder(Solution openSolution) {
             return CreateNamedFolder(openSolution, srcMLArchivesFolderString);
+        }
+
+        protected virtual void OnDirectoryAdded(DirectoryScanningMonitorEventArgs e) {
+            EventHandler<DirectoryScanningMonitorEventArgs> handler = DirectoryAdded;
+            if(handler != null) {
+                handler(this, e);
+            }
+        }
+
+        protected virtual void OnDirectoryRemoved(DirectoryScanningMonitorEventArgs e) {
+            EventHandler<DirectoryScanningMonitorEventArgs> handler = DirectoryRemoved;
+            if(handler != null) {
+                handler(this, e);
+            }
         }
 
         protected virtual void OnFileChanged(FileEventRaisedArgs e) {
@@ -413,6 +432,16 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             DisplayTextOnStatusBar(String.Format("SrcML Service is {0} {1}", (senderIsDataRepo ? "generating data for" : "processing"), eventArgs.FilePath));
             //}
             OnFileChanged(eventArgs);
+        }
+
+        private void RespondToDirectoryAddedEvent(object sender, DirectoryScanningMonitorEventArgs eventArgs) {
+            DisplayTextOnStatusBar(String.Format("Now monitoring {0}", eventArgs.Directory));
+            OnDirectoryAdded(eventArgs);
+        }
+
+        private void RespondToDirectoryRemovedEvent(object sender, DirectoryScanningMonitorEventArgs eventArgs) {
+            DisplayTextOnStatusBar(String.Format("No longer monitoring {0}", eventArgs.Directory));
+            OnDirectoryRemoved(eventArgs);
         }
 
         /// <summary>
