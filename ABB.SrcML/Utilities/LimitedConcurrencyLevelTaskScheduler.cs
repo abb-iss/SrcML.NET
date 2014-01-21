@@ -41,7 +41,6 @@ namespace ABB.SrcML.Utilities {
         /// scheduler is "started" when it is constructed.
         /// </summary>
         public void Start() {
-            _isStarted = true;
             if(!_isStarted) {
                 _isStarted = true;
                 if(_delegatesQueuedOrRunning < _maxDegreeOfParallelism) {
