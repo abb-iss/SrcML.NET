@@ -22,11 +22,42 @@ namespace ABB.SrcML.Utilities {
         // Indicates whether the scheduler is currently processing work items.
         private int _delegatesQueuedOrRunning = 0;
 
+        // true if the scheduler is "started" (true by default)
+        // false if Stop() has been called
+        private bool _isStarted;
+
         // Creates a new instance with the specified degree of parallelism.
-        public LimitedConcurrencyLevelTaskScheduler(int maxDegreeOfParallelism) {
+        public LimitedConcurrencyLevelTaskScheduler(int maxDegreeOfParallelism)
+            : this(maxDegreeOfParallelism, true) { }
+
+        public LimitedConcurrencyLevelTaskScheduler(int maxDegreeOfParallelism, bool isStarted) {
             if(maxDegreeOfParallelism < 1)
                 throw new ArgumentOutOfRangeException("maxDegreeOfParallelism");
             _maxDegreeOfParallelism = maxDegreeOfParallelism;
+            _isStarted = isStarted;
+        }
+        /// <summary>
+        /// Causes the scheduler to start executing work items. By default the
+        /// scheduler is "started" when it is constructed.
+        /// </summary>
+        public void Start() {
+            _isStarted = true;
+            if(!_isStarted) {
+                _isStarted = true;
+                if(_delegatesQueuedOrRunning < _maxDegreeOfParallelism) {
+                    ++_delegatesQueuedOrRunning;
+                    NotifyThreadPoolOfPendingWork();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Causes the scheduler to stop executing work items. Calling <see cref="Start()"/>
+        /// will cause execution to resume. This does not cancel any tasks. Instead, it just
+        /// prevents new ones from executing.
+        /// </summary>
+        public void Stop() {
+            _isStarted = false;
         }
 
         // Queues a task to the scheduler.
@@ -35,7 +66,7 @@ namespace ABB.SrcML.Utilities {
             // delegates currently queued or running to process tasks, schedule another.
             lock(_tasks) {
                 _tasks.AddLast(task);
-                if(_delegatesQueuedOrRunning < _maxDegreeOfParallelism) {
+                if(_delegatesQueuedOrRunning < _maxDegreeOfParallelism && _isStarted) {
                     ++_delegatesQueuedOrRunning;
                     NotifyThreadPoolOfPendingWork();
                 }
@@ -55,7 +86,7 @@ namespace ABB.SrcML.Utilities {
                         lock(_tasks) {
                             // When there are no more items to be processed,
                             // note that we're done processing, and get out.
-                            if(_tasks.Count == 0) {
+                            if(_tasks.Count == 0 || !_isStarted) {
                                 --_delegatesQueuedOrRunning;
                                 break;
                             }
@@ -68,9 +99,10 @@ namespace ABB.SrcML.Utilities {
                         // Execute the task we pulled out of the queue
                         base.TryExecuteTask(item);
                     }
-                }
+                } finally {
                     // We're done processing items on the current thread
-                finally { _currentThreadIsProcessingItems = false; }
+                    _currentThreadIsProcessingItems = false;
+                }
             }, null);
         }
 
