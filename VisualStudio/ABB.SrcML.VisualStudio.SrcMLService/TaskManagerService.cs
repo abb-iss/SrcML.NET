@@ -23,6 +23,11 @@ namespace ABB.VisualStudio {
             SubscribeToEvents();
         }
 
+        public event EventHandler SchedulerIdled {
+            add { this.SchedulerIdled += value; }
+            remove { this.SchedulerIdled -= value; }
+        }
+
         private void SubscribeToEvents() {
             _dteService = _serviceProvider.GetService(typeof(EnvDTE.DTE)) as EnvDTE.DTE;
             if(null != _dteService) {

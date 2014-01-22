@@ -17,6 +17,9 @@ namespace ABB.VisualStudio.Interfaces {
     [ComVisible(true)]
     public interface ITaskManagerService {
         TaskScheduler GlobalScheduler { get; }
+
+        event EventHandler SchedulerIdled;
+
         void Start();
         void Stop();
     }
