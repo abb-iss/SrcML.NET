@@ -8,6 +8,7 @@ namespace ABB.SrcML.Utilities {
     // Provides a task scheduler that ensures a maximum concurrency level while
     // running on top of the thread pool.
     public class LimitedConcurrencyLevelTaskScheduler : TaskScheduler {
+        private const int IDLE_DELAY = 250;
 
         // Indicates whether the current thread is processing work items.
         [ThreadStatic]
@@ -20,7 +21,25 @@ namespace ABB.SrcML.Utilities {
         private readonly int _maxDegreeOfParallelism;
 
         // Indicates whether the scheduler is currently processing work items.
-        private int _delegatesQueuedOrRunning = 0;
+        private int _delegatesQueuedOrRunning;
+
+        private int DelegatesQueuedOrRunning {
+            get { return _delegatesQueuedOrRunning; }
+            set {
+                Interlocked.Exchange(ref _delegatesQueuedOrRunning, value);
+                if(value == 0) {
+                    var timer = new Timer((state) => {
+                        bool isIdle = false;
+                        lock(_tasks) {
+                            isIdle = (_tasks.Count == 0);
+                        }
+                        if(isIdle) {
+                            OnSchedulerIdled(new EventArgs());
+                        }
+                    }, null, IDLE_DELAY, Timeout.Infinite);
+                }
+            }
+        }
 
         // true if the scheduler is "started" (true by default)
         // false if Stop() has been called
@@ -35,7 +54,11 @@ namespace ABB.SrcML.Utilities {
                 throw new ArgumentOutOfRangeException("maxDegreeOfParallelism");
             _maxDegreeOfParallelism = maxDegreeOfParallelism;
             _isStarted = isStarted;
+            _delegatesQueuedOrRunning = 0;
         }
+
+        public event EventHandler SchedulerIdled;
+
         /// <summary>
         /// Causes the scheduler to start executing work items. By default the
         /// scheduler is "started" when it is constructed.
@@ -43,8 +66,8 @@ namespace ABB.SrcML.Utilities {
         public void Start() {
             if(!_isStarted) {
                 _isStarted = true;
-                if(_delegatesQueuedOrRunning < _maxDegreeOfParallelism) {
-                    ++_delegatesQueuedOrRunning;
+                if(DelegatesQueuedOrRunning < _maxDegreeOfParallelism) {
+                    ++DelegatesQueuedOrRunning;
                     NotifyThreadPoolOfPendingWork();
                 }
             }
@@ -65,10 +88,16 @@ namespace ABB.SrcML.Utilities {
             // delegates currently queued or running to process tasks, schedule another.
             lock(_tasks) {
                 _tasks.AddLast(task);
-                if(_delegatesQueuedOrRunning < _maxDegreeOfParallelism && _isStarted) {
-                    ++_delegatesQueuedOrRunning;
+                if(DelegatesQueuedOrRunning < _maxDegreeOfParallelism && _isStarted) {
+                    ++DelegatesQueuedOrRunning;
                     NotifyThreadPoolOfPendingWork();
                 }
+            }
+        }
+        protected virtual void OnSchedulerIdled(EventArgs e) {
+            EventHandler handler = SchedulerIdled;
+            if(null != handler) {
+                handler(this, e);
             }
         }
 
@@ -86,7 +115,7 @@ namespace ABB.SrcML.Utilities {
                             // When there are no more items to be processed,
                             // note that we're done processing, and get out.
                             if(_tasks.Count == 0 || !_isStarted) {
-                                --_delegatesQueuedOrRunning;
+                                --DelegatesQueuedOrRunning;
                                 break;
                             }
 

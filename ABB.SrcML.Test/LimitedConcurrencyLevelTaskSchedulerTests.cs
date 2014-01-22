@@ -32,7 +32,6 @@ namespace ABB.SrcML.Test {
             AutoResetEvent are = new AutoResetEvent(true);
             var rng = new Random();
             int currentlyExecuting = 0;
-            int maxCurrentlyExecuting = 0;
             Action<int> testAction = (int i) => {
                 int value = Interlocked.Increment(ref currentlyExecuting);
                 Thread.Sleep(i);
@@ -55,10 +54,19 @@ namespace ABB.SrcML.Test {
 
         private static void TestConcurrencyLimit(LimitedConcurrencyLevelTaskScheduler scheduler) {
             var factory = new TaskFactory(scheduler);
+            bool IsIdled = true;
+
+            AutoResetEvent are = new AutoResetEvent(false);
+            scheduler.SchedulerIdled += (o,e) => {
+                IsIdled = true;
+                are.Set();
+            };
+
             var rng = new Random();
             int currentlyExecuting = 0;
             int maxCurrentlyExecuting = 0;
             Action<int> testAction = (int i) => {
+                IsIdled = false;
                 int value = Interlocked.Increment(ref currentlyExecuting);
                 Assert.LessOrEqual(value, scheduler.MaximumConcurrencyLevel);
                 if(value > maxCurrentlyExecuting) {
@@ -76,6 +84,8 @@ namespace ABB.SrcML.Test {
             Task.WaitAll(tasks);
             Assert.AreEqual(0, currentlyExecuting);
             Assert.AreEqual(scheduler.MaximumConcurrencyLevel, maxCurrentlyExecuting);
+            Assert.IsTrue(are.WaitOne(500));
+            Assert.IsTrue(IsIdled);
         }
     }
 }
