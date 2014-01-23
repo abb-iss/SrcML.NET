@@ -24,8 +24,8 @@ namespace ABB.VisualStudio {
         }
 
         public event EventHandler SchedulerIdled {
-            add { this.SchedulerIdled += value; }
-            remove { this.SchedulerIdled -= value; }
+            add { this._scheduler.SchedulerIdled += value; }
+            remove { this._scheduler.SchedulerIdled -= value; }
         }
 
         private void SubscribeToEvents() {
