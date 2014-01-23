@@ -254,6 +254,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 if(openSolution != null) {
                     CurrentMonitor = new SourceMonitor(openSolution, DirectoryScanningMonitor.DEFAULT_SCAN_INTERVAL,
                                                        _taskManager.GlobalScheduler, baseDirectory, lastModifiedArchive, sourceArchive);
+                    CurrentMonitor.DirectoryAdded += RespondToDirectoryAddedEvent;
+                    CurrentMonitor.DirectoryRemoved += RespondToDirectoryRemovedEvent;
                     CurrentMonitor.AddDirectoriesFromSaveFile();
                     CurrentMonitor.AddSolutionDirectory();
                 }
@@ -261,8 +263,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 // Subscribe events from Solution Monitor
                 if(CurrentMonitor != null) {
                     CurrentMonitor.FileChanged += RespondToFileChangedEvent;
-                    CurrentMonitor.DirectoryAdded += RespondToDirectoryAddedEvent;
-                    CurrentMonitor.DirectoryRemoved += RespondToDirectoryRemovedEvent;
                     CurrentMonitor.IsReadyChanged += RespondToIsReadyChangedEvent;
                     CurrentMonitor.MonitoringStopped += RespondToMonitoringStoppedEvent;
 
