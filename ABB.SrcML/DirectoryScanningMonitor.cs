@@ -189,28 +189,29 @@ namespace ABB.SrcML {
                 throw new ForbiddenDirectoryException(fullPath, (ForbiddenDirectories.Contains(fullPath) ? ForbiddenDirectoryException.ISSPECIALDIR : ForbiddenDirectoryException.ISROOT));
             }
 
-            var foldersAsCollection = folders as ICollection;
-            lock(foldersAsCollection.SyncRoot) {
-                foreach(var directory in folders) {
-                    if(fullPath.StartsWith(directory, StringComparison.InvariantCultureIgnoreCase)) {
-                        alreadyMonitoringDirectory = (fullPath.Length == directory.Length);
-                        if(alreadyMonitoringDirectory) {
-                            break;
-                        }
-                        throw new DirectoryScanningMonitorSubDirectoryException(directoryPath, directory);
+            foreach(var directory in MonitoredDirectories) {
+                if(fullPath.StartsWith(directory, StringComparison.InvariantCultureIgnoreCase)) {
+                    alreadyMonitoringDirectory = (fullPath.Length == directory.Length);
+                    if(alreadyMonitoringDirectory) {
+                        break;
                     }
+                    throw new DirectoryScanningMonitorSubDirectoryException(directoryPath, directory);
                 }
-                if(!alreadyMonitoringDirectory) {
+            }
+            if(!alreadyMonitoringDirectory) {
+                var foldersAsCollection = folders as ICollection;
+                lock(foldersAsCollection.SyncRoot) {
                     folders.Add(fullPath);
-                    OnDirectoryAdded(new DirectoryScanningMonitorEventArgs(fullPath));
+                }
 
-                    if(ScanTimer.Enabled) {
-                        ScanTimer.ExecuteWhenIdle(() => {
-                            foreach(var fileName in EnumerateDirectory(fullPath)) {
-                                UpdateFile(fileName);
-                            }
-                        });
-                    }
+                OnDirectoryAdded(new DirectoryScanningMonitorEventArgs(fullPath));
+
+                if(ScanTimer.Enabled) {
+                    ScanTimer.ExecuteWhenIdle(() => {
+                        foreach(var fileName in EnumerateDirectory(fullPath)) {
+                            UpdateFile(fileName);
+                        }
+                    });
                 }
             }
         }
