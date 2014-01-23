@@ -80,7 +80,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
     /// ProvideServiceAttribute registers SSrcMLGlobalService with Visual Studio. Only the global service must be registered.
     /// </summary>
     [ProvideService(typeof(SSrcMLGlobalService))]
-
+    [ProvideService(typeof(STaskManagerService))]
     /// <summary>
     /// Get the Guid.
     /// </summary>
