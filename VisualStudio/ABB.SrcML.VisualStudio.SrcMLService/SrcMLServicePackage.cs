@@ -89,8 +89,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
     /// <summary>
     /// This attribute starts up this extension early so that it can listen to solution events.
     /// </summary>
-    [ProvideAutoLoad("ADFC4E64-0397-11D1-9F4E-00A0C911004F")]
-
+    [ProvideAutoLoad(UIContextGuids.NoSolution)]
     public sealed class SrcMLServicePackage : Package {
 
         /// <summary>
