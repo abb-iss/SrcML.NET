@@ -27,29 +27,38 @@ namespace ABB.SrcML.Test {
 
         [Test]
         public void TestStartAndStop() {
+            int NUM_TASKS = 10;
+            int STOP_NUM = 3;
+            int START_NUM = 6;
+            int TIMEOUT = 60000;
+
             var scheduler = new LimitedConcurrencyLevelTaskScheduler(4);
             var factory = new TaskFactory(scheduler);
-            AutoResetEvent are = new AutoResetEvent(true);
             var rng = new Random();
             int currentlyExecuting = 0;
+
             Action<int> testAction = (int i) => {
                 int value = Interlocked.Increment(ref currentlyExecuting);
                 Thread.Sleep(i);
                 Interlocked.Decrement(ref currentlyExecuting);
             };
-            Task[] tasks = new Task[100];
-            for(int i = 0; i < 100; i++) {
+
+            Task[] tasks = new Task[NUM_TASKS];
+            for(int i = 0; i < NUM_TASKS; i++) {
                 tasks[i] = factory.StartNew(() => testAction(rng.Next(100, 500)));
-                if(i == 25) {
+                if(i == STOP_NUM) {
                     scheduler.Stop();
                 }
-                if(i == 75) {
+                if(i >= STOP_NUM && i <= START_NUM) {
                     Assert.AreEqual(0, currentlyExecuting);
+                    Thread.Sleep(500 * STOP_NUM * 2);
+                }
+                if(i == START_NUM) {
                     scheduler.Start();
                 }
             }
-
-            Task.WaitAll(tasks, 5000);
+            Task.WaitAll(tasks);
+            Assert.AreEqual(0, currentlyExecuting);
         }
 
         private static void TestConcurrencyLimit(LimitedConcurrencyLevelTaskScheduler scheduler) {
