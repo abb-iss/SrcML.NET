@@ -99,7 +99,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             DataEnabled = ShouldGenerateData(extensionDirectory);
             statusBar = (IVsStatusbar) Package.GetGlobalService(typeof(SVsStatusbar));
             _taskManager = (ITaskManagerService) Package.GetGlobalService(typeof(STaskManagerService));
-
+            _taskManager.SchedulerIdled += _taskManager_SchedulerIdled;
             SaveTimer = new ReentrantTimer(() => CurrentMonitor.Save(), new TaskManager(this, _taskManager.GlobalScheduler));
             SaveInterval = DEFAULT_SAVE_INTERVAL;
         }
@@ -263,7 +263,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 // Subscribe events from Solution Monitor
                 if(CurrentMonitor != null) {
                     CurrentMonitor.FileChanged += RespondToFileChangedEvent;
-                    CurrentMonitor.IsReadyChanged += RespondToIsReadyChangedEvent;
                     CurrentMonitor.MonitoringStopped += RespondToMonitoringStoppedEvent;
 
                     if(DataEnabled) {
@@ -306,12 +305,12 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                     CurrentMonitor.FileChanged -= RespondToFileChangedEvent;
                     CurrentMonitor.DirectoryAdded -= RespondToDirectoryAddedEvent;
                     CurrentMonitor.DirectoryRemoved -= RespondToDirectoryRemovedEvent;
-                    CurrentMonitor.IsReadyChanged -= RespondToIsReadyChangedEvent;
                     CurrentMonitor.MonitoringStopped -= RespondToMonitoringStoppedEvent;
                     CurrentMonitor.Dispose();
                     
                     if(DataEnabled) {
                         CurrentDataRepository.FileProcessed -= RespondToFileChangedEvent;
+                        CurrentDataRepository.IsReadyChanged -= RespondToIsReadyChangedEvent;
                         CurrentDataRepository.Dispose();
                     }
 
@@ -434,20 +433,24 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             //if(duringStartup) {
             //amountCompleted++;
             //ShowProgressOnStatusBar("SrcML Service is processing " + eventArgs.FilePath);
-            var senderIsDataRepo = (sender == CurrentDataRepository);
-            DisplayTextOnStatusBar(String.Format("SrcML Service is {0} {1}", (senderIsDataRepo ? "generating data for" : "processing"), eventArgs.FilePath));
             //}
             OnFileChanged(eventArgs);
+            var senderIsDataRepo = (sender == CurrentDataRepository);
+            DisplayTextOnStatusBar(String.Format("SrcML Service is {0} {1}", (senderIsDataRepo ? "generating data for" : "processing"), eventArgs.FilePath));
         }
 
         private void RespondToDirectoryAddedEvent(object sender, DirectoryScanningMonitorEventArgs eventArgs) {
-            DisplayTextOnStatusBar(String.Format("Now monitoring {0}", eventArgs.Directory));
             OnDirectoryAdded(eventArgs);
+            DisplayTextOnStatusBar(String.Format("Now monitoring {0}", eventArgs.Directory));
         }
 
         private void RespondToDirectoryRemovedEvent(object sender, DirectoryScanningMonitorEventArgs eventArgs) {
-            DisplayTextOnStatusBar(String.Format("No longer monitoring {0}", eventArgs.Directory));
             OnDirectoryRemoved(eventArgs);
+            DisplayTextOnStatusBar(String.Format("No longer monitoring {0}", eventArgs.Directory));
+        }
+
+        void _taskManager_SchedulerIdled(object sender, EventArgs e) {
+            DisplayTextOnStatusBar("Finished indexing");
         }
 
         /// <summary>
