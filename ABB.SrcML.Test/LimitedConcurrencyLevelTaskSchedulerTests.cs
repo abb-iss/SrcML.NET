@@ -48,10 +48,16 @@ namespace ABB.SrcML.Test {
                 tasks[i] = factory.StartNew(() => testAction(rng.Next(100, 500)));
                 if(i == STOP_NUM) {
                     scheduler.Stop();
+                    for(int j = 0; j < NUM_TASKS; j++) {
+                        if(0 == currentlyExecuting) {
+                            Console.WriteLine("Slept for {0} ms", j * 500);
+                            break;
+                        }
+                        Thread.Sleep(500);
+                    }
                 }
                 if(i >= STOP_NUM && i <= START_NUM) {
                     Assert.AreEqual(0, currentlyExecuting);
-                    Thread.Sleep(500 * STOP_NUM * 2);
                 }
                 if(i == START_NUM) {
                     scheduler.Start();
