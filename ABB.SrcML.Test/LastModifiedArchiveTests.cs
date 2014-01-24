@@ -59,6 +59,7 @@ namespace ABB.SrcML.Test {
             Assert.That(archive.ContainsFile(fileFoo));
             Assert.IsFalse(archive.IsOutdated(fileFoo));
 
+            System.Threading.Thread.Sleep(5000);
             File.AppendAllText(fileFoo, "This is bar!\n"); 
             Assert.That(archive.IsOutdated(fileFoo));
             archive.AddOrUpdateFile(fileFoo);
