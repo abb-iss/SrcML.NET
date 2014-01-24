@@ -98,6 +98,27 @@ namespace ABB.SrcML.Test {
             }
         }
 
+        [Test]
+        public void TestExcludedFiles() {
+            var testDirectoryPath = Path.Combine(testFolder, "TestExcludedFiles");
+            var exludedFiles = new string[] {
+                Path.Combine(testDirectoryPath, ".test.txt"),
+                Path.Combine(testDirectoryPath, "#test.txt"),
+                Path.Combine(testDirectoryPath, "~autorecover.test.txt"),
+                Path.Combine(testDirectoryPath, "~test.txt"),
+            };
+            
+            Directory.CreateDirectory(testDirectoryPath);
+            foreach(var filePath in exludedFiles) {
+                File.Create(filePath).Close();
+            }
+
+            var archive = new LastModifiedArchive(monitorFolder);
+            using(var monitor = new DirectoryScanningMonitor(monitorFolder, archive)) {
+                monitor.AddDirectory(testDirectoryPath);
+                Assert.AreEqual(0, monitor.GetFilesFromSource().Count);
+            }
+        }
         [Test, ExpectedException(ExpectedException=typeof(ForbiddenDirectoryException))]
         public void TestForbiddenDirectory() {
             var forbiddenDirectory = Environment.GetEnvironmentVariable("USERPROFILE");

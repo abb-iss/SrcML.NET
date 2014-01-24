@@ -42,6 +42,10 @@ namespace ABB.SrcML {
             "bin", "obj", "TestResults"
         }, StringComparer.InvariantCultureIgnoreCase);
 
+        private static HashSet<string> FileExclusionPrefixes = new HashSet<string>(new List<string>() {
+            "#", "~", "."
+        }, StringComparer.InvariantCultureIgnoreCase);
+
         private static HashSet<string> ForbiddenDirectories = GetForbiddenDirectories();
         private static Regex BackupDirectoryRegex = new Regex(@"^backup\d*$", RegexOptions.IgnoreCase);
 
@@ -162,6 +166,15 @@ namespace ABB.SrcML {
             return (info.Parent == null) || ForbiddenDirectories.Contains(GetFullPath(directoryPath));
         }
 
+        public static bool FileIsExcluded(string filePath) {
+            if(null == filePath) {
+                throw new ArgumentNullException("filePath");
+            }
+            var fullPath = GetFullPath(filePath);
+            var fileName = Path.GetFileName(fullPath);
+
+            return FileExclusionPrefixes.Any(p => fileName.StartsWith(p));
+        }
         /// <summary>
         /// Loads the list of monitored directories from <see cref="MonitoredDirectoriesFilePath"/>.
         /// </summary>
@@ -249,7 +262,7 @@ namespace ABB.SrcML {
                 }
                 var validFiles = from filePath in files
                                  let fileName = Path.GetFileName(filePath)
-                                 where fileName[0] != '.'
+                                 where !FileIsExcluded(filePath)
                                  select filePath;
 
                 foreach(var filePath in validFiles) {
