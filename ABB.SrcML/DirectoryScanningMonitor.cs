@@ -9,7 +9,9 @@
  *    Vinay Augustine (ABB Group) - Initial implementation
  *****************************************************************************/
 
+using ABB.SrcML.Utilities;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -18,8 +20,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using ElapsedEventArgs = System.Timers.ElapsedEventArgs;
-using Timer = System.Timers.Timer;
 
 namespace ABB.SrcML {
 
@@ -36,21 +36,25 @@ namespace ABB.SrcML {
     /// </remarks>
     public class DirectoryScanningMonitor : AbstractFileMonitor {
         public const int DEFAULT_SCAN_INTERVAL = 60;
-        private const int IDLE = 0;
-        private const string MONITOR_LIST_FILENAME = "monitored_directories.txt";
-        private const int RUNNING = 1;
-        private const int STOPPED = -1;
+        public const string MONITOR_LIST_FILENAME = "monitored_directories.txt";
 
         private static HashSet<string> Exclusions = new HashSet<string>(new List<string>() {
             "bin", "obj", "TestResults"
+        }, StringComparer.InvariantCultureIgnoreCase);
+
+        private static HashSet<string> FileExclusionPrefixes = new HashSet<string>(new List<string>() {
+            "#", "~", "."
         }, StringComparer.InvariantCultureIgnoreCase);
 
         private static HashSet<string> ForbiddenDirectories = GetForbiddenDirectories();
         private static Regex BackupDirectoryRegex = new Regex(@"^backup\d*$", RegexOptions.IgnoreCase);
 
         private List<string> folders;
-        private Timer ScanTimer;
+        private ReentrantTimer ScanTimer;
         private int syncPoint;
+
+        public event EventHandler<DirectoryScanningMonitorEventArgs> DirectoryAdded;
+        public event EventHandler<DirectoryScanningMonitorEventArgs> DirectoryRemoved;
 
         /// <summary>
         /// Create a new directory scanning monitor
@@ -66,13 +70,30 @@ namespace ABB.SrcML {
             : base(baseDirectory, defaultArchive, otherArchives) {
             MonitoredDirectoriesFilePath = Path.Combine(baseDirectory, monitorFileName);
             folders = new List<string>();
-            MonitoredDirectories = new ReadOnlyCollection<string>(folders);
 
-            ScanTimer = new Timer();
-            ScanInterval = scanInterval;
+            ScanTimer = new ReentrantTimer(() => UpdateArchives(), this._taskManager);
             ScanTimer.AutoReset = true;
-            ScanTimer.Elapsed += ScanTimer_Elapsed;
-            syncPoint = STOPPED;
+            ScanInterval = scanInterval;
+        }
+
+        /// <summary>
+        /// Create a new directory scanning monitor
+        /// </summary>
+        /// <param name="monitorFileName">The file name to save the list of monitored directories
+        /// to</param>
+        /// <param name="scanInterval">The <see cref="ScanInterval"/> in seconds</param>
+        /// <param name="baseDirectory">The base directory to use for the archives of this
+        /// monitor</param>
+        /// <param name="defaultArchive">The default archive to use</param>
+        /// <param name="otherArchives">Other archives for specific extensions</param>
+        public DirectoryScanningMonitor(string monitorFileName, double scanInterval, TaskScheduler scheduler, string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
+            : base(scheduler, baseDirectory, defaultArchive, otherArchives) {
+            MonitoredDirectoriesFilePath = Path.Combine(baseDirectory, monitorFileName);
+            folders = new List<string>();
+
+            ScanTimer = new ReentrantTimer(() => UpdateArchives(), this._taskManager);
+            ScanTimer.AutoReset = true;
+            ScanInterval = scanInterval;
         }
 
         /// <summary>
@@ -105,7 +126,16 @@ namespace ABB.SrcML {
         /// <see cref="AddDirectory(string)"/> to add a directory and
         /// <see cref="RemoveDirectory(string)"/> to remove one.</para>
         /// </summary>
-        public ReadOnlyCollection<string> MonitoredDirectories { get; private set; }
+        public ReadOnlyCollection<string> MonitoredDirectories {
+            get {
+                var answer = new List<string>();
+                var foldersAsCollection = folders as ICollection;
+                lock(foldersAsCollection.SyncRoot) {
+                    answer.AddRange(folders);
+                }
+                return new ReadOnlyCollection<string>(answer);
+            }
+        }
 
         /// <summary>
         /// The scan interval is the number of seconds between each scan. By default it is set to
@@ -136,6 +166,15 @@ namespace ABB.SrcML {
             return (info.Parent == null) || ForbiddenDirectories.Contains(GetFullPath(directoryPath));
         }
 
+        public static bool FileIsExcluded(string filePath) {
+            if(null == filePath) {
+                throw new ArgumentNullException("filePath");
+            }
+            var fullPath = GetFullPath(filePath);
+            var fileName = Path.GetFileName(fullPath);
+
+            return FileExclusionPrefixes.Any(p => fileName.StartsWith(p));
+        }
         /// <summary>
         /// Loads the list of monitored directories from <see cref="MonitoredDirectoriesFilePath"/>.
         /// </summary>
@@ -156,7 +195,6 @@ namespace ABB.SrcML {
         /// <paramref name="directoryPath"/>is a subdirectory of an existing directory.
         /// </remarks>
         public void AddDirectory(string directoryPath) {
-            // get the full path to the directory with any trailing path separators trimmed off
             var fullPath = GetFullPath(directoryPath);
             bool alreadyMonitoringDirectory = false;
 
@@ -166,7 +204,6 @@ namespace ABB.SrcML {
 
             foreach(var directory in MonitoredDirectories) {
                 if(fullPath.StartsWith(directory, StringComparison.InvariantCultureIgnoreCase)) {
-                    // if full path starts with directory, then check to see if they
                     alreadyMonitoringDirectory = (fullPath.Length == directory.Length);
                     if(alreadyMonitoringDirectory) {
                         break;
@@ -174,13 +211,20 @@ namespace ABB.SrcML {
                     throw new DirectoryScanningMonitorSubDirectoryException(directoryPath, directory);
                 }
             }
-
             if(!alreadyMonitoringDirectory) {
-                folders.Add(fullPath);
+                var foldersAsCollection = folders as ICollection;
+                lock(foldersAsCollection.SyncRoot) {
+                    folders.Add(fullPath);
+                }
+
+                OnDirectoryAdded(new DirectoryScanningMonitorEventArgs(fullPath));
+
                 if(ScanTimer.Enabled) {
-                    foreach(var fileName in EnumerateDirectory(directoryPath)) {
-                        UpdateFile(fileName);
-                    }
+                    ScanTimer.ExecuteWhenIdle(() => {
+                        foreach(var fileName in EnumerateDirectory(fullPath)) {
+                            UpdateFile(fileName);
+                        }
+                    });
                 }
             }
         }
@@ -218,7 +262,7 @@ namespace ABB.SrcML {
                 }
                 var validFiles = from filePath in files
                                  let fileName = Path.GetFileName(filePath)
-                                 where fileName[0] != '.'
+                                 where !FileIsExcluded(filePath)
                                  select filePath;
 
                 foreach(var filePath in validFiles) {
@@ -261,26 +305,29 @@ namespace ABB.SrcML {
         /// has no effect.
         /// </remarks>
         public void RemoveDirectory(string directoryPath) {
-            bool isRunning = ScanTimer.Enabled;
-            if(isRunning) {
-                while(RUNNING == Interlocked.CompareExchange(ref syncPoint, RUNNING, IDLE)) {
-                    Thread.Sleep(1);
-                }
-            }
             var directoryFullPath = GetFullPath(directoryPath);
 
-            if(folders.Contains(directoryFullPath, StringComparer.InvariantCultureIgnoreCase)) {
-                folders.Remove(directoryFullPath);
-                foreach(var fileName in GetArchivedFiles()) {
-                    if(fileName.StartsWith(directoryFullPath, StringComparison.InvariantCultureIgnoreCase)) {
-                        DeleteFile(fileName);
-                    }
+            bool directoryIsMonitored = false;
+
+            var folderAsCollection = folders as ICollection;
+            lock(folderAsCollection.SyncRoot) {
+                directoryIsMonitored = folders.Contains(directoryFullPath, StringComparer.InvariantCultureIgnoreCase);
+                if(directoryIsMonitored) {
+                    folders.Remove(directoryFullPath);
                 }
             }
-
-            if(isRunning) {
-                syncPoint = IDLE;
+            
+            if(directoryIsMonitored) {
+                OnDirectoryRemoved(new DirectoryScanningMonitorEventArgs(directoryFullPath));
+                ScanTimer.ExecuteWhenIdle(() => {
+                    foreach(var fileName in GetArchivedFiles()) {
+                        if(fileName.StartsWith(directoryFullPath, StringComparison.InvariantCultureIgnoreCase)) {
+                            DeleteFile(fileName);
+                        }
+                    }
+                });
             }
+            
         }
 
         public override void Save() {
@@ -295,9 +342,7 @@ namespace ABB.SrcML {
         /// Has no effect if the monitor is already running.
         /// </remarks>
         public override void StartMonitoring() {
-            if(STOPPED == Interlocked.CompareExchange(ref syncPoint, IDLE, STOPPED)) {
-                ScanTimer.Start();
-            }
+            ScanTimer.Start();
         }
 
         /// <summary>
@@ -309,10 +354,6 @@ namespace ABB.SrcML {
         public override void StopMonitoring() {
             if(ScanTimer.Enabled) {
                 ScanTimer.Stop();
-
-                while(RUNNING == Interlocked.CompareExchange(ref syncPoint, STOPPED, IDLE)) {
-                    Thread.Sleep(1);
-                }
                 base.StopMonitoring();
             }
         }
@@ -330,6 +371,20 @@ namespace ABB.SrcML {
                 WriteMonitoringList();
             }
             base.Dispose(disposing);
+        }
+
+        protected virtual void OnDirectoryAdded(DirectoryScanningMonitorEventArgs e) {
+            EventHandler<DirectoryScanningMonitorEventArgs> handler = DirectoryAdded;
+            if(null != handler) {
+                handler(this, e);
+            }
+        }
+
+        protected virtual void OnDirectoryRemoved(DirectoryScanningMonitorEventArgs e) {
+            EventHandler<DirectoryScanningMonitorEventArgs> handler = DirectoryRemoved;
+            if(null != handler) {
+                handler(this, e);
+            }
         }
 
         private static HashSet<string> GetForbiddenDirectories() {
@@ -370,23 +425,6 @@ namespace ABB.SrcML {
                 throw new ArgumentNullException("path");
 
             return Path.GetFullPath(path).TrimEnd(Path.PathSeparator);
-        }
-
-        /// <summary>
-        /// Runs whenever the built-in timer expires.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        /// <remarks>
-        /// This function executes if it is not already running (from a previous event) and
-        /// <see cref="StopMonitoring()"/> hasn't been called.
-        /// </remarks>
-        private void ScanTimer_Elapsed(object sender, ElapsedEventArgs e) {
-            int sync = Interlocked.CompareExchange(ref syncPoint, RUNNING, IDLE);
-            if(IDLE == sync) {
-                UpdateArchives();
-                syncPoint = IDLE;
-            }
         }
     }
 }

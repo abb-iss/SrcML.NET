@@ -40,6 +40,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\SolutionInfo.cs">
+      <Link>Properties\SolutionInfo.cs</Link>
+    </Compile>
     <Compile Include="AccessModifier.cs" />
     <Compile Include="ErrorRaisedArgs.cs" />
     <Compile Include="IAlias.cs" />
@@ -71,6 +74,9 @@
       <Project>{db649b35-b045-47c3-9903-f3404fa9c1be}</Project>
       <Name>ABB.SrcML.Core</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ABB.SrcML.Data.Core.nuspec" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

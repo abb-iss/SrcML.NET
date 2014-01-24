@@ -1,33 +1,37 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0" DefaultTargets="Clean;Build">
   <ItemGroup>
     <SolutionToBuild Include="SrcML.NET.sln" />
-    <DocumentationProject Include="SrcML.NET.shfbproj" />
 	<TestProject Include="SrcML.NET.nunit" />
-	<TestRunner Include="packages\NUnit.Runners.2.6.1\tools\nunit-console.exe" />
-    <Configuration Include="Debug;Release" />
-    <ExternalFiles Include="External\**\*.*" Exclude="External\MSBuild\**\*.*" />
-    <CoreLibs Include="ABB.SrcML.Core\Properties\AssemblyInfo.cs;VisualStudio\ABB.SrcML.VisualStudio.Interfaces\Properties\AssemblyInfo.cs" />
+	<TestRunner Include="packages\NUnit.Runners.2.6.3\tools\nunit-console.exe" />
+	<NugetExe Include="External\Nuget\nuget.exe" />
+    <ExternalFiles Include="External\**\*.*" Exclude="External\MSBuildTasks\*.*;External\NuGet\*.*" />
   </ItemGroup>
   <PropertyGroup>
+    <MSBuildCommunityTasksPath>$(MSBuildThisFileDirectory)\External\BuildScripts\MSBuildTasks</MSBuildCommunityTasksPath>
     <Configuration Condition="'$(Configuration)'==''">Debug</Configuration>
+    <DeployExtension Condition="'$(DeployExtension)'==''">False</DeployExtension>
     <OutDir>Build</OutDir>
-    <Major>2</Major>
-    <Minor>0</Minor>
-    <Revision>0</Revision>
-    <Build>$(BUILD_NUMBER)</Build>
+    <VersionOutputFile>$(MSBuildThisFileDirectory)\Version.txt</VersionOutputFile>
   </PropertyGroup>
-
-  <Target Name="Build" Inputs="@(Configuration)" Outputs="$(OutDir)\%(Configuration.Identity)" DependsOnTargets="BeforeBuild">
-    <MSBuild Projects="@(SolutionToBuild)" Properties="Configuration=%(Configuration.Identity);Platform=Any CPU" />
+  <ItemGroup>
+	  <AssemblyInfoFiles Include="SolutionInfo.cs" />
+	  <SourceManifests Include="VisualStudio\ABB.SrcML.VisualStudio.SrcMLService\source.extension.vsixmanifest" />
+	  <NuspecFiles Include="**/*.nuspec" />
+  </ItemGroup>
+  
+  <Import Project="External\BuildScripts\Version.targets" />
+  
+  <Target Name="Build" Outputs="$(OutDir)\$(Configuration)" DependsOnTargets="CreateAssemblyInfo;SetVsixVersion">
+    <MSBuild Projects="@(SolutionToBuild)" Properties="Configuration=$(Configuration);Platform=Any CPU" />
   </Target>
-
+  
   <Target Name="CopyExternals">
     <MakeDir Directories="$(OutDir)\External" />
     <Copy SourceFiles="@(ExternalFiles)"
           Destinationfiles="@(ExternalFiles->'$(OutDir)\External\%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
-
+  
   <Target Name="Test" DependsOnTargets="Build" Condition="Exists('@(TestRunner)')">
     <Exec Command="@(TestRunner) @(TestProject) /exclude=Todo,LongRunning" />
   </Target>
@@ -40,35 +44,18 @@
 	<Exec Command="@(TestRunner) @(TestProject)" />
   </Target>
   
-  <Import Project="External\MSBuild\MSBuildCommunityTasks\MSBuild.Community.Tasks.Targets"
-          Condition="Exists('External\MSBuild\MSBuildCommunityTasks\MSBuild.Community.Tasks.Targets')" />
-  <Target Name="BeforeBuild" Condition="Exists('External\MSBuild\MSBuildCommunityTasks\MSBuild.Community.Tasks.Targets')">
-    <Message Text="$(Configuration) Build: $(Major).$(Minor).$(Build).$(Revision)" />
-    <!--Message Text="Interface File Version: $(Major).$(Minor).$(Revision).$(Build)" /-->
-    <WriteLinesToFile File="SolutionInfo.cs"
-                      Lines="[assembly: System.Reflection.AssemblyCompany(&quot;ABB&quot;)]
-
-#if DEBUG
-[assembly: System.Reflection.AssemblyConfiguration(&quot;Debug&quot;)]
-#else
-[assembly: System.Reflection.AssemblyConfiguration(&quot;Release&quot;)]
-#endif
-
-[assembly: System.Resources.NeutralResourcesLanguage(&quot;en-US&quot;)]
-[assembly: System.Reflection.AssemblyVersion(&quot;2.0.48.0&quot;)]"
-                      Overwrite="true"
-                      Condition="$(BUILD_NUMBER) != '' " />
-    <!--WriteLinesToFile File="%(CoreLibs.FullPath)"
-                      Lines="[assembly: AssemblyFileVersion(&quot;$(Major).$(Minor).$(Revision).$(Build)&quot;)]"
-                      Overwrite="false"
-                      Condition="$(BUILD_NUMBER) != '' " /-->
+  <Target Name="CreatePackages" DependsOnTargets="SetNuspecVersion;Build">
+	<Exec Command="@(NugetExe) pack %(NuspecFiles.RelativeDir)%(NuspecFiles.Filename).csproj -IncludeReferencedProjects -OutputDirectory $(OutDir)\$(Configuration) -Prop Configuration=$(Configuration)" />
   </Target>
   
-  <Target Name="Docs" Condition="Exists('$(SHFBROOT)\SandcastleHelpFileBuilder.targets')">
-    <MSBuild Projects="@(DocumentationProject)" />
+  <Target Name="PublishPackages" DependsOnTargets="CreatePackages" Condition="'$(Configuration)'=='Release'">
+	<Exec Command="@(NugetExe) push $(OutDir)\$(Configuration)\%(NuspecFiles.Filename).nupkg" />
   </Target>
-  
   <Target Name="Clean">
     <RemoveDir Directories="$(OutDir)\Release;$(OutDir)\Debug;$(OutDir)\External;$(OutDir)\Documentation;$(OutDir)" />
+  </Target>
+  
+  <Target Name="RestorePackages" BeforeTargets="Build;Test;TestData;TestAll">
+    <Exec Command="&quot;$(MSBuildThisFileDirectory)External\NuGet\nuget.exe&quot; restore &quot;%(SolutionToBuild.Identity)&quot;" />
   </Target>
 </Project>

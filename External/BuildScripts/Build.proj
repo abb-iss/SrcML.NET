@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ Copyright (c) 2014 ABB Group
+ All rights reserved. This program and the accompanying materials
+ are made available under the terms of the Eclipse Public License v1.0
+ which accompanies this distribution, and is available at
+ http://www.eclipse.org/legal/epl-v10.html
+
+ Contributors:
+ * Vinay Augustine (ABB Group) - initial API, implementation, & documentation
+-->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0" DefaultTargets="Build">
+  <PropertyGroup>
+    <MSBuildCommunityTasksPath>$(MSBuildThisFileDirectory)\MSBuildTasks</MSBuildCommunityTasksPath>
+    <SolutionToBuild Condition="'$(SolutionToBuild)'==''"></SolutionToBuild>
+    <SolutionFullPath Condition="'$(SolutionToBuild)'!=''">$([System.IO.Path]::GetFullPath($(SolutionToBuild)))</SolutionFullPath>
+    <RootDirectory Condition="'$(SolutionFullPath)'!=''">$([System.IO.Path]::GetDirectoryName($(SolutionFullPath)))</RootDirectory>
+    <VersionOutputFile>$(MSBuildThisFileDirectory)\Version.txt</VersionOutputFile>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <AssemblyInfoFiles Include="$(RootDirectory)\SolutionInfo.cs" />
+    <SourceManifests Include="$(RootDirectory)\**\source.extension.vsixmanifest" />
+  </ItemGroup>
+  
+  <Import Project="Version.targets" />
+  
+  <Target Name="Build" DependsOnTargets="CreateAssemblyInfo;SetVsixVersion">
+    <MSBuild Projects="$(SolutionFullPath)" />
+  </Target>
+</Project>

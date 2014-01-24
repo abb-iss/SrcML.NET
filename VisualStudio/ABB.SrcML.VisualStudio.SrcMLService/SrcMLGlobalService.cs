@@ -11,6 +11,7 @@
 
 using ABB.SrcML.Data;
 using ABB.SrcML.Utilities;
+using ABB.VisualStudio.Interfaces;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -58,11 +59,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
         private int frozen;
         private ReadyNotifier ReadyState;
-        private System.Timers.Timer SaveTimer;
-        private int syncPoint;
-        private const int RUNNING = 1;
-        private const int IDLE = 0;
-        private const int STOPPED = -1;
+        private ReentrantTimer SaveTimer;
+        
 
         /// <summary>
         /// Store in this variable the service provider that will be used to query for other
@@ -75,12 +73,17 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// </summary>
         private string SrcMLServiceDirectory;
 
+        private ITaskManagerService _taskManager;
+
         /// <summary>
         /// Status bar service.
         /// </summary>
         private IVsStatusbar statusBar;
 
         public const int DEFAULT_SAVE_INTERVAL = 300;
+        public const string GENERATE_DATA_INDICATOR_FILENAME = "GENDATA";
+
+        public bool DataEnabled { get; private set; }
 
         /// <summary>
         /// Constructor.
@@ -91,13 +94,22 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             SrcMLFileLogger.DefaultLogger.InfoFormat("Constructing a new instance of SrcMLGlobalService in {0}", extensionDirectory);
             numRunningSources = 0;
             ReadyState = new ReadyNotifier(this);
-            SaveTimer = new System.Timers.Timer();
-            SaveInterval = DEFAULT_SAVE_INTERVAL;
-            SaveTimer.Elapsed += SaveTimer_Elapsed;
-            syncPoint = STOPPED;
             serviceProvider = sp;
             SrcMLServiceDirectory = extensionDirectory;
+            DataEnabled = ShouldGenerateData(extensionDirectory);
             statusBar = (IVsStatusbar) Package.GetGlobalService(typeof(SVsStatusbar));
+            _taskManager = (ITaskManagerService) Package.GetGlobalService(typeof(STaskManagerService));
+            _taskManager.SchedulerIdled += _taskManager_SchedulerIdled;
+            SaveTimer = new ReentrantTimer(() => CurrentMonitor.Save(), new TaskManager(this, _taskManager.GlobalScheduler));
+            SaveInterval = DEFAULT_SAVE_INTERVAL;
+        }
+
+        private static bool ShouldGenerateData(string extensionDirectory) {
+            if(null != extensionDirectory) {
+                var fileName = Path.Combine(extensionDirectory, GENERATE_DATA_INDICATOR_FILENAME);
+                return File.Exists(fileName);
+            }
+            return false;
         }
 
         private int numRunningSources { get; set; }
@@ -114,6 +126,9 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         // Implement the methods of ISrcMLLocalService here.
 
         #region ISrcMLGlobalService Members
+
+        public event EventHandler<DirectoryScanningMonitorEventArgs> DirectoryAdded;
+        public event EventHandler<DirectoryScanningMonitorEventArgs> DirectoryRemoved;
 
         public event EventHandler<IsReadyChangedEventArgs> IsReadyChanged {
             add { this.ReadyState.IsReadyChanged += value; }
@@ -216,22 +231,31 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 }
 
                 // Create a new instance of SrcML.NET's LastModifiedArchive
-                LastModifiedArchive lastModifiedArchive = new LastModifiedArchive(baseDirectory);
+                LastModifiedArchive lastModifiedArchive = new LastModifiedArchive(baseDirectory, LastModifiedArchive.DEFAULT_FILENAME,
+                                                                                  _taskManager.GlobalScheduler);
 
                 // Create a new instance of SrcML.NET's SrcMLArchive
-                SrcMLArchive sourceArchive = new SrcMLArchive(baseDirectory, true, new SrcMLGenerator(srcMLBinaryDirectory));
+                SrcMLArchive sourceArchive = new SrcMLArchive(baseDirectory, SrcMLArchive.DEFAULT_ARCHIVE_DIRECTORY, true,
+                                                              new SrcMLGenerator(srcMLBinaryDirectory),
+                                                              new ShortXmlFileNameMapping(Path.Combine(baseDirectory, SrcMLArchive.DEFAULT_ARCHIVE_DIRECTORY)),
+                                                              _taskManager.GlobalScheduler);
                 CurrentSrcMLArchive = sourceArchive;
-                CurrentDataRepository = new DataRepository(CurrentSrcMLArchive);
+                if(DataEnabled) {
+                    CurrentDataRepository = new DataRepository(CurrentSrcMLArchive);
 
-                if(CurrentSrcMLArchive.IsEmpty) {
-                    CurrentSrcMLArchive.IsReadyChanged += InitDataWhenReady;
-                } else {
-                    InitDataWhenReady(this, new IsReadyChangedEventArgs(true));
+                    if(CurrentSrcMLArchive.IsEmpty) {
+                        CurrentSrcMLArchive.IsReadyChanged += InitDataWhenReady;
+                    } else {
+                        InitDataWhenReady(this, new IsReadyChangedEventArgs(true));
+                    }
                 }
 
                 // Create a new instance of SrcML.NET's solution monitor
                 if(openSolution != null) {
-                    CurrentMonitor = new SourceMonitor(openSolution, DirectoryScanningMonitor.DEFAULT_SCAN_INTERVAL, baseDirectory, lastModifiedArchive, sourceArchive);
+                    CurrentMonitor = new SourceMonitor(openSolution, DirectoryScanningMonitor.DEFAULT_SCAN_INTERVAL,
+                                                       _taskManager.GlobalScheduler, baseDirectory, lastModifiedArchive, sourceArchive);
+                    CurrentMonitor.DirectoryAdded += RespondToDirectoryAddedEvent;
+                    CurrentMonitor.DirectoryRemoved += RespondToDirectoryRemovedEvent;
                     CurrentMonitor.AddDirectoriesFromSaveFile();
                     CurrentMonitor.AddSolutionDirectory();
                 }
@@ -239,14 +263,12 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 // Subscribe events from Solution Monitor
                 if(CurrentMonitor != null) {
                     CurrentMonitor.FileChanged += RespondToFileChangedEvent;
-
-                    CurrentDataRepository.FileProcessed += RespondToFileChangedEvent;
-
-                    CurrentMonitor.IsReadyChanged += RespondToIsReadyChangedEvent;
-                    CurrentDataRepository.IsReadyChanged += RespondToIsReadyChangedEvent;
-
                     CurrentMonitor.MonitoringStopped += RespondToMonitoringStoppedEvent;
 
+                    if(DataEnabled) {
+                        CurrentDataRepository.FileProcessed += RespondToFileChangedEvent;
+                        CurrentDataRepository.IsReadyChanged += RespondToIsReadyChangedEvent;
+                    }
                     // Initialize the progress bar.
                     if(statusBar != null) {
                         statusBar.Progress(ref cookie, 1, "", 0, 0);
@@ -256,7 +278,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                     duringStartup = true;
                     CurrentMonitor.UpdateArchives();
                     CurrentMonitor.StartMonitoring();
-                    StartSaveTimer();
+                    SaveTimer.Start();
                 }
             } catch(Exception e) {
                 SrcMLFileLogger.DefaultLogger.Error(SrcMLExceptionFormatter.CreateMessage(e, "Exception in SrcMLGlobalService.StartMonitoring()"));
@@ -278,10 +300,19 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             SrcMLFileLogger.DefaultLogger.Info("SrcMLGlobalService.StopMonitoring()");
             try {
                 if(CurrentMonitor != null && CurrentSrcMLArchive != null) {
-                    StopSaveTimer();
+                    SaveTimer.Stop();
                     CurrentMonitor.StopMonitoring();
+                    CurrentMonitor.FileChanged -= RespondToFileChangedEvent;
+                    CurrentMonitor.DirectoryAdded -= RespondToDirectoryAddedEvent;
+                    CurrentMonitor.DirectoryRemoved -= RespondToDirectoryRemovedEvent;
+                    CurrentMonitor.MonitoringStopped -= RespondToMonitoringStoppedEvent;
                     CurrentMonitor.Dispose();
-                    CurrentDataRepository.Dispose();
+                    
+                    if(DataEnabled) {
+                        CurrentDataRepository.FileProcessed -= RespondToFileChangedEvent;
+                        CurrentDataRepository.IsReadyChanged -= RespondToIsReadyChangedEvent;
+                        CurrentDataRepository.Dispose();
+                    }
 
                     CurrentSrcMLArchive = null;
                     CurrentDataRepository = null;
@@ -295,7 +326,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         private void InitDataWhenReady(object sender, IsReadyChangedEventArgs e) {
             if(e.ReadyState) {
                 CurrentSrcMLArchive.IsReadyChanged -= InitDataWhenReady;
-                CurrentDataRepository.InitializeDataConcurrent();
+                CurrentDataRepository.InitializeDataConcurrent(_taskManager.GlobalScheduler);
             }
         }
 
@@ -308,6 +339,20 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <returns></returns>
         public string GetSrcMLArchiveFolder(Solution openSolution) {
             return CreateNamedFolder(openSolution, srcMLArchivesFolderString);
+        }
+
+        protected virtual void OnDirectoryAdded(DirectoryScanningMonitorEventArgs e) {
+            EventHandler<DirectoryScanningMonitorEventArgs> handler = DirectoryAdded;
+            if(handler != null) {
+                handler(this, e);
+            }
+        }
+
+        protected virtual void OnDirectoryRemoved(DirectoryScanningMonitorEventArgs e) {
+            EventHandler<DirectoryScanningMonitorEventArgs> handler = DirectoryRemoved;
+            if(handler != null) {
+                handler(this, e);
+            }
         }
 
         protected virtual void OnFileChanged(FileEventRaisedArgs e) {
@@ -388,10 +433,24 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             //if(duringStartup) {
             //amountCompleted++;
             //ShowProgressOnStatusBar("SrcML Service is processing " + eventArgs.FilePath);
-            var senderIsDataRepo = (sender == CurrentDataRepository);
-            DisplayTextOnStatusBar(String.Format("SrcML Service is {0} {1}", (senderIsDataRepo ? "generating data for" : "processing"), eventArgs.FilePath));
             //}
             OnFileChanged(eventArgs);
+            var senderIsDataRepo = (sender == CurrentDataRepository);
+            DisplayTextOnStatusBar(String.Format("SrcML Service is {0} {1}", (senderIsDataRepo ? "generating data for" : "processing"), eventArgs.FilePath));
+        }
+
+        private void RespondToDirectoryAddedEvent(object sender, DirectoryScanningMonitorEventArgs eventArgs) {
+            OnDirectoryAdded(eventArgs);
+            DisplayTextOnStatusBar(String.Format("Now monitoring {0}", eventArgs.Directory));
+        }
+
+        private void RespondToDirectoryRemovedEvent(object sender, DirectoryScanningMonitorEventArgs eventArgs) {
+            OnDirectoryRemoved(eventArgs);
+            DisplayTextOnStatusBar(String.Format("No longer monitoring {0}", eventArgs.Directory));
+        }
+
+        void _taskManager_SchedulerIdled(object sender, EventArgs e) {
+            DisplayTextOnStatusBar("Finished indexing");
         }
 
         /// <summary>
@@ -433,28 +492,9 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             return false;
         }
         void SaveTimer_Elapsed(object sender, ElapsedEventArgs e) {
-            int sync = Interlocked.CompareExchange(ref syncPoint, RUNNING, IDLE);
-            if(IDLE == sync) {
-                CurrentMonitor.Save();
-                syncPoint = IDLE;
-            }
+            CurrentMonitor.Save();
         }
 
-        private void StartSaveTimer() {
-            if(STOPPED == Interlocked.CompareExchange(ref syncPoint, IDLE, STOPPED)) {
-                SaveTimer.Start();
-            }
-        }
-
-        private void StopSaveTimer() {
-            if(SaveTimer.Enabled) {
-                SaveTimer.Stop();
-
-                while(RUNNING == Interlocked.CompareExchange(ref syncPoint, STOPPED, IDLE)) {
-                    System.Threading.Thread.Sleep(1);
-                }
-            }
-        }
         /// <summary>
         /// Respond to the MonitorStopped event from SrcMLArchive.
         /// </summary>

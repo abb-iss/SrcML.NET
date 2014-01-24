@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+ Copyright (c) 2014 ABB Group
+ All rights reserved. This program and the accompanying materials
+ are made available under the terms of the Eclipse Public License v1.0
+ which accompanies this distribution, and is available at
+ http://www.eclipse.org/legal/epl-v10.html
+
+ Contributors:
+ * Vinay Augustine (ABB Group) - initial API, implementation, & documentation
+-->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+	<!-- Configuration
+		 There are three steps to using these targets in an MSBuild file:
+		 
+		 1. Create two ItemGroups:
+		    * AssemblyInfoFiles (each item will be an assembly file to generate)
+			* SourceManifests (each item will be a source manifest file to update)
+		 2. Set the $(MSBuildCommunityTasksPath) property (SetVersion will fail otherwise)
+		 3. Override any of the following properties if you need to change the default:
+		    * ReleasePrefix: prefix that should be removed from a tag to produce the
+		      version number. For instance, if tags are in the format "v1.0" the release prefix will be "v" (this is the default)
+		    * Company: The company attribute ("ABB" is the default)
+		    * NeutralResourcesLanguage: The neutral resources language (en-US is the default)
+		 4. Include the two targets as "DependsOnTargets" of your build target
+	-->
+	<PropertyGroup>
+		<ReleasePrefix Condition="'$(ReleasePrefix)'==''">v</ReleasePrefix>
+		<Company Condition="'$(Company)'==''">ABB</Company>
+		<NeutralResourcesLanguage Condition="'$(NeutralResourcesLanguage)'==''">en-US</NeutralResourcesLanguage>
+	</PropertyGroup>
+	
+	<PropertyGroup>
+		<ReleaseTag>99.99</ReleaseTag>
+		<Revision>0</Revision>
+		<BUILD_NUMBER Condition="'$(BUILD_NUMBER)'==''">0</BUILD_NUMBER>
+		<Version>$(ReleaseTag).0.0</Version>
+		<RootDirectory Condition="'$(RootDirectory)'==''">$(MSBuildStartupDirectory)</RootDirectory>
+    <VersionOutputFile Condition="'$(VersionOutputFile)'==''">Version.txt</VersionOutputFile>
+		<XmlNamespaces>
+			<Namespace Prefix="nuget"
+			           Uri="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd" />
+			<Namespace Prefix="v"
+					   Uri="http://schemas.microsoft.com/developer/vsx-schema/2010" />
+		</XmlNamespaces>
+	</PropertyGroup>
+	
+	<Target Name="CreateAssemblyInfo" DependsOnTargets="SetVersion">
+		<WriteLinesToFile File="%(AssemblyInfoFiles.FullPath)" Overwrite="true"
+						  Lines="using System.Reflection%3B
+using System.Resources%3B
+
+[assembly: AssemblyCompany(&quot;$(Company)&quot;)]
+[assembly: NeutralResourcesLanguage(&quot;$(NeutralResourcesLanguage)&quot;)]
+[assembly: AssemblyVersion(&quot;$(Version)&quot;)]
+
+#if DEBUG
+[assembly: AssemblyConfiguration(&quot;Debug&quot;)]
+[assembly: AssemblyInformationalVersion(&quot;$(Version)-Debug-$(CommitHash)&quot;)]
+#else
+[assembly: AssemblyConfiguration(&quot;Release&quot;)]
+[assembly: AssemblyInformationalVersion(&quot;$(Version)-Release-$(CommitHash)&quot;)]
+#endif" />
+	</Target>
+	
+	<Target Name="SetNuspecVersion" DependsOnTargets="SetVersion">
+		<XmlPoke Namespaces="$(XmlNamespaces)" XmlInputPath="%(NuspecFiles.FullPath)"
+		         Query="/nuget:package/nuget:metadata/nuget:version" Value="$(Version)" />
+	</Target>
+	
+	<Target Name="SetVsixVersion" DependsOnTargets="SetVersion">
+		<XmlPoke Namespaces="$(XmlNamespaces)" XmlInputPath="%(SourceManifests.FullPath)"
+				 Query="/v:Vsix/v:Identifier/v:Version" Value="$(Version)"/>
+	</Target>
+	
+	<Target Name="PrintVersion" DependsOnTargets="SetVersion">
+		<Message Text="$(Version)" />
+	</Target>
+  
+  <Target Name="PrintVersionToFile" DependsOnTargets="SetVersion">
+    <WriteLinesToFile File="$(VersionOutputFile)" Overwrite="True"
+      Lines="VERSION=$(Version)" />
+  </Target>
+  
+	<Import Project="$(MSBuildCommunityTasksPath)\MSBuild.Community.Tasks.Targets"
+			Condition="Exists('$(MSBuildCommunityTasksPath)\MSBuild.Community.Tasks.Targets')" />
+	
+	<Target Name="SetVersion">
+		<GitDescribe LocalPath="$(RootDirectory)">
+		  <Output TaskParameter="Tag" PropertyName="ReleaseTag" />
+		  <Output TaskParameter="CommitCount" PropertyName="Revision" />
+		  <Output TaskParameter="CommitHash" PropertyName="CommitHash" />
+		</GitDescribe>
+		<PropertyGroup>
+			<ReleaseTag>$(ReleaseTag.Substring($(ReleasePrefix.Length)))</ReleaseTag>
+			<Version>$(ReleaseTag).$(Revision).$(BUILD_NUMBER)</Version>
+		</PropertyGroup>
+  </Target>
+</Project>

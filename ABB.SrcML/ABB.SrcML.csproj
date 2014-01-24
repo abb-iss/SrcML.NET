@@ -66,6 +66,8 @@
     <Compile Include="FileSystemFolderMonitor.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="LastModifiedArchive.cs" />
+    <Compile Include="Utilities\ConservativeAbbCoreStrategy.cs" />
+    <Compile Include="Utilities\LimitedConcurrencyLevelTaskScheduler.cs" />
     <Compile Include="Utilities\ReadyNotifier.cs" />
     <Compile Include="ShortXmlFileNameMapping.cs" />
     <Compile Include="DirectoryScanningMonitor.cs" />
@@ -92,6 +94,8 @@
     <Compile Include="Utilities\FileHelper.cs" />
     <Compile Include="Utilities\KsuAdapter.cs" />
     <Compile Include="Utilities\ReadOnlyDictionary.cs" />
+    <Compile Include="Utilities\ReentrantTimer.cs" />
+    <Compile Include="Utilities\SingleCoreStrategy.cs" />
     <Compile Include="Utilities\SrcMLExceptionFormatter.cs" />
     <Compile Include="Utilities\SrcMLFileLogger.cs" />
     <Compile Include="Utilities\SrcMLRuntimeException.cs" />
@@ -101,6 +105,7 @@
     <Compile Include="XmlHelper.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="ABB.SrcML.nuspec" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -110,7 +115,6 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

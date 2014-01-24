@@ -464,7 +464,7 @@ namespace ABB.SrcML.Data {
         /// <returns>true if this is a container for
         /// <paramref name="element"/>. False otherwise.</returns>
         public bool IsScopeFor(XElement element) {
-            return IsScopeFor(element.GetXPath(false));
+            return IsScopeFor(element.GetXPath());
         }
 
         /// <summary>

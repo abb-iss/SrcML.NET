@@ -94,11 +94,25 @@ namespace ABB.SrcML.Data {
         /// <returns>A resolvable use object</returns>
         // TODO make this fit in with the rest of the parse methods (rename to parse)
         public virtual IResolvesToType CreateResolvableUse(XElement element, ParserContext context) {
+            XElement expression = null;
+            if(element.Name == SRC.Expression) {
+                expression = element;
+            } else if(element.Name == SRC.Argument || element.Name == SRC.ExpressionStatement) {
+                expression = element.Elements(SRC.Expression).FirstOrDefault();
+            }
+
             var use = new VariableUse() {
                 Location = context.CreateLocation(element, true),
                 ParentScope = context.CurrentScope,
                 ProgrammingLanguage = ParserLanguage,
             };
+
+            if(expression != null) {
+                if(expression.Elements(SRC.Name).Count() == 1) {
+                    use.Name = expression.Element(SRC.Name).Value;
+                }
+            }
+
             return use;
         }
 

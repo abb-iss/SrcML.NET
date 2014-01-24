@@ -25,6 +25,8 @@ using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using log4net;
 using ABB.SrcML.Utilities;
+using ABB.VisualStudio.Interfaces;
+using ABB.VisualStudio;
 
 namespace ABB.SrcML.VisualStudio.SrcMLService {
     /// <summary>
@@ -78,7 +80,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
     /// ProvideServiceAttribute registers SSrcMLGlobalService with Visual Studio. Only the global service must be registered.
     /// </summary>
     [ProvideService(typeof(SSrcMLGlobalService))]
-
+    [ProvideService(typeof(STaskManagerService))]
     /// <summary>
     /// Get the Guid.
     /// </summary>
@@ -87,8 +89,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
     /// <summary>
     /// This attribute starts up this extension early so that it can listen to solution events.
     /// </summary>
-    [ProvideAutoLoad("ADFC4E64-0397-11D1-9F4E-00A0C911004F")]
-
+    [ProvideAutoLoad(UIContextGuids.NoSolution)]
     public sealed class SrcMLServicePackage : Package {
 
         /// <summary>
@@ -146,6 +147,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             ServiceCreatorCallback callback = new ServiceCreatorCallback(CreateService);
             serviceContainer.AddService(typeof(SSrcMLGlobalService), callback, true);
             serviceContainer.AddService(typeof(SSrcMLLocalService), callback);
+            serviceContainer.AddService(typeof(STaskManagerService), callback, true);
         }
 
         /// <summary>
@@ -177,6 +179,9 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 return new SrcMLLocalService(this);
             }
 
+            if(typeof(STaskManagerService) == serviceType) {
+                return new TaskManagerService(this, new ConservativeAbbCoreStrategy());
+            }
             // If we are here the service type is unknown, so write a message on the debug output
             // and return null.
             Trace.WriteLine("ServicesPackage.CreateService called for an unknown service type.");

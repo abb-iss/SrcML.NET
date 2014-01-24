@@ -16,6 +16,8 @@ namespace ABB.SrcML {
     public class LastModifiedArchive : AbstractArchive {
         // private readonly object mapLock = new object();
 
+        public const string DEFAULT_FILENAME = "lastmodifiedmap.txt";
+
         //private Dictionary<string, DateTime> lastModifiedMap;
         private ConcurrentDictionary<string, DateTime> lastModifiedMap;
 
@@ -25,7 +27,7 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="baseDirectory"></param>
         public LastModifiedArchive(string baseDirectory)
-            : this(baseDirectory, "lastmodifiedmap.txt") {
+            : this(baseDirectory, DEFAULT_FILENAME) {
         }
 
         /// <summary>

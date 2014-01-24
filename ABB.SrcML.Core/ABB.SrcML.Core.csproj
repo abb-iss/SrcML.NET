@@ -42,9 +42,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\SolutionInfo.cs">
+      <Link>Properties\SolutionInfo.cs</Link>
+    </Compile>
+    <Compile Include="DirectoryScanningMonitorEventArgs.cs" />
     <Compile Include="Exceptions\DirectoryScanningMonitorSubDirectoryException.cs" />
     <Compile Include="Exceptions\ForbiddenDirectoryException.cs" />
     <Compile Include="IArchive.cs" />
+    <Compile Include="IConcurrencyStrategy.cs" />
     <Compile Include="IFileMonitor.cs" />
     <Compile Include="ISrcMLArchive.cs" />
     <Compile Include="ISrcMLGenerator.cs" />
@@ -64,7 +69,9 @@
     <Compile Include="SrcMLRequiredNameException.cs" />
     <Compile Include="SrcMLNamespaces.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="ABB.SrcML.Core.nuspec" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

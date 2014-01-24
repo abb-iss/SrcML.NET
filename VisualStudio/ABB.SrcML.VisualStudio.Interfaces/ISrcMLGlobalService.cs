@@ -28,6 +28,16 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
     public interface ISrcMLGlobalService {
 
         /// <summary>
+        /// Even to indicate that a directory has been added to the file monitor.
+        /// </summary>
+        event EventHandler<DirectoryScanningMonitorEventArgs> DirectoryAdded;
+
+        /// <summary>
+        /// Event to indicate that a directory has been removed from the file monitor
+        /// </summary>
+        event EventHandler<DirectoryScanningMonitorEventArgs> DirectoryRemoved;
+
+        /// <summary>
         /// Event to indicate that the state of <see cref="IsReady"/> has changed
         /// </summary>
         event EventHandler<IsReadyChangedEventArgs> IsReadyChanged;

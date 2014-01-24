@@ -45,6 +45,8 @@ namespace ABB.SrcML {
         private ReadyNotifier ReadyState;
         private HashSet<IArchive> registeredArchives;
 
+        protected TaskManager _taskManager;
+
         /// <summary>
         /// Creates a new AbstractFileMonitor with the default archive and a collection of
         /// non-default archives that should be registered
@@ -60,6 +62,30 @@ namespace ABB.SrcML {
             this.ReadyState = new ReadyNotifier(this);
             this.numberOfWorkingArchives = 0;
             this.UseAsyncMethods = false;
+            this._taskManager = new TaskManager(this);
+
+            RegisterArchive(defaultArchive, true);
+            foreach(var archive in otherArchives) {
+                this.RegisterArchive(archive, false);
+            }
+        }
+
+        /// <summary>
+        /// Creates a new AbstractFileMonitor with the default archive and a collection of
+        /// non-default archives that should be registered
+        /// </summary>
+        /// <param name="baseDirectory">The folder where this monitor stores it archives</param>
+        /// <param name="defaultArchive">The default archive</param>
+        /// <param name="otherArchives">A list of other archives that should be registered via see
+        /// cref="RegisterArchive(IArchive)"/></param>
+        protected AbstractFileMonitor(TaskScheduler scheduler, string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives) {
+            this.MonitorStoragePath = baseDirectory;
+            this.registeredArchives = new HashSet<IArchive>();
+            this.archiveMap = new Dictionary<string, IArchive>(StringComparer.InvariantCultureIgnoreCase);
+            this.ReadyState = new ReadyNotifier(this);
+            this.numberOfWorkingArchives = 0;
+            this.UseAsyncMethods = false;
+            this._taskManager = new TaskManager(this, scheduler);
 
             RegisterArchive(defaultArchive, true);
             foreach(var archive in otherArchives) {
@@ -386,10 +412,19 @@ namespace ABB.SrcML {
             OnMonitoringStopped(new EventArgs());
         }
 
+        public void UpdateArchives() {
+            var task = new Task(() => UpdateArchivesImpl());
+            if(UseAsyncMethods) {
+                _taskManager.RunAsync(task);
+            } else {
+                _taskManager.Run(task);
+            }
+        }
+
         /// <summary>
         ///
         /// </summary>
-        public virtual void UpdateArchives() {
+        protected virtual void UpdateArchivesImpl() {
             var monitoredFiles = new HashSet<string>(GetFilesFromSource(), StringComparer.InvariantCultureIgnoreCase);
 
             var outdatedFiles = from filePath in monitoredFiles

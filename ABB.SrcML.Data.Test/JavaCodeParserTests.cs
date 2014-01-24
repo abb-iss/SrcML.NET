@@ -311,15 +311,15 @@ namespace ABB.SrcML.Data.Test {
             var scope = VariableScopeIterator.Visit(rootScope).Last();
             var useOfX = xmlElement.Descendants(SRC.Return).First().Descendants(SRC.Name).First();
 
-            Assert.AreEqual(3, rootScope.GetScopeForLocation(useOfX.GetXPath(false)).GetParentScopesAndSelf().Count());
+            Assert.AreEqual(3, rootScope.GetScopeForLocation(useOfX.GetXPath()).GetParentScopesAndSelf().Count());
 
-            var matchingDeclarations = rootScope.GetDeclarationsForVariableName("X", useOfX.GetXPath(false));
+            var matchingDeclarations = rootScope.GetDeclarationsForVariableName("X", useOfX.GetXPath());
             var declaration = matchingDeclarations.First();
 
             Assert.AreEqual("int", declaration.VariableType.Name);
             Assert.AreEqual("X", declaration.Name);
 
-            Assert.That(useOfX.GetXPath(false).StartsWith(declaration.ParentScope.PrimaryLocation.XPath));
+            Assert.That(useOfX.GetXPath().StartsWith(declaration.ParentScope.PrimaryLocation.XPath));
         }
 
         [Test]
