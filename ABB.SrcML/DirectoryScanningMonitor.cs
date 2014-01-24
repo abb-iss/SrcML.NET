@@ -71,7 +71,7 @@ namespace ABB.SrcML {
             MonitoredDirectoriesFilePath = Path.Combine(baseDirectory, monitorFileName);
             folders = new List<string>();
 
-            ScanTimer = new ReentrantTimer(() => UpdateArchives(), this._taskManager);
+            ScanTimer = new ReentrantTimer(() => UpdateArchives());
             ScanTimer.AutoReset = true;
             ScanInterval = scanInterval;
         }
@@ -91,7 +91,7 @@ namespace ABB.SrcML {
             MonitoredDirectoriesFilePath = Path.Combine(baseDirectory, monitorFileName);
             folders = new List<string>();
 
-            ScanTimer = new ReentrantTimer(() => UpdateArchives(), this._taskManager);
+            ScanTimer = new ReentrantTimer(() => UpdateArchivesAsync(), scheduler);
             ScanTimer.AutoReset = true;
             ScanInterval = scanInterval;
         }

@@ -41,7 +41,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             : base(DirectoryScanningMonitor.MONITOR_LIST_FILENAME, scanInterval, scheduler, baseDirectory, defaultArchive, otherArchives) {
             RegisterArchive(sourceArchive, false);
             this.sourceArchive = sourceArchive;
-            this.UseAsyncMethods = true;
             this.MonitoredSolution = solution;
         }
 
@@ -275,7 +274,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             int status = DocumentTable.GetDocumentInfo(docCookie, out flags, out readingLocks, out editLocks, out filePath, out hierarchy, out documentId, out documentData);
             var archive = GetArchiveForFile(filePath);
             if(status == VSConstants.S_OK && IsMonitoringFile(filePath) && archive.IsOutdated(filePath)) {
-                UpdateFile(filePath);
+                UpdateFileAsync(filePath);
             }
             return status;
         }

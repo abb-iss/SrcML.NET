@@ -100,7 +100,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             statusBar = (IVsStatusbar) Package.GetGlobalService(typeof(SVsStatusbar));
             _taskManager = (ITaskManagerService) Package.GetGlobalService(typeof(STaskManagerService));
             _taskManager.SchedulerIdled += _taskManager_SchedulerIdled;
-            SaveTimer = new ReentrantTimer(() => CurrentMonitor.Save(), new TaskManager(this, _taskManager.GlobalScheduler));
+            SaveTimer = new ReentrantTimer(() => CurrentMonitor.Save(), _taskManager.GlobalScheduler);
             SaveInterval = DEFAULT_SAVE_INTERVAL;
         }
 
@@ -242,12 +242,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 CurrentSrcMLArchive = sourceArchive;
                 if(DataEnabled) {
                     CurrentDataRepository = new DataRepository(CurrentSrcMLArchive);
-
-                    if(CurrentSrcMLArchive.IsEmpty) {
-                        CurrentSrcMLArchive.IsReadyChanged += InitDataWhenReady;
-                    } else {
-                        InitDataWhenReady(this, new IsReadyChangedEventArgs(true));
-                    }
                 }
 
                 // Create a new instance of SrcML.NET's solution monitor
@@ -267,7 +261,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
                     if(DataEnabled) {
                         CurrentDataRepository.FileProcessed += RespondToFileChangedEvent;
-                        CurrentDataRepository.IsReadyChanged += RespondToIsReadyChangedEvent;
                     }
                     // Initialize the progress bar.
                     if(statusBar != null) {
@@ -276,7 +269,11 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
                     // Start monitoring
                     duringStartup = true;
-                    CurrentMonitor.UpdateArchives();
+                    var updateTask = CurrentMonitor.UpdateArchivesAsync();
+                    if(DataEnabled) {
+                        updateTask.ContinueWith((t) => CurrentDataRepository.InitializeDataConcurrent(_taskManager.GlobalScheduler));
+                    }
+
                     CurrentMonitor.StartMonitoring();
                     SaveTimer.Start();
                 }
@@ -320,13 +317,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 }
             } catch(Exception e) {
                 SrcMLFileLogger.DefaultLogger.Error(SrcMLExceptionFormatter.CreateMessage(e, "Exception in SrcMLGlobalService.StopMonitoring()"));
-            }
-        }
-
-        private void InitDataWhenReady(object sender, IsReadyChangedEventArgs e) {
-            if(e.ReadyState) {
-                CurrentSrcMLArchive.IsReadyChanged -= InitDataWhenReady;
-                CurrentDataRepository.InitializeDataConcurrent(_taskManager.GlobalScheduler);
             }
         }
 
