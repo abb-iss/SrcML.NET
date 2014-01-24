@@ -43,10 +43,10 @@ namespace ABB.SrcML.Data.Test {
                     developer.Start();
                     Assert.DoesNotThrow(() => {
                         for(int i = 0; i < iterations; i++) {
-                            //var foo = data.FindScope(new SourceLocation(fooSourcePath, 1, 13)).GetParentScopesAndSelf<IMethodDefinition>().FirstOrDefault();
-                            var foo = data.GetGlobalScope().GetChildScopesWithId<IMethodDefinition>("foo").FirstOrDefault();
+                            var foo = GetMethodWithName(data, 500, "foo");
                             Thread.Sleep(1);
-                            var bar = data.GetGlobalScope().GetChildScopesWithId<IMethodDefinition>("bar").FirstOrDefault();
+                            var bar = GetMethodWithName(data, 500, "bar");
+
                             foo.ContainsCallTo(bar);
                             if(i % 10 == 0 && i > 0) {
                                 Console.WriteLine("Finished {0} iterations", i);
@@ -57,6 +57,18 @@ namespace ABB.SrcML.Data.Test {
                     developer.Wait();
                 }
             }
+        }
+
+        private static IMethodDefinition GetMethodWithName(IDataRepository dataRepository, int timeout, string methodName) {
+            IMethodDefinition result = null;
+            if(dataRepository.TryLockGlobalScope(timeout)) {
+                try {
+                    result = dataRepository.GetGlobalScope().GetChildScopesWithId<IMethodDefinition>("foo").FirstOrDefault();
+                } finally {
+                    dataRepository.ReleaseGlobalScopeLock();
+                }
+            }
+            return result;
         }
     }
 }
