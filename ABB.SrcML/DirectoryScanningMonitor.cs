@@ -153,8 +153,8 @@ namespace ABB.SrcML {
         protected string MonitoredDirectoriesFilePath { get; private set; }
 
         public bool DirectoryIsExcluded(string directoryPath) {
-            var dirName = Path.GetFileName(directoryPath);
-            bool startsWithDot = (dirName[0] == '.');
+            var dirName = Path.GetFileName(directoryPath.TrimEnd(Path.DirectorySeparatorChar));
+            bool startsWithDot = dirName.StartsWith(".");
             return Exclusions.Contains(dirName) || startsWithDot || BackupDirectoryRegex.IsMatch(dirName);
         }
 
@@ -163,14 +163,14 @@ namespace ABB.SrcML {
                 throw new ArgumentNullException("directoryPath");
             var info = new DirectoryInfo(directoryPath);
 
-            return (info.Parent == null) || ForbiddenDirectories.Contains(GetFullPath(directoryPath));
+            return (info.Parent == null) || ForbiddenDirectories.Contains(GetFullPathForDirectory(directoryPath));
         }
 
         public static bool FileIsExcluded(string filePath) {
             if(null == filePath) {
                 throw new ArgumentNullException("filePath");
             }
-            var fullPath = GetFullPath(filePath);
+            var fullPath = Path.GetFullPath(filePath);
             var fileName = Path.GetFileName(fullPath);
 
             return FileExclusionPrefixes.Any(p => fileName.StartsWith(p));
@@ -195,7 +195,7 @@ namespace ABB.SrcML {
         /// <paramref name="directoryPath"/>is a subdirectory of an existing directory.
         /// </remarks>
         public void AddDirectory(string directoryPath) {
-            var fullPath = GetFullPath(directoryPath);
+            var fullPath = GetFullPathForDirectory(directoryPath);
             bool alreadyMonitoringDirectory = false;
 
             if(DirectoryIsForbidden(fullPath)) {
@@ -290,7 +290,7 @@ namespace ABB.SrcML {
         /// <returns>True if the file is in a <see cref="MonitoredDirectories">monitored
         /// directory</see>, false otherwise</returns>
         public bool IsMonitoringFile(string fileName) {
-            var fullPath = GetFullPath(fileName);
+            var fullPath = Path.GetFullPath(fileName);
             return MonitoredDirectories.Any(d => fullPath.StartsWith(d, StringComparison.InvariantCultureIgnoreCase));
         }
 
@@ -305,7 +305,7 @@ namespace ABB.SrcML {
         /// has no effect.
         /// </remarks>
         public void RemoveDirectory(string directoryPath) {
-            var directoryFullPath = GetFullPath(directoryPath);
+            var directoryFullPath = GetFullPathForDirectory(directoryPath);
 
             bool directoryIsMonitored = false;
 
@@ -391,13 +391,15 @@ namespace ABB.SrcML {
             var forbiddenDirectories = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
             var userProfile = Environment.GetEnvironmentVariable("USERPROFILE");
             if(null != userProfile) {
-                forbiddenDirectories.Add(GetFullPath(userProfile));
+                forbiddenDirectories.Add(GetFullPathForDirectory(userProfile));
             }
 
             string myDocuments = null;
             foreach(var specialFolder in (Environment.SpecialFolder[]) Enum.GetValues(typeof(Environment.SpecialFolder))) {
                 var directory = Environment.GetFolderPath(specialFolder);
-                forbiddenDirectories.Add(directory.TrimEnd(Path.PathSeparator));
+                if(!string.IsNullOrWhiteSpace(directory)) {
+                    forbiddenDirectories.Add(GetFullPathForDirectory(directory));
+                }
                 if(specialFolder == Environment.SpecialFolder.MyDocuments) {
                     myDocuments = directory;
                 }
@@ -405,26 +407,28 @@ namespace ABB.SrcML {
 
             foreach(var year in new[] { "2005", "2008", "2010", "2012", "2013" }) {
                 var directory = "Visual Studio " + year;
-                forbiddenDirectories.Add(GetFullPath(Path.Combine(myDocuments, directory)));
-                forbiddenDirectories.Add(GetFullPath(Path.Combine(myDocuments, directory, "Projects")));
+                forbiddenDirectories.Add(GetFullPathForDirectory(Path.Combine(myDocuments, directory)));
+                forbiddenDirectories.Add(GetFullPathForDirectory(Path.Combine(myDocuments, directory, "Projects")));
             }
 
             return forbiddenDirectories;
         }
 
+        
         /// <summary>
-        /// Gets the full path for a given path. This calls
-        /// <see cref="System.IO.Path.GetFullPath(string)"/> and then trims any
-        /// <see cref="System.IO.Path.PathSeparator">path separators</see> off of the end.
+        /// Gets the full path for a given directory. This is normalized to include a trailing directory separator.
         /// </summary>
-        /// <param name="path">The path to get a full path for</param>
-        /// <returns>The full path for
-        /// <paramref name="path"/>with no trailing path separators</returns>
-        private static string GetFullPath(string path) {
-            if(null == path)
-                throw new ArgumentNullException("path");
-
-            return Path.GetFullPath(path).TrimEnd(Path.PathSeparator);
+        /// <param name="directory">The directory to get a full path for.</param>
+        /// <returns>The full path for <paramref name="directory"/>, with a trailing directory separator.</returns>
+        private static string GetFullPathForDirectory(string directory) {
+            if(string.IsNullOrWhiteSpace(directory)) {
+                throw new ArgumentException("path cannot be null, empty, or whitespace", "directory");
+            }
+            var path = Path.GetFullPath(directory);
+            if(path.Length > 0 && path[path.Length - 1] != Path.DirectorySeparatorChar) {
+                path += Path.DirectorySeparatorChar;
+            }
+            return path;
         }
     }
 }

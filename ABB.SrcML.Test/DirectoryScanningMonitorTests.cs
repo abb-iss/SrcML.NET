@@ -76,6 +76,19 @@ namespace ABB.SrcML.Test {
         }
 
         [Test]
+        public void TestAddSimilarDirectory() {
+            var archive = new LastModifiedArchive(monitorFolder);
+            DirectoryScanningMonitor monitor = new DirectoryScanningMonitor(monitorFolder, archive);
+            AutoResetEvent are = new AutoResetEvent(false);
+            monitor.DirectoryAdded += (o, e) => are.Set();
+
+            monitor.AddDirectory(testFolder);
+            Assert.IsTrue(are.WaitOne(WaitInterval));
+            monitor.AddDirectory(testFolder + "NotSubDirectory");
+            Assert.IsTrue(are.WaitOne(WaitInterval));
+        }
+
+        [Test]
         public void TestExcludedDirectory() {
             var testExcludedDirectoryPath = Path.Combine(testFolder, "TestExcludedDirectory");
             var excludedFolders = new string[] {
@@ -170,13 +183,13 @@ namespace ABB.SrcML.Test {
             using(var monitor = new DirectoryScanningMonitor(monitorFolder, new LastModifiedArchive(monitorFolder))) {
                 monitor.AddDirectoriesFromSaveFile();
                 Assert.AreEqual(1, monitor.MonitoredDirectories.Count);
-                Assert.AreEqual(Path.GetFullPath(testFolder), monitor.MonitoredDirectories[0]);
+                Assert.AreEqual(Path.GetFullPath(testFolder), monitor.MonitoredDirectories[0].TrimEnd(Path.DirectorySeparatorChar));
             }
 
             using(var monitor = new DirectoryScanningMonitor(monitorFolder, new LastModifiedArchive(monitorFolder))) {
                 monitor.AddDirectoriesFromSaveFile();
                 Assert.AreEqual(1, monitor.MonitoredDirectories.Count);
-                Assert.AreEqual(Path.GetFullPath(testFolder), monitor.MonitoredDirectories[0]);
+                Assert.AreEqual(Path.GetFullPath(testFolder), monitor.MonitoredDirectories[0].TrimEnd(Path.DirectorySeparatorChar));
             }
         }
 
