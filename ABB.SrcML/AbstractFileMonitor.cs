@@ -435,7 +435,7 @@ namespace ABB.SrcML {
         }
 
         public Task UpdateArchivesAsync() {
-            return Factory.StartNew(() => {
+            var task = Factory.StartNew(() => {
                 OnUpdateArchivesStarted(new EventArgs());
                 var monitoredFiles = new HashSet<string>(GetFilesFromSource(), StringComparer.InvariantCultureIgnoreCase);
 
@@ -448,8 +448,9 @@ namespace ABB.SrcML {
                                        where filePath != null && !monitoredFiles.Contains(filePath)
                                        select DeleteFileAsync(filePath);
                 Task.WaitAll(deletedFileTasks.ToArray());
-                OnUpdateArchivesCompleted(new EventArgs());
             });
+            task.ContinueWith((t) => { OnUpdateArchivesCompleted(new EventArgs()); }, TaskScheduler.FromCurrentSynchronizationContext());
+            return task;
         }
 
         /// <summary>
