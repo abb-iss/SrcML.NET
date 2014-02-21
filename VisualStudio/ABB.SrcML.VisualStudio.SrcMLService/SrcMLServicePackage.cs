@@ -27,6 +27,7 @@ using log4net;
 using ABB.SrcML.Utilities;
 using ABB.VisualStudio.Interfaces;
 using ABB.VisualStudio;
+using ABB.SrcML.VisualStudio.Interfaces;
 
 namespace ABB.SrcML.VisualStudio.SrcMLService {
     /// <summary>
@@ -81,6 +82,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
     /// </summary>
     [ProvideService(typeof(SSrcMLGlobalService))]
     [ProvideService(typeof(STaskManagerService))]
+    [ProvideService(typeof(SSrcMLDataService))]
     /// <summary>
     /// Get the Guid.
     /// </summary>
@@ -146,8 +148,9 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             IServiceContainer serviceContainer = this as IServiceContainer;
             ServiceCreatorCallback callback = new ServiceCreatorCallback(CreateService);
             serviceContainer.AddService(typeof(SSrcMLGlobalService), callback, true);
-            serviceContainer.AddService(typeof(SSrcMLLocalService), callback);
+            serviceContainer.AddService(typeof(SSrcMLDataService), callback, true);
             serviceContainer.AddService(typeof(STaskManagerService), callback, true);
+            serviceContainer.AddService(typeof(SSrcMLLocalService), callback);
         }
 
         /// <summary>
@@ -174,6 +177,11 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 // Build the global service using this package as its service provider.
                 return new SrcMLGlobalService(this, extensionDirectory);
             }
+
+            if(typeof(SSrcMLDataService) == serviceType) {
+                return new SrcMLDataService(this);
+            }
+
             if(typeof(SSrcMLLocalService) == serviceType) {
                 // Build the local service using this package as its service provider.
                 return new SrcMLLocalService(this);
@@ -182,6 +190,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             if(typeof(STaskManagerService) == serviceType) {
                 return new TaskManagerService(this, new ConservativeAbbCoreStrategy());
             }
+
             // If we are here the service type is unknown, so write a message on the debug output
             // and return null.
             Trace.WriteLine("ServicesPackage.CreateService called for an unknown service type.");
@@ -355,7 +364,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 // Register the Visual Studio event that occurs when a solution is being opened.
                 SolutionEvents.Opened += SolutionOpened;
                 // Register the Visual Studio event that occurs when a solution is about to close.
-                SolutionEvents.BeforeClosing += SolutionBeforeClosing;
+                SolutionEvents.BeforeClosing += RespondToSolutionClosing;
             }
             /*
             // maybe removed after completing project level IU
@@ -410,11 +419,9 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <summary>
         /// Respond to the Visual Studio event that occurs when a solution is about to close.
         /// </summary>
-        private void SolutionBeforeClosing() {
+        private void RespondToSolutionClosing() {
             //SrcMLFileLogger.DefaultLogger.Info("Respond to the Visual Studio event that occurs when a solution is about to close.");
             //SrcMLFileLogger.DefaultLogger.Info("> SrcML service stops monitoring the opened solution.");
-
-            // This statement should be commented out when releasing SrcML.NET for Sando
             srcMLService.StopMonitoring();
         }
 

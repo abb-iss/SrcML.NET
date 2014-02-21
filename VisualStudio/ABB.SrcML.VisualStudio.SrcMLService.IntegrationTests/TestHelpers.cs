@@ -25,16 +25,34 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
 
         
         internal static bool WaitForServiceToFinish(ISrcMLGlobalService service, int millisecondsTimeout) {
-            if(!service.IsReady) {
-                ManualResetEvent mre = new ManualResetEvent(false);
-                EventHandler<IsReadyChangedEventArgs> action = (o, e) => { mre.Set(); };
-                service.IsReadyChanged += action;
-                mre.WaitOne(millisecondsTimeout);
-                service.IsReadyChanged -= action;
-            }
-            return service.IsReady;
+            AutoResetEvent monitoringStartedResetEvent = new AutoResetEvent(false),
+                           updateArchivesStartedResetEvent = new AutoResetEvent(false),
+                           updateArchivesCompletedResetEvent = new AutoResetEvent(false);
+
+            EventHandler monitoringStartedEventHandler = GetEventHandler(monitoringStartedResetEvent),
+                         updateStartedEventHandler = GetEventHandler(updateArchivesStartedResetEvent),
+                         updateCompleteEventHandler = GetEventHandler(updateArchivesCompletedResetEvent);
+
+            service.MonitoringStarted += monitoringStartedEventHandler;
+            service.UpdateArchivesStarted += updateStartedEventHandler;
+            service.UpdateArchivesCompleted += updateCompleteEventHandler;
+            
+            service.StartMonitoring();
+
+            Assert.IsTrue(updateArchivesStartedResetEvent.WaitOne(millisecondsTimeout));
+            Assert.IsTrue(monitoringStartedResetEvent.WaitOne(millisecondsTimeout));
+            Assert.IsTrue(updateArchivesCompletedResetEvent.WaitOne(millisecondsTimeout));
+
+            service.MonitoringStarted -= monitoringStartedEventHandler;
+            service.UpdateArchivesStarted -= updateStartedEventHandler;
+            service.UpdateArchivesCompleted -= updateCompleteEventHandler;
+
+            return !service.IsUpdating;
         }
 
+        internal static EventHandler GetEventHandler(AutoResetEvent resetEvent) {
+            return (o, e) => resetEvent.Set();
+        }
         internal static IEnumerable<Project> GetProjects(Solution solution) {
             var projects = solution.Projects;
             var enumerator = projects.GetEnumerator();

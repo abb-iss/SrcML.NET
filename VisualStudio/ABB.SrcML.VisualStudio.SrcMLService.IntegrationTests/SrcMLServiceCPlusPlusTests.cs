@@ -27,23 +27,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             TestLock = new object();
         }
 
-        [TestCleanup]
-        public void Cleanup() {
-            TestHelpers.TestScaffold.Service.StopMonitoring();
-            TestSolution.Close();
-        }
-
         public void Invoke(MethodInvoker globalSystemWindowsFormsMethodInvoker) {
             UIThreadInvoker.Invoke(globalSystemWindowsFormsMethodInvoker);
-        }
-
-        [TestInitialize]
-        public void Setup() {
-            TestSolution = VsIdeTestHostContext.Dte.Solution;
-            Assert.IsNotNull(TestSolution, "Could not get the solution");
-
-            TestSolution.Open(Path.GetFullPath(TestSolutionPath));
-            TestHelpers.TestScaffold.Service.StartMonitoring();
         }
 
         [TestMethod]
@@ -79,6 +64,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             expectedEventType = FileEventType.FileAdded;
             File.Copy(fileTemplate, expectedFilePath);
             var item = project.ProjectItems.AddFromFile(expectedFilePath);
+            Console.WriteLine(item.FileNames[0]);
+            Console.WriteLine(expectedFilePath);
             project.Save();
 
             Assert.IsTrue(resetEvent.WaitOne(scanIntervalMs));
@@ -174,10 +161,26 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
         [TestMethod]
         [HostType("VS IDE")]
         public void TestCppServiceStartup() {
+            Console.WriteLine(Path.GetFullPath(TestSolutionPath));
             Assert.IsTrue(TestHelpers.WaitForServiceToFinish(TestHelpers.TestScaffold.Service, 5000));
             var archive = TestHelpers.TestScaffold.Service.GetSrcMLArchive();
             Assert.IsNotNull(archive, "Could not get the SrcML Archive");
             Assert.AreEqual(4, archive.FileUnits.Count(), "There should only be four files in the srcML archive");
+        }
+
+        [TestInitialize]
+        public void Setup() {
+            TestSolution = VsIdeTestHostContext.Dte.Solution;
+            Assert.IsNotNull(TestSolution, "Could not get the solution");
+
+            TestSolution.Open(Path.GetFullPath(TestSolutionPath));
+            Assert.IsTrue(TestHelpers.WaitForServiceToFinish(TestHelpers.TestScaffold.Service, 5000));
+        }
+
+        [TestCleanup]
+        public void Cleanup() {
+            TestHelpers.TestScaffold.Service.StopMonitoring();
+            TestSolution.Close();
         }
     }
 }
