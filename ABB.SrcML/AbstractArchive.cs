@@ -65,20 +65,20 @@ namespace ABB.SrcML
         /// Sub-classes of AbstractArchive should implement the "add or update file" functionality here in order to enable <see cref="AddOrUpdateFile"/> and <see cref="AddOrUpdateFileAsync"/>
         /// </summary>
         /// <param name="fileName">The file name to add or update. If the file exists, it is deleted and then added regardless of whether or not the file is outdated</param>
-        protected abstract void AddOrUpdateFileImpl(string fileName);
+        protected abstract FileEventType? AddOrUpdateFileImpl(string fileName);
 
         /// <summary>
         /// Sub-classes of AbstractArchive should implement the "delete file" functionality here in order to enable <see cref="DeleteFile"/> and <see cref="DeleteFileAsync"/>
         /// </summary>
         /// <param name="fileName">The file name to delete. If it does not exist, nothing happens</param>
-        protected abstract void DeleteFileImpl(string fileName);
+        protected abstract bool DeleteFileImpl(string fileName);
 
         /// <summary>
         /// Sub-classes of AbstractArchive should implement the "rename file" functionality here in order to enable <see cref="RenameFile"/> and <see cref="RenameFileAsync"/>
         /// </summary>
         /// <param name="oldFileName">the existing path</param>
         /// <param name="newFileName">the new path</param>
-        protected abstract void RenameFileImpl(string oldFileName, string newFileName);
+        protected abstract bool RenameFileImpl(string oldFileName, string newFileName);
 
         /// <summary>
         /// Adds or updates <paramref name="fileName"/> within the archive
@@ -86,7 +86,10 @@ namespace ABB.SrcML
         /// <param name="fileName">The file name to add or update. If the file exists, it is deleted and then added regardless of whether or not the file is outdated</param>
         public virtual void AddOrUpdateFile(string fileName) {
             // LogExceptions(task);
-            AddOrUpdateFileImpl(fileName);
+            var eventType = AddOrUpdateFileImpl(fileName);
+            if(eventType.HasValue) {
+                OnFileChanged(new FileEventRaisedArgs(eventType.Value, fileName));
+            }
         }
 
         /// <summary>
@@ -95,7 +98,13 @@ namespace ABB.SrcML
         /// <param name="fileName">The file name to add or update. If the file exists, it is deleted and then added regardless of whether or not the file is outdated</param>
         public virtual Task AddOrUpdateFileAsync(string fileName) {
             //LogExceptions(task);
-            return this.Factory.StartNew(() => AddOrUpdateFileImpl(fileName));
+            var task = this.Factory.StartNew(() => AddOrUpdateFileImpl(fileName));
+            task.ContinueWith((t) => {
+                if(t.Result.HasValue) {
+                    OnFileChanged(new FileEventRaisedArgs(t.Result.Value, fileName));
+                }
+            });
+            return task;
         }
 
         /// <summary>
@@ -104,7 +113,9 @@ namespace ABB.SrcML
         /// <param name="fileName">The file name to delete. If it does not exist, nothing happens</param>
         public virtual void DeleteFile(string fileName) {
             // LogExceptions(task);
-            DeleteFileImpl(fileName);
+            if(DeleteFileImpl(fileName)) {
+                OnFileChanged(new FileEventRaisedArgs(FileEventType.FileDeleted, fileName));
+            }
         }
 
         /// <summary>
@@ -113,7 +124,9 @@ namespace ABB.SrcML
         /// <param name="fileName">The file name to delete. If it does not exist, nothing happens</param>
         public virtual Task DeleteFileAsync(string fileName) {
             //LogExceptions(task);
-            return Factory.StartNew(() => DeleteFileImpl(fileName));
+            var task = Factory.StartNew(() => DeleteFileImpl(fileName));
+            task.ContinueWith((t) => new FileEventRaisedArgs(FileEventType.FileDeleted, fileName));
+            return task;
         }
 
         /// <summary>
@@ -123,7 +136,9 @@ namespace ABB.SrcML
         /// <param name="newFileName">the new path</param>
         public virtual void RenameFile(string oldFileName, string newFileName) {
             //LogExceptions(task);
-            RenameFileImpl(oldFileName, newFileName);
+            if(RenameFileImpl(oldFileName, newFileName)) {
+                OnFileChanged(new FileEventRaisedArgs(FileEventType.FileRenamed, newFileName, oldFileName));
+            }
         }
 
         /// <summary>
@@ -133,7 +148,13 @@ namespace ABB.SrcML
         /// <param name="newFileName">the new path</param>
         public virtual Task RenameFileAsync(string oldFileName, string newFileName) {
             //LogExceptions(task);
-            return Factory.StartNew(() => RenameFileImpl(oldFileName, newFileName));
+            var task = Factory.StartNew(() => RenameFileImpl(oldFileName, newFileName));
+            task.ContinueWith((t) => {
+                if(t.Result) {
+                    OnFileChanged(new FileEventRaisedArgs(FileEventType.FileRenamed, newFileName, oldFileName));
+                }
+            });
+            return task;
         }
 
         /// <summary>

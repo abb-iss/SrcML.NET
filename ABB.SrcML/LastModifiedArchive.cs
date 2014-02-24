@@ -169,14 +169,11 @@ namespace ABB.SrcML {
         /// (if the file was in the archive) or <see cref="FileEventType.FileAdded"/>.
         /// </summary>
         /// <param name="fileName">The file name to add</param>
-        protected override void AddOrUpdateFileImpl(string fileName) {
+        protected override FileEventType? AddOrUpdateFileImpl(string fileName) {
             string fullPath = GetFullPath(fileName);
-            FileEventType eventType;
-
-            eventType = (lastModifiedMap.ContainsKey(fullPath) ? FileEventType.FileChanged : FileEventType.FileAdded);
+            bool fileAlreadyExists = ContainsFile(fileName);
             lastModifiedMap[fullPath] = File.GetLastWriteTime(fullPath);
-
-            OnFileChanged(new FileEventRaisedArgs(eventType, fullPath));
+            return (fileAlreadyExists ? FileEventType.FileChanged : FileEventType.FileAdded);
         }
 
         /// <summary>
@@ -186,15 +183,16 @@ namespace ABB.SrcML {
         /// if the file was in the archive.
         /// </summary>
         /// <param name="fileName">The file to delete</param>
-        protected override void DeleteFileImpl(string fileName) {
+        protected override bool DeleteFileImpl(string fileName) {
             string fullPath = GetFullPath(fileName);
             bool mapContainsFile = true;
 
             mapContainsFile = lastModifiedMap.ContainsKey(fullPath);
             DateTime result;
             if(lastModifiedMap.TryRemove(fullPath, out result)) {
-                OnFileChanged(new FileEventRaisedArgs(FileEventType.FileDeleted, fullPath));
+                return true;
             }
+            return false;
         }
 
         /// <summary>
@@ -208,19 +206,14 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="oldFileName">the old file path</param>
         /// <param name="newFileName">the new file path</param>
-        protected override void RenameFileImpl(string oldFileName, string newFileName) {
+        protected override bool RenameFileImpl(string oldFileName, string newFileName) {
             string oldFullPath = GetFullPath(oldFileName);
             string newFullPath = GetFullPath(newFileName);
 
-            var eventType = FileEventType.FileAdded;
-
             DateTime result;
-            if(lastModifiedMap.TryRemove(oldFullPath, out result)) {
-                eventType = FileEventType.FileRenamed;
-            }
+            lastModifiedMap.TryRemove(oldFullPath, out result);
             lastModifiedMap[newFullPath] = File.GetLastWriteTime(newFullPath);
-
-            OnFileChanged(new FileEventRaisedArgs(eventType, newFullPath, oldFullPath));
+            return true;
         }
 
         /// <summary>
