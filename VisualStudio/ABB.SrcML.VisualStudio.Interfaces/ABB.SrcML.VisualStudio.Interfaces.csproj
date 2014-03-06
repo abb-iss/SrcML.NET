@@ -43,6 +43,7 @@
     <Compile Include="..\..\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
+    <Compile Include="ISrcMLDataService.cs" />
     <Compile Include="ISrcMLGlobalService.cs" />
     <Compile Include="ITaskManagerService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

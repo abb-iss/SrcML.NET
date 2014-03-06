@@ -3,7 +3,7 @@
 		 ToolsVersion="4.0"
 		 DefaultTargets="RemoveGenDataFile">
   <PropertyGroup>
-    <MSBuildCommunityTasksPath>$(MSBuildThisFileDirectory)External\MSBuild\MSBuildCommunityTasks</MSBuildCommunityTasksPath>
+    <MSBuildCommunityTasksPath>$(MSBuildThisFileDirectory)External\BuildScripts\MSBuildTasks</MSBuildCommunityTasksPath>
     <Configuration Condition="'$(Configuration)'==''">Release</Configuration>
     <BuildFolder>Build</BuildFolder>
     <VsixName>ABB.SrcML.VisualStudio.SrcMLService.vsix</VsixName>

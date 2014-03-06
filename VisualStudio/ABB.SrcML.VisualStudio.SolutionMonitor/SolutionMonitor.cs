@@ -99,7 +99,6 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         public SolutionMonitor(SolutionWrapper openSolution, string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
             : base(baseDirectory, defaultArchive, otherArchives) {
             this.OpenSolution = openSolution;
-            this.UseAsyncMethods = true;
         }
 
         #region AbstractFileMonitor Members

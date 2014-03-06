@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace ABB.SrcML {
@@ -20,18 +21,16 @@ namespace ABB.SrcML {
     /// This interface is designed for all events that can be raised from SrcML.NET.
     /// </summary>
     public interface IFileMonitor : IDisposable {
-
-        bool IsReady { get; }
-
-        bool UseAsyncMethods { get; set; }
-
         int NumberOfAllMonitoredFiles { get; }
+
+        bool UpdateArchivesRunning { get; }
 
         event EventHandler<FileEventRaisedArgs> FileChanged;
 
-        event EventHandler<IsReadyChangedEventArgs> IsReadyChanged;
-
         event EventHandler MonitoringStopped;
+
+        event EventHandler UpdateArchivesStarted;
+        event EventHandler UpdateArchivesCompleted;
 
         /// <summary>
         /// Start monitoring files
@@ -56,13 +55,25 @@ namespace ABB.SrcML {
 
         void AddFile(string filePath);
 
+        Task AddFileAsync(string filePath);
+
         void DeleteFile(string filePath);
+
+        Task DeleteFileAsync(string filePath);
 
         void UpdateFile(string filePath);
 
+        Task UpdateFileAsync(string filePath);
+
         void RenameFile(string oldFilePath, string newFilePath);
 
+        Task RenameFileAsync(string oldFilePath, string newFilePath);
+
         void Save();
+
+        void UpdateArchives();
+
+        Task UpdateArchivesAsync();
     }
 
     /// <summary>

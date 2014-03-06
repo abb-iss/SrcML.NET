@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace ABB.SrcML
@@ -21,27 +22,23 @@ namespace ABB.SrcML
     {
         string ArchivePath { get; }
 
-        bool IsReady { get; }
-
         bool IsEmpty { get; }
 
         ICollection<string> SupportedExtensions { get; }
 
         event EventHandler<FileEventRaisedArgs> FileChanged;
 
-        event EventHandler<IsReadyChangedEventArgs> IsReadyChanged;
-
         void AddOrUpdateFile(string fileName);
 
-        void AddOrUpdateFileAsync(string fileName);
+        Task AddOrUpdateFileAsync(string fileName);
 
         void DeleteFile(string fileName);
 
-        void DeleteFileAsync(string fileName);
+        Task DeleteFileAsync(string fileName);
 
         void RenameFile(string oldFileName, string newFileName);
 
-        void RenameFileAsync(string oldFileName, string newFileName);
+        Task RenameFileAsync(string oldFileName, string newFileName);
 
         bool ContainsFile(string fileName);
 

@@ -50,16 +50,15 @@ namespace ABB.SrcML.Tools.DataTester {
             Stopwatch timer = new Stopwatch();
             bool startupCompleted = false;
 
-            monitor.IsReadyChanged += (o, e) => {
-                if(e.ReadyState) {
-                    timer.Stop();
-                    startupCompleted = true;
-                    mre.Set();
-                }
+            monitor.UpdateArchivesCompleted  += (o, e) => {
+                timer.Stop();
+                startupCompleted = true;
+                mre.Set();
             };
 
             timer.Start();
-            monitor.UpdateArchives();
+            var task = monitor.UpdateArchivesAsync();
+            
             string[] spinner = new string[] { "\\\r", "|\r", "/\r" };
             int spinner_index = -1;
             while(!startupCompleted) {

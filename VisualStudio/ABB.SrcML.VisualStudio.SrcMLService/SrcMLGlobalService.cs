@@ -43,8 +43,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
         private uint cookie = 0;
 
-        private IDataRepository CurrentDataRepository;
-
         /// <summary>
         /// SrcML.NET's Solution Monitor.
         /// </summary>
@@ -55,10 +53,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// </summary>
         private ISrcMLArchive CurrentSrcMLArchive;
 
-        private bool duringStartup;
-
         private int frozen;
-        private ReadyNotifier ReadyState;
         private ReentrantTimer SaveTimer;
         
 
@@ -92,15 +87,12 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="extensionDirectory"></param>
         public SrcMLGlobalService(IServiceProvider sp, string extensionDirectory) {
             SrcMLFileLogger.DefaultLogger.InfoFormat("Constructing a new instance of SrcMLGlobalService in {0}", extensionDirectory);
-            numRunningSources = 0;
-            ReadyState = new ReadyNotifier(this);
             serviceProvider = sp;
             SrcMLServiceDirectory = extensionDirectory;
             DataEnabled = ShouldGenerateData(extensionDirectory);
             statusBar = (IVsStatusbar) Package.GetGlobalService(typeof(SVsStatusbar));
             _taskManager = (ITaskManagerService) Package.GetGlobalService(typeof(STaskManagerService));
-            _taskManager.SchedulerIdled += _taskManager_SchedulerIdled;
-            SaveTimer = new ReentrantTimer(() => CurrentMonitor.Save(), new TaskManager(this, _taskManager.GlobalScheduler));
+            SaveTimer = new ReentrantTimer(() => CurrentMonitor.Save(), _taskManager.GlobalScheduler);
             SaveInterval = DEFAULT_SAVE_INTERVAL;
         }
 
@@ -112,37 +104,20 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             return false;
         }
 
-        private int numRunningSources { get; set; }
-
-        private int NumRunningSources {
-            get { return this.numRunningSources; }
-            set {
-                this.numRunningSources = value;
-                IsReady = (numRunningSources == 0);
-            }
-        }
-
-        //private bool duringStartup;
-        // Implement the methods of ISrcMLLocalService here.
-
         #region ISrcMLGlobalService Members
 
         public event EventHandler<DirectoryScanningMonitorEventArgs> DirectoryAdded;
         public event EventHandler<DirectoryScanningMonitorEventArgs> DirectoryRemoved;
 
-        public event EventHandler<IsReadyChangedEventArgs> IsReadyChanged {
-            add { this.ReadyState.IsReadyChanged += value; }
-            remove { this.ReadyState.IsReadyChanged -= value; }
-        }
-
-        public event EventHandler<EventArgs> MonitoringStopped;
+        public event EventHandler MonitoringStarted;
+        public event EventHandler MonitoringStopped;
 
         public event EventHandler<FileEventRaisedArgs> SourceFileChanged;
 
-        public bool IsReady {
-            get { return this.ReadyState.IsReady; }
-            private set { this.ReadyState.IsReady = value; }
-        }
+        public event EventHandler UpdateArchivesStarted;
+        public event EventHandler UpdateArchivesCompleted;
+
+        public bool IsUpdating { get; private set; }
 
         public ReadOnlyCollection<string> MonitoredDirectories { get { return (CurrentMonitor == null ? null : this.CurrentMonitor.MonitoredDirectories); } }
 
@@ -170,10 +145,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 throw new ArgumentNullException("pathToDirectory");
             }
             CurrentMonitor.AddDirectory(pathToDirectory);
-        }
-
-        public IDataRepository GetDataRepository() {
-            return CurrentDataRepository;
         }
 
         /// <summary>
@@ -240,15 +211,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                                                               new ShortXmlFileNameMapping(Path.Combine(baseDirectory, SrcMLArchive.DEFAULT_ARCHIVE_DIRECTORY)),
                                                               _taskManager.GlobalScheduler);
                 CurrentSrcMLArchive = sourceArchive;
-                if(DataEnabled) {
-                    CurrentDataRepository = new DataRepository(CurrentSrcMLArchive);
-
-                    if(CurrentSrcMLArchive.IsEmpty) {
-                        CurrentSrcMLArchive.IsReadyChanged += InitDataWhenReady;
-                    } else {
-                        InitDataWhenReady(this, new IsReadyChangedEventArgs(true));
-                    }
-                }
 
                 // Create a new instance of SrcML.NET's solution monitor
                 if(openSolution != null) {
@@ -256,6 +218,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                                                        _taskManager.GlobalScheduler, baseDirectory, lastModifiedArchive, sourceArchive);
                     CurrentMonitor.DirectoryAdded += RespondToDirectoryAddedEvent;
                     CurrentMonitor.DirectoryRemoved += RespondToDirectoryRemovedEvent;
+                    CurrentMonitor.UpdateArchivesStarted += CurrentMonitor_UpdateArchivesStarted;
+                    CurrentMonitor.UpdateArchivesCompleted += CurrentMonitor_UpdateArchivesCompleted;
                     CurrentMonitor.AddDirectoriesFromSaveFile();
                     CurrentMonitor.AddSolutionDirectory();
                 }
@@ -263,26 +227,31 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 // Subscribe events from Solution Monitor
                 if(CurrentMonitor != null) {
                     CurrentMonitor.FileChanged += RespondToFileChangedEvent;
-                    CurrentMonitor.MonitoringStopped += RespondToMonitoringStoppedEvent;
 
-                    if(DataEnabled) {
-                        CurrentDataRepository.FileProcessed += RespondToFileChangedEvent;
-                        CurrentDataRepository.IsReadyChanged += RespondToIsReadyChangedEvent;
-                    }
                     // Initialize the progress bar.
                     if(statusBar != null) {
                         statusBar.Progress(ref cookie, 1, "", 0, 0);
                     }
-
                     // Start monitoring
-                    duringStartup = true;
-                    CurrentMonitor.UpdateArchives();
+                    var updateTask = CurrentMonitor.UpdateArchivesAsync();
+
                     CurrentMonitor.StartMonitoring();
+                    OnMonitoringStarted(new EventArgs());
                     SaveTimer.Start();
                 }
             } catch(Exception e) {
                 SrcMLFileLogger.DefaultLogger.Error(SrcMLExceptionFormatter.CreateMessage(e, "Exception in SrcMLGlobalService.StartMonitoring()"));
             }
+        }
+
+        void CurrentMonitor_UpdateArchivesCompleted(object sender, EventArgs e) {
+            IsUpdating = false;
+            OnUpdateArchivesCompleted(e);
+        }
+
+        void CurrentMonitor_UpdateArchivesStarted(object sender, EventArgs e) {
+            IsUpdating = true;
+            OnUpdateArchivesStarted(e);
         }
 
         /// <summary>
@@ -300,33 +269,19 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             SrcMLFileLogger.DefaultLogger.Info("SrcMLGlobalService.StopMonitoring()");
             try {
                 if(CurrentMonitor != null && CurrentSrcMLArchive != null) {
+                    OnMonitoringStopped(new EventArgs());
                     SaveTimer.Stop();
                     CurrentMonitor.StopMonitoring();
                     CurrentMonitor.FileChanged -= RespondToFileChangedEvent;
                     CurrentMonitor.DirectoryAdded -= RespondToDirectoryAddedEvent;
                     CurrentMonitor.DirectoryRemoved -= RespondToDirectoryRemovedEvent;
-                    CurrentMonitor.MonitoringStopped -= RespondToMonitoringStoppedEvent;
                     CurrentMonitor.Dispose();
-                    
-                    if(DataEnabled) {
-                        CurrentDataRepository.FileProcessed -= RespondToFileChangedEvent;
-                        CurrentDataRepository.IsReadyChanged -= RespondToIsReadyChangedEvent;
-                        CurrentDataRepository.Dispose();
-                    }
 
                     CurrentSrcMLArchive = null;
-                    CurrentDataRepository = null;
                     CurrentMonitor = null;
                 }
             } catch(Exception e) {
                 SrcMLFileLogger.DefaultLogger.Error(SrcMLExceptionFormatter.CreateMessage(e, "Exception in SrcMLGlobalService.StopMonitoring()"));
-            }
-        }
-
-        private void InitDataWhenReady(object sender, IsReadyChangedEventArgs e) {
-            if(e.ReadyState) {
-                CurrentSrcMLArchive.IsReadyChanged -= InitDataWhenReady;
-                CurrentDataRepository.InitializeDataConcurrent(_taskManager.GlobalScheduler);
             }
         }
 
@@ -362,13 +317,33 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             }
         }
 
-        protected virtual void OnMonitoringStopped(EventArgs e) {
-            EventHandler<EventArgs> handler = MonitoringStopped;
+        protected virtual void OnMonitoringStarted(EventArgs e) {
+            EventHandler handler = MonitoringStarted;
             if(handler != null) {
                 handler(this, e);
             }
         }
 
+        protected virtual void OnMonitoringStopped(EventArgs e) {
+            EventHandler handler = MonitoringStopped;
+            if(handler != null) {
+                handler(this, e);
+            }
+        }
+
+        protected virtual void OnUpdateArchivesStarted(EventArgs e) {
+            EventHandler handler = UpdateArchivesStarted;
+            if(handler != null) {
+                handler(this, e);
+            }
+        }
+
+        protected virtual void OnUpdateArchivesCompleted(EventArgs e) {
+            EventHandler handler = UpdateArchivesCompleted;
+            if(handler != null) {
+                handler(this, e);
+            }
+        }
         /// <summary>
         /// Get the open solution.
         /// </summary>
@@ -435,54 +410,18 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             //ShowProgressOnStatusBar("SrcML Service is processing " + eventArgs.FilePath);
             //}
             OnFileChanged(eventArgs);
-            var senderIsDataRepo = (sender == CurrentDataRepository);
-            DisplayTextOnStatusBar(String.Format("SrcML Service is {0} {1}", (senderIsDataRepo ? "generating data for" : "processing"), eventArgs.FilePath));
         }
 
         private void RespondToDirectoryAddedEvent(object sender, DirectoryScanningMonitorEventArgs eventArgs) {
             OnDirectoryAdded(eventArgs);
-            DisplayTextOnStatusBar(String.Format("Now monitoring {0}", eventArgs.Directory));
+            //DisplayTextOnStatusBar(String.Format("Now monitoring {0}", eventArgs.Directory));
         }
 
         private void RespondToDirectoryRemovedEvent(object sender, DirectoryScanningMonitorEventArgs eventArgs) {
             OnDirectoryRemoved(eventArgs);
-            DisplayTextOnStatusBar(String.Format("No longer monitoring {0}", eventArgs.Directory));
+            //DisplayTextOnStatusBar(String.Format("No longer monitoring {0}", eventArgs.Directory));
         }
 
-        void _taskManager_SchedulerIdled(object sender, EventArgs e) {
-            DisplayTextOnStatusBar("Finished indexing");
-        }
-
-        /// <summary>
-        /// Respond to the IsReady
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="eventArgs"></param>
-        private void RespondToIsReadyChangedEvent(object sender, IsReadyChangedEventArgs eventArgs) {
-            SrcMLFileLogger.DefaultLogger.Info("SrcMLService: RespondToStartupCompletedEvent()");
-            if(eventArgs.ReadyState) {
-                NumRunningSources--;
-
-                // Clear the progress bar.
-
-                amountCompleted = 0;
-                if(statusBar != null) {
-                    statusBar.Progress(ref cookie, 0, "", 0, 0);
-                }
-                string message = "SrcML Service has no idea where this message came from";
-                if(sender == CurrentMonitor) {
-                    message = "SrcML Service has finished parsing files";
-                } else if(sender == CurrentDataRepository) {
-                    message = "SrcML Service has finished generating analysis data";
-                }
-
-                DisplayTextOnStatusBar(message);
-                // duringStartup = false;
-            } else {
-                NumRunningSources++;
-            }
-        }
-        
         private bool ShouldReset() {
             var openSolution = GetOpenSolution();
             if(null != openSolution) {
@@ -493,16 +432,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         }
         void SaveTimer_Elapsed(object sender, ElapsedEventArgs e) {
             CurrentMonitor.Save();
-        }
-
-        /// <summary>
-        /// Respond to the MonitorStopped event from SrcMLArchive.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="eventArgs"></param>
-        private void RespondToMonitoringStoppedEvent(object sender, EventArgs eventArgs) {
-            SrcMLFileLogger.DefaultLogger.Info("SrcMLService: RespondToMonitoringStoppedEvent()");
-            OnMonitoringStopped(eventArgs);
         }
 
         /// <summary>

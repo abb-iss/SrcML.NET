@@ -34,7 +34,7 @@ namespace ABB.SrcML.Utilities {
 
         private Timer _timer;
         private readonly Action _timerAction;
-        private TaskManager _taskManager;
+        private TaskScheduler _scheduler;
 
         /// <summary>
         /// A client can subscribe to this event in order to execute in <see cref="Interval"/>. If <see cref="AutoReset"/> is set to false, then this event
@@ -46,19 +46,21 @@ namespace ABB.SrcML.Utilities {
         /// </summary>
         public event ElapsedEventHandler Elapsed;
 
-        public ReentrantTimer(double interval, Action action, TaskManager taskManager) {
+        public ReentrantTimer(double interval, Action action, TaskScheduler scheduler) {
             this._timer = new Timer(interval);
             this._timerAction = action;
-            this._taskManager = taskManager;
+            this._scheduler = scheduler;
             this._timer.Elapsed += _timer_Elapsed;
         }
 
         /// <summary>
         /// Create a reentrant timer with an <see cref="Interval"/> of 100ms.
         /// </summary>
-        public ReentrantTimer(Action action, TaskManager taskManager)
-            : this(100, action, taskManager) {
-        }
+        public ReentrantTimer(Action action, TaskScheduler scheduler)
+            : this(100, action, scheduler) { }
+
+        public ReentrantTimer(Action action)
+            : this(100, action, TaskScheduler.Default) { }
 
         /// <summary>
         /// If auto reset is set to true, the timer will automatically reset. If false, it will only trigger false.
@@ -88,7 +90,7 @@ namespace ABB.SrcML.Utilities {
         /// Waits for the timer to be idle (i.e. not executing anything) and then executes <paramref name="action"/>
         /// </summary>
         /// <param name="action">The action to execute</param>
-        public void ExecuteWhenIdle(Action action) {
+        public Task ExecuteWhenIdle(Action action) {
             var task = new Task(() => {
                 while(RUNNING == Interlocked.CompareExchange(ref syncPoint, RUNNING, IDLE)) {
                     Thread.Sleep(1);
@@ -96,7 +98,8 @@ namespace ABB.SrcML.Utilities {
                 action();
             });
             SetSyncToIdleOnCompletion(task);
-            _taskManager.RunAsync(task);
+            task.Start(_scheduler);
+            return task;
         }
 
         /// <summary>
@@ -141,7 +144,7 @@ namespace ABB.SrcML.Utilities {
             if(IDLE == sync) {
                 var task = new Task(_timerAction);
                 SetSyncToIdleOnCompletion(task);
-                _taskManager.RunAsync(task);
+                task.Start(this._scheduler);
             }
         }
     }

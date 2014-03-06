@@ -272,24 +272,22 @@ namespace ABB.SrcML.Data.Test {
 
             using(var fileLog = new StreamWriter(fileLogPath)) {
                 using(var monitor = new FileSystemFolderMonitor(sourcePath, dataPath, new LastModifiedArchive(dataPath), archive)) {
-                    monitor.UseAsyncMethods = useAsyncMethods;
-
-                    ManualResetEvent mre = new ManualResetEvent(false);
                     DateTime start, end = DateTime.MinValue;
                     bool startupCompleted = false;
 
-                    archive.IsReadyChanged += (o, e) => {
-                        if(e.ReadyState) {
+                    start = DateTime.Now;
+                    if(useAsyncMethods) {
+                        var task = monitor.UpdateArchivesAsync().ContinueWith((t) => {
                             end = DateTime.Now;
                             startupCompleted = true;
-                            mre.Set();
-                        }
-                    };
+                        });
+                        task.Wait();
+                    } else {
+                        monitor.UpdateArchives();
+                        end = DateTime.Now;
+                        startupCompleted = true;
+                    }
 
-                    start = DateTime.Now;
-                    monitor.UpdateArchives();
-
-                    startupCompleted = mre.WaitOne(120000);
                     if(!startupCompleted) {
                         end = DateTime.Now;
                     }
@@ -356,123 +354,6 @@ namespace ABB.SrcML.Data.Test {
                     }
                 }
             }
-        }
-
-        private void TestDataGeneration_Concurrent(string sourcePath, string dataPath) {
-            string fileLogPath = Path.Combine(dataPath, "parse.log");
-            string callLogPath = Path.Combine(dataPath, "methodcalls.log");
-            bool regenerateSrcML = shouldRegenerateSrcML;
-
-            if(!Directory.Exists(sourcePath)) {
-                Assert.Ignore("Source code for is missing");
-            }
-            if(File.Exists(callLogPath)) {
-                File.Delete(callLogPath);
-            }
-            if(File.Exists(fileLogPath)) {
-                File.Delete(fileLogPath);
-            }
-            if(!Directory.Exists(dataPath)) {
-                regenerateSrcML = true;
-            } else if(shouldRegenerateSrcML) {
-                Directory.Delete(dataPath, true);
-            }
-
-            var archive = new SrcMLArchive(dataPath, regenerateSrcML);
-            archive.XmlGenerator.ExtensionMapping[".cxx"] = Language.CPlusPlus;
-            archive.XmlGenerator.ExtensionMapping[".c"] = Language.CPlusPlus;
-            archive.XmlGenerator.ExtensionMapping[".cc"] = Language.CPlusPlus;
-
-            AbstractFileMonitor monitor = new FileSystemFolderMonitor(sourcePath, dataPath, new LastModifiedArchive(dataPath), archive);
-
-            ManualResetEvent mre = new ManualResetEvent(false);
-            Stopwatch sw = new Stopwatch();
-            bool startupCompleted = false;
-
-            monitor.IsReadyChanged += (o, e) => {
-                if(e.ReadyState) {
-                    sw.Stop();
-                    startupCompleted = true;
-                    mre.Set();
-                }
-            };
-
-            sw.Start();
-
-            //add the concurrency test: ZL
-            monitor.Startup_Concurrent();
-
-            startupCompleted = mre.WaitOne(60000);
-            if(sw.IsRunning) {
-                sw.Stop();
-            }
-
-            Console.WriteLine("{0} to {1} srcML", sw.Elapsed, (regenerateSrcML ? "generate" : "verify"));
-            Assert.That(startupCompleted);
-
-            IScope globalScope = null;
-            sw.Reset();
-
-            int numberOfFailures = 0;
-            int numberOfSuccesses = 0;
-            int numberOfFiles = 0;
-            Dictionary<string, List<string>> errors = new Dictionary<string, List<string>>();
-
-            sw.Start();
-
-            using(var fileLog = new StreamWriter(fileLogPath)) {
-                using(BlockingCollection<INamespaceDefinition> bc = new BlockingCollection<INamespaceDefinition>()) {
-                    Task.Factory.StartNew(() => {
-                        Parallel.ForEach(archive.FileUnits, unit => {
-                            var currentFile = SrcMLElement.GetFileNameForUnit(unit);
-                            var language = SrcMLElement.GetLanguageForUnit(unit);
-                            try {
-                                var scopeForUnit = CodeParser[language].ParseFileUnit(unit);
-                                bc.Add(scopeForUnit);
-                            } catch(Exception e) {
-                                var key = e.StackTrace.Split('\n')[0].Trim();
-                                if(!errors.ContainsKey(key)) {
-                                    errors[key] = new List<string>();
-                                }
-                                errors[key].Add(currentFile);
-                            }
-                        });
-
-                        bc.CompleteAdding();
-                    });
-
-                    foreach(var item in bc.GetConsumingEnumerable()) {
-                        if(null == globalScope) {
-                            globalScope = item;
-                        } else {
-                            try {
-                                globalScope = globalScope.Merge(item);
-                            } catch(Exception e) {
-                                //So far, don't know how to log the error (ZL 04/2013)
-                                //Console.WriteLine("error");
-                            }
-                        }
-                    }
-                }
-            }
-
-            sw.Stop();
-
-            Console.WriteLine("{0,5:N0} files completed in {1} with {2,5:N0} failures", numberOfFiles, sw.Elapsed, numberOfFailures);
-            Console.WriteLine("\nSummary");
-            Console.WriteLine("===================");
-            Console.WriteLine("{0,10:N0} failures  ({1,8:P2})", numberOfFailures, ((float) numberOfFailures) / numberOfFiles);
-            Console.WriteLine("{0,10:N0} successes ({1,8:P2})", numberOfSuccesses, ((float) numberOfSuccesses) / numberOfFiles);
-            Console.WriteLine("{0} to generate data", sw.Elapsed);
-            Console.WriteLine(fileLogPath);
-
-            PrintScopeReport(globalScope);
-            PrintMethodCallReport(globalScope, callLogPath);
-            PrintErrorReport(errors);
-
-            monitor.Dispose();
-            //Assert.AreEqual(numberOfFailures, (from e in errors.Values select e.Count).Sum());
-            //Assert.AreEqual(0, numberOfFailures);
         }
     }
 }

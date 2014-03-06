@@ -82,6 +82,8 @@ namespace ABB.SrcML.Test
 
             archive.FileChanged += (sender, e) => {
                 actualEventType = e.EventType;
+                bool shouldHaveSrcML = (e.EventType != FileEventType.FileDeleted);
+                Assert.AreEqual(shouldHaveSrcML, e.HasSrcML);
                 resetEvent.Set();
             };
 

@@ -10,7 +10,7 @@ namespace ABB.SrcML.Utilities {
         private int _runningTasks;
         private Object _parent;
         private ReadyNotifier ReadyState;
-
+        
         /// <summary>
         /// Event fires when the <see cref="IsReady"/> property changes
         /// </summary>
@@ -58,10 +58,11 @@ namespace ABB.SrcML.Utilities {
         /// Runs the specified action on <see cref="TaskFactory"/>. The action will be run with the following continuations: <see cref="DecrementOnCompletion"/> and <see cref="LogExceptions"/> 
         /// </summary>
         /// <param name="task"></param>
-        public void RunAsync(Task task) {
+        public Task RunAsync(Task task) {
             IncrementTask();
             DecrementOnCompletion(task);
             task.Start(this.Scheduler);
+            return task;
         }
 
         /// <summary>

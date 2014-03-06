@@ -37,26 +37,23 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// </summary>
         event EventHandler<DirectoryScanningMonitorEventArgs> DirectoryRemoved;
 
-        /// <summary>
-        /// Event to indicate that the state of <see cref="IsReady"/> has changed
-        /// </summary>
-        event EventHandler<IsReadyChangedEventArgs> IsReadyChanged;
+        event EventHandler MonitoringStarted;
 
         /// <summary>
         /// Event to indicate that <see cref="StopMonitoring()"/> has been called
         /// </summary>
-        event EventHandler<EventArgs> MonitoringStopped;
+        event EventHandler MonitoringStopped;
 
         /// <summary>
         /// Event to indicate that a source file has changed
         /// </summary>
         event EventHandler<FileEventRaisedArgs> SourceFileChanged;
 
-        /// <summary>
-        /// Indicates whether or not the service is processing any files (true if no files are being
-        /// processed, false otherwise)
-        /// </summary>
-        bool IsReady { get; }
+        event EventHandler UpdateArchivesStarted;
+        
+        event EventHandler UpdateArchivesCompleted;
+
+        bool IsUpdating { get; }
 
         /// <summary>
         /// Collection of directories monitored by the service. The list of directories is persisted
@@ -81,8 +78,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// </summary>
         /// <param name="pathToDirectory">The directory path to start monitoring</param>
         void AddDirectoryToMonitor(string pathToDirectory);
-
-        IDataRepository GetDataRepository();
 
         /// <summary>
         /// Gets the current SrcML Archive

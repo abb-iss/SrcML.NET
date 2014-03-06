@@ -18,12 +18,9 @@ namespace ABB.SrcML
     public abstract class AbstractArchive : IArchive
     {
         private string _archivePath;
-        protected TaskManager _taskManager;
 
-        protected AbstractArchive(string baseDirectory, string archiveSubDirectory) {
-            this.ArchivePath = Path.Combine(baseDirectory, archiveSubDirectory);
-            this._taskManager = new TaskManager(this);
-        }
+        protected AbstractArchive(string baseDirectory, string archiveSubDirectory)
+            : this(baseDirectory, archiveSubDirectory, TaskScheduler.Default){ }
 
         /// <summary>
         /// Sets the archive path for AbstractArchive objects
@@ -33,7 +30,8 @@ namespace ABB.SrcML
         /// <param name="scheduler">the scheduler to use for asynchronous methods</param>
         protected AbstractArchive(string baseDirectory, string archiveSubDirectory, TaskScheduler scheduler) {
             this.ArchivePath = Path.Combine(baseDirectory, archiveSubDirectory);
-            this._taskManager = new TaskManager(this, scheduler);
+            this.Scheduler = scheduler;
+            this.Factory = new TaskFactory(Scheduler);
         }
 
         private AbstractArchive()
@@ -46,21 +44,12 @@ namespace ABB.SrcML
         /// </summary>
         public abstract bool IsEmpty { get; }
 
-        /// <summary>
-        /// Archives are "ready" when they have no running tasks. This property automatically changes to false
-        /// when the number of running tasks is zero. Whenever the value changes, the <see cref="IsReadyChanged"/> event fires.
-        /// </summary>
-        public bool IsReady {
-            get { return this._taskManager.IsReady; }
-        }
+        protected TaskFactory Factory { get; private set; }
 
         /// <summary>
         /// Task factory for the asynchronous methods
         /// </summary>
-        public TaskScheduler Scheduler {
-            get { return this._taskManager.Scheduler; }
-            set { this._taskManager.Scheduler = value; }
-        }
+        public TaskScheduler Scheduler { get; protected set; }
 
         /// <summary>
         /// the extensions supported by this collection. The strings returned by this property should match the ones returned by <see cref="System.IO.Path.GetExtension(string)"/>
@@ -73,50 +62,49 @@ namespace ABB.SrcML
         public event EventHandler<FileEventRaisedArgs> FileChanged;
 
         /// <summary>
-        /// Event fires when the <see cref="IsReady"/> property changes
-        /// </summary>
-        public event EventHandler<IsReadyChangedEventArgs> IsReadyChanged {
-            add { this._taskManager.IsReadyChanged += value; }
-            remove { this._taskManager.IsReadyChanged -= value; }
-        }
-
-        /// <summary>
         /// Sub-classes of AbstractArchive should implement the "add or update file" functionality here in order to enable <see cref="AddOrUpdateFile"/> and <see cref="AddOrUpdateFileAsync"/>
         /// </summary>
         /// <param name="fileName">The file name to add or update. If the file exists, it is deleted and then added regardless of whether or not the file is outdated</param>
-        protected abstract void AddOrUpdateFileImpl(string fileName);
+        protected abstract FileEventType? AddOrUpdateFileImpl(string fileName);
 
         /// <summary>
         /// Sub-classes of AbstractArchive should implement the "delete file" functionality here in order to enable <see cref="DeleteFile"/> and <see cref="DeleteFileAsync"/>
         /// </summary>
         /// <param name="fileName">The file name to delete. If it does not exist, nothing happens</param>
-        protected abstract void DeleteFileImpl(string fileName);
+        protected abstract bool DeleteFileImpl(string fileName);
 
         /// <summary>
         /// Sub-classes of AbstractArchive should implement the "rename file" functionality here in order to enable <see cref="RenameFile"/> and <see cref="RenameFileAsync"/>
         /// </summary>
         /// <param name="oldFileName">the existing path</param>
         /// <param name="newFileName">the new path</param>
-        protected abstract void RenameFileImpl(string oldFileName, string newFileName);
+        protected abstract bool RenameFileImpl(string oldFileName, string newFileName);
 
         /// <summary>
         /// Adds or updates <paramref name="fileName"/> within the archive
         /// </summary>
         /// <param name="fileName">The file name to add or update. If the file exists, it is deleted and then added regardless of whether or not the file is outdated</param>
         public virtual void AddOrUpdateFile(string fileName) {
-            var task = new Task(() => AddOrUpdateFileImpl(fileName));
-            LogExceptions(task);
-            _taskManager.Run(task);
+            // LogExceptions(task);
+            var eventType = AddOrUpdateFileImpl(fileName);
+            if(eventType.HasValue) {
+                OnFileChanged(new FileEventRaisedArgs(eventType.Value, fileName));
+            }
         }
 
         /// <summary>
         /// Adds or updates <paramref name="fileName"/> within the archive asynchronously. A new <see cref="System.Threading.Tasks.Task"/> is run via <see cref="TaskFactory"/>.
         /// </summary>
         /// <param name="fileName">The file name to add or update. If the file exists, it is deleted and then added regardless of whether or not the file is outdated</param>
-        public virtual void AddOrUpdateFileAsync(string fileName) {
-            var task = new Task(() => AddOrUpdateFileImpl(fileName));
-            LogExceptions(task);
-            _taskManager.RunAsync(task);
+        public virtual Task AddOrUpdateFileAsync(string fileName) {
+            //LogExceptions(task);
+            var task = this.Factory.StartNew(() => AddOrUpdateFileImpl(fileName));
+            task.ContinueWith((t) => {
+                if(t.Result.HasValue) {
+                    OnFileChanged(new FileEventRaisedArgs(t.Result.Value, fileName));
+                }
+            });
+            return task;
         }
 
         /// <summary>
@@ -124,19 +112,21 @@ namespace ABB.SrcML
         /// </summary>
         /// <param name="fileName">The file name to delete. If it does not exist, nothing happens</param>
         public virtual void DeleteFile(string fileName) {
-            var task = new Task(() => DeleteFileImpl(fileName));
-            LogExceptions(task);
-            _taskManager.Run(task);
+            // LogExceptions(task);
+            if(DeleteFileImpl(fileName)) {
+                OnFileChanged(new FileEventRaisedArgs(FileEventType.FileDeleted, fileName));
+            }
         }
 
         /// <summary>
         /// Deletes <paramref name="fileName"/> from the archive asynchronously. A new <see cref="System.Threading.Tasks.Task"/> is run via <see cref="TaskFactory"/>.
         /// </summary>
         /// <param name="fileName">The file name to delete. If it does not exist, nothing happens</param>
-        public virtual void DeleteFileAsync(string fileName) {
-            var task = new Task(() => DeleteFileImpl(fileName));
-            LogExceptions(task);
-            _taskManager.RunAsync(task);
+        public virtual Task DeleteFileAsync(string fileName) {
+            //LogExceptions(task);
+            var task = Factory.StartNew(() => DeleteFileImpl(fileName));
+            task.ContinueWith((t) => new FileEventRaisedArgs(FileEventType.FileDeleted, fileName));
+            return task;
         }
 
         /// <summary>
@@ -145,9 +135,10 @@ namespace ABB.SrcML
         /// <param name="oldFileName">the existing path</param>
         /// <param name="newFileName">the new path</param>
         public virtual void RenameFile(string oldFileName, string newFileName) {
-            var task = new Task(() => RenameFileImpl(oldFileName, newFileName));
-            LogExceptions(task);
-            _taskManager.Run(task);
+            //LogExceptions(task);
+            if(RenameFileImpl(oldFileName, newFileName)) {
+                OnFileChanged(new FileEventRaisedArgs(FileEventType.FileRenamed, newFileName, oldFileName));
+            }
         }
 
         /// <summary>
@@ -155,10 +146,15 @@ namespace ABB.SrcML
         /// </summary>
         /// <param name="oldFileName">the existing path</param>
         /// <param name="newFileName">the new path</param>
-        public virtual void RenameFileAsync(string oldFileName, string newFileName) {
-            var task = new Task(() => RenameFileImpl(oldFileName, newFileName));
-            LogExceptions(task);
-            _taskManager.RunAsync(task);
+        public virtual Task RenameFileAsync(string oldFileName, string newFileName) {
+            //LogExceptions(task);
+            var task = Factory.StartNew(() => RenameFileImpl(oldFileName, newFileName));
+            task.ContinueWith((t) => {
+                if(t.Result) {
+                    OnFileChanged(new FileEventRaisedArgs(FileEventType.FileRenamed, newFileName, oldFileName));
+                }
+            });
+            return task;
         }
 
         /// <summary>
@@ -227,7 +223,6 @@ namespace ABB.SrcML
         /// </summary>
         public virtual void Dispose() {
             Save();
-            _taskManager.Dispose();
             FileChanged = null;
         }
     }

@@ -186,15 +186,13 @@ namespace ABB.SrcML {
         /// Otherwise, <see cref="AbstractArchive.FileChanged"/> is thrown with <see cref="FileEventType.FileAdded"/>.
         /// </summary>
         /// <param name="fileName">The file name to generate srcML for</param>
-        protected override void AddOrUpdateFileImpl(string fileName) {
-            FileEventType eventType = FileEventType.FileAdded;
-            if(this.ContainsFile(fileName)) {
-                eventType = FileEventType.FileChanged;
-            }
+        protected override FileEventType? AddOrUpdateFileImpl(string fileName) {
+            bool fileAlreadyExists = this.ContainsFile(fileName);
             if(File.Exists(fileName)) {
                 GenerateXmlForSource(fileName);
-                OnFileChanged(new FileEventRaisedArgs(eventType, fileName, true));
+                return (fileAlreadyExists ? FileEventType.FileChanged : FileEventType.FileAdded);
             }
+            return null;
         }
         
         /// <summary>
@@ -211,12 +209,13 @@ namespace ABB.SrcML {
         /// Deletes <paramref name="fileName"/> from the archive and raises <see cref="AbstractArchive.FileChanged"/> with <see cref="FileEventType.FileDeleted"/>.
         /// </summary>
         /// <param name="fileName">The file name to delete</param>
-        protected override void DeleteFileImpl(string fileName) {
+        protected override bool DeleteFileImpl(string fileName) {
             var xmlPath = GetXmlPath(fileName);
             if(File.Exists(xmlPath)) {
                 File.Delete(xmlPath);
+                return true;
             }
-            OnFileChanged(new FileEventRaisedArgs(FileEventType.FileDeleted, fileName, false));
+            return false;
         }
 
         /// <summary>
@@ -263,21 +262,30 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="oldFileName">The old file name</param>
         /// <param name="newFileName">The new file name.</param>
-        protected override void RenameFileImpl(string oldFileName, string newFileName) {
+        protected override bool RenameFileImpl(string oldFileName, string newFileName) {
             var oldXmlPath = GetXmlPath(oldFileName);
             var newXmlPath = GetXmlPath(newFileName);
 
             if(File.Exists(oldXmlPath)) {
                 File.Delete(oldXmlPath);
             }
-            GenerateXmlForSource(newFileName);
-            OnFileChanged(new FileEventRaisedArgs(FileEventType.FileRenamed, newFileName, oldFileName, true));
+            if(File.Exists(newFileName)) {
+                GenerateXmlForSource(newFileName);
+                return true;
+            }
+            return false;
         }
 
         public override void Save() {
             xmlFileNameMapping.SaveMapping();
         }
 
+        protected override void OnFileChanged(FileEventRaisedArgs e) {
+            if(e.EventType != FileEventType.FileDeleted) {
+                e.HasSrcML = true;
+            }
+            base.OnFileChanged(e);
+        }
         #endregion AbstractArchive Members
 
         /// <summary>

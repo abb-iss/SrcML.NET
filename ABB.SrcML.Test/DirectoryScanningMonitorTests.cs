@@ -157,9 +157,6 @@ namespace ABB.SrcML.Test {
             };
             monitor.StartMonitoring();
 
-            Assert.IsTrue(monitor.IsReady, "monitory is not ready");
-            Assert.IsTrue(archive.IsReady, "archive is not ready");
-
             File.Create(expectedFileName).Close();
             Assert.IsTrue(are.WaitOne(WaitInterval));
 
