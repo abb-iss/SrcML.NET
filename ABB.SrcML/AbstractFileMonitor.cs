@@ -448,8 +448,8 @@ namespace ABB.SrcML {
                                        where filePath != null && !monitoredFiles.Contains(filePath)
                                        select DeleteFileAsync(filePath);
                 Task.WaitAll(deletedFileTasks.ToArray());
+                OnUpdateArchivesCompleted(new EventArgs());
             });
-            task.ContinueWith((t) => { OnUpdateArchivesCompleted(new EventArgs()); }, TaskScheduler.FromCurrentSynchronizationContext());
             return task;
         }
 
