@@ -76,9 +76,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         private IVsStatusbar statusBar;
 
         public const int DEFAULT_SAVE_INTERVAL = 300;
-        public const string GENERATE_DATA_INDICATOR_FILENAME = "GENDATA";
-
-        public bool DataEnabled { get; private set; }
 
         /// <summary>
         /// Constructor.
@@ -89,19 +86,10 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             SrcMLFileLogger.DefaultLogger.InfoFormat("Constructing a new instance of SrcMLGlobalService in {0}", extensionDirectory);
             serviceProvider = sp;
             SrcMLServiceDirectory = extensionDirectory;
-            DataEnabled = ShouldGenerateData(extensionDirectory);
             statusBar = (IVsStatusbar) Package.GetGlobalService(typeof(SVsStatusbar));
             _taskManager = (ITaskManagerService) Package.GetGlobalService(typeof(STaskManagerService));
             SaveTimer = new ReentrantTimer(() => CurrentMonitor.Save(), _taskManager.GlobalScheduler);
             SaveInterval = DEFAULT_SAVE_INTERVAL;
-        }
-
-        private static bool ShouldGenerateData(string extensionDirectory) {
-            if(null != extensionDirectory) {
-                var fileName = Path.Combine(extensionDirectory, GENERATE_DATA_INDICATOR_FILENAME);
-                return File.Exists(fileName);
-            }
-            return false;
         }
 
         #region ISrcMLGlobalService Members
