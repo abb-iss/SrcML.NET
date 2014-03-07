@@ -43,6 +43,44 @@
               LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
           </generalization>
         </generalsInternal>
+        <ownedAttributesInternal>
+          <property
+            Id="85a8e560-a85e-4462-82c8-0d0fac44e5bf"
+            name="Condition"
+            isLeaf="false"
+            isStatic="false"
+            isReadOnly="false"
+            isUnique="false"
+            isDerived="false"
+            isDerivedUnion="false"
+            aggregation="None"
+            isComposite="false">
+            <type_NamedElement>
+              <classMoniker
+                Id="ff2b925f-ec79-4d11-9dba-63fbc8f033f0"
+                LastKnownName="Expression"
+                LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+            </type_NamedElement>
+          </property>
+          <property
+            Id="0ed88d80-2cc1-4b7c-9260-7c7f7de7a27f"
+            name="Body"
+            isLeaf="false"
+            isStatic="false"
+            isReadOnly="false"
+            isUnique="false"
+            isDerived="false"
+            isDerivedUnion="false"
+            aggregation="None"
+            isComposite="false">
+            <type_NamedElement>
+              <classMoniker
+                Id="3c930dc3-adce-4432-b0c6-c7f3341a7529"
+                LastKnownName="Statement"
+                LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
       </class>
     </packageHasNamedElement>
     <packageHasNamedElement>
@@ -81,6 +119,26 @@
               LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
           </generalization>
         </generalsInternal>
+        <ownedAttributesInternal>
+          <property
+            Id="52e122ab-3d25-4159-9b45-847c7232ecc5"
+            name="ElseStatement"
+            isLeaf="false"
+            isStatic="false"
+            isReadOnly="false"
+            isUnique="false"
+            isDerived="false"
+            isDerivedUnion="false"
+            aggregation="None"
+            isComposite="false">
+            <type_NamedElement>
+              <classMoniker
+                Id="3c930dc3-adce-4432-b0c6-c7f3341a7529"
+                LastKnownName="Statement"
+                LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
       </class>
     </packageHasNamedElement>
     <packageHasNamedElement>
@@ -138,6 +196,44 @@
               LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
           </generalization>
         </generalsInternal>
+        <ownedAttributesInternal>
+          <property
+            Id="996f41ac-28c2-4616-9287-189491d4c611"
+            name="Initializer"
+            isLeaf="false"
+            isStatic="false"
+            isReadOnly="false"
+            isUnique="false"
+            isDerived="false"
+            isDerivedUnion="false"
+            aggregation="None"
+            isComposite="false">
+            <type_NamedElement>
+              <classMoniker
+                Id="ff2b925f-ec79-4d11-9dba-63fbc8f033f0"
+                LastKnownName="Expression"
+                LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+            </type_NamedElement>
+          </property>
+          <property
+            Id="a05f5d8b-20a4-49e9-89d5-e9134d88e4d2"
+            name="Incrementer"
+            isLeaf="false"
+            isStatic="false"
+            isReadOnly="false"
+            isUnique="false"
+            isDerived="false"
+            isDerivedUnion="false"
+            aggregation="None"
+            isComposite="false">
+            <type_NamedElement>
+              <classMoniker
+                Id="ff2b925f-ec79-4d11-9dba-63fbc8f033f0"
+                LastKnownName="Expression"
+                LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
       </class>
     </packageHasNamedElement>
     <packageHasNamedElement>
@@ -157,6 +253,26 @@
               LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
           </generalization>
         </generalsInternal>
+        <ownedAttributesInternal>
+          <property
+            Id="83754456-2b10-405b-9a92-ba545494e9bb"
+            name="Statements"
+            isLeaf="false"
+            isStatic="false"
+            isReadOnly="false"
+            isUnique="false"
+            isDerived="false"
+            isDerivedUnion="false"
+            aggregation="None"
+            isComposite="false">
+            <type_NamedElement>
+              <undefinedTypeMoniker
+                Id="a6babaf8-f2b0-4a1f-b697-ad22badcfd8a"
+                LastKnownName="List&lt;Statement&gt;"
+                LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
       </class>
     </packageHasNamedElement>
     <packageHasNamedElement>
@@ -165,7 +281,18 @@
         name="VariableDeclaration"
         isAbstract="false"
         isLeaf="false"
-        isActiveClass="false" />
+        isActiveClass="false">
+        <generalsInternal>
+          <generalization
+            Id="f6180959-5643-4553-a111-8ea03522d30d"
+            isSubstitutable="false">
+            <classMoniker
+              Id="1607c58d-ba82-4dcf-87f4-f268ec7bd572"
+              LastKnownName="DeclarationStatement"
+              LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+          </generalization>
+        </generalsInternal>
+      </class>
     </packageHasNamedElement>
     <packageHasNamedElement>
       <class
@@ -173,7 +300,18 @@
         name="MethodDefinition"
         isAbstract="false"
         isLeaf="false"
-        isActiveClass="false" />
+        isActiveClass="false">
+        <generalsInternal>
+          <generalization
+            Id="8603d49b-ed47-4da4-b445-4a97886ea291"
+            isSubstitutable="false">
+            <classMoniker
+              Id="1607c58d-ba82-4dcf-87f4-f268ec7bd572"
+              LastKnownName="DeclarationStatement"
+              LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+          </generalization>
+        </generalsInternal>
+      </class>
     </packageHasNamedElement>
     <packageHasNamedElement>
       <class
@@ -181,7 +319,18 @@
         name="TypeDefinition"
         isAbstract="false"
         isLeaf="false"
-        isActiveClass="false" />
+        isActiveClass="false">
+        <generalsInternal>
+          <generalization
+            Id="c08cdb74-98ab-4fcd-b391-f0f612b00576"
+            isSubstitutable="false">
+            <classMoniker
+              Id="1607c58d-ba82-4dcf-87f4-f268ec7bd572"
+              LastKnownName="DeclarationStatement"
+              LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+          </generalization>
+        </generalsInternal>
+      </class>
     </packageHasNamedElement>
     <packageHasNamedElement>
       <class
@@ -189,7 +338,31 @@
         name="NamespaceDefinition"
         isAbstract="false"
         isLeaf="false"
+        isActiveClass="false">
+        <generalsInternal>
+          <generalization
+            Id="d43fa8b0-9796-4254-8edd-50a968f3e3fb"
+            isSubstitutable="false">
+            <classMoniker
+              Id="1607c58d-ba82-4dcf-87f4-f268ec7bd572"
+              LastKnownName="DeclarationStatement"
+              LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <class
+        Id="ff2b925f-ec79-4d11-9dba-63fbc8f033f0"
+        name="Expression"
+        isAbstract="false"
+        isLeaf="false"
         isActiveClass="false" />
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <undefinedType
+        Id="a6babaf8-f2b0-4a1f-b697-ad22badcfd8a"
+        name="List&lt;Statement&gt;" />
     </packageHasNamedElement>
   </packagedElements>
   <primitiveType
