@@ -23,6 +23,9 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
             _taskManager = _serviceProvider.GetService(typeof(STaskManagerService)) as ITaskManagerService;
             _srcMLService = _serviceProvider.GetService(typeof(SSrcMLGlobalService)) as ISrcMLGlobalService;
+            if(_srcMLService != null) {
+                SubscribeToEvents();
+            }
         }
         public IDataRepository GetDataRepository() {
             return CurrentDataRepository;
