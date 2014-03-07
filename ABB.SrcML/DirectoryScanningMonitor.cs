@@ -221,9 +221,11 @@ namespace ABB.SrcML {
 
                 if(ScanTimer.Enabled) {
                     ScanTimer.ExecuteWhenIdle(() => {
+                        OnUpdateArchivesStarted(new EventArgs());
                         foreach(var fileName in EnumerateDirectory(fullPath)) {
                             UpdateFile(fileName);
                         }
+                        OnUpdateArchivesCompleted(new EventArgs());
                     });
                 }
             }
@@ -320,11 +322,13 @@ namespace ABB.SrcML {
             if(directoryIsMonitored) {
                 OnDirectoryRemoved(new DirectoryScanningMonitorEventArgs(directoryFullPath));
                 ScanTimer.ExecuteWhenIdle(() => {
+                    OnUpdateArchivesStarted(new EventArgs());
                     foreach(var fileName in GetArchivedFiles()) {
                         if(fileName.StartsWith(directoryFullPath, StringComparison.InvariantCultureIgnoreCase)) {
                             DeleteFile(fileName);
                         }
                     }
+                    OnUpdateArchivesCompleted(new EventArgs());
                 });
             }
             
