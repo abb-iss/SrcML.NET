@@ -58,9 +58,7 @@ namespace ABB.SrcML.Data {
 
         void InitializeData();
 
-        void InitializeDataConcurrent();
-
-        void InitializeDataConcurrent(TaskScheduler scheduler);
+        Task InitializeDataAsync();
 
         void Load(string fileName);
 

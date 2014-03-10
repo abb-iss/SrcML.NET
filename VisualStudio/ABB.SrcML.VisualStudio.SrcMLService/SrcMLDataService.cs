@@ -13,6 +13,12 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         private ISrcMLGlobalService _srcMLService;
 
         private IDataRepository CurrentDataRepository;
+
+        private TaskScheduler Scheduler {
+            get {
+                return (null == _taskManager ? TaskScheduler.Default : _taskManager.GlobalScheduler);
+            }
+        }
         public event EventHandler InitializationComplete;
         public event EventHandler MonitoringStarted;
         public event EventHandler MonitoringStopped;
@@ -45,7 +51,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         }
 
         void RespondToMonitoringStarted(object sender, EventArgs e) {
-            CurrentDataRepository = new DataRepository(_srcMLService.GetSrcMLArchive());
+            CurrentDataRepository = new DataRepository(_srcMLService.GetSrcMLArchive(), Scheduler);
             CurrentDataRepository.FileProcessed += RespondToFileProcessed;
             if(_srcMLService.IsUpdating) {
                 _srcMLService.UpdateArchivesCompleted += GenerateDataAfterUpdate;
@@ -61,8 +67,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
         void GenerateDataAfterUpdate(object sender, EventArgs e) {
             _srcMLService.UpdateArchivesCompleted -= GenerateDataAfterUpdate;
-            CurrentDataRepository.InitializeDataConcurrent(_taskManager.GlobalScheduler);
-            OnInitializationComplete(new EventArgs());
+            CurrentDataRepository.InitializeDataAsync().ContinueWith((t) => OnInitializationComplete(new EventArgs()), Scheduler);
         }
 
         protected virtual void OnFileProcessed(FileEventRaisedArgs e) {

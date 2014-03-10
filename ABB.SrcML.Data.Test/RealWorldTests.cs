@@ -331,7 +331,7 @@ namespace ABB.SrcML.Data.Test {
                         };
 
                         if(useAsyncMethods) {
-                            data.InitializeDataConcurrent();
+                            data.InitializeDataAsync().Wait();
                         } else {
                             data.InitializeData();
                         }
