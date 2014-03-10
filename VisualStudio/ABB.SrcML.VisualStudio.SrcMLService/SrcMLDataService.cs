@@ -1,4 +1,5 @@
-﻿using ABB.SrcML.Data;
+﻿using System.Threading.Tasks;
+using ABB.SrcML.Data;
 using ABB.SrcML.VisualStudio.Interfaces;
 using ABB.VisualStudio.Interfaces;
 using System;
