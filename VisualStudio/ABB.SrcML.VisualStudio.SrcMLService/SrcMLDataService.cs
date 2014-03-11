@@ -20,20 +20,33 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 return (null == _taskManager ? TaskScheduler.Default : _taskManager.GlobalScheduler);
             }
         }
-        public event EventHandler InitializationComplete;
+        
         public event EventHandler MonitoringStarted;
         public event EventHandler MonitoringStopped;
+
+        public event EventHandler UpdateStarted;
+        public event EventHandler UpdateCompleted;
+
         public event EventHandler<FileEventRaisedArgs> FileProcessed;
+
+        public bool IsMonitoring { get; private set; }
+
+        public bool IsUpdating { get; private set; }
 
         public SrcMLDataService(IServiceProvider serviceProvider) {
             _serviceProvider = serviceProvider;
 
             _taskManager = _serviceProvider.GetService(typeof(STaskManagerService)) as ITaskManagerService;
             _srcMLService = _serviceProvider.GetService(typeof(SSrcMLGlobalService)) as ISrcMLGlobalService;
+
             if(_srcMLService != null) {
+                if(_srcMLService.IsMonitoring) {
+                    RespondToMonitoringStarted(this, new EventArgs());
+                }
                 SubscribeToEvents();
             }
         }
+
         public IDataRepository GetDataRepository() {
             return CurrentDataRepository;
         }
@@ -68,7 +81,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
         void GenerateDataAfterUpdate(object sender, EventArgs e) {
             _srcMLService.UpdateArchivesCompleted -= GenerateDataAfterUpdate;
-            CurrentDataRepository.InitializeDataAsync().ContinueWith((t) => OnInitializationComplete(new EventArgs()), Scheduler);
+            OnUpdateStarted(new EventArgs());
+            CurrentDataRepository.InitializeDataAsync().ContinueWith((t) => OnUpdateCompleted(new EventArgs()), Scheduler);
         }
 
         protected virtual void OnFileProcessed(FileEventRaisedArgs e) {
@@ -78,14 +92,23 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             }
         }
 
-        protected virtual void OnInitializationComplete(EventArgs e) {
-            EventHandler handler = InitializationComplete;
+        protected virtual void OnUpdateStarted(EventArgs e) {
+            IsUpdating = true;
+            EventHandler handler = UpdateStarted;
             if(null != handler) {
                 handler(this, e);
             }
         }
 
+        protected virtual void OnUpdateCompleted(EventArgs e) {
+            IsUpdating = false;
+            EventHandler handler = UpdateCompleted;
+            if(null != handler) {
+                handler(this, e);
+            }
+        }
         protected virtual void OnMonitoringStarted(EventArgs e) {
+            IsMonitoring = true;
             EventHandler handler = MonitoringStarted;
             if(handler != null) {
                 handler(this, e);
@@ -93,6 +116,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         }
 
         protected virtual void OnMonitoringStopped(EventArgs e) {
+            IsMonitoring = false;
             EventHandler handler = MonitoringStopped;
             if(handler != null) {
                 handler(this, e);
