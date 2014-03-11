@@ -54,6 +54,7 @@ namespace ABB.SrcML.Data {
         private Dictionary<Language, ICodeParser> parsers;
         private ReadyNotifier ReadyState;
         private ReaderWriterLockSlim scopeLock;
+        private TaskFactory _taskFactory;
 
         /// <summary>
         /// Create a data archive for the given srcML archive. It will subscribe to the
@@ -61,7 +62,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="archive">The archive to monitor for changes.</param>
         public DataRepository(ISrcMLArchive archive)
-            : this(archive, null) {
+            : this(archive, null, TaskScheduler.Default) {
         }
 
         /// <summary>
@@ -70,8 +71,16 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="fileName">The binary file the data archive is stored in</param>
         public DataRepository(string fileName)
-            : this(null, fileName) {
-        }
+            : this(null, fileName, TaskScheduler.Default) { }
+
+        public DataRepository(ISrcMLArchive archive, string fileName)
+            : this(archive, fileName, TaskScheduler.Default) { }
+
+        public DataRepository(string fileName, TaskScheduler scheduler)
+            : this(null, fileName, scheduler) { }
+
+        public DataRepository(ISrcMLArchive archive, TaskScheduler scheduler)
+            : this(archive, null, scheduler) { }
 
         /// <summary>
         /// Create a data archive for the given srcML archive and binary file. It will load data
@@ -81,12 +90,13 @@ namespace ABB.SrcML.Data {
         /// monitoring will be done.</param>
         /// <param name="fileName">The file to read data from. If null, no previously saved data
         /// will be loaded.</param>
-        public DataRepository(ISrcMLArchive archive, string fileName) {
+        public DataRepository(ISrcMLArchive archive, string fileName, TaskScheduler scheduler) {
             SetupParsers();
             scopeLock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
             this.ReadyState = new ReadyNotifier(this);
             this.Archive = archive;
             this.FileName = fileName;
+            this._taskFactory = new TaskFactory(scheduler);
         }
 
         /// <summary>
@@ -361,35 +371,24 @@ namespace ABB.SrcML.Data {
         /// file units in <see cref="Archive"/>. It parses the file units concurrently and merges
         /// them on the main thread.
         /// </summary>
-        public void InitializeDataConcurrent() {
-            InitializeDataConcurrent(TaskScheduler.Default);
-        }
-
-        /// <summary>
-        /// initializes the archive. If <see cref="FileName"/> is set and exists, then it attempts
-        /// to read the data from disk via <see cref="Load(string)"/>. If the load fails the
-        /// repository raises an <see cref="ErrorRaised"/> event and then iterates over all of the
-        /// file units in <see cref="Archive"/>. It parses the file units concurrently and merges
-        /// them on the main thread.
-        /// </summary>
-        /// <param name="scheduler">The scheduler to use</param>
-        public void InitializeDataConcurrent(TaskScheduler scheduler) {
-            IsReady = false;
-            Clear();
-            if(FileName != null && File.Exists(FileName)) {
-                try {
-                    Load(FileName);
-                } catch(SerializationException e) {
-                    OnErrorRaised(new ErrorRaisedArgs(e));
+        public Task InitializeDataAsync() {
+            return _taskFactory.StartNew(() => {
+                IsReady = false;
+                Clear();
+                if(null != FileName && File.Exists(FileName)) {
+                    try {
+                        Load(FileName);
+                    } catch(SerializationException e) {
+                        OnErrorRaised(new ErrorRaisedArgs(e));
+                    }
                 }
-            }
-            if(globalScope == null) {
-                ReadArchiveConcurrent(scheduler);
-            }
-            IsReady = true;
-            SubscribeToArchive();
+                if(null == globalScope) {
+                    ReadArchiveAsync().Wait();
+                }
+                IsReady = true;
+                SubscribeToArchive();
+            });
         }
-
         /// <summary>
         /// Initializes the archive from the given file. This file must be a serialized
         /// DataRepository produced by DataRepository.Save().
@@ -559,33 +558,36 @@ namespace ABB.SrcML.Data {
             }
         }
 
-        private void ReadArchiveConcurrent(TaskScheduler scheduler) {
+        private Task ReadArchiveAsync() {
             if(null != Archive) {
-                BlockingCollection<IScope> mergeQueue = new BlockingCollection<IScope>();
+                return _taskFactory.StartNew(() => {
+                    BlockingCollection<IScope> mergeQueue = new BlockingCollection<IScope>();
 
-                var task = new Task(() => {
-                    Parallel.ForEach(Archive.FileUnits, currentUnit => {
-                        var scope = ParseFileUnit(currentUnit);
-                        if(scope != null) {
-                            mergeQueue.Add(scope);
+                    _taskFactory.StartNew(() => {
+                        Parallel.ForEach(Archive.FileUnits, unit => {
+                            var scope = ParseFileUnit(unit);
+                            if(null != scope) {
+                                mergeQueue.Add(scope);
+                            }
+                        });
+                        mergeQueue.CompleteAdding();
+                    });
+
+                    return _taskFactory.StartNew(() => {
+                        scopeLock.EnterWriteLock();
+                        try {
+                            foreach(var scope in mergeQueue.GetConsumingEnumerable()) {
+                                var fileName = scope.PrimaryLocation.SourceFileName;
+                                MergeScope(scope);
+                                OnFileProcessed(new FileEventRaisedArgs(FileEventType.FileAdded, fileName));
+                            }
+                        } finally {
+                            scopeLock.ExitWriteLock();
                         }
                     });
-                    mergeQueue.CompleteAdding();
                 });
-
-                task.Start(scheduler);
-
-                scopeLock.EnterWriteLock();
-                try {
-                    foreach(var scope in mergeQueue.GetConsumingEnumerable()) {
-                        var fileName = scope.PrimaryLocation.SourceFileName;
-                        MergeScope(scope);
-                        OnFileProcessed(new FileEventRaisedArgs(FileEventType.FileAdded, fileName));
-                    }
-                } finally {
-                    scopeLock.ExitWriteLock();
-                }
             }
+            return null;
         }
 
         private void SetupParsers() {

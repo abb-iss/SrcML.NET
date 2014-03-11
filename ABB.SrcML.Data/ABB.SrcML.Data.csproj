@@ -67,6 +67,8 @@
     <Compile Include="NamespaceUse.cs" />
     <Compile Include="ParameterDeclaration.cs" />
     <Compile Include="ParserContext.cs" />
+    <Compile Include="Queries\FindMethodCallsAtLocationQuery.cs" />
+    <Compile Include="Queries\ScopeForLocationQuery.cs" />
     <Compile Include="ScopeDebugView.cs" />
     <Compile Include="DataRepository.cs" />
     <Compile Include="JavaCodeParser.cs" />
