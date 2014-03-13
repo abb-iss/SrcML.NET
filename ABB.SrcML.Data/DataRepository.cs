@@ -50,7 +50,7 @@ namespace ABB.SrcML.Data {
     /// parentXml = data.ResolveType(parentType).GetXElement(); </code>
     /// </example>
     public class DataRepository : IDataRepository {
-        private IScope globalScope;
+        private IScope _globalScope;
         private Dictionary<Language, ICodeParser> parsers;
         private ReadyNotifier ReadyState;
         private ReaderWriterLockSlim scopeLock;
@@ -142,8 +142,13 @@ namespace ABB.SrcML.Data {
             scopeLock.ExitReadLock();
         }
 
-        public bool TryLockGlobalScope(int millisecondsTimeout) {
-            return scopeLock.TryEnterReadLock(millisecondsTimeout);
+        public bool TryLockGlobalScope(int millisecondsTimeout, out IScope globalScope) {
+            if(scopeLock.TryEnterReadLock(millisecondsTimeout)) {
+                globalScope = this._globalScope;
+                return true;
+            }
+            globalScope = null;
+            return false;
         }
 
         #endregion Locking methods
@@ -190,7 +195,7 @@ namespace ABB.SrcML.Data {
         public void Clear() {
             scopeLock.EnterWriteLock();
             try {
-                globalScope = null;
+                _globalScope = null;
                 //TODO: clear any other data structures as necessary
             } finally {
                 scopeLock.ExitWriteLock();
@@ -205,7 +210,7 @@ namespace ABB.SrcML.Data {
             scopeLock.EnterWriteLock();
             try {
                 IsReady = false;
-                globalScope.RemoveFile(sourceFile);
+                _globalScope.RemoveFile(sourceFile);
                 IsReady = true;
             } finally {
                 scopeLock.ExitWriteLock();
@@ -227,7 +232,7 @@ namespace ABB.SrcML.Data {
                 throw new ArgumentNullException("loc");
             scopeLock.EnterReadLock();
             try {
-                var scope = globalScope.GetScopeForLocation(loc);
+                var scope = _globalScope.GetScopeForLocation(loc);
                 if(scope == null) {
                     //TODO replace logger call
                     //Utilities.SrcMLFileLogger.DefaultLogger.InfoFormat("SourceLocation {0} not found in DataRepository", loc);
@@ -264,7 +269,7 @@ namespace ABB.SrcML.Data {
 
             scopeLock.EnterReadLock();
             try {
-                var scope = globalScope.GetScopeForLocation(xpath);
+                var scope = _globalScope.GetScopeForLocation(xpath);
                 var calls = scope.MethodCalls.Where(mc => xpath.StartsWith(mc.Location.XPath));
                 return new Collection<IMethodCall>(calls.OrderByDescending(mc => mc.Location, new SourceLocationComparer()).ToList());
             } finally {
@@ -285,7 +290,7 @@ namespace ABB.SrcML.Data {
         public IScope FindScope(SourceLocation loc) {
             scopeLock.EnterReadLock();
             try {
-                return globalScope.GetScopeForLocation(loc);
+                return _globalScope.GetScopeForLocation(loc);
             } finally {
                 scopeLock.ExitReadLock();
             }
@@ -300,7 +305,7 @@ namespace ABB.SrcML.Data {
         public IScope FindScope(XElement element) {
             scopeLock.EnterReadLock();
             try {
-                return globalScope.GetScopeForLocation(element.GetXPath());
+                return _globalScope.GetScopeForLocation(element.GetXPath());
             } finally {
                 scopeLock.ExitReadLock();
             }
@@ -314,7 +319,7 @@ namespace ABB.SrcML.Data {
         public IScope FindScope(string xpath) {
             scopeLock.EnterReadLock();
             try {
-                return globalScope.GetScopeForLocation(xpath);
+                return _globalScope.GetScopeForLocation(xpath);
             } finally {
                 scopeLock.ExitReadLock();
             }
@@ -326,15 +331,6 @@ namespace ABB.SrcML.Data {
 
         public T FindScope<T>(string xpath) where T : class, IScope {
             return GetFirstAncestor<T>(FindScope(xpath));
-        }
-
-        public IScope GetGlobalScope() {
-            scopeLock.EnterReadLock();
-            try {
-                return this.globalScope;
-            } finally {
-                scopeLock.ExitReadLock();
-            }
         }
 
         #endregion Query methods
@@ -357,7 +353,7 @@ namespace ABB.SrcML.Data {
                     OnErrorRaised(new ErrorRaisedArgs(e));
                 }
             }
-            if(globalScope == null) {
+            if(_globalScope == null) {
                 ReadArchive();
             }
             IsReady = true;
@@ -382,7 +378,7 @@ namespace ABB.SrcML.Data {
                         OnErrorRaised(new ErrorRaisedArgs(e));
                     }
                 }
-                if(null == globalScope) {
+                if(null == _globalScope) {
                     ReadArchiveAsync().Wait();
                 }
                 IsReady = true;
@@ -407,7 +403,7 @@ namespace ABB.SrcML.Data {
                 this.FileName = fileName;
                 scopeLock.EnterWriteLock();
                 try {
-                    this.globalScope = tempScope;
+                    this._globalScope = tempScope;
                 } finally {
                     scopeLock.ExitWriteLock();
                 }
@@ -444,7 +440,7 @@ namespace ABB.SrcML.Data {
             using(var f = File.OpenWrite(fileName)) {
                 scopeLock.EnterReadLock();
                 try {
-                    formatter.Serialize(f, globalScope);
+                    formatter.Serialize(f, _globalScope);
                 } finally {
                     scopeLock.ExitReadLock();
                 }
@@ -504,7 +500,7 @@ namespace ABB.SrcML.Data {
         private void MergeScope(IScope scopeForFile) {
             scopeLock.EnterWriteLock();
             try {
-                globalScope = (globalScope != null ? globalScope.Merge(scopeForFile) : scopeForFile);
+                _globalScope = (_globalScope != null ? _globalScope.Merge(scopeForFile) : scopeForFile);
             } finally {
                 scopeLock.ExitWriteLock();
             }
