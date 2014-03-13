@@ -17,7 +17,6 @@ using System.Text;
 
 namespace ABB.SrcML.Data {
     public class ControlStatement : BlockStatement {
-        public Statement Body { get; set; }
         public Expression Condition { get; set; }
     }
 }

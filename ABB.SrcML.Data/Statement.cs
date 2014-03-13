@@ -12,12 +12,17 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML.Data {
     public class Statement {
-        protected List<Statement> ChildStatements;
-        protected Statement ParentStatement;
+        public Collection<Statement> ChildStatements { get; private set; }
+        public Statement ParentStatement { get; set; }
+        public SrcMLLocation Location { get; set; }
+        public Language ProgammingLanguage { get; set; }
+
+        //TODO: public Expression TheExpression {get; set;}
     }
 }
