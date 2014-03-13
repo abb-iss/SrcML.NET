@@ -9,8 +9,8 @@ namespace ABB.SrcML.Data.Queries {
         public ScopeForLocationQuery(IDataRepository data, int lockTimeout, TaskFactory factory)
             : base(data, lockTimeout, factory) { }
 
-        protected override IScope ExecuteImpl(SourceLocation parameter) {
-            return Data.GetGlobalScope().GetScopeForLocation(parameter);
+        public override IScope Execute(IScope globalScope, SourceLocation parameter) {
+            return globalScope.GetScopeForLocation(parameter);
         }
     }
 
@@ -20,8 +20,7 @@ namespace ABB.SrcML.Data.Queries {
             : base(data, lockTimeout, factory){ }
 
 
-        protected override TScope ExecuteImpl(SourceLocation parameter) {
-            var globalScope = Data.GetGlobalScope();
+        public override TScope Execute(IScope globalScope, SourceLocation parameter) {
             if(null != globalScope) {
                 var scope = globalScope.GetScopeForLocation(parameter);
                 return (scope != null ? scope.GetParentScopesAndSelf<TScope>().FirstOrDefault() : default(TScope));

@@ -24,6 +24,9 @@ namespace ABB.SrcML.Data {
 
         private AbstractQuery() { }
 
+        protected AbstractQuery(IDataRepository data, TaskFactory factory)
+            : this(data, Timeout.Infinite, factory) { }
+
         protected AbstractQuery(IDataRepository data, int lockTimeout)
             : this(data, lockTimeout, Task.Factory) { }
 
@@ -34,37 +37,47 @@ namespace ABB.SrcML.Data {
         }
 
         public Task<TResult> ExecuteAsync(CancellationToken cancellationToken) {
+            if(null == Data) {
+                throw new InvalidOperationException("Query has no data repository");
+            }
             return Factory.StartNew<TResult>(() => {
+                IScope globalScope;
                 cancellationToken.ThrowIfCancellationRequested();
-                if(Data.TryLockGlobalScope(LockTimeout)) {
+                if(Data.TryLockGlobalScope(LockTimeout, out globalScope)) {
                     try {
                         cancellationToken.ThrowIfCancellationRequested();
-                        return ExecuteImpl();
+                        return Execute(globalScope);
                     } finally {
                         Data.ReleaseGlobalScopeLock();
                     }
                 }
-
-                throw new LockTimeoutExceededException(Data, LockTimeout);
+                throw new TimeoutException();
             });
         }
 
         public Task<TResult> ExecuteAsync() {
+            if(null == Data) {
+                throw new InvalidOperationException("Query has no data repository");
+            }
             return Factory.StartNew<TResult>(Execute);
         }
 
         public TResult Execute() {
-            if(Data.TryLockGlobalScope(LockTimeout)) {
+            if(null == Data) {
+                throw new InvalidOperationException("Query has no data repository");
+            }
+            IScope globalScope;
+            if(Data.TryLockGlobalScope(LockTimeout, out globalScope)) {
                 try {
-                    return ExecuteImpl();
+                    return Execute(globalScope);
                 } finally {
                     Data.ReleaseGlobalScopeLock();
                 }
             }
-            throw new LockTimeoutExceededException(Data, LockTimeout);
+            throw new TimeoutException();
         }
 
-        protected abstract TResult ExecuteImpl();
+        public abstract TResult Execute(IScope globalScope);
     }
 
     public abstract class AbstractQueryBase<TTuple, TResult> {
@@ -81,33 +94,41 @@ namespace ABB.SrcML.Data {
         protected TaskFactory Factory { get; private set; }
 
         protected Task<TResult> ExecuteAsync(TTuple parameterTuple, CancellationToken cancellationToken) {
+            if(null == Data) {
+                throw new InvalidOperationException("Query has no data repository");
+            }
             Func<TResult> action = () => {
+                IScope globalScope;
                 cancellationToken.ThrowIfCancellationRequested();
-                if(Data.TryLockGlobalScope(LockTimeout)) {
+                if(Data.TryLockGlobalScope(LockTimeout, out globalScope)) {
                     try {
                         cancellationToken.ThrowIfCancellationRequested();
-                        return ExecuteImpl(parameterTuple);
+                        return ExecuteImpl(globalScope, parameterTuple);
                     } finally {
                         Data.ReleaseGlobalScopeLock();
                     }
                 }
-                throw new LockTimeoutExceededException(Data, LockTimeout);
+                throw new TimeoutException();
             };
 
             return Factory.StartNew<TResult>(action, cancellationToken);
         }
 
         protected TResult Execute(TTuple parameterTuple) {
-            if(Data.TryLockGlobalScope(LockTimeout)) {
+            if(null == Data) {
+                throw new InvalidOperationException("Query has no data repository");
+            }
+            IScope globalScope;
+            if(Data.TryLockGlobalScope(LockTimeout, out globalScope)) {
                 try {
-                    return ExecuteImpl(parameterTuple);
+                    return ExecuteImpl(globalScope, parameterTuple);
                 } finally {
                     Data.ReleaseGlobalScopeLock();
                 }
             }
-            throw new LockTimeoutExceededException(Data, LockTimeout);
+            throw new TimeoutException();
         }
-        protected abstract TResult ExecuteImpl(TTuple parameterTuple);
+        protected abstract TResult ExecuteImpl(IScope globalScope, TTuple parameterTuple);
     }
 
     public abstract class AbstractQuery<TParam, TResult> : AbstractQueryBase<Tuple<TParam>, TResult> {
@@ -129,10 +150,10 @@ namespace ABB.SrcML.Data {
             return base.Execute(Tuple.Create(parameter));
         }
 
-        protected abstract TResult ExecuteImpl(TParam parameter);
+        public abstract TResult Execute(IScope globalScope, TParam parameter);
 
-        protected sealed override TResult ExecuteImpl(Tuple<TParam> parameterTuple) {
-            return ExecuteImpl(parameterTuple.Item1);
+        protected sealed override TResult ExecuteImpl(IScope globalScope, Tuple<TParam> parameterTuple) {
+            return Execute(globalScope, parameterTuple.Item1);
         }
     }
 
@@ -156,10 +177,10 @@ namespace ABB.SrcML.Data {
             return Execute(Tuple.Create(parameter1, parameter2));
         }
 
-        protected abstract TResult ExecuteImpl(TParam1 parameter1, TParam2 parameter2);
+        public abstract TResult Execute(IScope globalScope, TParam1 parameter1, TParam2 parameter2);
 
-        protected sealed override TResult ExecuteImpl(Tuple<TParam1, TParam2> parameter) {
-            return ExecuteImpl(parameter.Item1, parameter.Item2);
+        protected sealed override TResult ExecuteImpl(IScope globalScope, Tuple<TParam1, TParam2> parameter) {
+            return Execute(globalScope, parameter.Item1, parameter.Item2);
         }
     }
 
@@ -183,10 +204,10 @@ namespace ABB.SrcML.Data {
             return Execute(Tuple.Create(parameter1, parameter2, parameter3));
         }
 
-        protected abstract TResult ExecuteImpl(TParam1 parameter1, TParam2 parameter2, TParam3 parameter3);
+        public abstract TResult Execute(IScope globalScope, TParam1 parameter1, TParam2 parameter2, TParam3 parameter3);
 
-        protected sealed override TResult ExecuteImpl(Tuple<TParam1, TParam2, TParam3> parameter) {
-            return ExecuteImpl(parameter.Item1, parameter.Item2, parameter.Item3);
+        protected sealed override TResult ExecuteImpl(IScope globalScope, Tuple<TParam1, TParam2, TParam3> parameter) {
+            return Execute(globalScope, parameter.Item1, parameter.Item2, parameter.Item3);
         }
     }
 
@@ -210,10 +231,10 @@ namespace ABB.SrcML.Data {
             return Execute(Tuple.Create(parameter1, parameter2, parameter3, parameter4));
         }
 
-        protected abstract TResult ExecuteImpl(TParam1 parameter1, TParam2 parameter2, TParam3 parameter3, TParam4 parameter4);
+        public abstract TResult Execute(IScope globalScope, TParam1 parameter1, TParam2 parameter2, TParam3 parameter3, TParam4 parameter4);
 
-        protected sealed override TResult ExecuteImpl(Tuple<TParam1, TParam2, TParam3, TParam4> parameter) {
-            return ExecuteImpl(parameter.Item1, parameter.Item2, parameter.Item3, parameter.Item4);
+        protected sealed override TResult ExecuteImpl(IScope globalScope, Tuple<TParam1, TParam2, TParam3, TParam4> parameter) {
+            return Execute(globalScope, parameter.Item1, parameter.Item2, parameter.Item3, parameter.Item4);
         }
     }
 
@@ -237,10 +258,10 @@ namespace ABB.SrcML.Data {
             return Execute(Tuple.Create(parameter1, parameter2, parameter3, parameter4, parameter5));
         }
 
-        protected abstract TResult ExecuteImpl(TParam1 parameter1, TParam2 parameter2, TParam3 parameter3, TParam4 parameter4, TParam5 parameter5);
+        public abstract TResult Execute(IScope globalScope, TParam1 parameter1, TParam2 parameter2, TParam3 parameter3, TParam4 parameter4, TParam5 parameter5);
 
-        protected sealed override TResult ExecuteImpl(Tuple<TParam1, TParam2, TParam3, TParam4, TParam5> parameter) {
-            return ExecuteImpl(parameter.Item1, parameter.Item2, parameter.Item3, parameter.Item4, parameter.Item5);
+        protected sealed override TResult ExecuteImpl(IScope globalScope, Tuple<TParam1, TParam2, TParam3, TParam4, TParam5> parameter) {
+            return Execute(globalScope, parameter.Item1, parameter.Item2, parameter.Item3, parameter.Item4, parameter.Item5);
         }
     }
 }
