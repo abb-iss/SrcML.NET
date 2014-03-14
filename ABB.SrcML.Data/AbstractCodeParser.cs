@@ -446,72 +446,6 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// This is the main function that parses srcML nodes. It selects the appropriate parse
-        /// element to call and then adds declarations, method calls, and children to it
-        /// </summary>
-        /// <param name="element">The element to parse</param>
-        /// <param name="context">The parser context</param>
-        /// <returns>The scope representing
-        /// <paramref name="element"/></returns>
-        public virtual IScope ParseElement_Concurrent(XElement element, ParserContext context) {
-            if(element.Name == SRC.Unit) {
-                ParseUnitElement(element, context);
-            } else if(TypeElementNames.Contains(element.Name)) {
-                ParseTypeElement(element, context);
-            } else if(NamespaceElementNames.Contains(element.Name)) {
-                ParseNamespaceElement(element, context);
-            } else if(MethodElementNames.Contains(element.Name)) {
-                ParseMethodElement(element, context);
-            } else {
-                ParseContainerElement(element, context);
-            }
-
-            IEnumerable<XElement> Elements = GetDeclarationsFromElement(element);
-            foreach(var declarationElement in Elements) {
-                foreach(var declaration in ParseDeclarationElement(declarationElement, context)) {
-                    context.CurrentScope.AddDeclaredVariable(declaration);
-                }
-            }
-
-            IEnumerable<XElement> methodCalls = GetMethodCallsFromElement(element);
-            foreach(var methodCallElement in methodCalls) {
-                var methodCall = ParseCallElement(methodCallElement, context);
-                context.CurrentScope.AddMethodCall(methodCall);
-            }
-
-            IEnumerable<XElement> children = GetChildContainers(element);
-            ConcurrentQueue<Exception> exceptions = new ConcurrentQueue<Exception>();
-
-            ConcurrentQueue<IScope> cq = new ConcurrentQueue<IScope>();
-            Parallel.ForEach(children, currentChild => {
-                try {
-                    var subContext = new ParserContext() {
-                        Aliases = context.Aliases,
-                        FileUnit = context.FileUnit,
-                    };
-
-                    IScope childScope = ParseElement(currentChild, subContext);
-                    cq.Enqueue(childScope);
-                } catch(Exception e) { exceptions.Enqueue(e); }
-            });
-
-            if(exceptions.Count > 0)
-                throw new Exception();
-
-            while(!cq.IsEmpty) {
-                IScope childScope = new Scope();
-                cq.TryDequeue(out childScope);
-                context.CurrentScope.AddChildScope(childScope);
-            }
-
-            var currentScope = context.Pop();
-            currentScope.AddSourceLocation(context.CreateLocation(element, ContainerIsReference(element)));
-            currentScope.ProgrammingLanguage = ParserLanguage;
-
-            return currentScope;
-        }
-
-        /// <summary>
         /// Parses a file unit and returns a <see cref="INamespaceDefinition.IsGlobal">global</see>
         /// <see cref="INamespaceDefinition">namespace definition</see> object
         /// </summary>
@@ -525,24 +459,6 @@ namespace ABB.SrcML.Data {
                 throw new ArgumentException("should be a SRC.Unit", "fileUnit");
 
             var globalScope = ParseElement(fileUnit, new ParserContext()) as INamespaceDefinition;
-            return globalScope;
-        }
-
-        /// <summary>
-        /// Concurrently parses a file unit and returns a
-        /// <see cref="INamespaceDefinition.IsGlobal">global</see>
-        /// <see cref="INamespaceDefinition">namespace definition</see> object
-        /// </summary>
-        /// <param name="fileUnit">The file unit to parse</param>
-        /// <returns>a global namespace definition for
-        /// <paramref name="fileUnit"/></returns>
-        public virtual INamespaceDefinition ParseFileUnit_Concurrent(XElement fileUnit) {
-            if(null == fileUnit)
-                throw new ArgumentNullException("fileUnit");
-            if(SRC.Unit != fileUnit.Name)
-                throw new ArgumentException("should be a SRC.Unit", "fileUnit");
-
-            var globalScope = ParseElement_Concurrent(fileUnit, new ParserContext()) as INamespaceDefinition;
             return globalScope;
         }
 
