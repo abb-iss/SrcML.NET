@@ -54,12 +54,6 @@
               <referencedTypeMoniker Id="211d32f2-01d6-49b5-a838-03031095d474" LastKnownName="Expression" />
             </type_NamedElement>
           </property>
-          <property Id="072cbf80-a8c7-429f-8e18-6f3990dd5448" name="Body" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
-            <elementDefinition Id="0ed88d80-2cc1-4b7c-9260-7c7f7de7a27f" />
-            <type_NamedElement>
-              <referencedTypeMoniker Id="b6d4f277-0ff7-4ac0-a5b1-69c65c731ff7" LastKnownName="Statement" />
-            </type_NamedElement>
-          </property>
         </ownedAttributesInternal>
       </class>
     </logicalClassDesignerModelHasTypes>
@@ -72,6 +66,20 @@
             <elementDefinition Id="6883356e-d8d9-4c56-b897-7d49ccebcad6" />
           </generalization>
         </generalsInternal>
+        <ownedAttributesInternal>
+          <property Id="87d26c2f-4543-41bf-bec8-6fd6c6ffe7f3" name="Name" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="a3e30a16-a709-4599-9ade-9ff241827a61" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="0a9527c3-6ad3-4c5c-a6e2-ae7be648daf6" LastKnownName="string" />
+            </type_NamedElement>
+          </property>
+          <property Id="2b114d3a-7029-4c25-aa4f-508b958f8e41" name="Accessibility" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="bfebd20f-0db9-4fa5-b035-36215d45d277" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="7e908d86-d516-44ad-9b74-89a8d0222fc9" LastKnownName="AccessModifier" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
       </class>
     </logicalClassDesignerModelHasTypes>
     <logicalClassDesignerModelHasTypes>
@@ -171,6 +179,32 @@
             <elementDefinition Id="8603d49b-ed47-4da4-b445-4a97886ea291" />
           </generalization>
         </generalsInternal>
+        <ownedAttributesInternal>
+          <property Id="cfa193bb-7f70-4053-801b-32c20569f5be" name="IsConstructor" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="4b1d12e0-e6d1-4483-b6ee-b02f835d6c1a" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="faa9f22d-98d5-4726-8409-6f1e44681455" LastKnownName="bool" />
+            </type_NamedElement>
+          </property>
+          <property Id="c7b5f9c3-4116-455c-9822-409c54294072" name="IsDestructor" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="b7adf0d1-23f1-4d3e-bc4c-c1f9d5b9acfc" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="faa9f22d-98d5-4726-8409-6f1e44681455" LastKnownName="bool" />
+            </type_NamedElement>
+          </property>
+          <property Id="351f1aec-93a9-44fe-8de7-26d1d4508b05" name="Parameters" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="08fb75eb-4554-4ff7-a39d-b19c5033d9c8" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="60f4308c-04bf-49da-be81-40bae6d16a48" LastKnownName="ReadOnlyCollection&lt;IParameterDeclaration&gt;" />
+            </type_NamedElement>
+          </property>
+          <property Id="320fa800-9d9c-49c5-b284-e89bbef7435e" name="ReturnType" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="bb1c02fd-717f-413c-a2a9-4e40f6532ebe" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="87179d1c-9aba-4158-87a2-58749d0b6898" LastKnownName="TypeUse" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
       </class>
     </logicalClassDesignerModelHasTypes>
     <logicalClassDesignerModelHasTypes>
@@ -182,6 +216,26 @@
             <elementDefinition Id="c08cdb74-98ab-4fcd-b391-f0f612b00576" />
           </generalization>
         </generalsInternal>
+        <ownedAttributesInternal>
+          <property Id="01ac3fe8-a922-40a9-a07a-ab730bf6a0ec" name="IsPartial" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="5be9439e-30dd-4acf-a248-e7a42c1fe316" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="faa9f22d-98d5-4726-8409-6f1e44681455" LastKnownName="bool" />
+            </type_NamedElement>
+          </property>
+          <property Id="d42f2e7d-493f-44bf-824e-a67f6b69a016" name="ParentTypes" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="cf745a50-8924-46f0-ae53-8eb9cdc7b8ea" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="4ce0a8cd-2489-48e6-8a0d-4650e434af7f" LastKnownName="ReadOnlyCollection&lt;TypeUse&gt;" />
+            </type_NamedElement>
+          </property>
+          <property Id="8168bb02-523e-4153-ab57-90e464913dc8" name="Kind" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="071dc01f-1a5a-416c-b772-60574f3d4fd3" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="8cf7c8ee-4972-4638-b5ed-290c1b303600" LastKnownName="TypeKind" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
       </class>
     </logicalClassDesignerModelHasTypes>
     <logicalClassDesignerModelHasTypes>
@@ -223,6 +277,41 @@
     <packageHasNamedElement>
       <referencedType Id="82bdff9c-ae81-4029-8289-b4c642ea591e" name="Language" isAbstract="false" isLeaf="false" cachedFullName="Language">
         <elementDefinition Id="d74ec8bb-fbf2-4c20-9d88-e4fd7a3d0e33" />
+      </referencedType>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <referencedType Id="0a9527c3-6ad3-4c5c-a6e2-ae7be648daf6" name="string" isAbstract="false" isLeaf="false" cachedFullName="string">
+        <elementDefinition Id="4ceef1e5-e238-408b-bfe9-61c4e8684453" />
+      </referencedType>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <referencedType Id="7e908d86-d516-44ad-9b74-89a8d0222fc9" name="AccessModifier" isAbstract="false" isLeaf="false" cachedFullName="AccessModifier">
+        <elementDefinition Id="7ac1df72-c4ab-4ee5-8de0-bfbea8ed55a9" />
+      </referencedType>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <referencedType Id="faa9f22d-98d5-4726-8409-6f1e44681455" name="bool" isAbstract="false" isLeaf="false" cachedFullName="bool">
+        <elementDefinition Id="d39bfaba-eefe-42e2-8831-1a3e1d49b5e2" />
+      </referencedType>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <referencedType Id="60f4308c-04bf-49da-be81-40bae6d16a48" name="ReadOnlyCollection&lt;IParameterDeclaration&gt;" isAbstract="false" isLeaf="false" cachedFullName="ReadOnlyCollection&lt;IParameterDeclaration&gt;">
+        <elementDefinition Id="700970fa-9633-404e-8246-7d8bfc5b92cc" />
+      </referencedType>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <referencedType Id="87179d1c-9aba-4158-87a2-58749d0b6898" name="TypeUse" isAbstract="false" isLeaf="false" cachedFullName="TypeUse">
+        <elementDefinition Id="0d124821-8099-4b40-a1be-d29db7839dc2" />
+      </referencedType>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <referencedType Id="4ce0a8cd-2489-48e6-8a0d-4650e434af7f" name="ReadOnlyCollection&lt;TypeUse&gt;" isAbstract="false" isLeaf="false" cachedFullName="ReadOnlyCollection&lt;TypeUse&gt;">
+        <elementDefinition Id="5f799c93-a95e-4c83-8adb-80a5bea50a80" />
+      </referencedType>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <referencedType Id="8cf7c8ee-4972-4638-b5ed-290c1b303600" name="TypeKind" isAbstract="false" isLeaf="false" cachedFullName="TypeKind">
+        <elementDefinition Id="7bd41874-7849-4316-a618-5ba0498226cc" />
       </referencedType>
     </packageHasNamedElement>
   </packagedElements>

@@ -155,24 +155,6 @@
                 LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
             </type_NamedElement>
           </property>
-          <property
-            Id="0ed88d80-2cc1-4b7c-9260-7c7f7de7a27f"
-            name="Body"
-            isLeaf="false"
-            isStatic="false"
-            isReadOnly="false"
-            isUnique="false"
-            isDerived="false"
-            isDerivedUnion="false"
-            aggregation="None"
-            isComposite="false">
-            <type_NamedElement>
-              <classMoniker
-                Id="3c930dc3-adce-4432-b0c6-c7f3341a7529"
-                LastKnownName="Statement"
-                LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
-            </type_NamedElement>
-          </property>
         </ownedAttributesInternal>
       </class>
     </packageHasNamedElement>
@@ -193,6 +175,44 @@
               LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
           </generalization>
         </generalsInternal>
+        <ownedAttributesInternal>
+          <property
+            Id="a3e30a16-a709-4599-9ade-9ff241827a61"
+            name="Name"
+            isLeaf="false"
+            isStatic="false"
+            isReadOnly="false"
+            isUnique="false"
+            isDerived="false"
+            isDerivedUnion="false"
+            aggregation="None"
+            isComposite="false">
+            <type_NamedElement>
+              <undefinedTypeMoniker
+                Id="4ceef1e5-e238-408b-bfe9-61c4e8684453"
+                LastKnownName="string"
+                LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+            </type_NamedElement>
+          </property>
+          <property
+            Id="bfebd20f-0db9-4fa5-b035-36215d45d277"
+            name="Accessibility"
+            isLeaf="false"
+            isStatic="false"
+            isReadOnly="false"
+            isUnique="false"
+            isDerived="false"
+            isDerivedUnion="false"
+            aggregation="None"
+            isComposite="false">
+            <type_NamedElement>
+              <undefinedTypeMoniker
+                Id="7ac1df72-c4ab-4ee5-8de0-bfbea8ed55a9"
+                LastKnownName="AccessModifier"
+                LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
       </class>
     </packageHasNamedElement>
     <packageHasNamedElement>
@@ -384,6 +404,80 @@
               LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
           </generalization>
         </generalsInternal>
+        <ownedAttributesInternal>
+          <property
+            Id="4b1d12e0-e6d1-4483-b6ee-b02f835d6c1a"
+            name="IsConstructor"
+            isLeaf="false"
+            isStatic="false"
+            isReadOnly="false"
+            isUnique="false"
+            isDerived="false"
+            isDerivedUnion="false"
+            aggregation="None"
+            isComposite="false">
+            <type_NamedElement>
+              <undefinedTypeMoniker
+                Id="d39bfaba-eefe-42e2-8831-1a3e1d49b5e2"
+                LastKnownName="bool"
+                LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+            </type_NamedElement>
+          </property>
+          <property
+            Id="b7adf0d1-23f1-4d3e-bc4c-c1f9d5b9acfc"
+            name="IsDestructor"
+            isLeaf="false"
+            isStatic="false"
+            isReadOnly="false"
+            isUnique="false"
+            isDerived="false"
+            isDerivedUnion="false"
+            aggregation="None"
+            isComposite="false">
+            <type_NamedElement>
+              <undefinedTypeMoniker
+                Id="d39bfaba-eefe-42e2-8831-1a3e1d49b5e2"
+                LastKnownName="bool"
+                LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+            </type_NamedElement>
+          </property>
+          <property
+            Id="08fb75eb-4554-4ff7-a39d-b19c5033d9c8"
+            name="Parameters"
+            isLeaf="false"
+            isStatic="false"
+            isReadOnly="false"
+            isUnique="false"
+            isDerived="false"
+            isDerivedUnion="false"
+            aggregation="None"
+            isComposite="false">
+            <type_NamedElement>
+              <undefinedTypeMoniker
+                Id="700970fa-9633-404e-8246-7d8bfc5b92cc"
+                LastKnownName="ReadOnlyCollection&lt;IParameterDeclaration&gt;"
+                LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+            </type_NamedElement>
+          </property>
+          <property
+            Id="bb1c02fd-717f-413c-a2a9-4e40f6532ebe"
+            name="ReturnType"
+            isLeaf="false"
+            isStatic="false"
+            isReadOnly="false"
+            isUnique="false"
+            isDerived="false"
+            isDerivedUnion="false"
+            aggregation="None"
+            isComposite="false">
+            <type_NamedElement>
+              <undefinedTypeMoniker
+                Id="0d124821-8099-4b40-a1be-d29db7839dc2"
+                LastKnownName="TypeUse"
+                LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
       </class>
     </packageHasNamedElement>
     <packageHasNamedElement>
@@ -403,6 +497,62 @@
               LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
           </generalization>
         </generalsInternal>
+        <ownedAttributesInternal>
+          <property
+            Id="5be9439e-30dd-4acf-a248-e7a42c1fe316"
+            name="IsPartial"
+            isLeaf="false"
+            isStatic="false"
+            isReadOnly="false"
+            isUnique="false"
+            isDerived="false"
+            isDerivedUnion="false"
+            aggregation="None"
+            isComposite="false">
+            <type_NamedElement>
+              <undefinedTypeMoniker
+                Id="d39bfaba-eefe-42e2-8831-1a3e1d49b5e2"
+                LastKnownName="bool"
+                LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+            </type_NamedElement>
+          </property>
+          <property
+            Id="cf745a50-8924-46f0-ae53-8eb9cdc7b8ea"
+            name="ParentTypes"
+            isLeaf="false"
+            isStatic="false"
+            isReadOnly="false"
+            isUnique="false"
+            isDerived="false"
+            isDerivedUnion="false"
+            aggregation="None"
+            isComposite="false">
+            <type_NamedElement>
+              <undefinedTypeMoniker
+                Id="5f799c93-a95e-4c83-8adb-80a5bea50a80"
+                LastKnownName="ReadOnlyCollection&lt;TypeUse&gt;"
+                LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+            </type_NamedElement>
+          </property>
+          <property
+            Id="071dc01f-1a5a-416c-b772-60574f3d4fd3"
+            name="Kind"
+            isLeaf="false"
+            isStatic="false"
+            isReadOnly="false"
+            isUnique="false"
+            isDerived="false"
+            isDerivedUnion="false"
+            aggregation="None"
+            isComposite="false">
+            <type_NamedElement>
+              <undefinedTypeMoniker
+                Id="7bd41874-7849-4316-a618-5ba0498226cc"
+                LastKnownName="TypeKind"
+                LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
       </class>
     </packageHasNamedElement>
     <packageHasNamedElement>
@@ -446,6 +596,41 @@
       <undefinedType
         Id="d74ec8bb-fbf2-4c20-9d88-e4fd7a3d0e33"
         name="Language" />
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <undefinedType
+        Id="4ceef1e5-e238-408b-bfe9-61c4e8684453"
+        name="string" />
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <undefinedType
+        Id="7ac1df72-c4ab-4ee5-8de0-bfbea8ed55a9"
+        name="AccessModifier" />
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <undefinedType
+        Id="d39bfaba-eefe-42e2-8831-1a3e1d49b5e2"
+        name="bool" />
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <undefinedType
+        Id="700970fa-9633-404e-8246-7d8bfc5b92cc"
+        name="ReadOnlyCollection&lt;IParameterDeclaration&gt;" />
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <undefinedType
+        Id="0d124821-8099-4b40-a1be-d29db7839dc2"
+        name="TypeUse" />
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <undefinedType
+        Id="7bd41874-7849-4316-a618-5ba0498226cc"
+        name="TypeKind" />
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <undefinedType
+        Id="5f799c93-a95e-4c83-8adb-80a5bea50a80"
+        name="ReadOnlyCollection&lt;TypeUse&gt;" />
     </packageHasNamedElement>
   </packagedElements>
   <primitiveType
