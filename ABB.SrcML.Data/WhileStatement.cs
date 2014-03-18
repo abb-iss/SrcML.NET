@@ -16,5 +16,11 @@ using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML.Data {
-    public class WhileStatement : ControlStatement {}
+    public class WhileStatement : ControlStatement {
+        public WhileStatement() : base() {}
+
+        public WhileStatement(WhileStatement otherStatement) : base(otherStatement) {
+            //TODO: implement copy constructor
+        }
+    }
 }

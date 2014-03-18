@@ -16,5 +16,12 @@ using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML.Data {
-    public class BlockStatement : Statement {}
+    public class BlockStatement : Statement {
+
+        public BlockStatement() : base() {}
+
+        public BlockStatement(BlockStatement otherBlock) : base(otherBlock) {
+            //TODO: copy constructor stuff
+        }
+    }
 }

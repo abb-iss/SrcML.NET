@@ -17,6 +17,14 @@ using System.Text;
 
 namespace ABB.SrcML.Data {
     public class ControlStatement : BlockStatement {
+        public ControlStatement() : base() {}
+
+        public ControlStatement(ControlStatement otherStatement) : base(otherStatement) {
+            //TODO: implement copy constructor
+        }
+
         public Expression Condition { get; set; }
+
+
     }
 }

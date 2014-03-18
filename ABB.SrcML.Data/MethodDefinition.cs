@@ -20,6 +20,23 @@ using System.Text;
 namespace ABB.SrcML.Data {
 
     public class MethodDefinition : NamedScope {
+        /// <summary>
+        /// Creates a new method definition object
+        /// </summary>
+        public MethodDefinition()
+            : base() {
+            //TODO: implement constructor
+        }
+
+        /// <summary>
+        /// Copy constructor
+        /// </summary>
+        /// <param name="otherDefinition">The method to copy from</param>
+        public MethodDefinition(MethodDefinition otherDefinition)
+            : base(otherDefinition) {
+            //TODO: implement copy constructor
+        }
+        
         public bool IsConstructor { get; set; }
         public bool IsDestructor { get; set; }
         public ReadOnlyCollection<ParameterDeclaration> Parameters { get; private set; }

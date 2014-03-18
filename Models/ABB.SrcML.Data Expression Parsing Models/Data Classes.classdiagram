@@ -92,10 +92,10 @@
           </generalization>
         </generalsInternal>
         <ownedAttributesInternal>
-          <property Id="208cf6e0-3671-4760-9726-6d1e48f84e4d" name="ElseStatement" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+          <property Id="208cf6e0-3671-4760-9726-6d1e48f84e4d" name="ElseStatements" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
             <elementDefinition Id="52e122ab-3d25-4159-9b45-847c7232ecc5" />
             <type_NamedElement>
-              <referencedTypeMoniker Id="b6d4f277-0ff7-4ac0-a5b1-69c65c731ff7" LastKnownName="Statement" />
+              <referencedTypeMoniker Id="e5835200-712b-4e2f-9b16-2f45631e3ce7" LastKnownName="List&lt;Statement&gt;" />
             </type_NamedElement>
           </property>
         </ownedAttributesInternal>
@@ -312,6 +312,11 @@
     <packageHasNamedElement>
       <referencedType Id="8cf7c8ee-4972-4638-b5ed-290c1b303600" name="TypeKind" isAbstract="false" isLeaf="false" cachedFullName="TypeKind">
         <elementDefinition Id="7bd41874-7849-4316-a618-5ba0498226cc" />
+      </referencedType>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <referencedType Id="e5835200-712b-4e2f-9b16-2f45631e3ce7" name="List&lt;Statement&gt;" isAbstract="false" isLeaf="false" cachedFullName="List&lt;Statement&gt;">
+        <elementDefinition Id="a6babaf8-f2b0-4a1f-b697-ad22badcfd8a" />
       </referencedType>
     </packageHasNamedElement>
   </packagedElements>

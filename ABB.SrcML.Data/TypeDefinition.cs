@@ -18,7 +18,24 @@ using System.Linq;
 
 namespace ABB.SrcML.Data {
 
-    public class TypeDefinition {
+    public class TypeDefinition : NamedScope {
+        /// <summary>
+        /// Creates a new type definition object
+        /// </summary>
+        public TypeDefinition()
+            : base() {
+            //TODO: implement constructor
+        }
+
+        /// <summary>
+        /// Copy constructor
+        /// </summary>
+        /// <param name="otherDefinition">The scope to copy from</param>
+        public TypeDefinition(TypeDefinition otherDefinition)
+            : base(otherDefinition) {
+            //TODO: implement copy constructor
+        }
+        
         public TypeKind Kind { get; set; }
         public ReadOnlyCollection<TypeUse> ParentTypes { get; protected set; }
         public bool IsPartial { get; set; }

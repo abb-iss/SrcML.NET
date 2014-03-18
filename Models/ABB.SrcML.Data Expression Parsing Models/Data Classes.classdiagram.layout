@@ -23,14 +23,14 @@
         <OperationElementListCompartment Id="72d305b5-8ffe-4700-b233-07f9fe0cd65c" absoluteBounds="6.39, 5.796484357615312, 1.8450000000000002, 0.20117186754941951" name="OperationsCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
-    <classShape Id="c747a82d-8b39-4cb1-bf56-ffed46f23207" absoluteBounds="1.25, 7.125, 1.5, 1.0624999801317845" hideQualifiedName="false" increaseHeight="0" customColor="181, 193, 223">
+    <classShape Id="c747a82d-8b39-4cb1-bf56-ffed46f23207" absoluteBounds="1.25, 7.125, 2, 1.0624999801317845" hideQualifiedName="false" increaseHeight="0" customColor="181, 193, 223">
       <classMoniker Id="78d2e495-e908-4e9c-9c26-f44ce98ac150" LastKnownName="IfStatement" />
       <nestedChildShapes>
-        <AttributeElementListCompartment Id="0ea90ccb-2bfe-4642-8919-564c4fcd162a" absoluteBounds="1.265, 7.515, 1.4700000000000002, 0.36132811258236563" name="AttributesCompartment" titleTextColor="Black" itemTextColor="Black" />
-        <OperationElementListCompartment Id="bcd2f7f3-93ed-44f5-95f6-c076fde20c3f" absoluteBounds="1.2650000000000001, 7.8863281125823654, 1.4700000000000002, 0.2011718675494194" name="OperationsCompartment" titleTextColor="Black" itemTextColor="Black" />
+        <AttributeElementListCompartment Id="0ea90ccb-2bfe-4642-8919-564c4fcd162a" absoluteBounds="1.265, 7.515, 1.9700000000000002, 0.36132811258236563" name="AttributesCompartment" titleTextColor="Black" itemTextColor="Black" />
+        <OperationElementListCompartment Id="bcd2f7f3-93ed-44f5-95f6-c076fde20c3f" absoluteBounds="1.265, 7.8863281125823654, 1.9700000000000002, 0.2011718675494194" name="OperationsCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
-    <generalizationConnector edgePoints="[(2 : 7.125); (2 : 6.31249998013178); (3.6875 : 6.31249998013178); (3.6875 : 5.93749998013178)]" fixedFrom="NotFixed" fixedTo="NotFixed" customColor="113, 111, 110">
+    <generalizationConnector edgePoints="[(2.25 : 7.125); (2.25 : 6.31249998013178); (3.6875 : 6.31249998013178); (3.6875 : 5.93749998013178)]" fixedFrom="NotFixed" fixedTo="NotFixed" customColor="113, 111, 110">
       <generalizationMoniker Id="319a30ef-b986-4841-bd1b-80f049d061af" />
       <relativeChildShapes />
       <nodes>

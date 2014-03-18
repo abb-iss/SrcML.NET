@@ -20,6 +20,16 @@ using System.Text;
 namespace ABB.SrcML.Data {
 
     public class NamedScope : BlockStatement {
+        public NamedScope() : base() {
+            Name = string.Empty;
+            Accessibility = AccessModifier.None;
+            //TODO: other constructor stuff?
+        }
+
+        public NamedScope(NamedScope otherScope) : base(otherScope) {
+            //TODO: implement copy constructor
+        }
+        
         public string Name { get; set; }
         public AccessModifier Accessibility { get; set; }
     }

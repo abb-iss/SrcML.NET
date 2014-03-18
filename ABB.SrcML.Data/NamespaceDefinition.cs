@@ -19,7 +19,35 @@ using System.Linq;
 namespace ABB.SrcML.Data {
 
     public class NamespaceDefinition : NamedScope {
-        
+
+        /// <summary>
+        /// Creates a new NamespaceDefinition object.
+        /// </summary>
+        public NamespaceDefinition() : base() {}
+
+        /// <summary>
+        /// Copy constructor
+        /// </summary>
+        /// <param name="otherDefinition">The namespace to copy from</param>
+        public NamespaceDefinition(NamespaceDefinition otherDefinition)
+            : base(otherDefinition) {}
+
+        /// <summary>
+        /// Returns true if this is an anonymous namespace
+        /// </summary>
+        public bool IsAnonymous {
+            get { return string.IsNullOrWhiteSpace(Name); }
+        }
+
+        /// <summary>
+        /// <para>Returns true if this namespace represents the global namespace</para> <para>A
+        /// namespace is global if the <see cref="NamedScope.Name"/> is <c>String.Empty</c> and
+        /// the namespace has no parent.</para>
+        /// </summary>
+        public bool IsGlobal {
+            get { return this.IsAnonymous && this.ParentStatement == null; }
+        }
+
     }
 
     ///// <summary>
@@ -42,18 +70,7 @@ namespace ABB.SrcML.Data {
     //    public NamespaceDefinition(NamespaceDefinition otherDefinition)
     //        : base(otherDefinition) { }
 
-    //    /// <summary>
-    //    /// Returns true if this is an anonymous namespace
-    //    /// </summary>
-    //    public bool IsAnonymous {
-    //        get { return string.IsNullOrWhiteSpace(Name); }
-    //    }
 
-    //    /// <summary>
-    //    /// <para>Returns true if this namespace represents the global namespace</para> <para>A
-    //    /// namespace is global if the <see cref="NamedScope.Name"/> is <c>String.Empty</c></para>
-    //    /// </summary>
-    //    public bool IsGlobal { get { return this.IsAnonymous && this.ParentScope == null; } }
 
     //    /// <summary>
     //    /// Returns true if both this and

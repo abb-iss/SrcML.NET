@@ -235,7 +235,7 @@
         <ownedAttributesInternal>
           <property
             Id="52e122ab-3d25-4159-9b45-847c7232ecc5"
-            name="ElseStatement"
+            name="ElseStatements"
             isLeaf="false"
             isStatic="false"
             isReadOnly="false"
@@ -245,9 +245,9 @@
             aggregation="None"
             isComposite="false">
             <type_NamedElement>
-              <classMoniker
-                Id="3c930dc3-adce-4432-b0c6-c7f3341a7529"
-                LastKnownName="Statement"
+              <undefinedTypeMoniker
+                Id="a6babaf8-f2b0-4a1f-b697-ad22badcfd8a"
+                LastKnownName="List&lt;Statement&gt;"
                 LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
             </type_NamedElement>
           </property>

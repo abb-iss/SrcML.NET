@@ -18,7 +18,16 @@ using System.Text;
 namespace ABB.SrcML.Data
 {
     public class ForStatement : ControlStatement {
+        public ForStatement() : base() {
+            //TODO: implement constructor
+        }
+
+        public ForStatement(ForStatement otherStatement) : base(otherStatement) {
+            //TODO: implement copy constructor
+        }
+
         public Expression Initializer { get; set; }
         public Expression Incrementer { get; set; }
+
     }
 }
