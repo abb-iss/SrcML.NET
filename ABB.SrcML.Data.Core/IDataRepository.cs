@@ -54,13 +54,9 @@ namespace ABB.SrcML.Data {
 
         T FindScope<T>(string xpath) where T : class, IScope;
 
-        IScope GetGlobalScope();
-
         void InitializeData();
 
-        void InitializeDataConcurrent();
-
-        void InitializeDataConcurrent(TaskScheduler scheduler);
+        Task InitializeDataAsync();
 
         void Load(string fileName);
 
@@ -80,6 +76,6 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="millisecondsTimeout">Timeout (in milliseconds)</param>
         /// <returns>True if the lock is obtained; false otherwise</returns>
-        bool TryLockGlobalScope(int millisecondsTimeout);
+        bool TryLockGlobalScope(int millisecondsTimeout, out IScope globalScope);
     }
 }
