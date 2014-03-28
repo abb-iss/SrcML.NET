@@ -29,8 +29,7 @@ namespace ABB.SrcML.Data {
         public Statement ParentStatement { get; set; }
         public SrcMLLocation Location { get; set; }
         public Language ProgrammingLanguage { get; set; }
-
-        //TODO: public Expression TheExpression {get; set;}
+        public Expression Content {get; set;}
 
         public void AddChildStatement(Statement child) {
             if(child == null) { throw new ArgumentNullException("child"); }

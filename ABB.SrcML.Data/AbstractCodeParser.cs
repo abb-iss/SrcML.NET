@@ -437,6 +437,8 @@ namespace ABB.SrcML.Data {
                 } else {
                     stmt = ParseStatementElement(element, context);
                 }
+                //TODO: parse include/import/using statements
+                //TODO: parse using blocks
                 //TODO: parse variable declarations
                 //TODO: parse everything else as a generic statement?
 
@@ -855,24 +857,80 @@ namespace ABB.SrcML.Data {
             return caseStmt;
         }
 
-        protected virtual Statement ParseBreakElement(XElement stmtElement, ParserContext context)
-        {
-            throw new NotImplementedException();
+        protected virtual Statement ParseBreakElement(XElement breakElement, ParserContext context) {
+            if(breakElement == null)
+                throw new ArgumentNullException("breakElement");
+            if(breakElement.Name != SRC.Break)
+                throw new ArgumentException("Must be a SRC.Break element", "breakElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            var breakStmt = new BreakStatement() {
+                Location = context.CreateLocation(breakElement),
+                ProgrammingLanguage = ParserLanguage
+            };
+
+            return breakStmt;
         }
 
-        protected virtual Statement ParseContinueElement(XElement stmtElement, ParserContext context)
-        {
-            throw new NotImplementedException();
+        protected virtual Statement ParseContinueElement(XElement continueElement, ParserContext context) {
+            if(continueElement == null)
+                throw new ArgumentNullException("continueElement");
+            if(continueElement.Name != SRC.Continue)
+                throw new ArgumentException("Must be a SRC.Continue element", "continueElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            var continueStmt = new ContinueStatement() {
+                Location = context.CreateLocation(continueElement),
+                ProgrammingLanguage = ParserLanguage
+            };
+
+            return continueStmt;
         }
 
-        protected virtual Statement ParseGotoElement(XElement stmtElement, ParserContext context)
-        {
-            throw new NotImplementedException();
+        protected virtual Statement ParseGotoElement(XElement gotoElement, ParserContext context) {
+            if(gotoElement == null)
+                throw new ArgumentNullException("gotoElement");
+            if(gotoElement.Name != SRC.Goto)
+                throw new ArgumentException("Must be a SRC.Goto element", "gotoElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            var gotoStmt = new GotoStatement() {
+                Location = context.CreateLocation(gotoElement),
+                ProgrammingLanguage = ParserLanguage
+            };
+
+            if(gotoElement.HasElements) {
+                gotoStmt.Content = ParseExpression(gotoElement.Elements().First(), context);
+                //TODO: we know that this will be a name element corresponding to a label. Should we just create the NameUse object here
+                //instead of calling ParseExpression?
+            }
+            //TODO: in C#, you can write "goto case 3;" within a switch statement. SrcML does not mark up the case 3 as anything.
+            //<goto>goto case 3;</goto>
+
+            return gotoStmt;
         }
 
-        protected virtual Statement ParseReturnElement(XElement stmtElement, ParserContext context)
-        {
-            throw new NotImplementedException();
+        protected virtual Statement ParseReturnElement(XElement returnElement, ParserContext context) {
+            if(returnElement == null)
+                throw new ArgumentNullException("returnElement");
+            if(returnElement.Name != SRC.Return)
+                throw new ArgumentException("Must be a SRC.Return element", "returnElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            var returnStmt = new ReturnStatement() {
+                Location = context.CreateLocation(returnElement),
+                ProgrammingLanguage = ParserLanguage
+            };
+
+            if(returnElement.HasElements) {
+                returnStmt.Content = ParseExpression(returnElement.Elements().First(), context);
+            }
+
+            return returnStmt;
         }
 
         protected virtual Statement ParseStatementElement(XElement stmtElement, ParserContext context)

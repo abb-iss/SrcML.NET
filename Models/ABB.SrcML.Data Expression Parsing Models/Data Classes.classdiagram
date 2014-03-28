@@ -401,6 +401,50 @@
         <elementDefinition Id="ff2b925f-ec79-4d11-9dba-63fbc8f033f0" />
       </referencedType>
     </packageHasNamedElement>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="14877aa1-99f3-4c7c-b554-a3bb15d86448" name="PropertyDeclaration" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="083ec42c-5c7c-44b9-a7af-6e107b893ad1" />
+        <generalsInternal>
+          <generalization Id="c7378aec-9b80-4708-b0e5-83d60cd11739" isSubstitutable="false">
+            <classMoniker Id="bba6f67c-b6ff-476b-8cdb-162ca35391c0" LastKnownName="Statement" />
+            <elementDefinition Id="38a751f2-abbd-4bbc-ab1a-3d25d4794b58" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="78546146-35c2-442c-b91e-5b31fe3cde3f" name="IncludeStatement" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="7a3f9daf-8845-4da0-b3b1-c751078949ca" />
+        <generalsInternal>
+          <generalization Id="83c99a73-ad88-4c64-8344-45b1b6e313bd" isSubstitutable="false">
+            <classMoniker Id="bba6f67c-b6ff-476b-8cdb-162ca35391c0" LastKnownName="Statement" />
+            <elementDefinition Id="847ea873-57a3-4e30-9711-29546317106f" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="f349b1ab-3c39-45ce-8766-dd1bc20c6844" name="UsingBlockStatement" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="f2283a8f-a469-4567-a602-6e8de25a8691" />
+        <generalsInternal>
+          <generalization Id="17033f87-4ead-42f4-b84a-55b68df31b33" isSubstitutable="false">
+            <classMoniker Id="206039a4-2f20-481d-916c-8cbbc82b271a" LastKnownName="BlockStatement" />
+            <elementDefinition Id="9302354f-5fea-4383-aff6-6d823a5c0171" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="0a5992d0-b6ac-42f8-881d-d28a92cee10a" name="LabelStatement" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="4ed8d9df-9846-4cae-8ac9-38c5eca147b8" />
+        <generalsInternal>
+          <generalization Id="349b44f8-b7d9-4d9f-872e-b2aed67db971" isSubstitutable="false">
+            <classMoniker Id="bba6f67c-b6ff-476b-8cdb-162ca35391c0" LastKnownName="Statement" />
+            <elementDefinition Id="6dfe7f97-8503-4282-a6aa-278c757676c4" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
   </packagedElements>
   <package Id="c02869ee-47c8-48ad-8d27-a1ad32da6c58" name="ABB.SrcML.Data.ExpressionParsingModels">
     <elementDefinition Id="b7d58ad4-ad72-4d67-8187-3644da97b0b7" />

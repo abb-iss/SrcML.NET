@@ -765,6 +765,82 @@
         </generalsInternal>
       </class>
     </packageHasNamedElement>
+    <packageHasNamedElement>
+      <class
+        Id="083ec42c-5c7c-44b9-a7af-6e107b893ad1"
+        name="PropertyDeclaration"
+        isAbstract="false"
+        isLeaf="false"
+        isActiveClass="false">
+        <generalsInternal>
+          <generalization
+            Id="38a751f2-abbd-4bbc-ab1a-3d25d4794b58"
+            isSubstitutable="false">
+            <classMoniker
+              Id="3c930dc3-adce-4432-b0c6-c7f3341a7529"
+              LastKnownName="Statement"
+              LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <class
+        Id="7a3f9daf-8845-4da0-b3b1-c751078949ca"
+        name="IncludeStatement"
+        isAbstract="false"
+        isLeaf="false"
+        isActiveClass="false">
+        <generalsInternal>
+          <generalization
+            Id="847ea873-57a3-4e30-9711-29546317106f"
+            isSubstitutable="false">
+            <classMoniker
+              Id="3c930dc3-adce-4432-b0c6-c7f3341a7529"
+              LastKnownName="Statement"
+              LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <class
+        Id="f2283a8f-a469-4567-a602-6e8de25a8691"
+        name="UsingBlockStatement"
+        isAbstract="false"
+        isLeaf="false"
+        isActiveClass="false">
+        <generalsInternal>
+          <generalization
+            Id="9302354f-5fea-4383-aff6-6d823a5c0171"
+            isSubstitutable="false">
+            <classMoniker
+              Id="7a7410c0-4ae3-4d66-9648-d73cab92af7c"
+              LastKnownName="BlockStatement"
+              LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <class
+        Id="4ed8d9df-9846-4cae-8ac9-38c5eca147b8"
+        name="LabelStatement"
+        isAbstract="false"
+        isLeaf="false"
+        isActiveClass="false">
+        <generalsInternal>
+          <generalization
+            Id="6dfe7f97-8503-4282-a6aa-278c757676c4"
+            isSubstitutable="false">
+            <classMoniker
+              Id="3c930dc3-adce-4432-b0c6-c7f3341a7529"
+              LastKnownName="Statement"
+              LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </packageHasNamedElement>
   </packagedElements>
   <primitiveType
     Id="220a3521-e091-4221-bae9-3ef9018e845c"
