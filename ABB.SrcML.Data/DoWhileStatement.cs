@@ -16,11 +16,9 @@ using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML.Data {
-    public class DoWhileStatement : ControlStatement {
+    public class DoWhileStatement : ConditionBlockStatement {
         public DoWhileStatement() : base() {}
 
-        public DoWhileStatement(DoWhileStatement otherStatement) : base(otherStatement) {
-            //TODO: implement copy constructor
-        }
+        
     }
 }

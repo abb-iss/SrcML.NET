@@ -26,10 +26,6 @@ namespace ABB.SrcML.Data {
             //TODO: other constructor stuff?
         }
 
-        public NamedScope(NamedScope otherScope) : base(otherScope) {
-            //TODO: implement copy constructor
-        }
-        
         public string Name { get; set; }
         public AccessModifier Accessibility { get; set; }
     }

@@ -199,7 +199,7 @@ namespace ABB.SrcML.Data {
             var partials = from specifiers in typeElement.Elements(SRC.Specifier)
                            where specifiers.Value == "partial"
                            select specifiers;
-            (context.CurrentScope as ITypeDefinition).IsPartial = partials.Any();
+            (context.CurrentStatement as ITypeDefinition).IsPartial = partials.Any();
         }
 
         /// <summary>
@@ -236,7 +236,7 @@ namespace ABB.SrcML.Data {
                 var typeUse = new CSharpVarTypeUse() {
                     Name = typeNameElement.Value,
                     Initializer = initializer,
-                    ParentScope = context.CurrentScope,
+                    ParentScope = context.CurrentStatement,
                     Location = context.CreateLocation(typeNameElement),
                     ProgrammingLanguage = this.ParserLanguage,
                 };

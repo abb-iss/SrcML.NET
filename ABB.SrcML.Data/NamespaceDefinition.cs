@@ -26,13 +26,6 @@ namespace ABB.SrcML.Data {
         public NamespaceDefinition() : base() {}
 
         /// <summary>
-        /// Copy constructor
-        /// </summary>
-        /// <param name="otherDefinition">The namespace to copy from</param>
-        public NamespaceDefinition(NamespaceDefinition otherDefinition)
-            : base(otherDefinition) {}
-
-        /// <summary>
         /// Returns true if this is an anonymous namespace
         /// </summary>
         public bool IsAnonymous {

@@ -64,7 +64,6 @@
     <Compile Include="IVariableDeclaration.cs" />
     <Compile Include="IVariableUse.cs" />
     <Compile Include="LockTimeoutExceededException.cs" />
-    <Compile Include="ParseException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ScopeDetachedException.cs" />
     <Compile Include="SourceLocation.cs" />

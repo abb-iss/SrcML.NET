@@ -18,20 +18,25 @@ using System.Text;
 
 namespace ABB.SrcML.Data {
     public class Statement {
+        private List<Statement> childStatementsList;
+        
         public Statement() {
-            //TODO: initialization
-            ChildStatements = new Collection<Statement>();
-        }
-
-        public Statement(Statement otherStatement) {
-            //TODO: implement copy constructor
+            childStatementsList = new List<Statement>();
+            ChildStatements = new ReadOnlyCollection<Statement>(childStatementsList);
         }
         
-        public Collection<Statement> ChildStatements { get; private set; }
+        public ReadOnlyCollection<Statement> ChildStatements { get; private set; }
         public Statement ParentStatement { get; set; }
         public SrcMLLocation Location { get; set; }
         public Language ProgrammingLanguage { get; set; }
 
         //TODO: public Expression TheExpression {get; set;}
+
+        public void AddChildStatement(Statement child) {
+            if(child == null) { throw new ArgumentNullException("child"); }
+
+            child.ParentStatement = this;
+            childStatementsList.Add(child);
+        }
     }
 }

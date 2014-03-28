@@ -19,26 +19,36 @@ using System.Linq;
 namespace ABB.SrcML.Data {
 
     public class TypeDefinition : NamedScope {
+        private Collection<TypeUse> parentTypeCollection;
+        
         /// <summary>
         /// Creates a new type definition object
         /// </summary>
         public TypeDefinition()
             : base() {
-            //TODO: implement constructor
+            parentTypeCollection = new Collection<TypeUse>();
+            ParentTypes = new ReadOnlyCollection<TypeUse>(parentTypeCollection);
+            IsPartial = false;
         }
 
-        /// <summary>
-        /// Copy constructor
-        /// </summary>
-        /// <param name="otherDefinition">The scope to copy from</param>
-        public TypeDefinition(TypeDefinition otherDefinition)
-            : base(otherDefinition) {
-            //TODO: implement copy constructor
-        }
         
         public TypeKind Kind { get; set; }
         public ReadOnlyCollection<TypeUse> ParentTypes { get; protected set; }
         public bool IsPartial { get; set; }
+
+        /// <summary>
+        /// Adds
+        /// <paramref name="parentTypeUse"/>as a parent type for this type definition.
+        /// </summary>
+        /// <param name="parentTypeUse">The parent type to add</param>
+        public void AddParentType(TypeUse parentTypeUse) {
+            if(null == parentTypeUse)
+                throw new ArgumentNullException("parentTypeUse");
+
+            parentTypeUse.ParentScope = this;
+            parentTypeCollection.Add(parentTypeUse);
+        }
+
     }
 
 

@@ -17,15 +17,20 @@ using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML.Data {
-    public class IfStatement : ControlStatement {
+    public class IfStatement : ConditionBlockStatement {
+        private List<Statement> elseStatementsList;
+        
         public IfStatement() : base() {
-            //TODO: implement constructor
+            elseStatementsList = new List<Statement>();
+            ElseStatements = new ReadOnlyCollection<Statement>(elseStatementsList);
         }
+        
+        public ReadOnlyCollection<Statement> ElseStatements { get; private set; }
+        public void AddElseStatement(Statement child) {
+            if(child == null) { throw new ArgumentNullException("child"); }
 
-        public IfStatement(IfStatement otherStatement) : base(otherStatement) {
-            //TODO: implement copy constructor
+            child.ParentStatement = this;
+            elseStatementsList.Add(child);
         }
-
-        public Collection<Statement> ElseStatements { get; private set; }
     }
 }

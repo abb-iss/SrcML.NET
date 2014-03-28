@@ -16,7 +16,7 @@ using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML.Data {
-    public class WhileStatement : ControlStatement {
+    public class WhileStatement : ConditionBlockStatement {
         public WhileStatement() : base() {}
 
         public WhileStatement(WhileStatement otherStatement) : base(otherStatement) {

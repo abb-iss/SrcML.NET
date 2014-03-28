@@ -46,7 +46,7 @@
           </property>
           <property
             Id="88d7826b-cb86-428a-8b18-11e53571df67"
-            name="Expression"
+            name="Content"
             isLeaf="false"
             isStatic="false"
             isReadOnly="false"
@@ -122,7 +122,7 @@
     <packageHasNamedElement>
       <class
         Id="f65cbc43-775f-4cdc-bcc5-c80f16b3d1a2"
-        name="ControlStatement"
+        name="ConditionBlockStatement"
         isAbstract="false"
         isLeaf="false"
         isActiveClass="false">
@@ -228,7 +228,7 @@
             isSubstitutable="false">
             <classMoniker
               Id="f65cbc43-775f-4cdc-bcc5-c80f16b3d1a2"
-              LastKnownName="ControlStatement"
+              LastKnownName="ConditionBlockStatement"
               LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
           </generalization>
         </generalsInternal>
@@ -267,7 +267,7 @@
             isSubstitutable="false">
             <classMoniker
               Id="f65cbc43-775f-4cdc-bcc5-c80f16b3d1a2"
-              LastKnownName="ControlStatement"
+              LastKnownName="ConditionBlockStatement"
               LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
           </generalization>
         </generalsInternal>
@@ -286,7 +286,7 @@
             isSubstitutable="false">
             <classMoniker
               Id="f65cbc43-775f-4cdc-bcc5-c80f16b3d1a2"
-              LastKnownName="ControlStatement"
+              LastKnownName="ConditionBlockStatement"
               LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
           </generalization>
         </generalsInternal>
@@ -305,7 +305,7 @@
             isSubstitutable="false">
             <classMoniker
               Id="f65cbc43-775f-4cdc-bcc5-c80f16b3d1a2"
-              LastKnownName="ControlStatement"
+              LastKnownName="ConditionBlockStatement"
               LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
           </generalization>
         </generalsInternal>
@@ -631,6 +631,139 @@
       <undefinedType
         Id="5f799c93-a95e-4c83-8adb-80a5bea50a80"
         name="ReadOnlyCollection&lt;TypeUse&gt;" />
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <class
+        Id="43ffb922-37db-42d7-b86b-57f441b4f57a"
+        name="ForeachStatement"
+        isAbstract="false"
+        isLeaf="false"
+        isActiveClass="false">
+        <generalsInternal>
+          <generalization
+            Id="e35b4602-82d8-403f-aa2c-a2953e8e304a"
+            isSubstitutable="false">
+            <classMoniker
+              Id="f65cbc43-775f-4cdc-bcc5-c80f16b3d1a2"
+              LastKnownName="ConditionBlockStatement"
+              LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <class
+        Id="bda8d524-f4ff-4222-ba70-a0fa073c6df3"
+        name="SwitchStatement"
+        isAbstract="false"
+        isLeaf="false"
+        isActiveClass="false">
+        <generalsInternal>
+          <generalization
+            Id="29588245-7e99-4021-b7f3-0f43fe75a7f7"
+            isSubstitutable="false">
+            <classMoniker
+              Id="f65cbc43-775f-4cdc-bcc5-c80f16b3d1a2"
+              LastKnownName="ConditionBlockStatement"
+              LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <class
+        Id="e113fefc-4fce-412e-afee-e98d20a34a40"
+        name="CaseStatement"
+        isAbstract="false"
+        isLeaf="false"
+        isActiveClass="false">
+        <generalsInternal>
+          <generalization
+            Id="70794eed-031b-4357-b672-f5a7d8907580"
+            isSubstitutable="false">
+            <classMoniker
+              Id="f65cbc43-775f-4cdc-bcc5-c80f16b3d1a2"
+              LastKnownName="ConditionBlockStatement"
+              LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <class
+        Id="9ea240d3-2b32-4bf3-b407-ec1bb197c6d8"
+        name="BreakStatement"
+        isAbstract="false"
+        isLeaf="false"
+        isActiveClass="false">
+        <generalsInternal>
+          <generalization
+            Id="8fa9a0d0-10ed-435a-a74e-cd3904fff8c7"
+            isSubstitutable="false">
+            <classMoniker
+              Id="3c930dc3-adce-4432-b0c6-c7f3341a7529"
+              LastKnownName="Statement"
+              LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <class
+        Id="798bef1e-d721-40bb-947a-67590b539863"
+        name="ContinueStatement"
+        isAbstract="false"
+        isLeaf="false"
+        isActiveClass="false">
+        <generalsInternal>
+          <generalization
+            Id="ed530c7f-d0c5-4398-a1a9-d7c56fc22ae4"
+            isSubstitutable="false">
+            <classMoniker
+              Id="3c930dc3-adce-4432-b0c6-c7f3341a7529"
+              LastKnownName="Statement"
+              LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <class
+        Id="b7c5621d-950e-4485-b7c4-660c93905f85"
+        name="GotoStatement"
+        isAbstract="false"
+        isLeaf="false"
+        isActiveClass="false">
+        <generalsInternal>
+          <generalization
+            Id="01035dbd-bf45-460a-81df-805529ac6085"
+            isSubstitutable="false">
+            <classMoniker
+              Id="3c930dc3-adce-4432-b0c6-c7f3341a7529"
+              LastKnownName="Statement"
+              LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <class
+        Id="bf7e7619-4e40-4764-96e2-519118a5e741"
+        name="ReturnStatement"
+        isAbstract="false"
+        isLeaf="false"
+        isActiveClass="false">
+        <generalsInternal>
+          <generalization
+            Id="2bc65d07-a815-4dcd-8b2d-4924e1d134f4"
+            isSubstitutable="false">
+            <classMoniker
+              Id="3c930dc3-adce-4432-b0c6-c7f3341a7529"
+              LastKnownName="Statement"
+              LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+          </generalization>
+        </generalsInternal>
+      </class>
     </packageHasNamedElement>
   </packagedElements>
   <primitiveType

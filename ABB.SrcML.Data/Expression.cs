@@ -12,9 +12,19 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML.Data {
-    public class Expression {}
+    public class Expression {
+
+        public Expression() : base() {
+            Components = new Collection<Expression>();
+        }
+
+        public Collection<Expression> Components { get; private set; }
+    }
+
+    
 }

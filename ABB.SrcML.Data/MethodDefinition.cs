@@ -20,29 +20,43 @@ using System.Text;
 namespace ABB.SrcML.Data {
 
     public class MethodDefinition : NamedScope {
+        private List<ParameterDeclaration> parameterList;
+        
         /// <summary>
         /// Creates a new method definition object
         /// </summary>
         public MethodDefinition()
             : base() {
-            //TODO: implement constructor
+            parameterList = new List<ParameterDeclaration>();
+            Parameters = new ReadOnlyCollection<ParameterDeclaration>(parameterList);
         }
 
-        /// <summary>
-        /// Copy constructor
-        /// </summary>
-        /// <param name="otherDefinition">The method to copy from</param>
-        public MethodDefinition(MethodDefinition otherDefinition)
-            : base(otherDefinition) {
-            //TODO: implement copy constructor
-        }
-        
         public bool IsConstructor { get; set; }
         public bool IsDestructor { get; set; }
         public ReadOnlyCollection<ParameterDeclaration> Parameters { get; private set; }
         public TypeUse ReturnType { get; set; }
 
         //TODO: record other keywords besides access modifiers? for example, static
+
+        /// <summary>
+        /// Adds a method parameter to this method
+        /// </summary>
+        /// <param name="parameter">The parameter to add</param>
+        public void AddMethodParameter(ParameterDeclaration parameter) {
+            parameter.ParentStatement = this;
+            parameterList.Add(parameter);
+        }
+
+        /// <summary>
+        /// Adds an enumerable of method parameters to this method.
+        /// </summary>
+        /// <param name="parameters">The parameters to add</param>
+        public void AddMethodParameters(IEnumerable<ParameterDeclaration> parameters) {
+            foreach(var parameter in parameters) {
+                AddMethodParameter(parameter);
+            }
+        }
+
     }
 
     ///// <summary>

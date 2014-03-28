@@ -20,8 +20,5 @@ namespace ABB.SrcML.Data {
 
         public BlockStatement() : base() {}
 
-        public BlockStatement(BlockStatement otherBlock) : base(otherBlock) {
-            //TODO: copy constructor stuff
-        }
     }
 }

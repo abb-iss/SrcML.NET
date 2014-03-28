@@ -249,7 +249,7 @@ namespace ABB.SrcML.Data {
 
             var prefix = ParseNamedScopeUsePrefix(nameElement, context);
             if(null != prefix) {
-                (context.CurrentScope as INamedScope).ParentScopeCandidates.Add(prefix);
+                (context.CurrentStatement as INamedScope).ParentScopeCandidates.Add(prefix);
             }
         }
 
