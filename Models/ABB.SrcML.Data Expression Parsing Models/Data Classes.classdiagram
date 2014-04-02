@@ -160,17 +160,6 @@
       </class>
     </logicalClassDesignerModelHasTypes>
     <logicalClassDesignerModelHasTypes>
-      <class Id="4b12a477-3bbc-4253-a397-81c46aeb08a5" name="VariableDeclaration" isAbstract="false" isLeaf="false" isActiveClass="false">
-        <elementDefinition Id="31c93bf3-bbfa-403b-b958-9cbb2b49c540" />
-        <generalsInternal>
-          <generalization Id="f52aa6f5-6c95-4908-b17c-9dd3c041bd6c" isSubstitutable="false">
-            <classMoniker Id="bba6f67c-b6ff-476b-8cdb-162ca35391c0" LastKnownName="Statement" />
-            <elementDefinition Id="5117e6c7-c7b0-458a-a427-f1eecfacde1b" />
-          </generalization>
-        </generalsInternal>
-      </class>
-    </logicalClassDesignerModelHasTypes>
-    <logicalClassDesignerModelHasTypes>
       <class Id="dc2e393c-a684-45c2-8513-09fa8258cc02" name="MethodDefinition" isAbstract="false" isLeaf="false" isActiveClass="false">
         <elementDefinition Id="ea703639-bf4a-4f37-bfbe-5e8f5320e541" />
         <generalsInternal>
@@ -247,11 +236,6 @@
             <elementDefinition Id="d43fa8b0-9796-4254-8edd-50a968f3e3fb" />
           </generalization>
         </generalsInternal>
-      </class>
-    </logicalClassDesignerModelHasTypes>
-    <logicalClassDesignerModelHasTypes>
-      <class Id="86b29c27-4223-49db-9432-32a54a2a2cf4" name="Expression" isAbstract="false" isLeaf="false" isActiveClass="false">
-        <elementDefinition Id="ff2b925f-ec79-4d11-9dba-63fbc8f033f0" />
       </class>
     </logicalClassDesignerModelHasTypes>
     <packageHasNamedElement>

@@ -30,6 +30,13 @@
       <SubType>Content</SubType>
       <DependentUpon>Data Classes.classdiagram</DependentUpon>
     </Content>
+    <Content Include="Expression Classes.classdiagram">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Expression Classes.classdiagram.layout">
+      <SubType>Content</SubType>
+      <DependentUpon>Expression Classes.classdiagram</DependentUpon>
+    </Content>
     <Content Include="ModelDefinition\ABB.SrcML.Data.ExpressionParsingModels.uml">
       <SubType>Content</SubType>
     </Content>

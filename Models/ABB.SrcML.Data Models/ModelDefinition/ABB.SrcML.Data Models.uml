@@ -1567,6 +1567,68 @@
             </type_NamedElement>
           </property>
         </ownedAttributesInternal>
+        <ownedOperationsInternal>
+          <operation
+            Id="1a0c3db2-95c7-4dc3-9f99-05207a941eac"
+            name="FindMatches"
+            isLeaf="false"
+            isStatic="false"
+            isAbstract="true"
+            concurrency="Sequential"
+            isQuery="false">
+            <ownedParameters>
+              <operationHasOwnedParameters>
+                <parameter
+                  Id="abb0d349-83eb-4816-a2fa-28cb849c0c8c"
+                  direction="Return">
+                  <type_NamedElement>
+                    <undefinedTypeMoniker
+                      Id="82d56c37-e7b6-4bfc-8295-a56c611f7c24"
+                      LastKnownName="IEnumerable&lt;DEFINITION&gt;"
+                      LastKnownLocation="ABB.SrcML.Data Models.uml" />
+                  </type_NamedElement>
+                </parameter>
+              </operationHasOwnedParameters>
+            </ownedParameters>
+          </operation>
+          <operation
+            Id="3657890b-d3aa-44a0-835c-895f37f9bee0"
+            name="Matches"
+            isLeaf="false"
+            isStatic="false"
+            isAbstract="true"
+            concurrency="Sequential"
+            isQuery="false">
+            <ownedParameters>
+              <operationHasOwnedParameters>
+                <parameter
+                  Id="ad20655c-353e-4973-9d55-13c57437009d"
+                  direction="In"
+                  isUnique="false">
+                  <type_NamedElement>
+                    <undefinedTypeMoniker
+                      Id="0d65624a-5b75-4cec-814c-46ca5c9c7533"
+                      LastKnownName="DEFINITION"
+                      LastKnownLocation="ABB.SrcML.Data Models.uml" />
+                  </type_NamedElement>
+                </parameter>
+              </operationHasOwnedParameters>
+              <operationHasOwnedParameters>
+                <parameter
+                  Id="2cec1822-f92c-49e4-967a-06dabae263a4"
+                  direction="Return"
+                  isUnique="false">
+                  <type_NamedElement>
+                    <undefinedTypeMoniker
+                      Id="e41fba63-38a6-4abf-be57-b94ff76fd8c9"
+                      LastKnownName="bool"
+                      LastKnownLocation="ABB.SrcML.Data Models.uml" />
+                  </type_NamedElement>
+                </parameter>
+              </operationHasOwnedParameters>
+            </ownedParameters>
+          </operation>
+        </ownedOperationsInternal>
       </class>
     </packageHasNamedElement>
     <packageHasNamedElement>
@@ -1705,25 +1767,6 @@
         </generalsInternal>
         <ownedAttributesInternal>
           <property
-            Id="77854587-bcd0-4c54-9e92-f92a7524dbe5"
-            name="internalTypeParameters"
-            visibility="Private"
-            isLeaf="false"
-            isStatic="false"
-            isReadOnly="false"
-            isUnique="false"
-            isDerived="false"
-            isDerivedUnion="false"
-            aggregation="None"
-            isComposite="false">
-            <type_NamedElement>
-              <undefinedTypeMoniker
-                Id="887605ed-84df-4762-9599-16226a394202"
-                LastKnownName="List&lt;ITypeUse&gt;"
-                LastKnownLocation="ABB.SrcML.Data Models.uml" />
-            </type_NamedElement>
-          </property>
-          <property
             Id="df3a5884-50ff-469b-8a7f-32fa2b7d99e7"
             name="CallingObject"
             isLeaf="false"
@@ -1796,6 +1839,32 @@
             </type_NamedElement>
           </property>
         </ownedAttributesInternal>
+        <ownedOperationsInternal>
+          <operation
+            Id="7ae87f88-88ee-4047-abd8-3ca912473005"
+            name="FindMatchingTypes"
+            isLeaf="false"
+            isStatic="false"
+            isAbstract="false"
+            concurrency="Sequential"
+            isQuery="false">
+            <ownedParameters>
+              <operationHasOwnedParameters>
+                <parameter
+                  Id="959000f5-6807-4b93-8c70-8bb84f68f21e"
+                  direction="Return"
+                  isUnique="false">
+                  <type_NamedElement>
+                    <undefinedTypeMoniker
+                      Id="dd11e214-e8f4-41b1-9b13-a279ec289ac6"
+                      LastKnownName="IEnumberable&lt;ITypeDefinition&gt;"
+                      LastKnownLocation="ABB.SrcML.Data Models.uml" />
+                  </type_NamedElement>
+                </parameter>
+              </operationHasOwnedParameters>
+            </ownedParameters>
+          </operation>
+        </ownedOperationsInternal>
       </class>
     </packageHasNamedElement>
     <packageHasNamedElement>
@@ -1840,6 +1909,32 @@
             </type_NamedElement>
           </property>
         </ownedAttributesInternal>
+        <ownedOperationsInternal>
+          <operation
+            Id="5ffc4b23-a096-46b2-9b9f-9351aa59798f"
+            name="CreateScope"
+            isLeaf="false"
+            isStatic="false"
+            isAbstract="false"
+            concurrency="Sequential"
+            isQuery="false">
+            <ownedParameters>
+              <operationHasOwnedParameters>
+                <parameter
+                  Id="b508eb91-bebf-4dc0-af48-28b0100d1ab0"
+                  direction="Return"
+                  isUnique="false">
+                  <type_NamedElement>
+                    <undefinedTypeMoniker
+                      Id="ea84afb2-cd54-4a2b-b694-0199d79b8e69"
+                      LastKnownName="INamedScope"
+                      LastKnownLocation="ABB.SrcML.Data Models.uml" />
+                  </type_NamedElement>
+                </parameter>
+              </operationHasOwnedParameters>
+            </ownedParameters>
+          </operation>
+        </ownedOperationsInternal>
       </class>
     </packageHasNamedElement>
     <packageHasNamedElement>
@@ -1859,6 +1954,16 @@
               LastKnownLocation="ABB.SrcML.Data Models.uml" />
           </generalization>
         </generalsInternal>
+        <ownedOperationsInternal>
+          <operation
+            Id="6e8c72d5-8829-4866-99da-6ebaf822e2fb"
+            name="CreateScope : INamedScope"
+            isLeaf="false"
+            isStatic="false"
+            isAbstract="false"
+            concurrency="Sequential"
+            isQuery="false" />
+        </ownedOperationsInternal>
       </class>
     </packageHasNamedElement>
     <packageHasNamedElement>
@@ -1899,6 +2004,184 @@
           </property>
         </ownedAttributesInternal>
       </class>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <class
+        Id="ba80c463-e1b8-4028-a30e-857409d3b292"
+        name="MethodCall"
+        isAbstract="false"
+        isLeaf="false"
+        isActiveClass="false">
+        <generalsInternal>
+          <generalization
+            Id="7ab9826d-fef5-4763-b09c-7b79e38ee515"
+            isSubstitutable="false">
+            <classMoniker
+              Id="a48d19fa-d323-4124-9c0f-adbddbdd8c9f"
+              LastKnownName="AbstractScopeUse"
+              LastKnownLocation="ABB.SrcML.Data Models.uml" />
+          </generalization>
+        </generalsInternal>
+        <ownedAttributesInternal>
+          <property
+            Id="3fb85bea-8c14-4e90-b07f-f8af4d3f40e3"
+            name="Arguments"
+            isLeaf="false"
+            isStatic="false"
+            isReadOnly="false"
+            isUnique="false"
+            isDerived="false"
+            isDerivedUnion="false"
+            aggregation="None"
+            isComposite="false">
+            <type_NamedElement>
+              <undefinedTypeMoniker
+                Id="d6485edf-0577-449a-94d4-202292f8a315"
+                LastKnownName="Collection&lt;IResolvesToType&gt;"
+                LastKnownLocation="ABB.SrcML.Data Models.uml" />
+            </type_NamedElement>
+          </property>
+          <property
+            Id="7318d137-7ee5-40fc-9750-b4e6eb3c6567"
+            name="CallingObject"
+            isLeaf="false"
+            isStatic="false"
+            isReadOnly="false"
+            isUnique="false"
+            isDerived="false"
+            isDerivedUnion="false"
+            aggregation="None"
+            isComposite="false">
+            <type_NamedElement>
+              <undefinedTypeMoniker
+                Id="d540be32-0bb2-4380-acc2-b6caefd79421"
+                LastKnownName="IResolvesToType"
+                LastKnownLocation="ABB.SrcML.Data Models.uml" />
+            </type_NamedElement>
+          </property>
+          <property
+            Id="cdcf8d45-85e9-4ebc-890e-411a259ffed4"
+            name="IsConstructor"
+            isLeaf="false"
+            isStatic="false"
+            isReadOnly="false"
+            isUnique="false"
+            isDerived="false"
+            isDerivedUnion="false"
+            aggregation="None"
+            isComposite="false">
+            <type_NamedElement>
+              <undefinedTypeMoniker
+                Id="e41fba63-38a6-4abf-be57-b94ff76fd8c9"
+                LastKnownName="bool"
+                LastKnownLocation="ABB.SrcML.Data Models.uml" />
+            </type_NamedElement>
+          </property>
+          <property
+            Id="29633afa-6f3f-4fb6-81d3-2ab897f695cc"
+            name="IsDestructor"
+            isLeaf="false"
+            isStatic="false"
+            isReadOnly="false"
+            isUnique="false"
+            isDerived="false"
+            isDerivedUnion="false"
+            aggregation="None"
+            isComposite="false">
+            <type_NamedElement>
+              <undefinedTypeMoniker
+                Id="e41fba63-38a6-4abf-be57-b94ff76fd8c9"
+                LastKnownName="bool"
+                LastKnownLocation="ABB.SrcML.Data Models.uml" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
+        <ownedOperationsInternal>
+          <operation
+            Id="cdfc42ec-bd7c-4438-b098-57506a26e9f3"
+            name="FindMatchingTypes"
+            isLeaf="false"
+            isStatic="false"
+            isAbstract="false"
+            concurrency="Sequential"
+            isQuery="false">
+            <ownedParameters>
+              <operationHasOwnedParameters>
+                <parameter
+                  Id="2954f3ff-b3d3-429b-9f95-f4eadb3fed36"
+                  direction="Return"
+                  isUnique="false">
+                  <type_NamedElement>
+                    <undefinedTypeMoniker
+                      Id="e3a21c1e-5478-43c2-a7dc-93529b1bd7eb"
+                      LastKnownName="IEnumerable&lt;ITypeDefinition&gt;"
+                      LastKnownLocation="ABB.SrcML.Data Models.uml" />
+                  </type_NamedElement>
+                </parameter>
+              </operationHasOwnedParameters>
+            </ownedParameters>
+          </operation>
+          <operation
+            Id="953b7c1d-1602-4d01-9e5e-1831f1bcda50"
+            name="GetPossibleNames"
+            isLeaf="false"
+            isStatic="false"
+            isAbstract="false"
+            concurrency="Sequential"
+            isQuery="false">
+            <ownedParameters>
+              <operationHasOwnedParameters>
+                <parameter
+                  Id="9b76266e-4f1a-45c0-b633-301cb4995324"
+                  direction="Return"
+                  isUnique="false">
+                  <type_NamedElement>
+                    <undefinedTypeMoniker
+                      Id="3eb73962-b1a9-4838-a806-170a1487945f"
+                      LastKnownName="IEnumerable&lt;string&gt;"
+                      LastKnownLocation="ABB.SrcML.Data Models.uml" />
+                  </type_NamedElement>
+                </parameter>
+              </operationHasOwnedParameters>
+            </ownedParameters>
+          </operation>
+        </ownedOperationsInternal>
+      </class>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <undefinedType
+        Id="d6485edf-0577-449a-94d4-202292f8a315"
+        name="Collection&lt;IResolvesToType&gt;" />
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <undefinedType
+        Id="82d56c37-e7b6-4bfc-8295-a56c611f7c24"
+        name="IEnumerable&lt;DEFINITION&gt;" />
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <undefinedType
+        Id="0d65624a-5b75-4cec-814c-46ca5c9c7533"
+        name="DEFINITION" />
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <undefinedType
+        Id="dd11e214-e8f4-41b1-9b13-a279ec289ac6"
+        name="IEnumberable&lt;ITypeDefinition&gt;" />
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <undefinedType
+        Id="ea84afb2-cd54-4a2b-b694-0199d79b8e69"
+        name="INamedScope" />
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <undefinedType
+        Id="e3a21c1e-5478-43c2-a7dc-93529b1bd7eb"
+        name="IEnumerable&lt;ITypeDefinition&gt;" />
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <undefinedType
+        Id="3eb73962-b1a9-4838-a806-170a1487945f"
+        name="IEnumerable&lt;string&gt;" />
     </packageHasNamedElement>
   </packagedElements>
   <primitiveType
