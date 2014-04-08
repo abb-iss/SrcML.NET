@@ -20,7 +20,8 @@ namespace ABB.SrcML.Data {
     /// Represents a parameter declaration in a method.
     /// </summary>
     [Serializable]
-    public class ParameterDeclaration : VariableDeclaration, IParameterDeclaration {
+    public class ParameterDeclaration : VariableDeclaration {
+        //TODO: update this class for the new class hierarchy
 
         /// <summary>
         /// Default constructor
@@ -34,13 +35,13 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public bool HasDefaultValue { get; set; }
 
-        /// <summary>
-        /// The primary location for this parameter
-        /// </summary>
-        public override SrcMLLocation Location {
-            get { return Locations.FirstOrDefault(); }
-            set { throw new NotImplementedException(); }
-        }
+        ///// <summary>
+        ///// The primary location for this parameter
+        ///// </summary>
+        //public override SrcMLLocation Location {
+        //    get { return Locations.FirstOrDefault(); }
+        //    set { throw new NotImplementedException(); }
+        //}
 
         /// <summary>
         /// The locations where this parameter is declared. There can be more than one in the case

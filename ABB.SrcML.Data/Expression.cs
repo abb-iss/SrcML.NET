@@ -24,6 +24,9 @@ namespace ABB.SrcML.Data {
         }
 
         public Collection<Expression> Components { get; private set; }
+        public SrcMLLocation Location { get; set; }
+        public Language ProgrammingLanguage { get; set; }
+
     }
 
     

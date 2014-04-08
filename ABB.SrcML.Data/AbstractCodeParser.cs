@@ -13,6 +13,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml;
@@ -94,26 +95,28 @@ namespace ABB.SrcML.Data {
         /// <returns>A resolvable use object</returns>
         // TODO make this fit in with the rest of the parse methods (rename to parse)
         protected virtual IResolvesToType CreateResolvableUse(XElement element, ParserContext context) {
-            XElement expression = null;
-            if(element.Name == SRC.Expression) {
-                expression = element;
-            } else if(element.Name == SRC.Argument || element.Name == SRC.ExpressionStatement) {
-                expression = element.Elements(SRC.Expression).FirstOrDefault();
-            }
+            throw new NotImplementedException();
 
-            var use = new VariableUse() {
-                Location = context.CreateLocation(element, true),
-                ParentScope = context.CurrentStatement,
-                ProgrammingLanguage = ParserLanguage,
-            };
+            //XElement expression = null;
+            //if(element.Name == SRC.Expression) {
+            //    expression = element;
+            //} else if(element.Name == SRC.Argument || element.Name == SRC.ExpressionStatement) {
+            //    expression = element.Elements(SRC.Expression).FirstOrDefault();
+            //}
 
-            if(expression != null) {
-                if(expression.Elements(SRC.Name).Count() == 1) {
-                    use.Name = expression.Element(SRC.Name).Value;
-                }
-            }
+            //var use = new VariableUse() {
+            //    Location = context.CreateLocation(element, true),
+            //    ParentScope = context.CurrentStatement,
+            //    ProgrammingLanguage = ParserLanguage,
+            //};
 
-            return use;
+            //if(expression != null) {
+            //    if(expression.Elements(SRC.Name).Count() == 1) {
+            //        use.Name = expression.Element(SRC.Name).Value;
+            //    }
+            //}
+
+            //return use;
         }
 
         /// <summary>
@@ -126,26 +129,28 @@ namespace ABB.SrcML.Data {
         /// <returns>A variable use object</returns>
         // TODO make this fit in with the rest of the parse methods
         protected virtual IVariableUse CreateVariableUse(XElement element, ParserContext context) {
-            XElement nameElement;
-            if(element.Name == SRC.Name) {
-                nameElement = element;
-            } else if(element.Name == SRC.Expression) {
-                nameElement = element.Element(SRC.Name);
-            } else if(element.Name == SRC.ExpressionStatement || element.Name == SRC.Argument) {
-                nameElement = element.Element(SRC.Expression).Element(SRC.Name);
-            } else {
-                throw new ArgumentException("element should be an expression, expression statement, argument, or name", "element");
-            }
+            throw new NotImplementedException();
 
-            var lastNameElement = NameHelper.GetLastNameElement(nameElement);
+            //XElement nameElement;
+            //if(element.Name == SRC.Name) {
+            //    nameElement = element;
+            //} else if(element.Name == SRC.Expression) {
+            //    nameElement = element.Element(SRC.Name);
+            //} else if(element.Name == SRC.ExpressionStatement || element.Name == SRC.Argument) {
+            //    nameElement = element.Element(SRC.Expression).Element(SRC.Name);
+            //} else {
+            //    throw new ArgumentException("element should be an expression, expression statement, argument, or name", "element");
+            //}
 
-            IVariableUse variableUse = new VariableUse() {
-                Location = context.CreateLocation(lastNameElement, true),
-                Name = lastNameElement.Value,
-                ParentScope = context.CurrentStatement,
-                ProgrammingLanguage = ParserLanguage,
-            };
-            return variableUse;
+            //var lastNameElement = NameHelper.GetLastNameElement(nameElement);
+
+            //IVariableUse variableUse = new VariableUse() {
+            //    Location = context.CreateLocation(lastNameElement, true),
+            //    Name = lastNameElement.Value,
+            //    ParentScope = context.CurrentStatement,
+            //    ProgrammingLanguage = ParserLanguage,
+            //};
+            //return variableUse;
         }
 
         /// <summary>
@@ -250,98 +255,100 @@ namespace ABB.SrcML.Data {
         /// <returns>A method call for
         /// <paramref name="callElement"/></returns>
         protected virtual IMethodCall ParseCallElement(XElement callElement, ParserContext context) {
-            XElement methodNameElement = null;
-            string name = String.Empty;
-            bool isConstructor = false;
-            bool isDestructor = false;
-            IEnumerable<XElement> callingObjectNames = Enumerable.Empty<XElement>();
+            throw new NotImplementedException();
 
-            var nameElement = callElement.Element(SRC.Name);
-            if(null != nameElement) {
-                methodNameElement = NameHelper.GetLastNameElement(nameElement);
-                callingObjectNames = NameHelper.GetNameElementsExceptLast(nameElement);
-            }
-            if(null != methodNameElement) {
-                if(null != methodNameElement.Element(SRC.ArgumentList)) {
-                    name = methodNameElement.Element(SRC.Name).Value;
-                } else {
-                    name = methodNameElement.Value;
-                }
-            }
-            if(methodNameElement != null && methodNameElement.Element(SRC.ArgumentList) != null) {
-                name = methodNameElement.Element(SRC.Name).Value;
-            }
-            var precedingElements = callElement.ElementsBeforeSelf();
+            //XElement methodNameElement = null;
+            //string name = String.Empty;
+            //bool isConstructor = false;
+            //bool isDestructor = false;
+            //IEnumerable<XElement> callingObjectNames = Enumerable.Empty<XElement>();
 
-            foreach(var pe in precedingElements) {
-                if(pe.Name == OP.Operator && pe.Value == "new") {
-                    isConstructor = true;
-                } else if(pe.Name == OP.Operator && pe.Value == "~") {
-                    isDestructor = true;
-                }
-            }
+            //var nameElement = callElement.Element(SRC.Name);
+            //if(null != nameElement) {
+            //    methodNameElement = NameHelper.GetLastNameElement(nameElement);
+            //    callingObjectNames = NameHelper.GetNameElementsExceptLast(nameElement);
+            //}
+            //if(null != methodNameElement) {
+            //    if(null != methodNameElement.Element(SRC.ArgumentList)) {
+            //        name = methodNameElement.Element(SRC.Name).Value;
+            //    } else {
+            //        name = methodNameElement.Value;
+            //    }
+            //}
+            //if(methodNameElement != null && methodNameElement.Element(SRC.ArgumentList) != null) {
+            //    name = methodNameElement.Element(SRC.Name).Value;
+            //}
+            //var precedingElements = callElement.ElementsBeforeSelf();
 
-            var parentElement = callElement.Parent;
-            if(null != parentElement && parentElement.Name == SRC.MemberList) {
-                var container = parentElement.Parent;
-                isConstructor = (container != null && container.Name == SRC.Constructor);
-            }
+            //foreach(var pe in precedingElements) {
+            //    if(pe.Name == OP.Operator && pe.Value == "new") {
+            //        isConstructor = true;
+            //    } else if(pe.Name == OP.Operator && pe.Value == "~") {
+            //        isDestructor = true;
+            //    }
+            //}
 
-            var methodCall = new MethodCall() {
-                Name = name,
-                IsConstructor = isConstructor,
-                IsDestructor = isDestructor,
-                ParentScope = context.CurrentStatement,
-                Location = context.CreateLocation(callElement),
-            };
+            //var parentElement = callElement.Parent;
+            //if(null != parentElement && parentElement.Name == SRC.MemberList) {
+            //    var container = parentElement.Parent;
+            //    isConstructor = (container != null && container.Name == SRC.Constructor);
+            //}
 
-            var arguments = from argument in callElement.Element(SRC.ArgumentList).Elements(SRC.Argument)
-                            select CreateResolvableUse(argument, context);
-            methodCall.Arguments = new Collection<IResolvesToType>(arguments.ToList<IResolvesToType>());
+            //var methodCall = new MethodCall() {
+            //    Name = name,
+            //    IsConstructor = isConstructor,
+            //    IsDestructor = isDestructor,
+            //    ParentScope = context.CurrentStatement,
+            //    Location = context.CreateLocation(callElement),
+            //};
 
-            IResolvesToType current = methodCall;
-            // This foreach block gets all of the name elements included in the actual <call>
-            // element this is done primarily in C# and Java where they can reliably be included
-            // there
-            foreach(var callingObjectName in callingObjectNames.Reverse()) {
-                var callingObject = this.CreateVariableUse(callingObjectName, context);
-                current.CallingObject = callingObject;
-                current = callingObject;
-            }
+            //var arguments = from argument in callElement.Element(SRC.ArgumentList).Elements(SRC.Argument)
+            //                select CreateResolvableUse(argument, context);
+            //methodCall.Arguments = new Collection<IResolvesToType>(arguments.ToList<IResolvesToType>());
 
-            // after getting those, we look at the name elements that appear *before* a call we keep
-            // taking name elements as long as they are preceded by "." or "->" we want to accept
-            // get 'a', 'b', and 'c' from "a.b->c" only 'b' and 'c' from "a + b->c"
-            var elementsBeforeCall = callElement.ElementsBeforeSelf().ToArray();
-            int i = elementsBeforeCall.Length - 1;
+            //IResolvesToType current = methodCall;
+            //// This foreach block gets all of the name elements included in the actual <call>
+            //// element this is done primarily in C# and Java where they can reliably be included
+            //// there
+            //foreach(var callingObjectName in callingObjectNames.Reverse()) {
+            //    var callingObject = this.CreateVariableUse(callingObjectName, context);
+            //    current.CallingObject = callingObject;
+            //    current = callingObject;
+            //}
 
-            while(i > 0 && elementsBeforeCall[i].Name == OP.Operator &&
-                  (elementsBeforeCall[i].Value == "." || elementsBeforeCall[i].Value == "->")) {
-                i--;
-                if(i >= 0) {
-                    if(elementsBeforeCall[i].Name == SRC.Name) {
-                        var callingObject = CreateVariableUse(elementsBeforeCall[i], context);
-                        current.CallingObject = callingObject;
-                        current = callingObject;
-                    } else if(elementsBeforeCall[i].Name == SRC.Call) {
-                        var callingObject = ParseCallElement(elementsBeforeCall[i], context);
-                        current.CallingObject = callingObject;
-                        current = callingObject;
-                    }
-                }
-                //if(i >= 0 && elementsBeforeCall[i].Name == SRC.Name) {
-                //    var callingObject = CreateVariableUse(elementsBeforeCall[i], context);
-                //    current.CallingObject = callingObject;
-                //    current = callingObject;
-                //}
-                i--;
-            }
-            if(methodCall.CallingObject == null) {
-                methodCall.AddAliases(context.Aliases);
-            } else if(current != null && current is IVariableUse) {
-                ((IVariableUse) current).AddAliases(context.Aliases);
-            }
-            return methodCall;
+            //// after getting those, we look at the name elements that appear *before* a call we keep
+            //// taking name elements as long as they are preceded by "." or "->" we want to accept
+            //// get 'a', 'b', and 'c' from "a.b->c" only 'b' and 'c' from "a + b->c"
+            //var elementsBeforeCall = callElement.ElementsBeforeSelf().ToArray();
+            //int i = elementsBeforeCall.Length - 1;
+
+            //while(i > 0 && elementsBeforeCall[i].Name == OP.Operator &&
+            //      (elementsBeforeCall[i].Value == "." || elementsBeforeCall[i].Value == "->")) {
+            //    i--;
+            //    if(i >= 0) {
+            //        if(elementsBeforeCall[i].Name == SRC.Name) {
+            //            var callingObject = CreateVariableUse(elementsBeforeCall[i], context);
+            //            current.CallingObject = callingObject;
+            //            current = callingObject;
+            //        } else if(elementsBeforeCall[i].Name == SRC.Call) {
+            //            var callingObject = ParseCallElement(elementsBeforeCall[i], context);
+            //            current.CallingObject = callingObject;
+            //            current = callingObject;
+            //        }
+            //    }
+            //    //if(i >= 0 && elementsBeforeCall[i].Name == SRC.Name) {
+            //    //    var callingObject = CreateVariableUse(elementsBeforeCall[i], context);
+            //    //    current.CallingObject = callingObject;
+            //    //    current = callingObject;
+            //    //}
+            //    i--;
+            //}
+            //if(methodCall.CallingObject == null) {
+            //    methodCall.AddAliases(context.Aliases);
+            //} else if(current != null && current is IVariableUse) {
+            //    ((IVariableUse) current).AddAliases(context.Aliases);
+            //}
+            //return methodCall;
         }
 
         ///// <summary>
@@ -364,33 +371,35 @@ namespace ABB.SrcML.Data {
         /// <returns>One variable declaration object for each declaration in
         /// <paramref name="declarationElement"/></returns>
         protected virtual IEnumerable<IVariableDeclaration> ParseDeclarationElement(XElement declarationElement, ParserContext context) {
-            if(declarationElement == null)
-                throw new ArgumentNullException("declaration");
-            if(!VariableDeclarationElementNames.Contains(declarationElement.Name))
-                throw new ArgumentException("XElement.Name must be in VariableDeclarationElementNames");
-            if(context == null)
-                throw new ArgumentNullException("context");
+            throw new NotImplementedException();
 
-            XElement declElement;
-            if(declarationElement.Name == SRC.Declaration || declarationElement.Name == SRC.FunctionDeclaration) {
-                declElement = declarationElement;
-            } else {
-                declElement = declarationElement.Element(SRC.Declaration);
-            }
+            //if(declarationElement == null)
+            //    throw new ArgumentNullException("declaration");
+            //if(!VariableDeclarationElementNames.Contains(declarationElement.Name))
+            //    throw new ArgumentException("XElement.Name must be in VariableDeclarationElementNames");
+            //if(context == null)
+            //    throw new ArgumentNullException("context");
 
-            var typeElement = declElement.Element(SRC.Type);
+            //XElement declElement;
+            //if(declarationElement.Name == SRC.Declaration || declarationElement.Name == SRC.FunctionDeclaration) {
+            //    declElement = declarationElement;
+            //} else {
+            //    declElement = declarationElement.Element(SRC.Declaration);
+            //}
 
-            var declarationType = ParseTypeUseElement(typeElement, context);
+            //var typeElement = declElement.Element(SRC.Type);
 
-            foreach(var nameElement in declElement.Elements(SRC.Name)) {
-                var variableDeclaration = new VariableDeclaration() {
-                    VariableType = declarationType,
-                    Name = nameElement.Value,
-                    Location = context.CreateLocation(nameElement),
-                    ParentScope = context.CurrentStatement,
-                };
-                yield return variableDeclaration;
-            }
+            //var declarationType = ParseTypeUseElement(typeElement, context);
+
+            //foreach(var nameElement in declElement.Elements(SRC.Name)) {
+            //    var variableDeclaration = new VariableDeclaration() {
+            //        VariableType = declarationType,
+            //        Name = nameElement.Value,
+            //        Location = context.CreateLocation(nameElement),
+            //        ParentScope = context.CurrentStatement,
+            //    };
+            //    yield return variableDeclaration;
+            //}
         }
 
         /// <summary>
@@ -909,6 +918,7 @@ namespace ABB.SrcML.Data {
             }
             //TODO: in C#, you can write "goto case 3;" within a switch statement. SrcML does not mark up the case 3 as anything.
             //<goto>goto case 3;</goto>
+            //Mike collard to fix "in next release".
 
             return gotoStmt;
         }
@@ -938,44 +948,41 @@ namespace ABB.SrcML.Data {
             throw new NotImplementedException();
         }
 
-        protected virtual Expression ParseExpression(XElement expElement, ParserContext context) {
-            throw new NotImplementedException();
-            //TODO: implement expression parsing
-        }
+        
 
-        /// <summary>
-        /// Creates a named scope use element
-        /// </summary>
-        /// <param name="nameElement">The name element to parse</param>
-        /// <param name="context">The parser context</param>
-        /// <returns>A named scope use for this element</returns>
-        protected INamedScopeUse ParseNamedScopeUsePrefix(XElement nameElement, ParserContext context) {
-            IEnumerable<XElement> parentNameElements = Enumerable.Empty<XElement>();
+        ///// <summary>
+        ///// Creates a named scope use element
+        ///// </summary>
+        ///// <param name="nameElement">The name element to parse</param>
+        ///// <param name="context">The parser context</param>
+        ///// <returns>A named scope use for this element</returns>
+        //protected INamedScopeUse ParseNamedScopeUsePrefix(XElement nameElement, ParserContext context) {
+        //    IEnumerable<XElement> parentNameElements = Enumerable.Empty<XElement>();
 
-            parentNameElements = NameHelper.GetNameElementsExceptLast(nameElement);
-            INamedScopeUse current = null, root = null;
+        //    parentNameElements = NameHelper.GetNameElementsExceptLast(nameElement);
+        //    INamedScopeUse current = null, root = null;
 
-            if(parentNameElements.Any()) {
-                foreach(var element in parentNameElements) {
-                    var scopeUse = new NamedScopeUse() {
-                        Name = element.Value,
-                        Location = context.CreateLocation(element, true),
-                        ProgrammingLanguage = this.ParserLanguage,
-                    };
-                    if(null == root) {
-                        root = scopeUse;
-                    }
-                    if(current != null) {
-                        current.ChildScopeUse = scopeUse;
-                    }
-                    current = scopeUse;
-                }
-            }
-            if(null != root) {
-                root.ParentScope = context.CurrentStatement;
-            }
-            return root;
-        }
+        //    if(parentNameElements.Any()) {
+        //        foreach(var element in parentNameElements) {
+        //            var scopeUse = new NamedScopeUse() {
+        //                Name = element.Value,
+        //                Location = context.CreateLocation(element, true),
+        //                ProgrammingLanguage = this.ParserLanguage,
+        //            };
+        //            if(null == root) {
+        //                root = scopeUse;
+        //            }
+        //            if(current != null) {
+        //                current.ChildScopeUse = scopeUse;
+        //            }
+        //            current = scopeUse;
+        //        }
+        //    }
+        //    if(null != root) {
+        //        root.ParentScope = context.CurrentStatement;
+        //    }
+        //    return root;
+        //}
 
         /// <summary>
         /// Creates a <see cref="NamespaceDefinition"/> object for <paramref name="namespaceElement"/>
@@ -1029,72 +1036,73 @@ namespace ABB.SrcML.Data {
         /// <returns>A Type Use object</returns>
         protected virtual TypeUse ParseTypeUseElement(XElement typeUseElement, ParserContext context) {
             //TODO: review this method and update it for changes in TypeUse structure
-            
-            if(typeUseElement == null)
-                throw new ArgumentNullException("typeUseElement");
-            if(context == null)
-                throw new ArgumentNullException("context");
+            throw new NotImplementedException();
 
-            XElement typeNameElement;
+            //    if(typeUseElement == null)
+            //        throw new ArgumentNullException("typeUseElement");
+            //    if(context == null)
+            //        throw new ArgumentNullException("context");
 
-            // validate the type use typeUseElement (must be a SRC.Name or SRC.Type)
-            if(typeUseElement.Name == SRC.Type) {
-                typeNameElement = typeUseElement.Elements(SRC.Name).LastOrDefault();
-            } else if(typeUseElement.Name == SRC.Name) {
-                typeNameElement = typeUseElement;
-            } else {
-                throw new ArgumentException("typeUseElement should be of type type or name", "typeUseElement");
-            }
+            //    XElement typeNameElement;
 
-            XElement lastNameElement = null;                  // this is the name element that
-                                                              // identifies the type being used
-            INamedScopeUse prefix = null;                     // This is the prefix (in A::B::C,
-                                                              // this would be the chain A::B)
-            XElement typeParameterArgumentList = null;        // the argument list element holds the
-                                                              // parameters for generic type uses
-            var typeParameters = Enumerable.Empty<ITypeUse>(); // enumerable for the actual generic
-                                                               // parameters
+            //    // validate the type use typeUseElement (must be a SRC.Name or SRC.Type)
+            //    if(typeUseElement.Name == SRC.Type) {
+            //        typeNameElement = typeUseElement.Elements(SRC.Name).LastOrDefault();
+            //    } else if(typeUseElement.Name == SRC.Name) {
+            //        typeNameElement = typeUseElement;
+            //    } else {
+            //        throw new ArgumentException("typeUseElement should be of type type or name", "typeUseElement");
+            //    }
 
-            // get the last name element and the prefix
-            if(typeNameElement != null) {
-                lastNameElement = NameHelper.GetLastNameElement(typeNameElement);
-                prefix = ParseNamedScopeUsePrefix(typeNameElement, context);
-            }
+            //    XElement lastNameElement = null;                  // this is the name element that
+            //                                                      // identifies the type being used
+            //    INamedScopeUse prefix = null;                     // This is the prefix (in A::B::C,
+            //                                                      // this would be the chain A::B)
+            //    XElement typeParameterArgumentList = null;        // the argument list element holds the
+            //                                                      // parameters for generic type uses
+            //    var typeParameters = Enumerable.Empty<ITypeUse>(); // enumerable for the actual generic
+            //                                                       // parameters
 
-            // if the last name element exists, then this *may* be a generic type use go look for
-            // the argument list element
-            if(lastNameElement != null) {
-                if(prefix == null) { // if there is no prefix, then the argument list element will
-                                     // be the first sibling of lastNameElement
-                    typeParameterArgumentList = lastNameElement.ElementsAfterSelf(SRC.ArgumentList).FirstOrDefault();
-                } else {             // otherwise, it will be the first *child* of lastNameElement
-                    typeParameterArgumentList = lastNameElement.Elements(SRC.ArgumentList).FirstOrDefault();
-                }
-            }
+            //    // get the last name element and the prefix
+            //    if(typeNameElement != null) {
+            //        lastNameElement = NameHelper.GetLastNameElement(typeNameElement);
+            //        prefix = ParseNamedScopeUsePrefix(typeNameElement, context);
+            //    }
 
-            if(typeParameterArgumentList != null) {
-                typeParameters = from argument in typeParameterArgumentList.Elements(SRC.Argument)
-                                 where argument.Elements(SRC.Name).Any()
-                                 select ParseTypeUseElement(argument.Element(SRC.Name), context);
-                // if this is a generic type use and there is a prefix (A::B::C) then the last name
-                // element will actually be the first child of lastNameElement
-                if(prefix != null) {
-                    lastNameElement = lastNameElement.Element(SRC.Name);
-                }
-            }
+            //    // if the last name element exists, then this *may* be a generic type use go look for
+            //    // the argument list element
+            //    if(lastNameElement != null) {
+            //        if(prefix == null) { // if there is no prefix, then the argument list element will
+            //                             // be the first sibling of lastNameElement
+            //            typeParameterArgumentList = lastNameElement.ElementsAfterSelf(SRC.ArgumentList).FirstOrDefault();
+            //        } else {             // otherwise, it will be the first *child* of lastNameElement
+            //            typeParameterArgumentList = lastNameElement.Elements(SRC.ArgumentList).FirstOrDefault();
+            //        }
+            //    }
 
-            // construct the type use
-            var typeUse = new TypeUse() {
-                Name = (lastNameElement != null ? lastNameElement.Value : string.Empty),
-                ParentScope = context.CurrentStatement,
-                Location = context.CreateLocation(lastNameElement != null ? lastNameElement : typeUseElement),
-                Prefix = prefix,
-                ProgrammingLanguage = this.ParserLanguage,
-            };
-            typeUse.AddTypeParameters(typeParameters);
+            //    if(typeParameterArgumentList != null) {
+            //        typeParameters = from argument in typeParameterArgumentList.Elements(SRC.Argument)
+            //                         where argument.Elements(SRC.Name).Any()
+            //                         select ParseTypeUseElement(argument.Element(SRC.Name), context);
+            //        // if this is a generic type use and there is a prefix (A::B::C) then the last name
+            //        // element will actually be the first child of lastNameElement
+            //        if(prefix != null) {
+            //            lastNameElement = lastNameElement.Element(SRC.Name);
+            //        }
+            //    }
 
-            typeUse.AddAliases(context.Aliases);
-            return typeUse;
+            //    // construct the type use
+            //    var typeUse = new TypeUse() {
+            //        Name = (lastNameElement != null ? lastNameElement.Value : string.Empty),
+            //        ParentScope = context.CurrentStatement,
+            //        Location = context.CreateLocation(lastNameElement != null ? lastNameElement : typeUseElement),
+            //        Prefix = prefix,
+            //        ProgrammingLanguage = this.ParserLanguage,
+            //    };
+            //    typeUse.AddTypeParameters(typeParameters);
+
+            //    typeUse.AddAliases(context.Aliases);
+            //    return typeUse;
         }
 
         /// <summary>
@@ -1126,6 +1134,73 @@ namespace ABB.SrcML.Data {
             }
             return namespaceForUnit;
         }
+
+        #region Parse expression elements
+        protected virtual Expression ParseExpression(XElement expElement, ParserContext context) {
+            if(expElement == null)
+                throw new ArgumentNullException("expElement");
+            //TODO: what are the valid elements for an expression?
+            //if(expElement.Name != SRC.Return)
+            //    throw new ArgumentException("Must be a SRC.Return element", "expElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            var exp = new Expression() {
+                Location = context.CreateLocation(expElement),
+                ProgrammingLanguage = ParserLanguage
+            };
+
+            //add each component in the expression
+            foreach(var element in expElement.Elements()) {
+                Expression component = null;
+                if(element.Name == SRC.Name) {
+                    component = ParseNameUseElement(element, context);
+                } else if(element.Name == OP.Operator) {
+                    component = ParseOperatorElement(element, context);
+                }
+
+                exp.Components.Add(component);
+            }
+
+            return exp;
+        }
+        
+
+        protected virtual Expression ParseNameUseElement(XElement nameElement, ParserContext context) {
+            if(nameElement == null)
+                throw new ArgumentNullException("nameElement");
+            if(nameElement.Name != OP.Operator)
+                throw new ArgumentException("should be a SRC.Name", "nameElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            var nu = new NameUse() {
+                Location = context.CreateLocation(nameElement),
+                ProgrammingLanguage = ParserLanguage,
+                Name = nameElement.Value
+            };
+
+            return nu;
+        }
+
+        protected virtual Expression ParseOperatorElement(XElement operatorElement, ParserContext context) {
+            if(operatorElement == null)
+                throw new ArgumentNullException("operatorElement");
+            if(operatorElement.Name != OP.Operator)
+                throw new ArgumentException("should be an OP.Operator", "operatorElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            var op = new OperatorUse() {
+                Location = context.CreateLocation(operatorElement),
+                ProgrammingLanguage = ParserLanguage,
+                Text = operatorElement.Value
+            };
+
+            return op;
+        }
+
+        #endregion
 
         #region aliases
 
@@ -1491,30 +1566,30 @@ namespace ABB.SrcML.Data {
         /// <returns>The type name</returns>
         protected abstract string GetTypeForStringLiteral(string literalValue);
 
-        /// <summary>
-        /// Parses a literal use element
-        /// </summary>
-        /// <param name="literalElement">The literal element to parse</param>
-        /// <param name="context">The parser context</param>
-        /// <returns>A literal use object</returns>
-        protected virtual LiteralUse ParseLiteralElement(XElement literalElement, ParserContext context) {
-            if(literalElement == null)
-                throw new ArgumentNullException("literalElement");
-            if(literalElement.Name != LIT.Literal)
-                throw new ArgumentException("should be a literal", "literalElement");
+        ///// <summary>
+        ///// Parses a literal use element
+        ///// </summary>
+        ///// <param name="literalElement">The literal element to parse</param>
+        ///// <param name="context">The parser context</param>
+        ///// <returns>A literal use object</returns>
+        //protected virtual LiteralUse ParseLiteralElement(XElement literalElement, ParserContext context) {
+        //    if(literalElement == null)
+        //        throw new ArgumentNullException("literalElement");
+        //    if(literalElement.Name != LIT.Literal)
+        //        throw new ArgumentException("should be a literal", "literalElement");
 
-            var kind = LiteralUse.GetLiteralKind(literalElement);
-            string typeName = string.Empty;
+        //    var kind = LiteralUse.GetLiteralKind(literalElement);
+        //    string typeName = string.Empty;
 
-            var use = new LiteralUse() {
-                Kind = kind,
-                Location = context.CreateLocation(literalElement),
-                Name = GetTypeForLiteralValue(kind, literalElement.Value),
-                ParentScope = context.CurrentStatement,
-            };
+        //    var use = new LiteralUse() {
+        //        Kind = kind,
+        //        Location = context.CreateLocation(literalElement),
+        //        Name = GetTypeForLiteralValue(kind, literalElement.Value),
+        //        ParentScope = context.CurrentStatement,
+        //    };
 
-            return use;
-        }
+        //    return use;
+        //}
 
         #endregion parse literal types
 

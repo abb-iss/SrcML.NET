@@ -45,7 +45,7 @@ namespace ABB.SrcML.Data {
         /// <param name="aliasStatement">The alias statement to check. Must be of type see
         /// cref="AbstractCodeParser.AliasElementName"/></param>
         /// <returns>True if this import statement ends with an asterisk; false otherwise</returns>
-        public override bool AliasIsNamespaceImport(XElement aliasStatement) {
+        protected override bool AliasIsNamespaceImport(XElement aliasStatement) {
             if(null == aliasStatement)
                 throw new ArgumentNullException("aliasStatement");
             if(aliasStatement.Name != AliasElementName)
@@ -66,7 +66,7 @@ namespace ABB.SrcML.Data {
         /// cref="AbstractCodeParser.AliasElementName"/></param>
         /// <returns>An enumerable of all the <see cref="ABB.SrcML.SRC.Name">name elements</see> for
         /// this statement</returns>
-        public override IEnumerable<XElement> GetNamesFromAlias(XElement aliasStatement) {
+        protected override IEnumerable<XElement> GetNamesFromAlias(XElement aliasStatement) {
             if(null == aliasStatement)
                 throw new ArgumentNullException("aliasStatement");
             if(aliasStatement.Name != AliasElementName)
@@ -82,7 +82,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="typeElement">The type element</param>
         /// <returns>The parent type elements for the class</returns>
-        public override IEnumerable<XElement> GetParentTypeUseElements(XElement typeElement) {
+        protected override IEnumerable<XElement> GetParentTypeUseElements(XElement typeElement) {
             var superTag = typeElement.Element(SRC.Super);
 
             var parentElements = Enumerable.Empty<XElement>();
@@ -101,7 +101,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="literalValue">the literal value</param>
         /// <returns>not implemented</returns>
-        public override string GetTypeForBooleanLiteral(string literalValue) {
+        protected override string GetTypeForBooleanLiteral(string literalValue) {
             throw new NotImplementedException();
         }
 
@@ -110,7 +110,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="literalValue">the literal value</param>
         /// <returns>not implemented</returns>
-        public override string GetTypeForCharacterLiteral(string literalValue) {
+        protected override string GetTypeForCharacterLiteral(string literalValue) {
             throw new NotImplementedException();
         }
 
@@ -119,7 +119,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="literalValue">the literal value</param>
         /// <returns>not implemented</returns>
-        public override string GetTypeForNumberLiteral(string literalValue) {
+        protected override string GetTypeForNumberLiteral(string literalValue) {
             throw new NotImplementedException();
         }
 
@@ -128,7 +128,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="literalValue">the literal value</param>
         /// <returns>Not implemented</returns>
-        public override string GetTypeForStringLiteral(string literalValue) {
+        protected override string GetTypeForStringLiteral(string literalValue) {
             throw new NotImplementedException();
         }
 
@@ -137,46 +137,49 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="namespaceElement">A file unit</param>
         /// <param name="context">The parser context</param>
-        public override void ParseNamespaceElement(XElement namespaceElement, ParserContext context) {
-            var javaPackage = context.FileUnit.Elements(SRC.Package).FirstOrDefault();
+        protected override NamespaceDefinition ParseNamespaceElement(XElement namespaceElement, ParserContext context) {
+            throw new NotImplementedException();
 
-            // Add a global namespace definition
-            var globalNamespace = new NamespaceDefinition();
-            context.Push(globalNamespace);
+            //var javaPackage = context.FileUnit.Elements(SRC.Package).FirstOrDefault();
 
-            if(null != javaPackage) {
-                var namespaceElements = from name in javaPackage.Elements(SRC.Name)
-                                        select name;
-                foreach(var name in namespaceElements) {
-                    var namespaceForName = new NamespaceDefinition() {
-                        Name = name.Value,
-                        ProgrammingLanguage = ParserLanguage,
-                    };
-                    namespaceForName.AddSourceLocation(context.CreateLocation(name));
-                    context.Push(namespaceForName, globalNamespace);
-                }
-            }
+            //// Add a global namespace definition
+            //var globalNamespace = new NamespaceDefinition();
+            //context.Push(globalNamespace);
+
+            //if(null != javaPackage) {
+            //    var namespaceElements = from name in javaPackage.Elements(SRC.Name)
+            //                            select name;
+            //    foreach(var name in namespaceElements) {
+            //        var namespaceForName = new NamespaceDefinition() {
+            //            Name = name.Value,
+            //            ProgrammingLanguage = ParserLanguage,
+            //        };
+            //        namespaceForName.AddSourceLocation(context.CreateLocation(name));
+            //        context.Push(namespaceForName, globalNamespace);
+            //    }
+            //}
         }
 
-        /// <summary>
-        /// Parses a java file unit. This handles the "package" directive by calling
-        /// <see cref="ParseNamespaceElement"/>
-        /// </summary>
-        /// <param name="unitElement">The file unit to parse</param>
-        /// <param name="context">The parser context to place the global scope in</param>
-        public override void ParseUnitElement(XElement unitElement, ParserContext context) {
-            if(null == unitElement)
-                throw new ArgumentNullException("unitElement");
-            if(unitElement.Name != SRC.Unit)
-                throw new ArgumentException("should be a unit", "unitElement");
+        //TODO: implement Java unit element parsing
+        ///// <summary>
+        ///// Parses a java file unit. This handles the "package" directive by calling
+        ///// <see cref="ParseNamespaceElement"/>
+        ///// </summary>
+        ///// <param name="unitElement">The file unit to parse</param>
+        ///// <param name="context">The parser context to place the global scope in</param>
+        //protected override NamespaceDefinition ParseUnitElement(XElement unitElement, ParserContext context) {
+        //    if(null == unitElement)
+        //        throw new ArgumentNullException("unitElement");
+        //    if(unitElement.Name != SRC.Unit)
+        //        throw new ArgumentException("should be a unit", "unitElement");
 
-            context.FileUnit = unitElement;
-            var aliases = from aliasStatement in GetAliasElementsForFile(unitElement)
-                          select ParseAliasElement(aliasStatement, context);
+        //    context.FileUnit = unitElement;
+        //    var aliases = from aliasStatement in GetAliasElementsForFile(unitElement)
+        //                  select ParseAliasElement(aliasStatement, context);
 
-            context.Aliases = new Collection<IAlias>(aliases.ToList());
+        //    context.Aliases = new Collection<IAlias>(aliases.ToList());
 
-            ParseNamespaceElement(unitElement, context);
-        }
+        //    ParseNamespaceElement(unitElement, context);
+        //}
     }
 }

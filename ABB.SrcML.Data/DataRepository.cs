@@ -51,7 +51,7 @@ namespace ABB.SrcML.Data {
     /// </example>
     public class DataRepository : IDataRepository {
         private IScope globalScope;
-        private Dictionary<Language, ICodeParser> parsers;
+        private Dictionary<Language, AbstractCodeParser> parsers;
         private ReadyNotifier ReadyState;
         private ReaderWriterLockSlim scopeLock;
 
@@ -155,23 +155,25 @@ namespace ABB.SrcML.Data {
         /// <param name="fileUnitElement">The <see cref="SRC.Unit"/> XElement for the file to
         /// add.</param>
         public void AddFile(XElement fileUnitElement) {
-            scopeLock.EnterWriteLock();
-            try {
-                bool wasIdle = IsReady;
-                if(wasIdle) {
-                    IsReady = false;
-                }
-                var scope = ParseFileUnit(fileUnitElement);
-                if(scope != null) {
-                    MergeScope(scope);
-                }
-                if(wasIdle) {
-                    IsReady = true;
-                }
-                //TODO: update other data structures as necessary
-            } finally {
-                scopeLock.ExitWriteLock();
-            }
+            throw new NotImplementedException();
+
+            //scopeLock.EnterWriteLock();
+            //try {
+            //    bool wasIdle = IsReady;
+            //    if(wasIdle) {
+            //        IsReady = false;
+            //    }
+            //    var scope = ParseFileUnit(fileUnitElement);
+            //    if(scope != null) {
+            //        MergeScope(scope);
+            //    }
+            //    if(wasIdle) {
+            //        IsReady = true;
+            //    }
+            //    //TODO: update other data structures as necessary
+            //} finally {
+            //    scopeLock.ExitWriteLock();
+            //}
         }
 
         /// <summary>
@@ -502,14 +504,15 @@ namespace ABB.SrcML.Data {
             return (scope != null ? scope.GetParentScopesAndSelf<T>().FirstOrDefault() : null);
         }
 
-        private void MergeScope(IScope scopeForFile) {
-            scopeLock.EnterWriteLock();
-            try {
-                globalScope = (globalScope != null ? globalScope.Merge(scopeForFile) : scopeForFile);
-            } finally {
-                scopeLock.ExitWriteLock();
-            }
-        }
+        //TODO: re-add this once merging has been implemented
+        //private void MergeScope(IScope scopeForFile) {
+        //    scopeLock.EnterWriteLock();
+        //    try {
+        //        globalScope = (globalScope != null ? globalScope.Merge(scopeForFile) : scopeForFile);
+        //    } finally {
+        //        scopeLock.ExitWriteLock();
+        //    }
+        //}
 
         private void OnErrorRaised(ErrorRaisedArgs e) {
             EventHandler<ErrorRaisedArgs> handler = ErrorRaised;
@@ -525,19 +528,19 @@ namespace ABB.SrcML.Data {
             }
         }
 
-        private IScope ParseFileUnit(XElement fileUnit) {
+        private NamespaceDefinition ParseFileUnit(XElement fileUnit) {
             var language = SrcMLElement.GetLanguageForUnit(fileUnit);
-            IScope scope = null;
-            ICodeParser parser;
+            NamespaceDefinition root = null;
+            AbstractCodeParser parser;
 
             if(parsers.TryGetValue(language, out parser)) {
                 try {
-                    scope = parser.ParseFileUnit(fileUnit);
+                    root = parser.ParseFileUnit(fileUnit);
                 } catch(ParseException e) {
                     OnErrorRaised(new ErrorRaisedArgs(e));
                 }
             }
-            return scope;
+            return root;
         }
 
         private void ReadArchive() {
@@ -560,36 +563,38 @@ namespace ABB.SrcML.Data {
         }
 
         private void ReadArchiveConcurrent(TaskScheduler scheduler) {
-            if(null != Archive) {
-                BlockingCollection<IScope> mergeQueue = new BlockingCollection<IScope>();
+            throw new NotImplementedException();
 
-                var task = new Task(() => {
-                    Parallel.ForEach(Archive.FileUnits, currentUnit => {
-                        var scope = ParseFileUnit(currentUnit);
-                        if(scope != null) {
-                            mergeQueue.Add(scope);
-                        }
-                    });
-                    mergeQueue.CompleteAdding();
-                });
+            //if(null != Archive) {
+            //    BlockingCollection<IScope> mergeQueue = new BlockingCollection<IScope>();
 
-                task.Start(scheduler);
+            //    var task = new Task(() => {
+            //        Parallel.ForEach(Archive.FileUnits, currentUnit => {
+            //            var scope = ParseFileUnit(currentUnit);
+            //            if(scope != null) {
+            //                mergeQueue.Add(scope);
+            //            }
+            //        });
+            //        mergeQueue.CompleteAdding();
+            //    });
 
-                scopeLock.EnterWriteLock();
-                try {
-                    foreach(var scope in mergeQueue.GetConsumingEnumerable()) {
-                        var fileName = scope.PrimaryLocation.SourceFileName;
-                        MergeScope(scope);
-                        OnFileProcessed(new FileEventRaisedArgs(FileEventType.FileAdded, fileName));
-                    }
-                } finally {
-                    scopeLock.ExitWriteLock();
-                }
-            }
+            //    task.Start(scheduler);
+
+            //    scopeLock.EnterWriteLock();
+            //    try {
+            //        foreach(var scope in mergeQueue.GetConsumingEnumerable()) {
+            //            var fileName = scope.PrimaryLocation.SourceFileName;
+            //            MergeScope(scope);
+            //            OnFileProcessed(new FileEventRaisedArgs(FileEventType.FileAdded, fileName));
+            //        }
+            //    } finally {
+            //        scopeLock.ExitWriteLock();
+            //    }
+            //}
         }
 
         private void SetupParsers() {
-            parsers = new Dictionary<Language, ICodeParser>() {
+            parsers = new Dictionary<Language, AbstractCodeParser>() {
                 { Language.C, new CPlusPlusCodeParser() },
                 { Language.CPlusPlus, new CPlusPlusCodeParser() },
                 { Language.Java, new JavaCodeParser() },

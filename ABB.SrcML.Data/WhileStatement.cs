@@ -19,8 +19,6 @@ namespace ABB.SrcML.Data {
     public class WhileStatement : ConditionBlockStatement {
         public WhileStatement() : base() {}
 
-        public WhileStatement(WhileStatement otherStatement) : base(otherStatement) {
-            //TODO: implement copy constructor
-        }
+        
     }
 }

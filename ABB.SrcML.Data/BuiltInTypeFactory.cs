@@ -44,21 +44,23 @@ namespace ABB.SrcML.Data {
         /// <returns>A type definition that matches the type use; null if this is not a
         /// built-in</returns>
         public static ITypeDefinition GetBuiltIn(ITypeUse use) {
-            if(!IsBuiltIn(use))
-                return null;
+            throw new NotImplementedException();
 
-            var key = new Tuple<Language, string>(use.ProgrammingLanguage, use.Name);
-            ITypeDefinition builtIn;
-            if(!builtInTypeMap.TryGetValue(key, out builtIn)) {
-                builtIn = new TypeDefinition() {
-                    Accessibility = AccessModifier.None,
-                    Kind = TypeKind.BuiltIn,
-                    Name = key.Item2,
-                    ProgrammingLanguage = key.Item1,
-                };
-                builtInTypeMap[key] = builtIn;
-            }
-            return builtIn;
+            //if(!IsBuiltIn(use))
+            //    return null;
+
+            //var key = new Tuple<Language, string>(use.ProgrammingLanguage, use.Name);
+            //ITypeDefinition builtIn;
+            //if(!builtInTypeMap.TryGetValue(key, out builtIn)) {
+            //    builtIn = new TypeDefinition() {
+            //        Accessibility = AccessModifier.None,
+            //        Kind = TypeKind.BuiltIn,
+            //        Name = key.Item2,
+            //        ProgrammingLanguage = key.Item1,
+            //    };
+            //    builtInTypeMap[key] = builtIn;
+            //}
+            //return builtIn;
         }
 
         /// <summary>

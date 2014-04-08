@@ -42,11 +42,34 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="parentTypeUse">The parent type to add</param>
         public void AddParentType(TypeUse parentTypeUse) {
-            if(null == parentTypeUse)
-                throw new ArgumentNullException("parentTypeUse");
+            throw new NotImplementedException();
 
-            parentTypeUse.ParentScope = this;
-            parentTypeCollection.Add(parentTypeUse);
+            //if(null == parentTypeUse)
+            //    throw new ArgumentNullException("parentTypeUse");
+
+            //parentTypeUse.ParentScope = this;
+            //parentTypeCollection.Add(parentTypeUse);
+        }
+
+        /// <summary>
+        /// This handles the "base" keyword (C# only) and the "this" keyword. It searches for the
+        /// appropriate type definition depending on the context of the
+        /// </summary>
+        /// <typeparam name="T">The use type</typeparam>
+        /// <param name="use">The use to find the containing class for</param>
+        /// <returns>The class referred to by the keyword</returns>
+        public static IEnumerable<ITypeDefinition> GetTypeForKeyword<T>(IUse<T> use) where T : class {
+            throw new NotImplementedException();
+
+            //var typeDefinitions = Enumerable.Empty<ITypeDefinition>();
+            //if(use.Name == "this") {
+            //    typeDefinitions = use.ParentScopes.OfType<ITypeDefinition>().Take(1);
+            //} else if(use.Name == "base" && use.ProgrammingLanguage == Language.CSharp) {
+            //    typeDefinitions = from containingType in use.ParentScopes.OfType<ITypeDefinition>()
+            //                      from parentType in containingType.GetParentTypes()
+            //                      select parentType;
+            //}
+            //return typeDefinitions;
         }
 
     }

@@ -43,8 +43,9 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="parameter">The parameter to add</param>
         public void AddMethodParameter(ParameterDeclaration parameter) {
-            parameter.ParentStatement = this;
-            parameterList.Add(parameter);
+            throw new NotImplementedException();
+            //parameter.ParentStatement = this;
+            //parameterList.Add(parameter);
         }
 
         /// <summary>

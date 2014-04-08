@@ -17,9 +17,9 @@ namespace ABB.SrcML.Data {
     /// <summary>
     /// Represents a variable declaration
     /// </summary>
-    [Serializable]
-    public class VariableDeclaration : IVariableDeclaration {
-        private IScope parentScope;
+    //[Serializable]
+    public class VariableDeclaration : Expression {
+        //private IScope parentScope;
 
         /// <summary>
         /// The access modifier assigned to this type
@@ -27,32 +27,32 @@ namespace ABB.SrcML.Data {
         public AccessModifier Accessibility { get; set; }
 
         /// <summary>
-        /// The location of this declaration in both the original source file and in XML.
-        /// </summary>
-        public virtual SrcMLLocation Location { get; set; }
-
-        /// <summary>
         /// The name of the variable
         /// </summary>
         public string Name { get; set; }
 
-        /// <summary>
-        /// The scope where this variable is declared
-        /// </summary>
-        public IScope ParentScope {
-            get { return this.parentScope; }
-            set {
-                this.parentScope = value;
-                if(null != VariableType) {
-                    this.VariableType.ParentScope = this.parentScope;
-                }
-            }
-        }
+        ///// <summary>
+        ///// The scope where this variable is declared
+        ///// </summary>
+        //public IScope ParentScope {
+        //    get { return this.parentScope; }
+        //    set {
+        //        this.parentScope = value;
+        //        if(null != VariableType) {
+        //            this.VariableType.ParentScope = this.parentScope;
+        //        }
+        //    }
+        //}
 
         /// <summary>
         /// Description of the type for this variable
         /// </summary>
-        public virtual ITypeUse VariableType { get; set; }
+        public virtual TypeUse VariableType { get; set; }
+
+        /// <summary>
+        /// The expression, if any, used to intialize this variable
+        /// </summary>
+        public Expression Initializer { get; set; }
 
         /// <summary>
         /// Returns a string representation of this object.

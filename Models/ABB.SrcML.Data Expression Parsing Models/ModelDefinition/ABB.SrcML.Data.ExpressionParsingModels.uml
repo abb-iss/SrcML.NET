@@ -1013,7 +1013,7 @@
     <packageHasNamedElement>
       <class
         Id="cbba2e3a-2c66-4e4b-9fa2-57505d9f8bfc"
-        name="Operator"
+        name="OperatorUse"
         isAbstract="false"
         isLeaf="false"
         isActiveClass="false">
@@ -1029,8 +1029,8 @@
         </generalsInternal>
         <ownedAttributesInternal>
           <property
-            Id="42e1e30e-7e46-4774-9bbd-4cec66848924"
-            name="Kind"
+            Id="af6a14ce-68b3-426c-915a-26969037862d"
+            name="Text"
             isLeaf="false"
             isStatic="false"
             isReadOnly="false"
@@ -1041,8 +1041,8 @@
             isComposite="false">
             <type_NamedElement>
               <undefinedTypeMoniker
-                Id="bff9c4e2-269d-4dc0-a36a-fde02edbd549"
-                LastKnownName="OperatorKind"
+                Id="4ceef1e5-e238-408b-bfe9-61c4e8684453"
+                LastKnownName="string"
                 LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
             </type_NamedElement>
           </property>

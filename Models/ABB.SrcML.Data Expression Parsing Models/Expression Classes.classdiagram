@@ -47,7 +47,7 @@
       </referencedType>
     </packageHasNamedElement>
     <logicalClassDesignerModelHasTypes>
-      <class Id="eeeff9c9-a2bd-487f-bef9-95c179734a9e" name="Operator" isAbstract="false" isLeaf="false" isActiveClass="false">
+      <class Id="eeeff9c9-a2bd-487f-bef9-95c179734a9e" name="OperatorUse" isAbstract="false" isLeaf="false" isActiveClass="false">
         <elementDefinition Id="cbba2e3a-2c66-4e4b-9fa2-57505d9f8bfc" />
         <generalsInternal>
           <generalization Id="1b770172-7fc2-4695-b4c9-eef95ad6f4da" isSubstitutable="false">
@@ -56,20 +56,15 @@
           </generalization>
         </generalsInternal>
         <ownedAttributesInternal>
-          <property Id="4899db8b-7e37-4656-8747-0777270a2140" name="Kind" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
-            <elementDefinition Id="42e1e30e-7e46-4774-9bbd-4cec66848924" />
+          <property Id="83f890da-8ce3-45df-b209-63f1bef56335" name="Text" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="af6a14ce-68b3-426c-915a-26969037862d" />
             <type_NamedElement>
-              <referencedTypeMoniker Id="c6dea56e-4626-47fb-8bf8-f1560bae664f" LastKnownName="OperatorKind" />
+              <referencedTypeMoniker Id="0b63c866-3450-43e8-945b-29bc10f3aeae" LastKnownName="string" />
             </type_NamedElement>
           </property>
         </ownedAttributesInternal>
       </class>
     </logicalClassDesignerModelHasTypes>
-    <packageHasNamedElement>
-      <referencedType Id="c6dea56e-4626-47fb-8bf8-f1560bae664f" name="OperatorKind" isAbstract="false" isLeaf="false" cachedFullName="OperatorKind">
-        <elementDefinition Id="bff9c4e2-269d-4dc0-a36a-fde02edbd549" />
-      </referencedType>
-    </packageHasNamedElement>
     <packageHasNamedElement>
       <referencedType Id="7d2fdc46-e3a4-427e-b73f-e5ec3f582b9b" name="SrcMLLocation" isAbstract="false" isLeaf="false" cachedFullName="SrcMLLocation">
         <elementDefinition Id="1cb32fe6-31d3-4531-a27e-9c9b96dfa006" />

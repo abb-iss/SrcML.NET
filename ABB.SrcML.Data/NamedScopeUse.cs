@@ -24,15 +24,17 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <returns>A new named scope based on this use</returns>
         public virtual INamedScope CreateScope() {
-            INamedScope scope = new NamedScope() {
-                Name = this.Name,
-                ProgrammingLanguage = this.ProgrammingLanguage,
-            };
-            scope.AddSourceLocation(this.Location);
-            if(null != this.ChildScopeUse) {
-                scope.AddChildScope(ChildScopeUse.CreateScope());
-            }
-            return scope;
+            throw new NotImplementedException();
+
+            //INamedScope scope = new NamedScope() {
+            //    Name = this.Name,
+            //    ProgrammingLanguage = this.ProgrammingLanguage,
+            //};
+            //scope.AddSourceLocation(this.Location);
+            //if(null != this.ChildScopeUse) {
+            //    scope.AddChildScope(ChildScopeUse.CreateScope());
+            //}
+            //return scope;
         }
 
         /// <summary>
