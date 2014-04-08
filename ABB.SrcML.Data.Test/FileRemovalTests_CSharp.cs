@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using ABB.SrcML.Test.Utilities;
+using NUnit.Framework;
 using System.Linq;
 
 namespace ABB.SrcML.Data.Test {

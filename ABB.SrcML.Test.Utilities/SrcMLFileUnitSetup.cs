@@ -15,7 +15,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace ABB.SrcML.Data.Test {
+namespace ABB.SrcML.Test.Utilities {
 
     public class SrcMLFileUnitSetup {
 

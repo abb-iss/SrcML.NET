@@ -9,6 +9,7 @@
  *    Vinay Augustine (ABB Group) - initial API, implementation, & documentation
  *****************************************************************************/
 
+using ABB.SrcML.Test.Utilities;
 using NUnit.Framework;
 using System.Linq;
 using System.Xml.Linq;
