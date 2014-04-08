@@ -399,6 +399,11 @@ namespace ABB.SrcML {
         /// </summary>
         public static readonly XName Catch = NS + "catch";
 
+        /// <summary>
+        /// markup for the finally tag
+        /// </summary>
+        public static readonly XName Finally = NS + "finally";
+
         // template elements
         /// <summary>
         /// markup for the template tag
