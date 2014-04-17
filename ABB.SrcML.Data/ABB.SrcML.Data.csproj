@@ -59,6 +59,7 @@
     <Compile Include="BreakStatement.cs" />
     <Compile Include="BuiltInTypeFactory.cs" />
     <Compile Include="CaseStatement.cs" />
+    <Compile Include="CatchStatement.cs" />
     <Compile Include="ConditionBlockStatement.cs" />
     <Compile Include="ContinueStatement.cs" />
     <Compile Include="CSharpVarTypeUse.cs" />
@@ -68,6 +69,7 @@
     <Compile Include="ForStatement.cs" />
     <Compile Include="GotoStatement.cs" />
     <Compile Include="IfStatement.cs" />
+    <Compile Include="LabelStatement.cs" />
     <Compile Include="LiteralKind.cs" />
     <Compile Include="LiteralUse.cs" />
     <Compile Include="CSharpCodeParser.cs" />
@@ -95,6 +97,8 @@
     <Compile Include="Statement.cs" />
     <Compile Include="StatementDebugView.cs" />
     <Compile Include="SwitchStatement.cs" />
+    <Compile Include="ThrowStatement.cs" />
+    <Compile Include="TryStatement.cs" />
     <Compile Include="TypeDefinition.cs" />
     <Compile Include="TypeUse.cs" />
     <Compile Include="VariableDeclaration.cs" />
