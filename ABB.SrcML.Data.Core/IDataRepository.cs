@@ -24,7 +24,7 @@ namespace ABB.SrcML.Data {
 
         event EventHandler<IsReadyChangedEventArgs> IsReadyChanged;
 
-        ISrcMLArchive Archive { get; }
+        SrcMLArchive Archive { get; }
 
         string FileName { get; }
 

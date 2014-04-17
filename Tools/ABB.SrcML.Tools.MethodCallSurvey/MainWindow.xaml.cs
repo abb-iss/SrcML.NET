@@ -78,7 +78,7 @@ namespace ABB.SrcML.Tools.MethodCallSurvey {
             }
         }
 
-        private void LoadArchive(BackgroundWorker worker, string pathToMappingFile, out ISrcMLArchive archive, out IDataRepository data, out string projectName) {
+        private void LoadArchive(BackgroundWorker worker, string pathToMappingFile, out SrcMLArchive archive, out IDataRepository data, out string projectName) {
             string pathToArchive = FilePath.GetDirectoryName(pathToMappingFile);
             string archiveDirectoryName = FilePath.GetFileName(pathToArchive);
             string baseDirectory = FilePath.GetFullPath(FilePath.GetDirectoryName(pathToArchive));
@@ -106,7 +106,7 @@ namespace ABB.SrcML.Tools.MethodCallSurvey {
         }
 
         private void loadWorker_DoWork(object sender, DoWorkEventArgs e) {
-            ISrcMLArchive archive;
+            SrcMLArchive archive;
             IDataRepository data;
             string projectName;
             LoadArchive(sender as BackgroundWorker, e.Argument as string, out archive, out data, out projectName);
@@ -120,7 +120,7 @@ namespace ABB.SrcML.Tools.MethodCallSurvey {
 
         private void loadWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e) {
             List<object> results = e.Result as List<object>;
-            Sample.Archive = results[0] as ISrcMLArchive;
+            Sample.Archive = results[0] as SrcMLArchive;
             Sample.Data = results[1] as IDataRepository;
             Sample.ProjectName = results[2] as string;
             StatusBarProgress.Value = 0;

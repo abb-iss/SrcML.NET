@@ -22,7 +22,7 @@ namespace ABB.SrcML {
     /// <summary>
     /// The SrcML Generator class provides a convenient wrapper for multiple <see cref="Src2SrcMLRunner2">src2srcml runners</see>, each targetted at a different language.
     /// </summary>
-    public class SrcMLGenerator : ISrcMLGenerator {
+    public class SrcMLGenerator {
         private readonly Src2SrcMLRunner2 defaultExecutable;
         private readonly Language[] defaultLanguages = new[] { Language.C, Language.CPlusPlus, Language.Java, Language.AspectJ, Language.CSharp };
         private string[] defaultArguments;

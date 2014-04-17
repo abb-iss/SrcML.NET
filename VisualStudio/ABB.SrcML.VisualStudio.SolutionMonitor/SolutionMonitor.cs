@@ -96,7 +96,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// <param name="baseDirectory"></param>
         /// <param name="defaultArchive"></param>
         /// <param name="otherArchives"></param>
-        public SolutionMonitor(SolutionWrapper openSolution, string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
+        public SolutionMonitor(SolutionWrapper openSolution, string baseDirectory, AbstractArchive defaultArchive, params AbstractArchive[] otherArchives)
             : base(baseDirectory, defaultArchive, otherArchives) {
             this.OpenSolution = openSolution;
         }

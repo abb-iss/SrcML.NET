@@ -27,7 +27,7 @@ namespace ABB.SrcML {
     /// This is an implementation of <see cref="AbstractArchive"/>. File changes trigger the addition, update, and deletion of srcML archives in
     /// the archive directory
     /// </summary>
-    public class SrcMLArchive : AbstractArchive, ISrcMLArchive {
+    public class SrcMLArchive : AbstractArchive {
         public const string DEFAULT_ARCHIVE_DIRECTORY = "srcML";
 
         private XmlFileNameMapping xmlFileNameMapping;
@@ -129,7 +129,7 @@ namespace ABB.SrcML {
         /// <summary>
         /// The SrcML generator used to generate srcML
         /// </summary>
-        public ISrcMLGenerator XmlGenerator { get; set; }
+        public SrcMLGenerator XmlGenerator { get; set; }
 
         /// <summary>
         /// Enumerates over each file in the archive and returns a file unit

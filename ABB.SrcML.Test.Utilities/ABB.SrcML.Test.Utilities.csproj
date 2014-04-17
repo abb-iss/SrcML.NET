@@ -48,10 +48,6 @@
     <Compile Include="SrcMLFileUnitSetup.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ABB.SrcML.Core\ABB.SrcML.Core.csproj">
-      <Project>{DB649B35-B045-47C3-9903-F3404FA9C1BE}</Project>
-      <Name>ABB.SrcML.Core</Name>
-    </ProjectReference>
     <ProjectReference Include="..\ABB.SrcML\ABB.SrcML.csproj">
       <Project>{D52626E7-A4CA-471A-8A6A-FE0110430FE6}</Project>
       <Name>ABB.SrcML</Name>

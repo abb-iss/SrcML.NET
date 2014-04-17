@@ -26,7 +26,7 @@ namespace ABB.SrcML {
     /// <summary>
     /// The directory scanning monitor scans a collection of directories every
     /// <see cref="ScanInterval" /> seconds for source changes and updates the appropriate
-    /// <see cref="IArchive">archives</see>. <para>The directory scanning monitor lets you
+    /// <see cref="AbstractArchive">archives</see>. <para>The directory scanning monitor lets you
     /// periodically scan a set of folders and </para>
     /// </summary>
     /// <remarks>
@@ -66,7 +66,7 @@ namespace ABB.SrcML {
         /// monitor</param>
         /// <param name="defaultArchive">The default archive to use</param>
         /// <param name="otherArchives">Other archives for specific extensions</param>
-        public DirectoryScanningMonitor(string monitorFileName, double scanInterval, string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
+        public DirectoryScanningMonitor(string monitorFileName, double scanInterval, string baseDirectory, AbstractArchive defaultArchive, params AbstractArchive[] otherArchives)
             : base(baseDirectory, defaultArchive, otherArchives) {
             MonitoredDirectoriesFilePath = Path.Combine(baseDirectory, monitorFileName);
             folders = new List<string>();
@@ -86,7 +86,7 @@ namespace ABB.SrcML {
         /// monitor</param>
         /// <param name="defaultArchive">The default archive to use</param>
         /// <param name="otherArchives">Other archives for specific extensions</param>
-        public DirectoryScanningMonitor(string monitorFileName, double scanInterval, TaskScheduler scheduler, string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
+        public DirectoryScanningMonitor(string monitorFileName, double scanInterval, TaskScheduler scheduler, string baseDirectory, AbstractArchive defaultArchive, params AbstractArchive[] otherArchives)
             : base(scheduler, baseDirectory, defaultArchive, otherArchives) {
             MonitoredDirectoriesFilePath = Path.Combine(baseDirectory, monitorFileName);
             folders = new List<string>();
@@ -106,7 +106,7 @@ namespace ABB.SrcML {
         /// monitor</param>
         /// <param name="defaultArchive">The default archive to use</param>
         /// <param name="otherArchives">Other archives for specific extensions</param>
-        public DirectoryScanningMonitor(double scanInterval, string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
+        public DirectoryScanningMonitor(double scanInterval, string baseDirectory, AbstractArchive defaultArchive, params AbstractArchive[] otherArchives)
             : this(MONITOR_LIST_FILENAME, scanInterval, baseDirectory, defaultArchive, otherArchives) { }
 
         /// <summary>
@@ -118,7 +118,7 @@ namespace ABB.SrcML {
         /// monitor</param>
         /// <param name="defaultArchive">The default archive to use</param>
         /// <param name="otherArchives">Other archives for specific extensions</param>
-        public DirectoryScanningMonitor(string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
+        public DirectoryScanningMonitor(string baseDirectory, AbstractArchive defaultArchive, params AbstractArchive[] otherArchives)
             : this(MONITOR_LIST_FILENAME, DEFAULT_SCAN_INTERVAL, baseDirectory, defaultArchive, otherArchives) { }
 
         /// <summary>

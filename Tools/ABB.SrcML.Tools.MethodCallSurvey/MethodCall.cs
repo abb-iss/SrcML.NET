@@ -12,7 +12,7 @@ using MethodData = ABB.SrcML.Data.IMethodDefinition;
 namespace ABB.SrcML.Tools.MethodCallSurvey {
 
     public class MethodCall : INotifyPropertyChanged, ILocatable {
-        private ISrcMLArchive Archive;
+        private SrcMLArchive Archive;
         private CallData Data;
         private bool firstMatchIsValid;
         private bool hasMatches;
@@ -20,7 +20,7 @@ namespace ABB.SrcML.Tools.MethodCallSurvey {
         private bool isExternal;
         private int numberOfValidMatches;
 
-        public MethodCall(ISrcMLArchive archive, CallData data) {
+        public MethodCall(SrcMLArchive archive, CallData data) {
             this.Archive = archive;
             this.Data = data;
 

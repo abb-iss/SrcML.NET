@@ -53,10 +53,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ABB.SrcML.Core\ABB.SrcML.Core.csproj">
-      <Project>{DB649B35-B045-47C3-9903-F3404FA9C1BE}</Project>
-      <Name>ABB.SrcML.Core</Name>
-    </ProjectReference>
     <ProjectReference Include="..\ABB.SrcML.Data\ABB.SrcML.Data.csproj">
       <Project>{73c24e33-465b-424d-b35a-39f1750f705e}</Project>
       <Name>ABB.SrcML.Data</Name>
@@ -69,6 +65,9 @@
       <Project>{d52626e7-a4ca-471a-8a6a-fe0110430fe6}</Project>
       <Name>ABB.SrcML</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -9,73 +9,13 @@
  *    Jiang Zheng (ABB Group) - Initial implementation
  *    Vinay Augustine (ABB Group) - Renamed API to be more clear
  *****************************************************************************/
+
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading.Tasks;
-using System.Xml.Linq;
+using System.Text;
 
 namespace ABB.SrcML {
-    /// <summary>
-    /// This interface is designed for all events that can be raised from SrcML.NET.
-    /// </summary>
-    public interface IFileMonitor : IDisposable {
-        int NumberOfAllMonitoredFiles { get; }
-
-        bool UpdateArchivesRunning { get; }
-
-        event EventHandler<FileEventRaisedArgs> FileChanged;
-
-        event EventHandler MonitoringStopped;
-
-        event EventHandler UpdateArchivesStarted;
-        event EventHandler UpdateArchivesCompleted;
-
-        /// <summary>
-        /// Start monitoring files
-        /// </summary>
-        void StartMonitoring();
-
-        /// <summary>
-        /// Stop monitoring files
-        /// </summary>
-        void StopMonitoring();
-
-        /// <summary>
-        /// Get all monitored files
-        /// </summary>
-        /// <param name="worker"></param>
-        /// <returns></returns>
-        Collection<string> GetFilesFromSource();
-
-        IEnumerable<string> GetArchivedFiles();
-
-        void RegisterArchive(IArchive archive, bool isDefault);
-
-        void AddFile(string filePath);
-
-        Task AddFileAsync(string filePath);
-
-        void DeleteFile(string filePath);
-
-        Task DeleteFileAsync(string filePath);
-
-        void UpdateFile(string filePath);
-
-        Task UpdateFileAsync(string filePath);
-
-        void RenameFile(string oldFilePath, string newFilePath);
-
-        Task RenameFileAsync(string oldFilePath, string newFilePath);
-
-        void Save();
-
-        void UpdateArchives();
-
-        Task UpdateArchivesAsync();
-    }
-
     /// <summary>
     /// Event type enumeration.
     /// </summary>
@@ -84,12 +24,12 @@ namespace ABB.SrcML {
         /// Raised when a file is added
         /// </summary>
         FileAdded,
-        
+
         /// <summary>
         /// Raised when a file is changed
         /// </summary>
         FileChanged,
-        
+
         /// <summary>
         /// Raised when a file is deleted
         /// </summary>

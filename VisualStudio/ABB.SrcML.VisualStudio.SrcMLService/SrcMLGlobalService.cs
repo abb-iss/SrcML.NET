@@ -51,7 +51,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <summary>
         /// SrcML.NET's SrcMLArchive.
         /// </summary>
-        private ISrcMLArchive CurrentSrcMLArchive;
+        private SrcMLArchive CurrentSrcMLArchive;
 
         private int frozen;
         private ReentrantTimer SaveTimer;
@@ -139,7 +139,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// Get current SrcMLArchive instance.
         /// </summary>
         /// <returns></returns>
-        public ISrcMLArchive GetSrcMLArchive() {
+        public SrcMLArchive GetSrcMLArchive() {
             return CurrentSrcMLArchive;
         }
 

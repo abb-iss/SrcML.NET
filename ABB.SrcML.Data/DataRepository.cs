@@ -60,7 +60,7 @@ namespace ABB.SrcML.Data {
         /// <see cref="AbstractArchive.FileChanged"/> event.
         /// </summary>
         /// <param name="archive">The archive to monitor for changes.</param>
-        public DataRepository(ISrcMLArchive archive)
+        public DataRepository(SrcMLArchive archive)
             : this(archive, null) {
         }
 
@@ -81,7 +81,7 @@ namespace ABB.SrcML.Data {
         /// monitoring will be done.</param>
         /// <param name="fileName">The file to read data from. If null, no previously saved data
         /// will be loaded.</param>
-        public DataRepository(ISrcMLArchive archive, string fileName) {
+        public DataRepository(SrcMLArchive archive, string fileName) {
             SetupParsers();
             scopeLock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
             this.ReadyState = new ReadyNotifier(this);
@@ -111,7 +111,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The SrcMLArchive to extract the data from.
         /// </summary>
-        public ISrcMLArchive Archive { get; private set; }
+        public SrcMLArchive Archive { get; private set; }
 
         /// <summary>
         /// The file name to serialize to

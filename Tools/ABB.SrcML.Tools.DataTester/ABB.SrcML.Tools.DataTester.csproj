@@ -57,10 +57,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\ABB.SrcML.Core\ABB.SrcML.Core.csproj">
-      <Project>{db649b35-b045-47c3-9903-f3404fa9c1be}</Project>
-      <Name>ABB.SrcML.Core</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\ABB.SrcML.Data.Core\ABB.SrcML.Data.Core.csproj">
       <Project>{2fcc803a-0727-4829-8ed9-54a13008eab8}</Project>
       <Name>ABB.SrcML.Data.Core</Name>

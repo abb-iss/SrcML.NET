@@ -9,11 +9,11 @@ using MethodData = ABB.SrcML.Data.IMethodDefinition;
 namespace ABB.SrcML.Tools.MethodCallSurvey {
 
     public class MethodDefinition : INotifyPropertyChanged, ILocatable {
-        private ISrcMLArchive Archive;
+        private SrcMLArchive Archive;
         private MethodData Data;
         private bool isValid;
 
-        public MethodDefinition(ISrcMLArchive archive, MethodData data, MethodCall fromCall) {
+        public MethodDefinition(SrcMLArchive archive, MethodData data, MethodCall fromCall) {
             this.Archive = archive;
             this.SourceCall = fromCall;
             this.Data = data;

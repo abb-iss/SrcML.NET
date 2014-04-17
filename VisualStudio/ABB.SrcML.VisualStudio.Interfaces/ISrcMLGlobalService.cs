@@ -83,7 +83,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// Gets the current SrcML Archive
         /// </summary>
         /// <returns></returns>
-        ISrcMLArchive GetSrcMLArchive();
+        SrcMLArchive GetSrcMLArchive();
 
         /// <summary>
         /// Gets the unit XElement for the given

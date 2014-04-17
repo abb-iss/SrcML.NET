@@ -38,12 +38,12 @@ namespace ABB.SrcML {
     /// <para>When the archive is done processing the file, it raises its own
     /// <see cref="AbstractArchive.FileChanged">event</see></para>
     /// </summary>
-    public abstract class AbstractFileMonitor : IFileMonitor {
-        private Dictionary<string, IArchive> archiveMap;
-        private IArchive defaultArchive;
+    public abstract class AbstractFileMonitor : IDisposable {
+        private Dictionary<string, AbstractArchive> archiveMap;
+        private AbstractArchive defaultArchive;
         private int numberOfWorkingArchives;
         private ReadyNotifier ReadyState;
-        private HashSet<IArchive> registeredArchives;
+        private HashSet<AbstractArchive> registeredArchives;
 
         /// <summary>
         /// Creates a new AbstractFileMonitor with the default archive and a collection of
@@ -53,10 +53,10 @@ namespace ABB.SrcML {
         /// <param name="defaultArchive">The default archive</param>
         /// <param name="otherArchives">A list of other archives that should be registered via see
         /// cref="RegisterArchive(IArchive)"/></param>
-        protected AbstractFileMonitor(string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives) {
+        protected AbstractFileMonitor(string baseDirectory, AbstractArchive defaultArchive, params AbstractArchive[] otherArchives) {
             this.MonitorStoragePath = baseDirectory;
-            this.registeredArchives = new HashSet<IArchive>();
-            this.archiveMap = new Dictionary<string, IArchive>(StringComparer.InvariantCultureIgnoreCase);
+            this.registeredArchives = new HashSet<AbstractArchive>();
+            this.archiveMap = new Dictionary<string, AbstractArchive>(StringComparer.InvariantCultureIgnoreCase);
             this.ReadyState = new ReadyNotifier(this);
             this.numberOfWorkingArchives = 0;
             Factory = Task.Factory;
@@ -75,10 +75,10 @@ namespace ABB.SrcML {
         /// <param name="defaultArchive">The default archive</param>
         /// <param name="otherArchives">A list of other archives that should be registered via see
         /// cref="RegisterArchive(IArchive)"/></param>
-        protected AbstractFileMonitor(TaskScheduler scheduler, string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives) {
+        protected AbstractFileMonitor(TaskScheduler scheduler, string baseDirectory, AbstractArchive defaultArchive, params AbstractArchive[] otherArchives) {
             this.MonitorStoragePath = baseDirectory;
-            this.registeredArchives = new HashSet<IArchive>();
-            this.archiveMap = new Dictionary<string, IArchive>(StringComparer.InvariantCultureIgnoreCase);
+            this.registeredArchives = new HashSet<AbstractArchive>();
+            this.archiveMap = new Dictionary<string, AbstractArchive>(StringComparer.InvariantCultureIgnoreCase);
             this.ReadyState = new ReadyNotifier(this);
             this.numberOfWorkingArchives = 0;
             Factory = new TaskFactory(scheduler);
@@ -200,7 +200,7 @@ namespace ABB.SrcML {
         /// <param name="archive">the archive to add.</param>
         /// <param name="isDefault">whether or not to use this archive as the default
         /// archive</param>
-        public void RegisterArchive(IArchive archive, bool isDefault) {
+        public void RegisterArchive(AbstractArchive archive, bool isDefault) {
             this.registeredArchives.Add(archive);
             archive.FileChanged += RespondToArchiveFileEvent;
             if(isDefault) {
@@ -488,11 +488,11 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="fileName">The file name</param>
         /// <returns>The archive that should contain this file name</returns>
-        protected IArchive GetArchiveForFile(string fileName) {
+        protected AbstractArchive GetArchiveForFile(string fileName) {
             if(null == fileName)
                 throw new ArgumentNullException("fileName");
 
-            IArchive selectedArchive;
+            AbstractArchive selectedArchive;
             var extension = Path.GetExtension(fileName);
 
             if(!this.archiveMap.TryGetValue(extension, out selectedArchive)) {

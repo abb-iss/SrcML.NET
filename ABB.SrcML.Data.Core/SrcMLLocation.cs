@@ -117,7 +117,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="archive">The archive for this location</param>
         /// <returns>The XElement referred to by <see cref="XPath"/></returns>
-        public XElement GetXElement(ISrcMLArchive archive) {
+        public XElement GetXElement(SrcMLArchive archive) {
             if(null == archive)
                 throw new ArgumentNullException("archive");
 
