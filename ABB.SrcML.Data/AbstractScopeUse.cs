@@ -11,7 +11,7 @@ namespace ABB.SrcML.Data {
     /// <typeparam name="DEFINITION">The type. Must be NamedScope or a subclass</typeparam>
     [Serializable]
     public abstract class AbstractScopeUse<DEFINITION> : AbstractUse<DEFINITION>
-        where DEFINITION : class, INamedScope {
+        where DEFINITION : NamedScope {
 
         /// <summary>
         /// Finds matching <typeparamref name="DEFINITION"/> from the
@@ -20,41 +20,43 @@ namespace ABB.SrcML.Data {
         /// <returns>An enumerable of <typeparamref name="DEFINITION"/> objects that
         /// <see cref="IUse{T}.Matches">matches</see> this usage.</returns>
         public override IEnumerable<DEFINITION> FindMatches() {
-            DEFINITION definition = null;
-            foreach(var parent in this.ParentScopes) {
-                definition = parent as DEFINITION;
+            //TODO: review this method and update it for changes in TypeUse structure
+            throw new NotImplementedException();
+            //DEFINITION definition = null;
+            //foreach(var parent in this.ParentScopes) {
+            //    definition = parent as DEFINITION;
 
-                if(Matches(definition)) {
-                    yield return definition;
-                }
+            //    if(Matches(definition)) {
+            //        yield return definition;
+            //    }
 
-                var matchingChildren = from child in parent.GetChildScopesWithId<DEFINITION>(this.Name)
-                                       where Matches(child)
-                                       select child;
+            //    var matchingChildren = from child in parent.GetChildScopesWithId<DEFINITION>(this.Name)
+            //                           where Matches(child)
+            //                           select child;
 
-                foreach(var match in matchingChildren) {
-                    yield return match;
-                }
-            }
+            //    foreach(var match in matchingChildren) {
+            //        yield return match;
+            //    }
+            //}
 
-            var globalScope = this.ParentScope.GetParentScopesAndSelf<INamespaceDefinition>().Where(n => n.IsGlobal).FirstOrDefault();
+            //var globalScope = this.ParentScope.GetParentScopesAndSelf<NamespaceDefinition>().Where(n => n.IsGlobal).FirstOrDefault();
 
-            if(globalScope != null) {
-                foreach(var alias in Aliases) {
-                    if(alias.IsNamespaceImport) {
-                        var answers = from aliasedNamespace in alias.FindMatchingNamespace(globalScope)
-                                      from matchingScope in aliasedNamespace.GetChildScopesWithId<DEFINITION>(this.Name)
-                                      where this.Matches(matchingScope)
-                                      select matchingScope;
+            //if(globalScope != null) {
+            //    foreach(var alias in Aliases) {
+            //        if(alias.IsNamespaceImport) {
+            //            var answers = from aliasedNamespace in alias.FindMatchingNamespace(globalScope)
+            //                          from matchingScope in aliasedNamespace.GetChildScopesWithId<DEFINITION>(this.Name)
+            //                          where this.Matches(matchingScope)
+            //                          select matchingScope;
 
-                        foreach(var answer in answers) {
-                            yield return answer;
-                        }
-                    }
-                }
-            } else {
-                throw new ScopeDetachedException(this.ParentScope);
-            }
+            //            foreach(var answer in answers) {
+            //                yield return answer;
+            //            }
+            //        }
+            //    }
+            //} else {
+            //    throw new ScopeDetachedException(this.ParentScope);
+            //}
         }
     }
 }

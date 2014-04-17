@@ -7,9 +7,9 @@ namespace ABB.SrcML.Data {
     /// Represents an import or using directive (usually found at the top of a source file)
     /// </summary>
     [Serializable]
-    public class Alias : IAlias {
-        private INamedScopeUse endPoint;
-        private INamedScopeUse namespaceRoot;
+    public class Alias {
+        private NamedScopeUse endPoint;
+        private NamedScopeUse namespaceRoot;
 
         /// <summary>
         /// Constructs a new alias object
@@ -22,7 +22,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// the specific object identified by this alias
         /// </summary>
-        public INamedScopeUse ImportedNamedScope {
+        public NamedScopeUse ImportedNamedScope {
             get { return endPoint; }
             set {
                 this.endPoint = value;
@@ -32,7 +32,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The namespace root identified by this alias
         /// </summary>
-        public INamedScopeUse ImportedNamespace {
+        public NamedScopeUse ImportedNamespace {
             get { return namespaceRoot; }
             set { this.namespaceRoot = value; }
         }
@@ -59,28 +59,30 @@ namespace ABB.SrcML.Data {
         /// <param name="rootScope">the global scope to search from</param>
         /// <returns>namespace definitions rooted at
         /// <paramref name="rootScope"/>that match see cref="ImportedNamespace"/></returns>
-        public IEnumerable<INamespaceDefinition> FindMatchingNamespace(INamespaceDefinition rootScope) {
-            var currentNsUse = this.ImportedNamespace;
+        public IEnumerable<NamespaceDefinition> FindMatchingNamespace(NamespaceDefinition rootScope) {
+            //TODO: review this method and update it for changes in TypeUse structure
+            throw new NotImplementedException();
+            //var currentNsUse = this.ImportedNamespace;
 
-            List<INamespaceDefinition> scopes = new List<INamespaceDefinition>();
-            scopes.Add(rootScope);
+            //List<NamespaceDefinition> scopes = new List<NamespaceDefinition>();
+            //scopes.Add(rootScope);
 
-            // we will go through each namespace referenced by the alias
-            while(currentNsUse != null) {
-                // go through all of the scopes and get the children that match currentNsUse on the
-                // first iteration, the only thing in scopes will be the global scope on subsequent
-                // iterations, scopes will contain matches for the parent of currentNsUse
-                int currentLength = scopes.Count;
-                for(int i = 0; i < currentLength; i++) {
-                    scopes.AddRange(scopes[i].GetChildScopesWithId<INamespaceDefinition>(currentNsUse.Name));
-                }
-                // once we've found matches for currentNsUse, remove the previous scopes from the
-                // list and set currentNsUse to its child
-                scopes.RemoveRange(0, currentLength);
-                currentNsUse = currentNsUse.ChildScopeUse;
-            }
+            //// we will go through each namespace referenced by the alias
+            //while(currentNsUse != null) {
+            //    // go through all of the scopes and get the children that match currentNsUse on the
+            //    // first iteration, the only thing in scopes will be the global scope on subsequent
+            //    // iterations, scopes will contain matches for the parent of currentNsUse
+            //    int currentLength = scopes.Count;
+            //    for(int i = 0; i < currentLength; i++) {
+            //        scopes.AddRange(scopes[i].GetChildScopesWithId<NamespaceDefinition>(currentNsUse.Name));
+            //    }
+            //    // once we've found matches for currentNsUse, remove the previous scopes from the
+            //    // list and set currentNsUse to its child
+            //    scopes.RemoveRange(0, currentLength);
+            //    currentNsUse = currentNsUse.ChildScopeUse;
+            //}
 
-            return scopes;
+            //return scopes;
         }
 
         /// <summary>
@@ -108,7 +110,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="use">the type use to check</param>
         /// <returns>true if this alias may represent this type use.</returns>
-        public bool IsAliasFor<DEFINITION>(IUse<DEFINITION> use) where DEFINITION : class {
+        public bool IsAliasFor<DEFINITION>(AbstractUse<DEFINITION> use) where DEFINITION : class {
             if(null == use)
                 throw new ArgumentNullException("use");
 
@@ -126,7 +128,7 @@ namespace ABB.SrcML.Data {
         /// <param name="namedScope">The named scope to check</param>
         /// <returns>True if this alias can apply to the provided named scope; false
         /// otherwise</returns>
-        public bool IsAliasFor(INamedScope namedScope) {
+        public bool IsAliasFor(NamedScope namedScope) {
             if(this.IsNamespaceImport)
                 return true;
             return false;

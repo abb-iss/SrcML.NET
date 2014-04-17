@@ -6,20 +6,20 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ABB.SrcML.Data.Queries {
-    public class FindMethodCallsAtLocationQuery : AbstractQuery<SourceLocation, Collection<IMethodCall>> {
-        public FindMethodCallsAtLocationQuery(IDataRepository data, int lockTimeout, TaskFactory factory)
+    public class FindMethodCallsAtLocationQuery : AbstractQuery<SourceLocation, Collection<MethodCall>> {
+        public FindMethodCallsAtLocationQuery(DataRepository data, int lockTimeout, TaskFactory factory)
             : base(data, lockTimeout, factory) { }
 
-        protected override Collection<IMethodCall> ExecuteImpl(SourceLocation parameter) {
+        protected override Collection<MethodCall> ExecuteImpl(SourceLocation parameter) {
             var globalScope = Data.GetGlobalScope();
             if(globalScope != null) {
                 var scope = globalScope.GetScopeForLocation(parameter);
                 if(scope != null) {
                     var calls = scope.MethodCalls.Where(mc => mc.Location.Contains(parameter));
-                    return new Collection<IMethodCall>(calls.OrderByDescending(mc => mc.Location, new SourceLocationComparer()).ToList());
+                    return new Collection<MethodCall>(calls.OrderByDescending(mc => mc.Location, new SourceLocationComparer()).ToList());
                 }
             }
-            return new Collection<IMethodCall>();
+            return new Collection<MethodCall>();
         }
 
         private class SourceLocationComparer : Comparer<SourceLocation> {

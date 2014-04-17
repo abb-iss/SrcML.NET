@@ -21,16 +21,16 @@ namespace ABB.SrcML.Data {
     /// Represents a use of a type. It is used in declarations and inheritance specifications.
     /// </summary>
     [Serializable]
-    public class TypeUse : AbstractScopeUse<ITypeDefinition>, ITypeUse {
-        private List<ITypeUse> internalTypeParameters;
+    public class TypeUse : AbstractScopeUse<TypeDefinition> {
+        private List<TypeUse> internalTypeParameters;
 
         /// <summary>
         /// Create a new type use object.
         /// </summary>
         public TypeUse() {
             this.Name = String.Empty;
-            this.internalTypeParameters = new List<ITypeUse>();
-            this.TypeParameters = new ReadOnlyCollection<ITypeUse>(this.internalTypeParameters);
+            this.internalTypeParameters = new List<TypeUse>();
+            this.TypeParameters = new ReadOnlyCollection<TypeUse>(this.internalTypeParameters);
         }
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public bool IsGeneric { get { return this.internalTypeParameters.Count > 0; } }
 
-        public override IScope ParentScope {
+        public override Scope ParentScope {
             get {
                 return base.ParentScope;
             }
@@ -61,18 +61,18 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The prefix for this type use object
         /// </summary>
-        public INamedScopeUse Prefix { get; set; }
+        public NamedScopeUse Prefix { get; set; }
 
         /// <summary>
         /// Parameters for the type use (indicates that this is a generic type use)
         /// </summary>
-        public ReadOnlyCollection<ITypeUse> TypeParameters { get; private set; }
+        public ReadOnlyCollection<TypeUse> TypeParameters { get; private set; }
 
         /// <summary>
         /// Adds a generic type parameter to this type use
         /// </summary>
         /// <param name="typeParameter">The type parameter to add</param>
-        public void AddTypeParameter(ITypeUse typeParameter) {
+        public void AddTypeParameter(TypeUse typeParameter) {
             this.internalTypeParameters.Add(typeParameter);
         }
 
@@ -80,7 +80,7 @@ namespace ABB.SrcML.Data {
         /// Adds all of the type parameters to this type use element
         /// </summary>
         /// <param name="typeParameters">An enumerable of type use elements to add</param>
-        public void AddTypeParameters(IEnumerable<ITypeUse> typeParameters) {
+        public void AddTypeParameters(IEnumerable<TypeUse> typeParameters) {
             this.internalTypeParameters.AddRange(typeParameters);
         }
 
@@ -88,7 +88,7 @@ namespace ABB.SrcML.Data {
         /// Gets the first type that matches this use
         /// </summary>
         /// <returns>The matching type; null if there aren't any</returns>
-        public ITypeDefinition FindFirstMatchingType() {
+        public TypeDefinition FindFirstMatchingType() {
             return this.FindMatches().FirstOrDefault();
         }
 
@@ -96,33 +96,35 @@ namespace ABB.SrcML.Data {
         /// Finds all of the matches for this type
         /// </summary>
         /// <returns>All of the type definitions that match this type use</returns>
-        public override IEnumerable<ITypeDefinition> FindMatches() {
+        public override IEnumerable<TypeDefinition> FindMatches() {
+            //TODO: review this method and update it for changes in TypeUse structure
+            throw new NotImplementedException();
             // if this is a built-in type, then just return that otherwise, go hunting for matching
             // types
-            if(BuiltInTypeFactory.IsBuiltIn(this)) {
-                yield return BuiltInTypeFactory.GetBuiltIn(this);
-            } else if(null != Prefix) {
-                var matches = from prefixMatch in Prefix.FindMatches()
-                              from match in prefixMatch.GetChildScopesWithId<ITypeDefinition>(this.Name)
-                              select match;
-                foreach(var match in matches) {
-                    yield return match;
-                }
-            } else {
-                // First, just call AbstractUse.FindMatches() this will search everything in
-                // ParentScope.GetParentScopesAndSelf<TypeDefinition>() for a matching type and
-                // return it
-                foreach(var match in base.FindMatches()) {
-                    yield return match;
-                }
-            }
+            //if(BuiltInTypeFactory.IsBuiltIn(this)) {
+            //    yield return BuiltInTypeFactory.GetBuiltIn(this);
+            //} else if(null != Prefix) {
+            //    var matches = from prefixMatch in Prefix.FindMatches()
+            //                  from match in prefixMatch.GetChildScopesWithId<TypeDefinition>(this.Name)
+            //                  select match;
+            //    foreach(var match in matches) {
+            //        yield return match;
+            //    }
+            //} else {
+            //    // First, just call AbstractUse.FindMatches() this will search everything in
+            //    // ParentScope.GetParentScopesAndSelf<TypeDefinition>() for a matching type and
+            //    // return it
+            //    foreach(var match in base.FindMatches()) {
+            //        yield return match;
+            //    }
+            //}
         }
 
         /// <summary>
         /// This is just a call to <see cref="FindMatches()"/>
         /// </summary>
         /// <returns>The matching type definitions for this use</returns>
-        public IEnumerable<ITypeDefinition> FindMatchingTypes() {
+        public IEnumerable<TypeDefinition> FindMatchingTypes() {
             return this.FindMatches();
         }
 
@@ -131,7 +133,7 @@ namespace ABB.SrcML.Data {
         /// <paramref name="definition"/></summary>
         /// <param name="definition">the definition to compare to</param>
         /// <returns>true if the definitions match; false otherwise</returns>
-        public override bool Matches(ITypeDefinition definition) {
+        public override bool Matches(TypeDefinition definition) {
             return definition != null && definition.Name == this.Name;
         }
 

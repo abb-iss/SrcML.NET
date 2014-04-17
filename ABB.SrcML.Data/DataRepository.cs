@@ -49,8 +49,8 @@ namespace ABB.SrcML.Data {
     /// typeInfo.GetXElement(); TypeUse parentType = typeInfo.ParentTypes.First(); XElement
     /// parentXml = data.ResolveType(parentType).GetXElement(); </code>
     /// </example>
-    public class DataRepository : IDataRepository {
-        private IScope globalScope;
+    public class DataRepository : IDisposable {
+        private Scope globalScope;
         private Dictionary<Language, AbstractCodeParser> parsers;
         private ReadyNotifier ReadyState;
         private ReaderWriterLockSlim scopeLock;
@@ -214,7 +214,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="loc">The source location to search for.</param>
         /// <returns>A collection of the method calls at the given location.</returns>
-        public Collection<IMethodCall> FindMethodCalls(SourceLocation loc) {
+        public Collection<MethodCall> FindMethodCalls(SourceLocation loc) {
             if(loc == null)
                 throw new ArgumentNullException("loc");
             scopeLock.EnterReadLock();
@@ -223,10 +223,10 @@ namespace ABB.SrcML.Data {
                 if(scope == null) {
                     //TODO replace logger call
                     //Utilities.SrcMLFileLogger.DefaultLogger.InfoFormat("SourceLocation {0} not found in DataRepository", loc);
-                    return new Collection<IMethodCall>();
+                    return new Collection<MethodCall>();
                 }
                 var calls = scope.MethodCalls.Where(mc => mc.Location.Contains(loc));
-                return new Collection<IMethodCall>(calls.OrderByDescending(mc => mc.Location, new SourceLocationComparer()).ToList());
+                return new Collection<MethodCall>(calls.OrderByDescending(mc => mc.Location, new SourceLocationComparer()).ToList());
             } finally {
                 scopeLock.ExitReadLock();
             }
@@ -238,7 +238,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="element">The XElement to search for.</param>
         /// <returns>A collection of the method calls at the given element.</returns>
-        public Collection<IMethodCall> FindMethodCalls(XElement element) {
+        public Collection<MethodCall> FindMethodCalls(XElement element) {
             if(element == null)
                 throw new ArgumentNullException("element");
             return FindMethodCalls(element.GetXPath());
@@ -250,7 +250,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="xpath">The path to search for.</param>
         /// <returns>A collection of the method calls at the given path.</returns>
-        public Collection<IMethodCall> FindMethodCalls(string xpath) {
+        public Collection<MethodCall> FindMethodCalls(string xpath) {
             if(xpath == null)
                 throw new ArgumentNullException("xpath");
 
@@ -258,13 +258,13 @@ namespace ABB.SrcML.Data {
             try {
                 var scope = globalScope.GetScopeForLocation(xpath);
                 var calls = scope.MethodCalls.Where(mc => xpath.StartsWith(mc.Location.XPath));
-                return new Collection<IMethodCall>(calls.OrderByDescending(mc => mc.Location, new SourceLocationComparer()).ToList());
+                return new Collection<MethodCall>(calls.OrderByDescending(mc => mc.Location, new SourceLocationComparer()).ToList());
             } finally {
                 scopeLock.ExitReadLock();
             }
         }
 
-        public T Findscope<T>(XElement element) where T : class, IScope {
+        public T Findscope<T>(XElement element) where T : Scope {
             return GetFirstAncestor<T>(FindScope(element));
         }
 
@@ -274,7 +274,7 @@ namespace ABB.SrcML.Data {
         /// <param name="loc">The source location to search for.</param>
         /// <returns>The innermost scope containing the location, or null if it is not
         /// found.</returns>
-        public IScope FindScope(SourceLocation loc) {
+        public Scope FindScope(SourceLocation loc) {
             scopeLock.EnterReadLock();
             try {
                 return globalScope.GetScopeForLocation(loc);
@@ -289,7 +289,7 @@ namespace ABB.SrcML.Data {
         /// <param name="element">The element to search for.</param>
         /// <returns>The innermost scope containing the element, or null if it is not
         /// found.</returns>
-        public IScope FindScope(XElement element) {
+        public Scope FindScope(XElement element) {
             scopeLock.EnterReadLock();
             try {
                 return globalScope.GetScopeForLocation(element.GetXPath());
@@ -303,7 +303,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="xpath">The XPath to search for.</param>
         /// <returns>The innermost scope containing the XPath, or null if it is not found.</returns>
-        public IScope FindScope(string xpath) {
+        public Scope FindScope(string xpath) {
             scopeLock.EnterReadLock();
             try {
                 return globalScope.GetScopeForLocation(xpath);
@@ -312,15 +312,15 @@ namespace ABB.SrcML.Data {
             }
         }
 
-        public T FindScope<T>(SourceLocation loc) where T : class, IScope {
+        public T FindScope<T>(SourceLocation loc) where T : Scope {
             return GetFirstAncestor<T>(FindScope(loc));
         }
 
-        public T FindScope<T>(string xpath) where T : class, IScope {
+        public T FindScope<T>(string xpath) where T : Scope {
             return GetFirstAncestor<T>(FindScope(xpath));
         }
 
-        public IScope GetGlobalScope() {
+        public Scope GetGlobalScope() {
             scopeLock.EnterReadLock();
             try {
                 return this.globalScope;
@@ -405,7 +405,7 @@ namespace ABB.SrcML.Data {
             }
             using(var f = File.OpenRead(fileName)) {
                 var formatter = new BinaryFormatter();
-                var tempScope = formatter.Deserialize(f) as IScope;
+                var tempScope = formatter.Deserialize(f) as Scope;
                 //Will throw an exception if it doesn't deserialize correctly
                 this.FileName = fileName;
                 scopeLock.EnterWriteLock();
@@ -500,7 +500,7 @@ namespace ABB.SrcML.Data {
             }
         }
 
-        private T GetFirstAncestor<T>(IScope scope) where T : class, IScope {
+        private T GetFirstAncestor<T>(Scope scope) where T : Scope {
             return (scope != null ? scope.GetParentScopesAndSelf<T>().FirstOrDefault() : null);
         }
 

@@ -19,15 +19,15 @@ using System.Threading.Tasks;
 namespace ABB.SrcML.Data {
     public abstract class AbstractQuery<TResult> {
         public int LockTimeout { get; private set; }
-        public IDataRepository Data { get; private set; }
+        public DataRepository Data { get; private set; }
         protected TaskFactory Factory { get; private set; }
 
         private AbstractQuery() { }
 
-        protected AbstractQuery(IDataRepository data, int lockTimeout)
+        protected AbstractQuery(DataRepository data, int lockTimeout)
             : this(data, lockTimeout, Task.Factory) { }
 
-        protected AbstractQuery(IDataRepository data, int lockTimeout, TaskFactory factory) {
+        protected AbstractQuery(DataRepository data, int lockTimeout, TaskFactory factory) {
             this.Data = data;
             this.LockTimeout = lockTimeout;
             this.Factory = factory;
@@ -70,14 +70,14 @@ namespace ABB.SrcML.Data {
     public abstract class AbstractQueryBase<TTuple, TResult> {
         private AbstractQueryBase() { }
 
-        internal AbstractQueryBase(IDataRepository data, int lockTimeout, TaskFactory factory) {
+        internal AbstractQueryBase(DataRepository data, int lockTimeout, TaskFactory factory) {
             this.Data = data;
             this.LockTimeout = lockTimeout;
             this.Factory = factory;
         }
 
         public int LockTimeout { get; private set; }
-        public IDataRepository Data { get; private set; }
+        public DataRepository Data { get; private set; }
         protected TaskFactory Factory { get; private set; }
 
         protected Task<TResult> ExecuteAsync(TTuple parameterTuple, CancellationToken cancellationToken) {
@@ -111,10 +111,10 @@ namespace ABB.SrcML.Data {
     }
 
     public abstract class AbstractQuery<TParam, TResult> : AbstractQueryBase<Tuple<TParam>, TResult> {
-        protected AbstractQuery(IDataRepository data, int lockTimeout)
+        protected AbstractQuery(DataRepository data, int lockTimeout)
             : base(data, lockTimeout, Task.Factory) { }
 
-        protected AbstractQuery(IDataRepository data, int lockTimeout, TaskFactory factory)
+        protected AbstractQuery(DataRepository data, int lockTimeout, TaskFactory factory)
             : base(data, lockTimeout, factory) { }
 
         public Task<TResult> ExecuteAsync(TParam parameter) {
@@ -138,10 +138,10 @@ namespace ABB.SrcML.Data {
 
     public abstract class AbstractQuery<TParam1, TParam2, TResult>
         : AbstractQueryBase<Tuple<TParam1, TParam2>, TResult> {
-        protected AbstractQuery(IDataRepository data, int lockTimeout)
+        protected AbstractQuery(DataRepository data, int lockTimeout)
             : base(data, lockTimeout, Task.Factory) { }
 
-        protected AbstractQuery(IDataRepository data, int lockTimeout, TaskFactory factory)
+        protected AbstractQuery(DataRepository data, int lockTimeout, TaskFactory factory)
             : base(data, lockTimeout, factory) { }
 
         public Task<TResult> ExecuteAsync(TParam1 parameter1, TParam2 parameter2, CancellationToken cancellationToken) {
@@ -165,10 +165,10 @@ namespace ABB.SrcML.Data {
 
     public abstract class AbstractQuery<TParam1, TParam2, TParam3, TResult>
         : AbstractQueryBase<Tuple<TParam1, TParam2, TParam3>, TResult> {
-        protected AbstractQuery(IDataRepository data, int lockTimeout)
+        protected AbstractQuery(DataRepository data, int lockTimeout)
             : base(data, lockTimeout, Task.Factory) { }
 
-        protected AbstractQuery(IDataRepository data, int lockTimeout, TaskFactory factory)
+        protected AbstractQuery(DataRepository data, int lockTimeout, TaskFactory factory)
             : base(data, lockTimeout, factory) { }
 
         public Task<TResult> ExecuteAsync(TParam1 parameter1, TParam2 parameter2, TParam3 parameter3, CancellationToken cancellationToken) {
@@ -192,10 +192,10 @@ namespace ABB.SrcML.Data {
 
     public abstract class AbstractQuery<TParam1, TParam2, TParam3, TParam4, TResult>
         : AbstractQueryBase<Tuple<TParam1, TParam2, TParam3, TParam4>, TResult> {
-        protected AbstractQuery(IDataRepository data, int lockTimeout)
+        protected AbstractQuery(DataRepository data, int lockTimeout)
             : base(data, lockTimeout, Task.Factory) { }
 
-        protected AbstractQuery(IDataRepository data, int lockTimeout, TaskFactory factory)
+        protected AbstractQuery(DataRepository data, int lockTimeout, TaskFactory factory)
             : base(data, lockTimeout, factory) { }
 
         public Task<TResult> ExecuteAsync(TParam1 parameter1, TParam2 parameter2, TParam3 parameter3, TParam4 parameter4, CancellationToken cancellationToken) {
@@ -219,10 +219,10 @@ namespace ABB.SrcML.Data {
 
     public abstract class AbstractQuery<TParam1, TParam2, TParam3, TParam4, TParam5, TResult>
         : AbstractQueryBase<Tuple<TParam1, TParam2, TParam3, TParam4, TParam5>, TResult> {
-        protected AbstractQuery(IDataRepository data, int lockTimeout)
+        protected AbstractQuery(DataRepository data, int lockTimeout)
             : base(data, lockTimeout, Task.Factory) { }
 
-        protected AbstractQuery(IDataRepository data, int lockTimeout, TaskFactory factory)
+        protected AbstractQuery(DataRepository data, int lockTimeout, TaskFactory factory)
             : base(data, lockTimeout, factory) { }
 
         public Task<TResult> ExecuteAsync(TParam1 parameter1, TParam2 parameter2, TParam3 parameter3, TParam4 parameter4, TParam5 parameter5, CancellationToken cancellationToken) {

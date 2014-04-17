@@ -78,7 +78,7 @@ namespace ABB.SrcML.Tools.MethodCallSurvey {
             }
         }
 
-        private void LoadArchive(BackgroundWorker worker, string pathToMappingFile, out SrcMLArchive archive, out IDataRepository data, out string projectName) {
+        private void LoadArchive(BackgroundWorker worker, string pathToMappingFile, out SrcMLArchive archive, out DataRepository data, out string projectName) {
             string pathToArchive = FilePath.GetDirectoryName(pathToMappingFile);
             string archiveDirectoryName = FilePath.GetFileName(pathToArchive);
             string baseDirectory = FilePath.GetFullPath(FilePath.GetDirectoryName(pathToArchive));
@@ -107,7 +107,7 @@ namespace ABB.SrcML.Tools.MethodCallSurvey {
 
         private void loadWorker_DoWork(object sender, DoWorkEventArgs e) {
             SrcMLArchive archive;
-            IDataRepository data;
+            DataRepository data;
             string projectName;
             LoadArchive(sender as BackgroundWorker, e.Argument as string, out archive, out data, out projectName);
             string commonPath = FileHelper.GetCommonPath(archive.GetFiles());

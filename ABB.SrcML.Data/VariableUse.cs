@@ -19,7 +19,7 @@ namespace ABB.SrcML.Data {
     /// The variable use class represents a use of a variable.
     /// </summary>
     [Serializable]
-    public class VariableUse : AbstractUse<IVariableDeclaration>, IVariableUse {
+    public class VariableUse : AbstractUse<VariableDeclaration> {
 
         /// <summary>
         /// The calling object for a use is used when you have <c>a.b</c> -- this variable use would
@@ -31,7 +31,7 @@ namespace ABB.SrcML.Data {
         /// The scope that contains this variable use. If the parent scope is updated, then the
         /// parent scope of the calling object is also updated.
         /// </summary>
-        public override IScope ParentScope {
+        public override Scope ParentScope {
             get {
                 return base.ParentScope;
             }
@@ -47,7 +47,7 @@ namespace ABB.SrcML.Data {
         /// Gets the first result from <see cref="FindMatchingTypes()"/>
         /// </summary>
         /// <returns>The first matching variable type definition</returns>
-        public ITypeDefinition FindFirstMatchingType() {
+        public TypeDefinition FindFirstMatchingType() {
             return FindMatchingTypes().FirstOrDefault();
         }
 
@@ -56,34 +56,36 @@ namespace ABB.SrcML.Data {
         /// <see cref="Matches(IVariableDeclaration)">matches</see>
         /// </summary>
         /// <returns>An enumerable of matching variable declarations.</returns>
-        public override IEnumerable<IVariableDeclaration> FindMatches() {
-            IEnumerable<IVariableDeclaration> matchingVariables = Enumerable.Empty<IVariableDeclaration>();
+        public override IEnumerable<VariableDeclaration> FindMatches() {
+            //TODO: review this method and update it for changes in TypeUse structure
+            throw new NotImplementedException();
+            //IEnumerable<VariableDeclaration> matchingVariables = Enumerable.Empty<VariableDeclaration>();
 
-            if(CallingObject != null) {
-                matchingVariables = from matchingType in CallingObject.FindMatchingTypes()
-                                    from typeDefinition in matchingType.GetParentTypesAndSelf()
-                                    from variable in typeDefinition.DeclaredVariables
-                                    where Matches(variable)
-                                    select variable;
-            } else {
-                var matches = from scope in ParentScopes
-                              from variable in scope.DeclaredVariables
-                              where Matches(variable)
-                              select variable;
+            //if(CallingObject != null) {
+            //    matchingVariables = from matchingType in CallingObject.FindMatchingTypes()
+            //                        from typeDefinition in matchingType.GetParentTypesAndSelf()
+            //                        from variable in typeDefinition.DeclaredVariables
+            //                        where Matches(variable)
+            //                        select variable;
+            //} else {
+            //    var matches = from scope in ParentScopes
+            //                  from variable in scope.DeclaredVariables
+            //                  where Matches(variable)
+            //                  select variable;
 
-                var parameterMatches = from method in ParentScope.GetParentScopesAndSelf<IMethodDefinition>()
-                                       from parameter in method.Parameters
-                                       where Matches(parameter)
-                                       select parameter;
+            //    var parameterMatches = from method in ParentScope.GetParentScopesAndSelf<MethodDefinition>()
+            //                           from parameter in method.Parameters
+            //                           where Matches(parameter)
+            //                           select parameter;
 
-                var matchingParentVariables = from containingType in ParentScope.GetParentScopesAndSelf<ITypeDefinition>()
-                                              from typeDefinition in containingType.GetParentTypes()
-                                              from variable in typeDefinition.DeclaredVariables
-                                              where Matches(variable)
-                                              select variable;
-                matchingVariables = matches.Concat(matchingParentVariables).Concat(parameterMatches);
-            }
-            return matchingVariables;
+            //    var matchingParentVariables = from containingType in ParentScope.GetParentScopesAndSelf<TypeDefinition>()
+            //                                  from typeDefinition in containingType.GetParentTypes()
+            //                                  from variable in typeDefinition.DeclaredVariables
+            //                                  where Matches(variable)
+            //                                  select variable;
+            //    matchingVariables = matches.Concat(matchingParentVariables).Concat(parameterMatches);
+            //}
+            //return matchingVariables;
         }
 
         /// <summary>
@@ -91,8 +93,8 @@ namespace ABB.SrcML.Data {
         /// match this variable use
         /// </summary>
         /// <returns>An enumerable of matching type definitions</returns>
-        public IEnumerable<ITypeDefinition> FindMatchingTypes() {
-            IEnumerable<ITypeDefinition> typeDefinitions;
+        public IEnumerable<TypeDefinition> FindMatchingTypes() {
+            IEnumerable<TypeDefinition> typeDefinitions;
             if(this.Name == "this" || (this.Name == "base" && this.ProgrammingLanguage == Language.CSharp)) {
                 typeDefinitions = TypeDefinition.GetTypeForKeyword(this);
             } else {
@@ -108,19 +110,19 @@ namespace ABB.SrcML.Data {
                         ParentScope = this.ParentScope,
                         ProgrammingLanguage = this.ProgrammingLanguage,
                     };
-                    if(CallingObject != null && CallingObject is IVariableUse) {
-                        var caller = CallingObject as IVariableUse;
-                        Stack<INamedScopeUse> callerStack = new Stack<INamedScopeUse>();
+                    if(CallingObject != null && CallingObject is VariableUse) {
+                        var caller = CallingObject as VariableUse;
+                        Stack<NamedScopeUse> callerStack = new Stack<NamedScopeUse>();
                         while(caller != null) {
                             var scopeUse = new NamedScopeUse() {
                                 Name = caller.Name,
                                 ProgrammingLanguage = this.ProgrammingLanguage,
                             };
                             callerStack.Push(scopeUse);
-                            caller = caller.CallingObject as IVariableUse;
+                            caller = caller.CallingObject as VariableUse;
                         }
 
-                        INamedScopeUse prefix = null, last = null;
+                        NamedScopeUse prefix = null, last = null;
 
                         foreach(var current in callerStack) {
                             if(null == prefix) {
@@ -146,7 +148,7 @@ namespace ABB.SrcML.Data {
         /// <paramref name="definition"/></summary>
         /// <param name="definition">The variable declaration to test</param>
         /// <returns>true if this matches the variable declaration; false otherwise</returns>
-        public override bool Matches(IVariableDeclaration definition) {
+        public override bool Matches(VariableDeclaration definition) {
             return definition != null && definition.Name == this.Name;
         }
     }

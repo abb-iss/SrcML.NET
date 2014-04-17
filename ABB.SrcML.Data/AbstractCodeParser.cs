@@ -128,7 +128,7 @@ namespace ABB.SrcML.Data {
         /// <param name="context">The parser context</param>
         /// <returns>A variable use object</returns>
         // TODO make this fit in with the rest of the parse methods
-        protected virtual IVariableUse CreateVariableUse(XElement element, ParserContext context) {
+        protected virtual VariableUse CreateVariableUse(XElement element, ParserContext context) {
             throw new NotImplementedException();
 
             //XElement nameElement;
@@ -189,14 +189,14 @@ namespace ABB.SrcML.Data {
         protected abstract IEnumerable<XElement> GetParentTypeUseElements(XElement typeElement);
 
         /// <summary>
-        /// Creates an <see cref="IAlias"/> object from a using import (such as using in C++ and C#
+        /// Creates an <see cref="Alias"/> object from a using import (such as using in C++ and C#
         /// and import in Java).
         /// </summary>
         /// <param name="aliasStatement">The statement to parse. Should be of type see
         /// cref="AliasElementName"/></param>
         /// <param name="context">The context to place the resulting alias in</param>
         /// <returns>a new alias object that represents this alias statement</returns>
-        protected IAlias ParseAliasElement(XElement aliasStatement, ParserContext context) {
+        protected Alias ParseAliasElement(XElement aliasStatement, ParserContext context) {
             if(null == aliasStatement)
                 throw new ArgumentNullException("aliasStatement");
             if(aliasStatement.Name != AliasElementName)
@@ -251,7 +251,7 @@ namespace ABB.SrcML.Data {
         /// <param name="context">The parser context</param>
         /// <returns>A method call for
         /// <paramref name="callElement"/></returns>
-        protected virtual IMethodCall ParseCallElement(XElement callElement, ParserContext context) {
+        protected virtual MethodCall ParseCallElement(XElement callElement, ParserContext context) {
             throw new NotImplementedException();
 
             //XElement methodNameElement = null;
@@ -1212,7 +1212,7 @@ namespace ABB.SrcML.Data {
             var aliases = from aliasStatement in GetAliasElementsForFile(unitElement)
                           select ParseAliasElement(aliasStatement, context);
 
-            context.Aliases = new Collection<IAlias>(aliases.ToList());
+            context.Aliases = new Collection<Alias>(aliases.ToList());
 
             //create a global namespace for the file unit
             var namespaceForUnit = new NamespaceDefinition() {

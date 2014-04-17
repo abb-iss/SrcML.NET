@@ -10,14 +10,22 @@
  *****************************************************************************/
 
 using System;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 namespace ABB.SrcML.Data {
 
-    public interface IParameterDeclaration : IVariableDeclaration {
+    public class ScopeDetachedException : Exception {
+        public Scope DetachedScope;
 
-        bool HasDefaultValue { get; set; }
+        public ScopeDetachedException(Scope detachedScope)
+            : this(detachedScope, String.Format("{0} is not attached to a global scope", detachedScope.Id)) {
+        }
 
-        Collection<SrcMLLocation> Locations { get; }
+        public ScopeDetachedException(Scope detachedScope, string message)
+            : base(message) {
+            this.DetachedScope = detachedScope;
+        }
     }
 }

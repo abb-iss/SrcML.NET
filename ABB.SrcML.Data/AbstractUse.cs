@@ -20,22 +20,22 @@ namespace ABB.SrcML.Data {
     /// <see cref="INamedScope"/>.
     /// </summary>
     [Serializable]
-    public abstract class AbstractUse<DEFINITION> : IUse<DEFINITION> where DEFINITION : class {
-        private List<IAlias> internalAliasCollection;
-        private IScope parentScope;
+    public abstract class AbstractUse<DEFINITION> where DEFINITION : class {
+        private List<Alias> internalAliasCollection;
+        private Scope parentScope;
 
         /// <summary>
         /// Sets up the an abstract use object
         /// </summary>
         protected AbstractUse() {
-            internalAliasCollection = new List<IAlias>();
-            Aliases = new ReadOnlyCollection<IAlias>(internalAliasCollection);
+            internalAliasCollection = new List<Alias>();
+            Aliases = new ReadOnlyCollection<Alias>(internalAliasCollection);
         }
 
         /// <summary>
         /// The aliases for this type use
         /// </summary>
-        public ReadOnlyCollection<IAlias> Aliases { get; private set; }
+        public ReadOnlyCollection<Alias> Aliases { get; private set; }
 
         /// <summary>
         /// The location of this use in the original source file and in srcML
@@ -50,7 +50,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The scope that contains this use
         /// </summary>
-        public virtual IScope ParentScope {
+        public virtual Scope ParentScope {
             get { return this.parentScope; }
             set { this.parentScope = value; }
         }
@@ -58,9 +58,9 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// All of the parent scopes of this usage (from closest to farthest)
         /// </summary>
-        public IEnumerable<IScope> ParentScopes {
+        public IEnumerable<Scope> ParentScopes {
             get {
-                IScope current = ParentScope;
+                Scope current = ParentScope;
                 while(null != current) {
                     yield return current;
                     current = current.ParentScope;
@@ -74,11 +74,11 @@ namespace ABB.SrcML.Data {
         public Language ProgrammingLanguage { get; set; }
 
         /// <summary>
-        /// Adds an alias. If <see cref="IAlias.IsAliasFor{T}(AbstractUse{T})"/> returns false, then
+        /// Adds an alias. If <see cref="Alias.IsAliasFor{T}(AbstractUse{T})"/> returns false, then
         /// the alias is not added.
         /// </summary>
         /// <param name="alias">The alias to add</param>
-        public void AddAlias(IAlias alias) {
+        public void AddAlias(Alias alias) {
             if(alias.IsAliasFor(this)) {
                 internalAliasCollection.Add(alias);
             }
@@ -88,7 +88,7 @@ namespace ABB.SrcML.Data {
         /// Adds an enumerable of aliases to this scope.
         /// </summary>
         /// <param name="aliasesToAdd">The aliases to add</param>
-        public void AddAliases(IEnumerable<IAlias> aliasesToAdd) {
+        public void AddAliases(IEnumerable<Alias> aliasesToAdd) {
             if(aliasesToAdd != null) {
                 foreach(var alias in aliasesToAdd) {
                     this.AddAlias(alias);

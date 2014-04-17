@@ -12,7 +12,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         private ITaskManagerService _taskManager;
         private ISrcMLGlobalService _srcMLService;
 
-        private IDataRepository CurrentDataRepository;
+        private DataRepository CurrentDataRepository;
         public event EventHandler InitializationComplete;
         public event EventHandler MonitoringStarted;
         public event EventHandler MonitoringStopped;
@@ -27,7 +27,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 SubscribeToEvents();
             }
         }
-        public IDataRepository GetDataRepository() {
+        public DataRepository GetDataRepository() {
             return CurrentDataRepository;
         }
 

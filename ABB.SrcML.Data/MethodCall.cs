@@ -20,7 +20,7 @@ namespace ABB.SrcML.Data {
     /// Represents a method call
     /// </summary>
     [Serializable]
-    public class MethodCall : AbstractScopeUse<IMethodDefinition>, IMethodCall {
+    public class MethodCall : AbstractScopeUse<MethodDefinition> {
 
         /// <summary>
         /// Creates a new MethodCall object
@@ -57,7 +57,7 @@ namespace ABB.SrcML.Data {
         /// updates the parent scope of <see cref="CallingObject"/> and all of the
         /// <see cref="Arguments"/>
         /// </summary>
-        public override IScope ParentScope {
+        public override Scope ParentScope {
             get {
                 return base.ParentScope;
             }
@@ -76,7 +76,7 @@ namespace ABB.SrcML.Data {
         /// Gets the first type definition that matches the return type for this method
         /// </summary>
         /// <returns>The first matching type definition</returns>
-        public ITypeDefinition FindFirstMatchingType() {
+        public TypeDefinition FindFirstMatchingType() {
             return FindMatchingTypes().FirstOrDefault();
         }
 
@@ -87,74 +87,78 @@ namespace ABB.SrcML.Data {
         /// constructors within those types
         /// </summary>
         /// <returns>An enumerable of method definitions that match this method call</returns>
-        public override IEnumerable<IMethodDefinition> FindMatches() {
-            IEnumerable<IMethodDefinition> matchingMethods = Enumerable.Empty<IMethodDefinition>();
+        public override IEnumerable<MethodDefinition> FindMatches() {
+            //TODO: review this method and update it for changes in TypeUse structure
+            throw new NotImplementedException();
+            //IEnumerable<MethodDefinition> matchingMethods = Enumerable.Empty<MethodDefinition>();
 
-            if(IsConstructor || IsDestructor) {
-                IEnumerable<ITypeDefinition> typeDefinitions;
-                if(this.Name == "this" || (this.Name == "base" && this.ProgrammingLanguage == Language.CSharp)) {
-                    typeDefinitions = TypeDefinition.GetTypeForKeyword(this);
-                } else {
-                    ITypeUse tempTypeUse = new TypeUse() {
-                        Name = this.Name,
-                        ParentScope = this.ParentScope,
-                    };
-                    tempTypeUse.AddAliases(this.Aliases);
-                    typeDefinitions = tempTypeUse.FindMatches();
-                }
+            //if(IsConstructor || IsDestructor) {
+            //    IEnumerable<TypeDefinition> typeDefinitions;
+            //    if(this.Name == "this" || (this.Name == "base" && this.ProgrammingLanguage == Language.CSharp)) {
+            //        typeDefinitions = TypeDefinition.GetTypeForKeyword(this);
+            //    } else {
+            //        TypeUse tempTypeUse = new TypeUse() {
+            //            Name = this.Name,
+            //            ParentScope = this.ParentScope,
+            //        };
+            //        tempTypeUse.AddAliases(this.Aliases);
+            //        typeDefinitions = tempTypeUse.FindMatches();
+            //    }
 
-                matchingMethods = from typeDefinition in typeDefinitions
-                                  from method in typeDefinition.GetChildScopesWithId<IMethodDefinition>(typeDefinition.Name)
-                                  where Matches(method)
-                                  select method;
-            } else if(CallingObject != null) {
-                matchingMethods = from matchingType in CallingObject.FindMatchingTypes()
-                                  from typeDefinition in matchingType.GetParentTypesAndSelf()
-                                  from method in typeDefinition.GetChildScopesWithId<IMethodDefinition>(this.Name)
-                                  where Matches(method)
-                                  select method;
-            } else {
-                var matches = base.FindMatches();
-                var matchingTypeMethods = from containingType in ParentScope.GetParentScopesAndSelf<ITypeDefinition>()
-                                          from typeDefinition in containingType.GetParentTypes()
-                                          from method in typeDefinition.GetChildScopesWithId<IMethodDefinition>(this.Name)
-                                          where Matches(method)
-                                          select method;
-                matchingMethods = matches.Concat(matchingTypeMethods);
-            }
-            foreach(var method in matchingMethods) {
-                yield return method;
-            }
+            //    matchingMethods = from typeDefinition in typeDefinitions
+            //                      from method in typeDefinition.GetChildScopesWithId<MethodDefinition>(typeDefinition.Name)
+            //                      where Matches(method)
+            //                      select method;
+            //} else if(CallingObject != null) {
+            //    matchingMethods = from matchingType in CallingObject.FindMatchingTypes()
+            //                      from typeDefinition in matchingType.GetParentTypesAndSelf()
+            //                      from method in typeDefinition.GetChildScopesWithId<IMethodDefinition>(this.Name)
+            //                      where Matches(method)
+            //                      select method;
+            //} else {
+            //    var matches = base.FindMatches();
+            //    var matchingTypeMethods = from containingType in ParentScope.GetParentScopesAndSelf<TypeDefinition>()
+            //                              from typeDefinition in containingType.GetParentTypes()
+            //                              from method in typeDefinition.GetChildScopesWithId<IMethodDefinition>(this.Name)
+            //                              where Matches(method)
+            //                              select method;
+            //    matchingMethods = matches.Concat(matchingTypeMethods);
+            //}
+            //foreach(var method in matchingMethods) {
+            //    yield return method;
+            //}
         }
 
         /// <summary>
         /// Finds all of the matching type definitions for the return type of this method definition
         /// </summary>
         /// <returns>An enumerable of the matching type definitions for this method</returns>
-        public IEnumerable<ITypeDefinition> FindMatchingTypes() {
-            foreach(var methodDefinition in FindMatches()) {
-                IEnumerable<ITypeDefinition> matchingTypes = Enumerable.Empty<ITypeDefinition>();
+        public IEnumerable<TypeDefinition> FindMatchingTypes() {
+            //TODO: review this method and update it for changes in TypeUse structure
+            throw new NotImplementedException();
+            //foreach(var methodDefinition in FindMatches()) {
+            //    IEnumerable<TypeDefinition> matchingTypes = Enumerable.Empty<TypeDefinition>();
 
-                if(methodDefinition.ReturnType != null) {
-                    matchingTypes = methodDefinition.ReturnType.FindMatches();
-                } else if(methodDefinition.IsConstructor) {
-                    matchingTypes = from type in methodDefinition.GetParentScopes<ITypeDefinition>()
-                                    where type.Name == methodDefinition.Name
-                                    select type;
-                }
-                foreach(var result in matchingTypes) {
-                    yield return result;
-                }
-            }
+            //    if(methodDefinition.ReturnType != null) {
+            //        matchingTypes = methodDefinition.ReturnType.FindMatches();
+            //    } else if(methodDefinition.IsConstructor) {
+            //        matchingTypes = from type in methodDefinition.GetParentScopes<TypeDefinition>()
+            //                        where type.Name == methodDefinition.Name
+            //                        select type;
+            //    }
+            //    foreach(var result in matchingTypes) {
+            //        yield return result;
+            //    }
+            //}
         }
 
         public IEnumerable<string> GetPossibleNames() {
             if(this.Name == "this") {
-                foreach(var containingType in ParentScopes.OfType<ITypeDefinition>().Take(1)) {
+                foreach(var containingType in ParentScopes.OfType<TypeDefinition>().Take(1)) {
                     yield return containingType.Name;
                 }
             } else if(this.Name == "base" && ProgrammingLanguage == Language.CSharp) {
-                var typeDefinitions = from containingType in ParentScopes.OfType<ITypeDefinition>()
+                var typeDefinitions = from containingType in ParentScopes.OfType<TypeDefinition>()
                                       from parentTypeReference in containingType.ParentTypes
                                       from parentType in parentTypeReference.FindMatchingTypes()
                                       select parentType;
@@ -171,21 +175,23 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="definition">The method definition to test</param>
         /// <returns>True if this method call matches the provided method definition</returns>
-        public override bool Matches(IMethodDefinition definition) {
-            if(null == definition)
-                return false;
+        public override bool Matches(MethodDefinition definition) {
+            //TODO: review this method and update it for changes in TypeUse structure
+            throw new NotImplementedException();
+            //if(null == definition)
+            //    return false;
 
-            //var argumentsMatchParameters = Enumerable.Zip(this.Arguments, definition.Parameters,
-            //                                              (a,p) => ArgumentMatchesDefinition(a,p));
-            var numberOfMethodParameters = definition.Parameters.Count;
-            var numberOfMethodParametersWithDefault = definition.Parameters.Where(p => p.HasDefaultValue).Count();
+            ////var argumentsMatchParameters = Enumerable.Zip(this.Arguments, definition.Parameters,
+            ////                                              (a,p) => ArgumentMatchesDefinition(a,p));
+            //var numberOfMethodParameters = definition.Parameters.Count;
+            //var numberOfMethodParametersWithDefault = definition.Parameters.Where(p => p.HasDefaultValue).Count();
 
-            return this.IsConstructor == definition.IsConstructor &&
-                   this.IsDestructor == definition.IsDestructor &&
-                   GetPossibleNames().Any(n => n == definition.Name) &&
-                   this.Arguments.Count >= numberOfMethodParameters - numberOfMethodParametersWithDefault &&
-                   this.Arguments.Count <= definition.Parameters.Count;// &&
-                                                                       //argumentsMatchParameters.All(a => a);
+            //return this.IsConstructor == definition.IsConstructor &&
+            //       this.IsDestructor == definition.IsDestructor &&
+            //       GetPossibleNames().Any(n => n == definition.Name) &&
+            //       this.Arguments.Count >= numberOfMethodParameters - numberOfMethodParametersWithDefault &&
+            //       this.Arguments.Count <= definition.Parameters.Count;// &&
+            //                                                           //argumentsMatchParameters.All(a => a);
         }
 
         /// <summary>
@@ -199,7 +205,7 @@ namespace ABB.SrcML.Data {
         /// cref="MethodDefinition.Parameters"/></param>
         /// <returns>true if the argument and the parameter have a matching type in common; false
         /// otherwise</returns>
-        private bool ArgumentMatchesDefinition(IResolvesToType argument, IParameterDeclaration parameter) {
+        private bool ArgumentMatchesDefinition(IResolvesToType argument, VariableDeclaration parameter) {
             var possibleArgumentTypes = argument.FindMatchingTypes();
             var possibleParameterTypes = parameter.VariableType.FindMatchingTypes();
 

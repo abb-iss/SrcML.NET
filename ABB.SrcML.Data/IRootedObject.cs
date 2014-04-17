@@ -11,29 +11,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 namespace ABB.SrcML.Data {
 
-    public interface IAlias {
+    public interface IRootedObject {
 
-        INamedScopeUse ImportedNamedScope { get; set; }
-
-        INamedScopeUse ImportedNamespace { get; set; }
-
-        bool IsNamespaceImport { get; }
-
-        SrcMLLocation Location { get; set; }
-
-        Language ProgrammingLanguage { get; set; }
-
-        IEnumerable<INamespaceDefinition> FindMatchingNamespace(INamespaceDefinition rootScope);
-
-        string GetFullName();
-
-        string GetNamespaceName();
-
-        bool IsAliasFor(INamedScope namedScope);
-
-        bool IsAliasFor<DEFINITION>(IUse<DEFINITION> use) where DEFINITION : class;
+        /// <summary>
+        /// The parent scope for this calling object
+        /// </summary>
+        Scope ParentScope { get; set; }
     }
 }

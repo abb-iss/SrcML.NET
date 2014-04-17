@@ -3,7 +3,7 @@
 namespace ABB.SrcML.Data {
 
     /// <summary>
-    /// Represents the use of a namespace. This is primarily used in <see cref="IAlias"/> objects
+    /// Represents the use of a namespace. This is primarily used in <see cref="Alias"/> objects
     /// </summary>
     [Serializable]
     public class NamespaceUse : NamedScopeUse {

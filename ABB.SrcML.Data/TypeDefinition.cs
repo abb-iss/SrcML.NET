@@ -42,6 +42,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="parentTypeUse">The parent type to add</param>
         public void AddParentType(TypeUse parentTypeUse) {
+            //TODO: review this method and update it for changes in TypeUse structure
             throw new NotImplementedException();
 
             //if(null == parentTypeUse)
@@ -58,7 +59,8 @@ namespace ABB.SrcML.Data {
         /// <typeparam name="T">The use type</typeparam>
         /// <param name="use">The use to find the containing class for</param>
         /// <returns>The class referred to by the keyword</returns>
-        public static IEnumerable<ITypeDefinition> GetTypeForKeyword<T>(IUse<T> use) where T : class {
+        public static IEnumerable<TypeDefinition> GetTypeForKeyword<T>(AbstractUse<T> use) where T : class {
+            //TODO: review this method and update it for changes in TypeUse structure
             throw new NotImplementedException();
 
             //var typeDefinitions = Enumerable.Empty<ITypeDefinition>();

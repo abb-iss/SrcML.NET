@@ -6,8 +6,8 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Xml.XPath;
-using CallData = ABB.SrcML.Data.IMethodCall;
-using MethodData = ABB.SrcML.Data.IMethodDefinition;
+using CallData = ABB.SrcML.Data.MethodCall;
+using MethodData = ABB.SrcML.Data.MethodDefinition;
 
 namespace ABB.SrcML.Tools.MethodCallSurvey {
 
@@ -30,7 +30,7 @@ namespace ABB.SrcML.Tools.MethodCallSurvey {
             this.isExternal = false;
 
             this.Location = data.Location;
-            this.FullName = data.ParentScope.GetParentScopesAndSelf<INamedScope>().First().GetFullName();
+            this.FullName = data.ParentScope.GetParentScopesAndSelf<NamedScope>().First().GetFullName();
             this.Id = DataHelpers.GetLocation(data.Location);
             this.Path = this.Location.SourceFileName;
 

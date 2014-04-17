@@ -5,18 +5,18 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ABB.SrcML.Data.Queries {
-    public class ScopeForLocationQuery : AbstractQuery<SourceLocation, IScope> {
-        public ScopeForLocationQuery(IDataRepository data, int lockTimeout, TaskFactory factory)
+    public class ScopeForLocationQuery : AbstractQuery<SourceLocation, Scope> {
+        public ScopeForLocationQuery(DataRepository data, int lockTimeout, TaskFactory factory)
             : base(data, lockTimeout, factory) { }
 
-        protected override IScope ExecuteImpl(SourceLocation parameter) {
+        protected override Scope ExecuteImpl(SourceLocation parameter) {
             return Data.GetGlobalScope().GetScopeForLocation(parameter);
         }
     }
 
     public class ScopeForLocationQuery<TScope>
-        : AbstractQuery<SourceLocation, TScope> where TScope : IScope, new() {
-        public ScopeForLocationQuery(IDataRepository data, int lockTimeout, TaskFactory factory)
+        : AbstractQuery<SourceLocation, TScope> where TScope : Scope, new() {
+        public ScopeForLocationQuery(DataRepository data, int lockTimeout, TaskFactory factory)
             : base(data, lockTimeout, factory){ }
 
 

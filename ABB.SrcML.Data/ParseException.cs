@@ -14,8 +14,8 @@ using System;
 namespace ABB.SrcML.Data {
 
     /// <summary>
-    /// Represents an error from an <see cref="ICodeParser"/>. The various parser functions are
-    /// caught by <see cref="ICodeParser.ParseFileUnit(System.Xml.Linq.XElement)"/> and rethrown as
+    /// Represents an error from an <see cref="AbstractCodeParser"/>. The various parser functions are
+    /// caught by <see cref="AbstractCodeParser.ParseFileUnit(System.Xml.Linq.XElement)"/> and rethrown as
     /// a ParseException.
     /// </summary>
     public class ParseException : Exception {
