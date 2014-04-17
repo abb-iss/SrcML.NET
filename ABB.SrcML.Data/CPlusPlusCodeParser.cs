@@ -262,18 +262,31 @@ namespace ABB.SrcML.Data {
         /// <param name="context">The parser context</param>
         /// <returns>a new NamespaceDefinition object</returns>
         protected override NamespaceDefinition ParseNamespaceElement(XElement namespaceElement, ParserContext context) {
-            throw new NotImplementedException();
+            if(namespaceElement == null)
+                throw new ArgumentNullException("namespaceElement");
+            if(!NamespaceElementNames.Contains(namespaceElement.Name))
+                throw new ArgumentException(string.Format("Not a valid namespace element: {0}", namespaceElement.Name), "namespaceElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
 
-            //if(namespaceElement == null)
-            //    throw new ArgumentNullException("namespaceElement");
-            //if(!NamespaceElementNames.Contains(namespaceElement.Name))
-            //    throw new ArgumentException(string.Format("Not a valid namespace typeUseElement: {0}", namespaceElement.Name), "namespaceElement");
+            var nameElement = namespaceElement.Element(SRC.Name);
+            var namespaceName = nameElement != null ? nameElement.Value : string.Empty;
 
-            //var nameElement = namespaceElement.Element(SRC.Name);
-            //var namespaceName = nameElement != null ? nameElement.Value : string.Empty;
+            var nd = new NamespaceDefinition {
+                Name = namespaceName,
+                Location = context.CreateLocation(namespaceElement),
+                ProgrammingLanguage = ParserLanguage,
+            };
 
-            //var namespaceDefinition = new NamespaceDefinition { Name = namespaceName };
-            //context.Push(namespaceDefinition);
+            //add children
+            var blockElement = namespaceElement.Element(SRC.Block);
+            if(blockElement != null) {
+                foreach(var child in blockElement.Elements()) {
+                    nd.AddChildStatement(ParseElement(child, context));
+                }
+            }
+
+            return nd;
         }
     }
 }

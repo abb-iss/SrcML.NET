@@ -161,32 +161,44 @@ namespace ABB.SrcML.Data {
         /// <param name="namespaceElement">the namespace element to parse</param>
         /// <param name="context">the parser context</param>
         protected override NamespaceDefinition ParseNamespaceElement(XElement namespaceElement, ParserContext context) {
-            throw new NotImplementedException();
+            if(namespaceElement == null)
+                throw new ArgumentNullException("namespaceElement");
+            if(!NamespaceElementNames.Contains(namespaceElement.Name))
+                throw new ArgumentException(string.Format("Not a valid namespace element: {0}", namespaceElement.Name), "namespaceElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
 
-            //if(namespaceElement == null)
-            //    throw new ArgumentNullException("namespaceElement");
-            //if(!NamespaceElementNames.Contains(namespaceElement.Name))
-            //    throw new ArgumentException(string.Format("Not a valid namespace element: {0}", namespaceElement.Name), "namespaceElement");
+            var nameElement = namespaceElement.Element(SRC.Name);
+            if(nameElement == null) {
+                throw new ParseException(context.FileName, namespaceElement.GetSrcLineNumber(), namespaceElement.GetSrcLinePosition(), this,
+                                         "No SRC.Name element found in namespace.", null);
+            }
 
-            //var nameElement = namespaceElement.Element(SRC.Name);
-            //string namespaceName;
-            //if(nameElement == null) {
-            //    namespaceName = string.Empty;
-            //} else {
-            //    NamespaceDefinition root = null;
-            //    foreach(var name in NameHelper.GetNameElementsFromName(nameElement)) {
-            //        var namespaceForName = new NamespaceDefinition() {
-            //            Name = name.Value,
-            //            ProgrammingLanguage = ParserLanguage,
-            //        };
-            //        if(root == null) {
-            //            root = namespaceForName;
-            //        } else {
-            //            namespaceForName.AddSourceLocation(context.CreateLocation(name));
-            //        }
-            //        context.Push(namespaceForName, root);
-            //    }
-            //}
+            //parse the name and create a NamespaceDefinition for each component
+            NamespaceDefinition topNS = null;
+            NamespaceDefinition lastNS = null;
+            foreach(var name in NameHelper.GetNameElementsFromName(nameElement)) {
+                var newNS = new NamespaceDefinition {
+                    Name = name.Value,
+                    Location = context.CreateLocation(name),
+                    ProgrammingLanguage = ParserLanguage
+                };
+                if(topNS == null) { topNS = newNS; }
+                if(lastNS != null) {
+                    lastNS.AddChildStatement(newNS);
+                }
+                lastNS = newNS;
+            }
+
+            //add body of namespace to lastNS
+            var blockElement = namespaceElement.Element(SRC.Block);
+            if(blockElement != null) {
+                foreach(var child in blockElement.Elements()) {
+                    lastNS.AddChildStatement(ParseElement(child, context));
+                }
+            }
+
+            return topNS;
         }
 
         //TODO: implement C# Type Element parsing

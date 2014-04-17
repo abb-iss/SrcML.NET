@@ -443,38 +443,22 @@ namespace ABB.SrcML.Data {
                     stmt = ParseReturnElement(element, context);
                 } else if(element.Name == SRC.Goto) {
                     stmt = ParseGotoElement(element, context);
+                } else if(element.Name == SRC.Label) {
+                    stmt = ParseLabelElement(element, context);
+                } else if(element.Name == SRC.Throw) {
+                    stmt = ParseThrowElement(element, context);
+                } else if(element.Name == SRC.Try) {
+                    stmt = ParseTryElement(element, context);
+                } else if(element.Name == SRC.ExpressionStatement || element.Name == SRC.DeclarationStatement) {
+                    stmt = ParseExpressionStatementElement(element, context);
                 } else {
-                    stmt = ParseStatementElement(element, context);
+                    throw new ParseException(context.FileName, element.GetSrcLineNumber(), element.GetSrcLinePosition(), this,
+                                             string.Format("Unexpected {0} element", element.Name), null);
                 }
                 //TODO: parse include/import/using statements
                 //TODO: parse using blocks
                 //TODO: parse variable declarations
                 //TODO: parse everything else as a generic statement?
-
-
-                //IEnumerable<XElement> Elements = GetDeclarationsFromElement(element);
-                //foreach(var declarationElement in Elements) {
-                //    foreach(var declaration in ParseDeclarationElement(declarationElement, context)) {
-                //        context.CurrentScope.AddDeclaredVariable(declaration);
-                //    }
-                //}
-
-                //IEnumerable<XElement> methodCalls = GetMethodCallsFromElement(element);
-                //foreach(var methodCallElement in methodCalls) {
-                //    var methodCall = ParseCallElement(methodCallElement, context);
-                //    methodCall.ProgrammingLanguage = ParserLanguage;
-                //    context.CurrentScope.AddMethodCall(methodCall);
-                //}
-
-                //IEnumerable<XElement> children = GetChildContainers(element);
-                //foreach(var childElement in children) {
-                //    var childScope = ParseElement(childElement, context);
-                //    context.CurrentStatement.AddChildScope(childScope);
-                //}
-
-                //var currentStatement = context.Pop();
-                //currentStatement.Location = context.CreateLocation(element, ContainerIsReference(element));
-                //currentStatement.ProgrammingLanguage = ParserLanguage;
 
                 return stmt;
             } catch(ParseException) {
@@ -603,41 +587,36 @@ namespace ABB.SrcML.Data {
                 ProgrammingLanguage = ParserLanguage
             };
 
-            //fill in condition
-            var expElement = ifElement.Element(SRC.Condition).Elements().First();
-            if(expElement.Name == SRC.Expression) {
-                ifStmt.Condition = ParseExpression(expElement, context);
-            } else {
-                throw new ParseException(context.FileName, expElement.GetSrcLineNumber(), expElement.GetSrcLinePosition(), this, "expected <expr> element", null);
-            }
-
-            //fill in then block
-            var thenElement = ifElement.Element(SRC.Then);
-            if(thenElement != null) {
-                var firstThenStmt = thenElement.Elements().FirstOrDefault();
-                if(firstThenStmt != null) {
-                    if(firstThenStmt.Name == SRC.Block) {
-                        foreach(var stmt in firstThenStmt.Elements()) {
-                            ifStmt.AddChildStatement(ParseElement(stmt, context));
-                        }
-                    } else {
-                        ifStmt.AddChildStatement(ParseElement(firstThenStmt, context));
+            foreach(var ifChild in ifElement.Elements()) {
+                if(ifChild.Name == SRC.Condition) {
+                    //fill in condition
+                    var expElement = ifChild.Element(SRC.Expression);
+                    if(expElement != null) {
+                        ifStmt.Condition = ParseExpression(expElement, context);
                     }
-                }
-            }
-
-            //fill in else block
-            var elseElement = ifElement.Element(SRC.Else);
-            if(elseElement != null) {
-                var firstElseStmt = elseElement.Elements().FirstOrDefault();
-                if(firstElseStmt != null) {
-                    if(firstElseStmt.Name == SRC.Block) {
-                        foreach(var stmt in firstElseStmt.Elements()) {
-                            ifStmt.AddElseStatement(ParseElement(stmt, context));
+                } else if(ifChild.Name == SRC.Then) {
+                    //add the then statements
+                    foreach(var thenChild in ifChild.Elements()) {
+                        if(thenChild.Name == SRC.Block) {
+                            var blockStatements = thenChild.Elements().Select(e => ParseElement(e, context));
+                            ifStmt.AddChildStatements(blockStatements);
+                        } else {
+                            ifStmt.AddChildStatement(ParseElement(thenChild, context));
                         }
-                    } else {
-                        ifStmt.AddElseStatement(ParseElement(firstElseStmt, context));
                     }
+                } else if(ifChild.Name == SRC.Else) {
+                    //add the else statements
+                    foreach(var elseChild in ifChild.Elements()) {
+                        if(elseChild.Name == SRC.Block) {
+                            var blockStatements = elseChild.Elements().Select(e => ParseElement(e, context));
+                            ifStmt.AddElseStatements(blockStatements);
+                        } else {
+                            ifStmt.AddElseStatement(ParseElement(elseChild, context));
+                        }
+                    }
+                } else {
+                    //Add as a child statement (i.e. a then statement)
+                    ifStmt.AddChildStatement(ParseElement(ifChild, context));
                 }
             }
 
@@ -663,22 +642,21 @@ namespace ABB.SrcML.Data {
                 ProgrammingLanguage = ParserLanguage
             };
 
-            //fill in condition
-            var expElement = whileElement.Element(SRC.Condition).Elements().First();
-            if(expElement.Name == SRC.Expression) {
-                whileStmt.Condition = ParseExpression(expElement, context);
-            } else {
-                throw new ParseException(context.FileName, expElement.GetSrcLineNumber(), expElement.GetSrcLinePosition(), this, "expected <expr> element", null);
-            }
-
-            //add children
-            var bodyElement = whileElement.Elements().Last();
-            if(bodyElement.Name == SRC.Block) {
-                foreach(var stmt in bodyElement.Elements()) {
-                    whileStmt.AddChildStatement(ParseElement(stmt, context));
+            foreach(var whileChild in whileElement.Elements()) {
+                if(whileChild.Name == SRC.Condition) {
+                    //fill in condition
+                    var expElement = whileChild.Element(SRC.Expression);
+                    if(expElement != null) {
+                        whileStmt.Condition = ParseExpression(expElement, context);
+                    }
+                } else if(whileChild.Name == SRC.Block) {
+                    //has a block, add children
+                    var blockStatements = whileChild.Elements().Select(e => ParseElement(e, context));
+                    whileStmt.AddChildStatements(blockStatements);
+                } else {
+                    //child outside of block
+                    whileStmt.AddChildStatement(ParseElement(whileChild, context));
                 }
-            } else {
-                whileStmt.AddChildStatement(ParseElement(bodyElement, context));
             }
 
             return whileStmt;
@@ -697,33 +675,36 @@ namespace ABB.SrcML.Data {
                 ProgrammingLanguage = ParserLanguage
             };
 
-            var forComponents = forElement.Elements().ToList();
-            if(!(forComponents.Count == 4
-                 && forComponents[0].Name == SRC.Init
-                 && forComponents[1].Name == SRC.Condition
-                 && forComponents[2].Name == SRC.Increment)) {
-                throw new ParseException(context.FileName, forElement.GetSrcLineNumber(), forElement.GetSrcLinePosition(), this, "for loop did not have all the expected elements", null);
-            }
-
-            //Initializer
-            if(forComponents[0].HasElements) {
-                forStmt.Initializer = ParseExpression(forComponents[0].Elements().First(), context);
-            }
-            //Condition
-            if(forComponents[1].HasElements) {
-                forStmt.Condition = ParseExpression(forComponents[1].Elements().First(), context);
-            }
-            //Incrementer
-            if(forComponents[2].HasElements) {
-                forStmt.Incrementer = ParseExpression(forComponents[2].Elements().First(), context);
-            }
-            //Child statements
-            if(forComponents[3].Name == SRC.Block) {
-                foreach(var stmt in forComponents[3].Elements()) {
-                    forStmt.AddChildStatement(ParseElement(stmt, context));
+            foreach(var forChild in forElement.Elements()) {
+                if(forChild.Name == SRC.Init) {
+                    //fill in initializer
+                    var expElement = forChild.Element(SRC.Expression);
+                    if(expElement != null) {
+                        forStmt.Initializer = ParseExpression(expElement, context);
+                    }
                 }
-            } else {
-                forStmt.AddChildStatement(ParseElement(forComponents[3], context));
+                else if(forChild.Name == SRC.Condition) {
+                    //fill in condition
+                    var expElement = forChild.Element(SRC.Expression);
+                    if(expElement != null) {
+                        forStmt.Condition = ParseExpression(expElement, context);
+                    }
+                }
+                else if(forChild.Name == SRC.Increment) {
+                    //fill in incrementer
+                    var expElement = forChild.Element(SRC.Expression);
+                    if(expElement != null) {
+                        forStmt.Incrementer = ParseExpression(expElement, context);
+                    }
+                }
+                else if(forChild.Name == SRC.Block) {
+                    //add children from block
+                    var blockStatements = forChild.Elements().Select(e => ParseElement(e, context));
+                    forStmt.AddChildStatements(blockStatements);
+                } else {
+                    //add child
+                    forStmt.AddChildStatement(ParseElement(forChild, context));
+                }
             }
 
             //TODO: in Java parser, be sure to override this method in order to handle foreach syntax
@@ -731,7 +712,7 @@ namespace ABB.SrcML.Data {
             return forStmt;
         }
 
-        protected virtual Statement ParseForeachElement(XElement foreachElement, ParserContext context) {
+        protected virtual ForeachStatement ParseForeachElement(XElement foreachElement, ParserContext context) {
             if(foreachElement == null)
                 throw new ArgumentNullException("foreachElement");
             if(foreachElement.Name != SRC.Foreach)
@@ -744,23 +725,22 @@ namespace ABB.SrcML.Data {
                 ProgrammingLanguage = ParserLanguage
             };
 
-            var foreachComponents = foreachElement.Elements().ToList();
-            if(!(foreachComponents.Count == 2
-                 && foreachComponents[0].Name == SRC.Init)) {
-                throw new ParseException(context.FileName, foreachElement.GetSrcLineNumber(), foreachElement.GetSrcLinePosition(), this, "foreach loop did not have the expected elements", null);
-            }
-
-            //condition/initializer
-            if(foreachComponents[0].HasElements) {
-                foreachStmt.Condition = ParseExpression(foreachComponents[0].Elements().First(), context);
-            }
-            //Child statements
-            if(foreachComponents[1].Name == SRC.Block) {
-                foreach(var stmt in foreachComponents[1].Elements()) {
-                    foreachStmt.AddChildStatement(ParseElement(stmt, context));
+            foreach(var child in foreachElement.Elements()) {
+                if(child.Name == SRC.Init) {
+                    //fill in condition/initializer
+                    var expElement = child.Element(SRC.Expression);
+                    if(expElement != null) {
+                        foreachStmt.Condition = ParseExpression(expElement, context);
+                    }
                 }
-            } else {
-                foreachStmt.AddChildStatement(ParseElement(foreachComponents[1], context));
+                else if(child.Name == SRC.Block) {
+                    //add children from block
+                    var blockStatements = child.Elements().Select(e => ParseElement(e, context));
+                    foreachStmt.AddChildStatements(blockStatements);
+                } else {
+                    //add child
+                    foreachStmt.AddChildStatement(ParseElement(child, context));
+                }
             }
 
             return foreachStmt;
@@ -779,23 +759,21 @@ namespace ABB.SrcML.Data {
                 ProgrammingLanguage = ParserLanguage
             };
 
-            var doComponents = doElement.Elements().ToList();
-            if(!(doComponents.Count == 2 && doComponents[1].Name == SRC.Condition)) {
-                throw new ParseException(context.FileName, doElement.GetSrcLineNumber(), doElement.GetSrcLinePosition(), this, "do-while loop did not have the expected components", null);
-            }
-
-            //Add child statements
-            if(doComponents[0].Name == SRC.Block) {
-                foreach(var stmt in doComponents[0].Elements()) {
-                    doStmt.AddChildStatement(ParseElement(stmt, context));
+            foreach(var doChild in doElement.Elements()) {
+                if(doChild.Name == SRC.Condition) {
+                    //fill in condition
+                    var expElement = doChild.Element(SRC.Expression);
+                    if(expElement != null) {
+                        doStmt.Condition = ParseExpression(expElement, context);
+                    }
+                } else if(doChild.Name == SRC.Block) {
+                    //has a block, add children
+                    var blockStatements = doChild.Elements().Select(e => ParseElement(e, context));
+                    doStmt.AddChildStatements(blockStatements);
+                } else {
+                    //child outside of block
+                    doStmt.AddChildStatement(ParseElement(doChild, context));
                 }
-            } else {
-                doStmt.AddChildStatement(ParseElement(doComponents[0], context));
-            }
-
-            //Add condition
-            if(doComponents[1].HasElements) {
-                doStmt.Condition = ParseExpression(doComponents[1].Elements().First(), context);
             }
 
             return doStmt;
@@ -814,24 +792,21 @@ namespace ABB.SrcML.Data {
                 ProgrammingLanguage = ParserLanguage
             };
 
-            var switchComponents = switchElement.Elements().ToList();
-            if(!(switchComponents.Count == 2
-                 && switchComponents[0].Name == SRC.Condition)) {
-                throw new ParseException(context.FileName, switchElement.GetSrcLineNumber(), switchElement.GetSrcLinePosition(), this, "switch statement did not have expected components", null);
-            }
-
-            //Add condition
-            if(switchComponents[0].HasElements) {
-                switchStmt.Condition = ParseExpression(switchComponents[0].Elements().First(), context);
-            }
-
-            //Add child statements (i.e. cases)
-            if(switchComponents[1].Name == SRC.Block) {
-                foreach(var stmt in switchComponents[1].Elements()) {
-                    switchStmt.AddChildStatement(ParseElement(stmt, context));
+            foreach(var switchChild in switchElement.Elements()) {
+                if(switchChild.Name == SRC.Condition) {
+                    //fill in condition
+                    var expElement = switchChild.Element(SRC.Expression);
+                    if(expElement != null) {
+                        switchStmt.Condition = ParseExpression(expElement, context);
+                    }
+                } else if(switchChild.Name == SRC.Block) {
+                    //add children from block
+                    var blockStatements = switchChild.Elements().Select(e => ParseElement(e, context));
+                    switchStmt.AddChildStatements(blockStatements);
+                } else {
+                    //add child
+                    switchStmt.AddChildStatement(ParseElement(switchChild, context));
                 }
-            } else {
-                switchStmt.AddChildStatement(ParseElement(switchComponents[1], context));
             }
 
             return switchStmt;
@@ -851,22 +826,25 @@ namespace ABB.SrcML.Data {
                 IsDefault = caseElement.Name == SRC.Default
             };
 
-            var caseComponents = caseElement.Elements().ToList();
-            if(caseComponents.Count < 1) {
-                throw new ParseException(context.FileName, caseElement.GetSrcLineNumber(), caseElement.GetSrcLinePosition(), this, "case element missing label expression", null);
-            }
-
-            //Add the case label
-            caseStmt.Condition = ParseExpression(caseComponents[0], context);
-            //Add the case body
-            foreach(var stmt in caseComponents.Skip(1)) {
-                caseStmt.AddChildStatement(ParseElement(stmt, context));
+            foreach(var caseChild in caseElement.Elements()) {
+                if(caseChild.Name == SRC.Expression && caseStmt.Condition == null) {
+                    //this is the first expression we've seen, add as the case label
+                    caseStmt.Condition = ParseExpression(caseChild, context);
+                }
+                else if(caseChild.Name == SRC.Block) {
+                    //add children from block
+                    var blockStatements = caseChild.Elements().Select(e => ParseElement(e, context));
+                    caseStmt.AddChildStatements(blockStatements);
+                } else {
+                    //add child
+                    caseStmt.AddChildStatement(ParseElement(caseChild, context));
+                }
             }
 
             return caseStmt;
         }
 
-        protected virtual Statement ParseBreakElement(XElement breakElement, ParserContext context) {
+        protected virtual BreakStatement ParseBreakElement(XElement breakElement, ParserContext context) {
             if(breakElement == null)
                 throw new ArgumentNullException("breakElement");
             if(breakElement.Name != SRC.Break)
@@ -882,7 +860,7 @@ namespace ABB.SrcML.Data {
             return breakStmt;
         }
 
-        protected virtual Statement ParseContinueElement(XElement continueElement, ParserContext context) {
+        protected virtual ContinueStatement ParseContinueElement(XElement continueElement, ParserContext context) {
             if(continueElement == null)
                 throw new ArgumentNullException("continueElement");
             if(continueElement.Name != SRC.Continue)
@@ -898,7 +876,7 @@ namespace ABB.SrcML.Data {
             return continueStmt;
         }
 
-        protected virtual Statement ParseGotoElement(XElement gotoElement, ParserContext context) {
+        protected virtual GotoStatement ParseGotoElement(XElement gotoElement, ParserContext context) {
             if(gotoElement == null)
                 throw new ArgumentNullException("gotoElement");
             if(gotoElement.Name != SRC.Goto)
@@ -912,7 +890,8 @@ namespace ABB.SrcML.Data {
             };
 
             if(gotoElement.HasElements) {
-                gotoStmt.Content = ParseExpression(gotoElement.Elements().First(), context);
+                throw new NotImplementedException();
+                //gotoStmt.Content = ParseExpression(gotoElement.Elements().First(), context);
                 //TODO: we know that this will be a name element corresponding to a label. Should we just create the NameUse object here
                 //instead of calling ParseExpression?
             }
@@ -923,7 +902,28 @@ namespace ABB.SrcML.Data {
             return gotoStmt;
         }
 
-        protected virtual Statement ParseReturnElement(XElement returnElement, ParserContext context) {
+        protected virtual LabelStatement ParseLabelElement(XElement labelElement, ParserContext context) {
+            if(labelElement == null)
+                throw new ArgumentNullException("labelElement");
+            if(labelElement.Name != SRC.Label)
+                throw new ArgumentException("Must be a SRC.Label element", "labelElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            var labelStmt = new LabelStatement() {
+                Location = context.CreateLocation(labelElement),
+                ProgrammingLanguage = ParserLanguage
+            };
+
+            var name = labelElement.Element(SRC.Name);
+            if(name != null) {
+                labelStmt.Name = name.Value;
+            }
+
+            return labelStmt;
+        }
+
+        protected virtual ReturnStatement ParseReturnElement(XElement returnElement, ParserContext context) {
             if(returnElement == null)
                 throw new ArgumentNullException("returnElement");
             if(returnElement.Name != SRC.Return)
@@ -936,19 +936,112 @@ namespace ABB.SrcML.Data {
                 ProgrammingLanguage = ParserLanguage
             };
 
-            if(returnElement.HasElements) {
-                returnStmt.Content = ParseExpression(returnElement.Elements().First(), context);
+            var expElement = returnElement.Element(SRC.Expression);
+            if(expElement != null) {
+                returnStmt.Content = ParseExpression(expElement, context);
             }
 
             return returnStmt;
         }
 
-        protected virtual Statement ParseStatementElement(XElement stmtElement, ParserContext context)
-        {
+        protected virtual ThrowStatement ParseThrowElement(XElement throwElement, ParserContext context) {
+            if(throwElement == null)
+                throw new ArgumentNullException("throwElement");
+            if(throwElement.Name != SRC.Throw)
+                throw new ArgumentException("Must be a SRC.Throw element", "throwElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            var throwStmt = new ThrowStatement() {
+                Location = context.CreateLocation(throwElement),
+                ProgrammingLanguage = ParserLanguage
+            };
+
+            var expElement = throwElement.Element(SRC.Expression);
+            if(expElement != null) {
+                throwStmt.Content = ParseExpression(expElement, context);
+            }
+
+            return throwStmt;
+        }
+
+        protected virtual TryStatement ParseTryElement(XElement tryElement, ParserContext context) {
+            if(tryElement == null)
+                throw new ArgumentNullException("tryElement");
+            if(tryElement.Name != SRC.Try)
+                throw new ArgumentException("Must be a SRC.Try element", "tryElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            var tryStmt = new TryStatement() {
+                Location = context.CreateLocation(tryElement),
+                ProgrammingLanguage = ParserLanguage
+            };
+
+            foreach(var tryChild in tryElement.Elements()) {
+                if(tryChild.Name == SRC.Catch) {
+                    //add catch statement
+                    tryStmt.AddCatchStatement(ParseCatchElement(tryChild, context));
+                } else if(tryChild.Name == SRC.Finally) {
+                    //add finally children
+                    foreach(var finallyChild in tryChild.Elements()) {
+                        if(finallyChild.Name == SRC.Block) {
+                            var blockStatements = finallyChild.Elements().Select(e => ParseElement(e, context));
+                            tryStmt.AddFinallyStatements(blockStatements);
+                        } else {
+                            tryStmt.AddFinallyStatement(ParseElement(finallyChild, context));
+                        }
+                    }
+                } else if(tryChild.Name == SRC.Block) {
+                    //add children from block
+                    var blockStatements = tryChild.Elements().Select(e => ParseElement(e, context));
+                    tryStmt.AddChildStatements(blockStatements);
+                } else {
+                    //add child
+                    tryStmt.AddChildStatement(ParseElement(tryChild, context));
+                }
+            }
+
+            return tryStmt;
+        }
+
+        protected virtual CatchStatement ParseCatchElement(XElement catchElement, ParserContext context) {
+            if(catchElement == null)
+                throw new ArgumentNullException("catchElement");
+            if(catchElement.Name != SRC.Catch)
+                throw new ArgumentException("Must be a SRC.Catch element", "catchElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            var catchStmt = new CatchStatement {
+                Location = context.CreateLocation(catchElement),
+                ProgrammingLanguage = ParserLanguage
+            };
+
             throw new NotImplementedException();
         }
 
-        
+        protected virtual Statement ParseExpressionStatementElement(XElement stmtElement, ParserContext context) {
+            if(stmtElement == null)
+                throw new ArgumentNullException("stmtElement");
+            if(!(stmtElement.Name == SRC.ExpressionStatement || stmtElement.Name == SRC.DeclarationStatement))
+                throw new ArgumentException("Must be a SRC.ExpressionStatement or SRC.DeclarationStatement element", "stmtElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            var stmt = new Statement() {
+                Location = context.CreateLocation(stmtElement),
+                ProgrammingLanguage = ParserLanguage
+            };
+
+            if(stmtElement.HasElements) {
+                stmt.Content = ParseExpression(stmtElement.Elements().First(), context);
+            }
+
+            return stmt;
+        }
+
+
 
         ///// <summary>
         ///// Creates a named scope use element
@@ -1169,7 +1262,7 @@ namespace ABB.SrcML.Data {
         protected virtual Expression ParseNameUseElement(XElement nameElement, ParserContext context) {
             if(nameElement == null)
                 throw new ArgumentNullException("nameElement");
-            if(nameElement.Name != OP.Operator)
+            if(nameElement.Name != SRC.Name)
                 throw new ArgumentException("should be a SRC.Name", "nameElement");
             if(context == null)
                 throw new ArgumentNullException("context");

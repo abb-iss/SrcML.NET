@@ -18,6 +18,7 @@ using System.Linq;
 
 namespace ABB.SrcML.Data {
 
+    [DebuggerTypeProxy(typeof(StatementDebugView))]
     public class NamespaceDefinition : NamedScope {
 
         /// <summary>

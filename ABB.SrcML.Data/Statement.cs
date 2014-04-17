@@ -38,5 +38,11 @@ namespace ABB.SrcML.Data {
             childStatementsList.Add(child);
         }
 
+        public void AddChildStatements(IEnumerable<Statement> children) {
+            foreach(var child in children) {
+                AddChildStatement(child);
+            }
+        }
+
     }
 }

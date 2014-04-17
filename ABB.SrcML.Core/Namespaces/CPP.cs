@@ -112,5 +112,15 @@ namespace ABB.SrcML
         /// markup for the #line macro
         /// </summary>
         public static readonly XName Line = NS + "line";
+
+        /// <summary>
+        /// Markup for the #region macro. This is actually used in C#.
+        /// </summary>
+        public static readonly XName Region = NS + "region";
+
+        /// <summary>
+        /// Markup for the #endregion macro. This is actually used in C#.
+        /// </summary>
+        public static readonly XName EndRegion = NS + "endregion";
     }
 }

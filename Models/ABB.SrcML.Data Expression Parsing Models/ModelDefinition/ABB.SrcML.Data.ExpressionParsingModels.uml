@@ -913,6 +913,26 @@
               LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
           </generalization>
         </generalsInternal>
+        <ownedAttributesInternal>
+          <property
+            Id="597b785f-445a-49a8-85b7-22cd52ab68be"
+            name="Name"
+            isLeaf="false"
+            isStatic="false"
+            isReadOnly="false"
+            isUnique="false"
+            isDerived="false"
+            isDerivedUnion="false"
+            aggregation="None"
+            isComposite="false">
+            <type_NamedElement>
+              <undefinedTypeMoniker
+                Id="4ceef1e5-e238-408b-bfe9-61c4e8684453"
+                LastKnownName="string"
+                LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
       </class>
     </packageHasNamedElement>
     <packageHasNamedElement>
@@ -1286,6 +1306,136 @@
       <undefinedType
         Id="664af602-3d21-4526-9e04-d2e34c380755"
         name="Collection&lt;Expression&gt;" />
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <class
+        Id="9ecc51d0-bdd5-4c1c-bf96-50cab6d70185"
+        name="ThrowStatement"
+        isAbstract="false"
+        isLeaf="false"
+        isActiveClass="false">
+        <generalsInternal>
+          <generalization
+            Id="4b55d1a8-9eff-4e52-ad61-fb41dc175704"
+            isSubstitutable="false">
+            <classMoniker
+              Id="3c930dc3-adce-4432-b0c6-c7f3341a7529"
+              LastKnownName="Statement"
+              LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <class
+        Id="ae2bf850-0a13-4188-94b4-b07a1d05d4dd"
+        name="TryStatement"
+        isAbstract="false"
+        isLeaf="false"
+        isActiveClass="false">
+        <generalsInternal>
+          <generalization
+            Id="a83ce80e-4fcb-4833-80b9-60a08b55b72d"
+            isSubstitutable="false">
+            <classMoniker
+              Id="7a7410c0-4ae3-4d66-9648-d73cab92af7c"
+              LastKnownName="BlockStatement"
+              LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+          </generalization>
+        </generalsInternal>
+        <ownedAttributesInternal>
+          <property
+            Id="881620df-44bf-4b26-9c3a-01b7df44fa34"
+            name="FinallyStatements"
+            isLeaf="false"
+            isStatic="false"
+            isReadOnly="false"
+            isUnique="false"
+            isDerived="false"
+            isDerivedUnion="false"
+            aggregation="None"
+            isComposite="false">
+            <type_NamedElement>
+              <undefinedTypeMoniker
+                Id="60fca5fd-df3a-44e7-97c3-c8f5da2766c8"
+                LastKnownName="Collection&lt;Statements&gt;"
+                LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+            </type_NamedElement>
+          </property>
+          <property
+            Id="083bf5c5-ea9c-40b8-9d1d-abef60564030"
+            name="CatchStatements"
+            isLeaf="false"
+            isStatic="false"
+            isReadOnly="false"
+            isUnique="false"
+            isDerived="false"
+            isDerivedUnion="false"
+            aggregation="None"
+            isComposite="false">
+            <type_NamedElement>
+              <undefinedTypeMoniker
+                Id="cbe3c1c6-dfd1-44c7-9be1-5e1b2a39e824"
+                LastKnownName="Collection&lt;CatchStatement&gt;"
+                LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
+      </class>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <undefinedType
+        Id="60fca5fd-df3a-44e7-97c3-c8f5da2766c8"
+        name="Collection&lt;Statements&gt;" />
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <undefinedType
+        Id="cbe3c1c6-dfd1-44c7-9be1-5e1b2a39e824"
+        name="Collection&lt;CatchStatement&gt;" />
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <class
+        Id="b2538637-3891-4b54-8637-9bbfab151b54"
+        name="CatchStatement"
+        isAbstract="false"
+        isLeaf="false"
+        isActiveClass="false">
+        <generalsInternal>
+          <generalization
+            Id="c5d831ef-07f1-46fa-867e-1044a269516a"
+            isSubstitutable="false">
+            <classMoniker
+              Id="7a7410c0-4ae3-4d66-9648-d73cab92af7c"
+              LastKnownName="BlockStatement"
+              LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+          </generalization>
+        </generalsInternal>
+        <ownedAttributesInternal>
+          <property
+            Id="b080de8c-23d0-4e1e-b37a-ac894dd238b2"
+            name="Parameter"
+            isLeaf="false"
+            isStatic="false"
+            isReadOnly="false"
+            isUnique="false"
+            isDerived="false"
+            isDerivedUnion="false"
+            aggregation="None"
+            isComposite="false">
+            <type_NamedElement>
+              <undefinedTypeMoniker
+                Id="a57e0e9b-969d-4ad0-97f1-46da4982a933"
+                LastKnownName="ParameterDeclaration"
+                LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
+      </class>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <undefinedType
+        Id="a57e0e9b-969d-4ad0-97f1-46da4982a933"
+        name="ParameterDeclaration" />
     </packageHasNamedElement>
   </packagedElements>
   <primitiveType

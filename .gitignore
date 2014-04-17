@@ -108,3 +108,4 @@ UpgradeLog*.XML
 
 UpgradeLog.htm
 VisualStudio/ProgramTransformationSetup/external.wxs
+.HistoryData/

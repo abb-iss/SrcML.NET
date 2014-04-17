@@ -32,5 +32,11 @@ namespace ABB.SrcML.Data {
             child.ParentStatement = this;
             elseStatementsList.Add(child);
         }
+
+        public void AddElseStatements(IEnumerable<Statement> elseStatements) {
+            foreach(var stmt in elseStatements) {
+                AddElseStatement(stmt);
+            }
+        }
     }
 }
