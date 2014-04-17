@@ -17,6 +17,6 @@ using System.Text;
 
 namespace ABB.SrcML.Data {
     public class CatchStatement : BlockStatement {
-        public ParameterDeclaration Parameter { get; set; }
+        public VariableDeclaration Parameter { get; set; }
     }
 }

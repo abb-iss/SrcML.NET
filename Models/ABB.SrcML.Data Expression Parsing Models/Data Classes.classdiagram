@@ -184,7 +184,7 @@
           <property Id="351f1aec-93a9-44fe-8de7-26d1d4508b05" name="Parameters" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
             <elementDefinition Id="08fb75eb-4554-4ff7-a39d-b19c5033d9c8" />
             <type_NamedElement>
-              <referencedTypeMoniker Id="60f4308c-04bf-49da-be81-40bae6d16a48" LastKnownName="ReadOnlyCollection&lt;IParameterDeclaration&gt;" />
+              <referencedTypeMoniker Id="f9dc93cb-99bc-4676-9dbc-ec07782eb681" LastKnownName="ReadOnlyCollection&lt;VariableDeclaration&gt;" />
             </type_NamedElement>
           </property>
           <property Id="320fa800-9d9c-49c5-b284-e89bbef7435e" name="ReturnType" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
@@ -276,11 +276,6 @@
     <packageHasNamedElement>
       <referencedType Id="faa9f22d-98d5-4726-8409-6f1e44681455" name="bool" isAbstract="false" isLeaf="false" cachedFullName="bool">
         <elementDefinition Id="d39bfaba-eefe-42e2-8831-1a3e1d49b5e2" />
-      </referencedType>
-    </packageHasNamedElement>
-    <packageHasNamedElement>
-      <referencedType Id="60f4308c-04bf-49da-be81-40bae6d16a48" name="ReadOnlyCollection&lt;IParameterDeclaration&gt;" isAbstract="false" isLeaf="false" cachedFullName="ReadOnlyCollection&lt;IParameterDeclaration&gt;">
-        <elementDefinition Id="700970fa-9633-404e-8246-7d8bfc5b92cc" />
       </referencedType>
     </packageHasNamedElement>
     <packageHasNamedElement>
@@ -496,15 +491,20 @@
           <property Id="0eb742d0-1031-450e-aab1-981accc96f8e" name="Parameter" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
             <elementDefinition Id="b080de8c-23d0-4e1e-b37a-ac894dd238b2" />
             <type_NamedElement>
-              <referencedTypeMoniker Id="eab34aec-594e-4d45-87c9-d8fb3b699e3f" LastKnownName="ParameterDeclaration" />
+              <referencedTypeMoniker Id="215d3dfe-7e46-4031-b7bd-3358107c02da" LastKnownName="VariableDeclaration" />
             </type_NamedElement>
           </property>
         </ownedAttributesInternal>
       </class>
     </logicalClassDesignerModelHasTypes>
     <packageHasNamedElement>
-      <referencedType Id="eab34aec-594e-4d45-87c9-d8fb3b699e3f" name="ParameterDeclaration" isAbstract="false" isLeaf="false" cachedFullName="ParameterDeclaration">
-        <elementDefinition Id="a57e0e9b-969d-4ad0-97f1-46da4982a933" />
+      <referencedType Id="215d3dfe-7e46-4031-b7bd-3358107c02da" name="VariableDeclaration" isAbstract="false" isLeaf="false" cachedFullName="ABB.SrcML.Data.ExpressionParsingModels::VariableDeclaration">
+        <elementDefinition Id="31c93bf3-bbfa-403b-b958-9cbb2b49c540" />
+      </referencedType>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <referencedType Id="f9dc93cb-99bc-4676-9dbc-ec07782eb681" name="ReadOnlyCollection&lt;VariableDeclaration&gt;" isAbstract="false" isLeaf="false" cachedFullName="ReadOnlyCollection&lt;VariableDeclaration&gt;">
+        <elementDefinition Id="9c100280-b35a-454f-89f5-3b181bc31fa7" />
       </referencedType>
     </packageHasNamedElement>
   </packagedElements>

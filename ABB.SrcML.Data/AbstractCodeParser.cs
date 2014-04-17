@@ -173,13 +173,10 @@ namespace ABB.SrcML.Data {
         /// Gets all of the parameters for this method. It finds the variable declarations in
         /// parameter list.
         /// </summary>
-        /// <param name="method">The method container</param>
-        /// <returns>An enumerable of all the declaration XElements.</returns>
-        protected virtual IEnumerable<XElement> GetParametersFromMethodElement(XElement method) {
-            var parameters = from parameter in method.Element(SRC.ParameterList).Elements(SRC.Parameter)
-                             let declElement = parameter.Elements().First()
-                             select declElement;
-            return parameters;
+        /// <param name="methodElement">The method container</param>
+        /// <returns>An enumerable of all the param XElements.</returns>
+        protected virtual IEnumerable<XElement> GetParametersFromMethodElement(XElement methodElement) {
+            return methodElement.Element(SRC.ParameterList).Elements(SRC.Parameter);
         }
 
         /// <summary>
@@ -370,7 +367,7 @@ namespace ABB.SrcML.Data {
         /// <param name="context">The parser context</param>
         /// <returns>One variable declaration object for each declaration in
         /// <paramref name="declarationElement"/></returns>
-        protected virtual IEnumerable<IVariableDeclaration> ParseDeclarationElement(XElement declarationElement, ParserContext context) {
+        protected virtual IEnumerable<VariableDeclaration> ParseDeclarationElement(XElement declarationElement, ParserContext context) {
             throw new NotImplementedException();
 
             //if(declarationElement == null)
@@ -521,7 +518,7 @@ namespace ABB.SrcML.Data {
             }
             //Add the method's parameters
             var parameters = from paramElement in GetParametersFromMethodElement(methodElement)
-                             select ParseMethodParameterElement(paramElement, context);
+                             select ParseParameterElement(paramElement, context);
             methodDefinition.AddMethodParameters(parameters);
             
             //Add the method body statements as children
@@ -536,36 +533,22 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Generates a parameter declaration for the given declaration
+        /// Generates a parameter declaration for the given parameter element
         /// </summary>
-        /// <param name="declElement">The declaration XElement from within the parameter element.
-        /// Must be a <see cref="ABB.SrcML.SRC.Declaration"/> or see
-        /// cref="ABB.SrcML.SRC.FunctionDeclaration"/></param>
+        /// <param name="paramElement">A <see cref="ABB.SrcML.SRC.Parameter"/> XElement</param>
         /// <param name="context">the parser context</param>
         /// <returns>A parameter declaration object</returns>
-        protected virtual ParameterDeclaration ParseMethodParameterElement(XElement declElement, ParserContext context) {
-            if(declElement == null)
-                throw new ArgumentNullException("declElement");
-            if(declElement.Name != SRC.Declaration && declElement.Name != SRC.FunctionDeclaration)
-                throw new ArgumentException("must be of element type SRC.Declaration or SRC.FunctionDeclaration", "declElement");
+        protected virtual VariableDeclaration ParseParameterElement(XElement paramElement, ParserContext context) {
+            if(paramElement == null)
+                throw new ArgumentNullException("paramElement");
+            if(paramElement.Name != SRC.Parameter)
+                throw new ArgumentException("must be a SRC.Parameter", "paramElement");
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            var typeElement = declElement.Element(SRC.Type);
-            var nameElement = declElement.Element(SRC.Name);
-            var name = (nameElement == null ? String.Empty : nameElement.Value);
-            var hasDefault = (declElement.Element(SRC.Init) != null);
+            var declElement = paramElement.Elements().First(e => e.Name == SRC.Declaration || e.Name == SRC.FunctionDeclaration);
 
-            var parameterDeclaration = new ParameterDeclaration {
-                VariableType = ParseTypeUseElement(typeElement, context),
-                Name = name,
-                HasDefaultValue = hasDefault
-            };
-            parameterDeclaration.Locations.Add(context.CreateLocation(declElement));
-            //The ParentStatement for the parameter is not set here because we don't know what it is. The caller of this
-            //method is responsible for setting the parent, probably through MethodDefinition.AddParameter.
-
-            return parameterDeclaration;
+            return ParseDeclarationElement(declElement, context).First();
         }
 
         /// <summary>
@@ -1018,7 +1001,21 @@ namespace ABB.SrcML.Data {
                 ProgrammingLanguage = ParserLanguage
             };
 
-            throw new NotImplementedException();
+            foreach(var catchChild in catchElement.Elements()) {
+                if(catchChild.Name == SRC.Parameter) {
+                    //add the catch parameter
+                    catchStmt.Parameter = ParseParameterElement(catchChild, context);
+                } else if(catchChild.Name == SRC.Block) {
+                    //add children of the block
+                    var blockStatements = catchChild.Elements().Select(e => ParseElement(e, context));
+                    catchStmt.AddChildStatements(blockStatements);
+                } else {
+                    //add child
+                    catchStmt.AddChildStatement(ParseElement(catchChild, context));
+                }
+            }
+
+            return catchStmt;
         }
 
         protected virtual Statement ParseExpressionStatementElement(XElement stmtElement, ParserContext context) {

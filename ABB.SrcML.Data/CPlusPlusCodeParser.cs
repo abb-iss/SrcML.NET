@@ -159,18 +159,16 @@ namespace ABB.SrcML.Data {
         /// parameters in C/C++). If not, it just calls
         /// <see cref="AbstractCodeParser.GetParametersFromMethodElement(XElement)"/>
         /// </summary>
-        /// <param name="method">The method to get parameter elements for</param>
-        /// <returns>An enumerable of method parameter elements</returns>
-        protected override IEnumerable<XElement> GetParametersFromMethodElement(XElement method) {
-            bool singleVoidParameter = false;
-            if(method.Element(SRC.ParameterList).Elements(SRC.Parameter).Count() == 1) {
-                singleVoidParameter = method.Element(SRC.ParameterList).Element(SRC.Parameter).Value == "void";
-            }
-
-            if(singleVoidParameter) {
+        /// <param name="methodElement">The method to get parameter elements for</param>
+        /// <returns>An enumerable of parameter elements</returns>
+        protected override IEnumerable<XElement> GetParametersFromMethodElement(XElement methodElement) {
+            var paramElements = methodElement.Element(SRC.ParameterList).Elements(SRC.Parameter).ToList();
+            if(paramElements.Count() == 1 && paramElements.First().Value == "void") {
+                //there's only a single "void" parameter, which actually means there are no parameters
                 return Enumerable.Empty<XElement>();
+            } else {
+                return base.GetParametersFromMethodElement(methodElement);
             }
-            return base.GetParametersFromMethodElement(method);
         }
 
         /// <summary>

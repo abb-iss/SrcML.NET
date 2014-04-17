@@ -20,20 +20,20 @@ using System.Text;
 namespace ABB.SrcML.Data {
 
     public class MethodDefinition : NamedScope {
-        private List<ParameterDeclaration> parameterList;
+        private List<VariableDeclaration> parameterList;
         
         /// <summary>
         /// Creates a new method definition object
         /// </summary>
         public MethodDefinition()
             : base() {
-            parameterList = new List<ParameterDeclaration>();
-            Parameters = new ReadOnlyCollection<ParameterDeclaration>(parameterList);
+            parameterList = new List<VariableDeclaration>();
+            Parameters = new ReadOnlyCollection<VariableDeclaration>(parameterList);
         }
 
         public bool IsConstructor { get; set; }
         public bool IsDestructor { get; set; }
-        public ReadOnlyCollection<ParameterDeclaration> Parameters { get; private set; }
+        public ReadOnlyCollection<VariableDeclaration> Parameters { get; private set; }
         public TypeUse ReturnType { get; set; }
 
         //TODO: record other keywords besides access modifiers? for example, static
@@ -42,7 +42,7 @@ namespace ABB.SrcML.Data {
         /// Adds a method parameter to this method
         /// </summary>
         /// <param name="parameter">The parameter to add</param>
-        public void AddMethodParameter(ParameterDeclaration parameter) {
+        public void AddMethodParameter(VariableDeclaration parameter) {
             throw new NotImplementedException();
             //parameter.ParentStatement = this;
             //parameterList.Add(parameter);
@@ -52,7 +52,7 @@ namespace ABB.SrcML.Data {
         /// Adds an enumerable of method parameters to this method.
         /// </summary>
         /// <param name="parameters">The parameters to add</param>
-        public void AddMethodParameters(IEnumerable<ParameterDeclaration> parameters) {
+        public void AddMethodParameters(IEnumerable<VariableDeclaration> parameters) {
             foreach(var parameter in parameters) {
                 AddMethodParameter(parameter);
             }
