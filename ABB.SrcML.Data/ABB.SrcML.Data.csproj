@@ -90,6 +90,7 @@
     <Compile Include="ParameterDeclaration.cs" />
     <Compile Include="ParseException.cs" />
     <Compile Include="ParserContext.cs" />
+    <Compile Include="PropertyDefinition.cs" />
     <Compile Include="Queries\FindMethodCallsAtLocationQuery.cs" />
     <Compile Include="Queries\ScopeForLocationQuery.cs" />
     <Compile Include="ReturnStatement.cs" />

@@ -1442,6 +1442,63 @@
         Id="9c100280-b35a-454f-89f5-3b181bc31fa7"
         name="ReadOnlyCollection&lt;VariableDeclaration&gt;" />
     </packageHasNamedElement>
+    <packageHasNamedElement>
+      <class
+        Id="b1eed8a6-28f3-4ffe-a106-fb40dfffa84a"
+        name="PropertyDefinition"
+        isAbstract="false"
+        isLeaf="false"
+        isActiveClass="false">
+        <generalsInternal>
+          <generalization
+            Id="71997ea5-b4ac-406c-a363-e75ff1b81eab"
+            isSubstitutable="false">
+            <classMoniker
+              Id="1607c58d-ba82-4dcf-87f4-f268ec7bd572"
+              LastKnownName="NamedScope"
+              LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+          </generalization>
+        </generalsInternal>
+        <ownedAttributesInternal>
+          <property
+            Id="cc05afed-5915-4d01-aeee-37378f62caa8"
+            name="Getter"
+            isLeaf="false"
+            isStatic="false"
+            isReadOnly="false"
+            isUnique="false"
+            isDerived="false"
+            isDerivedUnion="false"
+            aggregation="None"
+            isComposite="false">
+            <type_NamedElement>
+              <classMoniker
+                Id="ea703639-bf4a-4f37-bfbe-5e8f5320e541"
+                LastKnownName="MethodDefinition"
+                LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+            </type_NamedElement>
+          </property>
+          <property
+            Id="7d4e3c5c-7cf3-4fd1-9e66-d04992c9be0e"
+            name="Setter"
+            isLeaf="false"
+            isStatic="false"
+            isReadOnly="false"
+            isUnique="false"
+            isDerived="false"
+            isDerivedUnion="false"
+            aggregation="None"
+            isComposite="false">
+            <type_NamedElement>
+              <classMoniker
+                Id="ea703639-bf4a-4f37-bfbe-5e8f5320e541"
+                LastKnownName="MethodDefinition"
+                LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
+      </class>
+    </packageHasNamedElement>
   </packagedElements>
   <primitiveType
     Id="220a3521-e091-4221-bae9-3ef9018e845c"

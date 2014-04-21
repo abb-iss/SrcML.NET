@@ -31,13 +31,21 @@ namespace ABB.SrcML.Data {
         public Language ProgrammingLanguage { get; set; }
         public Expression Content {get; set;}
 
-        public void AddChildStatement(Statement child) {
+        /// <summary>
+        /// Adds the given Statement to the ChildStatements collection.
+        /// </summary>
+        /// <param name="child">The Statement to add.</param>
+        public virtual void AddChildStatement(Statement child) {
             if(child == null) { throw new ArgumentNullException("child"); }
 
             child.ParentStatement = this;
             childStatementsList.Add(child);
         }
 
+        /// <summary>
+        /// Adds the given Statements to the ChildStatements collection.
+        /// </summary>
+        /// <param name="children">The Statements to add.</param>
         public void AddChildStatements(IEnumerable<Statement> children) {
             foreach(var child in children) {
                 AddChildStatement(child);

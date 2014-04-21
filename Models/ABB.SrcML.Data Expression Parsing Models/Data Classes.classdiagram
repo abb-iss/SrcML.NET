@@ -507,6 +507,36 @@
         <elementDefinition Id="9c100280-b35a-454f-89f5-3b181bc31fa7" />
       </referencedType>
     </packageHasNamedElement>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="628aedb8-2561-41eb-8edb-614511243463" name="PropertyDefinition" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="b1eed8a6-28f3-4ffe-a106-fb40dfffa84a" />
+        <generalsInternal>
+          <generalization Id="6eec18d3-6851-4245-b57c-9a89cc556772" isSubstitutable="false">
+            <classMoniker Id="706b729e-88df-46c8-90c6-c4343d494b6c" LastKnownName="NamedScope" />
+            <elementDefinition Id="71997ea5-b4ac-406c-a363-e75ff1b81eab" />
+          </generalization>
+        </generalsInternal>
+        <ownedAttributesInternal>
+          <property Id="07a2b94d-bf7c-4c6e-a962-d58ed1764244" name="Getter" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="cc05afed-5915-4d01-aeee-37378f62caa8" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="9c23b9a8-7a2c-4613-870f-4bc2de58f632" LastKnownName="MethodDefinition" />
+            </type_NamedElement>
+          </property>
+          <property Id="3e2b0d19-906a-43d7-a5d6-802edef509ea" name="Setter" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="7d4e3c5c-7cf3-4fd1-9e66-d04992c9be0e" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="9c23b9a8-7a2c-4613-870f-4bc2de58f632" LastKnownName="MethodDefinition" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <packageHasNamedElement>
+      <referencedType Id="9c23b9a8-7a2c-4613-870f-4bc2de58f632" name="MethodDefinition" isAbstract="false" isLeaf="false" cachedFullName="ABB.SrcML.Data.ExpressionParsingModels::MethodDefinition">
+        <elementDefinition Id="ea703639-bf4a-4f37-bfbe-5e8f5320e541" />
+      </referencedType>
+    </packageHasNamedElement>
   </packagedElements>
   <package Id="c02869ee-47c8-48ad-8d27-a1ad32da6c58" name="ABB.SrcML.Data.ExpressionParsingModels">
     <elementDefinition Id="b7d58ad4-ad72-4d67-8187-3644da97b0b7" />
