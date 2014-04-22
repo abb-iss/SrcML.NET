@@ -21,10 +21,10 @@ namespace ABB.SrcML.Data {
     public class VariableDeclaration : Expression {
         //private IScope parentScope;
 
-        /// <summary>
-        /// The access modifier assigned to this type
-        /// </summary>
-        public AccessModifier Accessibility { get; set; }
+        ///// <summary>
+        ///// The access modifier assigned to this type
+        ///// </summary>
+        //public AccessModifier Accessibility { get; set; }
 
         /// <summary>
         /// The name of the variable
@@ -58,11 +58,12 @@ namespace ABB.SrcML.Data {
         /// Returns a string representation of this object.
         /// </summary>
         public override string ToString() {
-            if(Accessibility != AccessModifier.None) {
-                return string.Format("{0} {1} {2}", Accessibility.ToKeywordString(), VariableType, Name);
-            } else {
-                return string.Format("{0} {1}", VariableType, Name);
-            }
+            //if(Accessibility != AccessModifier.None) {
+            //    return string.Format("{0} {1} {2}", Accessibility.ToKeywordString(), VariableType, Name);
+            //} else {
+            //    return string.Format("{0} {1}", VariableType, Name);
+            //}
+            return string.Format("{0} {1}", VariableType, Name);
         }
     }
 }

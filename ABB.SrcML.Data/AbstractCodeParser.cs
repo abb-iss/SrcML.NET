@@ -359,45 +359,7 @@ namespace ABB.SrcML.Data {
         //    context.Push(scope);
         //}
 
-        /// <summary>
-        /// Creates variable declaration objects from the given declaration element
-        /// </summary>
-        /// <param name="declarationElement">The variable declaration to parse. Must belong to see
-        /// cref="VariableDeclarationElementNames"/></param>
-        /// <param name="context">The parser context</param>
-        /// <returns>One variable declaration object for each declaration in
-        /// <paramref name="declarationElement"/></returns>
-        protected virtual IEnumerable<VariableDeclaration> ParseDeclarationElement(XElement declarationElement, ParserContext context) {
-            throw new NotImplementedException();
-
-            //if(declarationElement == null)
-            //    throw new ArgumentNullException("declaration");
-            //if(!VariableDeclarationElementNames.Contains(declarationElement.Name))
-            //    throw new ArgumentException("XElement.Name must be in VariableDeclarationElementNames");
-            //if(context == null)
-            //    throw new ArgumentNullException("context");
-
-            //XElement declElement;
-            //if(declarationElement.Name == SRC.Declaration || declarationElement.Name == SRC.FunctionDeclaration) {
-            //    declElement = declarationElement;
-            //} else {
-            //    declElement = declarationElement.Element(SRC.Declaration);
-            //}
-
-            //var typeElement = declElement.Element(SRC.Type);
-
-            //var declarationType = ParseTypeUseElement(typeElement, context);
-
-            //foreach(var nameElement in declElement.Elements(SRC.Name)) {
-            //    var variableDeclaration = new VariableDeclaration() {
-            //        VariableType = declarationType,
-            //        Name = nameElement.Value,
-            //        Location = context.CreateLocation(nameElement),
-            //        ParentScope = context.CurrentStatement,
-            //    };
-            //    yield return variableDeclaration;
-            //}
-        }
+        
 
         /// <summary>
         /// This is the main function that parses srcML nodes. It selects the appropriate parse
@@ -409,7 +371,7 @@ namespace ABB.SrcML.Data {
         /// <paramref name="element"/></returns>
         protected virtual Statement ParseElement(XElement element, ParserContext context) {
             try {
-                Statement stmt;
+                Statement stmt = null;
                 if(element.Name == SRC.Unit) {
                     stmt = ParseUnitElement(element, context);
                 } else if(TypeElementNames.Contains(element.Name)) {
@@ -446,15 +408,18 @@ namespace ABB.SrcML.Data {
                     stmt = ParseThrowElement(element, context);
                 } else if(element.Name == SRC.Try) {
                     stmt = ParseTryElement(element, context);
-                } else if(element.Name == SRC.ExpressionStatement || element.Name == SRC.DeclarationStatement) {
+                } else if(element.Name == SRC.ExpressionStatement) {
                     stmt = ParseExpressionStatementElement(element, context);
+                } else if(element.Name == SRC.DeclarationStatement) {
+                    stmt = ParseDeclarationStatementElement(element, context);
+                } else if(element.Name == SRC.Comment) {
+                    //do nothing?
                 } else {
                     throw new ParseException(context.FileName, element.GetSrcLineNumber(), element.GetSrcLinePosition(), this,
                                              string.Format("Unexpected {0} element", element.Name), null);
                 }
                 //TODO: parse include/import/using statements
                 //TODO: parse using blocks
-                //TODO: parse variable declarations
                 //TODO: parse everything else as a generic statement?
 
                 return stmt;
@@ -575,7 +540,7 @@ namespace ABB.SrcML.Data {
                     //fill in condition
                     var expElement = ifChild.Element(SRC.Expression);
                     if(expElement != null) {
-                        ifStmt.Condition = ParseExpression(expElement, context);
+                        ifStmt.Condition = ParseExpressionElement(expElement, context);
                     }
                 } else if(ifChild.Name == SRC.Then) {
                     //add the then statements
@@ -630,7 +595,7 @@ namespace ABB.SrcML.Data {
                     //fill in condition
                     var expElement = whileChild.Element(SRC.Expression);
                     if(expElement != null) {
-                        whileStmt.Condition = ParseExpression(expElement, context);
+                        whileStmt.Condition = ParseExpressionElement(expElement, context);
                     }
                 } else if(whileChild.Name == SRC.Block) {
                     //has a block, add children
@@ -663,21 +628,21 @@ namespace ABB.SrcML.Data {
                     //fill in initializer
                     var expElement = forChild.Element(SRC.Expression);
                     if(expElement != null) {
-                        forStmt.Initializer = ParseExpression(expElement, context);
+                        forStmt.Initializer = ParseExpressionElement(expElement, context);
                     }
                 }
                 else if(forChild.Name == SRC.Condition) {
                     //fill in condition
                     var expElement = forChild.Element(SRC.Expression);
                     if(expElement != null) {
-                        forStmt.Condition = ParseExpression(expElement, context);
+                        forStmt.Condition = ParseExpressionElement(expElement, context);
                     }
                 }
                 else if(forChild.Name == SRC.Increment) {
                     //fill in incrementer
                     var expElement = forChild.Element(SRC.Expression);
                     if(expElement != null) {
-                        forStmt.Incrementer = ParseExpression(expElement, context);
+                        forStmt.Incrementer = ParseExpressionElement(expElement, context);
                     }
                 }
                 else if(forChild.Name == SRC.Block) {
@@ -713,7 +678,7 @@ namespace ABB.SrcML.Data {
                     //fill in condition/initializer
                     var expElement = child.Element(SRC.Expression);
                     if(expElement != null) {
-                        foreachStmt.Condition = ParseExpression(expElement, context);
+                        foreachStmt.Condition = ParseExpressionElement(expElement, context);
                     }
                 }
                 else if(child.Name == SRC.Block) {
@@ -747,7 +712,7 @@ namespace ABB.SrcML.Data {
                     //fill in condition
                     var expElement = doChild.Element(SRC.Expression);
                     if(expElement != null) {
-                        doStmt.Condition = ParseExpression(expElement, context);
+                        doStmt.Condition = ParseExpressionElement(expElement, context);
                     }
                 } else if(doChild.Name == SRC.Block) {
                     //has a block, add children
@@ -780,7 +745,7 @@ namespace ABB.SrcML.Data {
                     //fill in condition
                     var expElement = switchChild.Element(SRC.Expression);
                     if(expElement != null) {
-                        switchStmt.Condition = ParseExpression(expElement, context);
+                        switchStmt.Condition = ParseExpressionElement(expElement, context);
                     }
                 } else if(switchChild.Name == SRC.Block) {
                     //add children from block
@@ -812,7 +777,7 @@ namespace ABB.SrcML.Data {
             foreach(var caseChild in caseElement.Elements()) {
                 if(caseChild.Name == SRC.Expression && caseStmt.Condition == null) {
                     //this is the first expression we've seen, add as the case label
-                    caseStmt.Condition = ParseExpression(caseChild, context);
+                    caseStmt.Condition = ParseExpressionElement(caseChild, context);
                 }
                 else if(caseChild.Name == SRC.Block) {
                     //add children from block
@@ -921,7 +886,7 @@ namespace ABB.SrcML.Data {
 
             var expElement = returnElement.Element(SRC.Expression);
             if(expElement != null) {
-                returnStmt.Content = ParseExpression(expElement, context);
+                returnStmt.Content = ParseExpressionElement(expElement, context);
             }
 
             return returnStmt;
@@ -942,7 +907,7 @@ namespace ABB.SrcML.Data {
 
             var expElement = throwElement.Element(SRC.Expression);
             if(expElement != null) {
-                throwStmt.Content = ParseExpression(expElement, context);
+                throwStmt.Content = ParseExpressionElement(expElement, context);
             }
 
             return throwStmt;
@@ -1021,8 +986,8 @@ namespace ABB.SrcML.Data {
         protected virtual Statement ParseExpressionStatementElement(XElement stmtElement, ParserContext context) {
             if(stmtElement == null)
                 throw new ArgumentNullException("stmtElement");
-            if(!(stmtElement.Name == SRC.ExpressionStatement || stmtElement.Name == SRC.DeclarationStatement))
-                throw new ArgumentException("Must be a SRC.ExpressionStatement or SRC.DeclarationStatement element", "stmtElement");
+            if(stmtElement.Name != SRC.ExpressionStatement)
+                throw new ArgumentException("Must be a SRC.ExpressionStatement element", "stmtElement");
             if(context == null)
                 throw new ArgumentNullException("context");
 
@@ -1031,11 +996,23 @@ namespace ABB.SrcML.Data {
                 ProgrammingLanguage = ParserLanguage
             };
 
-            if(stmtElement.HasElements) {
-                stmt.Content = ParseExpression(stmtElement.Elements().First(), context);
+            var expElement = stmtElement.Element(SRC.Expression);
+            if(expElement != null) {
+                stmt.Content = ParseExpressionElement(expElement, context);
             }
 
             return stmt;
+        }
+
+        protected virtual Statement ParseDeclarationStatementElement(XElement stmtElement, ParserContext context) {
+            if(stmtElement == null)
+                throw new ArgumentNullException("stmtElement");
+            if(stmtElement.Name != SRC.DeclarationStatement)
+                throw new ArgumentException("Must be a SRC.DeclarationStatement element", "stmtElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            throw new NotImplementedException();
         }
 
 
@@ -1226,12 +1203,11 @@ namespace ABB.SrcML.Data {
         }
 
         #region Parse expression elements
-        protected virtual Expression ParseExpression(XElement expElement, ParserContext context) {
+        protected virtual Expression ParseExpressionElement(XElement expElement, ParserContext context) {
             if(expElement == null)
                 throw new ArgumentNullException("expElement");
-            //TODO: what are the valid elements for an expression?
-            //if(expElement.Name != SRC.Return)
-            //    throw new ArgumentException("Must be a SRC.Return element", "expElement");
+            if(expElement.Name != SRC.Expression)
+                throw new ArgumentException("Must be a SRC.Expression element", "expElement");
             if(context == null)
                 throw new ArgumentNullException("context");
 
@@ -1255,6 +1231,43 @@ namespace ABB.SrcML.Data {
             return exp;
         }
         
+        /// <summary>
+        /// Creates variable declaration objects from the given declaration element
+        /// </summary>
+        /// <param name="declElement">The SRC.Declaration element to parse.</param>
+        /// <param name="context">The parser context.</param>
+        /// <returns>One VariableDeclaration object for each declaration in <paramref name="declElement"/></returns>
+        protected virtual IEnumerable<VariableDeclaration> ParseDeclarationElement(XElement declElement, ParserContext context) {
+            throw new NotImplementedException();
+
+            //if(declElement == null)
+            //    throw new ArgumentNullException("declaration");
+            //if(!VariableDeclarationElementNames.Contains(declElement.Name))
+            //    throw new ArgumentException("XElement.Name must be in VariableDeclarationElementNames");
+            //if(context == null)
+            //    throw new ArgumentNullException("context");
+
+            //XElement declElement;
+            //if(declElement.Name == SRC.Declaration || declElement.Name == SRC.FunctionDeclaration) {
+            //    declElement = declElement;
+            //} else {
+            //    declElement = declElement.Element(SRC.Declaration);
+            //}
+
+            //var typeElement = declElement.Element(SRC.Type);
+
+            //var declarationType = ParseTypeUseElement(typeElement, context);
+
+            //foreach(var nameElement in declElement.Elements(SRC.Name)) {
+            //    var variableDeclaration = new VariableDeclaration() {
+            //        VariableType = declarationType,
+            //        Name = nameElement.Value,
+            //        Location = context.CreateLocation(nameElement),
+            //        ParentScope = context.CurrentStatement,
+            //    };
+            //    yield return variableDeclaration;
+            //}
+        }
 
         protected virtual Expression ParseNameUseElement(XElement nameElement, ParserContext context) {
             if(nameElement == null)
@@ -1538,6 +1551,8 @@ namespace ABB.SrcML.Data {
         /// <returns>The first specifier encountered. If none, it returns see
         /// cref="AccessModifier.None"/></returns>
         protected virtual AccessModifier GetAccessModifierForMethod(XElement methodElement) {
+            //TODO: refactor this method and type parsing to use the type use helper function below
+            
             if(methodElement == null)
                 throw new ArgumentNullException("methodElement");
             if(!MethodElementNames.Contains(methodElement.Name))
@@ -1575,6 +1590,8 @@ namespace ABB.SrcML.Data {
         /// <param name="typeElement">The type XElement</param>
         /// <returns>The access modifier for the type.</returns>
         protected virtual AccessModifier GetAccessModifierForType(XElement typeElement) {
+            //TODO: refactor this method and type parsing to use the type use helper function below
+            
             if(typeElement == null)
                 throw new ArgumentNullException("typeElement");
             if(!TypeElementNames.Contains(typeElement.Name))
@@ -1587,6 +1604,39 @@ namespace ABB.SrcML.Data {
                                         {"protected", AccessModifier.Protected},
                                         {"internal", AccessModifier.Internal}
                                     };
+            //specifiers might include non-access keywords like "partial" or "static"
+            //get only specifiers that are in the accessModiferMap
+            var accessSpecifiers = typeElement.Elements(SRC.Specifier).Select(e => e.Value).Where(s => accessModifierMap.ContainsKey(s)).ToList();
+            AccessModifier result;
+            if(!accessSpecifiers.Any()) {
+                result = AccessModifier.None;
+            } else if(accessSpecifiers.Count == 2 && accessSpecifiers.Contains("protected") && accessSpecifiers.Contains("internal")) {
+                result = AccessModifier.ProtectedInternal;
+            } else {
+                result = accessModifierMap[accessSpecifiers.First()];
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Determines the access modifier used within a type use element, i.e. SRC.Type
+        /// </summary>
+        /// <param name="typeElement">A SRC.Type element</param>
+        /// <returns>An AccessModifier based on the specifier elements in the type use.</returns>
+        protected virtual AccessModifier GetAccessModifierFromTypeUseElement(XElement typeElement) {
+            if(typeElement == null)
+                throw new ArgumentNullException("typeElement");
+            if(typeElement.Name != SRC.Type)
+                throw new ArgumentException("Must be a SRC.Type element", "typeElement");
+
+            var accessModifierMap = new Dictionary<string, AccessModifier>()
+                                    {
+                                        {"public", AccessModifier.Public},
+                                        {"private", AccessModifier.Private},
+                                        {"protected", AccessModifier.Protected},
+                                        {"internal", AccessModifier.Internal}
+                                    };
+
             //specifiers might include non-access keywords like "partial" or "static"
             //get only specifiers that are in the accessModiferMap
             var accessSpecifiers = typeElement.Elements(SRC.Specifier).Select(e => e.Value).Where(s => accessModifierMap.ContainsKey(s)).ToList();

@@ -217,6 +217,61 @@ namespace ABB.SrcML.Data {
         //    (context.CurrentStatement as ITypeDefinition).IsPartial = partials.Any();
         //}
 
+        protected override Statement ParseDeclarationStatementElement(XElement stmtElement, ParserContext context) {
+            if(stmtElement == null)
+                throw new ArgumentNullException("stmtElement");
+            if(stmtElement.Name != SRC.DeclarationStatement)
+                throw new ArgumentException("Must be a SRC.DeclarationStatement element", "stmtElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+            
+            //first check if this is a property and parse accordingly
+            var declElement = stmtElement.Element(SRC.Declaration);
+            if(declElement != null) {
+                var blockElement = declElement.Element(SRC.Block);
+                if(blockElement != null) {
+                    //this is a property
+                    return ParsePropertyDeclarationElement(declElement, context);
+                }
+            }
+
+            //otherwise, parse as base:
+            return base.ParseDeclarationStatementElement(stmtElement, context);
+        }
+
+        protected virtual PropertyDefinition ParsePropertyDeclarationElement(XElement declElement, ParserContext context) {
+            if(declElement == null)
+                throw new ArgumentNullException("declElement");
+            if(declElement.Name != SRC.Declaration)
+                throw new ArgumentException("Must be a SRC.Declaration element", "declElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            var propertyDef = new PropertyDefinition {
+                Location = context.CreateLocation(declElement),
+                ProgrammingLanguage = ParserLanguage
+            };
+
+            foreach(var child in declElement.Elements()) {
+                if(child.Name == SRC.Type) {
+                    propertyDef.Accessibility = GetAccessModifierFromTypeUseElement(child);
+                    propertyDef.ReturnType = ParseTypeUseElement(child, context);
+                }
+                else if(child.Name == SRC.Name) {
+                    propertyDef.Name = child.Value;
+                }
+                else if(child.Name == SRC.Block) {
+                    //add children from block. This should be the getter/setter methods
+                    var blockStatements = child.Elements().Select(e => ParseElement(e, context));
+                    propertyDef.AddChildStatements(blockStatements);
+                } else {
+                    propertyDef.AddChildStatement(ParseElement(child, context));
+                }
+            }
+
+            return propertyDef;
+        }
+
         //TODO: implement C# type use parsing
         ///// <summary>
         ///// Parses the given typeUseElement and returns a TypeUse object. This handles the "var"

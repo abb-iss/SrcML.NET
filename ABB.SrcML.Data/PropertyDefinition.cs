@@ -29,6 +29,11 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
+        /// The type of the property.
+        /// </summary>
+        public TypeUse ReturnType { get; set; }
+
+        /// <summary>
         /// The getter method for this property, if any.
         /// </summary>
         public MethodDefinition Getter {
