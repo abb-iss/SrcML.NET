@@ -18,10 +18,6 @@ using System.Text;
 namespace ABB.SrcML.Data
 {
     public class ForStatement : ConditionBlockStatement {
-        public ForStatement() : base() {
-            //TODO: implement constructor
-        }
-
         
         public Expression Initializer { get; set; }
         public Expression Incrementer { get; set; }

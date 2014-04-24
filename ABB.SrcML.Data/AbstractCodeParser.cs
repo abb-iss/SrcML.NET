@@ -420,7 +420,6 @@ namespace ABB.SrcML.Data {
                 }
                 //TODO: parse include/import/using statements
                 //TODO: parse using blocks
-                //TODO: parse everything else as a generic statement?
 
                 return stmt;
             } catch(ParseException) {
@@ -1115,8 +1114,6 @@ namespace ABB.SrcML.Data {
                 }
             }
 
-            //TODO: handle the C++ case where the type members are in <private> or <public> tags under the block
-
             return typeDefinition;
         }
 
@@ -1128,8 +1125,8 @@ namespace ABB.SrcML.Data {
         /// <param name="context">the parser context</param>
         /// <returns>A Type Use object</returns>
         protected virtual TypeUse ParseTypeUseElement(XElement typeUseElement, ParserContext context) {
-            //TODO: review this method and update it for changes in TypeUse structure
-            throw new NotImplementedException();
+            //TODO: implement ParseTypeUseElement
+            return null;
 
             //    if(typeUseElement == null)
             //        throw new ArgumentNullException("typeUseElement");

@@ -23,7 +23,6 @@ namespace ABB.SrcML.Data {
         public NamedScope() : base() {
             Name = string.Empty;
             Accessibility = AccessModifier.None;
-            //TODO: other constructor stuff?
         }
 
         public string Name { get; set; }
