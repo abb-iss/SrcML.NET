@@ -19,7 +19,7 @@ using System.Text;
 
 namespace ABB.SrcML.Data {
 
-    public class NamedScope : BlockStatement {
+    public class NamedScope : BlockStatement, INamedEntity {
         public NamedScope() : base() {
             Name = string.Empty;
             Accessibility = AccessModifier.None;
