@@ -47,6 +47,7 @@
     </Compile>
     <Compile Include="CPlusPlusCodeParserTests.cs" />
     <Compile Include="CSharpCodeParserTests.cs" />
+    <Compile Include="MergeTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

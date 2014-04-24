@@ -80,6 +80,9 @@
     <Compile Include="LiteralUse.cs" />
     <Compile Include="CSharpCodeParser.cs" />
     <Compile Include="LockTimeoutExceededException.cs" />
+    <Compile Include="MergedMethodDefinition.cs" />
+    <Compile Include="MergedNamespaceDefinition.cs" />
+    <Compile Include="MergedScope.cs" />
     <Compile Include="MethodCall.cs" />
     <Compile Include="NamedScope.cs" />
     <Compile Include="NameHelper.cs" />

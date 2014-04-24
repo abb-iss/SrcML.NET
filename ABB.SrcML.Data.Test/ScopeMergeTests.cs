@@ -37,44 +37,6 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestCreateMethodDefinition_TwoUnresolvedParents() {
-            // # B.h namespace A { class B { }; }
-            string xmlh = @"<namespace>namespace <name>A</name> <block>{
-    <class>class <name>B</name> <block>{<private type=""default"">
-    </private>}</block>;</class>
-}</block></namespace>";
-
-            // # B.cpp int A::B::Foo() { return 0; }
-            string xmlcpp = @"<function><type><name>int</name></type> <name><name>A</name><op:operator>::</op:operator><name>B</name><op:operator>::</op:operator><name>Foo</name></name><parameter_list>()</parameter_list> <block>{
-}</block></function>";
-
-            var xmlHeader = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xmlh, "B.h");
-            var xmlImpl = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xmlcpp, "B.cpp");
-
-            var headerScope = CodeParser[Language.CPlusPlus].ParseFileUnit(xmlHeader) as INamedScope;
-            var implementationScope = CodeParser[Language.CPlusPlus].ParseFileUnit(xmlImpl) as INamedScope;
-            var globalScope = headerScope.Merge(implementationScope);
-
-            Assert.AreEqual(1, globalScope.ChildScopes.Count());
-
-            var namespaceA = globalScope.ChildScopes.First() as INamespaceDefinition;
-            Assert.AreEqual("A", namespaceA.Name);
-            Assert.AreEqual(1, namespaceA.ChildScopes.Count());
-
-            var typeB = namespaceA.ChildScopes.First() as ITypeDefinition;
-            Assert.AreEqual("A.B", typeB.GetFullName());
-            Assert.AreEqual(1, typeB.ChildScopes.Count());
-
-            var methodFoo = typeB.ChildScopes.First() as IMethodDefinition;
-            Assert.AreEqual("A.B.Foo", methodFoo.GetFullName());
-            Assert.AreEqual(0, methodFoo.ChildScopes.Count());
-
-            Assert.AreSame(globalScope, namespaceA.ParentScope);
-            Assert.AreSame(namespaceA, typeB.ParentScope);
-            Assert.AreSame(typeB, methodFoo.ParentScope);
-        }
-
-        [Test]
         public void TestMethodDefinitionMerge_Cpp() {
             // # A.h class A { int Foo(); };
             string header_xml = @"<class>class <name>A</name> <block>{<private type=""default"">
