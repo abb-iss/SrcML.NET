@@ -28,6 +28,16 @@ namespace ABB.SrcML.Data {
 
         public string Name { get; set; }
         public AccessModifier Accessibility { get; set; }
+        /// <summary>
+        /// Gets the full name by finding all of the named scope ancestors and combining them.
+        /// </summary>
+        /// <returns>The full name for this named scope</returns>
+        public string GetFullName() {
+            var names = from statement in GetAncestorsAndSelf<NamedScope>()
+                        where !String.IsNullOrEmpty(statement.Name)
+                        select statement.Name;
+            return string.Join(".", names.Reverse()).TrimEnd('.');
+        }
     }
 
 
