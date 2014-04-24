@@ -381,17 +381,6 @@
       </referencedType>
     </packageHasNamedElement>
     <logicalClassDesignerModelHasTypes>
-      <class Id="14877aa1-99f3-4c7c-b554-a3bb15d86448" name="PropertyDeclaration" isAbstract="false" isLeaf="false" isActiveClass="false">
-        <elementDefinition Id="083ec42c-5c7c-44b9-a7af-6e107b893ad1" />
-        <generalsInternal>
-          <generalization Id="c7378aec-9b80-4708-b0e5-83d60cd11739" isSubstitutable="false">
-            <classMoniker Id="bba6f67c-b6ff-476b-8cdb-162ca35391c0" LastKnownName="Statement" />
-            <elementDefinition Id="38a751f2-abbd-4bbc-ab1a-3d25d4794b58" />
-          </generalization>
-        </generalsInternal>
-      </class>
-    </logicalClassDesignerModelHasTypes>
-    <logicalClassDesignerModelHasTypes>
       <class Id="78546146-35c2-442c-b91e-5b31fe3cde3f" name="IncludeStatement" isAbstract="false" isLeaf="false" isActiveClass="false">
         <elementDefinition Id="7a3f9daf-8845-4da0-b3b1-c751078949ca" />
         <generalsInternal>

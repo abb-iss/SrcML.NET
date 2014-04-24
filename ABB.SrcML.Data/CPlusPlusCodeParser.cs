@@ -286,5 +286,67 @@ namespace ABB.SrcML.Data {
 
             return nd;
         }
+
+        /// <summary>
+        /// Parses an element corresponding to a type definition and creates a TypeDefinition object 
+        /// </summary>
+        /// <param name="typeElement">The type element to parse. This must be one of the elements contained in TypeElementNames.</param>
+        /// <param name="context">The parser context</param>
+        /// <returns>A TypeDefinition parsed from the element</returns>
+        protected override TypeDefinition ParseTypeElement(XElement typeElement, ParserContext context) {
+            if(null == typeElement)
+                throw new ArgumentNullException("typeElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            var typeDefinition = new TypeDefinition() {
+                Accessibility = GetAccessModifierForType(typeElement),
+                Kind = XNameMaps.GetKindForXElement(typeElement),
+                Name = GetNameForType(typeElement),
+                Location = context.CreateLocation(typeElement),
+                ProgrammingLanguage = ParserLanguage
+            };
+            foreach(var parentTypeElement in GetParentTypeUseElements(typeElement)) {
+                var parentTypeUse = ParseTypeUseElement(parentTypeElement, context);
+                typeDefinition.AddParentType(parentTypeUse);
+            }
+
+            var typeBlock = typeElement.Element(SRC.Block);
+            if(typeBlock != null) {
+                foreach(var child in typeBlock.Elements()) {
+                    if(child.Name == SRC.Private) {
+                        typeDefinition.AddChildStatements(ParseClassChildren(child, context, AccessModifier.Private));
+                    } else if(child.Name == SRC.Protected) {
+                        typeDefinition.AddChildStatements(ParseClassChildren(child, context, AccessModifier.Protected));
+                    } else if(child.Name == SRC.Public) {
+                        typeDefinition.AddChildStatements(ParseClassChildren(child, context, AccessModifier.Public));
+                    } else {
+                        typeDefinition.AddChildStatement(ParseElement(child, context));
+                    }
+                }
+            }
+
+
+            return typeDefinition;
+        }
+
+        /// <summary>
+        /// This method parses and returns the children within the public/protected/private block under a C++ class, 
+        /// and sets the specified access modifier on the children that support it.
+        /// </summary>
+        private IEnumerable<Statement> ParseClassChildren(XElement accessBlockElement, ParserContext context, AccessModifier accessModifier) {
+            if(accessBlockElement == null)
+                throw new ArgumentNullException("accessBlockElement");
+            if(!(new[] {SRC.Public, SRC.Protected, SRC.Private}.Contains(accessBlockElement.Name)))
+                throw new ArgumentException("Not a valid accessibility block element", "accessBlockElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            var children = accessBlockElement.Elements().Select(e => ParseElement(e, context)).ToList();
+            foreach(var ne in children.OfType<INamedEntity>()) {
+                ne.Accessibility = accessModifier;
+            }
+            return children;
+        }
     }
 }

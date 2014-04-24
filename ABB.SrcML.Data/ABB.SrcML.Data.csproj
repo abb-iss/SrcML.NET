@@ -72,6 +72,7 @@
     <Compile Include="ForStatement.cs" />
     <Compile Include="GotoStatement.cs" />
     <Compile Include="IfStatement.cs" />
+    <Compile Include="INamedEntity.cs" />
     <Compile Include="IResolvesToType.cs" />
     <Compile Include="IRootedObject.cs" />
     <Compile Include="LabelStatement.cs" />

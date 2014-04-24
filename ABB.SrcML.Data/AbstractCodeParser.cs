@@ -513,7 +513,15 @@ namespace ABB.SrcML.Data {
 
             var declElement = paramElement.Elements().First(e => e.Name == SRC.Declaration || e.Name == SRC.FunctionDeclaration);
 
-            return ParseDeclarationElement(declElement, context).First();
+            var varDeclaration = ParseDeclarationElement(declElement, context);
+            if(varDeclaration is VariableDeclaration) {
+                return varDeclaration as VariableDeclaration;
+            } else {
+                //This case is where the decl element declares more than one variable. This is probably impossible in a method parameter?
+                //Regardless, just return the first variable declaration
+                return varDeclaration.Components.OfType<VariableDeclaration>().First();
+            }
+
         }
 
         /// <summary>
@@ -996,9 +1004,13 @@ namespace ABB.SrcML.Data {
                 ProgrammingLanguage = ParserLanguage
             };
 
-            var expElement = stmtElement.Element(SRC.Expression);
-            if(expElement != null) {
-                stmt.Content = ParseExpressionElement(expElement, context);
+            foreach(var child in stmtElement.Elements()) {
+                if(child.Name == SRC.Expression) {
+                    stmt.Content = ParseExpressionElement(child, context);
+                } else {
+                    //This should probably only be comments?
+                    stmt.AddChildStatement(ParseElement(child, context));
+                }
             }
 
             return stmt;
@@ -1012,7 +1024,21 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            throw new NotImplementedException();
+            var stmt = new Statement() {
+                Location = context.CreateLocation(stmtElement),
+                ProgrammingLanguage = ParserLanguage
+            };
+
+            foreach(var child in stmtElement.Elements()) {
+                if(child.Name == SRC.Declaration) {
+                    stmt.Content = ParseDeclarationElement(child, context);
+                } else {
+                    //This should probably only be comments?
+                    stmt.AddChildStatement(ParseElement(child, context));
+                }
+            }
+
+            return stmt;
         }
 
 
@@ -1059,11 +1085,11 @@ namespace ABB.SrcML.Data {
         protected abstract NamespaceDefinition ParseNamespaceElement(XElement namespaceElement, ParserContext context);
 
         /// <summary>
-        /// Parses a type element and pushes a it onto the
-        /// <paramref name="context"/>.
+        /// Parses an element corresponding to a type definition and creates a TypeDefinition object 
         /// </summary>
-        /// <param name="typeElement">the type element to parse</param>
+        /// <param name="typeElement">The type element to parse. This must be one of the elements contained in TypeElementNames.</param>
         /// <param name="context">The parser context</param>
+        /// <returns>A TypeDefinition parsed from the element</returns>
         protected virtual TypeDefinition ParseTypeElement(XElement typeElement, ParserContext context) {
             if(null == typeElement)
                 throw new ArgumentNullException("typeElement");
@@ -1236,9 +1262,12 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="declElement">The SRC.Declaration element to parse.</param>
         /// <param name="context">The parser context.</param>
-        /// <returns>One VariableDeclaration object for each declaration in <paramref name="declElement"/></returns>
-        protected virtual IEnumerable<VariableDeclaration> ParseDeclarationElement(XElement declElement, ParserContext context) {
-            throw new NotImplementedException();
+        /// <returns>A VariableDeclaration object, if <paramref name="declElement"/> contains a single variable declaration. 
+        /// Otherwise, an Expression containing several VariableDeclaration objects.</returns>
+        protected virtual Expression ParseDeclarationElement(XElement declElement, ParserContext context) {
+            //TODO: implement ParseDeclarationElement
+            
+            return null;
 
             //if(declElement == null)
             //    throw new ArgumentNullException("declaration");
