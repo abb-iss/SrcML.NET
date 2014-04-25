@@ -15,8 +15,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using System.Xml;
+using System.Xml.Serialization;
 
 namespace ABB.SrcML.Data {
+    [XmlRoot(IsNullable=false)]
     public class Statement {
         private List<Statement> childStatementsList;
         
@@ -25,10 +28,16 @@ namespace ABB.SrcML.Data {
             ChildStatements = new ReadOnlyCollection<Statement>(childStatementsList);
         }
         
+        [XmlArray(ElementName="Children")]
         public ReadOnlyCollection<Statement> ChildStatements { get; private set; }
+
+        [XmlIgnore]
         public Statement ParentStatement { get; set; }
+
         public SrcMLLocation Location { get; set; }
+
         public Language ProgrammingLanguage { get; set; }
+
         public Expression Content {get; set;}
 
         /// <summary>
