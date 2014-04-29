@@ -26,7 +26,10 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public CPlusPlusCodeParser() {
             this.SpecifierContainerNames = new HashSet<XName>(new XName[] { SRC.Private, SRC.Protected, SRC.Public });
-            this.TypeElementNames = new HashSet<XName>(new XName[] { SRC.Class, SRC.Enum, SRC.Struct, SRC.Union });
+            this.TypeElementNames = new HashSet<XName>(new XName[] {
+                SRC.Class, SRC.Enum, SRC.Struct, SRC.Union,
+                SRC.ClassDeclaration, SRC.StructDeclaration, SRC.UnionDeclaration
+            });
             this.VariableDeclarationElementNames = new HashSet<XName>(new XName[] { SRC.Declaration, SRC.DeclarationStatement, SRC.FunctionDeclaration });
             this.AliasElementName = SRC.Using;
         }

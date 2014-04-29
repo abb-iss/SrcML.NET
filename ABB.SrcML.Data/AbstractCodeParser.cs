@@ -684,6 +684,7 @@ namespace ABB.SrcML.Data {
                 if(child.Name == SRC.Init) {
                     //fill in condition/initializer
                     var expElement = child.Element(SRC.Expression);
+                    //TODO: this might be a decl element rather than an expr due to a bug in srcML parsing
                     if(expElement != null) {
                         foreachStmt.Condition = ParseExpressionElement(expElement, context);
                     }

@@ -31,6 +31,38 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
+        public void TestCreateTypeDefinitions_Class() {
+            // class A { };
+            string xml = @"<class>class <name>A</name> <block>{<private type=""default""> </private>}</block>;</class>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
+
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            var actual = globalScope.ChildStatements.First() as TypeDefinition;
+
+            Assert.IsNotNull(actual);
+            Assert.AreEqual("A", actual.Name);
+            Assert.AreEqual(TypeKind.Class, actual.Kind);
+            Assert.That(globalScope.IsGlobal);
+            Assert.AreSame(globalScope, actual.ParentStatement);
+        }
+
+        [Test]
+        public void TestCreateTypeDefinitions_ClassDeclaration() {
+            //class A;
+            string xml = @"<class_decl>class <name>A</name>;</class_decl>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
+
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            var actual = globalScope.ChildStatements.First() as TypeDefinition;
+
+            Assert.IsNotNull(actual);
+            Assert.AreEqual("A", actual.Name);
+            Assert.AreEqual(TypeKind.Class, actual.Kind);
+            Assert.That(globalScope.IsGlobal);
+            Assert.AreSame(globalScope, actual.ParentStatement);
+        }
+
+        [Test]
         public void TestClassWithDeclaredVariable() {
             //class A {
             //    int a;
@@ -222,22 +254,7 @@ namespace ABB.SrcML.Data.Test {
 //            Assert.AreEqual("Foo", foo.Name);
 //        }
 
-//        [Test]
-//        public void TestCreateTypeDefinitions_Class() {
-//            // class A { };
-//            string xml = @"<class>class <name>A</name> <block>{<private type=""default"">
-//</private>}</block>;</class>";
-
-//            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
-
-//            var globalScope = codeParser.ParseFileUnit(xmlElement);
-//            var actual = globalScope.ChildScopes.First() as ITypeDefinition;
-
-//            Assert.AreEqual("A", actual.Name);
-//            Assert.AreEqual(TypeKind.Class, actual.Kind);
-//            Assert.That(globalScope.IsGlobal);
-//            Assert.AreSame(globalScope, actual.ParentScope);
-//        }
+//        
 
 //        [Test]
 //        public void TestCreateTypeDefinitions_ClassInFunction() {
