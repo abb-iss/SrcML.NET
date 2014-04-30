@@ -277,11 +277,9 @@ namespace ABB.SrcML.Data.Test {
 
                     start = DateTime.Now;
                     if(useAsyncMethods) {
-                        var task = monitor.UpdateArchivesAsync().ContinueWith((t) => {
-                            end = DateTime.Now;
-                            startupCompleted = true;
-                        });
-                        task.Wait();
+                        monitor.UpdateArchivesAsync().Wait();
+                        end = DateTime.Now;
+                        startupCompleted = true;
                     } else {
                         monitor.UpdateArchives();
                         end = DateTime.Now;
