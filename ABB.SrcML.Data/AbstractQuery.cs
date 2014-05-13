@@ -77,7 +77,7 @@ namespace ABB.SrcML.Data {
             throw new TimeoutException();
         }
 
-        public abstract TResult Execute(Statement globalScope);
+        public abstract TResult Execute(Statement root);
     }
 
     public abstract class AbstractQueryBase<TTuple, TResult> {
@@ -128,7 +128,7 @@ namespace ABB.SrcML.Data {
             }
             throw new TimeoutException();
         }
-        protected abstract TResult ExecuteImpl(Statement globalScope, TTuple parameterTuple);
+        protected abstract TResult ExecuteImpl(Statement root, TTuple parameterTuple);
     }
 
     public abstract class AbstractQuery<TParam, TResult> : AbstractQueryBase<Tuple<TParam>, TResult> {
@@ -150,10 +150,10 @@ namespace ABB.SrcML.Data {
             return base.Execute(Tuple.Create(parameter));
         }
 
-        public abstract TResult Execute(Statement globalScope, TParam parameter);
+        public abstract TResult Execute(Statement root, TParam parameter);
 
-        protected sealed override TResult ExecuteImpl(Statement globalScope, Tuple<TParam> parameterTuple) {
-            return Execute(globalScope, parameterTuple.Item1);
+        protected sealed override TResult ExecuteImpl(Statement root, Tuple<TParam> parameterTuple) {
+            return Execute(root, parameterTuple.Item1);
         }
     }
 
@@ -177,10 +177,10 @@ namespace ABB.SrcML.Data {
             return Execute(Tuple.Create(parameter1, parameter2));
         }
 
-        public abstract TResult Execute(Statement globalScope, TParam1 parameter1, TParam2 parameter2);
+        public abstract TResult Execute(Statement root, TParam1 parameter1, TParam2 parameter2);
 
-        protected sealed override TResult ExecuteImpl(Statement globalScope, Tuple<TParam1, TParam2> parameter) {
-            return Execute(globalScope, parameter.Item1, parameter.Item2);
+        protected sealed override TResult ExecuteImpl(Statement root, Tuple<TParam1, TParam2> parameter) {
+            return Execute(root, parameter.Item1, parameter.Item2);
         }
     }
 
@@ -204,10 +204,10 @@ namespace ABB.SrcML.Data {
             return Execute(Tuple.Create(parameter1, parameter2, parameter3));
         }
 
-        public abstract TResult Execute(Statement globalScope, TParam1 parameter1, TParam2 parameter2, TParam3 parameter3);
+        public abstract TResult Execute(Statement root, TParam1 parameter1, TParam2 parameter2, TParam3 parameter3);
 
-        protected sealed override TResult ExecuteImpl(Statement globalScope, Tuple<TParam1, TParam2, TParam3> parameter) {
-            return Execute(globalScope, parameter.Item1, parameter.Item2, parameter.Item3);
+        protected sealed override TResult ExecuteImpl(Statement root, Tuple<TParam1, TParam2, TParam3> parameter) {
+            return Execute(root, parameter.Item1, parameter.Item2, parameter.Item3);
         }
     }
 
@@ -231,10 +231,10 @@ namespace ABB.SrcML.Data {
             return Execute(Tuple.Create(parameter1, parameter2, parameter3, parameter4));
         }
 
-        public abstract TResult Execute(Statement globalScope, TParam1 parameter1, TParam2 parameter2, TParam3 parameter3, TParam4 parameter4);
+        public abstract TResult Execute(Statement root, TParam1 parameter1, TParam2 parameter2, TParam3 parameter3, TParam4 parameter4);
 
-        protected sealed override TResult ExecuteImpl(Statement globalScope, Tuple<TParam1, TParam2, TParam3, TParam4> parameter) {
-            return Execute(globalScope, parameter.Item1, parameter.Item2, parameter.Item3, parameter.Item4);
+        protected sealed override TResult ExecuteImpl(Statement root, Tuple<TParam1, TParam2, TParam3, TParam4> parameter) {
+            return Execute(root, parameter.Item1, parameter.Item2, parameter.Item3, parameter.Item4);
         }
     }
 
@@ -258,10 +258,10 @@ namespace ABB.SrcML.Data {
             return Execute(Tuple.Create(parameter1, parameter2, parameter3, parameter4, parameter5));
         }
 
-        public abstract TResult Execute(Statement globalScope, TParam1 parameter1, TParam2 parameter2, TParam3 parameter3, TParam4 parameter4, TParam5 parameter5);
+        public abstract TResult Execute(Statement root, TParam1 parameter1, TParam2 parameter2, TParam3 parameter3, TParam4 parameter4, TParam5 parameter5);
 
-        protected sealed override TResult ExecuteImpl(Statement globalScope, Tuple<TParam1, TParam2, TParam3, TParam4, TParam5> parameter) {
-            return Execute(globalScope, parameter.Item1, parameter.Item2, parameter.Item3, parameter.Item4, parameter.Item5);
+        protected sealed override TResult ExecuteImpl(Statement root, Tuple<TParam1, TParam2, TParam3, TParam4, TParam5> parameter) {
+            return Execute(root, parameter.Item1, parameter.Item2, parameter.Item3, parameter.Item4, parameter.Item5);
         }
     }
 }

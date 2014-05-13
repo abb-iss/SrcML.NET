@@ -10,10 +10,10 @@ namespace ABB.SrcML.Data.Queries {
         public FindMethodCallsAtLocationQuery(DataRepository data, int lockTimeout, TaskFactory factory)
             : base(data, lockTimeout, factory) { }
 
-        public override Collection<MethodCall> Execute(Statement globalScope, SourceLocation parameter) {
+        public override Collection<MethodCall> Execute(Statement root, SourceLocation parameter) {
             //TODO reimplement once getscopeforlocation has been added
-            //if(globalScope != null) {
-            //    var scope = globalScope.GetScopeForLocation(parameter);
+            //if(root != null) {
+            //    var scope = root.GetScopeForLocation(parameter);
             //    if(scope != null) {
             //        var calls = scope.MethodCalls.Where(mc => mc.Location.Contains(parameter));
             //        return new Collection<MethodCall>(calls.OrderByDescending(mc => mc.Location, new SourceLocationComparer()).ToList());

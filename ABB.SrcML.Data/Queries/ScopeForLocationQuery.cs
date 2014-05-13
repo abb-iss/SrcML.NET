@@ -9,9 +9,9 @@ namespace ABB.SrcML.Data.Queries {
         public ScopeForLocationQuery(DataRepository data, int lockTimeout, TaskFactory factory)
             : base(data, lockTimeout, factory) { }
 
-        public override Statement Execute(Statement globalScope, SourceLocation parameter) {
+        public override Statement Execute(Statement root, SourceLocation parameter) {
             //TODO reimplement once getscopeforlocation has been added
-            //return globalScope.GetScopeForLocation(parameter);
+            //return root.GetScopeForLocation(parameter);
             throw new NotImplementedException();
         }
     }
@@ -22,10 +22,10 @@ namespace ABB.SrcML.Data.Queries {
             : base(data, lockTimeout, factory){ }
 
 
-        public override TStatement Execute(Statement globalScope, SourceLocation parameter) {
+        public override TStatement Execute(Statement root, SourceLocation parameter) {
             //TODO reimplement once getscopeforlocation has been added
-            //if(null != globalScope) {
-            //    var scope = globalScope.GetScopeForLocation(parameter);
+            //if(null != root) {
+            //    var scope = root.GetScopeForLocation(parameter);
             //    return (scope != null ? scope.GetParentScopesAndSelf<TScope>().FirstOrDefault() : default(TScope));
             //}
             return default(TStatement);
