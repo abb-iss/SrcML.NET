@@ -234,26 +234,19 @@ namespace ABB.SrcML.Data {
             return "char*";
         }
 
-        //TODO: implement C++ method definition parsing
-        ///// <summary>
-        ///// Creates a method definition object from
-        ///// <paramref name="methodElement"/>. For C++, it looks for <code>int A::B::Foo(){ }</code>
-        ///// and adds "A->B" to <see cref="INamedScope.ParentScopeCandidates"/>
-        ///// </summary>
-        ///// <param name="methodElement">The method typeUseElement</param>
-        ///// <param name="context">The parser context</param>
-        ///// <returns>the method definition object for
-        ///// <paramref name="methodElement"/></returns>
-        //protected override MethodDefinition ParseMethodElement(XElement methodElement, ParserContext context) {
-        //    var nameElement = methodElement.Element(SRC.Name);
-
-        //    base.ParseMethodElement(methodElement, context);
-
-        //    var prefix = ParseNamedScopeUsePrefix(nameElement, context);
-        //    if(null != prefix) {
-        //        (context.CurrentStatement as INamedScope).ParentScopeCandidates.Add(prefix);
-        //    }
-        //}
+        /// <summary>
+        /// Creates a method definition object from
+        /// <paramref name="methodElement"/>. For C++, it looks for something like <code>int A::B::Foo(){ }</code>
+        /// and adds "A::B" as the NamePrefix.
+        /// </summary>
+        /// <param name="methodElement">The method element to parse. This must be one of the elements contained in MethodElementNames.</param>
+        /// <param name="context">The parser context</param>
+        /// <returns>The method definition object for <paramref name="methodElement"/></returns>
+        protected override MethodDefinition ParseMethodElement(XElement methodElement, ParserContext context) {
+            var md = base.ParseMethodElement(methodElement, context);
+            md.NamePrefix = ParseNamePrefix(methodElement, context);
+            return md;
+        }
 
         /// <summary>
         /// Creates a NamespaceDefinition object for the given namespace typeUseElement. This must
@@ -333,6 +326,45 @@ namespace ABB.SrcML.Data {
             return typeDefinition;
         }
 
+        #region Private methods
+        /// <summary>
+        /// Parses the NamePrefix expression from a method.
+        /// In a method <code>int A::B::MyFunc()</code>, the NamePrefix is <code>A::B</code>.
+        /// </summary>
+        /// <param name="methodElement">The method element to parse</param>
+        /// <param name="context">The parser context</param>
+        /// <returns>The NamePrefix expression for the method.</returns>
+        private Expression ParseNamePrefix(XElement methodElement, ParserContext context) {
+            return null;
+            //TODO: implement ParseNamePrefix
+            
+            //IEnumerable<XElement> parentNameElements = Enumerable.Empty<XElement>();
+
+            //parentNameElements = NameHelper.GetNameElementsExceptLast(nameElement);
+            //INamedScopeUse current = null, root = null;
+
+            //if(parentNameElements.Any()) {
+            //    foreach(var element in parentNameElements) {
+            //        var scopeUse = new NamedScopeUse() {
+            //            Name = element.Value,
+            //            Location = context.CreateLocation(element, true),
+            //            ProgrammingLanguage = this.ParserLanguage,
+            //        };
+            //        if(null == root) {
+            //            root = scopeUse;
+            //        }
+            //        if(current != null) {
+            //            current.ChildScopeUse = scopeUse;
+            //        }
+            //        current = scopeUse;
+            //    }
+            //}
+            //if(null != root) {
+            //    root.ParentScope = context.CurrentStatement;
+            //}
+            //return root;
+        }
+
         /// <summary>
         /// This method parses and returns the children within the public/protected/private block under a C++ class, 
         /// and sets the specified access modifier on the children that support it.
@@ -351,5 +383,7 @@ namespace ABB.SrcML.Data {
             }
             return children;
         }
+
+        #endregion Private methods
     }
 }

@@ -1042,41 +1042,6 @@ namespace ABB.SrcML.Data {
         }
 
 
-
-        ///// <summary>
-        ///// Creates a named scope use element
-        ///// </summary>
-        ///// <param name="nameElement">The name element to parse</param>
-        ///// <param name="context">The parser context</param>
-        ///// <returns>A named scope use for this element</returns>
-        //protected INamedScopeUse ParseNamedScopeUsePrefix(XElement nameElement, ParserContext context) {
-        //    IEnumerable<XElement> parentNameElements = Enumerable.Empty<XElement>();
-
-        //    parentNameElements = NameHelper.GetNameElementsExceptLast(nameElement);
-        //    INamedScopeUse current = null, root = null;
-
-        //    if(parentNameElements.Any()) {
-        //        foreach(var element in parentNameElements) {
-        //            var scopeUse = new NamedScopeUse() {
-        //                Name = element.Value,
-        //                Location = context.CreateLocation(element, true),
-        //                ProgrammingLanguage = this.ParserLanguage,
-        //            };
-        //            if(null == root) {
-        //                root = scopeUse;
-        //            }
-        //            if(current != null) {
-        //                current.ChildScopeUse = scopeUse;
-        //            }
-        //            current = scopeUse;
-        //        }
-        //    }
-        //    if(null != root) {
-        //        root.ParentScope = context.CurrentStatement;
-        //    }
-        //    return root;
-        //}
-
         /// <summary>
         /// Creates a <see cref="NamespaceDefinition"/> object for <paramref name="namespaceElement"/>
         /// </summary>

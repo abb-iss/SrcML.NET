@@ -39,6 +39,12 @@ namespace ABB.SrcML.Data {
         //TODO: record other keywords besides access modifiers? for example, static
 
         /// <summary>
+        /// For C/C++ methods, this property gives the specified scope that the method is defined in.
+        /// For example, in the method <code>int A::B::MyFunction(char arg);</code> the NamePrefix is A::B.
+        /// </summary>
+        public Expression NamePrefix { get; set; }
+
+        /// <summary>
         /// Adds a method parameter to this method
         /// </summary>
         /// <param name="parameter">The parameter to add</param>
