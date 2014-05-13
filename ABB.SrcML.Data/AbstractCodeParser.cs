@@ -412,6 +412,10 @@ namespace ABB.SrcML.Data {
                     stmt = ParseExpressionStatementElement(element, context);
                 } else if(element.Name == SRC.DeclarationStatement) {
                     stmt = ParseDeclarationStatementElement(element, context);
+                } else if(element.Name == SRC.Block) {
+                    stmt = ParseBlockElement(element, context);
+                } else if(element.Name == SRC.Extern) {
+                    stmt = ParseExternElement(element, context);
                 } else if(element.Name == SRC.Comment) {
                     //do nothing?
                 } else {
@@ -420,6 +424,7 @@ namespace ABB.SrcML.Data {
                 }
                 //TODO: parse include/import/using statements
                 //TODO: parse using blocks
+                //TODO: handle other CPP elements
 
                 return stmt;
             } catch(ParseException) {
@@ -476,7 +481,7 @@ namespace ABB.SrcML.Data {
                 // construct the return type. however, if the Name of the return type is "void",
                 // don't use it because it means the return type is void
                 var returnTypeUse = ParseTypeUseElement(returnTypeElement, context);
-                if(returnTypeUse.Name != "void") {
+                if(returnTypeUse != null && returnTypeUse.Name != "void") {
                     methodDefinition.ReturnType = ParseTypeUseElement(returnTypeElement, context);
                 }
             }
@@ -1189,6 +1194,68 @@ namespace ABB.SrcML.Data {
                 namespaceForUnit.AddChildStatement(ParseElement(child, context));
             }
             return namespaceForUnit;
+        }
+
+        /// <summary>
+        /// Creates a BlockStatement from the given block element. 
+        /// This method is only for parsing free-standing blocks, which are very rare. 
+        /// Most blocks are parsed by the construct they are attached to, e.g. an if-statement or class definition.
+        /// </summary>
+        /// <param name="blockElement">The SRC.Block element to parse.</param>
+        /// <param name="context">The parser context to use.</param>
+        /// <returns>A BlockStatement corresponding to blockElement.</returns>
+        protected virtual BlockStatement ParseBlockElement(XElement blockElement, ParserContext context) {
+            if(blockElement == null)
+                throw new ArgumentNullException("blockElement");
+            if(blockElement.Name != SRC.Block)
+                throw new ArgumentException("must be a SRC.Block element", "blockElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            var bs = new BlockStatement() {
+                Location = context.CreateLocation(blockElement),
+                ProgrammingLanguage = ParserLanguage
+            };
+            foreach(var child in blockElement.Elements()) {
+                bs.AddChildStatement(ParseElement(child, context));
+            }
+
+            return bs;
+        }
+
+        /// <summary>
+        /// Creates an ExternStatement from the given extern element.
+        /// Note that only extern statements with a linkage specifier, e.g. "extern "C" int foo();", are marked up with SRC.Extern.
+        /// </summary>
+        /// <param name="externElement">The SRC.Extern element to parse.</param>
+        /// <param name="context">The parser context to use.</param>
+        /// <returns>An ExternStatement corresponding to externElement.</returns>
+        protected virtual ExternStatement ParseExternElement(XElement externElement, ParserContext context) {
+            if(externElement == null)
+                throw new ArgumentNullException("externElement");
+            if(externElement.Name != SRC.Extern)
+                throw new ArgumentException("must be a SRC.Extern element", "externElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            var es = new ExternStatement() {
+                Location = context.CreateLocation(externElement),
+                ProgrammingLanguage = ParserLanguage
+            };
+
+            foreach(var exChild in externElement.Elements()) {
+                if(exChild.Name == LIT.Literal) {
+                    es.LinkageType = exChild.Value;
+                } else if(exChild.Name == SRC.Block) {
+                    //add children from block
+                    var blockStatements = exChild.Elements().Select(e => ParseElement(e, context));
+                    es.AddChildStatements(blockStatements);
+                } else {
+                    es.AddChildStatement(ParseElement(exChild, context));
+                }
+            }
+
+            return es;
         }
 
         #region Parse expression elements

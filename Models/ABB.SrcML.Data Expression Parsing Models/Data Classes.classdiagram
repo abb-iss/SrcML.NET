@@ -526,6 +526,25 @@
         <elementDefinition Id="ea703639-bf4a-4f37-bfbe-5e8f5320e541" />
       </referencedType>
     </packageHasNamedElement>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="0720bafe-7182-45c0-9c9e-6d84abe59dae" name="ExternStatement" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="73fb7a2b-2041-479c-b2df-f07c4df8d4a8" />
+        <generalsInternal>
+          <generalization Id="710c94cc-aa7a-4bf9-aaf2-5ee309971193" isSubstitutable="false">
+            <classMoniker Id="bba6f67c-b6ff-476b-8cdb-162ca35391c0" LastKnownName="Statement" />
+            <elementDefinition Id="aca3046a-021b-410b-ae02-b128db1e5b64" />
+          </generalization>
+        </generalsInternal>
+        <ownedAttributesInternal>
+          <property Id="1ac21eb4-e6d0-4e55-98d8-59185b84d7f4" name="LinkageType" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="5c1a3eb2-d259-4cdd-afb7-91ad330fa99c" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="0a9527c3-6ad3-4c5c-a6e2-ae7be648daf6" LastKnownName="string" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
   </packagedElements>
   <package Id="c02869ee-47c8-48ad-8d27-a1ad32da6c58" name="ABB.SrcML.Data.ExpressionParsingModels">
     <elementDefinition Id="b7d58ad4-ad72-4d67-8187-3644da97b0b7" />
