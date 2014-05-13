@@ -89,6 +89,30 @@ namespace ABB.SrcML.Data.Test {
 
         }
 
+        [Test]
+        public void TestFreeStandingBlock() {
+            //{
+            //	int foo = 42;
+            //	MethodCall(foo);
+            //}
+            string xml = @"<block>{
+	<decl_stmt><decl><type><name>int</name></type> <name>foo</name> =<init> <expr><lit:literal type=""number"">42</lit:literal></expr></init></decl>;</decl_stmt>
+	<expr_stmt><expr><call><name>MethodCall</name><argument_list>(<argument><expr><name>foo</name></expr></argument>)</argument_list></call></expr>;</expr_stmt>
+}</block>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
+
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            var firstChild = globalScope.ChildStatements.First();
+
+            Assert.IsInstanceOf<BlockStatement>(firstChild);
+            
+            var actual = firstChild as BlockStatement;
+            Assert.IsNull(actual.Content);
+            Assert.AreEqual(2, actual.ChildStatements.Count);
+            Assert.That(globalScope.IsGlobal);
+            Assert.AreSame(globalScope, actual.ParentStatement);
+        }
+
 //        [Test]
 //        public void TestConstructorWithCallToSelf() {
 //            // test.h class MyClass {

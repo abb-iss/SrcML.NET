@@ -412,6 +412,8 @@ namespace ABB.SrcML.Data {
                     stmt = ParseExpressionStatementElement(element, context);
                 } else if(element.Name == SRC.DeclarationStatement) {
                     stmt = ParseDeclarationStatementElement(element, context);
+                } else if(element.Name == SRC.Block) {
+                    stmt = ParseBlockElement(element, context);
                 } else if(element.Name == SRC.Comment) {
                     //do nothing?
                 } else {
@@ -1189,6 +1191,33 @@ namespace ABB.SrcML.Data {
                 namespaceForUnit.AddChildStatement(ParseElement(child, context));
             }
             return namespaceForUnit;
+        }
+
+        /// <summary>
+        /// Creates a BlockStatement from the given block element. 
+        /// This method is only for parsing free-standing blocks, which are very rare. 
+        /// Most blocks are parsed by the construct they are attached to, e.g. an if-statement or class definition.
+        /// </summary>
+        /// <param name="blockElement">The SRC.Block element to parse.</param>
+        /// <param name="context">The parser context to use.</param>
+        /// <returns>A BlockStatement corresponding to blockElement.</returns>
+        protected virtual BlockStatement ParseBlockElement(XElement blockElement, ParserContext context) {
+            if(blockElement == null)
+                throw new ArgumentNullException("blockElement");
+            if(blockElement.Name != SRC.Block)
+                throw new ArgumentException("must be a SRC.Block element", "blockElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            var bs = new BlockStatement() {
+                Location = context.CreateLocation(blockElement),
+                ProgrammingLanguage = ParserLanguage
+            };
+            foreach(var child in blockElement.Elements()) {
+                bs.AddChildStatement(ParseElement(child, context));
+            }
+
+            return bs;
         }
 
         #region Parse expression elements
