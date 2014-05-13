@@ -113,6 +113,42 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreSame(globalScope, actual.ParentStatement);
         }
 
+        [Test]
+        public void TestExternStatement_Single() {
+            //extern "C" int MyGlobalVar;
+            string xml = @"<extern>extern <lit:literal type=""string"">""C""</lit:literal> <decl_stmt><decl><type><name>int</name></type> <name>MyGlobalVar</name></decl>;</decl_stmt></extern>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
+
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            var actual = globalScope.ChildStatements.First() as ExternStatement;
+
+            Assert.IsNotNull(actual);
+            Assert.AreEqual("\"C\"", actual.LinkageType);
+            Assert.AreEqual(1, actual.ChildStatements.Count);
+            
+        }
+
+        [Test]
+        public void TestExternStatement_Block() {
+            //extern "C" {
+            //  int globalVar1;
+            //  int globalVar2;
+            //}
+            string xml = @"<extern>extern <lit:literal type=""string"">""C""</lit:literal> <block>{
+  <decl_stmt><decl><type><name>int</name></type> <name>globalVar1</name></decl>;</decl_stmt>
+  <decl_stmt><decl><type><name>int</name></type> <name>globalVar2</name></decl>;</decl_stmt>
+}</block></extern>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
+
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            var actual = globalScope.ChildStatements.First() as ExternStatement;
+
+            Assert.IsNotNull(actual);
+            Assert.AreEqual("\"C\"", actual.LinkageType);
+            Assert.AreEqual(2, actual.ChildStatements.Count);
+            
+        }
+
 //        [Test]
 //        public void TestConstructorWithCallToSelf() {
 //            // test.h class MyClass {

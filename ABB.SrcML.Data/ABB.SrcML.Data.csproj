@@ -68,6 +68,7 @@
     <Compile Include="DoWhileStatement.cs" />
     <Compile Include="ErrorRaisedArgs.cs" />
     <Compile Include="Expression.cs" />
+    <Compile Include="ExternStatement.cs" />
     <Compile Include="ForeachStatement.cs" />
     <Compile Include="ForStatement.cs" />
     <Compile Include="GotoStatement.cs" />
