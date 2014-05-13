@@ -277,11 +277,9 @@ namespace ABB.SrcML.Data.Test {
 
                     start = DateTime.Now;
                     if(useAsyncMethods) {
-                        var task = monitor.UpdateArchivesAsync().ContinueWith((t) => {
-                            end = DateTime.Now;
-                            startupCompleted = true;
-                        });
-                        task.Wait();
+                        monitor.UpdateArchivesAsync().Wait();
+                        end = DateTime.Now;
+                        startupCompleted = true;
                     } else {
                         monitor.UpdateArchives();
                         end = DateTime.Now;
@@ -331,7 +329,7 @@ namespace ABB.SrcML.Data.Test {
                         };
 
                         if(useAsyncMethods) {
-                            data.InitializeDataConcurrent();
+                            data.InitializeDataAsync().Wait();
                         } else {
                             data.InitializeData();
                         }
@@ -347,10 +345,15 @@ namespace ABB.SrcML.Data.Test {
                         Console.WriteLine("{0,10:N0} successes ({1,8:P2})", numberOfSuccesses, ((float) numberOfSuccesses) / numberOfFiles);
                         Console.WriteLine("{0} to generate data", end - start);
                         Console.WriteLine(fileLogPath);
-
-                        PrintScopeReport(data.GetGlobalScope());
-                        PrintMethodCallReport(data.GetGlobalScope(), callLogPath);
-                        PrintErrorReport(errors);
+                        IScope globalScope;
+                        Assert.That(data.TryLockGlobalScope(Timeout.Infinite, out globalScope));
+                        try {
+                            PrintScopeReport(globalScope);
+                            PrintMethodCallReport(globalScope, callLogPath);
+                            PrintErrorReport(errors);
+                        } finally {
+                            data.ReleaseGlobalScopeLock();
+                        }
                     }
                 }
             }

@@ -13,6 +13,7 @@ namespace ABB.VisualStudio {
     public class TaskManagerService : ITaskManagerService, STaskManagerService {
         private IServiceProvider _serviceProvider;
         private LimitedConcurrencyLevelTaskScheduler _scheduler;
+        private TaskFactory _factory;
         private EnvDTE.DTE _dteService;
         private EnvDTE.BuildEvents _buildEvents;
         private EnvDTE.WindowEvents _windowEvents;
@@ -20,6 +21,7 @@ namespace ABB.VisualStudio {
         public TaskManagerService(IServiceProvider serviceProvider, IConcurrencyStrategy concurrencyStrategy) {
             this._serviceProvider = serviceProvider;
             this._scheduler = new LimitedConcurrencyLevelTaskScheduler(concurrencyStrategy.ComputeAvailableCores());
+            this._factory = new TaskFactory(_scheduler);
             SubscribeToEvents();
         }
 
@@ -91,5 +93,7 @@ namespace ABB.VisualStudio {
         }
 
         public TaskScheduler GlobalScheduler { get { return this._scheduler; } }
+
+        public TaskFactory GlobalFactory { get { return this._factory; } }
     }
 }

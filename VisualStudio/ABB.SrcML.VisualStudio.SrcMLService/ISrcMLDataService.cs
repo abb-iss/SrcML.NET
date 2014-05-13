@@ -21,9 +21,15 @@ namespace ABB.SrcML.VisualStudio.Interfaces {
     [Guid("3331EA7E-2877-45F5-9E14-31FF0F5B761A"), ComVisible(true)]
     public interface ISrcMLDataService {
         event EventHandler<FileEventRaisedArgs> FileProcessed;
-        event EventHandler InitializationComplete;
+        event EventHandler UpdateStarted;
+        event EventHandler UpdateCompleted;
         event EventHandler MonitoringStarted;
         event EventHandler MonitoringStopped;
+
+        bool IsMonitoring { get; }
+
+        bool IsUpdating { get; }
+
         DataRepository GetDataRepository();
     }
     [Guid("4F09B16E-9048-40BA-89FA-31F692C5D8E0")]

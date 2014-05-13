@@ -121,7 +121,7 @@ namespace ABB.SrcML.Tools.MethodCallSurvey {
         private void loadWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e) {
             List<object> results = e.Result as List<object>;
             Sample.Archive = results[0] as SrcMLArchive;
-            Sample.Data = results[1] as IDataRepository;
+            Sample.Data = results[1] as DataRepository;
             Sample.ProjectName = results[2] as string;
             StatusBarProgress.Value = 0;
             sampleWorker.RunWorkerAsync(Sample);

@@ -30,7 +30,8 @@ namespace ABB.SrcML.Tools.MethodCallSurvey {
             this.isExternal = false;
 
             this.Location = data.Location;
-            this.FullName = data.ParentScope.GetParentScopesAndSelf<NamedScope>().First().GetFullName();
+            //TODO fix this once new type hierarchy is in place
+            //this.FullName = data.ParentScope.GetParentScopesAndSelf<NamedScope>().First().GetFullName();
             this.Id = DataHelpers.GetLocation(data.Location);
             this.Path = this.Location.SourceFileName;
 

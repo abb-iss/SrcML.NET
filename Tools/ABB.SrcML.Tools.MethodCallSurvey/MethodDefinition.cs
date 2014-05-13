@@ -20,7 +20,7 @@ namespace ABB.SrcML.Tools.MethodCallSurvey {
 
             this.isValid = false;
 
-            this.Location = data.PrimaryLocation;
+            this.Location = data.Location;
             this.FullName = Data.GetFullName();
             this.Id = DataHelpers.GetLocation(Location);
             this.Path = Location.SourceFileName;
@@ -70,7 +70,7 @@ namespace ABB.SrcML.Tools.MethodCallSurvey {
         }
 
         private string GetMethodSignature() {
-            var methodElement = DataHelpers.GetElement(Archive, Data.PrimaryLocation);
+            var methodElement = DataHelpers.GetElement(Archive, Data.Location);
             if(methodElement.Element(SRC.Block) != null) {
                 methodElement.Element(SRC.Block).Remove();
             }

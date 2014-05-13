@@ -53,6 +53,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         
         event EventHandler UpdateArchivesCompleted;
 
+        bool IsMonitoring { get; }
+
         bool IsUpdating { get; }
 
         /// <summary>

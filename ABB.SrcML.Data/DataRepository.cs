@@ -50,10 +50,11 @@ namespace ABB.SrcML.Data {
     /// parentXml = data.ResolveType(parentType).GetXElement(); </code>
     /// </example>
     public class DataRepository : IDisposable {
-        private Scope globalScope;
+        private NamespaceDefinition _globalScope;
         private Dictionary<Language, AbstractCodeParser> parsers;
         private ReadyNotifier ReadyState;
         private ReaderWriterLockSlim scopeLock;
+        private TaskFactory _taskFactory;
 
         /// <summary>
         /// Create a data archive for the given srcML archive. It will subscribe to the
@@ -61,7 +62,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="archive">The archive to monitor for changes.</param>
         public DataRepository(SrcMLArchive archive)
-            : this(archive, null) {
+            : this(archive, null, TaskScheduler.Default) {
         }
 
         /// <summary>
@@ -70,8 +71,16 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="fileName">The binary file the data archive is stored in</param>
         public DataRepository(string fileName)
-            : this(null, fileName) {
-        }
+            : this(null, fileName, TaskScheduler.Default) { }
+
+        public DataRepository(SrcMLArchive archive, string fileName)
+            : this(archive, fileName, TaskScheduler.Default) { }
+
+        public DataRepository(string fileName, TaskScheduler scheduler)
+            : this(null, fileName, scheduler) { }
+
+        public DataRepository(SrcMLArchive archive, TaskScheduler scheduler)
+            : this(archive, null, scheduler) { }
 
         /// <summary>
         /// Create a data archive for the given srcML archive and binary file. It will load data
@@ -81,12 +90,13 @@ namespace ABB.SrcML.Data {
         /// monitoring will be done.</param>
         /// <param name="fileName">The file to read data from. If null, no previously saved data
         /// will be loaded.</param>
-        public DataRepository(SrcMLArchive archive, string fileName) {
+        public DataRepository(SrcMLArchive archive, string fileName, TaskScheduler scheduler) {
             SetupParsers();
             scopeLock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
             this.ReadyState = new ReadyNotifier(this);
             this.Archive = archive;
             this.FileName = fileName;
+            this._taskFactory = new TaskFactory(scheduler);
         }
 
         /// <summary>
@@ -132,8 +142,13 @@ namespace ABB.SrcML.Data {
             scopeLock.ExitReadLock();
         }
 
-        public bool TryLockGlobalScope(int millisecondsTimeout) {
-            return scopeLock.TryEnterReadLock(millisecondsTimeout);
+        public bool TryLockGlobalScope(int millisecondsTimeout, out NamespaceDefinition globalScope) {
+            if(scopeLock.TryEnterReadLock(millisecondsTimeout)) {
+                globalScope = this._globalScope;
+                return true;
+            }
+            globalScope = null;
+            return false;
         }
 
         #endregion Locking methods
@@ -182,7 +197,7 @@ namespace ABB.SrcML.Data {
         public void Clear() {
             scopeLock.EnterWriteLock();
             try {
-                globalScope = null;
+                _globalScope = null;
                 //TODO: clear any other data structures as necessary
             } finally {
                 scopeLock.ExitWriteLock();
@@ -194,14 +209,16 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="sourceFile">The path of the file to remove.</param>
         public void RemoveFile(string sourceFile) {
-            scopeLock.EnterWriteLock();
-            try {
-                IsReady = false;
-                globalScope.RemoveFile(sourceFile);
-                IsReady = true;
-            } finally {
-                scopeLock.ExitWriteLock();
-            }
+            //TODO reimplement once merge has been implemented
+            //scopeLock.EnterWriteLock();
+            //try {
+            //    IsReady = false;
+            //    _globalScope.RemoveFile(sourceFile);
+            //    IsReady = true;
+            //} finally {
+            //    scopeLock.ExitWriteLock();
+            //}
+            throw new NotImplementedException();
         }
 
         #endregion Modification methods
@@ -218,18 +235,20 @@ namespace ABB.SrcML.Data {
             if(loc == null)
                 throw new ArgumentNullException("loc");
             scopeLock.EnterReadLock();
-            try {
-                var scope = globalScope.GetScopeForLocation(loc);
-                if(scope == null) {
-                    //TODO replace logger call
-                    //Utilities.SrcMLFileLogger.DefaultLogger.InfoFormat("SourceLocation {0} not found in DataRepository", loc);
-                    return new Collection<MethodCall>();
-                }
-                var calls = scope.MethodCalls.Where(mc => mc.Location.Contains(loc));
-                return new Collection<MethodCall>(calls.OrderByDescending(mc => mc.Location, new SourceLocationComparer()).ToList());
-            } finally {
-                scopeLock.ExitReadLock();
-            }
+            //TODO reimplement once getscopeforlocation has been added
+            //try {
+            //    var scope = _globalScope.GetScopeForLocation(loc);
+            //    if(scope == null) {
+            //        //TODO replace logger call
+            //        //Utilities.SrcMLFileLogger.DefaultLogger.InfoFormat("SourceLocation {0} not found in DataRepository", loc);
+            //        return new Collection<MethodCall>();
+            //    }
+            //    var calls = scope.MethodCalls.Where(mc => mc.Location.Contains(loc));
+            //    return new Collection<MethodCall>(calls.OrderByDescending(mc => mc.Location, new SourceLocationComparer()).ToList());
+            //} finally {
+            //    scopeLock.ExitReadLock();
+            //}
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -254,17 +273,19 @@ namespace ABB.SrcML.Data {
             if(xpath == null)
                 throw new ArgumentNullException("xpath");
 
-            scopeLock.EnterReadLock();
-            try {
-                var scope = globalScope.GetScopeForLocation(xpath);
-                var calls = scope.MethodCalls.Where(mc => xpath.StartsWith(mc.Location.XPath));
-                return new Collection<MethodCall>(calls.OrderByDescending(mc => mc.Location, new SourceLocationComparer()).ToList());
-            } finally {
-                scopeLock.ExitReadLock();
-            }
+            //TODO reimplement once getscopeforlocation has been added
+            //scopeLock.EnterReadLock();
+            //try {
+            //    var scope = _globalScope.GetScopeForLocation(xpath);
+            //    var calls = scope.MethodCalls.Where(mc => xpath.StartsWith(mc.Location.XPath));
+            //    return new Collection<MethodCall>(calls.OrderByDescending(mc => mc.Location, new SourceLocationComparer()).ToList());
+            //} finally {
+            //    scopeLock.ExitReadLock();
+            //}
+            throw new NotImplementedException();
         }
 
-        public T Findscope<T>(XElement element) where T : Scope {
+        public T Findscope<T>(XElement element) where T : Statement {
             return GetFirstAncestor<T>(FindScope(element));
         }
 
@@ -274,13 +295,15 @@ namespace ABB.SrcML.Data {
         /// <param name="loc">The source location to search for.</param>
         /// <returns>The innermost scope containing the location, or null if it is not
         /// found.</returns>
-        public Scope FindScope(SourceLocation loc) {
-            scopeLock.EnterReadLock();
-            try {
-                return globalScope.GetScopeForLocation(loc);
-            } finally {
-                scopeLock.ExitReadLock();
-            }
+        public Statement FindScope(SourceLocation loc) {
+            //TODO reimplement once getscopeforlocation has been added
+            //scopeLock.EnterReadLock();
+            //try {
+            //    return _globalScope.GetScopeForLocation(loc);
+            //} finally {
+            //    scopeLock.ExitReadLock();
+            //}
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -289,13 +312,15 @@ namespace ABB.SrcML.Data {
         /// <param name="element">The element to search for.</param>
         /// <returns>The innermost scope containing the element, or null if it is not
         /// found.</returns>
-        public Scope FindScope(XElement element) {
-            scopeLock.EnterReadLock();
-            try {
-                return globalScope.GetScopeForLocation(element.GetXPath());
-            } finally {
-                scopeLock.ExitReadLock();
-            }
+        public Statement FindScope(XElement element) {
+            //TODO reimplement once getscopeforlocation has been added
+            //scopeLock.EnterReadLock();
+            //try {
+            //    return _globalScope.GetScopeForLocation(element.GetXPath());
+            //} finally {
+            //    scopeLock.ExitReadLock();
+            //}
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -303,30 +328,23 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="xpath">The XPath to search for.</param>
         /// <returns>The innermost scope containing the XPath, or null if it is not found.</returns>
-        public Scope FindScope(string xpath) {
-            scopeLock.EnterReadLock();
-            try {
-                return globalScope.GetScopeForLocation(xpath);
-            } finally {
-                scopeLock.ExitReadLock();
-            }
+        public Statement FindScope(string xpath) {
+            //TODO reimplement once getscopeforlocation has been added
+            //scopeLock.EnterReadLock();
+            //try {
+            //    return _globalScope.GetScopeForLocation(xpath);
+            //} finally {
+            //    scopeLock.ExitReadLock();
+            //}
+            throw new NotImplementedException();
         }
 
-        public T FindScope<T>(SourceLocation loc) where T : Scope {
+        public T FindScope<T>(SourceLocation loc) where T : Statement {
             return GetFirstAncestor<T>(FindScope(loc));
         }
 
-        public T FindScope<T>(string xpath) where T : Scope {
+        public T FindScope<T>(string xpath) where T : Statement {
             return GetFirstAncestor<T>(FindScope(xpath));
-        }
-
-        public Scope GetGlobalScope() {
-            scopeLock.EnterReadLock();
-            try {
-                return this.globalScope;
-            } finally {
-                scopeLock.ExitReadLock();
-            }
         }
 
         #endregion Query methods
@@ -349,7 +367,7 @@ namespace ABB.SrcML.Data {
                     OnErrorRaised(new ErrorRaisedArgs(e));
                 }
             }
-            if(globalScope == null) {
+            if(_globalScope == null) {
                 ReadArchive();
             }
             IsReady = true;
@@ -363,33 +381,23 @@ namespace ABB.SrcML.Data {
         /// file units in <see cref="Archive"/>. It parses the file units concurrently and merges
         /// them on the main thread.
         /// </summary>
-        public void InitializeDataConcurrent() {
-            InitializeDataConcurrent(TaskScheduler.Default);
-        }
-
-        /// <summary>
-        /// initializes the archive. If <see cref="FileName"/> is set and exists, then it attempts
-        /// to read the data from disk via <see cref="Load(string)"/>. If the load fails the
-        /// repository raises an <see cref="ErrorRaised"/> event and then iterates over all of the
-        /// file units in <see cref="Archive"/>. It parses the file units concurrently and merges
-        /// them on the main thread.
-        /// </summary>
-        /// <param name="scheduler">The scheduler to use</param>
-        public void InitializeDataConcurrent(TaskScheduler scheduler) {
+        public Task InitializeDataAsync() {
+            return _taskFactory.StartNew(() => {
             IsReady = false;
             Clear();
-            if(FileName != null && File.Exists(FileName)) {
+                if(null != FileName && File.Exists(FileName)) {
                 try {
                     Load(FileName);
                 } catch(SerializationException e) {
                     OnErrorRaised(new ErrorRaisedArgs(e));
                 }
             }
-            if(globalScope == null) {
-                ReadArchiveConcurrent(scheduler);
+                if(null == _globalScope) {
+                    ReadArchiveAsync().Wait();
             }
             IsReady = true;
             SubscribeToArchive();
+            });
         }
 
         /// <summary>
@@ -405,12 +413,12 @@ namespace ABB.SrcML.Data {
             }
             using(var f = File.OpenRead(fileName)) {
                 var formatter = new BinaryFormatter();
-                var tempScope = formatter.Deserialize(f) as Scope;
+                var tempScope = formatter.Deserialize(f) as NamespaceDefinition;
                 //Will throw an exception if it doesn't deserialize correctly
                 this.FileName = fileName;
                 scopeLock.EnterWriteLock();
                 try {
-                    this.globalScope = tempScope;
+                    this._globalScope = tempScope;
                 } finally {
                     scopeLock.ExitWriteLock();
                 }
@@ -447,7 +455,7 @@ namespace ABB.SrcML.Data {
             using(var f = File.OpenWrite(fileName)) {
                 scopeLock.EnterReadLock();
                 try {
-                    formatter.Serialize(f, globalScope);
+                    formatter.Serialize(f, _globalScope);
                 } finally {
                     scopeLock.ExitReadLock();
                 }
@@ -500,8 +508,8 @@ namespace ABB.SrcML.Data {
             }
         }
 
-        private T GetFirstAncestor<T>(Scope scope) where T : Scope {
-            return (scope != null ? scope.GetParentScopesAndSelf<T>().FirstOrDefault() : null);
+        private T GetFirstAncestor<T>(Statement scope) where T : Statement {
+            return (null != scope ? scope.GetAncestorsAndSelf<T>().FirstOrDefault() : null);
         }
 
         //TODO: re-add this once merging has been implemented
@@ -562,24 +570,23 @@ namespace ABB.SrcML.Data {
             }
         }
 
-        private void ReadArchiveConcurrent(TaskScheduler scheduler) {
-            throw new NotImplementedException();
-
+        private Task ReadArchiveAsync() {
+            //TODO reimplement once merge has been implemented
             //if(null != Archive) {
+            //    return _taskFactory.StartNew(() => {
             //    BlockingCollection<IScope> mergeQueue = new BlockingCollection<IScope>();
 
-            //    var task = new Task(() => {
-            //        Parallel.ForEach(Archive.FileUnits, currentUnit => {
-            //            var scope = ParseFileUnit(currentUnit);
-            //            if(scope != null) {
+            //        var parseTask = _taskFactory.StartNew(() => {
+            //            Parallel.ForEach(Archive.FileUnits, unit => {
+            //                var scope = ParseFileUnit(unit);
+            //                if(null != scope) {
             //                mergeQueue.Add(scope);
             //            }
             //        });
             //        mergeQueue.CompleteAdding();
             //    });
 
-            //    task.Start(scheduler);
-
+            //    var mergeTask =  _taskFactory.StartNew(() => {
             //    scopeLock.EnterWriteLock();
             //    try {
             //        foreach(var scope in mergeQueue.GetConsumingEnumerable()) {
@@ -590,7 +597,11 @@ namespace ABB.SrcML.Data {
             //    } finally {
             //        scopeLock.ExitWriteLock();
             //    }
+            //    });
+            //        Task.WaitAll(parseTask, mergeTask);
+            //    });
             //}
+            throw new NotImplementedException();
         }
 
         private void SetupParsers() {

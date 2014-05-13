@@ -61,14 +61,15 @@ namespace ABB.SrcML.Data.Test {
 
         private static IMethodDefinition GetMethodWithName(IDataRepository dataRepository, int timeout, string methodName) {
             IMethodDefinition result = null;
-            if(dataRepository.TryLockGlobalScope(timeout)) {
-                try {
-                    result = dataRepository.GetGlobalScope().GetChildScopesWithId<IMethodDefinition>("foo").FirstOrDefault();
-                } finally {
-                    dataRepository.ReleaseGlobalScopeLock();
-                }
+            IScope globalScope;
+            Assert.That(dataRepository.TryLockGlobalScope(timeout, out globalScope));
+            try {
+                result = globalScope.GetChildScopesWithId<IMethodDefinition>("foo").FirstOrDefault();
+                return result;
+            } finally {
+                dataRepository.ReleaseGlobalScopeLock();
             }
-            return result;
+            
         }
     }
 }

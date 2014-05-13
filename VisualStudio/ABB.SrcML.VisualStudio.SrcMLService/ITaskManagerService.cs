@@ -29,6 +29,8 @@ namespace ABB.VisualStudio.Interfaces {
     public interface ITaskManagerService {
         TaskScheduler GlobalScheduler { get; }
 
+        TaskFactory GlobalFactory { get; }
+
         event EventHandler SchedulerIdled;
 
         void Start();
