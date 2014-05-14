@@ -622,7 +622,14 @@ namespace ABB.SrcML.Data {
             return whileStmt;
         }
 
-        protected virtual ForStatement ParseForElement(XElement forElement, ParserContext context) {
+        /// <summary>
+        /// Creates a ForStatement from the given element.
+        /// </summary>
+        /// <param name="forElement">The SRC.For element to parse.</param>
+        /// <param name="context">The parser context to use.</param>
+        /// <returns>A ForStatement corresponding to forElement. 
+        /// The return type is ConditionBlockStatement so that the Java parser can also return a ForeachStatement when necessary.</returns>
+        protected virtual ConditionBlockStatement ParseForElement(XElement forElement, ParserContext context) {
             if(forElement == null)
                 throw new ArgumentNullException("forElement");
             if(forElement.Name != SRC.For)
@@ -638,9 +645,9 @@ namespace ABB.SrcML.Data {
             foreach(var forChild in forElement.Elements()) {
                 if(forChild.Name == SRC.Init) {
                     //fill in initializer
-                    var expElement = forChild.Element(SRC.Expression);
+                    var expElement = forChild.Elements().FirstOrDefault(e => e.Name == SRC.Expression || e.Name == SRC.Declaration);
                     if(expElement != null) {
-                        forStmt.Initializer = ParseExpressionElement(expElement, context);
+                        forStmt.Initializer = ParseExpression(expElement, context);
                     }
                 }
                 else if(forChild.Name == SRC.Condition) {
@@ -667,8 +674,6 @@ namespace ABB.SrcML.Data {
                 }
             }
 
-            //TODO: in Java parser, be sure to override this method in order to handle foreach syntax
-
             return forStmt;
         }
 
@@ -688,10 +693,9 @@ namespace ABB.SrcML.Data {
             foreach(var child in foreachElement.Elements()) {
                 if(child.Name == SRC.Init) {
                     //fill in condition/initializer
-                    var expElement = child.Element(SRC.Expression);
-                    //TODO: this might be a decl element rather than an expr due to a bug in srcML parsing
+                    var expElement = child.Elements().FirstOrDefault(e => e.Name == SRC.Expression || e.Name == SRC.Declaration);
                     if(expElement != null) {
-                        foreachStmt.Condition = ParseExpressionElement(expElement, context);
+                        foreachStmt.Condition = ParseExpression(expElement, context);
                     }
                 }
                 else if(child.Name == SRC.Block) {
@@ -1259,6 +1263,29 @@ namespace ABB.SrcML.Data {
         }
 
         #region Parse expression elements
+        /// <summary>
+        /// Creates an Expression from the given element. The element must be a SRC.Expression or SRC.Declaration.
+        /// This method is just a helper that dispatches to ParseExpressionElement or ParseDeclarationElement as appropriate.
+        /// </summary>
+        /// <param name="element">The element to parse.</param>
+        /// <param name="context">The parser context to use.</param>
+        /// <returns>An Expression parsed from the element.</returns>
+        protected virtual Expression ParseExpression(XElement element, ParserContext context) {
+            if(element == null)
+                throw new ArgumentNullException("element");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            if(element.Name == SRC.Expression) {
+                return ParseExpressionElement(element, context);
+            }
+            if(element.Name == SRC.Declaration) {
+                return ParseDeclarationElement(element, context);
+            }
+            
+            throw new ArgumentException("Must be a SRC.Expression or SRC.Declaration element", "element");
+        }
+        
         protected virtual Expression ParseExpressionElement(XElement expElement, ParserContext context) {
             if(expElement == null)
                 throw new ArgumentNullException("expElement");

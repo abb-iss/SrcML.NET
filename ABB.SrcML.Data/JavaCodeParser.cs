@@ -181,5 +181,51 @@ namespace ABB.SrcML.Data {
 
         //    ParseNamespaceElement(unitElement, context);
         //}
+
+        /// <summary>
+        /// Creates a ForStatement or ForeachStatement from the given element.
+        /// </summary>
+        /// <param name="forElement">The SRC.For element to parse.</param>
+        /// <param name="context">The parser context to use.</param>
+        /// <returns>A ForStatement or ForeachStatement corresponding to forElement.</returns>
+        protected override ConditionBlockStatement ParseForElement(XElement forElement, ParserContext context) {
+            if(forElement == null)
+                throw new ArgumentNullException("forElement");
+            if(forElement.Name != SRC.For)
+                throw new ArgumentException("Must be a SRC.For element", "forElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            if(forElement.Element(SRC.Condition) != null) {
+                //this is a standard for-loop, use the base processing
+                return base.ParseForElement(forElement, context);
+            }
+
+            //else, this is a Java-style foreach loop
+            var foreachStmt = new ForeachStatement() {
+                Location = context.CreateLocation(forElement),
+                ProgrammingLanguage = ParserLanguage
+            };
+
+            foreach(var child in forElement.Elements()) {
+                if(child.Name == SRC.Init) {
+                    //fill in condition/initializer
+                    var expElement = child.Elements().FirstOrDefault(e => e.Name == SRC.Expression || e.Name == SRC.Declaration);
+                    if(expElement != null) {
+                        foreachStmt.Condition = ParseExpression(expElement, context);
+                    }
+                }
+                else if(child.Name == SRC.Block) {
+                    //add children from block
+                    var blockStatements = child.Elements().Select(e => ParseElement(e, context));
+                    foreachStmt.AddChildStatements(blockStatements);
+                } else {
+                    //add child
+                    foreachStmt.AddChildStatement(ParseElement(child, context));
+                }
+            }
+
+            return foreachStmt;
+        }
     }
 }
