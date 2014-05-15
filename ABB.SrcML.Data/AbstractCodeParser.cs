@@ -359,8 +359,8 @@ namespace ABB.SrcML.Data {
         //    context.Push(scope);
         //}
 
-        
 
+        #region Parse statement elements
         /// <summary>
         /// This is the main function that parses srcML nodes. It selects the appropriate parse
         /// element to call and then adds declarations, method calls, and children to it
@@ -550,9 +550,9 @@ namespace ABB.SrcML.Data {
             foreach(var ifChild in ifElement.Elements()) {
                 if(ifChild.Name == SRC.Condition) {
                     //fill in condition
-                    var expElement = ifChild.Element(SRC.Expression);
+                    var expElement = GetChildExpression(ifChild);
                     if(expElement != null) {
-                        ifStmt.Condition = ParseExpressionElement(expElement, context);
+                        ifStmt.Condition = ParseExpression(expElement, context);
                     }
                 } else if(ifChild.Name == SRC.Then) {
                     //add the then statements
@@ -605,9 +605,9 @@ namespace ABB.SrcML.Data {
             foreach(var whileChild in whileElement.Elements()) {
                 if(whileChild.Name == SRC.Condition) {
                     //fill in condition
-                    var expElement = whileChild.Element(SRC.Expression);
+                    var expElement = GetChildExpression(whileChild);
                     if(expElement != null) {
-                        whileStmt.Condition = ParseExpressionElement(expElement, context);
+                        whileStmt.Condition = ParseExpression(expElement, context);
                     }
                 } else if(whileChild.Name == SRC.Block) {
                     //has a block, add children
@@ -645,23 +645,23 @@ namespace ABB.SrcML.Data {
             foreach(var forChild in forElement.Elements()) {
                 if(forChild.Name == SRC.Init) {
                     //fill in initializer
-                    var expElement = forChild.Elements().FirstOrDefault(e => e.Name == SRC.Expression || e.Name == SRC.Declaration);
+                    var expElement = GetChildExpression(forChild);
                     if(expElement != null) {
                         forStmt.Initializer = ParseExpression(expElement, context);
                     }
                 }
                 else if(forChild.Name == SRC.Condition) {
                     //fill in condition
-                    var expElement = forChild.Element(SRC.Expression);
+                    var expElement = GetChildExpression(forChild);
                     if(expElement != null) {
-                        forStmt.Condition = ParseExpressionElement(expElement, context);
+                        forStmt.Condition = ParseExpression(expElement, context);
                     }
                 }
                 else if(forChild.Name == SRC.Increment) {
                     //fill in incrementer
-                    var expElement = forChild.Element(SRC.Expression);
+                    var expElement = GetChildExpression(forChild);
                     if(expElement != null) {
-                        forStmt.Incrementer = ParseExpressionElement(expElement, context);
+                        forStmt.Incrementer = ParseExpression(expElement, context);
                     }
                 }
                 else if(forChild.Name == SRC.Block) {
@@ -693,7 +693,7 @@ namespace ABB.SrcML.Data {
             foreach(var child in foreachElement.Elements()) {
                 if(child.Name == SRC.Init) {
                     //fill in condition/initializer
-                    var expElement = child.Elements().FirstOrDefault(e => e.Name == SRC.Expression || e.Name == SRC.Declaration);
+                    var expElement = GetChildExpression(child);
                     if(expElement != null) {
                         foreachStmt.Condition = ParseExpression(expElement, context);
                     }
@@ -727,9 +727,9 @@ namespace ABB.SrcML.Data {
             foreach(var doChild in doElement.Elements()) {
                 if(doChild.Name == SRC.Condition) {
                     //fill in condition
-                    var expElement = doChild.Element(SRC.Expression);
+                    var expElement = GetChildExpression(doChild);
                     if(expElement != null) {
-                        doStmt.Condition = ParseExpressionElement(expElement, context);
+                        doStmt.Condition = ParseExpression(expElement, context);
                     }
                 } else if(doChild.Name == SRC.Block) {
                     //has a block, add children
@@ -760,9 +760,9 @@ namespace ABB.SrcML.Data {
             foreach(var switchChild in switchElement.Elements()) {
                 if(switchChild.Name == SRC.Condition) {
                     //fill in condition
-                    var expElement = switchChild.Element(SRC.Expression);
+                    var expElement = GetChildExpression(switchChild);
                     if(expElement != null) {
-                        switchStmt.Condition = ParseExpressionElement(expElement, context);
+                        switchStmt.Condition = ParseExpression(expElement, context);
                     }
                 } else if(switchChild.Name == SRC.Block) {
                     //add children from block
@@ -901,9 +901,9 @@ namespace ABB.SrcML.Data {
                 ProgrammingLanguage = ParserLanguage
             };
 
-            var expElement = returnElement.Element(SRC.Expression);
+            var expElement = GetChildExpression(returnElement);
             if(expElement != null) {
-                returnStmt.Content = ParseExpressionElement(expElement, context);
+                returnStmt.Content = ParseExpression(expElement, context);
             }
 
             return returnStmt;
@@ -922,9 +922,9 @@ namespace ABB.SrcML.Data {
                 ProgrammingLanguage = ParserLanguage
             };
 
-            var expElement = throwElement.Element(SRC.Expression);
+            var expElement = GetChildExpression(throwElement);
             if(expElement != null) {
-                throwStmt.Content = ParseExpressionElement(expElement, context);
+                throwStmt.Content = ParseExpression(expElement, context);
             }
 
             return throwStmt;
@@ -1261,6 +1261,7 @@ namespace ABB.SrcML.Data {
 
             return es;
         }
+        #endregion Parse statement elements
 
         #region Parse expression elements
         /// <summary>
@@ -1282,6 +1283,9 @@ namespace ABB.SrcML.Data {
             if(element.Name == SRC.Declaration) {
                 return ParseDeclarationElement(element, context);
             }
+
+            //TODO: how do we handle a function_declaration that's put in an expression-type place?
+            //For example, a function pointer declared in an if condition
             
             throw new ArgumentException("Must be a SRC.Expression or SRC.Declaration element", "element");
         }
@@ -1323,7 +1327,7 @@ namespace ABB.SrcML.Data {
         /// Otherwise, an Expression containing several VariableDeclaration objects.</returns>
         protected virtual Expression ParseDeclarationElement(XElement declElement, ParserContext context) {
             //TODO: implement ParseDeclarationElement
-            
+            //TODO: can/should this handle function_decls as well as decls? ParseParameterElement may pass in a function_decl
             return null;
 
             //if(declElement == null)
@@ -1423,209 +1427,209 @@ namespace ABB.SrcML.Data {
 
         #endregion aliases
 
-        #region get child containers from scope
+        //#region get child containers from scope
 
-        /// <summary>
-        /// Gets all of the child containers for the given container
-        /// </summary>
-        /// <param name="container">The container</param>
-        /// <returns>An enumerable of all the children</returns>
-        protected virtual IEnumerable<XElement> GetChildContainers(XElement container) {
-            if(null == container)
-                return Enumerable.Empty<XElement>();
-            IEnumerable<XElement> children;
+        ///// <summary>
+        ///// Gets all of the child containers for the given container
+        ///// </summary>
+        ///// <param name="container">The container</param>
+        ///// <returns>An enumerable of all the children</returns>
+        //protected virtual IEnumerable<XElement> GetChildContainers(XElement container) {
+        //    if(null == container)
+        //        return Enumerable.Empty<XElement>();
+        //    IEnumerable<XElement> children;
 
-            if(TypeElementNames.Contains(container.Name)) {
-                children = GetChildContainersFromType(container);
-            } else if(MethodElementNames.Contains(container.Name)) {
-                children = GetChildContainersFromMethod(container);
-            } else if(NamespaceElementNames.Contains(container.Name)) {
-                children = GetChildContainersFromNamespace(container);
-            } else {
-                children = from child in container.Elements()
-                           where ContainerElementNames.Contains(child.Name)
-                           select child;
-            }
-            return children;
-        }
+        //    if(TypeElementNames.Contains(container.Name)) {
+        //        children = GetChildContainersFromType(container);
+        //    } else if(MethodElementNames.Contains(container.Name)) {
+        //        children = GetChildContainersFromMethod(container);
+        //    } else if(NamespaceElementNames.Contains(container.Name)) {
+        //        children = GetChildContainersFromNamespace(container);
+        //    } else {
+        //        children = from child in container.Elements()
+        //                   where ContainerElementNames.Contains(child.Name)
+        //                   select child;
+        //    }
+        //    return children;
+        //}
 
-        /// <summary>
-        /// Gets all of the child containers for a method. It calls
-        /// <see cref="GetChildContainers(XElement)"/> on the child block.
-        /// </summary>
-        /// <param name="container">The method container</param>
-        /// <returns>All of the child containers</returns>
-        protected virtual IEnumerable<XElement> GetChildContainersFromMethod(XElement container) {
-            var block = container.Element(SRC.Block);
-            return GetChildContainers(block);
-        }
+        ///// <summary>
+        ///// Gets all of the child containers for a method. It calls
+        ///// <see cref="GetChildContainers(XElement)"/> on the child block.
+        ///// </summary>
+        ///// <param name="container">The method container</param>
+        ///// <returns>All of the child containers</returns>
+        //protected virtual IEnumerable<XElement> GetChildContainersFromMethod(XElement container) {
+        //    var block = container.Element(SRC.Block);
+        //    return GetChildContainers(block);
+        //}
 
-        /// <summary>
-        /// Gets all of the child containers for a namespace. It calls
-        /// <see cref="GetChildContainers(XElement)"/> on the child block.
-        /// </summary>
-        /// <param name="container">The namespace container</param>
-        /// <returns>All of the child containers</returns>
-        protected virtual IEnumerable<XElement> GetChildContainersFromNamespace(XElement container) {
-            var block = container.Element(SRC.Block);
-            return GetChildContainers(block);
-        }
+        ///// <summary>
+        ///// Gets all of the child containers for a namespace. It calls
+        ///// <see cref="GetChildContainers(XElement)"/> on the child block.
+        ///// </summary>
+        ///// <param name="container">The namespace container</param>
+        ///// <returns>All of the child containers</returns>
+        //protected virtual IEnumerable<XElement> GetChildContainersFromNamespace(XElement container) {
+        //    var block = container.Element(SRC.Block);
+        //    return GetChildContainers(block);
+        //}
 
-        /// <summary>
-        /// Gets all of the child containers for a type. It calls
-        /// <see cref="GetChildContainers(XElement)"/> on the child block.
-        /// </summary>
-        /// <param name="container">The namespace type</param>
-        /// <returns>All of the child containers</returns>
-        protected virtual IEnumerable<XElement> GetChildContainersFromType(XElement container) {
-            var block = container.Element(SRC.Block);
-            return GetChildContainers(block);
-        }
+        ///// <summary>
+        ///// Gets all of the child containers for a type. It calls
+        ///// <see cref="GetChildContainers(XElement)"/> on the child block.
+        ///// </summary>
+        ///// <param name="container">The namespace type</param>
+        ///// <returns>All of the child containers</returns>
+        //protected virtual IEnumerable<XElement> GetChildContainersFromType(XElement container) {
+        //    var block = container.Element(SRC.Block);
+        //    return GetChildContainers(block);
+        //}
 
-        #endregion get child containers from scope
+        //#endregion get child containers from scope
 
-        #region get method calls from scope
+        //#region get method calls from scope
 
-        /// <summary>
-        /// Gets the method calls from an element
-        /// </summary>
-        /// <param name="element">The element to search</param>
-        /// <returns>All of the call elements from the element</returns>
-        protected virtual IEnumerable<XElement> GetMethodCallsFromElement(XElement element) {
-            if(SRC.Constructor == element.Name) {
-                return GetCallsFromConstructorElement(element);
-            } else if(MethodElementNames.Contains(element.Name) ||
-               NamespaceElementNames.Contains(element.Name) ||
-               TypeElementNames.Contains(element.Name)) {
-                return GetCallsFromBlockParent(element);
-            }
-            return GetMethodCallsFromBlockElement(element);
-        }
+        ///// <summary>
+        ///// Gets the method calls from an element
+        ///// </summary>
+        ///// <param name="element">The element to search</param>
+        ///// <returns>All of the call elements from the element</returns>
+        //protected virtual IEnumerable<XElement> GetMethodCallsFromElement(XElement element) {
+        //    if(SRC.Constructor == element.Name) {
+        //        return GetCallsFromConstructorElement(element);
+        //    } else if(MethodElementNames.Contains(element.Name) ||
+        //       NamespaceElementNames.Contains(element.Name) ||
+        //       TypeElementNames.Contains(element.Name)) {
+        //        return GetCallsFromBlockParent(element);
+        //    }
+        //    return GetMethodCallsFromBlockElement(element);
+        //}
 
-        private IEnumerable<XElement> GetCallsFromBlockParent(XElement container) {
-            var block = container.Element(SRC.Block);
-            if(null == block)
-                return Enumerable.Empty<XElement>();
-            return GetMethodCallsFromBlockElement(block);
-        }
+        //private IEnumerable<XElement> GetCallsFromBlockParent(XElement container) {
+        //    var block = container.Element(SRC.Block);
+        //    if(null == block)
+        //        return Enumerable.Empty<XElement>();
+        //    return GetMethodCallsFromBlockElement(block);
+        //}
 
-        private IEnumerable<XElement> GetCallsFromConstructorElement(XElement element) {
-            var blockCalls = GetCallsFromBlockParent(element);
-            if(element.Element(SRC.MemberList) != null) {
-                var memberListCalls = from call in element.Element(SRC.MemberList).Elements(SRC.Call)
-                                      select call;
-                return memberListCalls.Concat(blockCalls);
-            }
-            return blockCalls;
-        }
+        //private IEnumerable<XElement> GetCallsFromConstructorElement(XElement element) {
+        //    var blockCalls = GetCallsFromBlockParent(element);
+        //    if(element.Element(SRC.MemberList) != null) {
+        //        var memberListCalls = from call in element.Element(SRC.MemberList).Elements(SRC.Call)
+        //                              select call;
+        //        return memberListCalls.Concat(blockCalls);
+        //    }
+        //    return blockCalls;
+        //}
 
-        private IEnumerable<XElement> GetMethodCallsFromBlockElement(XElement container) {
-            var methodCalls = from child in container.Elements()
-                              where !ContainerElementNames.Contains(child.Name)
-                              from call in child.Descendants(SRC.Call)
-                              select call;
-            return methodCalls;
-        }
+        //private IEnumerable<XElement> GetMethodCallsFromBlockElement(XElement container) {
+        //    var methodCalls = from child in container.Elements()
+        //                      where !ContainerElementNames.Contains(child.Name)
+        //                      from call in child.Descendants(SRC.Call)
+        //                      select call;
+        //    return methodCalls;
+        //}
 
-        #endregion get method calls from scope
+        //#endregion get method calls from scope
 
-        #region get declarations from scope
+        //#region get declarations from scope
 
-        /// <summary>
-        /// Gets all of the variable declarations for this block.
-        /// </summary>
-        /// <param name="container">The type container</param>
-        /// <returns>An enumerable of all the declaration XElements.</returns>
-        protected virtual IEnumerable<XElement> GetDeclarationsFromBlockElement(XElement container) {
-            if(null == container)
-                return Enumerable.Empty<XElement>();
-            var declarations = from stmtElement in container.Elements(SRC.DeclarationStatement)
-                               let declElement = stmtElement.Element(SRC.Declaration)
-                               select declElement;
-            return declarations;
-        }
+        ///// <summary>
+        ///// Gets all of the variable declarations for this block.
+        ///// </summary>
+        ///// <param name="container">The type container</param>
+        ///// <returns>An enumerable of all the declaration XElements.</returns>
+        //protected virtual IEnumerable<XElement> GetDeclarationsFromBlockElement(XElement container) {
+        //    if(null == container)
+        //        return Enumerable.Empty<XElement>();
+        //    var declarations = from stmtElement in container.Elements(SRC.DeclarationStatement)
+        //                       let declElement = stmtElement.Element(SRC.Declaration)
+        //                       select declElement;
+        //    return declarations;
+        //}
 
-        /// <summary>
-        /// Gets all of the variable declarations for this catch block. It finds the variable
-        /// declarations in <see cref="ABB.SrcML.SRC.ParameterList"/>.
-        /// </summary>
-        /// <param name="container">The catch container</param>
-        /// <returns>An enumerable of all the declaration XElements.</returns>
-        protected virtual IEnumerable<XElement> GetDeclarationsFromCatchElement(XElement container) {
-            var declarations = from parameter in container.Elements(SRC.Parameter)
-                               let declElement = parameter.Element(SRC.Declaration)
-                               let typeElement = declElement.Element(SRC.Type)
-                               where typeElement != null
-                               where !typeElement.Elements(TYPE.Modifier).Any()
-                               select declElement;
-            return declarations;
-        }
+        ///// <summary>
+        ///// Gets all of the variable declarations for this catch block. It finds the variable
+        ///// declarations in <see cref="ABB.SrcML.SRC.ParameterList"/>.
+        ///// </summary>
+        ///// <param name="container">The catch container</param>
+        ///// <returns>An enumerable of all the declaration XElements.</returns>
+        //protected virtual IEnumerable<XElement> GetDeclarationsFromCatchElement(XElement container) {
+        //    var declarations = from parameter in container.Elements(SRC.Parameter)
+        //                       let declElement = parameter.Element(SRC.Declaration)
+        //                       let typeElement = declElement.Element(SRC.Type)
+        //                       where typeElement != null
+        //                       where !typeElement.Elements(TYPE.Modifier).Any()
+        //                       select declElement;
+        //    return declarations;
+        //}
 
-        /// <summary>
-        /// Gets the declaration elements from an element
-        /// </summary>
-        /// <param name="element">The element to search</param>
-        /// <returns>All of the declaration elements from an element</returns>
-        protected virtual IEnumerable<XElement> GetDeclarationsFromElement(XElement element) {
-            if(null == element)
-                return Enumerable.Empty<XElement>();
+        ///// <summary>
+        ///// Gets the declaration elements from an element
+        ///// </summary>
+        ///// <param name="element">The element to search</param>
+        ///// <returns>All of the declaration elements from an element</returns>
+        //protected virtual IEnumerable<XElement> GetDeclarationsFromElement(XElement element) {
+        //    if(null == element)
+        //        return Enumerable.Empty<XElement>();
 
-            IEnumerable<XElement> declarationElements;
+        //    IEnumerable<XElement> declarationElements;
 
-            if(SRC.Block == element.Name || SRC.Unit == element.Name) {
-                declarationElements = GetDeclarationsFromBlockElement(element);
-            } else if(SRC.Catch == element.Name) {
-                declarationElements = GetDeclarationsFromCatchElement(element);
-            } else if(SRC.For == element.Name) {
-                declarationElements = GetDeclarationsFromForElement(element);
-            } else if(MethodElementNames.Contains(element.Name)) {
-                declarationElements = GetDeclarationsFromMethodElement(element);
-            } else if(TypeElementNames.Contains(element.Name)) {
-                declarationElements = GetDeclarationsFromTypeElement(element);
-            } else {
-                declarationElements = Enumerable.Empty<XElement>();
-            }
+        //    if(SRC.Block == element.Name || SRC.Unit == element.Name) {
+        //        declarationElements = GetDeclarationsFromBlockElement(element);
+        //    } else if(SRC.Catch == element.Name) {
+        //        declarationElements = GetDeclarationsFromCatchElement(element);
+        //    } else if(SRC.For == element.Name) {
+        //        declarationElements = GetDeclarationsFromForElement(element);
+        //    } else if(MethodElementNames.Contains(element.Name)) {
+        //        declarationElements = GetDeclarationsFromMethodElement(element);
+        //    } else if(TypeElementNames.Contains(element.Name)) {
+        //        declarationElements = GetDeclarationsFromTypeElement(element);
+        //    } else {
+        //        declarationElements = Enumerable.Empty<XElement>();
+        //    }
 
-            return declarationElements;
-        }
+        //    return declarationElements;
+        //}
 
-        /// <summary>
-        /// Gets all of the variable declarations for this for loop. It finds the variable
-        /// declaration in the <see cref="ABB.SrcML.SRC.Init"/> statement.
-        /// </summary>
-        /// <param name="container">The type container</param>
-        /// <returns>An enumerable of all the declaration XElements.</returns>
-        protected virtual IEnumerable<XElement> GetDeclarationsFromForElement(XElement container) {
-            var declarations = from declElement in container.Element(SRC.Init).Elements(SRC.Declaration)
-                               select declElement;
-            return declarations;
-        }
+        ///// <summary>
+        ///// Gets all of the variable declarations for this for loop. It finds the variable
+        ///// declaration in the <see cref="ABB.SrcML.SRC.Init"/> statement.
+        ///// </summary>
+        ///// <param name="container">The type container</param>
+        ///// <returns>An enumerable of all the declaration XElements.</returns>
+        //protected virtual IEnumerable<XElement> GetDeclarationsFromForElement(XElement container) {
+        //    var declarations = from declElement in container.Element(SRC.Init).Elements(SRC.Declaration)
+        //                       select declElement;
+        //    return declarations;
+        //}
 
-        /// <summary>
-        /// Gets all of the variable declarations for this method. It finds the variable
-        /// declarations in the child block.
-        /// </summary>
-        /// <param name="container">The method container</param>
-        /// <returns>An enumerable of all the declaration XElements.</returns>
-        protected virtual IEnumerable<XElement> GetDeclarationsFromMethodElement(XElement container) {
-            var block = container.Element(SRC.Block);
-            return GetDeclarationsFromBlockElement(block);
-        }
+        ///// <summary>
+        ///// Gets all of the variable declarations for this method. It finds the variable
+        ///// declarations in the child block.
+        ///// </summary>
+        ///// <param name="container">The method container</param>
+        ///// <returns>An enumerable of all the declaration XElements.</returns>
+        //protected virtual IEnumerable<XElement> GetDeclarationsFromMethodElement(XElement container) {
+        //    var block = container.Element(SRC.Block);
+        //    return GetDeclarationsFromBlockElement(block);
+        //}
 
-        /// <summary>
-        /// Gets all of the variable declarations for this type. It finds the variable declarations
-        /// in the child block.
-        /// </summary>
-        /// <param name="container">The type container</param>
-        /// <returns>An enumerable of all the declaration XElements.</returns>
-        protected virtual IEnumerable<XElement> GetDeclarationsFromTypeElement(XElement container) {
-            var block = container.Element(SRC.Block);
-            foreach(var declElement in GetDeclarationsFromBlockElement(block)) {
-                yield return declElement;
-            }
-        }
+        ///// <summary>
+        ///// Gets all of the variable declarations for this type. It finds the variable declarations
+        ///// in the child block.
+        ///// </summary>
+        ///// <param name="container">The type container</param>
+        ///// <returns>An enumerable of all the declaration XElements.</returns>
+        //protected virtual IEnumerable<XElement> GetDeclarationsFromTypeElement(XElement container) {
+        //    var block = container.Element(SRC.Block);
+        //    foreach(var declElement in GetDeclarationsFromBlockElement(block)) {
+        //        yield return declElement;
+        //    }
+        //}
 
-        #endregion get declarations from scope
+        //#endregion get declarations from scope
 
         #region access modifiers
 
@@ -1886,6 +1890,20 @@ namespace ABB.SrcML.Data {
                             let text = node as XText
                             select text;
             return textNodes;
+        }
+
+        /// <summary>
+        /// Get the first child of <paramref name="element"/> that is an expression.
+        /// This might be an element of type SRC.Expression, SRC.Declaration or SRC.FunctionDeclaration.
+        /// </summary>
+        /// <param name="element">The parent element from which to find the child expression.</param>
+        /// <returns>The first expression element, or null if none is found.</returns>
+        /// <exception cref="System.ArgumentNullException"><paramref name="element"/> is null.</exception>
+        protected virtual XElement GetChildExpression(XElement element) {
+            if(element == null)
+                throw new ArgumentNullException("element");
+
+            return element.Elements().FirstOrDefault(e => e.Name == SRC.Expression || e.Name == SRC.Declaration || e.Name == SRC.FunctionDeclaration);
         }
 
         #endregion utilities

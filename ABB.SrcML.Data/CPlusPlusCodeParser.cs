@@ -97,51 +97,51 @@ namespace ABB.SrcML.Data {
             return AccessModifier.None;
         }
 
-        /// <summary>
-        /// Gets the child containers for a C++ type typeUseElement. This iterates over the public,
-        /// private, and protected blocks that appear in C++ classes in srcML.
-        /// </summary>
-        /// <param name="container">the type typeUseElement</param>
-        /// <returns>the child elements of this C++ type</returns>
-        protected override IEnumerable<XElement> GetChildContainersFromType(XElement container) {
-            foreach(var child in base.GetChildContainersFromType(container)) {
-                yield return child;
-            }
+        ///// <summary>
+        ///// Gets the child containers for a C++ type typeUseElement. This iterates over the public,
+        ///// private, and protected blocks that appear in C++ classes in srcML.
+        ///// </summary>
+        ///// <param name="container">the type typeUseElement</param>
+        ///// <returns>the child elements of this C++ type</returns>
+        //protected override IEnumerable<XElement> GetChildContainersFromType(XElement container) {
+        //    foreach(var child in base.GetChildContainersFromType(container)) {
+        //        yield return child;
+        //    }
 
-            var block = container.Element(SRC.Block);
-            var specifierBlocks = from child in block.Elements()
-                                  where SpecifierContainerNames.Contains(child.Name)
-                                  select child;
+        //    var block = container.Element(SRC.Block);
+        //    var specifierBlocks = from child in block.Elements()
+        //                          where SpecifierContainerNames.Contains(child.Name)
+        //                          select child;
 
-            foreach(var specifierBlock in specifierBlocks) {
-                foreach(var child in GetChildContainers(specifierBlock)) {
-                    yield return child;
-                }
-            }
-        }
+        //    foreach(var specifierBlock in specifierBlocks) {
+        //        foreach(var child in GetChildContainers(specifierBlock)) {
+        //            yield return child;
+        //        }
+        //    }
+        //}
 
-        /// <summary>
-        /// Gets the variables declared in this C++ type typeUseElement. This iterates over the
-        /// public, private, and protected blocks that appear in C++ classes in srcML.
-        /// </summary>
-        /// <param name="container">the type typeUseElement</param>
-        /// <returns>The decl elements for this type typeUseElement</returns>
-        protected override IEnumerable<XElement> GetDeclarationsFromTypeElement(XElement container) {
-            foreach(var decl in base.GetDeclarationsFromTypeElement(container)) {
-                yield return decl;
-            }
+        ///// <summary>
+        ///// Gets the variables declared in this C++ type typeUseElement. This iterates over the
+        ///// public, private, and protected blocks that appear in C++ classes in srcML.
+        ///// </summary>
+        ///// <param name="container">the type typeUseElement</param>
+        ///// <returns>The decl elements for this type typeUseElement</returns>
+        //protected override IEnumerable<XElement> GetDeclarationsFromTypeElement(XElement container) {
+        //    foreach(var decl in base.GetDeclarationsFromTypeElement(container)) {
+        //        yield return decl;
+        //    }
 
-            var block = container.Element(SRC.Block);
-            var specifierElements = from child in block.Elements()
-                                    where SpecifierContainerNames.Contains(child.Name)
-                                    select child;
+        //    var block = container.Element(SRC.Block);
+        //    var specifierElements = from child in block.Elements()
+        //                            where SpecifierContainerNames.Contains(child.Name)
+        //                            select child;
 
-            foreach(var specifierElement in specifierElements) {
-                foreach(var declElement in GetDeclarationsFromBlockElement(specifierElement)) {
-                    yield return declElement;
-                }
-            }
-        }
+        //    foreach(var specifierElement in specifierElements) {
+        //        foreach(var declElement in GetDeclarationsFromBlockElement(specifierElement)) {
+        //            yield return declElement;
+        //        }
+        //    }
+        //}
 
         /// <summary>
         /// Gets the name for a method. This is the unqualified name, not any class names that might
