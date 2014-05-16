@@ -65,6 +65,34 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        public override Statement Merge(Statement otherStatement) {
+            return this.Merge(otherStatement as MethodDefinition);
+        }
+
+        public MethodDefinition Merge(MethodDefinition otherMethod) {
+            if(null == otherMethod) {
+                throw new ArgumentNullException("otherMethod");
+            }
+
+            MethodDefinition combinedMethod = Merge<MethodDefinition>(this, otherMethod);
+            combinedMethod.Name = this.Name;
+            combinedMethod.ReturnType = this.ReturnType;
+
+            return combinedMethod;
+        }
+
+        protected override string ComputeMergeId() {
+            char methodType = 'M';
+            if(IsConstructor) {
+                methodType = 'C';
+            } else {
+                methodType = 'D';
+            }
+
+            string id = String.Format("M{0}:{1}:{1}", methodType, this.Name, String.Join(",", Parameters));
+
+            return id;
+        }
     }
 
     ///// <summary>

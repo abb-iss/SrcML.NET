@@ -79,6 +79,25 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
+        public void TestMethodDefinitionMerge_NoParameters() {
+            ////Foo.h
+            //int Foo();
+            string declXml = "<function_decl><type><name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list>;</function_decl>";
+            var fileunitDecl = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(declXml, "Foo.h");
+            var declarationScope = CodeParser[Language.CPlusPlus].ParseFileUnit(fileunitDecl);
+
+            ////Foo.cpp
+            //int Foo() { return 0; }
+            string defXml = @"<function><type><name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><lit:literal type=""number"">0</lit:literal></expr>;</return> }</block></function>";
+            var fileUnitDef = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(defXml, "Foo.cpp");
+            var definitionScope = CodeParser[Language.CPlusPlus].ParseFileUnit(fileUnitDef);
+
+            var globalScope = declarationScope.Merge(definitionScope);
+
+            Assert.AreEqual(1, globalScope.ChildStatements.Count());
+            Assert.AreEqual("Foo", ((MethodDefinition) globalScope.ChildStatements.First()).Name);
+        }
+        [Test]
         public void TestMethodDefinitionMerge_NoParameterName() {
             ////Foo.h
             //int Foo(char);
@@ -168,6 +187,7 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("A.B.C.E", typeE.GetFullName());
             Assert.AreEqual("D.F", typeF.GetFullName());
         }
+
         [Test]
         public void TestNamespaceMerge_Java() {
             // # D.java package A.B.C; class D { public void Foo() { } }
@@ -224,6 +244,25 @@ namespace ABB.SrcML.Data.Test {
             Assert.That(typeD.ParentStatement == typeE.ParentStatement);
 
             Assert.That(typeD.ParentStatement != typeF.ParentStatement);
+        }
+
+        [Test]
+        public void TestMethodDefinitionMerge_DifferentPrefixes() {
+            ////A.cpp
+            // int A::Foo() { return 0; }
+            string aCpp = @"<function><type><name>int</name></type> <name><name>A</name><op:operator>::</op:operator><name>Foo</name></name><parameter_list>()</parameter_list> <block>{ <return>return <expr><lit:literal type=""number"">0</lit:literal></expr>;</return> }</block></function>";
+            var fileUnitA = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(aCpp, "A.cpp");
+            var aScope = CodeParser[Language.CPlusPlus].ParseFileUnit(fileUnitA);
+
+            ////B.cpp
+            // int B::Foo() { return 1; }
+            string bCpp = @"<function><type><name>int</name></type> <name><name>B</name><op:operator>::</op:operator><name>Foo</name></name><parameter_list>()</parameter_list> <block>{ <return>return <expr><lit:literal type=""number"">1</lit:literal></expr>;</return> }</block></function>";
+            var fileUnitB = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(bCpp, "B.cpp");
+            var bScope = CodeParser[Language.CPlusPlus].ParseFileUnit(fileUnitB);
+
+            var globalScope = aScope.Merge(bScope);
+
+            Assert.AreEqual(2, globalScope.ChildStatements.Count);
         }
     }
 }
