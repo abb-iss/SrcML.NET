@@ -264,5 +264,41 @@ namespace ABB.SrcML.Data.Test {
 
             Assert.AreEqual(2, globalScope.ChildStatements.Count);
         }
+        [Test]
+        public void TestPartialClassMerge_CSharp() {
+            ////A1.cs
+            //public partial class A {
+            //    public int Execute() {
+            //        return 0;
+            //    }
+            //}
+            string a1Xml = @"<class><specifier>public</specifier> <specifier>partial</specifier> class <name>A</name> <block>{
+    <function><type><specifier>public</specifier> <name>int</name></type> <name>Execute</name><parameter_list>()</parameter_list> <block>{
+        <return>return <expr><lit:literal type=""number"">0</lit:literal></expr>;</return>
+    }</block></function>
+}</block></class>";
+            var a1FileUnit = FileUnitSetup[Language.CSharp].GetFileUnitForXmlSnippet(a1Xml, "A1.cs");
+            var globalScope = CodeParser[Language.CSharp].ParseFileUnit(a1FileUnit);
+            ////A2.cs
+            //public partial class A {
+            //    private bool Foo() {
+            //        return true;
+            //    }
+            //}
+            string a2Xml = @"<class><specifier>public</specifier> <specifier>partial</specifier> class <name>A</name> <block>{
+    <function><type><specifier>private</specifier> <name>bool</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{
+        <return>return <expr><lit:literal type=""boolean"">true</lit:literal></expr>;</return>
+    }</block></function>
+}</block></class>";
+            var a2FileUnit = FileUnitSetup[Language.CSharp].GetFileUnitForXmlSnippet(a2Xml, "A2.cs");
+            globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(a2FileUnit));
+
+            Assert.AreEqual(1, globalScope.ChildStatements.Count());
+            var typeA = globalScope.ChildStatements.First() as TypeDefinition;
+            Assert.IsNotNull(typeA);
+            Assert.AreEqual(2, typeA.ChildStatements.OfType<MethodDefinition>().Count());
+            Assert.IsTrue(typeA.ChildStatements.OfType<MethodDefinition>().Any(m => m.Name == "Execute"));
+            Assert.IsTrue(typeA.ChildStatements.OfType<MethodDefinition>().Any(m => m.Name == "Foo"));
+        }
     }
 }
