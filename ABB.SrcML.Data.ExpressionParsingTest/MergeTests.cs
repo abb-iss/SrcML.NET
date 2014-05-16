@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using ABB.SrcML.Test.Utilities;
 
-namespace ABB.SrcML.Data.ExpressionParsingTest {
+namespace ABB.SrcML.Data.Test {
     [TestFixture]
     public class MergeTests {
         private Dictionary<Language, AbstractCodeParser> CodeParser;
