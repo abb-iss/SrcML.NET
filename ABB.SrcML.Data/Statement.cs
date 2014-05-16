@@ -87,6 +87,14 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
+        /// Add the given SrcMLLocations to the Locations collection
+        /// </summary>
+        /// <param name="locations">The locations to add</param>
+        public virtual void AddLocations(IEnumerable<SrcMLLocation> locations) {
+            LocationList.AddRange(locations);
+        }
+
+        /// <summary>
         /// Gets all of the parents of this statement
         /// </summary>
         /// <returns>The parents of this statement</returns>
@@ -172,6 +180,7 @@ namespace ABB.SrcML.Data {
 
         protected static T Merge<T>(T firstStatement, T secondStatement) where T : Statement, new() {
             T combinedStatement = new T();
+            combinedStatement.AddLocations(firstStatement.LocationList.Concat(secondStatement.LocationList));
             combinedStatement.AddChildStatements(firstStatement.ChildStatements.Concat(secondStatement.ChildStatements));
             combinedStatement.RestructureChildren();
             return combinedStatement;
