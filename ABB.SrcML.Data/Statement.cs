@@ -13,6 +13,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 using System.Xml;
@@ -129,6 +130,44 @@ namespace ABB.SrcML.Data {
             return GetDescendants(this, true).OfType<T>();
         }
 
+        public virtual bool CanBeMergedWith(Statement otherStatement) {
+            return this.ComputeMergeId() == otherStatement.ComputeMergeId();
+        }
+
+        protected virtual string ComputeMergeId() {
+            return this.GetHashCode().ToString();
+        }
+
+        public virtual Statement Merge(Statement otherStatement) {
+            // TODO make sure the combined statement has all the locations
+            Statement combinedStatement = new Statement();
+            combinedStatement.AddChildStatements(this.ChildStatements.Concat(otherStatement.childStatementsList));
+            combinedStatement.RestructureChildren();
+            return combinedStatement;
+        }
+
+        protected static T Merge<T>(T firstStatement, T secondStatement) where T : Statement, new() {
+            T combinedStatement = new T();
+            combinedStatement.AddChildStatements(firstStatement.ChildStatements.Concat(secondStatement.ChildStatements));
+            combinedStatement.RestructureChildren();
+            return combinedStatement;
+        }
+
+        protected virtual void RestructureChildren() {
+            OrderedDictionary childStatementMap = new OrderedDictionary();
+            foreach(var child in this.ChildStatements) {
+                string mergeId = child.ComputeMergeId();
+                Statement mergedChild;
+                if(childStatementMap.Contains(mergeId)) {
+                    mergedChild = childStatementMap[mergeId] as Statement;
+                    childStatementMap[mergeId] = mergedChild.Merge(child);
+                } else {
+                    childStatementMap[mergeId] = child;
+                }
+            }
+            childStatementsList.Clear();
+            AddChildStatements(childStatementMap.Values.OfType<Statement>());
+        }
         /// <summary>
         /// Gets a statement and all of its ancestors
         /// </summary>

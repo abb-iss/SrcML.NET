@@ -20,7 +20,6 @@ namespace ABB.SrcML.Data {
 
     [DebuggerTypeProxy(typeof(StatementDebugView))]
     public class NamespaceDefinition : NamedScope {
-
         /// <summary>
         /// Creates a new NamespaceDefinition object.
         /// </summary>
@@ -42,6 +41,28 @@ namespace ABB.SrcML.Data {
             get { return this.IsAnonymous && this.ParentStatement == null; }
         }
 
+        public override Statement Merge(Statement otherStatement) {
+            return Merge(otherStatement as NamespaceDefinition);
+        }
+
+        public NamespaceDefinition Merge(NamespaceDefinition otherNamespaceDefinition) {
+            if(null == otherNamespaceDefinition)
+                throw new ArgumentNullException("otherNamespaceDefinition");
+
+            NamespaceDefinition combinedNamespace = Merge<NamespaceDefinition>(this, otherNamespaceDefinition);
+            combinedNamespace.Name = this.Name;
+            return combinedNamespace;
+        }
+
+        protected override string ComputeMergeId() {
+            if(IsGlobal) {
+                return "NG";
+            } else if(IsAnonymous) {
+                return base.ComputeMergeId();
+            } else {
+                return String.Format("N:{0}", this.Name);
+            }
+        }
     }
 
     ///// <summary>
