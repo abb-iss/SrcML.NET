@@ -471,9 +471,9 @@ namespace ABB.SrcML.Data {
                 IsConstructor = (methodElement.Name == SRC.Constructor || methodElement.Name == SRC.ConstructorDeclaration),
                 IsDestructor = (methodElement.Name == SRC.Destructor || methodElement.Name == SRC.DestructorDeclaration),
                 Accessibility = GetAccessModifierForMethod(methodElement),
-                Location = context.CreateLocation(methodElement),
                 ProgrammingLanguage = ParserLanguage
             };
+            methodDefinition.AddLocation(context.CreateLocation(methodElement, ContainerIsReference(methodElement)));
 
             // get the return type for the method
             var returnTypeElement = methodElement.Element(SRC.Type);
@@ -542,10 +542,8 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            var ifStmt = new IfStatement() {
-                Location = context.CreateLocation(ifElement),
-                ProgrammingLanguage = ParserLanguage
-            };
+            var ifStmt = new IfStatement() {ProgrammingLanguage = ParserLanguage};
+            ifStmt.AddLocation(context.CreateLocation(ifElement));
 
             foreach(var ifChild in ifElement.Elements()) {
                 if(ifChild.Name == SRC.Condition) {
@@ -597,10 +595,8 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            var whileStmt = new WhileStatement() {
-                Location = context.CreateLocation(whileElement),
-                ProgrammingLanguage = ParserLanguage
-            };
+            var whileStmt = new WhileStatement() {ProgrammingLanguage = ParserLanguage};
+            whileStmt.AddLocation(context.CreateLocation(whileElement));
 
             foreach(var whileChild in whileElement.Elements()) {
                 if(whileChild.Name == SRC.Condition) {
@@ -637,10 +633,8 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            var forStmt = new ForStatement() {
-                Location = context.CreateLocation(forElement),
-                ProgrammingLanguage = ParserLanguage
-            };
+            var forStmt = new ForStatement() {ProgrammingLanguage = ParserLanguage};
+            forStmt.AddLocation(context.CreateLocation(forElement));
 
             foreach(var forChild in forElement.Elements()) {
                 if(forChild.Name == SRC.Init) {
@@ -685,10 +679,8 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            var foreachStmt = new ForeachStatement() {
-                Location = context.CreateLocation(foreachElement),
-                ProgrammingLanguage = ParserLanguage
-            };
+            var foreachStmt = new ForeachStatement() {ProgrammingLanguage = ParserLanguage};
+            foreachStmt.AddLocation(context.CreateLocation(foreachElement));
 
             foreach(var child in foreachElement.Elements()) {
                 if(child.Name == SRC.Init) {
@@ -719,10 +711,8 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            var doStmt = new DoWhileStatement() {
-                Location = context.CreateLocation(doElement),
-                ProgrammingLanguage = ParserLanguage
-            };
+            var doStmt = new DoWhileStatement() {ProgrammingLanguage = ParserLanguage};
+            doStmt.AddLocation(context.CreateLocation(doElement));
 
             foreach(var doChild in doElement.Elements()) {
                 if(doChild.Name == SRC.Condition) {
@@ -752,10 +742,8 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            var switchStmt = new SwitchStatement() {
-                Location = context.CreateLocation(switchElement),
-                ProgrammingLanguage = ParserLanguage
-            };
+            var switchStmt = new SwitchStatement() {ProgrammingLanguage = ParserLanguage};
+            switchStmt.AddLocation(context.CreateLocation(switchElement));
 
             foreach(var switchChild in switchElement.Elements()) {
                 if(switchChild.Name == SRC.Condition) {
@@ -786,10 +774,10 @@ namespace ABB.SrcML.Data {
                 throw new ArgumentNullException("context");
 
             var caseStmt = new CaseStatement() {
-                Location = context.CreateLocation(caseElement),
                 ProgrammingLanguage = ParserLanguage,
                 IsDefault = caseElement.Name == SRC.Default
             };
+            caseStmt.AddLocation(context.CreateLocation(caseElement));
 
             foreach(var caseChild in caseElement.Elements()) {
                 if(caseChild.Name == SRC.Expression && caseStmt.Condition == null) {
@@ -817,10 +805,8 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            var breakStmt = new BreakStatement() {
-                Location = context.CreateLocation(breakElement),
-                ProgrammingLanguage = ParserLanguage
-            };
+            var breakStmt = new BreakStatement() {ProgrammingLanguage = ParserLanguage};
+            breakStmt.AddLocation(context.CreateLocation(breakElement));
 
             return breakStmt;
         }
@@ -833,10 +819,8 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            var continueStmt = new ContinueStatement() {
-                Location = context.CreateLocation(continueElement),
-                ProgrammingLanguage = ParserLanguage
-            };
+            var continueStmt = new ContinueStatement() {ProgrammingLanguage = ParserLanguage};
+            continueStmt.AddLocation(context.CreateLocation(continueElement));
 
             return continueStmt;
         }
@@ -849,10 +833,8 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            var gotoStmt = new GotoStatement() {
-                Location = context.CreateLocation(gotoElement),
-                ProgrammingLanguage = ParserLanguage
-            };
+            var gotoStmt = new GotoStatement() {ProgrammingLanguage = ParserLanguage};
+            gotoStmt.AddLocation(context.CreateLocation(gotoElement));
 
             if(gotoElement.HasElements) {
                 throw new NotImplementedException();
@@ -875,10 +857,8 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            var labelStmt = new LabelStatement() {
-                Location = context.CreateLocation(labelElement),
-                ProgrammingLanguage = ParserLanguage
-            };
+            var labelStmt = new LabelStatement() {ProgrammingLanguage = ParserLanguage};
+            labelStmt.AddLocation(context.CreateLocation(labelElement));
 
             var name = labelElement.Element(SRC.Name);
             if(name != null) {
@@ -896,10 +876,8 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            var returnStmt = new ReturnStatement() {
-                Location = context.CreateLocation(returnElement),
-                ProgrammingLanguage = ParserLanguage
-            };
+            var returnStmt = new ReturnStatement() {ProgrammingLanguage = ParserLanguage};
+            returnStmt.AddLocation(context.CreateLocation(returnElement));
 
             var expElement = GetChildExpression(returnElement);
             if(expElement != null) {
@@ -917,10 +895,8 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            var throwStmt = new ThrowStatement() {
-                Location = context.CreateLocation(throwElement),
-                ProgrammingLanguage = ParserLanguage
-            };
+            var throwStmt = new ThrowStatement() {ProgrammingLanguage = ParserLanguage};
+            throwStmt.AddLocation(context.CreateLocation(throwElement));
 
             var expElement = GetChildExpression(throwElement);
             if(expElement != null) {
@@ -938,10 +914,8 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            var tryStmt = new TryStatement() {
-                Location = context.CreateLocation(tryElement),
-                ProgrammingLanguage = ParserLanguage
-            };
+            var tryStmt = new TryStatement() {ProgrammingLanguage = ParserLanguage};
+            tryStmt.AddLocation(context.CreateLocation(tryElement));
 
             foreach(var tryChild in tryElement.Elements()) {
                 if(tryChild.Name == SRC.Catch) {
@@ -978,10 +952,8 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            var catchStmt = new CatchStatement {
-                Location = context.CreateLocation(catchElement),
-                ProgrammingLanguage = ParserLanguage
-            };
+            var catchStmt = new CatchStatement {ProgrammingLanguage = ParserLanguage};
+            catchStmt.AddLocation(context.CreateLocation(catchElement));
 
             foreach(var catchChild in catchElement.Elements()) {
                 if(catchChild.Name == SRC.Parameter) {
@@ -1008,10 +980,8 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            var stmt = new Statement() {
-                Location = context.CreateLocation(stmtElement),
-                ProgrammingLanguage = ParserLanguage
-            };
+            var stmt = new Statement() {ProgrammingLanguage = ParserLanguage};
+            stmt.AddLocation(context.CreateLocation(stmtElement));
 
             foreach(var child in stmtElement.Elements()) {
                 if(child.Name == SRC.Expression) {
@@ -1033,10 +1003,8 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            var stmt = new Statement() {
-                Location = context.CreateLocation(stmtElement),
-                ProgrammingLanguage = ParserLanguage
-            };
+            var stmt = new Statement() {ProgrammingLanguage = ParserLanguage};
+            stmt.AddLocation(context.CreateLocation(stmtElement));
 
             foreach(var child in stmtElement.Elements()) {
                 if(child.Name == SRC.Declaration) {
@@ -1074,9 +1042,10 @@ namespace ABB.SrcML.Data {
                 Accessibility = GetAccessModifierForType(typeElement),
                 Kind = XNameMaps.GetKindForXElement(typeElement),
                 Name = GetNameForType(typeElement),
-                Location = context.CreateLocation(typeElement),
                 ProgrammingLanguage = ParserLanguage
             };
+            typeDefinition.AddLocation(context.CreateLocation(typeElement, ContainerIsReference(typeElement)));
+
             foreach(var parentTypeElement in GetParentTypeUseElements(typeElement)) {
                 var parentTypeUse = ParseTypeUseElement(parentTypeElement, context);
                 typeDefinition.AddParentType(parentTypeUse);
@@ -1190,10 +1159,9 @@ namespace ABB.SrcML.Data {
             context.Aliases = new Collection<Alias>(aliases.ToList());
 
             //create a global namespace for the file unit
-            var namespaceForUnit = new NamespaceDefinition() {
-                Location = context.CreateLocation(unitElement),
-                ProgrammingLanguage = ParserLanguage
-            };
+            var namespaceForUnit = new NamespaceDefinition() {ProgrammingLanguage = ParserLanguage};
+            namespaceForUnit.AddLocation(context.CreateLocation(unitElement));
+
             foreach(var child in unitElement.Elements()) {
                 namespaceForUnit.AddChildStatement(ParseElement(child, context));
             }
@@ -1216,10 +1184,9 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            var bs = new BlockStatement() {
-                Location = context.CreateLocation(blockElement),
-                ProgrammingLanguage = ParserLanguage
-            };
+            var bs = new BlockStatement() {ProgrammingLanguage = ParserLanguage};
+            bs.AddLocation(context.CreateLocation(blockElement));
+
             foreach(var child in blockElement.Elements()) {
                 bs.AddChildStatement(ParseElement(child, context));
             }
@@ -1242,10 +1209,8 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            var es = new ExternStatement() {
-                Location = context.CreateLocation(externElement),
-                ProgrammingLanguage = ParserLanguage
-            };
+            var es = new ExternStatement() {ProgrammingLanguage = ParserLanguage};
+            es.AddLocation(context.CreateLocation(externElement));
 
             foreach(var exChild in externElement.Elements()) {
                 if(exChild.Name == LIT.Literal) {

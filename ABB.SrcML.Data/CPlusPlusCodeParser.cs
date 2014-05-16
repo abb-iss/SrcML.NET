@@ -268,9 +268,9 @@ namespace ABB.SrcML.Data {
 
             var nd = new NamespaceDefinition {
                 Name = namespaceName,
-                Location = context.CreateLocation(namespaceElement),
                 ProgrammingLanguage = ParserLanguage,
             };
+            nd.AddLocation(context.CreateLocation(namespaceElement));
 
             //add children
             var blockElement = namespaceElement.Element(SRC.Block);
@@ -299,9 +299,10 @@ namespace ABB.SrcML.Data {
                 Accessibility = GetAccessModifierForType(typeElement),
                 Kind = XNameMaps.GetKindForXElement(typeElement),
                 Name = GetNameForType(typeElement),
-                Location = context.CreateLocation(typeElement),
                 ProgrammingLanguage = ParserLanguage
             };
+            typeDefinition.AddLocation(context.CreateLocation(typeElement, ContainerIsReference(typeElement)));
+
             foreach(var parentTypeElement in GetParentTypeUseElements(typeElement)) {
                 var parentTypeUse = ParseTypeUseElement(parentTypeElement, context);
                 typeDefinition.AddParentType(parentTypeUse);

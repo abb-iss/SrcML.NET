@@ -180,9 +180,9 @@ namespace ABB.SrcML.Data {
             foreach(var name in NameHelper.GetNameElementsFromName(nameElement)) {
                 var newNS = new NamespaceDefinition {
                     Name = name.Value,
-                    Location = context.CreateLocation(name),
                     ProgrammingLanguage = ParserLanguage
                 };
+                newNS.AddLocation(context.CreateLocation(name));
                 if(topNS == null) { topNS = newNS; }
                 if(lastNS != null) {
                     lastNS.AddChildStatement(newNS);
@@ -247,10 +247,8 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            var propertyDef = new PropertyDefinition {
-                Location = context.CreateLocation(declElement),
-                ProgrammingLanguage = ParserLanguage
-            };
+            var propertyDef = new PropertyDefinition {ProgrammingLanguage = ParserLanguage};
+            propertyDef.AddLocation(context.CreateLocation(declElement));
 
             foreach(var child in declElement.Elements()) {
                 if(child.Name == SRC.Type) {
