@@ -168,5 +168,62 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("A.B.C.E", typeE.GetFullName());
             Assert.AreEqual("D.F", typeF.GetFullName());
         }
+        [Test]
+        public void TestNamespaceMerge_Java() {
+            // # D.java package A.B.C; class D { public void Foo() { } }
+            string d_xml = @"<package>package <name>A</name>.<name>B</name>.<name>C</name>;</package>
+<class>class <name>D</name> <block>{
+	<function><type><specifier>public</specifier> <name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></function>
+}</block></class>";
+
+            // # E.java package A.B.C; class E { public void Bar() { } }
+            string e_xml = @"<package>package <name>A</name>.<name>B</name>.<name>C</name>;</package>
+<class>class <name>E</name> <block>{
+	<function><type><specifier>public</specifier> <name>void</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ }</block></function>
+}</block></class>";
+
+            // # F.java package D; class F { public void Oof() { } }
+            string f_xml = @"<package>package <name>D</name>;</package>
+<class>class <name>F</name> <block>{
+	<function><type><specifier>public</specifier> <name>void</name></type> <name>Oof</name><parameter_list>()</parameter_list> <block>{ }</block></function>
+}</block></class>";
+
+            var fileUnitD = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(d_xml, "D.java");
+            var fileUnitE = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(e_xml, "E.java");
+            var fileUnitF = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(f_xml, "F.java");
+
+            var globalScopeD = CodeParser[Language.Java].ParseFileUnit(fileUnitD);
+            var globalScopeE = CodeParser[Language.Java].ParseFileUnit(fileUnitE);
+            var globalScopeF = CodeParser[Language.Java].ParseFileUnit(fileUnitF);
+            var globalScope = globalScopeD.Merge(globalScopeE).Merge(globalScopeF);
+
+            Assert.AreEqual(2, globalScope.ChildStatements.Count());
+
+            var packageA = globalScope.ChildStatements.First() as NamespaceDefinition;
+            var packageD = globalScope.ChildStatements.Last() as NamespaceDefinition;
+
+            Assert.AreEqual("A", packageA.Name);
+            Assert.AreEqual("D", packageD.Name);
+
+            var packageAB = packageA.ChildStatements.First() as NamespaceDefinition;
+            Assert.AreEqual("B", packageAB.Name);
+            Assert.AreEqual("A.B", packageAB.GetFullName());
+
+            var packageABC = packageAB.ChildStatements.First() as NamespaceDefinition;
+            Assert.AreEqual("C", packageABC.Name);
+
+            Assert.AreEqual("C", packageABC.Name);
+            Assert.AreEqual("A.B.C", packageABC.GetFullName());
+
+            var typeD = packageABC.ChildStatements.First() as TypeDefinition;
+            var typeE = packageABC.ChildStatements.Last() as TypeDefinition;
+            var typeF = packageD.ChildStatements.First() as TypeDefinition;
+
+            Assert.AreEqual("D", typeD.Name);
+            Assert.AreEqual("E", typeE.Name);
+            Assert.That(typeD.ParentStatement == typeE.ParentStatement);
+
+            Assert.That(typeD.ParentStatement != typeF.ParentStatement);
+        }
     }
 }
