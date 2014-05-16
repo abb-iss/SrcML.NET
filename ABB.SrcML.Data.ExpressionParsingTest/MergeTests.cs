@@ -53,11 +53,11 @@ namespace ABB.SrcML.Data.Test {
             var xmlHeader = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xmlh, "B.h");
             var xmlImpl = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xmlcpp, "B.cpp");
 
-            var globalScope = new MergedNamespaceDefinition();
+            var globalScope = new NamespaceDefinition();
             var headerScope = CodeParser[Language.CPlusPlus].ParseFileUnit(xmlHeader) as NamedScope;
             var implementationScope = CodeParser[Language.CPlusPlus].ParseFileUnit(xmlImpl) as NamedScope;
-            globalScope = globalScope.Merge(headerScope) as MergedNamespaceDefinition;
-            globalScope = globalScope.Merge(implementationScope) as MergedNamespaceDefinition;
+            globalScope = globalScope.Merge(headerScope) as NamespaceDefinition;
+            globalScope = globalScope.Merge(implementationScope) as NamespaceDefinition;
 
             Assert.AreEqual(1, globalScope.ChildStatements.Count());
 
@@ -91,11 +91,11 @@ namespace ABB.SrcML.Data.Test {
             string defXml = "<function><type><name>int</name></type> <name>Foo</name><parameter_list>(<param><decl><type><name>char</name></type> <name>bar</name></decl></param>)</parameter_list> <block>{ <return>return <expr><lit:literal type=\"number\">0</lit:literal></expr>;</return> }</block></function>";
             var fileUnitDef = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(defXml, "Foo.cpp");
 
-            var globalScope = new MergedNamespaceDefinition();
+            var globalScope = new NamespaceDefinition();
             var definitionScope = CodeParser[Language.CPlusPlus].ParseFileUnit(fileUnitDef) as NamedScope;
 
-            globalScope = globalScope.Merge(declarationScope) as MergedNamespaceDefinition;
-            globalScope = globalScope.Merge(definitionScope) as MergedNamespaceDefinition;
+            globalScope = globalScope.Merge(declarationScope) as NamespaceDefinition;
+            globalScope = globalScope.Merge(definitionScope) as NamespaceDefinition;
 
             Assert.AreEqual(1, globalScope.ChildStatements.Count());
             Assert.AreEqual("Foo", ((MethodDefinition) globalScope.ChildStatements.First()).Name);
@@ -130,12 +130,12 @@ namespace ABB.SrcML.Data.Test {
             var fileUnitE = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(e_xml, "E.h");
             var fileUnitF = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(f_xml, "F.h");
 
-            var globalScope = new MergedNamespaceDefinition();
+            var globalScope = new NamespaceDefinition();
             var scopeD = CodeParser[Language.CPlusPlus].ParseFileUnit(fileUnitD) as NamedScope;
             var scopeE = CodeParser[Language.CPlusPlus].ParseFileUnit(fileUnitE) as NamedScope;
             var scopeF = CodeParser[Language.CPlusPlus].ParseFileUnit(fileUnitF) as NamedScope;
 
-            globalScope = globalScope.Merge(scopeD).Merge(scopeE).Merge(scopeF) as MergedNamespaceDefinition;
+            globalScope = globalScope.Merge(scopeD).Merge(scopeE).Merge(scopeF) as NamespaceDefinition;
 
             Assert.AreEqual(2, globalScope.ChildStatements.Count());
 
