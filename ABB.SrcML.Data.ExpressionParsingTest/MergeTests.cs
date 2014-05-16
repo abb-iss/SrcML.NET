@@ -54,10 +54,10 @@ namespace ABB.SrcML.Data.Test {
             var xmlImpl = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xmlcpp, "B.cpp");
 
             var globalScope = new NamespaceDefinition();
-            var headerScope = CodeParser[Language.CPlusPlus].ParseFileUnit(xmlHeader) as NamedScope;
-            var implementationScope = CodeParser[Language.CPlusPlus].ParseFileUnit(xmlImpl) as NamedScope;
-            globalScope = globalScope.Merge(headerScope) as NamespaceDefinition;
-            globalScope = globalScope.Merge(implementationScope) as NamespaceDefinition;
+            var headerScope = CodeParser[Language.CPlusPlus].ParseFileUnit(xmlHeader);
+            var implementationScope = CodeParser[Language.CPlusPlus].ParseFileUnit(xmlImpl);
+            globalScope = globalScope.Merge(headerScope);
+            globalScope = globalScope.Merge(implementationScope);
 
             Assert.AreEqual(1, globalScope.ChildStatements.Count());
 
@@ -84,7 +84,7 @@ namespace ABB.SrcML.Data.Test {
             //int Foo(char);
             string declXml = "<function_decl><type><name>int</name></type> <name>Foo</name><parameter_list>(<param><decl><type><name>char</name></type></decl></param>)</parameter_list>;</function_decl>";
             var fileunitDecl = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(declXml, "Foo.h");
-            var declarationScope = CodeParser[Language.CPlusPlus].ParseFileUnit(fileunitDecl) as NamedScope;
+            var declarationScope = CodeParser[Language.CPlusPlus].ParseFileUnit(fileunitDecl);
 
             ////Foo.cpp
             //int Foo(char bar) { return 0; }
@@ -92,7 +92,7 @@ namespace ABB.SrcML.Data.Test {
             var fileUnitDef = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(defXml, "Foo.cpp");
 
             var globalScope = new NamespaceDefinition();
-            var definitionScope = CodeParser[Language.CPlusPlus].ParseFileUnit(fileUnitDef) as NamedScope;
+            var definitionScope = CodeParser[Language.CPlusPlus].ParseFileUnit(fileUnitDef);
 
             globalScope = globalScope.Merge(declarationScope) as NamespaceDefinition;
             globalScope = globalScope.Merge(definitionScope) as NamespaceDefinition;
@@ -131,9 +131,9 @@ namespace ABB.SrcML.Data.Test {
             var fileUnitF = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(f_xml, "F.h");
 
             var globalScope = new NamespaceDefinition();
-            var scopeD = CodeParser[Language.CPlusPlus].ParseFileUnit(fileUnitD) as NamedScope;
-            var scopeE = CodeParser[Language.CPlusPlus].ParseFileUnit(fileUnitE) as NamedScope;
-            var scopeF = CodeParser[Language.CPlusPlus].ParseFileUnit(fileUnitF) as NamedScope;
+            var scopeD = CodeParser[Language.CPlusPlus].ParseFileUnit(fileUnitD);
+            var scopeE = CodeParser[Language.CPlusPlus].ParseFileUnit(fileUnitE);
+            var scopeF = CodeParser[Language.CPlusPlus].ParseFileUnit(fileUnitF);
 
             globalScope = globalScope.Merge(scopeD).Merge(scopeE).Merge(scopeF) as NamespaceDefinition;
 
