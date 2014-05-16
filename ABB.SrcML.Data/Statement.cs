@@ -23,10 +23,13 @@ namespace ABB.SrcML.Data {
     [XmlRoot(IsNullable=false)]
     public class Statement {
         private List<Statement> childStatementsList;
+        protected List<SrcMLLocation> LocationList;
         
         public Statement() {
             childStatementsList = new List<Statement>();
             ChildStatements = new ReadOnlyCollection<Statement>(childStatementsList);
+            LocationList = new List<SrcMLLocation>(1);
+            Locations = new ReadOnlyCollection<SrcMLLocation>(LocationList);
         }
         
         [XmlArray(ElementName="Children")]
@@ -35,11 +38,24 @@ namespace ABB.SrcML.Data {
         [XmlIgnore]
         public Statement ParentStatement { get; set; }
 
-        public SrcMLLocation Location { get; set; }
-
         public Language ProgrammingLanguage { get; set; }
 
         public Expression Content {get; set;}
+
+        public ReadOnlyCollection<SrcMLLocation> Locations { get; private set; }
+
+        /// <summary>
+        /// The first non-reference location for the Statement.
+        /// </summary>
+        public SrcMLLocation PrimaryLocation {
+            get {
+                var definitionLoc = LocationList.FirstOrDefault(l => !l.IsReference);
+                if(definitionLoc != null) {
+                    return definitionLoc;
+                }
+                return LocationList.FirstOrDefault();
+            }
+        }
 
         /// <summary>
         /// Adds the given Statement to the ChildStatements collection.
@@ -60,6 +76,14 @@ namespace ABB.SrcML.Data {
             foreach(var child in children) {
                 AddChildStatement(child);
             }
+        }
+
+        /// <summary>
+        /// Add the given SrcMLLocation to the Locations collection.
+        /// </summary>
+        /// <param name="location">The location to add.</param>
+        public virtual void AddLocation(SrcMLLocation location) {
+            LocationList.Add(location);
         }
 
         /// <summary>

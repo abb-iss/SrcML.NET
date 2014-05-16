@@ -202,10 +202,8 @@ namespace ABB.SrcML.Data {
             }
 
             //else, this is a Java-style foreach loop
-            var foreachStmt = new ForeachStatement() {
-                Location = context.CreateLocation(forElement),
-                ProgrammingLanguage = ParserLanguage
-            };
+            var foreachStmt = new ForeachStatement() {ProgrammingLanguage = ParserLanguage};
+            foreachStmt.AddLocation(context.CreateLocation(forElement));
 
             foreach(var child in forElement.Elements()) {
                 if(child.Name == SRC.Init) {
