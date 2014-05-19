@@ -133,54 +133,88 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Parses a Java package directive
+        /// Creates a NamespaceDefinition object from the given Java package element.
+        /// This will create a NamespaceDefinition for each component of the name, e.g. com.java.foo.bar, and link them as children of each other.
+        /// This will not add any child statements to the bottom namespace.
         /// </summary>
-        /// <param name="namespaceElement">A file unit</param>
-        /// <param name="context">The parser context</param>
-        protected override NamespaceDefinition ParseNamespaceElement(XElement namespaceElement, ParserContext context) {
-            throw new NotImplementedException();
+        /// <param name="packageElement">The SRC.Package element to parse.</param>
+        /// <param name="context">The parser context to use.</param>
+        /// <returns>A NamespaceDefinition corresponding to <paramref name="packageElement"/>.</returns>
+        protected override NamespaceDefinition ParseNamespaceElement(XElement packageElement, ParserContext context) {
+            if(packageElement == null)
+                throw new ArgumentNullException("packageElement");
+            if(packageElement.Name != SRC.Package)
+                throw new ArgumentException("must be a SRC.Package", "packageElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
 
-            //var javaPackage = context.FileUnit.Elements(SRC.Package).FirstOrDefault();
+            var nameElement = packageElement.Element(SRC.Name);
+            if(nameElement == null) {
+                throw new ParseException(context.FileName, packageElement.GetSrcLineNumber(), packageElement.GetSrcLinePosition(), this,
+                                            "No SRC.Name element found in namespace.", null);
+            }
 
-            //// Add a global namespace definition
-            //var globalNamespace = new NamespaceDefinition();
-            //context.Push(globalNamespace);
+            //parse the name and create a NamespaceDefinition for each component
+            NamespaceDefinition topNS = null;
+            NamespaceDefinition lastNS = null;
+            foreach(var name in NameHelper.GetNameElementsFromName(nameElement)) {
+                var newNS = new NamespaceDefinition {
+                    Name = name.Value,
+                    ProgrammingLanguage = ParserLanguage
+                };
+                newNS.AddLocation(context.CreateLocation(name));
+                if(topNS == null) { topNS = newNS; }
+                if(lastNS != null) {
+                    lastNS.AddChildStatement(newNS);
+                }
+                lastNS = newNS;
+            }
 
-            //if(null != javaPackage) {
-            //    var namespaceElements = from name in javaPackage.Elements(SRC.Name)
-            //                            select name;
-            //    foreach(var name in namespaceElements) {
-            //        var namespaceForName = new NamespaceDefinition() {
-            //            Name = name.Value,
-            //            ProgrammingLanguage = ParserLanguage,
-            //        };
-            //        namespaceForName.AddSourceLocation(context.CreateLocation(name));
-            //        context.Push(namespaceForName, globalNamespace);
-            //    }
-            //}
+            return topNS;
         }
 
-        //TODO: implement Java unit element parsing
-        ///// <summary>
-        ///// Parses a java file unit. This handles the "package" directive by calling
-        ///// <see cref="ParseNamespaceElement"/>
-        ///// </summary>
-        ///// <param name="unitElement">The file unit to parse</param>
-        ///// <param name="context">The parser context to place the global scope in</param>
-        //protected override NamespaceDefinition ParseUnitElement(XElement unitElement, ParserContext context) {
-        //    if(null == unitElement)
-        //        throw new ArgumentNullException("unitElement");
-        //    if(unitElement.Name != SRC.Unit)
-        //        throw new ArgumentException("should be a unit", "unitElement");
+        /// <summary>
+        /// Parses a java file unit. This handles the "package" directive by calling
+        /// <see cref="ParseNamespaceElement"/>
+        /// </summary>
+        /// <param name="unitElement">The file unit to parse.</param>
+        /// <param name="context">The parser context to use.</param>
+        protected override NamespaceDefinition ParseUnitElement(XElement unitElement, ParserContext context) {
+            if(null == unitElement)
+                throw new ArgumentNullException("unitElement");
+            if(SRC.Unit != unitElement.Name)
+                throw new ArgumentException("should be a SRC.Unit", "unitElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+            context.FileUnit = unitElement;
+            var aliases = from aliasStatement in GetAliasElementsForFile(unitElement)
+                          select ParseAliasElement(aliasStatement, context);
 
-        //    context.FileUnit = unitElement;
-        //    var aliases = from aliasStatement in GetAliasElementsForFile(unitElement)
-        //                  select ParseAliasElement(aliasStatement, context);
+            context.Aliases = new Collection<Alias>(aliases.ToList());
 
-        //    context.Aliases = new Collection<IAlias>(aliases.ToList());
+            //create a global namespace for the file unit
+            var namespaceForUnit = new NamespaceDefinition() {ProgrammingLanguage = ParserLanguage};
+            namespaceForUnit.AddLocation(context.CreateLocation(unitElement));
+            NamespaceDefinition bottomNamespace = namespaceForUnit;
 
-        //    ParseNamespaceElement(unitElement, context);
-        //}
+            //create a namespace for the package, and attach to global namespace
+            var packageElement = unitElement.Element(SRC.Package);
+            if(packageElement != null) {
+                var namespaceForPackage = ParseNamespaceElement(packageElement, context);
+                namespaceForUnit.AddChildStatement(namespaceForPackage);
+                bottomNamespace = namespaceForPackage.GetDescendantsAndSelf<NamespaceDefinition>().Last();
+            }
+
+            //add children to bottom namespace
+            foreach(var child in unitElement.Elements()) {
+                var childStmt = ParseElement(child, context);
+                if(childStmt != null) {
+                    bottomNamespace.AddChildStatement(childStmt);
+                }
+            }
+
+            return namespaceForUnit;
+        }
 
         /// <summary>
         /// Creates a ForStatement or ForeachStatement from the given element.

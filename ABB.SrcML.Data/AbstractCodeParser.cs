@@ -418,13 +418,17 @@ namespace ABB.SrcML.Data {
                     stmt = ParseExternElement(element, context);
                 } else if(element.Name == SRC.Comment) {
                     //do nothing?
+                } else if(element.Name == SRC.Package) {
+                    //do nothing. This is already handled in JavaCodeParser.ParseUnitElement()
                 } else {
+                    //TODO: what to do about elements we don't want to parse or don't recognize? Throw exception or just skip?
                     throw new ParseException(context.FileName, element.GetSrcLineNumber(), element.GetSrcLinePosition(), this,
                                              string.Format("Unexpected {0} element", element.Name), null);
                 }
-                //TODO: parse include/import/using statements
+                //TODO: parse include/import/using statements. Actually, they need to be parsed in ParseNamespace and skipped here.
                 //TODO: parse using blocks
                 //TODO: handle other CPP elements
+                
 
                 return stmt;
             } catch(ParseException) {
