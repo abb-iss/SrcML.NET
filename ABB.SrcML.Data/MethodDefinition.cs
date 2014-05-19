@@ -39,12 +39,6 @@ namespace ABB.SrcML.Data {
         //TODO: record other keywords besides access modifiers? for example, static
 
         /// <summary>
-        /// For C/C++ methods, this property gives the specified scope that the method is defined in.
-        /// For example, in the method <code>int A::B::MyFunction(char arg);</code> the NamePrefix is A::B.
-        /// </summary>
-        public Expression NamePrefix { get; set; }
-
-        /// <summary>
         /// Adds a method parameter to this method
         /// </summary>
         /// <param name="parameter">The parameter to add</param>
@@ -65,6 +59,34 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        public override Statement Merge(Statement otherStatement) {
+            return this.Merge(otherStatement as MethodDefinition);
+        }
+
+        public MethodDefinition Merge(MethodDefinition otherMethod) {
+            if(null == otherMethod) {
+                throw new ArgumentNullException("otherMethod");
+            }
+
+            MethodDefinition combinedMethod = Merge<MethodDefinition>(this, otherMethod);
+            combinedMethod.Name = this.Name;
+            combinedMethod.ReturnType = this.ReturnType;
+
+            return combinedMethod;
+        }
+
+        protected override string ComputeMergeId() {
+            char methodType = 'M';
+            if(IsConstructor) {
+                methodType = 'C';
+            } else {
+                methodType = 'D';
+            }
+
+            string id = String.Format("M{0}:{1}:{1}", methodType, this.Name, String.Join(",", Parameters));
+
+            return id;
+        }
     }
 
     ///// <summary>

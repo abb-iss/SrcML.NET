@@ -52,6 +52,49 @@ namespace ABB.SrcML.Data {
             //parentTypeCollection.Add(parentTypeUse);
         }
 
+        public override Statement Merge(Statement otherStatement) {
+            return Merge(otherStatement as TypeDefinition);
+        }
+
+        public TypeDefinition Merge(TypeDefinition otherType) {
+            if(null == otherType) {
+                throw new ArgumentNullException("otherType");
+            }
+            TypeDefinition combinedType = Merge<TypeDefinition>(this, otherType);
+            combinedType.Name = this.Name;
+            return combinedType;
+        }
+
+        protected override string ComputeMergeId() {
+            if(Language.Java == ProgrammingLanguage || Language.CSharp == ProgrammingLanguage && IsPartial) {
+                return base.ComputeMergeId();
+            }
+
+            char typeSpecifier;
+            switch(Kind) {
+                case TypeKind.Class:
+                    typeSpecifier = 'C';
+                    break;
+                case TypeKind.Enumeration:
+                    typeSpecifier = 'E';
+                    break;
+                case TypeKind.Interface:
+                    typeSpecifier = 'I';
+                    break;
+                case TypeKind.Struct:
+                    typeSpecifier = 'S';
+                    break;
+                case TypeKind.Union:
+                    typeSpecifier = 'U';
+                    break;
+                default:
+                    typeSpecifier = 'T';
+                    break;
+            }
+
+            string id = String.Format("T{0}:{1}", typeSpecifier, this.Name);
+            return id;
+        }
         /// <summary>
         /// This handles the "base" keyword (C# only) and the "this" keyword. It searches for the
         /// appropriate type definition depending on the context of the

@@ -13,6 +13,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 using System.Xml;
@@ -86,6 +87,14 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
+        /// Add the given SrcMLLocations to the Locations collection
+        /// </summary>
+        /// <param name="locations">The locations to add</param>
+        public virtual void AddLocations(IEnumerable<SrcMLLocation> locations) {
+            LocationList.AddRange(locations);
+        }
+
+        /// <summary>
         /// Gets all of the parents of this statement
         /// </summary>
         /// <returns>The parents of this statement</returns>
@@ -151,6 +160,54 @@ namespace ABB.SrcML.Data {
         /// <returns>This statement and its descendants where the type is <typeparamref name="T"/></returns>
         public IEnumerable<T> GetDescendantsAndSelf<T>() where T : Statement {
             return GetDescendants(this, true).OfType<T>();
+        }
+
+        public virtual bool CanBeMergedWith(Statement otherStatement) {
+            return this.ComputeMergeId() == otherStatement.ComputeMergeId();
+        }
+
+        protected void ClearChildren() {
+            childStatementsList.Clear();
+        }
+
+        protected virtual string ComputeMergeId() {
+            return this.GetHashCode().ToString();
+        }
+
+        public virtual Statement Merge(Statement otherStatement) {
+            if(null == otherStatement) {
+                throw new ArgumentNullException("otherStatement");
+            }
+            return Merge<Statement>(this, otherStatement);
+        }
+
+        protected static T Merge<T>(T firstStatement, T secondStatement) where T : Statement, new() {
+            T combinedStatement = new T();
+            combinedStatement.AddLocations(firstStatement.LocationList.Concat(secondStatement.LocationList));
+            combinedStatement.AddChildStatements(firstStatement.ChildStatements.Concat(secondStatement.ChildStatements));
+            combinedStatement.RestructureChildren();
+            return combinedStatement;
+        }
+
+        protected virtual void RestructureChildren() {
+            var restructuredChildren = RestructureChildren(ChildStatements);
+            ClearChildren();
+            AddChildStatements(restructuredChildren);
+        }
+
+        protected static List<Statement> RestructureChildren(IEnumerable<Statement> childStatements) {
+            OrderedDictionary childStatementMap = new OrderedDictionary();
+            foreach(var child in childStatements) {
+                string mergeId = child.ComputeMergeId();
+                Statement mergedChild;
+                if(childStatementMap.Contains(mergeId)) {
+                    mergedChild = childStatementMap[mergeId] as Statement;
+                    childStatementMap[mergeId] = mergedChild.Merge(child);
+                } else {
+                    childStatementMap[mergeId] = child;
+                }
+            }
+            return new List<Statement>(childStatementMap.Values.OfType<Statement>());
         }
 
         /// <summary>
