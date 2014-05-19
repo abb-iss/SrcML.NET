@@ -166,16 +166,19 @@ namespace ABB.SrcML.Data {
             return this.ComputeMergeId() == otherStatement.ComputeMergeId();
         }
 
+        protected void ClearChildren() {
+            childStatementsList.Clear();
+        }
+
         protected virtual string ComputeMergeId() {
             return this.GetHashCode().ToString();
         }
 
         public virtual Statement Merge(Statement otherStatement) {
-            // TODO make sure the combined statement has all the locations
-            Statement combinedStatement = new Statement();
-            combinedStatement.AddChildStatements(this.ChildStatements.Concat(otherStatement.childStatementsList));
-            combinedStatement.RestructureChildren();
-            return combinedStatement;
+            if(null == otherStatement) {
+                throw new ArgumentNullException("otherStatement");
+            }
+            return Merge<Statement>(this, otherStatement);
         }
 
         protected static T Merge<T>(T firstStatement, T secondStatement) where T : Statement, new() {
@@ -187,8 +190,14 @@ namespace ABB.SrcML.Data {
         }
 
         protected virtual void RestructureChildren() {
+            var restructuredChildren = RestructureChildren(ChildStatements);
+            ClearChildren();
+            AddChildStatements(restructuredChildren);
+        }
+
+        protected static List<Statement> RestructureChildren(IEnumerable<Statement> childStatements) {
             OrderedDictionary childStatementMap = new OrderedDictionary();
-            foreach(var child in this.ChildStatements) {
+            foreach(var child in childStatements) {
                 string mergeId = child.ComputeMergeId();
                 Statement mergedChild;
                 if(childStatementMap.Contains(mergeId)) {
@@ -198,9 +207,9 @@ namespace ABB.SrcML.Data {
                     childStatementMap[mergeId] = child;
                 }
             }
-            childStatementsList.Clear();
-            AddChildStatements(childStatementMap.Values.OfType<Statement>());
+            return new List<Statement>(childStatementMap.Values.OfType<Statement>());
         }
+
         /// <summary>
         /// Gets a statement and all of its ancestors
         /// </summary>

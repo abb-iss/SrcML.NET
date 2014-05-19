@@ -82,6 +82,7 @@
     <Compile Include="CSharpCodeParser.cs" />
     <Compile Include="LockTimeoutExceededException.cs" />
     <Compile Include="MethodCall.cs" />
+    <Compile Include="NamePrefix.cs" />
     <Compile Include="NamedScope.cs" />
     <Compile Include="NameHelper.cs" />
     <Compile Include="NamedScopeUse.cs" />

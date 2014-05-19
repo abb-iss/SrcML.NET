@@ -26,6 +26,13 @@ namespace ABB.SrcML.Data {
         }
 
         public string Name { get; set; }
+
+        /// <summary>
+        /// For C/C++ methods, this property gives the specified scope that the method is defined in.
+        /// For example, in the method <code>int A::B::MyFunction(char arg);</code> the NamePrefix is A::B.
+        /// </summary>
+        public NamePrefix Prefix { get; set; }
+
         public AccessModifier Accessibility { get; set; }
         /// <summary>
         /// Gets the full name by finding all of the named scope ancestors and combining them.
@@ -36,6 +43,42 @@ namespace ABB.SrcML.Data {
                         where !String.IsNullOrEmpty(statement.Name)
                         select statement.Name;
             return string.Join(".", names.Reverse()).TrimEnd('.');
+        }
+
+        public override Statement Merge(Statement otherStatement) {
+            return Merge(otherStatement as NamedScope);
+        }
+
+        public NamedScope Merge(NamedScope otherNamedScope) {
+            if(null == otherNamedScope) {
+                throw new ArgumentNullException("otherNamedScope");
+            }
+
+            var combinedScope = Merge<NamedScope>(this, otherNamedScope);
+            combinedScope.Name = this.Name;
+            return combinedScope;
+        }
+        protected override void RestructureChildren() {
+            var namedChildrenWithPrefixes = (from child in ChildStatements.OfType<NamedScope>()
+                                             where !(null == child.Prefix || child.Prefix.IsResolved)
+                                             select child).ToList<NamedScope>();
+            
+            // 1. restructure all of the children that don't have prefixes
+            var restructuredChildren = Statement.RestructureChildren(ChildStatements.Except(namedChildrenWithPrefixes));
+            ClearChildren();
+            AddChildStatements(restructuredChildren);
+
+            // 2. check to see if children with prefixes can be relocated
+            foreach(var child in namedChildrenWithPrefixes) {
+                var firstPossibleParent = child.Prefix.FindMatches(this).FirstOrDefault();
+                if(null != firstPossibleParent) {
+                    child.Prefix.MapPrefix(firstPossibleParent);
+                    firstPossibleParent.AddChildStatement(child);
+                    firstPossibleParent.RestructureChildren();
+                } else {
+                    AddChildStatement(child);
+                }
+            }
         }
     }
 

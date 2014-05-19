@@ -1269,6 +1269,7 @@ namespace ABB.SrcML.Data {
             };
 
             //add each component in the expression
+            // TODO Pat: look at CPlusPlusCodeParser.ParseNamePrefix when you fix this
             foreach(var element in expElement.Elements()) {
                 Expression component = null;
                 if(element.Name == SRC.Name) {

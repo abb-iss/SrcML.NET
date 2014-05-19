@@ -244,7 +244,7 @@ namespace ABB.SrcML.Data {
         /// <returns>The method definition object for <paramref name="methodElement"/></returns>
         protected override MethodDefinition ParseMethodElement(XElement methodElement, ParserContext context) {
             var md = base.ParseMethodElement(methodElement, context);
-            md.NamePrefix = ParseNamePrefix(methodElement, context);
+            md.Prefix = ParseNamePrefix(methodElement, context);
             return md;
         }
 
@@ -335,10 +335,30 @@ namespace ABB.SrcML.Data {
         /// <param name="methodElement">The method element to parse</param>
         /// <param name="context">The parser context</param>
         /// <returns>The NamePrefix expression for the method.</returns>
-        private Expression ParseNamePrefix(XElement methodElement, ParserContext context) {
+        private NamePrefix ParseNamePrefix(XElement methodElement, ParserContext context) {
+            // TODO need better error handling
+            // what if there are other things in the prefix list besides operators & names?
+            var nameElement = methodElement.Element(SRC.Name);
+            if(null != nameElement && nameElement.HasElements) {
+                var nameParts = nameElement.Elements();
+                var methodName = nameElement.Elements(SRC.Name).LastOrDefault();
+                var prefixParts = nameParts.Where(n => n != methodName);
+
+                var prefix = new NamePrefix();
+                foreach(var part in prefixParts) {
+                    Expression component = null;
+                    if(SRC.Name == part.Name) {
+                        component = ParseNameUseElement(part, context);
+                    } else if(OP.Operator == part.Name) {
+                        component = ParseOperatorElement(part, context);
+                    }
+                    if(null != component) {
+                        prefix.Components.Add(component);
+                    }
+                }
+                return prefix;
+            }
             return null;
-            //TODO: implement ParseNamePrefix
-            
             //IEnumerable<XElement> parentNameElements = Enumerable.Empty<XElement>();
 
             //parentNameElements = NameHelper.GetNameElementsExceptLast(nameElement);

@@ -53,31 +53,70 @@ namespace ABB.SrcML.Data.Test {
             var xmlHeader = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xmlh, "B.h");
             var xmlImpl = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xmlcpp, "B.cpp");
 
-            var globalScope = new NamespaceDefinition();
             var headerScope = CodeParser[Language.CPlusPlus].ParseFileUnit(xmlHeader);
             var implementationScope = CodeParser[Language.CPlusPlus].ParseFileUnit(xmlImpl);
-            globalScope = globalScope.Merge(headerScope);
-            globalScope = globalScope.Merge(implementationScope);
+            var globalScope = headerScope.Merge(implementationScope);
 
             Assert.AreEqual(1, globalScope.ChildStatements.Count());
 
             var namespaceA = globalScope.ChildStatements.First() as NamespaceDefinition;
             Assert.AreEqual("A", namespaceA.Name);
             Assert.AreEqual(1, namespaceA.ChildStatements.Count());
+            Assert.AreEqual(2, namespaceA.Locations.Count);
 
             var typeB = namespaceA.ChildStatements.First() as TypeDefinition;
             Assert.AreEqual("A.B", typeB.GetFullName());
             Assert.AreEqual(1, typeB.ChildStatements.Count());
+            Assert.AreEqual(2, typeB.Locations.Count);
 
             var methodFoo = typeB.ChildStatements.First() as MethodDefinition;
             Assert.AreEqual("A.B.Foo", methodFoo.GetFullName());
             Assert.AreEqual(0, methodFoo.ChildStatements.Count());
+            Assert.AreEqual(1, methodFoo.Locations.Count);
 
             Assert.AreSame(globalScope, namespaceA.ParentStatement);
             Assert.AreSame(namespaceA, typeB.ParentStatement);
             Assert.AreSame(typeB, methodFoo.ParentStatement);
         }
 
+        [Test]
+        public void TestCreateMethodDefinition_TwoUnresolvedParentsWithPrototype() {
+            // # B.h namespace A { class B { int Foo(); }; }
+            string xmlh = @"<namespace>namespace <name>A</name> <block>{ <class>class <name>B</name> <block>{<private type=""default""> <function_decl><type><name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list>;</function_decl> </private>}</block>;</class> }</block></namespace>
+";
+
+            // # B.cpp int A::B::Foo() { return 0; }
+            string xmlcpp = @"<function><type><name>int</name></type> <name><name>A</name><op:operator>::</op:operator><name>B</name><op:operator>::</op:operator><name>Foo</name></name><parameter_list>()</parameter_list> <block>{
+}</block></function>";
+
+            var xmlHeader = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xmlh, "B.h");
+            var xmlImpl = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xmlcpp, "B.cpp");
+
+            var headerScope = CodeParser[Language.CPlusPlus].ParseFileUnit(xmlHeader);
+            var implementationScope = CodeParser[Language.CPlusPlus].ParseFileUnit(xmlImpl);
+            var globalScope = headerScope.Merge(implementationScope);
+
+            Assert.AreEqual(1, globalScope.ChildStatements.Count());
+
+            var namespaceA = globalScope.ChildStatements.First() as NamespaceDefinition;
+            Assert.AreEqual("A", namespaceA.Name);
+            Assert.AreEqual(1, namespaceA.ChildStatements.Count());
+            Assert.AreEqual(2, namespaceA.Locations.Count);
+
+            var typeB = namespaceA.ChildStatements.First() as TypeDefinition;
+            Assert.AreEqual("A.B", typeB.GetFullName());
+            Assert.AreEqual(1, typeB.ChildStatements.Count());
+            Assert.AreEqual(2, typeB.Locations.Count);
+
+            var methodFoo = typeB.ChildStatements.First() as MethodDefinition;
+            Assert.AreEqual("A.B.Foo", methodFoo.GetFullName());
+            Assert.AreEqual(0, methodFoo.ChildStatements.Count());
+            Assert.AreEqual(2, methodFoo.Locations.Count);
+
+            Assert.AreSame(globalScope, namespaceA.ParentStatement);
+            Assert.AreSame(namespaceA, typeB.ParentStatement);
+            Assert.AreSame(typeB, methodFoo.ParentStatement);
+        }
         [Test]
         public void TestMethodDefinitionMerge_NoParameters() {
             ////Foo.h
