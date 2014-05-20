@@ -98,161 +98,166 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("D", typeD.Name);
         }
 
-//        [Test]
-//        public void TestCreateTypeDefinitions_Class() {
-//            // class A { }
-//            string xml = @"<class>class <name>A</name> <block>{
-//}</block></class>";
+        [Test]
+        public void TestCreateTypeDefinitions_Class() {
+            // class A { }
+            string xml = @"<class>class <name>A</name> <block>{
+}</block></class>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
 
-//            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            Assert.IsTrue(globalScope.IsGlobal);
 
-//            var actual = codeParser.ParseFileUnit(xmlElement).ChildScopes.First() as ITypeDefinition;
-//            var globalNamespace = actual.ParentScope as INamespaceDefinition;
-//            Assert.AreEqual("A", actual.Name);
-//            Assert.That(globalNamespace.IsGlobal);
-//        }
+            var actual = globalScope.ChildStatements.First() as TypeDefinition;
+            Assert.IsNotNull(actual);
+            Assert.AreEqual("A", actual.Name);
+            Assert.AreEqual(0, actual.ChildStatements.Count);
+        }
 
-//        [Test]
-//        public void TestCreateTypeDefinitions_ClassInFunction() {
-//            // class A { int foo() { class B { } } }
-//            string xml = @"<class>class <name>A</name> <block>{
-//	<function><type><name>int</name></type> <name>foo</name><parameter_list>()</parameter_list> <block>{
-//		<class>class <name>B</name> <block>{
-//		}</block></class>
-//}</block></function>
-//}</block></class>";
+        [Test]
+        public void TestCreateTypeDefinitions_ClassInFunction() {
+            // class A { int foo() { class B { } } }
+            string xml = @"<class>class <name>A</name> <block>{
+	<function><type><name>int</name></type> <name>foo</name><parameter_list>()</parameter_list> <block>{
+		<class>class <name>B</name> <block>{
+		}</block></class>
+}</block></function>
+}</block></class>";
 
-//            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
 
-//            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
 
-//            var typeA = globalScope.ChildScopes.First() as ITypeDefinition;
-//            var fooMethod = typeA.ChildScopes.First() as IMethodDefinition;
-//            var typeB = fooMethod.ChildScopes.First() as ITypeDefinition;
+            var typeA = globalScope.ChildStatements.First() as TypeDefinition;
+            var fooMethod = typeA.ChildStatements.First() as MethodDefinition;
+            var typeB = fooMethod.ChildStatements.First() as TypeDefinition;
 
-//            Assert.AreEqual("A", typeA.GetFullName());
-//            Assert.AreSame(typeA, fooMethod.ParentScope);
-//            Assert.AreEqual("A.foo", fooMethod.GetFullName());
-//            Assert.AreSame(fooMethod, typeB.ParentScope);
-//            Assert.AreEqual("A.foo.B", typeB.GetFullName());
-//        }
+            Assert.AreEqual("A", typeA.GetFullName());
+            Assert.AreSame(typeA, fooMethod.ParentStatement);
+            Assert.AreEqual("A.foo", fooMethod.GetFullName());
+            Assert.AreSame(fooMethod, typeB.ParentStatement);
+            Assert.AreEqual("A.foo.B", typeB.GetFullName());
+        }
 
-//        [Test]
-//        public void TestCreateTypeDefinitions_ClassWithExtendsAndImplements() {
-//            //Foo.java
-//            //public class Foo extends xyzzy implements A, B, C {
-//            //    public int bar;
-//            //}
-//            string xml = @"<class><specifier>public</specifier> class <name>Foo</name> <super><extends>extends <name>xyzzy</name></extends> <implements>implements <name>A</name>, <name>B</name>, <name>C</name></implements></super> <block>{
-//    <decl_stmt><decl><type><specifier>public</specifier> <name>int</name></type> <name>bar</name></decl>;</decl_stmt>
-//}</block></class>";
+        [Test]
+        public void TestCreateTypeDefinitions_ClassWithExtendsAndImplements() {
+            //Foo.java
+            //public class Foo extends xyzzy implements A, B, C {
+            //    public int bar;
+            //}
+            string xml = @"<class><specifier>public</specifier> class <name>Foo</name> <super><extends>extends <name>xyzzy</name></extends> <implements>implements <name>A</name>, <name>B</name>, <name>C</name></implements></super> <block>{
+    <decl_stmt><decl><type><specifier>public</specifier> <name>int</name></type> <name>bar</name></decl>;</decl_stmt>
+}</block></class>";
 
-//            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.java");
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.java");
 
-//            var actual = codeParser.ParseFileUnit(xmlElement).ChildScopes.First() as ITypeDefinition;
-//            Assert.IsNotNull(actual);
-//            var globalNamespace = actual.ParentScope as INamespaceDefinition;
-//            Assert.IsNotNull(globalNamespace);
-//            Assert.AreEqual("Foo", actual.Name);
-//            Assert.AreEqual(4, actual.ParentTypes.Count);
-//            Assert.That(globalNamespace.IsGlobal);
+            var actual = codeParser.ParseFileUnit(xmlElement).ChildStatements.First() as TypeDefinition;
+            Assert.IsNotNull(actual);
+            var globalNamespace = actual.ParentStatement as NamespaceDefinition;
+            Assert.IsNotNull(globalNamespace);
+            Assert.AreEqual("Foo", actual.Name);
+            Assert.AreEqual(4, actual.ParentTypes.Count);
+            Assert.That(globalNamespace.IsGlobal);
 
-//            var parentNames = from parent in actual.ParentTypes
-//                              select parent.Name;
+            var parentNames = from parent in actual.ParentTypes
+                              select parent.Name;
 
-//            var tests = Enumerable.Zip<string, string, bool>(new[] { "xyzzy", "A", "B", "C" }, parentNames, (e, a) => e == a);
-//            foreach(var test in tests) {
-//                Assert.That(test);
-//            }
-//        }
+            var tests = Enumerable.Zip<string, string, bool>(new[] { "xyzzy", "A", "B", "C" }, parentNames, (e, a) => e == a);
+            foreach(var test in tests) {
+                Assert.That(test);
+            }
+        }
 
-//        [Test]
-//        public void TestCreateTypeDefinitions_ClassWithInnerClass() {
-//            // class A { class B { } }
-//            string xml = @"<class>class <name>A</name> <block>{
-//	<class>class <name>B</name> <block>{
-//	}</block></class>
-//}</block></class>";
+        [Test]
+        public void TestCreateTypeDefinitions_ClassWithInnerClass() {
+            // class A { class B { } }
+            string xml = @"<class>class <name>A</name> <block>{
+	<class>class <name>B</name> <block>{
+	}</block></class>
+}</block></class>";
 
-//            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
 
-//            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
 
-//            var typeA = globalScope.ChildScopes.First() as ITypeDefinition;
-//            var typeB = typeA.ChildScopes.First() as ITypeDefinition;
+            var typeA = globalScope.ChildStatements.First() as TypeDefinition;
+            var typeB = typeA.ChildStatements.First() as TypeDefinition;
 
-//            Assert.AreSame(typeA, typeB.ParentScope);
-//            Assert.AreEqual("A", typeA.GetFullName());
-//            Assert.AreEqual("A.B", typeB.GetFullName());
-//        }
+            Assert.AreSame(typeA, typeB.ParentStatement);
+            Assert.AreEqual("A", typeA.GetFullName());
+            Assert.AreEqual("A.B", typeB.GetFullName());
+        }
 
-//        [Test]
-//        public void TestCreateTypeDefinitions_ClassWithParents() {
-//            // class A implements B,C,D { }
-//            string xml = @"<class>class <name>A</name> <super><implements>implements <name>B</name>,<name>C</name>,<name>D</name></implements></super> <block>{
-//}</block></class>";
+        [Test]
+        public void TestCreateTypeDefinitions_ClassWithParents() {
+            // class A implements B,C,D { }
+            string xml = @"<class>class <name>A</name> <super><implements>implements <name>B</name>,<name>C</name>,<name>D</name></implements></super> <block>{
+}</block></class>";
 
-//            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
 
-//            var actual = codeParser.ParseFileUnit(xmlElement).ChildScopes.First() as ITypeDefinition;
-//            var globalNamespace = actual.ParentScope as INamespaceDefinition;
-//            Assert.AreEqual("A", actual.Name);
-//            Assert.AreEqual(3, actual.ParentTypes.Count);
-//            Assert.That(globalNamespace.IsGlobal);
+            var actual = codeParser.ParseFileUnit(xmlElement).ChildStatements.First() as TypeDefinition;
+            var globalNamespace = actual.ParentStatement as NamespaceDefinition;
+            Assert.AreEqual("A", actual.Name);
+            Assert.AreEqual(3, actual.ParentTypes.Count);
+            Assert.That(globalNamespace.IsGlobal);
 
-//            var parentNames = from parent in actual.ParentTypes
-//                              select parent.Name;
+            var parentNames = from parent in actual.ParentTypes
+                              select parent.Name;
 
-//            var tests = Enumerable.Zip<string, string, bool>(new[] { "B", "C", "D" }, parentNames, (e, a) => e == a);
-//            foreach(var test in tests) {
-//                Assert.That(test);
-//            }
-//        }
+            var tests = Enumerable.Zip<string, string, bool>(new[] { "B", "C", "D" }, parentNames, (e, a) => e == a);
+            foreach(var test in tests) {
+                Assert.That(test);
+            }
+        }
 
-//        [Test]
-//        [Category("Todo")]
-//        public void TestCreateTypeDefinitions_ClassWithQualifiedParent() {
-//            // class D implements A.B.C { }
-//            string xml = @"<class>class <name>D</name> <super><implements>implements <name>A</name><op:operator>.</op:operator><name>B</name><op:operator>.</op:operator><name>C</name></implements></super> <block>{
-//}</block></class>";
+        [Test]
+        [Category("Todo")]
+        public void TestCreateTypeDefinitions_ClassWithQualifiedParent() {
+            // class D implements A.B.C { }
+            string xml = @"<class>class <name>D</name> <super><implements>implements <name>A</name><op:operator>.</op:operator><name>B</name><op:operator>.</op:operator><name>C</name></implements></super> <block>{
+}</block></class>";
 
-//            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "D.java");
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "D.java");
 
-//            var actual = codeParser.ParseFileUnit(xmlElement).ChildScopes.First() as ITypeDefinition;
-//            var globalNamespace = actual.ParentScope as INamespaceDefinition;
+            var actual = codeParser.ParseFileUnit(xmlElement).ChildStatements.First() as TypeDefinition;
+            var globalNamespace = actual.ParentStatement as NamespaceDefinition;
 
-//            Assert.AreEqual("D", actual.Name);
-//            Assert.AreEqual(1, actual.ParentTypes.Count, "TODO fix qualified parents in Java");
-//            Assert.That(globalNamespace.IsGlobal);
+            Assert.AreEqual("D", actual.Name);
+            Assert.AreEqual(1, actual.ParentTypes.Count, "TODO fix qualified parents in Java");
+            Assert.That(globalNamespace.IsGlobal);
 
-//            var parent = actual.ParentTypes.First();
+            var parent = actual.ParentTypes.First();
 
-//            Assert.AreEqual("C", parent.Name);
-//            TestHelper.VerifyPrefixValues(new[] { "A", "B" }, parent.Prefix);
-//        }
+            Assert.AreEqual("C", parent.Name);
+            
+            //TODO: fix this oracle
+            //TestHelper.VerifyPrefixValues(new[] { "A", "B" }, parent.Prefix);
+        }
 
-//        //TODO: add tests for classes with extends keyword
-//        [Test]
-//        public void TestCreateTypeDefinitions_ClassWithSuperClass() {
-//            //Foo.java
-//            //public class Foo extends xyzzy {
-//            //    public int bar;
-//            //}
-//            string xml = @"<class><specifier>public</specifier> class <name>Foo</name> <super><extends>extends <name>xyzzy</name></extends></super> <block>{
-//    <decl_stmt><decl><type><specifier>public</specifier> <name>int</name></type> <name>bar</name></decl>;</decl_stmt>
-//}</block></class>";
-//            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.java");
+        //TODO: add tests for classes with extends keyword
+        [Test]
+        public void TestCreateTypeDefinitions_ClassWithSuperClass() {
+            //Foo.java
+            //public class Foo extends xyzzy {
+            //    public int bar;
+            //}
+            string xml = @"<class><specifier>public</specifier> class <name>Foo</name> <super><extends>extends <name>xyzzy</name></extends></super> <block>{
+    <decl_stmt><decl><type><specifier>public</specifier> <name>int</name></type> <name>bar</name></decl>;</decl_stmt>
+}</block></class>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.java");
 
-//            var actual = codeParser.ParseFileUnit(xmlElement).ChildScopes.First() as ITypeDefinition;
-//            Assert.IsNotNull(actual);
-//            Assert.AreEqual("Foo", actual.Name);
-//            Assert.AreEqual(1, actual.ParentTypes.Count);
-//            Assert.AreEqual("xyzzy", actual.ParentTypes.First().Name);
-//            var globalNamespace = actual.ParentScope as INamespaceDefinition;
-//            Assert.IsNotNull(globalNamespace);
-//            Assert.That(globalNamespace.IsGlobal);
-//        }
+            var actual = codeParser.ParseFileUnit(xmlElement).ChildStatements.First() as TypeDefinition;
+            Assert.IsNotNull(actual);
+            Assert.AreEqual("Foo", actual.Name);
+            Assert.AreEqual(1, actual.ParentTypes.Count);
+            Assert.AreEqual("xyzzy", actual.ParentTypes.First().Name);
+            var globalNamespace = actual.ParentStatement as NamespaceDefinition;
+            Assert.IsNotNull(globalNamespace);
+            Assert.That(globalNamespace.IsGlobal);
+        }
 
+        //TODO: fix this test
 //        [Test]
 //        public void TestCreateTypeDefinitions_InnerClassWithNamespace() {
 //            // package A; class B { class C { } }
@@ -283,21 +288,21 @@ namespace ABB.SrcML.Data.Test {
 //            Assert.AreEqual("A.B.C", inner.GetFullName());
 //        }
 
-//        [Test]
-//        public void TestCreateTypeDefinitions_Interface() {
-//            // interface A { }
-//            string xml = @"<class type=""interface"">interface <name>A</name> <block>{
-//}</block></class>";
+        [Test]
+        public void TestCreateTypeDefinitions_Interface() {
+            // interface A { }
+            string xml = @"<class type=""interface"">interface <name>A</name> <block>{
+}</block></class>";
 
-//            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
 
-//            var actual = codeParser.ParseFileUnit(xmlElement).ChildScopes.First() as ITypeDefinition;
-//            var globalNamespace = actual.ParentScope as INamespaceDefinition;
+            var actual = codeParser.ParseFileUnit(xmlElement).ChildStatements.First() as TypeDefinition;
+            var globalNamespace = actual.ParentStatement as NamespaceDefinition;
 
-//            Assert.AreEqual("A", actual.Name);
-//            Assert.AreEqual(TypeKind.Interface, actual.Kind);
-//            Assert.That(globalNamespace.IsGlobal);
-//        }
+            Assert.AreEqual("A", actual.Name);
+            Assert.AreEqual(TypeKind.Interface, actual.Kind);
+            Assert.That(globalNamespace.IsGlobal);
+        }
 
 //        [Test]
 //        public void TestCreateVariableDeclaration() {
