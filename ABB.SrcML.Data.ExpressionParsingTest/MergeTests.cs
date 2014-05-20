@@ -230,22 +230,13 @@ namespace ABB.SrcML.Data.Test {
         [Test]
         public void TestNamespaceMerge_Java() {
             // # D.java package A.B.C; class D { public void Foo() { } }
-            string d_xml = @"<package>package <name>A</name>.<name>B</name>.<name>C</name>;</package>
-<class>class <name>D</name> <block>{
-	<function><type><specifier>public</specifier> <name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></function>
-}</block></class>";
+            string d_xml = @"<package>package <name><name>A</name><op:operator>.</op:operator><name>B</name><op:operator>.</op:operator><name>C</name></name>;</package> <class>class <name>D</name> <block>{ <function><type><specifier>public</specifier> <name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></function> }</block></class>";
 
             // # E.java package A.B.C; class E { public void Bar() { } }
-            string e_xml = @"<package>package <name>A</name>.<name>B</name>.<name>C</name>;</package>
-<class>class <name>E</name> <block>{
-	<function><type><specifier>public</specifier> <name>void</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ }</block></function>
-}</block></class>";
+            string e_xml = @"<package>package <name><name>A</name><op:operator>.</op:operator><name>B</name><op:operator>.</op:operator><name>C</name></name>;</package> <class>class <name>E</name> <block>{ <function><type><specifier>public</specifier> <name>void</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ }</block></function> }</block></class>";
 
             // # F.java package D; class F { public void Oof() { } }
-            string f_xml = @"<package>package <name>D</name>;</package>
-<class>class <name>F</name> <block>{
-	<function><type><specifier>public</specifier> <name>void</name></type> <name>Oof</name><parameter_list>()</parameter_list> <block>{ }</block></function>
-}</block></class>";
+            string f_xml = @"<package>package <name>D</name>;</package> <class>class <name>F</name> <block>{ <function><type><specifier>public</specifier> <name>void</name></type> <name>Oof</name><parameter_list>()</parameter_list> <block>{ }</block></function> }</block></class>";
 
             var fileUnitD = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(d_xml, "D.java");
             var fileUnitE = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(e_xml, "E.java");
