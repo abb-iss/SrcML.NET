@@ -42,14 +42,11 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="parentTypeUse">The parent type to add</param>
         public void AddParentType(TypeUse parentTypeUse) {
-            //TODO: review this method and update it for changes in TypeUse structure
-            throw new NotImplementedException();
+            if(null == parentTypeUse)
+                throw new ArgumentNullException("parentTypeUse");
 
-            //if(null == parentTypeUse)
-            //    throw new ArgumentNullException("parentTypeUse");
-
-            //parentTypeUse.ParentScope = this;
-            //parentTypeCollection.Add(parentTypeUse);
+            parentTypeUse.ParentStatement = this;
+            parentTypeCollection.Add(parentTypeUse);
         }
 
         public override Statement Merge(Statement otherStatement) {

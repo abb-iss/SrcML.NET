@@ -7,11 +7,11 @@ namespace ABB.SrcML.Data {
 
         public IResolvesToType Initializer { get; set; }
 
-        public override IEnumerable<TypeDefinition> FindMatches() {
-            if(Initializer != null) {
-                return Initializer.FindMatchingTypes();
-            }
-            return base.FindMatches();
-        }
+        //public override IEnumerable<TypeDefinition> FindMatches() {
+        //    if(Initializer != null) {
+        //        return Initializer.FindMatchingTypes();
+        //    }
+        //    return base.FindMatches();
+        //}
     }
 }

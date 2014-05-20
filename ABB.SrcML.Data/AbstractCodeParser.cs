@@ -1065,83 +1065,7 @@ namespace ABB.SrcML.Data {
             return typeDefinition;
         }
 
-        /// <summary>
-        /// Creates a type use element
-        /// </summary>
-        /// <param name="typeUseElement">the element to parse. Must be of a
-        /// <see cref="ABB.SrcML.SRC.Type"/> or see cref="ABB.SrcML.SRC.Name"/></param>
-        /// <param name="context">the parser context</param>
-        /// <returns>A Type Use object</returns>
-        protected virtual TypeUse ParseTypeUseElement(XElement typeUseElement, ParserContext context) {
-            //TODO: implement ParseTypeUseElement
-            return null;
-
-            //    if(typeUseElement == null)
-            //        throw new ArgumentNullException("typeUseElement");
-            //    if(context == null)
-            //        throw new ArgumentNullException("context");
-
-            //    XElement typeNameElement;
-
-            //    // validate the type use typeUseElement (must be a SRC.Name or SRC.Type)
-            //    if(typeUseElement.Name == SRC.Type) {
-            //        typeNameElement = typeUseElement.Elements(SRC.Name).LastOrDefault();
-            //    } else if(typeUseElement.Name == SRC.Name) {
-            //        typeNameElement = typeUseElement;
-            //    } else {
-            //        throw new ArgumentException("typeUseElement should be of type type or name", "typeUseElement");
-            //    }
-
-            //    XElement lastNameElement = null;                  // this is the name element that
-            //                                                      // identifies the type being used
-            //    INamedScopeUse prefix = null;                     // This is the prefix (in A::B::C,
-            //                                                      // this would be the chain A::B)
-            //    XElement typeParameterArgumentList = null;        // the argument list element holds the
-            //                                                      // parameters for generic type uses
-            //    var typeParameters = Enumerable.Empty<ITypeUse>(); // enumerable for the actual generic
-            //                                                       // parameters
-
-            //    // get the last name element and the prefix
-            //    if(typeNameElement != null) {
-            //        lastNameElement = NameHelper.GetLastNameElement(typeNameElement);
-            //        prefix = ParseNamedScopeUsePrefix(typeNameElement, context);
-            //    }
-
-            //    // if the last name element exists, then this *may* be a generic type use go look for
-            //    // the argument list element
-            //    if(lastNameElement != null) {
-            //        if(prefix == null) { // if there is no prefix, then the argument list element will
-            //                             // be the first sibling of lastNameElement
-            //            typeParameterArgumentList = lastNameElement.ElementsAfterSelf(SRC.ArgumentList).FirstOrDefault();
-            //        } else {             // otherwise, it will be the first *child* of lastNameElement
-            //            typeParameterArgumentList = lastNameElement.Elements(SRC.ArgumentList).FirstOrDefault();
-            //        }
-            //    }
-
-            //    if(typeParameterArgumentList != null) {
-            //        typeParameters = from argument in typeParameterArgumentList.Elements(SRC.Argument)
-            //                         where argument.Elements(SRC.Name).Any()
-            //                         select ParseTypeUseElement(argument.Element(SRC.Name), context);
-            //        // if this is a generic type use and there is a prefix (A::B::C) then the last name
-            //        // element will actually be the first child of lastNameElement
-            //        if(prefix != null) {
-            //            lastNameElement = lastNameElement.Element(SRC.Name);
-            //        }
-            //    }
-
-            //    // construct the type use
-            //    var typeUse = new TypeUse() {
-            //        Name = (lastNameElement != null ? lastNameElement.Value : string.Empty),
-            //        ParentScope = context.CurrentStatement,
-            //        Location = context.CreateLocation(lastNameElement != null ? lastNameElement : typeUseElement),
-            //        Prefix = prefix,
-            //        ProgrammingLanguage = this.ParserLanguage,
-            //    };
-            //    typeUse.AddTypeParameters(typeParameters);
-
-            //    typeUse.AddAliases(context.Aliases);
-            //    return typeUse;
-        }
+        
 
         /// <summary>
         /// Creates a global <see cref="INamespaceDefinition"/> object for
@@ -1282,7 +1206,9 @@ namespace ABB.SrcML.Data {
                     component = ParseOperatorElement(element, context);
                 }
 
-                exp.Components.Add(component);
+                if(component != null) {
+                    exp.AddComponent(component);
+                }
             }
 
             return exp;
@@ -1361,6 +1287,84 @@ namespace ABB.SrcML.Data {
             };
 
             return op;
+        }
+
+        /// <summary>
+        /// Creates a type use element
+        /// </summary>
+        /// <param name="typeUseElement">the element to parse. Must be of a
+        /// <see cref="ABB.SrcML.SRC.Type"/> or <see cref="ABB.SrcML.SRC.Name"/>.</param>
+        /// <param name="context">the parser context</param>
+        /// <returns>A Type Use object</returns>
+        protected virtual TypeUse ParseTypeUseElement(XElement typeUseElement, ParserContext context) {
+            if(typeUseElement == null)
+                throw new ArgumentNullException("typeUseElement");
+            if(!(typeUseElement.Name == SRC.Type || typeUseElement.Name == SRC.Name))
+                throw new ArgumentException("Must be a SRC.Type or SRC.Name element", "typeUseElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            XElement typeNameElement;
+            // locate the name element for the type
+            if(typeUseElement.Name == SRC.Type) {
+                typeNameElement = typeUseElement.Elements(SRC.Name).LastOrDefault();
+            } else {
+                //typeUseElement is a SRC.Name
+                typeNameElement = typeUseElement;
+            } 
+
+            XElement lastNameElement = null;                   // this is the name element that identifies the type being used
+            NamePrefix prefix = null;                          // This is the prefix (in A::B::C, this would be the chain A::B)
+            XElement argumentListElement = null;               // the argument list element holds the parameters for generic type uses
+            var typeArguments = Enumerable.Empty<TypeUse>();   // enumerable for the actual generic arguments
+
+            // get the last name element and the prefix
+            if(typeNameElement != null) {
+                lastNameElement = NameHelper.GetLastNameElement(typeNameElement);
+                prefix = ParseNamePrefix(typeNameElement, context);
+            }
+
+            // if the last name element exists, then this *may* be a generic type use 
+            // go look for the argument list element
+            if(lastNameElement != null) {
+                if(prefix == null) { 
+                    //if there is no prefix, then the argument list element will be the first sibling of lastNameElement
+                    argumentListElement = lastNameElement.ElementsAfterSelf(SRC.ArgumentList).FirstOrDefault();
+                } else {             
+                    //otherwise, it will be the first *child* of lastNameElement
+                    argumentListElement = lastNameElement.Elements(SRC.ArgumentList).FirstOrDefault();
+                }
+            }
+
+            if(argumentListElement != null) {
+                typeArguments = from argument in argumentListElement.Elements(SRC.Argument)
+                                where argument.Elements(SRC.Name).Any()
+                                select ParseTypeUseElement(argument.Element(SRC.Name), context);
+                // if this is a generic type use and there is a prefix (A::B::C) then the last name
+                // element will actually be the first child of lastNameElement
+                if(prefix != null) {
+                    lastNameElement = lastNameElement.Element(SRC.Name);
+                }
+            }
+
+            // construct the type use
+            var typeUse = new TypeUse() {
+                Name = (lastNameElement != null ? lastNameElement.Value : string.Empty),
+                Location = context.CreateLocation(lastNameElement != null ? lastNameElement : typeUseElement),
+                Prefix = prefix,
+                ProgrammingLanguage = ParserLanguage
+            };
+            typeUse.AddTypeParameters(typeArguments);
+            
+            //TODO: handle aliases
+            //typeUse.AddAliases(context.Aliases);
+
+            return typeUse;
+        }
+
+        protected virtual NamePrefix ParseNamePrefix(XElement nameElement, ParserContext context) {
+            //TODO: implement ParseNamePrefix
+            return new NamePrefix();
         }
 
         #endregion

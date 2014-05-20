@@ -20,48 +20,23 @@ namespace ABB.SrcML.Data {
     /// <summary>
     /// Represents a use of a type. It is used in declarations and inheritance specifications.
     /// </summary>
-    [Serializable]
-    public class TypeUse : AbstractScopeUse<TypeDefinition> {
-        private List<TypeUse> internalTypeParameters;
+    public class TypeUse : NameUse {
+        private List<TypeUse> typeParameterList;
 
         /// <summary>
         /// Create a new type use object.
         /// </summary>
         public TypeUse() {
-            this.Name = String.Empty;
-            this.internalTypeParameters = new List<TypeUse>();
-            this.TypeParameters = new ReadOnlyCollection<TypeUse>(this.internalTypeParameters);
+            Name = String.Empty;
+            typeParameterList = new List<TypeUse>();
+            TypeParameters = new ReadOnlyCollection<TypeUse>(this.typeParameterList);
         }
 
-        /// <summary>
-        /// The calling object for this type (should be unused)
-        /// </summary>
-        public IResolvesToType CallingObject { get; set; }
-
+        
         /// <summary>
         /// Returns true if <see cref="TypeParameters"/> has any elements
         /// </summary>
-        public bool IsGeneric { get { return this.internalTypeParameters.Count > 0; } }
-
-        public override Scope ParentScope {
-            get {
-                return base.ParentScope;
-            }
-            set {
-                base.ParentScope = value;
-                if(null != Prefix) {
-                    Prefix.ParentScope = this.ParentScope;
-                }
-                foreach(var parameter in internalTypeParameters) {
-                    parameter.ParentScope = this.ParentScope;
-                }
-            }
-        }
-
-        /// <summary>
-        /// The prefix for this type use object
-        /// </summary>
-        public NamedScopeUse Prefix { get; set; }
+        public bool IsGeneric { get { return typeParameterList.Count > 0; } }
 
         /// <summary>
         /// Parameters for the type use (indicates that this is a generic type use)
@@ -73,15 +48,15 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="typeParameter">The type parameter to add</param>
         public void AddTypeParameter(TypeUse typeParameter) {
-            this.internalTypeParameters.Add(typeParameter);
+            typeParameterList.Add(typeParameter);
         }
 
         /// <summary>
-        /// Adds all of the type parameters to this type use element
+        /// Adds all of the given type parameters to this type use element
         /// </summary>
         /// <param name="typeParameters">An enumerable of type use elements to add</param>
         public void AddTypeParameters(IEnumerable<TypeUse> typeParameters) {
-            this.internalTypeParameters.AddRange(typeParameters);
+            typeParameterList.AddRange(typeParameters);
         }
 
         /// <summary>
@@ -96,7 +71,7 @@ namespace ABB.SrcML.Data {
         /// Finds all of the matches for this type
         /// </summary>
         /// <returns>All of the type definitions that match this type use</returns>
-        public override IEnumerable<TypeDefinition> FindMatches() {
+        public IEnumerable<TypeDefinition> FindMatches() {
             //TODO: review this method and update it for changes in TypeUse structure
             throw new NotImplementedException();
             // if this is a built-in type, then just return that otherwise, go hunting for matching
@@ -128,20 +103,20 @@ namespace ABB.SrcML.Data {
             return this.FindMatches();
         }
 
-        /// <summary>
-        /// Tests if this type use is a match for the given
-        /// <paramref name="definition"/></summary>
-        /// <param name="definition">the definition to compare to</param>
-        /// <returns>true if the definitions match; false otherwise</returns>
-        public override bool Matches(TypeDefinition definition) {
-            return definition != null && definition.Name == this.Name;
-        }
+        ///// <summary>
+        ///// Tests if this type use is a match for the given
+        ///// <paramref name="definition"/></summary>
+        ///// <param name="definition">the definition to compare to</param>
+        ///// <returns>true if the definitions match; false otherwise</returns>
+        //public override bool Matches(TypeDefinition definition) {
+        //    return definition != null && definition.Name == this.Name;
+        //}
 
         /// <summary>
         /// Returns a string representation of this object.
         /// </summary>
         public override string ToString() {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             if(Prefix != null) {
                 sb.Append(Prefix);
                 sb.Append('.');

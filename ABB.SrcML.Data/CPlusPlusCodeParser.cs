@@ -327,7 +327,7 @@ namespace ABB.SrcML.Data {
             return typeDefinition;
         }
 
-        #region Private methods
+        
         /// <summary>
         /// Parses the NamePrefix expression from a method.
         /// In a method <code>int A::B::MyFunc()</code>, the NamePrefix is <code>A::B</code>.
@@ -335,7 +335,7 @@ namespace ABB.SrcML.Data {
         /// <param name="methodElement">The method element to parse</param>
         /// <param name="context">The parser context</param>
         /// <returns>The NamePrefix expression for the method.</returns>
-        private NamePrefix ParseNamePrefix(XElement methodElement, ParserContext context) {
+        protected override NamePrefix ParseNamePrefix(XElement methodElement, ParserContext context) {
             // TODO need better error handling
             // what if there are other things in the prefix list besides operators & names?
             var nameElement = methodElement.Element(SRC.Name);
@@ -353,7 +353,7 @@ namespace ABB.SrcML.Data {
                         component = ParseOperatorElement(part, context);
                     }
                     if(null != component) {
-                        prefix.Components.Add(component);
+                        prefix.AddComponent(component);
                     }
                 }
                 return prefix;
@@ -386,6 +386,7 @@ namespace ABB.SrcML.Data {
             //return root;
         }
 
+        #region Private methods
         /// <summary>
         /// This method parses and returns the children within the public/protected/private block under a C++ class, 
         /// and sets the specified access modifier on the children that support it.

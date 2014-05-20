@@ -23,6 +23,18 @@
               <referencedTypeMoniker Id="904e1ece-28ca-4308-920b-c4cd18040ab8" LastKnownName="Language" />
             </type_NamedElement>
           </property>
+          <property Id="3e8a3a32-a878-422b-91f5-ed1e1b79cf54" name="ParentExpression" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="0fb23fd8-6243-4978-8004-69ac70561063" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="c755bfb5-f52e-46ce-bce0-eae5d6d3d701" LastKnownName="Expression" />
+            </type_NamedElement>
+          </property>
+          <property Id="1cc5a43b-6345-4c6a-a328-f2c5d8a2455f" name="ParentStatement" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="048a497d-85fb-4d02-bc66-414cdc0ecedc" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="c5676a9c-b0d8-4d07-954e-3e551e65a764" LastKnownName="Statement" />
+            </type_NamedElement>
+          </property>
         </ownedAttributesInternal>
         <ownedOperationsInternal>
           <operation Id="5883e61a-7d42-4e61-a1fe-fd518236f7d9" name="ResolveType" isLeaf="false" isStatic="false" isAbstract="false" concurrency="Sequential" isQuery="false">
@@ -148,6 +160,18 @@
               <referencedTypeMoniker Id="0b63c866-3450-43e8-945b-29bc10f3aeae" LastKnownName="string" />
             </type_NamedElement>
           </property>
+          <property Id="d7976e3e-569b-4e69-9391-306f22075161" name="Prefix" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="a722937c-0c97-4e05-a041-e2b220e4b233" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="2555249a-7baa-489e-88c8-e89146b409c6" LastKnownName="NamePrefix" />
+            </type_NamedElement>
+          </property>
+          <property Id="e0898ff3-d531-4b1d-a2f8-5257a5e3723d" name="Aliases" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="113bd8b7-b4e5-4aa2-803a-298d8fc3646e" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="db7db2f5-b253-4a7f-88c2-fe7e7605d507" LastKnownName="Collection&lt;Alias&gt;" />
+            </type_NamedElement>
+          </property>
         </ownedAttributesInternal>
       </class>
     </logicalClassDesignerModelHasTypes>
@@ -160,6 +184,14 @@
             <elementDefinition Id="071d1ef9-f351-4149-9028-e779be24183f" />
           </generalization>
         </generalsInternal>
+        <ownedAttributesInternal>
+          <property Id="faac1035-8d5c-4632-bbf3-1bb017bcab5b" name="TypeParameters" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="0b4fc0e7-e1d0-4c50-b203-8e74ce788770" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="661a6092-b8b9-41e6-9176-991afe081c60" LastKnownName="Collection&lt;TypeUse&gt;" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
       </class>
     </logicalClassDesignerModelHasTypes>
     <logicalClassDesignerModelHasTypes>
@@ -211,6 +243,26 @@
     <packageHasNamedElement>
       <referencedType Id="e1c78464-a21f-4c32-88fb-0e2dd2977e1d" name="Collection&lt;Expression&gt;" isAbstract="false" isLeaf="false" cachedFullName="Collection&lt;Expression&gt;">
         <elementDefinition Id="664af602-3d21-4526-9e04-d2e34c380755" />
+      </referencedType>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <referencedType Id="2555249a-7baa-489e-88c8-e89146b409c6" name="NamePrefix" isAbstract="false" isLeaf="false" cachedFullName="NamePrefix">
+        <elementDefinition Id="71cdbd85-9ec7-49e3-91c3-a8eacf31ce56" />
+      </referencedType>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <referencedType Id="661a6092-b8b9-41e6-9176-991afe081c60" name="Collection&lt;TypeUse&gt;" isAbstract="false" isLeaf="false" cachedFullName="Collection&lt;TypeUse&gt;">
+        <elementDefinition Id="c2629e6a-9211-4c33-94c9-f6fd59eefbd1" />
+      </referencedType>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <referencedType Id="db7db2f5-b253-4a7f-88c2-fe7e7605d507" name="Collection&lt;Alias&gt;" isAbstract="false" isLeaf="false" cachedFullName="Collection&lt;Alias&gt;">
+        <elementDefinition Id="a2f5b856-3fe8-40b8-b93b-f0b4c145f738" />
+      </referencedType>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <referencedType Id="c5676a9c-b0d8-4d07-954e-3e551e65a764" name="Statement" isAbstract="false" isLeaf="false" cachedFullName="ABB.SrcML.Data.ExpressionParsingModels::Statement">
+        <elementDefinition Id="3c930dc3-adce-4432-b0c6-c7f3341a7529" />
       </referencedType>
     </packageHasNamedElement>
   </packagedElements>
