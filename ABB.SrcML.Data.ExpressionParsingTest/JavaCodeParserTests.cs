@@ -257,36 +257,32 @@ namespace ABB.SrcML.Data.Test {
             Assert.That(globalNamespace.IsGlobal);
         }
 
-        //TODO: fix this test
-//        [Test]
-//        public void TestCreateTypeDefinitions_InnerClassWithNamespace() {
-//            // package A; class B { class C { } }
-//            string xml = @"<package>package <name>A</name>;</package>
-//<class>class <name>B</name> <block>{
-//	<class>class <name>C</name> <block>{
-//	}</block></class>
-//}</block></class>";
+        [Test]
+        public void TestCreateTypeDefinitions_InnerClassWithNamespace() {
+            // package A; class B { class C { } }
+            string xml = @"<package>package <name>A</name>;</package>
+<class>class <name>B</name> <block>{
+	<class>class <name>C</name> <block>{
+	}</block></class>
+}</block></class>";
 
-//            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "B.java");
-//            var scopes = VariableScopeIterator.Visit(codeParser.ParseFileUnit(xmlElement));
-//            var typeDefinitions = from scope in scopes
-//                                  let definition = (scope as ITypeDefinition)
-//                                  where definition != null
-//                                  select definition;
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "B.java");
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
 
-//            Assert.AreEqual(2, typeDefinitions.Count());
+            var typeDefinitions = globalScope.GetDescendants<TypeDefinition>().ToList();
+            Assert.AreEqual(2, typeDefinitions.Count());
 
-//            var outer = typeDefinitions.First() as ITypeDefinition;
-//            var inner = typeDefinitions.Last() as ITypeDefinition;
+            var outer = typeDefinitions.First();
+            var inner = typeDefinitions.Last();
 
-//            Assert.AreEqual("B", outer.Name);
-//            Assert.AreEqual("A", outer.GetFirstParent<INamespaceDefinition>().GetFullName());
-//            Assert.AreEqual("A.B", outer.GetFullName());
+            Assert.AreEqual("B", outer.Name);
+            Assert.AreEqual("A", outer.GetAncestors<NamespaceDefinition>().First().GetFullName());
+            Assert.AreEqual("A.B", outer.GetFullName());
 
-//            Assert.AreEqual("C", inner.Name);
-//            Assert.AreEqual("A", inner.GetFirstParent<INamespaceDefinition>().GetFullName());
-//            Assert.AreEqual("A.B.C", inner.GetFullName());
-//        }
+            Assert.AreEqual("C", inner.Name);
+            Assert.AreEqual("A", inner.GetAncestors<NamespaceDefinition>().First().GetFullName());
+            Assert.AreEqual("A.B.C", inner.GetFullName());
+        }
 
         [Test]
         public void TestCreateTypeDefinitions_Interface() {
@@ -351,65 +347,89 @@ namespace ABB.SrcML.Data.Test {
 //            Assert.AreEqual("int", fieldB.VariableType.Name);
 //        }
 
-//        [Test]
-//        public void TestGetAccessModifierForMethod_None() {
-//            //public class Foo {
-//            //    bool Bar() { return true; }
-//            //}
-//            string xml = @"<class><specifier>public</specifier> class <name>Foo</name> <block>{
-//    <function><type><name>bool</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><name>true</name></expr>;</return> }</block></function>
-//}</block></class>";
-//            var element = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.java").Descendants(SRC.Function).FirstOrDefault();
-//            Assert.AreEqual(AccessModifier.None, codeParser.GetAccessModifierForMethod(element));
-//        }
+        [Test]
+        public void TestGetAccessModifierForMethod_None() {
+            //public class Foo {
+            //    bool Bar() { return true; }
+            //}
+            string xml = @"<class><specifier>public</specifier> class <name>Foo</name> <block>{
+    <function><type><name>bool</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><name>true</name></expr>;</return> }</block></function>
+}</block></class>";
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.java");
 
-//        [Test]
-//        public void TestGetAccessModifierForMethod_Normal() {
-//            //public class Foo {
-//            //    public bool Bar() { return true; }
-//            //}
-//            string xml = @"<class><specifier>public</specifier> class <name>Foo</name> <block>{
-//    <function><type><specifier>public</specifier> <name>bool</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><name>true</name></expr>;</return> }</block></function>
-//}</block></class>";
-//            var element = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.java").Descendants(SRC.Function).FirstOrDefault();
-//            Assert.AreEqual(AccessModifier.Public, codeParser.GetAccessModifierForMethod(element));
-//        }
+            var globalScope = codeParser.ParseFileUnit(unit);
+            var method = globalScope.GetDescendants<MethodDefinition>().First();
 
-//        [Test]
-//        public void TestGetAccessModifierForMethod_Static() {
-//            //public class Foo {
-//            //    static public bool Bar() { return true; }
-//            //}
-//            string xml = @"<class><specifier>public</specifier> class <name>Foo</name> <block>{
-//    <function><type><specifier>static</specifier> <specifier>public</specifier> <name>bool</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><name>true</name></expr>;</return> }</block></function>
-//}</block></class>";
-//            var element = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.java").Descendants(SRC.Function).FirstOrDefault();
-//            Assert.AreEqual(AccessModifier.Public, codeParser.GetAccessModifierForMethod(element));
-//        }
+            Assert.AreEqual(AccessModifier.None, method.Accessibility);
+        }
 
-//        [Test]
-//        public void TestGetAccessModifierForType_None() {
-//            //class Foo {}
-//            string xml = @"<class>class <name>Foo</name> <block>{}</block></class>";
-//            var element = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.java").Descendants(SRC.Class).FirstOrDefault();
-//            Assert.AreEqual(AccessModifier.None, codeParser.GetAccessModifierForType(element));
-//        }
+        [Test]
+        public void TestGetAccessModifierForMethod_Normal() {
+            //public class Foo {
+            //    public bool Bar() { return true; }
+            //}
+            string xml = @"<class><specifier>public</specifier> class <name>Foo</name> <block>{
+    <function><type><specifier>public</specifier> <name>bool</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><name>true</name></expr>;</return> }</block></function>
+}</block></class>";
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.java");
 
-//        [Test]
-//        public void TestGetAccessModifierForType_Normal() {
-//            //public class Foo {}
-//            string xml = @"<class><specifier>public</specifier> class <name>Foo</name> <block>{}</block></class>";
-//            var element = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.java").Descendants(SRC.Class).FirstOrDefault();
-//            Assert.AreEqual(AccessModifier.Public, codeParser.GetAccessModifierForType(element));
-//        }
+            var globalScope = codeParser.ParseFileUnit(unit);
+            var method = globalScope.GetDescendants<MethodDefinition>().First();
 
-//        [Test]
-//        public void TestGetAccessModifierForType_Static() {
-//            //static public class Foo {}
-//            string xml = @"<class><specifier>static</specifier> <specifier>public</specifier> class <name>Foo</name> <block>{}</block></class>";
-//            var element = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.java").Descendants(SRC.Class).FirstOrDefault();
-//            Assert.AreEqual(AccessModifier.Public, codeParser.GetAccessModifierForType(element));
-//        }
+            Assert.AreEqual(AccessModifier.Public, method.Accessibility);
+        }
+
+        [Test]
+        public void TestGetAccessModifierForMethod_Static() {
+            //public class Foo {
+            //    static public bool Bar() { return true; }
+            //}
+            string xml = @"<class><specifier>public</specifier> class <name>Foo</name> <block>{
+    <function><type><specifier>static</specifier> <specifier>public</specifier> <name>bool</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><name>true</name></expr>;</return> }</block></function>
+}</block></class>";
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.java");
+
+            var globalScope = codeParser.ParseFileUnit(unit);
+            var method = globalScope.GetDescendants<MethodDefinition>().First();
+
+            Assert.AreEqual(AccessModifier.Public, method.Accessibility);
+        }
+
+        [Test]
+        public void TestGetAccessModifierForType_None() {
+            //class Foo {}
+            string xml = @"<class>class <name>Foo</name> <block>{}</block></class>";
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.java");
+
+            var globalScope = codeParser.ParseFileUnit(unit);
+            var type = globalScope.GetDescendants<TypeDefinition>().First();
+
+            Assert.AreEqual(AccessModifier.None, type.Accessibility);
+        }
+
+        [Test]
+        public void TestGetAccessModifierForType_Normal() {
+            //public class Foo {}
+            string xml = @"<class><specifier>public</specifier> class <name>Foo</name> <block>{}</block></class>";
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.java");
+
+            var globalScope = codeParser.ParseFileUnit(unit);
+            var type = globalScope.GetDescendants<TypeDefinition>().First();
+
+            Assert.AreEqual(AccessModifier.Public, type.Accessibility);
+        }
+
+        [Test]
+        public void TestGetAccessModifierForType_Static() {
+            //static public class Foo {}
+            string xml = @"<class><specifier>static</specifier> <specifier>public</specifier> class <name>Foo</name> <block>{}</block></class>";
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.java");
+
+            var globalScope = codeParser.ParseFileUnit(unit);
+            var type = globalScope.GetDescendants<TypeDefinition>().First();
+
+            Assert.AreEqual(AccessModifier.Public, type.Accessibility);
+        }
 
 //        [Test]
 //        public void TestMethodCallCreation() {
