@@ -38,7 +38,13 @@ namespace ABB.SrcML.Data.Test {
 }</block></namespace>";
             var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
 
-            var root = codeParser.ParseFileUnit(unit);
+            var globalScope = codeParser.ParseFileUnit(unit);
+            Assert.IsTrue(globalScope.IsGlobal);
+
+            var actual = globalScope.ChildStatements.First() as NamespaceDefinition;
+            Assert.IsNotNull(actual);
+            Assert.AreEqual("A", actual.Name);
+            Assert.AreEqual(1, actual.ChildStatements.Count);
         }
 
 //        [Test]
@@ -335,26 +341,25 @@ namespace ABB.SrcML.Data.Test {
 //            Assert.AreEqual(1, foo.DeclaredVariables.Count());
 //        }
 
-//        [Test]
-//        public void TestCreateTypeDefinition_Interface() {
-//            ////Foo.cs
-//            //public interface Foo {
-//            //    public int GetBar();
-//            //}
-//            string fooXml = @"<class type=""interface""><specifier>public</specifier> interface <name>Foo</name> <block>{
-//    <function_decl><type><specifier>public</specifier> <name>int</name></type> <name>GetBar</name><parameter_list>()</parameter_list>;</function_decl>
-//}</block></class>";
-//            var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(fooXml, "Foo.cs");
-//            var globalScope = codeParser.ParseFileUnit(fooFileUnit);
+        [Test]
+        public void TestCreateTypeDefinition_Interface() {
+            ////Foo.cs
+            //public interface Foo {
+            //    public int GetBar();
+            //}
+            string fooXml = @"<class type=""interface""><specifier>public</specifier> interface <name>Foo</name> <block>{
+    <function_decl><type><specifier>public</specifier> <name>int</name></type> <name>GetBar</name><parameter_list>()</parameter_list>;</function_decl>
+}</block></class>";
+            var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(fooXml, "Foo.cs");
+            var globalScope = codeParser.ParseFileUnit(fooFileUnit);
 
-//            Assert.AreEqual(1, globalScope.ChildScopes.Count());
-//            var foo = globalScope.ChildScopes.First() as ITypeDefinition;
-//            Assert.IsNotNull(foo);
-//            Assert.AreEqual("Foo", foo.Name);
-//            Assert.AreEqual(TypeKind.Interface, foo.Kind);
-//            Assert.AreEqual(1, foo.ChildScopes.Count());
-//            Assert.AreEqual(0, foo.DeclaredVariables.Count());
-//        }
+            Assert.AreEqual(1, globalScope.ChildStatements.Count());
+            var foo = globalScope.ChildStatements.First() as TypeDefinition;
+            Assert.IsNotNull(foo);
+            Assert.AreEqual("Foo", foo.Name);
+            Assert.AreEqual(TypeKind.Interface, foo.Kind);
+            Assert.AreEqual(1, foo.ChildStatements.Count());
+        }
 
 //        [Test]
 //        public void TestCreateTypeDefinition_Namespace() {
@@ -449,64 +454,64 @@ namespace ABB.SrcML.Data.Test {
 //            Assert.AreEqual(1, foo.DeclaredVariables.Count());
 //        }
 
-//        [Test]
-//        public void TestCreateTypeDefinitions_ClassWithInnerClass() {
-//            ////A.cs
-//            //class A {
-//            //    class B {}
-//            //}
-//            string xml = @"<class>class <name>A</name> <block>{
-//    <class>class <name>B</name> <block>{}</block></class>
-//}</block></class>";
-//            var xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
-//            var globalScope = codeParser.ParseFileUnit(xmlElement);
+        [Test]
+        public void TestCreateTypeDefinitions_ClassWithInnerClass() {
+            ////A.cs
+            //class A {
+            //    class B {}
+            //}
+            string xml = @"<class>class <name>A</name> <block>{
+    <class>class <name>B</name> <block>{}</block></class>
+}</block></class>";
+            var xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
 
-//            Assert.AreEqual(1, globalScope.ChildScopes.Count());
-//            var typeA = globalScope.ChildScopes.First() as ITypeDefinition;
-//            Assert.IsNotNull(typeA);
-//            Assert.AreEqual(1, typeA.ChildScopes.Count());
-//            var typeB = typeA.ChildScopes.First() as ITypeDefinition;
-//            Assert.IsNotNull(typeB);
+            Assert.AreEqual(1, globalScope.ChildStatements.Count());
+            var typeA = globalScope.ChildStatements.First() as TypeDefinition;
+            Assert.IsNotNull(typeA);
+            Assert.AreEqual(1, typeA.ChildStatements.Count());
+            var typeB = typeA.ChildStatements.First() as TypeDefinition;
+            Assert.IsNotNull(typeB);
 
-//            Assert.AreSame(typeA, typeB.ParentScope);
-//            Assert.AreEqual("A", typeA.GetFullName());
-//            Assert.AreEqual("A.B", typeB.GetFullName());
-//        }
+            Assert.AreSame(typeA, typeB.ParentStatement);
+            Assert.AreEqual("A", typeA.GetFullName());
+            Assert.AreEqual("A.B", typeB.GetFullName());
+        }
 
-//        [Test]
-//        public void TestCreateTypeDefinitions_InnerClassWithNamespace() {
-//            ////A.cs
-//            //namespace Foo {
-//            //    class A {
-//            //        class B {}
-//            //    }
-//            //}
-//            string xml = @"<namespace>namespace <name>Foo</name> <block>{
-//    <class>class <name>A</name> <block>{
-//        <class>class <name>B</name> <block>{}</block></class>
-//    }</block></class>
-//}</block></namespace>";
-//            var xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
-//            var globalScope = codeParser.ParseFileUnit(xmlElement);
+        [Test]
+        public void TestCreateTypeDefinitions_InnerClassWithNamespace() {
+            ////A.cs
+            //namespace Foo {
+            //    class A {
+            //        class B {}
+            //    }
+            //}
+            string xml = @"<namespace>namespace <name>Foo</name> <block>{
+    <class>class <name>A</name> <block>{
+        <class>class <name>B</name> <block>{}</block></class>
+    }</block></class>
+}</block></namespace>";
+            var xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
 
-//            Assert.AreEqual(1, globalScope.ChildScopes.Count());
-//            var foo = globalScope.ChildScopes.First() as INamespaceDefinition;
-//            Assert.IsNotNull(foo);
-//            Assert.AreEqual(1, foo.ChildScopes.Count());
-//            var typeA = foo.ChildScopes.First() as ITypeDefinition;
-//            Assert.IsNotNull(typeA);
-//            Assert.AreEqual(1, typeA.ChildScopes.Count());
-//            var typeB = typeA.ChildScopes.First() as ITypeDefinition;
-//            Assert.IsNotNull(typeB);
+            Assert.AreEqual(1, globalScope.ChildStatements.Count());
+            var foo = globalScope.ChildStatements.First() as NamespaceDefinition;
+            Assert.IsNotNull(foo);
+            Assert.AreEqual(1, foo.ChildStatements.Count());
+            var typeA = foo.ChildStatements.First() as TypeDefinition;
+            Assert.IsNotNull(typeA);
+            Assert.AreEqual(1, typeA.ChildStatements.Count());
+            var typeB = typeA.ChildStatements.First() as TypeDefinition;
+            Assert.IsNotNull(typeB);
 
-//            Assert.AreEqual("A", typeA.Name);
-//            Assert.AreEqual("Foo", typeA.GetFirstParent<INamespaceDefinition>().GetFullName());
-//            Assert.AreEqual("Foo.A", typeA.GetFullName());
+            Assert.AreEqual("A", typeA.Name);
+            Assert.AreEqual("Foo", typeA.GetAncestors<NamespaceDefinition>().First().GetFullName());
+            Assert.AreEqual("Foo.A", typeA.GetFullName());
 
-//            Assert.AreEqual("B", typeB.Name);
-//            Assert.AreEqual("Foo", typeB.GetFirstParent<INamespaceDefinition>().GetFullName());
-//            Assert.AreEqual("Foo.A.B", typeB.GetFullName());
-//        }
+            Assert.AreEqual("B", typeB.Name);
+            Assert.AreEqual("Foo", typeB.GetAncestors<NamespaceDefinition>().First().GetFullName());
+            Assert.AreEqual("Foo.A.B", typeB.GetFullName());
+        }
 
 //        [Test]
 //        public void TestDeclarationWithTypeVarFromConstructor() {
@@ -649,18 +654,18 @@ namespace ABB.SrcML.Data.Test {
 //            Assert.AreSame(typeD, typeB.ParentTypes[0].FindFirstMatchingType());
 //        }
 
-//        [Test]
-//        public void TestGenericType() {
-//            //public class B<T> { }
-//            var xml = @"<class><specifier>public</specifier> class <name><name>B</name><argument_list>&lt;<argument><name>T</name></argument>&gt;</argument_list></name> <block>{ }</block></class>";
+        [Test]
+        public void TestGenericType() {
+            //public class B<T> { }
+            var xml = @"<class><specifier>public</specifier> class <name><name>B</name><argument_list>&lt;<argument><name>T</name></argument>&gt;</argument_list></name> <block>{ }</block></class>";
 
-//            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "B.cs");
-//            var scope = codeParser.ParseFileUnit(unit);
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "B.cs");
+            var scope = codeParser.ParseFileUnit(unit);
 
-//            var typeB = scope.GetChildScopes<ITypeDefinition>().FirstOrDefault();
-//            Assert.IsNotNull(typeB);
-//            Assert.AreEqual("B", typeB.Name);
-//        }
+            var typeB = scope.GetDescendants<TypeDefinition>().FirstOrDefault();
+            Assert.IsNotNull(typeB);
+            Assert.AreEqual("B", typeB.Name);
+        }
 
 //        [Test]
 //        public void TestGenericVariableDeclaration() {
@@ -951,50 +956,50 @@ namespace ABB.SrcML.Data.Test {
 //            Assert.AreSame(bDotFoo, methodCall.FindMatches().FirstOrDefault());
 //        }
 
-//        [Test]
-//        public void TestMethodDefinitionWithReturnType() {
-//            //int Foo() { }
-//            string xml = @"<function><type><name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></function>";
+        [Test]
+        public void TestMethodDefinitionWithReturnType() {
+            //int Foo() { }
+            string xml = @"<function><type><name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></function>";
 
-//            var testUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cpp");
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cpp");
 
-//            var testScope = codeParser.ParseFileUnit(testUnit);
+            var testScope = codeParser.ParseFileUnit(testUnit);
 
-//            var method = testScope.GetChildScopesWithId<IMethodDefinition>("Foo").FirstOrDefault();
-//            Assert.IsNotNull(method, "could not find the test method");
+            var method = testScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "Foo");
+            Assert.IsNotNull(method, "could not find the test method");
 
-//            Assert.AreEqual("int", method.ReturnType.Name);
-//        }
+            Assert.AreEqual("int", method.ReturnType.Name);
+        }
 
-//        [Test]
-//        public void TestMethodDefinitionWithReturnTypeAndWithSpecifier() {
-//            //static int Foo() { }
-//            string xml = @"<function><type><specifier>static</specifier> <name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></function>";
+        [Test]
+        public void TestMethodDefinitionWithReturnTypeAndWithSpecifier() {
+            //static int Foo() { }
+            string xml = @"<function><type><specifier>static</specifier> <name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></function>";
 
-//            var testUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cpp");
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cpp");
 
-//            var testScope = codeParser.ParseFileUnit(testUnit);
+            var testScope = codeParser.ParseFileUnit(testUnit);
 
-//            var method = testScope.GetChildScopesWithId<IMethodDefinition>("Foo").FirstOrDefault();
-//            Assert.IsNotNull(method, "could not find the test method");
+            var method = testScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "Foo");
+            Assert.IsNotNull(method, "could not find the test method");
 
-//            Assert.AreEqual("int", method.ReturnType.Name);
-//        }
+            Assert.AreEqual("int", method.ReturnType.Name);
+        }
 
-//        [Test]
-//        public void TestMethodDefinitionWithVoidReturn() {
-//            //void Foo() { }
-//            string xml = @"<function><type><name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></function>";
+        [Test]
+        public void TestMethodDefinitionWithVoidReturn() {
+            //void Foo() { }
+            string xml = @"<function><type><name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></function>";
 
-//            var testUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cpp");
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cpp");
 
-//            var testScope = codeParser.ParseFileUnit(testUnit);
+            var testScope = codeParser.ParseFileUnit(testUnit);
 
-//            var method = testScope.GetChildScopesWithId<IMethodDefinition>("Foo").FirstOrDefault();
-//            Assert.IsNotNull(method, "could not find the test method");
+            var method = testScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "Foo");
+            Assert.IsNotNull(method, "could not find the test method");
 
-//            Assert.IsNull(method.ReturnType, "return type should be null");
-//        }
+            Assert.IsNull(method.ReturnType, "return type should be null");
+        }
 
 //        [Test]
 //        public void TestMultiVariableDeclarations() {
