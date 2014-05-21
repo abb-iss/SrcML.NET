@@ -236,110 +236,112 @@ namespace ABB.SrcML.Data.Test {
 //            Assert.AreEqual("z", actual.ImportedNamespace.ChildScopeUse.ChildScopeUse.Name);
 //        }
 
-//        [Test]
-//        public void TestCreateTypeDefinition_Class() {
-//            ////Foo.cs
-//            //public class Foo {
-//            //    public int bar;
-//            //}
-//            string fooXml = @"<class><specifier>public</specifier> class <name>Foo</name> <block>{
-//    <decl_stmt><decl><type><specifier>public</specifier> <name>int</name></type> <name>bar</name></decl>;</decl_stmt>
-//}</block></class>";
-//            var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(fooXml, "Foo.cs");
-//            var globalScope = codeParser.ParseFileUnit(fooFileUnit);
+        [Test]
+        public void TestCreateTypeDefinition_Class() {
+            ////Foo.cs
+            //public class Foo {
+            //    public int bar;
+            //}
+            string fooXml = @"<class><specifier>public</specifier> class <name>Foo</name> <block>{
+    <decl_stmt><decl><type><specifier>public</specifier> <name>int</name></type> <name>bar</name></decl>;</decl_stmt>
+}</block></class>";
+            var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(fooXml, "Foo.cs");
+            var globalScope = codeParser.ParseFileUnit(fooFileUnit);
 
-//            Assert.AreEqual(1, globalScope.ChildScopes.Count());
-//            var foo = globalScope.ChildScopes.First() as ITypeDefinition;
-//            Assert.IsNotNull(foo);
-//            Assert.AreEqual("Foo", foo.Name);
-//            Assert.AreEqual(TypeKind.Class, foo.Kind);
-//            Assert.AreEqual(0, foo.ChildScopes.Count());
-//            Assert.AreEqual(1, foo.DeclaredVariables.Count());
-//        }
+            Assert.AreEqual(1, globalScope.ChildStatements.Count());
+            var foo = globalScope.ChildStatements.First() as TypeDefinition;
+            Assert.IsNotNull(foo);
+            Assert.AreEqual("Foo", foo.Name);
+            Assert.AreEqual(TypeKind.Class, foo.Kind);
+            Assert.AreEqual(1, foo.ChildStatements.Count());
 
-//        [Test]
-//        public void TestCreateTypeDefinition_ClassWithParent() {
-//            ////Foo.cs
-//            //public class Foo : Baz {
-//            //    public int bar;
-//            //}
-//            string fooXml = @"<class><specifier>public</specifier> class <name>Foo</name> <super>: <name>Baz</name></super> <block>{
-//    <decl_stmt><decl><type><specifier>public</specifier> <name>int</name></type> <name>bar</name></decl>;</decl_stmt>
-//}</block></class>";
-//            var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(fooXml, "Foo.cs");
-//            var globalScope = codeParser.ParseFileUnit(fooFileUnit);
+            var bar = foo.ChildStatements[0].Content as VariableDeclaration;
+            Assert.IsNotNull(bar);
+            Assert.AreEqual("bar", bar.Name);
+            Assert.AreEqual("int", bar.VariableType.Name);
+            Assert.AreEqual(AccessModifier.Public, bar.Accessibility);
+        }
 
-//            Assert.AreEqual(1, globalScope.ChildScopes.Count());
-//            var foo = globalScope.ChildScopes.First() as ITypeDefinition;
-//            Assert.IsNotNull(foo);
-//            Assert.AreEqual("Foo", foo.Name);
-//            Assert.AreEqual(TypeKind.Class, foo.Kind);
-//            Assert.AreEqual(0, foo.ChildScopes.Count());
-//            Assert.AreEqual(1, foo.DeclaredVariables.Count());
-//            Assert.AreEqual(1, foo.ParentTypes.Count);
-//            Assert.AreEqual("Baz", foo.ParentTypes.First().Name);
-//        }
+        [Test]
+        public void TestCreateTypeDefinition_ClassWithParent() {
+            ////Foo.cs
+            //public class Foo : Baz {
+            //    public int bar;
+            //}
+            string fooXml = @"<class><specifier>public</specifier> class <name>Foo</name> <super>: <name>Baz</name></super> <block>{
+    <decl_stmt><decl><type><specifier>public</specifier> <name>int</name></type> <name>bar</name></decl>;</decl_stmt>
+}</block></class>";
+            var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(fooXml, "Foo.cs");
+            var globalScope = codeParser.ParseFileUnit(fooFileUnit);
 
-//        [Test]
-//        public void TestCreateTypeDefinition_ClassWithQualifiedParent() {
-//            ////Foo.cs
-//            //public class Foo : Baz, System.IDisposable {
-//            //    public int bar;
-//            //}
-//            string fooXml = @"<class><specifier>public</specifier> class <name>Foo</name> <super>: <name>Baz</name>, <name><name>System</name><op:operator>.</op:operator><name>IDisposable</name></name></super> <block>{
-//    <decl_stmt><decl><type><specifier>public</specifier> <name>int</name></type> <name>bar</name></decl>;</decl_stmt>
-//}</block></class>";
-//            var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(fooXml, "Foo.cs");
-//            var globalScope = codeParser.ParseFileUnit(fooFileUnit);
+            Assert.AreEqual(1, globalScope.ChildStatements.Count());
+            var foo = globalScope.ChildStatements.First() as TypeDefinition;
+            Assert.IsNotNull(foo);
+            Assert.AreEqual("Foo", foo.Name);
+            Assert.AreEqual(TypeKind.Class, foo.Kind);
+            Assert.AreEqual(1, foo.ChildStatements.Count());
+            Assert.AreEqual(1, foo.ParentTypes.Count);
+            Assert.AreEqual("Baz", foo.ParentTypes.First().Name);
+        }
 
-//            Assert.AreEqual(1, globalScope.ChildScopes.Count());
-//            var foo = globalScope.ChildScopes.First() as ITypeDefinition;
-//            Assert.IsNotNull(foo);
-//            Assert.AreEqual("Foo", foo.Name);
-//            Assert.AreEqual(TypeKind.Class, foo.Kind);
-//            Assert.AreEqual(0, foo.ChildScopes.Count());
-//            Assert.AreEqual(1, foo.DeclaredVariables.Count());
-//            Assert.AreEqual(2, foo.ParentTypes.Count);
-//            Assert.AreEqual("Baz", foo.ParentTypes[0].Name);
-//            Assert.AreEqual("IDisposable", foo.ParentTypes[1].Name);
-//            Assert.AreEqual("System", foo.ParentTypes[1].Prefix.Name);
-//        }
+        [Test]
+        public void TestCreateTypeDefinition_ClassWithQualifiedParent() {
+            ////Foo.cs
+            //public class Foo : Baz, System.IDisposable {
+            //    public int bar;
+            //}
+            string fooXml = @"<class><specifier>public</specifier> class <name>Foo</name> <super>: <name>Baz</name>, <name><name>System</name><op:operator>.</op:operator><name>IDisposable</name></name></super> <block>{
+    <decl_stmt><decl><type><specifier>public</specifier> <name>int</name></type> <name>bar</name></decl>;</decl_stmt>
+}</block></class>";
+            var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(fooXml, "Foo.cs");
+            var globalScope = codeParser.ParseFileUnit(fooFileUnit);
 
-//        [Test]
-//        public void TestCreateTypeDefinition_CompoundNamespace() {
-//            ////Foo.cs
-//            //namespace Example.Level2.Level3 {
-//            //    public class Foo {
-//            //        public int bar;
-//            //    }
-//            //}
-//            string fooXml = @"<namespace>namespace <name><name>Example</name><op:operator>.</op:operator><name>Level2</name><op:operator>.</op:operator><name>Level3</name></name> <block>{
-//    <class><specifier>public</specifier> class <name>Foo</name> <block>{
-//        <decl_stmt><decl><type><specifier>public</specifier> <name>int</name></type> <name>bar</name></decl>;</decl_stmt>
-//    }</block></class>
-//}</block></namespace>";
-//            var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(fooXml, "Foo.cs");
-//            var globalScope = codeParser.ParseFileUnit(fooFileUnit);
+            Assert.AreEqual(1, globalScope.ChildStatements.Count());
+            var foo = globalScope.ChildStatements.First() as TypeDefinition;
+            Assert.IsNotNull(foo);
+            Assert.AreEqual("Foo", foo.Name);
+            Assert.AreEqual(TypeKind.Class, foo.Kind);
+            Assert.AreEqual(1, foo.ChildStatements.Count());
+            Assert.AreEqual(2, foo.ParentTypes.Count);
+            Assert.AreEqual("Baz", foo.ParentTypes[0].Name);
+            Assert.AreEqual("IDisposable", foo.ParentTypes[1].Name);
+            Assert.AreEqual("System", foo.ParentTypes[1].Prefix.Names.First().Name);
+        }
 
-//            Assert.AreEqual(1, globalScope.ChildScopes.Count());
-//            var example = globalScope.ChildScopes.First() as INamespaceDefinition;
-//            Assert.IsNotNull(example);
-//            Assert.AreEqual("Example", example.Name);
-//            Assert.AreEqual(1, example.ChildScopes.Count());
-//            var level2 = example.ChildScopes.First() as INamespaceDefinition;
-//            Assert.IsNotNull(level2);
-//            Assert.AreEqual("Level2", level2.Name);
-//            Assert.AreEqual(1, level2.ChildScopes.Count());
-//            var level3 = level2.ChildScopes.First() as INamespaceDefinition;
-//            Assert.IsNotNull(level3);
-//            Assert.AreEqual("Level3", level3.Name);
-//            Assert.AreEqual(1, level3.ChildScopes.Count());
-//            var foo = level3.ChildScopes.First() as ITypeDefinition;
-//            Assert.IsNotNull(foo);
-//            Assert.AreEqual("Foo", foo.Name);
-//            Assert.AreEqual(0, foo.ChildScopes.Count());
-//            Assert.AreEqual(1, foo.DeclaredVariables.Count());
-//        }
+        [Test]
+        public void TestCreateTypeDefinition_CompoundNamespace() {
+            ////Foo.cs
+            //namespace Example.Level2.Level3 {
+            //    public class Foo {
+            //        public int bar;
+            //    }
+            //}
+            string fooXml = @"<namespace>namespace <name><name>Example</name><op:operator>.</op:operator><name>Level2</name><op:operator>.</op:operator><name>Level3</name></name> <block>{
+    <class><specifier>public</specifier> class <name>Foo</name> <block>{
+        <decl_stmt><decl><type><specifier>public</specifier> <name>int</name></type> <name>bar</name></decl>;</decl_stmt>
+    }</block></class>
+}</block></namespace>";
+            var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(fooXml, "Foo.cs");
+            var globalScope = codeParser.ParseFileUnit(fooFileUnit);
+
+            Assert.AreEqual(1, globalScope.ChildStatements.Count());
+            var example = globalScope.ChildStatements.First() as NamespaceDefinition;
+            Assert.IsNotNull(example);
+            Assert.AreEqual("Example", example.Name);
+            Assert.AreEqual(1, example.ChildStatements.Count());
+            var level2 = example.ChildStatements.First() as NamespaceDefinition;
+            Assert.IsNotNull(level2);
+            Assert.AreEqual("Level2", level2.Name);
+            Assert.AreEqual(1, level2.ChildStatements.Count());
+            var level3 = level2.ChildStatements.First() as NamespaceDefinition;
+            Assert.IsNotNull(level3);
+            Assert.AreEqual("Level3", level3.Name);
+            Assert.AreEqual(1, level3.ChildStatements.Count());
+            var foo = level3.ChildStatements.First() as TypeDefinition;
+            Assert.IsNotNull(foo);
+            Assert.AreEqual("Foo", foo.Name);
+            Assert.AreEqual(1, foo.ChildStatements.Count());
+        }
 
         [Test]
         public void TestCreateTypeDefinition_Interface() {
@@ -361,98 +363,95 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual(1, foo.ChildStatements.Count());
         }
 
-//        [Test]
-//        public void TestCreateTypeDefinition_Namespace() {
-//            ////Foo.cs
-//            //namespace Example {
-//            //    public class Foo {
-//            //        public int bar;
-//            //    }
-//            //}
-//            string fooXml = @"<namespace>namespace <name>Example</name> <block>{
-//    <class><specifier>public</specifier> class <name>Foo</name> <block>{
-//        <decl_stmt><decl><type><specifier>public</specifier> <name>int</name></type> <name>bar</name></decl>;</decl_stmt>
-//    }</block></class>
-//}</block></namespace>";
-//            var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(fooXml, "Foo.cs");
-//            var globalScope = codeParser.ParseFileUnit(fooFileUnit);
+        [Test]
+        public void TestCreateTypeDefinition_Namespace() {
+            ////Foo.cs
+            //namespace Example {
+            //    public class Foo {
+            //        public int bar;
+            //    }
+            //}
+            string fooXml = @"<namespace>namespace <name>Example</name> <block>{
+    <class><specifier>public</specifier> class <name>Foo</name> <block>{
+        <decl_stmt><decl><type><specifier>public</specifier> <name>int</name></type> <name>bar</name></decl>;</decl_stmt>
+    }</block></class>
+}</block></namespace>";
+            var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(fooXml, "Foo.cs");
+            var globalScope = codeParser.ParseFileUnit(fooFileUnit);
 
-//            Assert.AreEqual(1, globalScope.ChildScopes.Count());
-//            var example = globalScope.ChildScopes.First() as INamespaceDefinition;
-//            Assert.IsNotNull(example);
-//            Assert.AreEqual("Example", example.Name);
-//            Assert.AreEqual(1, example.ChildScopes.Count());
-//            var foo = example.ChildScopes.First() as ITypeDefinition;
-//            Assert.IsNotNull(foo);
-//            Assert.AreEqual("Foo", foo.Name);
-//            Assert.AreEqual(0, foo.ChildScopes.Count());
-//            Assert.AreEqual(1, foo.DeclaredVariables.Count());
-//        }
+            Assert.AreEqual(1, globalScope.ChildStatements.Count());
+            var example = globalScope.ChildStatements.First() as NamespaceDefinition;
+            Assert.IsNotNull(example);
+            Assert.AreEqual("Example", example.Name);
+            Assert.AreEqual(1, example.ChildStatements.Count());
+            var foo = example.ChildStatements.First() as TypeDefinition;
+            Assert.IsNotNull(foo);
+            Assert.AreEqual("Foo", foo.Name);
+            Assert.AreEqual(1, foo.ChildStatements.Count());
+        }
 
-//        [Test]
-//        public void TestCreateTypeDefinition_NestedCompoundNamespace() {
-//            ////Foo.cs
-//            //namespace Watermelon {
-//            //    namespace Example.Level2.Level3 {
-//            //        public class Foo {
-//            //            public int bar;
-//            //        }
-//            //    }
-//            //}
-//            string fooXml = @"<namespace>namespace <name>Watermelon</name> <block>{
-//    <namespace>namespace <name><name>Example</name><op:operator>.</op:operator><name>Level2</name><op:operator>.</op:operator><name>Level3</name></name> <block>{
-//        <class><specifier>public</specifier> class <name>Foo</name> <block>{
-//            <decl_stmt><decl><type><specifier>public</specifier> <name>int</name></type> <name>bar</name></decl>;</decl_stmt>
-//        }</block></class>
-//    }</block></namespace>
-//}</block></namespace>";
-//            var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(fooXml, "Foo.cs");
-//            var globalScope = codeParser.ParseFileUnit(fooFileUnit);
+        [Test]
+        public void TestCreateTypeDefinition_NestedCompoundNamespace() {
+            ////Foo.cs
+            //namespace Watermelon {
+            //    namespace Example.Level2.Level3 {
+            //        public class Foo {
+            //            public int bar;
+            //        }
+            //    }
+            //}
+            string fooXml = @"<namespace>namespace <name>Watermelon</name> <block>{
+    <namespace>namespace <name><name>Example</name><op:operator>.</op:operator><name>Level2</name><op:operator>.</op:operator><name>Level3</name></name> <block>{
+        <class><specifier>public</specifier> class <name>Foo</name> <block>{
+            <decl_stmt><decl><type><specifier>public</specifier> <name>int</name></type> <name>bar</name></decl>;</decl_stmt>
+        }</block></class>
+    }</block></namespace>
+}</block></namespace>";
+            var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(fooXml, "Foo.cs");
+            var globalScope = codeParser.ParseFileUnit(fooFileUnit);
 
-//            Assert.AreEqual(1, globalScope.ChildScopes.Count());
-//            var watermelon = globalScope.ChildScopes.First() as INamespaceDefinition;
-//            Assert.IsNotNull(watermelon);
-//            Assert.AreEqual("Watermelon", watermelon.Name);
-//            Assert.AreEqual(1, watermelon.ChildScopes.Count());
-//            var example = watermelon.ChildScopes.First() as INamespaceDefinition;
-//            Assert.IsNotNull(example);
-//            Assert.AreEqual("Example", example.Name);
-//            Assert.AreEqual(1, example.ChildScopes.Count());
-//            var level2 = example.ChildScopes.First() as INamespaceDefinition;
-//            Assert.IsNotNull(level2);
-//            Assert.AreEqual("Level2", level2.Name);
-//            Assert.AreEqual(1, level2.ChildScopes.Count());
-//            var level3 = level2.ChildScopes.First() as INamespaceDefinition;
-//            Assert.IsNotNull(level3);
-//            Assert.AreEqual("Level3", level3.Name);
-//            Assert.AreEqual(1, level3.ChildScopes.Count());
-//            var foo = level3.ChildScopes.First() as ITypeDefinition;
-//            Assert.IsNotNull(foo);
-//            Assert.AreEqual("Foo", foo.Name);
-//            Assert.AreEqual(0, foo.ChildScopes.Count());
-//            Assert.AreEqual(1, foo.DeclaredVariables.Count());
-//        }
+            Assert.AreEqual(1, globalScope.ChildStatements.Count());
+            var watermelon = globalScope.ChildStatements.First() as NamespaceDefinition;
+            Assert.IsNotNull(watermelon);
+            Assert.AreEqual("Watermelon", watermelon.Name);
+            Assert.AreEqual(1, watermelon.ChildStatements.Count());
+            var example = watermelon.ChildStatements.First() as NamespaceDefinition;
+            Assert.IsNotNull(example);
+            Assert.AreEqual("Example", example.Name);
+            Assert.AreEqual(1, example.ChildStatements.Count());
+            var level2 = example.ChildStatements.First() as NamespaceDefinition;
+            Assert.IsNotNull(level2);
+            Assert.AreEqual("Level2", level2.Name);
+            Assert.AreEqual(1, level2.ChildStatements.Count());
+            var level3 = level2.ChildStatements.First() as NamespaceDefinition;
+            Assert.IsNotNull(level3);
+            Assert.AreEqual("Level3", level3.Name);
+            Assert.AreEqual(1, level3.ChildStatements.Count());
+            var foo = level3.ChildStatements.First() as TypeDefinition;
+            Assert.IsNotNull(foo);
+            Assert.AreEqual("Foo", foo.Name);
+            Assert.AreEqual(1, foo.ChildStatements.Count());
+        }
 
-//        [Test]
-//        public void TestCreateTypeDefinition_Struct() {
-//            ////Foo.cs
-//            //public struct Foo {
-//            //    public int bar;
-//            //}
-//            string fooXml = @"<struct><specifier>public</specifier> struct <name>Foo</name> <block>{
-//    <decl_stmt><decl><type><specifier>public</specifier> <name>int</name></type> <name>bar</name></decl>;</decl_stmt>
-//}</block></struct>";
-//            var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(fooXml, "Foo.cs");
-//            var globalScope = codeParser.ParseFileUnit(fooFileUnit);
+        [Test]
+        public void TestCreateTypeDefinition_Struct() {
+            ////Foo.cs
+            //public struct Foo {
+            //    public int bar;
+            //}
+            string fooXml = @"<struct><specifier>public</specifier> struct <name>Foo</name> <block>{
+    <decl_stmt><decl><type><specifier>public</specifier> <name>int</name></type> <name>bar</name></decl>;</decl_stmt>
+}</block></struct>";
+            var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(fooXml, "Foo.cs");
+            var globalScope = codeParser.ParseFileUnit(fooFileUnit);
 
-//            Assert.AreEqual(1, globalScope.ChildScopes.Count());
-//            var foo = globalScope.ChildScopes.First() as ITypeDefinition;
-//            Assert.IsNotNull(foo);
-//            Assert.AreEqual("Foo", foo.Name);
-//            Assert.AreEqual(TypeKind.Struct, foo.Kind);
-//            Assert.AreEqual(0, foo.ChildScopes.Count());
-//            Assert.AreEqual(1, foo.DeclaredVariables.Count());
-//        }
+            Assert.AreEqual(1, globalScope.ChildStatements.Count());
+            var foo = globalScope.ChildStatements.First() as TypeDefinition;
+            Assert.IsNotNull(foo);
+            Assert.AreEqual("Foo", foo.Name);
+            Assert.AreEqual(TypeKind.Struct, foo.Kind);
+            Assert.AreEqual(1, foo.ChildStatements.Count());
+        }
 
         [Test]
         public void TestCreateTypeDefinitions_ClassWithInnerClass() {
@@ -571,26 +570,28 @@ namespace ABB.SrcML.Data.Test {
 //            Assert.AreSame(typeB, declaration.VariableType.FindFirstMatchingType());
 //        }
 
-//        [Test]
-//        public void TestFieldCreation() {
-//            //// A.cs
-//            //class A {
-//            //    public int Foo;
-//            //}
-//            string xml = @"<class>class <name>A</name> <block>{
-//    <decl_stmt><decl><type><specifier>public</specifier> <name>int</name></type> <name>Foo</name></decl>;</decl_stmt>
-//}</block></class>";
-//            var xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
-//            var globalScope = codeParser.ParseFileUnit(xmlElement);
+        [Test]
+        public void TestFieldCreation() {
+            //// A.cs
+            //class A {
+            //    public int Foo;
+            //}
+            string xml = @"<class>class <name>A</name> <block>{
+    <decl_stmt><decl><type><specifier>public</specifier> <name>int</name></type> <name>Foo</name></decl>;</decl_stmt>
+}</block></class>";
+            var xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
 
-//            Assert.AreEqual(1, globalScope.ChildScopes.Count());
-//            var typeA = globalScope.ChildScopes.First();
-//            Assert.IsNotNull(typeA);
-//            Assert.AreEqual(1, typeA.DeclaredVariables.Count());
-//            var foo = typeA.DeclaredVariables.First();
-//            Assert.AreEqual("Foo", foo.Name);
-//            Assert.AreEqual("int", foo.VariableType.Name);
-//        }
+            Assert.AreEqual(1, globalScope.ChildStatements.Count());
+            var typeA = globalScope.ChildStatements.First() as TypeDefinition;
+            Assert.IsNotNull(typeA);
+            Assert.AreEqual(1, typeA.ChildStatements.Count());
+            var foo = typeA.ChildStatements.First().Content as VariableDeclaration;
+            Assert.IsNotNull(foo);
+            Assert.AreEqual("Foo", foo.Name);
+            Assert.AreEqual("int", foo.VariableType.Name);
+            Assert.AreEqual(AccessModifier.Public, foo.Accessibility);
+        }
 
 //        [Test]
 //        public void TestFindParentType() {
@@ -667,44 +668,47 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("B", typeB.Name);
         }
 
-//        [Test]
-//        public void TestGenericVariableDeclaration() {
-//            //Dictionary<string,int> map;
-//            string xml = @"<decl_stmt><decl><type><name><name>Dictionary</name><argument_list>&lt;<argument><name>string</name></argument>,<argument><name>int</name></argument>&gt;</argument_list></name></type> <name>map</name></decl>;</decl_stmt>";
+        [Test]
+        public void TestGenericVariableDeclaration() {
+            //Dictionary<string,int> map;
+            string xml = @"<decl_stmt><decl><type><name><name>Dictionary</name><argument_list>&lt;<argument><name>string</name></argument>,<argument><name>int</name></argument>&gt;</argument_list></name></type> <name>map</name></decl>;</decl_stmt>";
 
-//            var testUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cs");
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cs");
 
-//            var testScope = codeParser.ParseFileUnit(testUnit);
+            var testScope = codeParser.ParseFileUnit(testUnit);
 
-//            var testDeclaration = testScope.DeclaredVariables.First();
-//            Assert.IsNotNull(testDeclaration, "could not find the test declaration");
-//            Assert.AreEqual("map", testDeclaration.Name);
-//            Assert.AreEqual("Dictionary", testDeclaration.VariableType.Name);
-//            Assert.That(testDeclaration.VariableType.IsGeneric);
-//            Assert.AreEqual(2, testDeclaration.VariableType.TypeParameters.Count);
-//            Assert.AreEqual("string", testDeclaration.VariableType.TypeParameters.First().Name);
-//            Assert.AreEqual("int", testDeclaration.VariableType.TypeParameters.Last().Name);
-//        }
+            var testDeclaration = testScope.ChildStatements.First().Content as VariableDeclaration;
+            Assert.IsNotNull(testDeclaration, "could not find the test declaration");
+            Assert.AreEqual("map", testDeclaration.Name);
+            Assert.AreEqual("Dictionary", testDeclaration.VariableType.Name);
+            Assert.That(testDeclaration.VariableType.IsGeneric);
+            Assert.AreEqual(2, testDeclaration.VariableType.TypeParameters.Count);
+            Assert.AreEqual("string", testDeclaration.VariableType.TypeParameters.First().Name);
+            Assert.AreEqual("int", testDeclaration.VariableType.TypeParameters.Last().Name);
+        }
 
-//        [Test]
-//        public void TestGenericVariableDeclarationWithPrefix() {
-//            //System.Collection.Dictionary<string,int> map;
-//            string xml = @"<decl_stmt><decl><type><name><name>System</name><op:operator>.</op:operator><name>Collection</name><op:operator>.</op:operator><name><name>Dictionary</name><argument_list>&lt;<argument><name>string</name></argument>,<argument><name>int</name></argument>&gt;</argument_list></name></name></type> <name>map</name></decl>;</decl_stmt>";
+        [Test]
+        public void TestGenericVariableDeclarationWithPrefix() {
+            //System.Collection.Dictionary<string,int> map;
+            string xml = @"<decl_stmt><decl><type><name><name>System</name><op:operator>.</op:operator><name>Collection</name><op:operator>.</op:operator><name><name>Dictionary</name><argument_list>&lt;<argument><name>string</name></argument>,<argument><name>int</name></argument>&gt;</argument_list></name></name></type> <name>map</name></decl>;</decl_stmt>";
 
-//            var testUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cs");
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cs");
 
-//            var testScope = codeParser.ParseFileUnit(testUnit);
+            var testScope = codeParser.ParseFileUnit(testUnit);
 
-//            var testDeclaration = testScope.DeclaredVariables.First();
-//            Assert.IsNotNull(testDeclaration, "could not find the test declaration");
-//            Assert.AreEqual("map", testDeclaration.Name);
-//            Assert.AreEqual("Dictionary", testDeclaration.VariableType.Name);
-//            Assert.AreEqual("System.Collection", testDeclaration.VariableType.Prefix.ToString());
-//            Assert.That(testDeclaration.VariableType.IsGeneric);
-//            Assert.AreEqual(2, testDeclaration.VariableType.TypeParameters.Count);
-//            Assert.AreEqual("string", testDeclaration.VariableType.TypeParameters.First().Name);
-//            Assert.AreEqual("int", testDeclaration.VariableType.TypeParameters.Last().Name);
-//        }
+            var testDeclaration = testScope.ChildStatements.First().Content as VariableDeclaration;
+            Assert.IsNotNull(testDeclaration, "could not find the test declaration");
+            Assert.AreEqual("map", testDeclaration.Name);
+            Assert.AreEqual("Dictionary", testDeclaration.VariableType.Name);
+            var prefixNames = testDeclaration.VariableType.Prefix.Names.ToList();
+            Assert.AreEqual(2, prefixNames.Count);
+            Assert.AreEqual("System", prefixNames[0].Name);
+            Assert.AreEqual("Collection", prefixNames[1].Name);
+            Assert.That(testDeclaration.VariableType.IsGeneric);
+            Assert.AreEqual(2, testDeclaration.VariableType.TypeParameters.Count);
+            Assert.AreEqual("string", testDeclaration.VariableType.TypeParameters.First().Name);
+            Assert.AreEqual("int", testDeclaration.VariableType.TypeParameters.Last().Name);
+        }
 
         [Test]
         public void TestGetAccessModifierForMethod_InternalProtected() {
@@ -1041,40 +1045,28 @@ namespace ABB.SrcML.Data.Test {
             Assert.IsNull(method.ReturnType, "return type should be null");
         }
 
-//        [Test]
-//        public void TestMultiVariableDeclarations() {
-//            //int a,b,c;
-//            string testXml = @"<decl_stmt><decl><type><name>int</name></type> <name>a</name><op:operator>,</op:operator><name>b</name><op:operator>,</op:operator><name>c</name></decl>;</decl_stmt>";
 
-//            var testUnit = fileSetup.GetFileUnitForXmlSnippet(testXml, "test.cs");
+        [Test]
+        public void TestProperty() {
+            // namespace A { class B { int Foo { get; set; } } }
+            string xml = @"<namespace>namespace <name>A</name> <block>{ <class>class <name>B</name> <block>{ <decl_stmt><decl><type><name>int</name></type> <name>Foo</name> <block>{ <function_decl><name>get</name>;</function_decl> <function_decl><name>set</name>;</function_decl> }</block></decl></decl_stmt> }</block></class> }</block></namespace>";
 
-//            var globalScope = codeParser.ParseFileUnit(testUnit);
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "B.cs");
+            var testScope = codeParser.ParseFileUnit(testUnit);
 
-//            Assert.AreEqual(3, globalScope.DeclaredVariables.Count());
+            var classB = testScope.GetDescendants<TypeDefinition>().FirstOrDefault();
 
-//            var declaredVariableNames = from variable in globalScope.DeclaredVariables select variable.Name;
-//            var expectedVariableNames = new string[] { "a", "b", "c" };
+            Assert.IsNotNull(classB);
+            Assert.AreEqual(1, classB.ChildStatements.Count());
 
-//            CollectionAssert.AreEquivalent(expectedVariableNames, declaredVariableNames);
-//        }
-
-//        [Test]
-//        public void TestProperty() {
-//            // namespace A { class B { int Foo { get; set; } } }
-//            string xml = @"<namespace>namespace <name>A</name> <block>{ <class>class <name>B</name> <block>{ <decl_stmt><decl><type><name>int</name></type> <name>Foo</name> <block>{ <function_decl><name>get</name>;</function_decl> <function_decl><name>set</name>;</function_decl> }</block></decl></decl_stmt> }</block></class> }</block></namespace>";
-
-//            var testUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "B.cs");
-//            var testScope = codeParser.ParseFileUnit(testUnit);
-
-//            var classB = testScope.GetDescendantScopes<ITypeDefinition>().FirstOrDefault();
-
-//            Assert.IsNotNull(classB);
-//            Assert.AreEqual(1, classB.DeclaredVariables.Count());
-
-//            var fooProperty = classB.DeclaredVariables.First();
-//            Assert.AreEqual("Foo", fooProperty.Name);
-//            Assert.AreEqual("int", fooProperty.VariableType.Name);
-//        }
+            var fooProperty = classB.ChildStatements.First() as PropertyDefinition;
+            Assert.IsNotNull(fooProperty);
+            Assert.AreEqual("Foo", fooProperty.Name);
+            Assert.AreEqual("int", fooProperty.ReturnType.Name);
+            Assert.AreEqual(AccessModifier.None, fooProperty.Accessibility);
+            Assert.IsNotNull(fooProperty.Getter);
+            Assert.IsNotNull(fooProperty.Setter);
+        }
 
 //        [Test]
 //        public void TestPropertyAsCallingObject() {
@@ -1196,32 +1188,45 @@ namespace ABB.SrcML.Data.Test {
 //            Assert.AreSame(barMethod, callToBar.FindMatches().FirstOrDefault());
 //        }
 
-//        [Test]
-//        public void TestVariablesWithSpecifiers() {
-//            //static int A;
-//            //public const int B;
-//            //public static readonly Foo C;
-//            //volatile  int D;
-//            string testXml = @"<decl_stmt><decl><type><specifier>static</specifier> <name>int</name></type> <name>A</name></decl>;</decl_stmt>
-//<decl_stmt><decl><type><specifier>public</specifier> <name>const</name> <name>int</name></type> <name>B</name></decl>;</decl_stmt>
-//<decl_stmt><decl><type><specifier>public</specifier> <specifier>static</specifier> <specifier>readonly</specifier> <name>Foo</name></type> <name>C</name></decl>;</decl_stmt>
-//<decl_stmt><decl><type><specifier>volatile</specifier>  <name>int</name></type> <name>D</name></decl>;</decl_stmt>";
+        [Test]
+        public void TestVariablesWithSpecifiers() {
+            //static int A;
+            //public const int B;
+            //public static readonly Foo C;
+            //volatile  int D;
+            string testXml = @"<decl_stmt><decl><type><specifier>static</specifier> <name>int</name></type> <name>A</name></decl>;</decl_stmt>
+<decl_stmt><decl><type><specifier>public</specifier> <specifier>const</specifier> <name>int</name></type> <name>B</name></decl>;</decl_stmt>
+<decl_stmt><decl><type><specifier>public</specifier> <specifier>static</specifier> <specifier>readonly</specifier> <name>Foo</name></type> <name>C</name></decl>;</decl_stmt>
+<decl_stmt><decl><type><specifier>volatile</specifier>  <name>int</name></type> <name>D</name></decl>;</decl_stmt>";
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(testXml, "test.cs");
 
-//            var testUnit = fileSetup.GetFileUnitForXmlSnippet(testXml, "test.cs");
+            var globalScope = codeParser.ParseFileUnit(testUnit);
+            Assert.AreEqual(4, globalScope.ChildStatements.Count);
 
-//            var globalScope = codeParser.ParseFileUnit(testUnit);
+            var declA = globalScope.ChildStatements[0].Content as VariableDeclaration;
+            Assert.IsNotNull(declA);
+            Assert.AreEqual("A", declA.Name);
+            Assert.AreEqual("int", declA.VariableType.Name);
+            Assert.AreEqual(AccessModifier.None, declA.Accessibility);
 
-//            var declaredVariableNames = from variable in globalScope.DeclaredVariables select variable.Name;
-//            var declaredVariableTypes = from variable in globalScope.DeclaredVariables select variable.VariableType.Name;
+            var declB = globalScope.ChildStatements[1].Content as VariableDeclaration;
+            Assert.IsNotNull(declB);
+            Assert.AreEqual("B", declB.Name);
+            Assert.AreEqual("int", declB.VariableType.Name);
+            Assert.AreEqual(AccessModifier.Public, declB.Accessibility);
 
-//            var expectedVariableNames = new string[] { "A", "B", "C", "D" };
-//            var expectedVariableTypes = new string[] { "int", "Foo" };
+            var declC = globalScope.ChildStatements[2].Content as VariableDeclaration;
+            Assert.IsNotNull(declC);
+            Assert.AreEqual("C", declC.Name);
+            Assert.AreEqual("Foo", declC.VariableType.Name);
+            Assert.AreEqual(AccessModifier.Public, declC.Accessibility);
 
-//            CollectionAssert.AreEquivalent(expectedVariableNames, declaredVariableNames);
-//            foreach(var declaration in globalScope.DeclaredVariables) {
-//                CollectionAssert.Contains(expectedVariableTypes, declaration.VariableType.Name);
-//            }
-//        }
+            var declD = globalScope.ChildStatements[3].Content as VariableDeclaration;
+            Assert.IsNotNull(declD);
+            Assert.AreEqual("D", declD.Name);
+            Assert.AreEqual("int", declD.VariableType.Name);
+            Assert.AreEqual(AccessModifier.None, declD.Accessibility);
+        }
 
 //        [Test]
 //        public void TestStaticInstanceVariable() {

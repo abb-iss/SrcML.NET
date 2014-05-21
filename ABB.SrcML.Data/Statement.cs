@@ -24,6 +24,7 @@ namespace ABB.SrcML.Data {
     public class Statement {
         private List<Statement> childStatementsList;
         protected List<SrcMLLocation> LocationList;
+        private Expression contentExpression;
         
         public Statement() {
             childStatementsList = new List<Statement>();
@@ -40,7 +41,13 @@ namespace ABB.SrcML.Data {
 
         public Language ProgrammingLanguage { get; set; }
 
-        public Expression Content {get; set;}
+        public Expression Content {
+            get { return contentExpression; }
+            set {
+                contentExpression = value;
+                contentExpression.ParentStatement = this;
+            }
+        }
 
         public ReadOnlyCollection<SrcMLLocation> Locations { get; private set; }
 

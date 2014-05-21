@@ -43,10 +43,8 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="parameter">The parameter to add</param>
         public void AddMethodParameter(VariableDeclaration parameter) {
-            //TODO: review this method and update it for changes in TypeUse structure
-            throw new NotImplementedException();
-            //parameter.ParentStatement = this;
-            //parameterList.Add(parameter);
+            parameter.ParentStatement = this;
+            parameterList.Add(parameter);
         }
 
         /// <summary>

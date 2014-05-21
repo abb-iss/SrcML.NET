@@ -21,10 +21,10 @@ namespace ABB.SrcML.Data {
     public class VariableDeclaration : Expression {
         //private IScope parentScope;
 
-        ///// <summary>
-        ///// The access modifier assigned to this type
-        ///// </summary>
-        //public AccessModifier Accessibility { get; set; }
+        /// <summary>
+        /// The access modifier assigned to this type
+        /// </summary>
+        public AccessModifier Accessibility { get; set; }
 
         /// <summary>
         /// The name of the variable

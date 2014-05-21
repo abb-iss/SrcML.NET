@@ -176,7 +176,12 @@ namespace ABB.SrcML.Data {
         /// <param name="methodElement">The method container</param>
         /// <returns>An enumerable of all the param XElements.</returns>
         protected virtual IEnumerable<XElement> GetParametersFromMethodElement(XElement methodElement) {
-            return methodElement.Element(SRC.ParameterList).Elements(SRC.Parameter);
+            var paramList = methodElement.Element(SRC.ParameterList);
+            if(paramList != null) {
+                return paramList.Elements(SRC.Parameter);
+            }
+            //property getters/setters don't have a parameter list
+            return Enumerable.Empty<XElement>();
         }
 
         /// <summary>
@@ -1010,13 +1015,32 @@ namespace ABB.SrcML.Data {
             var stmt = new Statement() {ProgrammingLanguage = ParserLanguage};
             stmt.AddLocation(context.CreateLocation(stmtElement));
 
+            var declList = new List<VariableDeclaration>();
             foreach(var child in stmtElement.Elements()) {
                 if(child.Name == SRC.Declaration) {
-                    stmt.Content = ParseDeclarationElement(child, context);
-                } else {
-                    //This should probably only be comments?
-                    stmt.AddChildStatement(ParseElement(child, context));
-                }
+                    var varDecl = ParseDeclarationElement(child, context);
+                    if(varDecl.VariableType == null && declList.Any()) {
+                        //type will be null in cases of multiple declarations, e.g. int a, b;
+                        varDecl.VariableType = declList.First().VariableType;
+                        varDecl.Accessibility = declList.First().Accessibility;
+                    }
+                    declList.Add(varDecl);
+                } 
+                //else {
+                //    //This should probably only be comments? No, it might also be operators (the comma between decls)
+                //    stmt.AddChildStatement(ParseElement(child, context));
+                //}
+            }
+
+            if(declList.Count == 1) {
+                stmt.Content = declList.First();
+            }
+            else if(declList.Count > 1) {
+                stmt.Content = new Expression() {
+                    ProgrammingLanguage = ParserLanguage,
+                    Location = declList.First().Location
+                };
+                stmt.Content.AddComponents(declList);
             }
 
             return stmt;
@@ -1215,44 +1239,46 @@ namespace ABB.SrcML.Data {
         }
         
         /// <summary>
-        /// Creates variable declaration objects from the given declaration element
+        /// Creates a variable declaration object from the given declaration element
         /// </summary>
         /// <param name="declElement">The SRC.Declaration element to parse.</param>
         /// <param name="context">The parser context.</param>
-        /// <returns>A VariableDeclaration object, if <paramref name="declElement"/> contains a single variable declaration. 
-        /// Otherwise, an Expression containing several VariableDeclaration objects.</returns>
-        protected virtual Expression ParseDeclarationElement(XElement declElement, ParserContext context) {
-            //TODO: implement ParseDeclarationElement
+        /// <returns>A VariableDeclaration object corresponding to the given element.</returns>
+        protected virtual VariableDeclaration ParseDeclarationElement(XElement declElement, ParserContext context) {
             //TODO: can/should this handle function_decls as well as decls? ParseParameterElement may pass in a function_decl
-            return null;
 
-            //if(declElement == null)
-            //    throw new ArgumentNullException("declaration");
-            //if(!VariableDeclarationElementNames.Contains(declElement.Name))
-            //    throw new ArgumentException("XElement.Name must be in VariableDeclarationElementNames");
-            //if(context == null)
-            //    throw new ArgumentNullException("context");
+            if(declElement == null)
+                throw new ArgumentNullException("declElement");
+            if(declElement.Name != SRC.Declaration)
+                throw new ArgumentException("Must be a SRC.Declaration element", "declElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
 
-            //XElement declElement;
-            //if(declElement.Name == SRC.Declaration || declElement.Name == SRC.FunctionDeclaration) {
-            //    declElement = declElement;
-            //} else {
-            //    declElement = declElement.Element(SRC.Declaration);
-            //}
+            var varDecl = new VariableDeclaration {
+                Location = context.CreateLocation(declElement), 
+                ProgrammingLanguage = ParserLanguage
+            };
 
-            //var typeElement = declElement.Element(SRC.Type);
+            var nameElement = declElement.Element(SRC.Name);
+            if(nameElement != null) {
+                varDecl.Name = nameElement.Value;
+            }
 
-            //var declarationType = ParseTypeUseElement(typeElement, context);
+            var typeElement = declElement.Element(SRC.Type);
+            if(typeElement != null && typeElement.Attribute("ref") == null) {
+                varDecl.VariableType = ParseTypeUseElement(typeElement, context);
+                varDecl.Accessibility = GetAccessModifierFromTypeUseElement(typeElement);
+            }
 
-            //foreach(var nameElement in declElement.Elements(SRC.Name)) {
-            //    var variableDeclaration = new VariableDeclaration() {
-            //        VariableType = declarationType,
-            //        Name = nameElement.Value,
-            //        Location = context.CreateLocation(nameElement),
-            //        ParentScope = context.CurrentStatement,
-            //    };
-            //    yield return variableDeclaration;
-            //}
+            var initElement = declElement.Element(SRC.Init);
+            if(initElement != null) {
+                var expElement = GetChildExpression(initElement);
+                if(expElement != null) {
+                    varDecl.Initializer = ParseExpression(expElement, context);
+                }
+            }
+
+            return varDecl;
         }
 
         protected virtual Expression ParseNameUseElement(XElement nameElement, ParserContext context) {

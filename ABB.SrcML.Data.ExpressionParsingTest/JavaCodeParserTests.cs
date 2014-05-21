@@ -235,7 +235,6 @@ namespace ABB.SrcML.Data.Test {
             //TestHelper.VerifyPrefixValues(new[] { "A", "B" }, parent.Prefix);
         }
 
-        //TODO: add tests for classes with extends keyword
         [Test]
         public void TestCreateTypeDefinitions_ClassWithSuperClass() {
             //Foo.java
@@ -327,25 +326,26 @@ namespace ABB.SrcML.Data.Test {
 //            Assert.That(useOfX.GetXPath().StartsWith(declaration.ParentScope.PrimaryLocation.XPath));
 //        }
 
-//        [Test]
-//        public void TestFieldCreation() {
-//            // # A.java class A { int B; }
-//            string xml = @"<class>class <name>A</name> <block>{
-//    <decl_stmt><decl><type><name>int</name></type> <name>B</name></decl>;</decl_stmt>
-//}</block></class>";
+        [Test]
+        public void TestFieldCreation() {
+            // # A.java class A { int B; }
+            string xml = @"<class>class <name>A</name> <block>{
+    <decl_stmt><decl><type><name>int</name></type> <name>B</name></decl>;</decl_stmt>
+}</block></class>";
 
-//            var xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
+            var xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
 
-//            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
 
-//            var typeA = globalScope.ChildScopes.First();
+            var typeA = globalScope.ChildStatements.First();
+            Assert.AreEqual(1, typeA.ChildStatements.Count);
 
-//            Assert.AreEqual(1, typeA.DeclaredVariables.Count());
-
-//            var fieldB = typeA.DeclaredVariables.First();
-//            Assert.AreEqual("B", fieldB.Name);
-//            Assert.AreEqual("int", fieldB.VariableType.Name);
-//        }
+            var fieldB = typeA.ChildStatements.First().Content as VariableDeclaration;
+            Assert.IsNotNull(fieldB);
+            Assert.AreEqual("B", fieldB.Name);
+            Assert.AreEqual("int", fieldB.VariableType.Name);
+            Assert.AreEqual(AccessModifier.None, fieldB.Accessibility);
+        }
 
         [Test]
         public void TestGetAccessModifierForMethod_None() {
@@ -556,47 +556,37 @@ namespace ABB.SrcML.Data.Test {
 //            Assert.AreEqual(1, aDotBDotFoo.MethodCalls.First().FindMatches().Count());
 //        }
 
-//        [Test]
-//        public void TestMultiVariableDeclarations() {
-//            //int a,b,c;
-//            string testXml = @"<decl_stmt><decl><type><name>int</name></type> <name>a</name>,<name>b</name>,<name>c</name></decl>;</decl_stmt>";
+        
+        [Test]
+        public void TestVariablesWithSpecifiers() {
+            //public static int A;
+            //public final int B;
+            //private static final Foo C;
+            string testXml = @"<decl_stmt><decl><type><specifier>public</specifier> <specifier>static</specifier> <name>int</name></type> <name>A</name></decl>;</decl_stmt>
+<decl_stmt><decl><type><specifier>public</specifier> <specifier>final</specifier> <name>int</name></type> <name>B</name></decl>;</decl_stmt>
+<decl_stmt><decl><type><specifier>private</specifier> <specifier>static</specifier> <specifier>final</specifier> <name>Foo</name></type> <name>C</name></decl>;</decl_stmt>";
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(testXml, "test.java");
 
-//            var testUnit = fileSetup.GetFileUnitForXmlSnippet(testXml, "test.cpp");
+            var globalScope = codeParser.ParseFileUnit(testUnit);
+            Assert.AreEqual(3, globalScope.ChildStatements.Count);
 
-//            var globalScope = codeParser.ParseFileUnit(testUnit);
+            var declA = globalScope.ChildStatements[0].Content as VariableDeclaration;
+            Assert.IsNotNull(declA);
+            Assert.AreEqual("A", declA.Name);
+            Assert.AreEqual("int", declA.VariableType.Name);
+            Assert.AreEqual(AccessModifier.Public, declA.Accessibility);
 
-//            Assert.AreEqual(3, globalScope.DeclaredVariables.Count());
+            var declB = globalScope.ChildStatements[1].Content as VariableDeclaration;
+            Assert.IsNotNull(declB);
+            Assert.AreEqual("B", declB.Name);
+            Assert.AreEqual("int", declB.VariableType.Name);
+            Assert.AreEqual(AccessModifier.Public, declB.Accessibility);
 
-//            var declaredVariableNames = from variable in globalScope.DeclaredVariables select variable.Name;
-//            var expectedVariableNames = new string[] { "a", "b", "c" };
-
-//            CollectionAssert.AreEquivalent(expectedVariableNames, declaredVariableNames);
-//        }
-
-//        [Test]
-//        public void TestVariablesWithSpecifiers() {
-//            //public static int A;
-//            //public final int B;
-//            //private static final Foo C;
-
-//            string testXml = @"<decl_stmt><decl><type><specifier>public</specifier> <specifier>static</specifier> <name>int</name></type> <name>A</name></decl>;</decl_stmt>
-//<decl_stmt><decl><type><specifier>public</specifier> <specifier>final</specifier> <name>int</name></type> <name>B</name></decl>;</decl_stmt>
-//<decl_stmt><decl><type><specifier>private</specifier> <specifier>static</specifier> <specifier>final</specifier> <name>Foo</name></type> <name>C</name></decl>;</decl_stmt>";
-
-//            var testUnit = fileSetup.GetFileUnitForXmlSnippet(testXml, "test.java");
-
-//            var globalScope = codeParser.ParseFileUnit(testUnit);
-
-//            var declaredVariableNames = from variable in globalScope.DeclaredVariables select variable.Name;
-//            var declaredVariableTypes = from variable in globalScope.DeclaredVariables select variable.VariableType.Name;
-
-//            var expectedVariableNames = new string[] { "A", "B", "C" };
-//            var expectedVariableTypes = new string[] { "int", "Foo" };
-
-//            CollectionAssert.AreEquivalent(expectedVariableNames, declaredVariableNames);
-//            foreach(var declaration in globalScope.DeclaredVariables) {
-//                CollectionAssert.Contains(expectedVariableTypes, declaration.VariableType.Name);
-//            }
-//        }
+            var declC = globalScope.ChildStatements[2].Content as VariableDeclaration;
+            Assert.IsNotNull(declC);
+            Assert.AreEqual("C", declC.Name);
+            Assert.AreEqual("Foo", declC.VariableType.Name);
+            Assert.AreEqual(AccessModifier.Private, declC.Accessibility);
+        }
     }
 }
