@@ -188,8 +188,33 @@ namespace ABB.SrcML.Data {
             return Merge<Statement>(this, otherStatement);
         }
 
+        public virtual Collection<Statement> RemoveFile(string fileName) {
+            int definitionLocations = 0;
+            for(int i = LocationList.Count - 1; i >= 0; i--) {
+                if(fileName.Equals(LocationList[i].SourceFileName, StringComparison.InvariantCultureIgnoreCase)) {
+                    LocationList.RemoveAt(i);
+                } else if(!LocationList[i].IsReference) {
+                    ++definitionLocations;
+                }
+            }
+
+            if(0 == Locations.Count) {
+                ParentStatement = null;
+            } else {
+                for(int i = ChildStatements.Count - 1; i >= 0; i--) {
+                    var result = ChildStatements[i].RemoveFile(fileName);
+                    if(null == ChildStatements[i].ParentStatement) {
+                        childStatementsList.RemoveAt(i);
+                    }
+                }
+            }
+
+            return null;
+        }
+
         protected static T Merge<T>(T firstStatement, T secondStatement) where T : Statement, new() {
             T combinedStatement = new T();
+            combinedStatement.ProgrammingLanguage = firstStatement.ProgrammingLanguage;
             combinedStatement.AddLocations(firstStatement.LocationList.Concat(secondStatement.LocationList));
             combinedStatement.AddChildStatements(firstStatement.ChildStatements.Concat(secondStatement.ChildStatements));
             combinedStatement.RestructureChildren();

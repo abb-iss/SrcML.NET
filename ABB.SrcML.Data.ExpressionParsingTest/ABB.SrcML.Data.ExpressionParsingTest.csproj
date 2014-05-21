@@ -47,9 +47,13 @@
     </Compile>
     <Compile Include="CPlusPlusCodeParserTests.cs" />
     <Compile Include="CSharpCodeParserTests.cs" />
+    <Compile Include="FileRemovalTests_Cpp.cs" />
+    <Compile Include="FileRemovalTests_CSharp.cs" />
+    <Compile Include="FileRemovalTests_Java.cs" />
     <Compile Include="JavaCodeParserTests.cs" />
     <Compile Include="MergeTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
