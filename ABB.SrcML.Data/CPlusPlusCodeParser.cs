@@ -244,7 +244,10 @@ namespace ABB.SrcML.Data {
         /// <returns>The method definition object for <paramref name="methodElement"/></returns>
         protected override MethodDefinition ParseMethodElement(XElement methodElement, ParserContext context) {
             var md = base.ParseMethodElement(methodElement, context);
-            md.Prefix = ParseNamePrefix(methodElement, context);
+            var nameElement = methodElement.Element(SRC.Name);
+            if(nameElement != null) {
+                md.Prefix = ParseNamePrefix(nameElement, context);
+            }
             return md;
         }
 
@@ -325,65 +328,6 @@ namespace ABB.SrcML.Data {
 
 
             return typeDefinition;
-        }
-
-        
-        /// <summary>
-        /// Parses the NamePrefix expression from a method.
-        /// In a method <code>int A::B::MyFunc()</code>, the NamePrefix is <code>A::B</code>.
-        /// </summary>
-        /// <param name="methodElement">The method element to parse</param>
-        /// <param name="context">The parser context</param>
-        /// <returns>The NamePrefix expression for the method.</returns>
-        protected override NamePrefix ParseNamePrefix(XElement methodElement, ParserContext context) {
-            // TODO need better error handling
-            // what if there are other things in the prefix list besides operators & names?
-            var nameElement = methodElement.Element(SRC.Name);
-            if(null != nameElement && nameElement.HasElements) {
-                var nameParts = nameElement.Elements();
-                var methodName = nameElement.Elements(SRC.Name).LastOrDefault();
-                var prefixParts = nameParts.Where(n => n != methodName);
-
-                var prefix = new NamePrefix();
-                foreach(var part in prefixParts) {
-                    Expression component = null;
-                    if(SRC.Name == part.Name) {
-                        component = ParseNameUseElement(part, context);
-                    } else if(OP.Operator == part.Name) {
-                        component = ParseOperatorElement(part, context);
-                    }
-                    if(null != component) {
-                        prefix.AddComponent(component);
-                    }
-                }
-                return prefix;
-            }
-            return null;
-            //IEnumerable<XElement> parentNameElements = Enumerable.Empty<XElement>();
-
-            //parentNameElements = NameHelper.GetNameElementsExceptLast(nameElement);
-            //INamedScopeUse current = null, root = null;
-
-            //if(parentNameElements.Any()) {
-            //    foreach(var element in parentNameElements) {
-            //        var scopeUse = new NamedScopeUse() {
-            //            Name = element.Value,
-            //            Location = context.CreateLocation(element, true),
-            //            ProgrammingLanguage = this.ParserLanguage,
-            //        };
-            //        if(null == root) {
-            //            root = scopeUse;
-            //        }
-            //        if(current != null) {
-            //            current.ChildScopeUse = scopeUse;
-            //        }
-            //        current = scopeUse;
-            //    }
-            //}
-            //if(null != root) {
-            //    root.ParentScope = context.CurrentStatement;
-            //}
-            //return root;
         }
 
         #region Private methods

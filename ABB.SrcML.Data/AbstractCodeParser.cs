@@ -1362,9 +1362,43 @@ namespace ABB.SrcML.Data {
             return typeUse;
         }
 
+        /// <summary>
+        /// Parses the prefix out of the given name element, if it contains one.
+        /// In a name usage like System.IO.File, File is the name and System.IO is the prefix.
+        /// </summary>
+        /// <param name="nameElement">The SRC.Name element to parse.</param>
+        /// <param name="context">The parser context to use.</param>
+        /// <returns>A NamePrefix object, or null if <paramref name="nameElement"/> contains no prefix.</returns>
         protected virtual NamePrefix ParseNamePrefix(XElement nameElement, ParserContext context) {
-            //TODO: implement ParseNamePrefix
-            return new NamePrefix();
+            if(nameElement == null)
+                throw new ArgumentNullException("nameElement");
+            if(nameElement.Name != SRC.Name)
+                throw new ArgumentException("must be a SRC.Extern element", "nameElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+            
+            if(!nameElement.HasElements || nameElement.Elements(SRC.Name).Count() <= 1) {
+                //this name doesn't have a prefix
+                return null;
+            }
+
+            var methodName = nameElement.Elements(SRC.Name).Last();
+            var prefixParts = methodName.ElementsBeforeSelf();
+
+            var prefix = new NamePrefix();
+            foreach(var part in prefixParts) {
+                //TODO: update this to use more general expression parsing, once available
+                Expression component = null;
+                if(SRC.Name == part.Name) {
+                    component = ParseNameUseElement(part, context);
+                } else if(OP.Operator == part.Name) {
+                    component = ParseOperatorElement(part, context);
+                }
+                if(null != component) {
+                    prefix.AddComponent(component);
+                }
+            }
+            return prefix;
         }
 
         #endregion
