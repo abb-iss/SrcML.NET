@@ -69,8 +69,7 @@ namespace ABB.SrcML.Data.Test {
         }
         public static bool NamePrefixesAreEqual(NamePrefix a, NamePrefix b) {
             if(a == b) { return true; }
-            return OrderedCollectionsAreEqual(a.Names.ToList(), b.Names.ToList(), NameUsesAreEqual) &&
-                   a.IsResolved == b.IsResolved;
+            return OrderedCollectionsAreEqual(a.Names.ToList(), b.Names.ToList(), NameUsesAreEqual);
         }
         public static bool NamedScopeUsesAreEqual(NamedScopeUse a, NamedScopeUse b) {
             if(a == b) { return true; }

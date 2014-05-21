@@ -10,8 +10,6 @@ namespace ABB.SrcML.Data {
 
         public IEnumerable<NameUse> Names { get { return Components.OfType<NameUse>(); } }
 
-        public bool IsResolved { get; private set; }
-
         public IEnumerable<NamedScope> FindMatches(NamedScope root) {
             IEnumerable<NamedScope> candidates = null;
 
@@ -30,24 +28,6 @@ namespace ABB.SrcML.Data {
                 }
             }
             return prefixMap[prefixes[prefixes.Count - 1]];
-        }
-
-        public void MapPrefix(NamedScope tail) {
-            var data = Enumerable.Zip(Names.Reverse(), tail.GetAncestorsAndSelf<NamedScope>(), (name, scope) => {
-                return new {
-                    IsValid = (name.Name == scope.Name),
-                    Location = name.Location,
-                    Scope = scope,
-                };
-            });
-            foreach(var d in data) {
-                if(d.IsValid) {
-                    d.Scope.AddLocation(d.Location);
-                } else {
-                    throw new SrcMLException("not a valid scope for this prefix");
-                }
-            }
-            IsResolved = true;
         }
     }
 }

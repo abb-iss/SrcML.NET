@@ -20,9 +20,12 @@ using System.Text;
 namespace ABB.SrcML.Data {
 
     public class NamedScope : BlockStatement, INamedEntity {
+        private NamePrefix _prefix;
+
         public NamedScope() : base() {
             Name = string.Empty;
             Accessibility = AccessModifier.None;
+            PrefixIsResolved = true;
         }
 
         public string Name { get; set; }
@@ -31,7 +34,17 @@ namespace ABB.SrcML.Data {
         /// For C/C++ methods, this property gives the specified scope that the method is defined in.
         /// For example, in the method <code>int A::B::MyFunction(char arg);</code> the NamePrefix is A::B.
         /// </summary>
-        public NamePrefix Prefix { get; set; }
+        public NamePrefix Prefix {
+            get { return _prefix; }
+            set {
+                if(value != _prefix) {
+                    _prefix = value;
+                    PrefixIsResolved = (null == _prefix);
+                }
+            }
+        }
+
+        public bool PrefixIsResolved { get; private set; }
 
         public AccessModifier Accessibility { get; set; }
         /// <summary>
@@ -43,6 +56,24 @@ namespace ABB.SrcML.Data {
                         where !String.IsNullOrEmpty(statement.Name)
                         select statement.Name;
             return string.Join(".", names.Reverse()).TrimEnd('.');
+        }
+
+        public void MapPrefix(NamedScope tail) {
+            var data = Enumerable.Zip(Prefix.Names.Reverse(), tail.GetAncestorsAndSelf<NamedScope>(), (name, scope) => {
+                return new {
+                    IsValid = (name.Name == scope.Name),
+                    Location = name.Location,
+                    Scope = scope,
+                };
+            });
+            foreach(var d in data) {
+                if(d.IsValid) {
+                    d.Scope.AddLocation(d.Location);
+                } else {
+                    throw new SrcMLException("not a valid scope for this prefix");
+                }
+            }
+            PrefixIsResolved = true;
         }
 
         public override Statement Merge(Statement otherStatement) {
@@ -60,7 +91,7 @@ namespace ABB.SrcML.Data {
         }
         protected override void RestructureChildren() {
             var namedChildrenWithPrefixes = (from child in ChildStatements.OfType<NamedScope>()
-                                             where !(null == child.Prefix || child.Prefix.IsResolved)
+                                             where !child.PrefixIsResolved
                                              select child).ToList<NamedScope>();
             
             // 1. restructure all of the children that don't have prefixes
@@ -72,7 +103,7 @@ namespace ABB.SrcML.Data {
             foreach(var child in namedChildrenWithPrefixes) {
                 var firstPossibleParent = child.Prefix.FindMatches(this).FirstOrDefault();
                 if(null != firstPossibleParent) {
-                    child.Prefix.MapPrefix(firstPossibleParent);
+                    child.MapPrefix(firstPossibleParent);
                     firstPossibleParent.AddChildStatement(child);
                     firstPossibleParent.RestructureChildren();
                 } else {
