@@ -183,6 +183,7 @@ namespace ABB.SrcML.Data {
 
         protected static T Merge<T>(T firstStatement, T secondStatement) where T : Statement, new() {
             T combinedStatement = new T();
+            combinedStatement.ProgrammingLanguage = firstStatement.ProgrammingLanguage;
             combinedStatement.AddLocations(firstStatement.LocationList.Concat(secondStatement.LocationList));
             combinedStatement.AddChildStatements(firstStatement.ChildStatements.Concat(secondStatement.ChildStatements));
             combinedStatement.RestructureChildren();

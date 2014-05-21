@@ -10,6 +10,7 @@
  *    Patrick Francis (ABB Group) - initial API, implementation, & documentation
  *****************************************************************************/
 
+using ABB.SrcML.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -89,7 +90,7 @@ namespace ABB.SrcML.Data {
                     break;
             }
 
-            string id = String.Format("T{0}:{1}", typeSpecifier, this.Name);
+            string id = String.Format("{0}:T{1}:{2}", KsuAdapter.GetLanguage(ProgrammingLanguage), typeSpecifier, this.Name);
             return id;
         }
         /// <summary>
