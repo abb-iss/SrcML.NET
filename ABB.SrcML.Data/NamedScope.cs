@@ -85,10 +85,16 @@ namespace ABB.SrcML.Data {
                 throw new ArgumentNullException("otherNamedScope");
             }
 
-            var combinedScope = Merge<NamedScope>(this, otherNamedScope);
-            combinedScope.Name = this.Name;
-            return combinedScope;
+            return Merge<NamedScope>(this, otherNamedScope);
         }
+
+        protected static T Merge<T>(T firstStatement, T secondStatement) where T : NamedScope, new() {
+            T combinedStatement = Statement.Merge<T>(firstStatement, secondStatement);
+            combinedStatement.Name = firstStatement.Name;
+            combinedStatement.Accessibility = (firstStatement.Accessibility >= secondStatement.Accessibility ? firstStatement.Accessibility : secondStatement.Accessibility);
+            return combinedStatement;
+        }
+
         protected override void RestructureChildren() {
             var namedChildrenWithPrefixes = (from child in ChildStatements.OfType<NamedScope>()
                                              where !child.PrefixIsResolved

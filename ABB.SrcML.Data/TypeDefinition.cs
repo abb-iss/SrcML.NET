@@ -59,7 +59,6 @@ namespace ABB.SrcML.Data {
                 throw new ArgumentNullException("otherType");
             }
             TypeDefinition combinedType = Merge<TypeDefinition>(this, otherType);
-            combinedType.Name = this.Name;
             return combinedType;
         }
 

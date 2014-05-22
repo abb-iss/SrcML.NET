@@ -68,7 +68,6 @@ namespace ABB.SrcML.Data {
             }
 
             MethodDefinition combinedMethod = Merge<MethodDefinition>(this, otherMethod);
-            combinedMethod.Name = this.Name;
             combinedMethod.ReturnType = this.ReturnType;
 
             return combinedMethod;
