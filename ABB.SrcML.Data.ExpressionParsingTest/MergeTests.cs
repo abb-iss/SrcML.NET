@@ -91,7 +91,15 @@ namespace ABB.SrcML.Data.Test {
             globalScope = globalScope.Merge(definitionScope) as NamespaceDefinition;
 
             Assert.AreEqual(1, globalScope.ChildStatements.Count());
-            Assert.AreEqual("Foo", ((MethodDefinition) globalScope.ChildStatements.First()).Name);
+            var methodFoo = globalScope.ChildStatements[0] as MethodDefinition;
+            Assert.IsNotNull(methodFoo);
+
+            Assert.AreEqual("Foo", methodFoo.Name);
+            Assert.AreEqual(1, methodFoo.Parameters.Count);
+
+            var parameter = methodFoo.Parameters[0];
+            Assert.AreEqual("char", parameter.VariableType.Name);
+            Assert.AreEqual("bar", parameter.Name);
         }
 
         [Test]
@@ -463,14 +471,15 @@ namespace ABB.SrcML.Data.Test {
             var xmlHeader = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xmlh, "A.h");
 
             var globalScope = CodeParser[Language.CPlusPlus].ParseFileUnit(xmlImpl);
-            Assert.AreEqual(1, globalScope.ChildStatements.Count());
+            Assert.AreEqual(2, globalScope.ChildStatements.Count());
 
-            var scopeA = globalScope.ChildStatements.FirstOrDefault() as NamedScope;
-            Assert.AreEqual("A", scopeA.Name);
-            Assert.AreEqual(2, scopeA.ChildStatements.Count());
+            var methodFoo = globalScope.ChildStatements.First() as MethodDefinition;
+            Assert.AreEqual("Foo", methodFoo.Name);
+            Assert.AreEqual(1, methodFoo.ChildStatements.Count());
 
-            var methodFoo = scopeA.ChildStatements.First() as MethodDefinition;
-            var methodBar = scopeA.ChildStatements.Last() as MethodDefinition;
+            var methodBar = globalScope.ChildStatements.Last() as MethodDefinition;
+            Assert.AreEqual("Bar", methodBar.Name);
+            Assert.AreEqual(1, methodBar.ChildStatements.Count());
 
             Assert.AreEqual("Foo", methodFoo.Name);
             Assert.AreEqual("A.Foo", methodFoo.GetFullName());
