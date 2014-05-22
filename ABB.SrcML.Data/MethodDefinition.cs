@@ -82,7 +82,9 @@ namespace ABB.SrcML.Data {
                 methodType = 'D';
             }
 
-            string id = String.Format("{0}:M{1}:{2}:{3}", KsuAdapter.GetLanguage(ProgrammingLanguage), methodType, this.Name, String.Join(",", Parameters));
+            var parameterTypes = from parameter in Parameters
+                                 select parameter.VariableType;
+            string id = String.Format("{0}:M{1}:{2}:{3}", KsuAdapter.GetLanguage(ProgrammingLanguage), methodType, this.Name, String.Join(",", parameterTypes));
 
             return id;
         }
