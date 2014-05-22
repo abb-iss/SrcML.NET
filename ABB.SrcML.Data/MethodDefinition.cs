@@ -69,7 +69,15 @@ namespace ABB.SrcML.Data {
 
             MethodDefinition combinedMethod = Merge<MethodDefinition>(this, otherMethod);
             combinedMethod.ReturnType = this.ReturnType;
-
+            var parameters = Enumerable.Zip(this.Parameters, otherMethod.Parameters, (t, o) => {
+                if(!string.IsNullOrEmpty(t.Name)) {
+                    return t;
+                } else if(!string.IsNullOrEmpty(o.Name)) {
+                    return o;
+                }
+                return t;
+            });
+            combinedMethod.AddMethodParameters(parameters);
             return combinedMethod;
         }
 
