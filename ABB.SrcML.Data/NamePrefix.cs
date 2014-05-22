@@ -11,8 +11,6 @@ namespace ABB.SrcML.Data {
         public IEnumerable<NameUse> Names { get { return Components.OfType<NameUse>(); } }
 
         public IEnumerable<NamedScope> FindMatches(NamedScope root) {
-            IEnumerable<NamedScope> candidates = null;
-
             var prefixes = Names.ToList();
             Dictionary<NameUse, List<NamedScope>> prefixMap = new Dictionary<NameUse, List<NamedScope>>();
             for(int i = 0; i < prefixes.Count; i++) {
