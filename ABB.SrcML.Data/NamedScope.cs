@@ -52,10 +52,18 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <returns>The full name for this named scope</returns>
         public string GetFullName() {
-            var names = from statement in GetAncestorsAndSelf<NamedScope>()
-                        where !String.IsNullOrEmpty(statement.Name)
-                        select statement.Name;
-            return string.Join(".", names.Reverse()).TrimEnd('.');
+            IEnumerable<string> names;
+            if(PrefixIsResolved) {
+                names = (from statement in GetAncestorsAndSelf<NamedScope>()
+                         where !String.IsNullOrEmpty(statement.Name)
+                         select statement.Name).Reverse();
+            } else {
+                names = from nameUse in Prefix.Names
+                        select nameUse.Name;
+                names = names.Concat(Enumerable.Repeat(this.Name, 1));
+            }
+            
+            return string.Join(".", names).TrimEnd('.');
         }
 
         public void MapPrefix(NamedScope tail) {
