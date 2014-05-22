@@ -21,7 +21,7 @@ using System.Xml.Serialization;
 
 namespace ABB.SrcML.Data {
     [XmlRoot(IsNullable=false)]
-    public class Statement {
+    public class Statement : AbstractProgramElement {
         private List<Statement> childStatementsList;
         protected List<SrcMLLocation> LocationList;
         private Expression contentExpression;
@@ -70,7 +70,6 @@ namespace ABB.SrcML.Data {
         /// <param name="child">The Statement to add.</param>
         public virtual void AddChildStatement(Statement child) {
             if(child == null) { throw new ArgumentNullException("child"); }
-
             child.ParentStatement = this;
             childStatementsList.Add(child);
         }
@@ -102,72 +101,51 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Gets all of the parents of this statement
+        /// Returns the parent statement.
         /// </summary>
-        /// <returns>The parents of this statement</returns>
-        public IEnumerable<Statement> GetAncestors() {
-            return GetAncestorsAndStartingPoint(this.ParentStatement);
+        protected override AbstractProgramElement GetParent() {
+            return ParentStatement;
         }
 
         /// <summary>
-        /// Gets all of the parents of type <typeparamref name="T"/> of this statement.
+        /// Returns the child statements.
         /// </summary>
-        /// <typeparam name="T">The type to filter the parent statements by</typeparam>
-        /// <returns>The parents of type <typeparamref name="T"/></returns>
-        public IEnumerable<T> GetAncestors<T>() where T : Statement {
-            return GetAncestorsAndStartingPoint(this.ParentStatement).OfType<T>();
+        protected override IEnumerable<AbstractProgramElement> GetChildren() {
+            return childStatementsList;
+        }
+
+        /// <summary>
+        /// Gets all of the parents of this statement
+        /// </summary>
+        /// <returns>The parents of this statement</returns>
+        public new IEnumerable<Statement> GetAncestors() {
+            return base.GetAncestors().Cast<Statement>();
         }
 
         /// <summary>
         /// Gets all of parents of this statement as well as this statement.
         /// </summary>
         /// <returns>This statement followed by its parents</returns>
-        public IEnumerable<Statement> GetAncestorsAndSelf() {
-            return GetAncestorsAndStartingPoint(this);
-        }
-
-        /// <summary>
-        /// Gets all of the parents of this statement as well as the statement itself where the type is <typeparamref name="T"/>.
-        /// </summary>
-        /// <typeparam name="T">The type to filter the parent statements by</typeparam>
-        /// <returns>This statement followed by its parent statements where the type is <typeparamref name="T"/></returns>
-        public IEnumerable<T> GetAncestorsAndSelf<T>() where T : Statement {
-            return GetAncestorsAndStartingPoint(this).OfType<T>();
+        public new IEnumerable<Statement> GetAncestorsAndSelf() {
+            return base.GetAncestorsAndSelf().Cast<Statement>();
         }
 
         /// <summary>
         /// Gets all of the descendant statements of this statement. This is every statement that is rooted at this statement.
         /// </summary>
         /// <returns>The descendants of this statement</returns>
-        public IEnumerable<Statement> GetDescendants() {
-            return GetDescendants(this, false);
-        }
-
-        /// <summary>
-        /// Gets all of the descendant statements of this statement where the type is <typeparamref name="T"/>.
-        /// </summary>
-        /// <typeparam name="T">The type to filter the descendant statements by</typeparam>
-        /// <returns>The descendants of type <typeparamref name="T"/> of this statement</returns>
-        public IEnumerable<T> GetDescendants<T>() where T : Statement {
-            return GetDescendants(this, false).OfType<T>();
+        public new IEnumerable<Statement> GetDescendants() {
+            return base.GetDescendants().Cast<Statement>();
         }
 
         /// <summary>
         /// Gets all of the descendants of this statement as well as the statement itself.
         /// </summary>
         /// <returns>This statement, followed by all of its descendants</returns>
-        public IEnumerable<Statement> GetDescendantsAndSelf() {
-            return GetDescendants(this, true);
+        public new IEnumerable<Statement> GetDescendantsAndSelf() {
+            return base.GetDescendantsAndSelf().Cast<Statement>();
         }
 
-        /// <summary>
-        /// Gets all of the descendants of this statement as well as the statement itself where the type is <typeparamref name="T"/>.
-        /// </summary>
-        /// <typeparam name="T">The type to filter the descendant statements by</typeparam>
-        /// <returns>This statement and its descendants where the type is <typeparamref name="T"/></returns>
-        public IEnumerable<T> GetDescendantsAndSelf<T>() where T : Statement {
-            return GetDescendants(this, true).OfType<T>();
-        }
 
         public virtual bool CanBeMergedWith(Statement otherStatement) {
             return this.ComputeMergeId() == otherStatement.ComputeMergeId();
@@ -242,35 +220,5 @@ namespace ABB.SrcML.Data {
             return new List<Statement>(childStatementMap.Values.OfType<Statement>());
         }
 
-        /// <summary>
-        /// Gets a statement and all of its ancestors
-        /// </summary>
-        /// <param name="startingPoint">The first node to return</param>
-        /// <returns>The <paramref name="startingPoint"/> and all of it ancestors</returns>
-        private static IEnumerable<Statement> GetAncestorsAndStartingPoint(Statement startingPoint) {
-            var current = startingPoint;
-            while(null != current) {
-                yield return current;
-                current = current.ParentStatement;
-            }
-        }
-
-        /// <summary>
-        /// Gets the <paramref name="startingPoint"/> (if <paramref name="returnStartingPoint"/> is true) and all of the descendants of the <paramref name="startingPoint"/>.
-        /// </summary>
-        /// <param name="startingPoint">The starting point</param>
-        /// <param name="returnStartingPoint">If true, return the starting point first. Otherwise, just return  the descendants.</param>
-        /// <returns><paramref name="startingPoint"/> (if <paramref name="returnStartingPoint"/> is true) and its descendants</returns>
-        private static IEnumerable<Statement> GetDescendants(Statement startingPoint, bool returnStartingPoint) {
-            if(returnStartingPoint) {
-                yield return startingPoint;
-            }
-
-            foreach(var statement in startingPoint.ChildStatements) {
-                foreach(var descendant in GetDescendants(statement, true)) {
-                    yield return descendant;
-                }
-            }
-        }
     }
 }
