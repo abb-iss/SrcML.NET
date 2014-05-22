@@ -17,7 +17,7 @@ using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML.Data {
-    public class Expression {
+    public class Expression : AbstractProgramElement {
         private List<Expression> componentsList;
         private Statement parentStmt;
 
@@ -59,6 +59,52 @@ namespace ABB.SrcML.Data {
             foreach(var c in components) {
                 AddComponent(c);
             }
+        }
+
+        /// <summary>
+        /// Returns the parent expression.
+        /// </summary>
+        protected override AbstractProgramElement GetParent() {
+            return ParentExpression;
+        }
+
+        /// <summary>
+        /// Returns the child expressions.
+        /// </summary>
+        protected override IEnumerable<AbstractProgramElement> GetChildren() {
+            return componentsList;
+        }
+
+        /// <summary>
+        /// Gets all of the parent expressions of this expression.
+        /// </summary>
+        /// <returns>The parents of this expression.</returns>
+        public new IEnumerable<Expression> GetAncestors() {
+            return base.GetAncestors().Cast<Expression>();
+        }
+
+        /// <summary>
+        /// Gets all of parent expressions of this expression as well as this expression.
+        /// </summary>
+        /// <returns>This expression followed by its parents.</returns>
+        public new IEnumerable<Expression> GetAncestorsAndSelf() {
+            return base.GetAncestorsAndSelf().Cast<Expression>();
+        }
+
+        /// <summary>
+        /// Gets all of the descendant expressions of this expression. This is every expression that is rooted at this expression.
+        /// </summary>
+        /// <returns>The descendants of this expression.</returns>
+        public new IEnumerable<Expression> GetDescendants() {
+            return base.GetDescendants().Cast<Expression>();
+        }
+
+        /// <summary>
+        /// Gets all of the descendants of this expression as well as the expression itself.
+        /// </summary>
+        /// <returns>This expression, followed by all of its descendants.</returns>
+        public new IEnumerable<Expression> GetDescendantsAndSelf() {
+            return base.GetDescendantsAndSelf().Cast<Expression>();
         }
     }
 
