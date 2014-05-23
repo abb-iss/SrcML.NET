@@ -20,12 +20,16 @@ using System.Xml;
 using System.Xml.Serialization;
 
 namespace ABB.SrcML.Data {
+    /// <summary>
+    /// Represents a statement in a program.
+    /// </summary>
     [XmlRoot(IsNullable=false)]
     public class Statement : AbstractProgramElement {
         private List<Statement> childStatementsList;
         protected List<SrcMLLocation> LocationList;
         private Expression contentExpression;
         
+        /// <summary>Creates a new empty Statement.</summary>
         public Statement() {
             childStatementsList = new List<Statement>();
             ChildStatements = new ReadOnlyCollection<Statement>(childStatementsList);
@@ -33,14 +37,21 @@ namespace ABB.SrcML.Data {
             Locations = new ReadOnlyCollection<SrcMLLocation>(LocationList);
         }
         
+        /// <summary>
+        /// The statements that are nested below this one. 
+        /// For example, the members of a class are children of the class statement, or the statements in an if-block are children of the if-statement.
+        /// </summary>
         [XmlArray(ElementName="Children")]
         public ReadOnlyCollection<Statement> ChildStatements { get; private set; }
 
+        /// <summary>The statement that this statement is a child of.</summary>
         [XmlIgnore]
         public Statement ParentStatement { get; set; }
 
+        /// <summary>The language that this statement is written in.</summary>
         public Language ProgrammingLanguage { get; set; }
 
+        /// <summary>The expression, if any, contained within the statement.</summary>
         public Expression Content {
             get { return contentExpression; }
             set {
@@ -49,6 +60,10 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        /// <summary>
+        /// The locations in the code where this statement is defined. 
+        /// There may be multiple locations in the case of, for example, a method definition that has separate prototype and definition statements.
+        /// </summary>
         public ReadOnlyCollection<SrcMLLocation> Locations { get; private set; }
 
         /// <summary>

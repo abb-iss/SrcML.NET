@@ -1,9 +1,25 @@
-﻿using System;
+﻿/******************************************************************************
+ * Copyright (c) 2014 ABB Group
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    Patrick Francis (ABB Group) - initial API, implementation, & documentation
+ *    Vinay Augustine (ABB Group) - initial API, implementation, & documentation
+ *****************************************************************************/
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML.Data {
+    /// <summary>
+    /// An abstract class representing a thing in a program. This exists to hold functionality common to
+    /// both Statements and Expressions.
+    /// </summary>
     public abstract class AbstractProgramElement {
         /// <summary>Returns the parent of this element.</summary>
         protected abstract AbstractProgramElement GetParent();
