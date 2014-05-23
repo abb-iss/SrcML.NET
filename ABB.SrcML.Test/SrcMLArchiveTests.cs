@@ -203,7 +203,7 @@ namespace ABB.SrcML.Test
 
         [Test]
         public void TestEmptyArchive() {
-            var archive = new SrcMLArchive(ArchiveDirectory);
+            var archive = new SrcMLArchive(ArchiveDirectory, false, new SrcMLGenerator(Path.Combine(".", "SrcML")));
             Assert.That(archive.IsEmpty);
             var foo_c = Path.Combine(SourceDirectory, "foo.c");
             File.WriteAllText(foo_c, String.Format(@"int foo() {{{0}printf(""hello world!"");{0}}}", Environment.NewLine));
