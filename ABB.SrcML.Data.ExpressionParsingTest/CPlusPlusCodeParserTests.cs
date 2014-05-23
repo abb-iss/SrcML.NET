@@ -771,7 +771,7 @@ namespace ABB.SrcML.Data.Test {
         [Category("Todo")]
         public void TestThreeVariableDeclarations() {
             //int a,b,c;
-            string testXml = @"<decl_stmt><decl><type><name>int</name></type> <name>a</name></decl><op:operator>,</op:operator><decl><type ref=""prev""/><name>b</name><op:operator>,</op:operator><decl><type ref=""prev""/><name>c</name></decl></decl>;</decl_stmt>";
+            string testXml = @"<decl_stmt><decl><type><name>int</name></type> <name>a</name></decl><op:operator>,</op:operator><decl><type ref=""prev""/><name>b</name></decl><op:operator>,</op:operator><decl><type ref=""prev""/><name>c</name></decl>;</decl_stmt>";
             var testUnit = fileSetup.GetFileUnitForXmlSnippet(testXml, "test.cpp");
 
             var globalScope = codeParser.ParseFileUnit(testUnit);

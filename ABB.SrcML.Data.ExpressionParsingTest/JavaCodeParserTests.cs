@@ -212,11 +212,9 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        [Category("Todo")]
         public void TestCreateTypeDefinitions_ClassWithQualifiedParent() {
             // class D implements A.B.C { }
-            string xml = @"<class>class <name>D</name> <super><implements>implements <name>A</name><op:operator>.</op:operator><name>B</name><op:operator>.</op:operator><name>C</name></implements></super> <block>{
-}</block></class>";
+            string xml = @"<class>class <name>D</name> <super><implements>implements <name><name>A</name><op:operator>.</op:operator><name>B</name><op:operator>.</op:operator><name>C</name></name></implements></super> <block>{ }</block></class>";
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "D.java");
 
@@ -224,7 +222,7 @@ namespace ABB.SrcML.Data.Test {
             var globalNamespace = actual.ParentStatement as NamespaceDefinition;
 
             Assert.AreEqual("D", actual.Name);
-            Assert.AreEqual(1, actual.ParentTypes.Count, "TODO fix qualified parents in Java");
+            Assert.AreEqual(1, actual.ParentTypes.Count);
             Assert.That(globalNamespace.IsGlobal);
 
             var parent = actual.ParentTypes.First();
