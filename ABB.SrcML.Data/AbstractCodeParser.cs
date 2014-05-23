@@ -1676,37 +1676,16 @@ namespace ABB.SrcML.Data {
         /// <returns>The first specifier encountered. If none, it returns see
         /// cref="AccessModifier.None"/></returns>
         protected virtual AccessModifier GetAccessModifierForMethod(XElement methodElement) {
-            //TODO: refactor this method and type parsing to use the type use helper function below
-            
             if(methodElement == null)
                 throw new ArgumentNullException("methodElement");
             if(!MethodElementNames.Contains(methodElement.Name))
                 throw new ArgumentException(string.Format("Not a valid methodElement: {0}", methodElement.Name), "methodElement");
 
-            var accessModifierMap = new Dictionary<string, AccessModifier>()
-                                    {
-                                        {"public", AccessModifier.Public},
-                                        {"private", AccessModifier.Private},
-                                        {"protected", AccessModifier.Protected},
-                                        {"internal", AccessModifier.Internal},
-                                    };
-
             var specifierContainer = methodElement.Element(SRC.Type);
             if(null == specifierContainer) {
                 specifierContainer = methodElement;
             }
-            //specifiers might include non-access keywords like "partial" or "static"
-            //get only specifiers that are in the accessModiferMap
-            var accessSpecifiers = specifierContainer.Elements(SRC.Specifier).Select(e => e.Value).Where(s => accessModifierMap.ContainsKey(s)).ToList();
-            AccessModifier result;
-            if(!accessSpecifiers.Any()) {
-                result = AccessModifier.None;
-            } else if(accessSpecifiers.Count == 2 && accessSpecifiers.Contains("protected") && accessSpecifiers.Contains("internal")) {
-                result = AccessModifier.ProtectedInternal;
-            } else {
-                result = accessModifierMap[accessSpecifiers.First()];
-            }
-            return result;
+            return GetAccessModifier(specifierContainer);
         }
 
         /// <summary>
@@ -1715,32 +1694,12 @@ namespace ABB.SrcML.Data {
         /// <param name="typeElement">The type XElement</param>
         /// <returns>The access modifier for the type.</returns>
         protected virtual AccessModifier GetAccessModifierForType(XElement typeElement) {
-            //TODO: refactor this method and type parsing to use the type use helper function below
-            
             if(typeElement == null)
                 throw new ArgumentNullException("typeElement");
             if(!TypeElementNames.Contains(typeElement.Name))
                 throw new ArgumentException(string.Format("Not a valid typeElement: {0}", typeElement.Name), "typeElement");
 
-            var accessModifierMap = new Dictionary<string, AccessModifier>()
-                                    {
-                                        {"public", AccessModifier.Public},
-                                        {"private", AccessModifier.Private},
-                                        {"protected", AccessModifier.Protected},
-                                        {"internal", AccessModifier.Internal}
-                                    };
-            //specifiers might include non-access keywords like "partial" or "static"
-            //get only specifiers that are in the accessModiferMap
-            var accessSpecifiers = typeElement.Elements(SRC.Specifier).Select(e => e.Value).Where(s => accessModifierMap.ContainsKey(s)).ToList();
-            AccessModifier result;
-            if(!accessSpecifiers.Any()) {
-                result = AccessModifier.None;
-            } else if(accessSpecifiers.Count == 2 && accessSpecifiers.Contains("protected") && accessSpecifiers.Contains("internal")) {
-                result = AccessModifier.ProtectedInternal;
-            } else {
-                result = accessModifierMap[accessSpecifiers.First()];
-            }
-            return result;
+            return GetAccessModifier(typeElement);
         }
 
         /// <summary>
@@ -1754,6 +1713,18 @@ namespace ABB.SrcML.Data {
             if(typeElement.Name != SRC.Type)
                 throw new ArgumentException("Must be a SRC.Type element", "typeElement");
 
+            return GetAccessModifier(typeElement);
+        }
+
+        /// <summary>
+        /// Determines the access modifier used within the given element. This element must have SRC.Specifier element(s) as its children.
+        /// </summary>
+        /// <param name="element">An element that may contain children of type SRC.Specifer.</param>
+        /// <returns>The access modifier used.</returns>
+        protected virtual AccessModifier GetAccessModifier(XElement element) {
+            if(element == null)
+                throw new ArgumentNullException("element");
+
             var accessModifierMap = new Dictionary<string, AccessModifier>()
                                     {
                                         {"public", AccessModifier.Public},
@@ -1764,7 +1735,7 @@ namespace ABB.SrcML.Data {
 
             //specifiers might include non-access keywords like "partial" or "static"
             //get only specifiers that are in the accessModiferMap
-            var accessSpecifiers = typeElement.Elements(SRC.Specifier).Select(e => e.Value).Where(s => accessModifierMap.ContainsKey(s)).ToList();
+            var accessSpecifiers = element.Elements(SRC.Specifier).Select(e => e.Value).Where(s => accessModifierMap.ContainsKey(s)).ToList();
             AccessModifier result;
             if(!accessSpecifiers.Any()) {
                 result = AccessModifier.None;

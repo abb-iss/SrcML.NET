@@ -231,8 +231,10 @@ namespace ABB.SrcML.Data.Test {
 
             Assert.AreEqual("C", parent.Name);
             
-            //TODO: fix this oracle
-            //TestHelper.VerifyPrefixValues(new[] { "A", "B" }, parent.Prefix);
+            var prefixNames = parent.Prefix.Names.ToList();
+            Assert.AreEqual(2, prefixNames.Count);
+            Assert.AreEqual("A", prefixNames[0].Name);
+            Assert.AreEqual("B", prefixNames[1].Name);
         }
 
         [Test]
