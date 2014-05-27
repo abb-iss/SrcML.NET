@@ -217,6 +217,27 @@ namespace ABB.SrcML.Data {
         //    (context.CurrentStatement as ITypeDefinition).IsPartial = partials.Any();
         //}
 
+        protected override MethodDefinition ParseMethodElement(XElement methodElement, ParserContext context) {
+            var methodDefinition = base.ParseMethodElement(methodElement, context);
+            
+            var typeElement = methodElement.Elements(SRC.Type).FirstOrDefault();
+            methodDefinition.IsPartial = ElementHasPartialKeyword(null == typeElement ? methodElement : typeElement);
+
+            return methodDefinition;
+        }
+        protected override TypeDefinition ParseTypeElement(XElement typeElement, ParserContext context) {
+            var typeDefinition = base.ParseTypeElement(typeElement, context);
+            typeDefinition.IsPartial = ElementHasPartialKeyword(typeElement);
+            return typeDefinition;
+        }
+
+        private bool ElementHasPartialKeyword(XElement element) {
+            var partials = from specifier in element.Elements(SRC.Specifier)
+                           where specifier.Value == "partial"
+                           select specifier;
+            return partials.Any();
+        }
+
         protected override Statement ParseDeclarationStatementElement(XElement stmtElement, ParserContext context) {
             if(stmtElement == null)
                 throw new ArgumentNullException("stmtElement");

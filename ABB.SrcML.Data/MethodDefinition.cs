@@ -34,6 +34,8 @@ namespace ABB.SrcML.Data {
 
         public bool IsConstructor { get; set; }
         public bool IsDestructor { get; set; }
+        public bool IsPartial { get; set; }
+
         public ReadOnlyCollection<VariableDeclaration> Parameters { get; private set; }
         public TypeUse ReturnType { get; set; }
 
@@ -82,6 +84,9 @@ namespace ABB.SrcML.Data {
         }
 
         protected override string ComputeMergeId() {
+            if(Language.Java == ProgrammingLanguage || Language.CSharp == ProgrammingLanguage && !IsPartial) {
+                return base.ComputeMergeId();
+            }
             char methodType = 'M';
             if(IsConstructor) {
                 methodType = 'C';
