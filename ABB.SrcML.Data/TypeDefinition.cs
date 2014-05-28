@@ -59,11 +59,26 @@ namespace ABB.SrcML.Data {
                 throw new ArgumentNullException("otherType");
             }
             TypeDefinition combinedType = Merge<TypeDefinition>(this, otherType);
+            combinedType.Kind = this.Kind;
+            combinedType.IsPartial = this.IsPartial;
+            TypeDefinition typeWithParents = null;
+            if(this.ParentTypes.Count > 0) {
+                typeWithParents = this;
+            } else if(otherType.ParentTypes.Count > 0) {
+                typeWithParents = otherType;
+            }
+
+            if(null != typeWithParents) {
+                foreach(var parentType in typeWithParents.ParentTypes) {
+                    combinedType.AddParentType(parentType);
+                }
+            }
+
             return combinedType;
         }
 
         protected override string ComputeMergeId() {
-            if(Language.Java == ProgrammingLanguage || Language.CSharp == ProgrammingLanguage && IsPartial) {
+            if(Language.Java == ProgrammingLanguage || Language.CSharp == ProgrammingLanguage && !IsPartial) {
                 return base.ComputeMergeId();
             }
 
