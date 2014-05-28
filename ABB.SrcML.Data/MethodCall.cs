@@ -1,5 +1,5 @@
 ﻿/******************************************************************************
- * Copyright (c) 2013 ABB Group
+ * Copyright (c) 2014 ABB Group
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,7 @@
  *
  * Contributors:
  *    Vinay Augustine (ABB Group) - initial API, implementation, & documentation
+ *    Patrick Francis (ABB Group) - API, implementation, & documentation
  *****************************************************************************/
 
 using System;
@@ -20,13 +21,15 @@ namespace ABB.SrcML.Data {
     /// Represents a method call
     /// </summary>
     [Serializable]
-    public class MethodCall : AbstractScopeUse<MethodDefinition> {
+    public class MethodCall : NameUse {
+        private List<Expression> argumentList;
 
         /// <summary>
         /// Creates a new MethodCall object
         /// </summary>
         public MethodCall() {
-            Arguments = new Collection<IResolvesToType>();
+            argumentList = new List<Expression>();
+            Arguments = new ReadOnlyCollection<Expression>(argumentList);
             IsConstructor = false;
             IsDestructor = false;
         }
@@ -34,7 +37,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// The arguments to this call
         /// </summary>
-        public Collection<IResolvesToType> Arguments { get; set; }
+        public ReadOnlyCollection<Expression> Arguments { get; private set;}
 
         /// <summary>
         /// The calling object for a use is used when you have <c>a.Foo()</c> -- this method call
@@ -53,24 +56,45 @@ namespace ABB.SrcML.Data {
         public bool IsDestructor { get; set; }
 
         /// <summary>
-        /// The parent scope for this method call. When you update the parent scope, the object also
-        /// updates the parent scope of <see cref="CallingObject"/> and all of the
-        /// <see cref="Arguments"/>
+        /// Adds the given argument to the Arguments collection.
         /// </summary>
-        public override Scope ParentScope {
-            get {
-                return base.ParentScope;
-            }
-            set {
-                base.ParentScope = value;
-                if(this.CallingObject != null) {
-                    this.CallingObject.ParentScope = this.ParentScope;
-                }
-                foreach(var argument in this.Arguments) {
-                    argument.ParentScope = this.ParentScope;
-                }
+        /// <param name="arg">The argument to add.</param>
+        public void AddArgument(Expression arg) {
+            if(arg == null) { throw new ArgumentNullException("arg"); }
+            arg.ParentExpression = this;
+            argumentList.Add(arg);
+        }
+
+        /// <summary>
+        /// Adds the given arguments to the Arguments collection.
+        /// </summary>
+        /// <param name="args">The arguments to add.</param>
+        public void AddArguments(IEnumerable<Expression> args) {
+            foreach(var arg in args) {
+                AddArgument(arg);
             }
         }
+
+
+        ///// <summary>
+        ///// The parent scope for this method call. When you update the parent scope, the object also
+        ///// updates the parent scope of <see cref="CallingObject"/> and all of the
+        ///// <see cref="Arguments"/>
+        ///// </summary>
+        //public override Scope ParentScope {
+        //    get {
+        //        return base.ParentScope;
+        //    }
+        //    set {
+        //        base.ParentScope = value;
+        //        if(this.CallingObject != null) {
+        //            this.CallingObject.ParentScope = this.ParentScope;
+        //        }
+        //        foreach(var argument in this.Arguments) {
+        //            argument.ParentScope = this.ParentScope;
+        //        }
+        //    }
+        //}
 
         /// <summary>
         /// Gets the first type definition that matches the return type for this method
@@ -87,7 +111,7 @@ namespace ABB.SrcML.Data {
         /// constructors within those types
         /// </summary>
         /// <returns>An enumerable of method definitions that match this method call</returns>
-        public override IEnumerable<MethodDefinition> FindMatches() {
+        public IEnumerable<MethodDefinition> FindMatches() {
             //TODO: review this method and update it for changes in TypeUse structure
             throw new NotImplementedException();
             //IEnumerable<MethodDefinition> matchingMethods = Enumerable.Empty<MethodDefinition>();
@@ -152,30 +176,30 @@ namespace ABB.SrcML.Data {
             //}
         }
 
-        public IEnumerable<string> GetPossibleNames() {
-            if(this.Name == "this") {
-                foreach(var containingType in ParentScopes.OfType<TypeDefinition>().Take(1)) {
-                    yield return containingType.Name;
-                }
-            } else if(this.Name == "base" && ProgrammingLanguage == Language.CSharp) {
-                var typeDefinitions = from containingType in ParentScopes.OfType<TypeDefinition>()
-                                      from parentTypeReference in containingType.ParentTypes
-                                      from parentType in parentTypeReference.FindMatchingTypes()
-                                      select parentType;
-                foreach(var baseType in typeDefinitions) {
-                    yield return baseType.Name;
-                }
-            } else {
-                yield return this.Name;
-            }
-        }
+        //public IEnumerable<string> GetPossibleNames() {
+        //    if(this.Name == "this") {
+        //        foreach(var containingType in ParentScopes.OfType<TypeDefinition>().Take(1)) {
+        //            yield return containingType.Name;
+        //        }
+        //    } else if(this.Name == "base" && ProgrammingLanguage == Language.CSharp) {
+        //        var typeDefinitions = from containingType in ParentScopes.OfType<TypeDefinition>()
+        //                              from parentTypeReference in containingType.ParentTypes
+        //                              from parentType in parentTypeReference.FindMatchingTypes()
+        //                              select parentType;
+        //        foreach(var baseType in typeDefinitions) {
+        //            yield return baseType.Name;
+        //        }
+        //    } else {
+        //        yield return this.Name;
+        //    }
+        //}
 
         /// <summary>
         /// Tests if the provided method definition matches this method call
         /// </summary>
         /// <param name="definition">The method definition to test</param>
         /// <returns>True if this method call matches the provided method definition</returns>
-        public override bool Matches(MethodDefinition definition) {
+        public bool Matches(MethodDefinition definition) {
             //TODO: review this method and update it for changes in TypeUse structure
             throw new NotImplementedException();
             //if(null == definition)

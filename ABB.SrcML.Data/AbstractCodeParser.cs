@@ -250,109 +250,7 @@ namespace ABB.SrcML.Data {
             return alias;
         }
 
-        /// <summary>
-        /// Creates a method call object
-        /// </summary>
-        /// <param name="callElement">The XML element to parse</param>
-        /// <param name="context">The parser context</param>
-        /// <returns>A method call for
-        /// <paramref name="callElement"/></returns>
-        protected virtual MethodCall ParseCallElement(XElement callElement, ParserContext context) {
-            throw new NotImplementedException();
-
-            //XElement methodNameElement = null;
-            //string name = String.Empty;
-            //bool isConstructor = false;
-            //bool isDestructor = false;
-            //IEnumerable<XElement> callingObjectNames = Enumerable.Empty<XElement>();
-
-            //var nameElement = callElement.Element(SRC.Name);
-            //if(null != nameElement) {
-            //    methodNameElement = NameHelper.GetLastNameElement(nameElement);
-            //    callingObjectNames = NameHelper.GetNameElementsExceptLast(nameElement);
-            //}
-            //if(null != methodNameElement) {
-            //    if(null != methodNameElement.Element(SRC.ArgumentList)) {
-            //        name = methodNameElement.Element(SRC.Name).Value;
-            //    } else {
-            //        name = methodNameElement.Value;
-            //    }
-            //}
-            //if(methodNameElement != null && methodNameElement.Element(SRC.ArgumentList) != null) {
-            //    name = methodNameElement.Element(SRC.Name).Value;
-            //}
-            //var precedingElements = callElement.ElementsBeforeSelf();
-
-            //foreach(var pe in precedingElements) {
-            //    if(pe.Name == OP.Operator && pe.Value == "new") {
-            //        isConstructor = true;
-            //    } else if(pe.Name == OP.Operator && pe.Value == "~") {
-            //        isDestructor = true;
-            //    }
-            //}
-
-            //var parentElement = callElement.Parent;
-            //if(null != parentElement && parentElement.Name == SRC.MemberList) {
-            //    var container = parentElement.Parent;
-            //    isConstructor = (container != null && container.Name == SRC.Constructor);
-            //}
-
-            //var methodCall = new MethodCall() {
-            //    Name = name,
-            //    IsConstructor = isConstructor,
-            //    IsDestructor = isDestructor,
-            //    ParentScope = context.CurrentStatement,
-            //    Location = context.CreateLocation(callElement),
-            //};
-
-            //var arguments = from argument in callElement.Element(SRC.ArgumentList).Elements(SRC.Argument)
-            //                select CreateResolvableUse(argument, context);
-            //methodCall.Arguments = new Collection<IResolvesToType>(arguments.ToList<IResolvesToType>());
-
-            //IResolvesToType current = methodCall;
-            //// This foreach block gets all of the name elements included in the actual <call>
-            //// element this is done primarily in C# and Java where they can reliably be included
-            //// there
-            //foreach(var callingObjectName in callingObjectNames.Reverse()) {
-            //    var callingObject = this.CreateVariableUse(callingObjectName, context);
-            //    current.CallingObject = callingObject;
-            //    current = callingObject;
-            //}
-
-            //// after getting those, we look at the name elements that appear *before* a call we keep
-            //// taking name elements as long as they are preceded by "." or "->" we want to accept
-            //// get 'a', 'b', and 'c' from "a.b->c" only 'b' and 'c' from "a + b->c"
-            //var elementsBeforeCall = callElement.ElementsBeforeSelf().ToArray();
-            //int i = elementsBeforeCall.Length - 1;
-
-            //while(i > 0 && elementsBeforeCall[i].Name == OP.Operator &&
-            //      (elementsBeforeCall[i].Value == "." || elementsBeforeCall[i].Value == "->")) {
-            //    i--;
-            //    if(i >= 0) {
-            //        if(elementsBeforeCall[i].Name == SRC.Name) {
-            //            var callingObject = CreateVariableUse(elementsBeforeCall[i], context);
-            //            current.CallingObject = callingObject;
-            //            current = callingObject;
-            //        } else if(elementsBeforeCall[i].Name == SRC.Call) {
-            //            var callingObject = ParseCallElement(elementsBeforeCall[i], context);
-            //            current.CallingObject = callingObject;
-            //            current = callingObject;
-            //        }
-            //    }
-            //    //if(i >= 0 && elementsBeforeCall[i].Name == SRC.Name) {
-            //    //    var callingObject = CreateVariableUse(elementsBeforeCall[i], context);
-            //    //    current.CallingObject = callingObject;
-            //    //    current = callingObject;
-            //    //}
-            //    i--;
-            //}
-            //if(methodCall.CallingObject == null) {
-            //    methodCall.AddAliases(context.Aliases);
-            //} else if(current != null && current is IVariableUse) {
-            //    ((IVariableUse) current).AddAliases(context.Aliases);
-            //}
-            //return methodCall;
-        }
+        
 
         ///// <summary>
         ///// Creates a <see cref="IScope"/> object for
@@ -528,14 +426,7 @@ namespace ABB.SrcML.Data {
             var declElement = paramElement.Elements().First(e => e.Name == SRC.Declaration || e.Name == SRC.FunctionDeclaration);
 
             var varDeclaration = ParseDeclarationElement(declElement, context);
-            if(varDeclaration is VariableDeclaration) {
-                return varDeclaration as VariableDeclaration;
-            } else {
-                //This case is where the decl element declares more than one variable. This is probably impossible in a method parameter?
-                //Regardless, just return the first variable declaration
-                return varDeclaration.Components.OfType<VariableDeclaration>().First();
-            }
-
+            return varDeclaration;
         }
 
         /// <summary>
@@ -1216,11 +1107,7 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            var exp = new Expression() {
-                Location = context.CreateLocation(expElement),
-                ProgrammingLanguage = ParserLanguage
-            };
-
+            var expList = new List<Expression>();
             //add each component in the expression
             // TODO Pat: look at CPlusPlusCodeParser.ParseNamePrefix when you fix this
             foreach(var element in expElement.Elements()) {
@@ -1229,12 +1116,25 @@ namespace ABB.SrcML.Data {
                     component = ParseNameUseElement(element, context);
                 } else if(element.Name == OP.Operator) {
                     component = ParseOperatorElement(element, context);
+                } else if(element.Name == SRC.Call) {
+                    component = ParseCallElement(element, context);
                 }
 
                 if(component != null) {
-                    exp.AddComponent(component);
+                    expList.Add(component);
                 }
             }
+
+            //if there's only one component in this expression, just return that
+            if(expList.Count == 1) {
+                return expList.First();
+            }
+            //otherwise, create an Expression to contain the components
+            var exp = new Expression() {
+                Location = context.CreateLocation(expElement),
+                ProgrammingLanguage = ParserLanguage
+            };
+            exp.AddComponents(expList);
 
             return exp;
         }
@@ -1278,11 +1178,18 @@ namespace ABB.SrcML.Data {
                     varDecl.Initializer = ParseExpression(expElement, context);
                 }
             }
+            //TODO: need to also handle C++ case of calling constructor in the declaration, e.g. "Foo bar(27);"
 
             return varDecl;
         }
 
-        protected virtual Expression ParseNameUseElement(XElement nameElement, ParserContext context) {
+        /// <summary>
+        /// Creates a NameUse object from the given name element.
+        /// </summary>
+        /// <param name="nameElement">The SRC.Name element to parse.</param>
+        /// <param name="context">The parser context to use.</param>
+        /// <returns>A NameUse corresponding to <paramref name="nameElement"/>.</returns>
+        protected virtual NameUse ParseNameUseElement(XElement nameElement, ParserContext context) {
             if(nameElement == null)
                 throw new ArgumentNullException("nameElement");
             if(nameElement.Name != SRC.Name)
@@ -1293,13 +1200,20 @@ namespace ABB.SrcML.Data {
             var nu = new NameUse() {
                 Location = context.CreateLocation(nameElement),
                 ProgrammingLanguage = ParserLanguage,
-                Name = nameElement.Value
+                Name = NameHelper.GetLastName(nameElement),
+                Prefix = ParseNamePrefix(nameElement,context)
             };
 
             return nu;
         }
 
-        protected virtual Expression ParseOperatorElement(XElement operatorElement, ParserContext context) {
+        /// <summary>
+        /// Creates an OperatorUse object from the given operator element.
+        /// </summary>
+        /// <param name="operatorElement">The OP.Operator element to parse.</param>
+        /// <param name="context">The parser context to use.</param>
+        /// <returns>An OperatorUse corresponding to <paramref name="operatorElement"/>.</returns>
+        protected virtual OperatorUse ParseOperatorElement(XElement operatorElement, ParserContext context) {
             if(operatorElement == null)
                 throw new ArgumentNullException("operatorElement");
             if(operatorElement.Name != OP.Operator)
@@ -1400,7 +1314,7 @@ namespace ABB.SrcML.Data {
             if(nameElement == null)
                 throw new ArgumentNullException("nameElement");
             if(nameElement.Name != SRC.Name)
-                throw new ArgumentException("must be a SRC.Extern element", "nameElement");
+                throw new ArgumentException("must be a SRC.Name element", "nameElement");
             if(context == null)
                 throw new ArgumentNullException("context");
             
@@ -1428,7 +1342,123 @@ namespace ABB.SrcML.Data {
             return prefix;
         }
 
-        #endregion
+        /// <summary>
+        /// Creates a method call object.
+        /// </summary>
+        /// <param name="callElement">The XML element to parse</param>
+        /// <param name="context">The parser context</param>
+        /// <returns>A method call for <paramref name="callElement"/>.</returns>
+        protected virtual MethodCall ParseCallElement(XElement callElement, ParserContext context) {
+            if(callElement == null)
+                throw new ArgumentNullException("callElement");
+            if(callElement.Name != SRC.Call)
+                throw new ArgumentException("must be a SRC.Call element", "callElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+            
+            
+            XElement methodNameElement = null;
+            string name = String.Empty;
+            bool isConstructor = false;
+            bool isDestructor = false;
+            IEnumerable<XElement> callingObjectNames = Enumerable.Empty<XElement>();
+
+            var nameElement = callElement.Element(SRC.Name);
+            if(null != nameElement) {
+                methodNameElement = NameHelper.GetLastNameElement(nameElement);
+                callingObjectNames = NameHelper.GetNameElementsExceptLast(nameElement);
+            }
+            if(null != methodNameElement) {
+                if(null != methodNameElement.Element(SRC.ArgumentList)) {
+                    name = methodNameElement.Element(SRC.Name).Value;
+                } else {
+                    name = methodNameElement.Value;
+                }
+            }
+            if(methodNameElement != null && methodNameElement.Element(SRC.ArgumentList) != null) {
+                name = methodNameElement.Element(SRC.Name).Value;
+            }
+            var precedingElements = callElement.ElementsBeforeSelf();
+
+            foreach(var pe in precedingElements) {
+                if(pe.Name == OP.Operator && pe.Value == "new") {
+                    isConstructor = true;
+                } else if(pe.Name == OP.Operator && pe.Value == "~") {
+                    isDestructor = true;
+                }
+            }
+
+            var parentElement = callElement.Parent;
+            if(null != parentElement && parentElement.Name == SRC.MemberList) {
+                var container = parentElement.Parent;
+                isConstructor = (container != null && container.Name == SRC.Constructor);
+            }
+
+            var mc = new MethodCall() {
+                Name = name,
+                IsConstructor = isConstructor,
+                IsDestructor = isDestructor,
+                Location = context.CreateLocation(callElement),
+                ProgrammingLanguage = ParserLanguage
+            };
+
+            var argList = callElement.Element(SRC.ArgumentList);
+            if(argList != null) {
+                foreach(var argElement in argList.Elements(SRC.Argument)) {
+                    var exp = GetChildExpression(argElement);
+                    if(exp != null) {
+                        mc.AddArgument(ParseExpression(exp, context));
+                    }
+                }
+            }
+
+            //IResolvesToType current = methodCall;
+            //// This foreach block gets all of the name elements included in the actual <call>
+            //// element this is done primarily in C# and Java where they can reliably be included
+            //// there
+            //foreach(var callingObjectName in callingObjectNames.Reverse()) {
+            //    var callingObject = this.CreateVariableUse(callingObjectName, context);
+            //    current.CallingObject = callingObject;
+            //    current = callingObject;
+            //}
+
+            //// after getting those, we look at the name elements that appear *before* a call we keep
+            //// taking name elements as long as they are preceded by "." or "->" we want to accept
+            //// get 'a', 'b', and 'c' from "a.b->c" only 'b' and 'c' from "a + b->c"
+            //var elementsBeforeCall = callElement.ElementsBeforeSelf().ToArray();
+            //int i = elementsBeforeCall.Length - 1;
+
+            //while(i > 0 && elementsBeforeCall[i].Name == OP.Operator &&
+            //      (elementsBeforeCall[i].Value == "." || elementsBeforeCall[i].Value == "->")) {
+            //    i--;
+            //    if(i >= 0) {
+            //        if(elementsBeforeCall[i].Name == SRC.Name) {
+            //            var callingObject = CreateVariableUse(elementsBeforeCall[i], context);
+            //            current.CallingObject = callingObject;
+            //            current = callingObject;
+            //        } else if(elementsBeforeCall[i].Name == SRC.Call) {
+            //            var callingObject = ParseCallElement(elementsBeforeCall[i], context);
+            //            current.CallingObject = callingObject;
+            //            current = callingObject;
+            //        }
+            //    }
+            //    //if(i >= 0 && elementsBeforeCall[i].Name == SRC.Name) {
+            //    //    var callingObject = CreateVariableUse(elementsBeforeCall[i], context);
+            //    //    current.CallingObject = callingObject;
+            //    //    current = callingObject;
+            //    //}
+            //    i--;
+            //}
+            //if(methodCall.CallingObject == null) {
+            //    methodCall.AddAliases(context.Aliases);
+            //} else if(current != null && current is IVariableUse) {
+            //    ((IVariableUse) current).AddAliases(context.Aliases);
+            //}
+
+            return mc;
+        }
+
+        #endregion Parse expression elements
 
         #region aliases
 

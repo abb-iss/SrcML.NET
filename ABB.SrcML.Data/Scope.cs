@@ -213,7 +213,7 @@ namespace ABB.SrcML.Data {
         /// <param name="methodCall">the method call to add</param>
         public void AddMethodCall(MethodCall methodCall) {
             MethodCallCollection.Add(methodCall);
-            methodCall.ParentScope = this;
+            //methodCall.ParentScope = this;
         }
 
         /// <summary>
