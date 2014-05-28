@@ -11,6 +11,8 @@
  *****************************************************************************/
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace ABB.SrcML.Data {
 
@@ -54,6 +56,14 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public Expression Initializer { get; set; }
 
+
+        /// <summary>
+        /// Returns the child expressions, including the Initializer.
+        /// </summary>
+        protected override IEnumerable<AbstractProgramElement> GetChildren() {
+            return Enumerable.Repeat(Initializer, 1).Concat(base.GetChildren());
+        }
+
         /// <summary>
         /// Returns a string representation of this object.
         /// </summary>
@@ -65,5 +75,7 @@ namespace ABB.SrcML.Data {
             //}
             return string.Format("{0} {1}", VariableType, Name);
         }
+
+        
     }
 }
