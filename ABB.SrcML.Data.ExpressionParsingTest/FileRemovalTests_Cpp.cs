@@ -52,6 +52,41 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
+        public void TestRemoveMethodFromClass() {
+            ////A.cpp
+            //int Foo::Add(int b) {
+            //  return this->a + b;
+            //}
+            string cppXml = @"<function><type><name>int</name></type> <name><name>Foo</name><op:operator>::</op:operator><name>Add</name></name><parameter_list>(<param><decl><type><name>int</name></type> <name>b</name></decl></param>)</parameter_list> <block>{
+  <return>return <expr><name>this</name><op:operator>-&gt;</op:operator><name>a</name> <op:operator>+</op:operator> <name>b</name></expr>;</return>
+}</block></function>";
+            var cppFileUnit = FileUnitSetup.GetFileUnitForXmlSnippet(cppXml, "A.cpp");
+            
+            ////A.h
+            //class Foo {
+            //  public:
+            //    int a;
+            //    int Add(int b);
+            //};
+            string hXml = @"<class>class <name>Foo</name> <block>{<private type=""default"">
+  </private><public>public:
+    <decl_stmt><decl><type><name>int</name></type> <name>a</name></decl>;</decl_stmt>
+    <function_decl><type><name>int</name></type> <name>Add</name><parameter_list>(<param><decl><type><name>int</name></type> <name>b</name></decl></param>)</parameter_list>;</function_decl>
+</public>}</block>;</class>";
+            var hFileunit = FileUnitSetup.GetFileUnitForXmlSnippet(hXml, "A.h");
+
+            var beforeScope = CodeParser.ParseFileUnit(hFileunit);
+            var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(cppFileUnit));
+            
+            Assert.AreEqual(1, afterScope.ChildStatements.Count());
+            Assert.IsNotNull(afterScope.ChildStatements.First() as TypeDefinition);
+
+            afterScope.RemoveFile("A.cpp");
+
+            Assert.IsTrue(TestHelper.StatementsAreEqual(beforeScope, afterScope));
+        }
+
+        [Test]
         public void TestRemoveMethodDeclaration_Global() {
             ////Foo.cpp
             //int Foo(char bar) { return 0; }
@@ -208,6 +243,68 @@ namespace ABB.SrcML.Data.Test {
             afterScope.RemoveFile("A2.cpp");
 
             Assert.IsTrue(TestHelper.StatementsAreEqual(beforeScope, afterScope));
+        }
+
+        [Test]
+        public void TestCppRemovalWithNamespaceAndClass() {
+            //Foo.h
+            //namespace A {
+            //	class Foo {
+            //		public:
+            //			int Bar(int b);
+            //	};
+            //}
+            string hXml = @"<namespace>namespace <name>A</name> <block>{
+	<class>class <name>Foo</name> <block>{<private type=""default"">
+		</private><public>public:
+			<function_decl><type><name>int</name></type> <name>Bar</name><parameter_list>(<param><decl><type><name>int</name></type> <name>b</name></decl></param>)</parameter_list>;</function_decl>
+	</public>}</block>;</class>
+}</block></namespace>";
+
+            //Foo.cpp
+            //int A::Foo::Bar(int b) { }
+            string cppXml = @"<function><type><name>int</name></type> <name><name>A</name><op:operator>::</op:operator><name>Foo</name><op:operator>::</op:operator><name>Bar</name></name><parameter_list>(<param><decl><type><name>int</name></type> <name>b</name></decl></param>)</parameter_list> <block>{ }</block></function>";
+
+            var hFileUnit = FileUnitSetup.GetFileUnitForXmlSnippet(hXml, "Foo.h");
+            var cppFileUnit = FileUnitSetup.GetFileUnitForXmlSnippet(cppXml, "Foo.cpp");
+
+            var beforeScope = CodeParser.ParseFileUnit(hFileUnit);
+            var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(cppFileUnit));
+
+            afterScope.RemoveFile("Foo.cpp");
+
+            Assert.That(TestHelper.StatementsAreEqual(beforeScope, afterScope));
+        }
+
+        [Test]
+        public void TestHeaderRemovalWithNamespaceAndClass() {
+            //Foo.h
+            //namespace A {
+            //	class Foo {
+            //		public:
+            //			int Bar(int b);
+            //	};
+            //}
+            string hXml = @"<namespace>namespace <name>A</name> <block>{
+	<class>class <name>Foo</name> <block>{<private type=""default"">
+		</private><public>public:
+			<function_decl><type><name>int</name></type> <name>Bar</name><parameter_list>(<param><decl><type><name>int</name></type> <name>b</name></decl></param>)</parameter_list>;</function_decl>
+	</public>}</block>;</class>
+}</block></namespace>";
+
+            //Foo.cpp
+            //int A::Foo::Bar(int b) { }
+            string cppXml = @"<function><type><name>int</name></type> <name><name>A</name><op:operator>::</op:operator><name>Foo</name><op:operator>::</op:operator><name>Bar</name></name><parameter_list>(<param><decl><type><name>int</name></type> <name>b</name></decl></param>)</parameter_list> <block>{ }</block></function>";
+
+            var hFileUnit = FileUnitSetup.GetFileUnitForXmlSnippet(hXml, "Foo.h");
+            var cppFileUnit = FileUnitSetup.GetFileUnitForXmlSnippet(cppXml, "Foo.cpp");
+
+            var beforeScope = CodeParser.ParseFileUnit(cppFileUnit);
+            var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(hFileUnit));
+
+            afterScope.RemoveFile("Foo.h");
+
+            Assert.That(TestHelper.StatementsAreEqual(beforeScope, afterScope));
         }
 
         [Test]

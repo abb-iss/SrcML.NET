@@ -42,6 +42,8 @@ namespace ABB.SrcML.Data {
             get { return this.IsAnonymous && this.ParentStatement == null; }
         }
 
+        protected override bool ToBeDeleted { get { return Locations.All(l => l.IsReference); } }
+
         public override Statement Merge(Statement otherStatement) {
             return Merge(otherStatement as NamespaceDefinition);
         }
