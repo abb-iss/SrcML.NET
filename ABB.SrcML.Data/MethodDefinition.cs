@@ -22,12 +22,17 @@ namespace ABB.SrcML.Data {
 
     public class MethodDefinition : NamedScope {
         private List<VariableDeclaration> parameterList;
-        
+        Dictionary<string, TypeUse> _returnTypeMap;
+        Dictionary<string, List<VariableDeclaration>> _parameterMap;
+
         /// <summary>
         /// Creates a new method definition object
         /// </summary>
         public MethodDefinition()
             : base() {
+            _returnTypeMap = new Dictionary<string, TypeUse>(StringComparer.InvariantCultureIgnoreCase);
+            _parameterMap = new Dictionary<string, List<VariableDeclaration>>(StringComparer.InvariantCultureIgnoreCase);
+
             parameterList = new List<VariableDeclaration>();
             Parameters = new ReadOnlyCollection<VariableDeclaration>(parameterList);
         }
@@ -37,29 +42,51 @@ namespace ABB.SrcML.Data {
         public bool IsPartial { get; set; }
 
         public ReadOnlyCollection<VariableDeclaration> Parameters { get; private set; }
-        public TypeUse ReturnType { get; set; }
+        
+        public TypeUse ReturnType {
+            get {
+                if(_returnTypeMap.Count > 0) {
+                    return _returnTypeMap.First().Value;
+                }
+                return null;
+            }
+        }
 
         //TODO: record other keywords besides access modifiers? for example, static
 
         /// <summary>
-        /// Adds a method parameter to this method
+        /// Adds set of method parameters to this method. If the <paramref name="parameters"/> have a different set of
+        /// <see cref="VariableDeclaration.VariableType.Name"/> values than <see cref="Parameters"/>, then the current list is cleared
+        /// and <paramref name="parameters"/> is used. If the variable type names match, then <paramref name="parameters"/>
+        /// only matches if it has extra information (such as variable names or initializers).
         /// </summary>
-        /// <param name="parameter">The parameter to add</param>
-        public void AddMethodParameter(VariableDeclaration parameter) {
-            parameter.ParentStatement = this;
-            parameterList.Add(parameter);
-        }
+        /// <param name="parameters">The collection of method parameters to add</param>
+        public void AddMethodParameters(List<VariableDeclaration> parameters) {
+            if(parameters.Count > 0) {
+                if(parameterList.Count > 0 && GetParameterFingerprint(parameterList) != GetParameterFingerprint(parameters)) {
+                    _parameterMap.Clear();
+                }
+                _parameterMap[parameters[0].Location.ToString()] = parameters;
 
-        /// <summary>
-        /// Adds an enumerable of method parameters to this method.
-        /// </summary>
-        /// <param name="parameters">The parameters to add</param>
-        public void AddMethodParameters(IEnumerable<VariableDeclaration> parameters) {
-            foreach(var parameter in parameters) {
-                AddMethodParameter(parameter);
+                if(parameterList.Count == 0 || ComputeParameterInfoScore(parameterList) < ComputeParameterInfoScore(parameters)) {
+                    parameterList.Clear();
+                    parameterList.AddRange(parameters);
+                }
             }
         }
 
+        /// <summary>
+        /// Adds a return type to the internal return type collection. If the <paramref name="returnType"/> has a different
+        /// <see cref="TypeUse.Name"/> than this object, then the map is cleared and <paramref name="returnType" /> is the
+        /// sole return type for this method.
+        /// </summary>
+        /// <param name="returnType">The return type object to add</param>
+        public void AddReturnType(TypeUse returnType) {
+            if(null != ReturnType && this.ReturnType.Name != returnType.Name) {
+                _returnTypeMap.Clear();
+            }
+            _returnTypeMap[returnType.Location.ToString()] = returnType;
+        }
         public override Statement Merge(Statement otherStatement) {
             return this.Merge(otherStatement as MethodDefinition);
         }
@@ -70,19 +97,42 @@ namespace ABB.SrcML.Data {
             }
 
             MethodDefinition combinedMethod = Merge<MethodDefinition>(this, otherMethod);
-            combinedMethod.ReturnType = this.ReturnType;
-            var parameters = Enumerable.Zip(this.Parameters, otherMethod.Parameters, (t, o) => {
-                if(!string.IsNullOrEmpty(t.Name)) {
-                    return t;
-                } else if(!string.IsNullOrEmpty(o.Name)) {
-                    return o;
-                }
-                return t;
-            });
-            combinedMethod.AddMethodParameters(parameters);
+
+            foreach(var returnType in this._returnTypeMap.Values.Concat(otherMethod._returnTypeMap.Values)) {
+                combinedMethod.AddReturnType(returnType);
+            }
+            foreach(var parameterList in this._parameterMap.Values.Concat(otherMethod._parameterMap.Values)) {
+                combinedMethod.AddMethodParameters(parameterList);
+            }
+            
             return combinedMethod;
         }
 
+        public override void RemoveFile(string fileName) {
+            var returnTypeLocations = (from key in _returnTypeMap.Keys
+                                       where key.StartsWith(fileName, StringComparison.InvariantCultureIgnoreCase)
+                                       select key).ToList();
+            foreach(var key in returnTypeLocations) {
+                _returnTypeMap.Remove(key);
+            }
+
+            var parameterListLocations = (from key in _parameterMap.Keys
+                                          where key.StartsWith(fileName, StringComparison.InvariantCultureIgnoreCase)
+                                          select key).ToList();
+
+            foreach(var key in parameterListLocations) {
+                _parameterMap.Remove(key);
+            }
+            parameterList.Clear();
+            if(_parameterMap.Count > 0) {
+                var bestParameterList = (from plist in _parameterMap.Values
+                                         orderby ComputeParameterInfoScore(plist) descending
+                                         select plist).First();
+                parameterList.AddRange(bestParameterList);
+            }
+            
+            base.RemoveFile(fileName);
+        }
         protected override string ComputeMergeId() {
             if(Language.Java == ProgrammingLanguage || Language.CSharp == ProgrammingLanguage && !IsPartial) {
                 return base.ComputeMergeId();
@@ -99,6 +149,23 @@ namespace ABB.SrcML.Data {
             string id = String.Format("{0}:M{1}:{2}:{3}", KsuAdapter.GetLanguage(ProgrammingLanguage), methodType, this.Name, String.Join(",", parameterTypes));
 
             return id;
+        }
+
+        private static string GetParameterFingerprint(ICollection<VariableDeclaration> parameters) {
+            var parameterTypes = from p in parameters select p.VariableType.Name;
+            return String.Join(",", parameterTypes);
+        }
+
+        private static int ComputeParameterInfoScore(ICollection<VariableDeclaration> parameters) {
+            int score = 0;
+            if(parameters.All(p => !String.IsNullOrEmpty(p.Name))) {
+                ++score;
+            }
+            if(parameters.Any(p => null != p.Initializer)) {
+                ++score;
+            }
+
+            return score;
         }
     }
 

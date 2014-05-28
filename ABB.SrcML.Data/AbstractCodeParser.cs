@@ -492,13 +492,14 @@ namespace ABB.SrcML.Data {
                 // don't use it because it means the return type is void
                 var returnTypeUse = ParseTypeUseElement(returnTypeElement, context);
                 if(returnTypeUse != null && returnTypeUse.Name != "void") {
-                    methodDefinition.ReturnType = ParseTypeUseElement(returnTypeElement, context);
+                    methodDefinition.AddReturnType(ParseTypeUseElement(returnTypeElement, context));
                 }
             }
             //Add the method's parameters
             var parameters = from paramElement in GetParametersFromMethodElement(methodElement)
                              select ParseParameterElement(paramElement, context);
-            methodDefinition.AddMethodParameters(parameters);
+            methodDefinition.AddMethodParameters(parameters.ToList());
+            //methodDefinition.AddMethodParameters(parameters);
             
             //Add the method body statements as children
             var methodBlock = methodElement.Element(SRC.Block);
@@ -1291,7 +1292,7 @@ namespace ABB.SrcML.Data {
                 throw new ArgumentNullException("context");
 
             var nu = new NameUse() {
-                Location = context.CreateLocation(nameElement),
+                Location = context.CreateLocation(nameElement, true),
                 ProgrammingLanguage = ParserLanguage,
                 Name = nameElement.Value
             };

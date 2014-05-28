@@ -25,7 +25,7 @@ namespace ABB.SrcML.Data {
     /// </summary>
     [XmlRoot(IsNullable=false)]
     public class Statement : AbstractProgramElement {
-        private List<Statement> childStatementsList;
+        protected List<Statement> childStatementsList;
         protected List<SrcMLLocation> LocationList;
         private Expression contentExpression;
         
@@ -79,6 +79,7 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        protected virtual bool ToBeDeleted { get { return 0 == Locations.Count; } }
         /// <summary>
         /// Adds the given Statement to the ChildStatements collection.
         /// </summary>
@@ -181,28 +182,18 @@ namespace ABB.SrcML.Data {
             return Merge<Statement>(this, otherStatement);
         }
 
-        public virtual Collection<Statement> RemoveFile(string fileName) {
-            int definitionLocations = 0;
-            for(int i = LocationList.Count - 1; i >= 0; i--) {
-                if(fileName.Equals(LocationList[i].SourceFileName, StringComparison.InvariantCultureIgnoreCase)) {
-                    LocationList.RemoveAt(i);
-                } else if(!LocationList[i].IsReference) {
-                    ++definitionLocations;
-                }
-            }
+        public void RemoveChild(Statement child) {
+            childStatementsList.Remove(child);
+        }
 
-            if(0 == Locations.Count) {
+        public virtual void RemoveFile(string fileName) {
+            RemoveLocations(fileName);
+
+            RemoveFileFromChildren(fileName);
+
+            if(ToBeDeleted) {
                 ParentStatement = null;
-            } else {
-                for(int i = ChildStatements.Count - 1; i >= 0; i--) {
-                    var result = ChildStatements[i].RemoveFile(fileName);
-                    if(null == ChildStatements[i].ParentStatement) {
-                        childStatementsList.RemoveAt(i);
-                    }
-                }
             }
-
-            return null;
         }
 
         protected static T Merge<T>(T firstStatement, T secondStatement) where T : Statement, new() {
@@ -214,6 +205,22 @@ namespace ABB.SrcML.Data {
             return combinedStatement;
         }
 
+        protected void RemoveLocations(string fileName) {
+            for(int i = LocationList.Count - 1; i >= 0; i--) {
+                if(fileName.Equals(LocationList[i].SourceFileName, StringComparison.InvariantCultureIgnoreCase)) {
+                    LocationList.RemoveAt(i);
+                }
+            }
+        }
+
+        protected void RemoveFileFromChildren(string fileName) {
+            for(int i = ChildStatements.Count - 1; i >= 0; i--) {
+                ChildStatements[i].RemoveFile(fileName);
+                if(ChildStatements[i].ToBeDeleted) {
+                    childStatementsList.RemoveAt(i);
+                }
+            }
+        }
         protected virtual void RestructureChildren() {
             var restructuredChildren = RestructureChildren(ChildStatements);
             ClearChildren();

@@ -37,6 +37,8 @@ namespace ABB.SrcML.Data {
         public ReadOnlyCollection<TypeUse> ParentTypes { get; protected set; }
         public bool IsPartial { get; set; }
 
+        protected override bool ToBeDeleted { get { return Locations.All(l => l.IsReference); } }
+
         /// <summary>
         /// Adds
         /// <paramref name="parentTypeUse"/>as a parent type for this type definition.
@@ -77,6 +79,10 @@ namespace ABB.SrcML.Data {
             return combinedType;
         }
 
+        //public override void RemoveFile(string fileName) {
+        //    int definitionLocationCount = RemoveLocations(fileName);
+        //    RemoveFile(fileName, 0 == definitionLocationCount);
+        //}
         protected override string ComputeMergeId() {
             if(Language.Java == ProgrammingLanguage || Language.CSharp == ProgrammingLanguage && !IsPartial) {
                 return base.ComputeMergeId();

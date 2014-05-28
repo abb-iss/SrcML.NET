@@ -66,7 +66,19 @@ namespace ABB.SrcML.Data {
             return string.Join(".", names).TrimEnd('.');
         }
 
-        public void MapPrefix(NamedScope tail) {
+        protected void ResetPrefix() {
+            if(PrefixIsResolved && null != Prefix) {
+                PrefixIsResolved = false;
+                var originalRoot = this.GetAncestors<NamedScope>().Skip(Prefix.Names.Count()).FirstOrDefault();
+
+                if(null != originalRoot && null != ParentStatement) {
+                    ParentStatement.RemoveChild(this);
+                    originalRoot.AddChildStatement(this);
+                }
+            }
+        }
+
+        protected void MapPrefix(NamedScope tail) {
             var data = Enumerable.Zip(Prefix.Names.Reverse(), tail.GetAncestorsAndSelf<NamedScope>(), (name, scope) => {
                 return new {
                     IsValid = (name.Name == scope.Name),
@@ -100,9 +112,66 @@ namespace ABB.SrcML.Data {
             T combinedStatement = Statement.Merge<T>(firstStatement, secondStatement);
             combinedStatement.Name = firstStatement.Name;
             combinedStatement.Accessibility = (firstStatement.Accessibility >= secondStatement.Accessibility ? firstStatement.Accessibility : secondStatement.Accessibility);
+            if(null != firstStatement.Prefix) {
+                combinedStatement.Prefix = firstStatement.Prefix;
+            } else if(null != secondStatement.Prefix) {
+                combinedStatement.Prefix = secondStatement.Prefix;
+            }
+            combinedStatement.PrefixIsResolved = true;
             return combinedStatement;
         }
 
+        public override void RemoveFile(string fileName) {
+            RemoveLocations(fileName);
+            RemoveFileFromChildren(fileName);
+
+            if(ToBeDeleted) {
+                var orphanedChildren = (from child in ChildStatements.OfType<NamedScope>()
+                                        where !child.ToBeDeleted && null != child.Prefix
+                                        select child).ToList();
+
+                foreach(var child in orphanedChildren) {
+                    child.ResetPrefix();
+                }
+                ParentStatement = null;
+            }
+        }
+        //public override void RemoveFile(string fileName) {
+        //    RemoveLocations(fileName);
+
+        //    RemoveFile(fileName, 0 == Locations.Count);
+        //}
+
+        //protected virtual Collection<Statement> RemoveFile(string fileName, bool willBeRemoved) {
+        //    Collection<Statement> orphanedChildren = new Collection<Statement>();
+
+        //    for(int i = ChildStatements.Count - 1; i >= 0; i--) {
+        //         ChildStatements[i].RemoveFile(fileName);
+        //        if(null != result) {
+        //            foreach(var child in result) {
+        //                orphanedChildren.Add(child);
+        //            }
+        //        }
+        //        if(null == ChildStatements[i].ParentStatement) {
+        //            childStatementsList.RemoveAt(i);
+        //        } else if(willBeRemoved) {
+        //            orphanedChildren.Add(ChildStatements[i]);
+        //            var namedScope = ChildStatements[i] as NamedScope;
+        //            if(null != namedScope) {
+        //                namedScope.ResetPrefix();
+        //            }
+        //        }
+        //    }
+
+        //    if(willBeRemoved) {
+        //        ParentStatement = null;
+        //        return orphanedChildren;
+        //    } else if(orphanedChildren.Count > 0) {
+        //        AddChildStatements(orphanedChildren);
+        //        RestructureChildren();
+        //    }
+        //    return null;
+        //}
         protected override void RestructureChildren() {
             var namedChildrenWithPrefixes = (from child in ChildStatements.OfType<NamedScope>()
                                              where !child.PrefixIsResolved
