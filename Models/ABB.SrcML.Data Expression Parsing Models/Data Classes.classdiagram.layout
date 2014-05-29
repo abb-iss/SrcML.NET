@@ -166,7 +166,7 @@
         <OperationElementListCompartment Id="7269be74-b00c-4286-8cc5-60882544f3f9" absoluteBounds="7.14, 12.35117186754942, 1.4700000000000002, 0.2011718675494194" name="OperationsCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
-    <generalizationConnector edgePoints="[(7.875 : 11.75); (7.875 : 11.45); (6.58333333333333 : 11.45 : JumpStart); (6.41666666666667 : 11.45 : JumpEnd); (4.83333333333333 : 11.45 : JumpStart); (4.66666666666667 : 11.45 : JumpEnd); (4.5625 : 11.45); (4.5625 : 9.56249998013178)]" fixedFrom="NotFixed" fixedTo="NotFixed" customColor="113, 111, 110">
+    <generalizationConnector edgePoints="[(7.875 : 11.75); (7.875 : 11.45); (4.83333333333333 : 11.45 : JumpStart); (4.66666666666667 : 11.45 : JumpEnd); (4.5625 : 11.45); (4.5625 : 9.56249998013178)]" fixedFrom="NotFixed" fixedTo="NotFixed" customColor="113, 111, 110">
       <generalizationMoniker Id="b3a5d711-220c-465e-98b2-b4e5ba97c2c2" />
       <relativeChildShapes />
       <nodes>
@@ -331,7 +331,7 @@
         <OperationElementListCompartment Id="29ca5b11-c85d-4d82-a2e9-e03e1e251508" absoluteBounds="14.515, 9.0464843576153129, 1.4700000000000002, 0.20117186754941951" name="OperationsCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
-    <generalizationConnector edgePoints="[(15.25 : 8.125); (15.25 : 7.75); (4.625 : 7.75); (4.625 : 5.77734373509884)]" fixedFrom="NotFixed" fixedTo="NotFixed" customColor="113, 111, 110">
+    <generalizationConnector edgePoints="[(15.25 : 8.125); (15.25 : 7.75); (11.3958333333333 : 7.75 : JumpStart); (11.2291666666667 : 7.75 : JumpEnd); (8.27083333333333 : 7.75 : JumpStart); (8.10416666666667 : 7.75 : JumpEnd); (4.625 : 7.75); (4.625 : 5.77734373509884)]" fixedFrom="NotFixed" fixedTo="NotFixed" customColor="113, 111, 110">
       <generalizationMoniker Id="f356af2d-31b9-4389-9fb9-5c4c5e27e13a" />
       <relativeChildShapes />
       <nodes>
@@ -346,7 +346,7 @@
         <OperationElementListCompartment Id="afeaed27-3bc0-4231-8806-8e8a75a4099f" absoluteBounds="16.765, 8.8863281125823654, 1.4700000000000002, 0.2011718675494194" name="OperationsCompartment" titleTextColor="Black" itemTextColor="Black" />
       </nestedChildShapes>
     </classShape>
-    <generalizationConnector edgePoints="[(17.5 : 8.125); (17.5 : 7.75); (4.625 : 7.75); (4.625 : 5.77734373509884)]" fixedFrom="NotFixed" fixedTo="NotFixed" customColor="113, 111, 110">
+    <generalizationConnector edgePoints="[(17.5 : 8.125); (17.5 : 7.75); (11.3958333333333 : 7.75 : JumpStart); (11.2291666666667 : 7.75 : JumpEnd); (8.27083333333333 : 7.75 : JumpStart); (8.10416666666667 : 7.75 : JumpEnd); (4.625 : 7.75); (4.625 : 5.77734373509884)]" fixedFrom="NotFixed" fixedTo="NotFixed" customColor="113, 111, 110">
       <generalizationMoniker Id="ba4d4a99-4eb5-4824-b2f2-35fdc2a9020a" />
       <relativeChildShapes />
       <nodes>

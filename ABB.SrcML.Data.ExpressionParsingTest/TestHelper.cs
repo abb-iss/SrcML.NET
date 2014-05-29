@@ -46,7 +46,8 @@ namespace ABB.SrcML.Data.Test {
         public static bool LiteralUsesAreEqual(LiteralUse a, LiteralUse b) {
             if(a == b) { return true; }
             return a.Kind == b.Kind &&
-                   TypeUsesAreEqual(a, b);
+                   a.Value == b.Value &&
+                   ExpressionsAreEqual(a, b);
         }
 
         public static bool LocationsAreEqual(SrcMLLocation a, SrcMLLocation b) {
@@ -61,7 +62,7 @@ namespace ABB.SrcML.Data.Test {
         public static bool MethodCallsAreEqual(MethodCall a, MethodCall b) {
             if(a == b) { return true; }
             return OrderedCollectionsAreEqual(a.Arguments, b.Arguments, ExpressionsAreEqual) &&
-                   IResolvesToTypesAreEqual(a.CallingObject, b.CallingObject) &&
+                   ExpressionsAreEqual(a.CallingObject, b.CallingObject) &&
                    a.IsConstructor == b.IsConstructor &&
                    a.IsDestructor == b.IsDestructor &&
                    LocationsAreEqual(a.Location, b.Location) &&

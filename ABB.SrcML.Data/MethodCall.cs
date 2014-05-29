@@ -43,7 +43,7 @@ namespace ABB.SrcML.Data {
         /// The calling object for a use is used when you have <c>a.Foo()</c> -- this method call
         /// would refer to <c>Foo()</c> and the calling object would be <c>a</c>.
         /// </summary>
-        public IResolvesToType CallingObject { get; set; }
+        public Expression CallingObject { get; set; }
 
         /// <summary>
         /// True if this is a call to a constructor

@@ -7,6 +7,7 @@
  *
  * Contributors:
  *    Vinay Augustine (ABB Group) - initial API, implementation, & documentation
+ *    Patrick Francis (ABB Group) - API, implementation, & documentation
  *****************************************************************************/
 
 using System;
@@ -18,7 +19,7 @@ using System.Text;
 namespace ABB.SrcML.Data {
 
     /// <summary>
-    /// Represents a use of a type. It is used in declarations and inheritance specifications.
+    /// Represents a use of a type. It is used in declarations and inheritance specifications, among other places.
     /// </summary>
     public class TypeUse : NameUse {
         private List<TypeUse> typeParameterList;
@@ -73,6 +74,7 @@ namespace ABB.SrcML.Data {
         /// <returns>All of the type definitions that match this type use</returns>
         public IEnumerable<TypeDefinition> FindMatches() {
             //TODO: review this method and update it for changes in TypeUse structure
+            //TODO: handle case of C# var type. Delete CSharpVarTypeUse if no longer necessary.
             throw new NotImplementedException();
             // if this is a built-in type, then just return that otherwise, go hunting for matching
             // types

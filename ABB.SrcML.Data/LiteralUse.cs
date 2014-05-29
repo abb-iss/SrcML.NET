@@ -4,14 +4,16 @@ using System.Xml.Linq;
 namespace ABB.SrcML.Data {
 
     /// <summary>
-    /// Literal use is a specific kind of type use that refers to a language's built-in types.
+    /// Represents a use of a literal in a program.
+    /// For example, in "int a = 42;" 42 is a literal use.
     /// </summary>
-    [Serializable]
-    public class LiteralUse : TypeUse {
+    //[Serializable]
+    public class LiteralUse : Expression {
 
-        /// <summary>
-        /// The kind of literal
-        /// </summary>
+        /// <summary>The text of the literal.</summary>
+        public string Value { get; set; }
+
+        /// <summary>The kind of literal.</summary>
         public LiteralKind Kind { get; set; }
 
         /// <summary>

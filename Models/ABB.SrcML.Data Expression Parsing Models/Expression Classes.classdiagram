@@ -203,6 +203,14 @@
             <elementDefinition Id="9a66edc5-758b-499a-a410-2f9f2b8397a3" />
           </generalization>
         </generalsInternal>
+        <ownedAttributesInternal>
+          <property Id="4179551b-2282-49e1-affb-54983f2183c0" name="CallingObject" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="ffd37fb9-5175-486f-a20e-ed72e5b3fdd3" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="c755bfb5-f52e-46ce-bce0-eae5d6d3d701" LastKnownName="Expression" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
       </class>
     </logicalClassDesignerModelHasTypes>
     <logicalClassDesignerModelHasTypes>
@@ -237,6 +245,24 @@
               <referencedTypeMoniker Id="e1c78464-a21f-4c32-88fb-0e2dd2977e1d" LastKnownName="Collection&lt;Expression&gt;" />
             </type_NamedElement>
           </property>
+          <property Id="2691eb55-eb10-47d3-ac85-217a5d710d9b" name="CallingObject" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="10a174a1-467e-455d-891c-e427bb006d14" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="c755bfb5-f52e-46ce-bce0-eae5d6d3d701" LastKnownName="Expression" />
+            </type_NamedElement>
+          </property>
+          <property Id="9bfbf304-517d-472b-bfa1-8101019478f4" name="IsConstructor" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="2824304c-c7cb-4b42-ba9d-e454305953bf" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="1b943ff1-e43c-4eb8-b021-4e0151d57af9" LastKnownName="bool" />
+            </type_NamedElement>
+          </property>
+          <property Id="52ecb04a-d2d2-4529-815f-774a7814f468" name="IsDestructor" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="a5359268-928f-43b3-a1d4-be3f9bcdb7e2" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="1b943ff1-e43c-4eb8-b021-4e0151d57af9" LastKnownName="bool" />
+            </type_NamedElement>
+          </property>
         </ownedAttributesInternal>
       </class>
     </logicalClassDesignerModelHasTypes>
@@ -263,6 +289,41 @@
     <packageHasNamedElement>
       <referencedType Id="c5676a9c-b0d8-4d07-954e-3e551e65a764" name="Statement" isAbstract="false" isLeaf="false" cachedFullName="ABB.SrcML.Data.ExpressionParsingModels::Statement">
         <elementDefinition Id="3c930dc3-adce-4432-b0c6-c7f3341a7529" />
+      </referencedType>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <referencedType Id="1b943ff1-e43c-4eb8-b021-4e0151d57af9" name="bool" isAbstract="false" isLeaf="false" cachedFullName="bool">
+        <elementDefinition Id="d39bfaba-eefe-42e2-8831-1a3e1d49b5e2" />
+      </referencedType>
+    </packageHasNamedElement>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="21ba37c8-52a2-41f8-ab5f-33bbaee1cbf3" name="LiteralUse" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="8d4e5b64-7ae1-4ec8-b011-12696e3b9c0b" />
+        <generalsInternal>
+          <generalization Id="06996822-9b8d-4d45-a4d6-745f62d3613c" isSubstitutable="false">
+            <classMoniker Id="f2cde41f-ab47-4cb3-bd27-7e77219b07e2" LastKnownName="Expression" />
+            <elementDefinition Id="7bf8cfbf-e0df-4978-a656-7ffb12b3db4a" />
+          </generalization>
+        </generalsInternal>
+        <ownedAttributesInternal>
+          <property Id="c65c16cf-1b3d-4dce-98c2-b307bb42dba9" name="Kind" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="ecbd128a-ee14-4043-b3c8-7a900c7c2ea6" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="6a779303-5693-42c0-ba7e-90c0f7864e03" LastKnownName="LiteralKind" />
+            </type_NamedElement>
+          </property>
+          <property Id="40c46020-05c0-4350-ab01-05779f456a53" name="Value" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="7238176e-41c2-4fc4-b9cc-58e6b20751d4" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="0b63c866-3450-43e8-945b-29bc10f3aeae" LastKnownName="string" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <packageHasNamedElement>
+      <referencedType Id="6a779303-5693-42c0-ba7e-90c0f7864e03" name="LiteralKind" isAbstract="false" isLeaf="false" cachedFullName="LiteralKind">
+        <elementDefinition Id="54edabb0-ea75-450b-bc51-cc4d5be58133" />
       </referencedType>
     </packageHasNamedElement>
   </packagedElements>

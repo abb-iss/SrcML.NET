@@ -662,9 +662,12 @@ namespace ABB.SrcML.Data.Test {
 
             var method = testScope.ChildStatements.First() as MethodDefinition;
             Assert.IsNotNull(method, "could not find the test method");
-
+            Assert.AreEqual("Foo", method.Name);
             Assert.AreEqual("int", method.ReturnType.Name);
-            Assert.AreEqual("Method: int Foo()", method.ToString());
+            Assert.AreEqual(0, method.Parameters.Count);
+            Assert.IsFalse(method.IsConstructor);
+            Assert.IsFalse(method.IsDestructor);
+            Assert.IsFalse(method.IsPartial);
         }
 
         [Test]
@@ -709,9 +712,8 @@ namespace ABB.SrcML.Data.Test {
 
             var method = testScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "Foo");
             Assert.IsNotNull(method, "could not find the test method");
-
+            Assert.AreEqual("Foo", method.Name);
             Assert.IsNull(method.ReturnType, "return type should be null");
-            Assert.AreEqual("Method: void Foo()", method.ToString());
         }
 
 //        [Test]
@@ -826,6 +828,46 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("D", declD.Name);
             Assert.AreEqual("Foo", declD.VariableType.Name);
             Assert.AreEqual(AccessModifier.None, declD.Accessibility);
+        }
+
+        [Test]
+        public void TestLiteralUse() {
+            //a = 17;
+            //foo = "watermelon";
+            //if(true) { 
+            //  c = 'h';
+            //}
+            string xml = @"<expr_stmt><expr><name>a</name> <op:operator>=</op:operator> <lit:literal type=""number"">17</lit:literal></expr>;</expr_stmt>
+<expr_stmt><expr><name>foo</name> <op:operator>=</op:operator> <lit:literal type=""string"">""watermelon""</lit:literal></expr>;</expr_stmt>
+<if>if<condition>(<expr><lit:literal type=""boolean"">true</lit:literal></expr>)</condition><then> <block>{ 
+  <expr_stmt><expr><name>c</name> <op:operator>=</op:operator> <lit:literal type=""char"">'h'</lit:literal></expr>;</expr_stmt>
+}</block></then></if>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
+
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+
+            var numLit = globalScope.ChildStatements[0].Content.GetDescendantsAndSelf<LiteralUse>().FirstOrDefault();
+            Assert.IsNotNull(numLit);
+            Assert.AreEqual("17", numLit.Value);
+            Assert.AreEqual(LiteralKind.Number, numLit.Kind);
+
+            var stringLit = globalScope.ChildStatements[1].Content.GetDescendantsAndSelf<LiteralUse>().FirstOrDefault();
+            Assert.IsNotNull(stringLit);
+            Assert.AreEqual("\"watermelon\"", stringLit.Value);
+            Assert.AreEqual(LiteralKind.String, stringLit.Kind);
+
+            var ifStmt = globalScope.ChildStatements[2] as IfStatement;
+            Assert.IsNotNull(ifStmt);
+
+            var boolLit = ifStmt.Condition as LiteralUse;
+            Assert.IsNotNull(boolLit);
+            Assert.AreEqual("true", boolLit.Value);
+            Assert.AreEqual(LiteralKind.Boolean, boolLit.Kind);
+
+            var charLit = ifStmt.ChildStatements[0].Content.GetDescendantsAndSelf<LiteralUse>().FirstOrDefault();
+            Assert.IsNotNull(charLit);
+            Assert.AreEqual("\'h\'", charLit.Value);
+            Assert.AreEqual(LiteralKind.Character, charLit.Kind);
         }
     }
 }

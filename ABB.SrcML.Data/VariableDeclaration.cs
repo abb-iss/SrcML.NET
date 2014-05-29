@@ -19,10 +19,7 @@ namespace ABB.SrcML.Data {
     /// <summary>
     /// Represents a variable declaration
     /// </summary>
-    //[Serializable]
     public class VariableDeclaration : Expression {
-        //private IScope parentScope;
-
         /// <summary>
         /// The access modifier assigned to this type
         /// </summary>
@@ -32,19 +29,6 @@ namespace ABB.SrcML.Data {
         /// The name of the variable
         /// </summary>
         public string Name { get; set; }
-
-        ///// <summary>
-        ///// The scope where this variable is declared
-        ///// </summary>
-        //public IScope ParentScope {
-        //    get { return this.parentScope; }
-        //    set {
-        //        this.parentScope = value;
-        //        if(null != VariableType) {
-        //            this.VariableType.ParentScope = this.parentScope;
-        //        }
-        //    }
-        //}
 
         /// <summary>
         /// Description of the type for this variable

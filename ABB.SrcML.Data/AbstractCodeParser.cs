@@ -1119,6 +1119,8 @@ namespace ABB.SrcML.Data {
                     component = ParseOperatorElement(element, context);
                 } else if(element.Name == SRC.Call) {
                     component = ParseCallElement(element, context);
+                } else if(element.Name == LIT.Literal) {
+                    component = ParseLiteralElement(element, context);
                 }
 
                 if(component != null) {
@@ -1457,6 +1459,30 @@ namespace ABB.SrcML.Data {
             //}
 
             return mc;
+        }
+
+        /// <summary>
+        /// Creates a LiteralUse object from the given element
+        /// </summary>
+        /// <param name="literalElement">The element to parse. Must be a <see cref="ABB.SrcML.LIT.Literal"/> element.</param>
+        /// <param name="context">the parser context</param>
+        /// <returns>A LiteralUse corresponding to <paramref name="literalElement"/>.</returns>
+        protected virtual LiteralUse ParseLiteralElement(XElement literalElement, ParserContext context) {
+            if(literalElement == null)
+                throw new ArgumentNullException("literalElement");
+            if(literalElement.Name != LIT.Literal)
+                throw new ArgumentException("Must be a LIT.Literal element", "literalElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            var litUse = new LiteralUse() {
+                Location = context.CreateLocation(literalElement),
+                ProgrammingLanguage = ParserLanguage,
+                Value = literalElement.Value,
+                Kind = LiteralUse.GetLiteralKind(literalElement)
+            };
+
+            return litUse;
         }
 
         #endregion Parse expression elements

@@ -7,6 +7,7 @@
  *
  * Contributors:
  *    Vinay Augustine (ABB Group) - initial API, implementation, & documentation
+ *    Patrick Francis (ABB Group) - API, implementation, & documentation
  *****************************************************************************/
 
 using System;
@@ -18,8 +19,8 @@ namespace ABB.SrcML.Data {
     /// <summary>
     /// The variable use class represents a use of a variable.
     /// </summary>
-    [Serializable]
-    public class VariableUse : AbstractUse<VariableDeclaration> {
+    //[Serializable]
+    public class VariableUse : NameUse {
 
         /// <summary>
         /// The calling object for a use is used when you have <c>a.b</c> -- this variable use would
@@ -27,21 +28,21 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public IResolvesToType CallingObject { get; set; }
 
-        /// <summary>
-        /// The scope that contains this variable use. If the parent scope is updated, then the
-        /// parent scope of the calling object is also updated.
-        /// </summary>
-        public override Scope ParentScope {
-            get {
-                return base.ParentScope;
-            }
-            set {
-                base.ParentScope = value;
-                if(this.CallingObject != null) {
-                    this.CallingObject.ParentScope = this.ParentScope;
-                }
-            }
-        }
+        ///// <summary>
+        ///// The scope that contains this variable use. If the parent scope is updated, then the
+        ///// parent scope of the calling object is also updated.
+        ///// </summary>
+        //public override Scope ParentScope {
+        //    get {
+        //        return base.ParentScope;
+        //    }
+        //    set {
+        //        base.ParentScope = value;
+        //        if(this.CallingObject != null) {
+        //            this.CallingObject.ParentScope = this.ParentScope;
+        //        }
+        //    }
+        //}
 
         /// <summary>
         /// Gets the first result from <see cref="FindMatchingTypes()"/>
@@ -56,7 +57,7 @@ namespace ABB.SrcML.Data {
         /// <see cref="Matches(IVariableDeclaration)">matches</see>
         /// </summary>
         /// <returns>An enumerable of matching variable declarations.</returns>
-        public override IEnumerable<VariableDeclaration> FindMatches() {
+        public IEnumerable<VariableDeclaration> FindMatches() {
             //TODO: review this method and update it for changes in TypeUse structure
             throw new NotImplementedException();
             //IEnumerable<VariableDeclaration> matchingVariables = Enumerable.Empty<VariableDeclaration>();
@@ -146,13 +147,13 @@ namespace ABB.SrcML.Data {
             //return typeDefinitions;
         }
 
-        /// <summary>
-        /// Tests if this variable usage is a match for
-        /// <paramref name="definition"/></summary>
-        /// <param name="definition">The variable declaration to test</param>
-        /// <returns>true if this matches the variable declaration; false otherwise</returns>
-        public override bool Matches(VariableDeclaration definition) {
-            return definition != null && definition.Name == this.Name;
-        }
+        ///// <summary>
+        ///// Tests if this variable usage is a match for
+        ///// <paramref name="definition"/></summary>
+        ///// <param name="definition">The variable declaration to test</param>
+        ///// <returns>true if this matches the variable declaration; false otherwise</returns>
+        //public bool Matches(VariableDeclaration definition) {
+        //    return definition != null && definition.Name == this.Name;
+        //}
     }
 }
