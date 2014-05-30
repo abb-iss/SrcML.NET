@@ -869,5 +869,66 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("\'h\'", charLit.Value);
             Assert.AreEqual(LiteralKind.Character, charLit.Kind);
         }
+
+        [Test]
+        public void TestIfElse() {
+            //if(a==b) {
+            //  i = 17;
+            //} else {
+            //  i = 42;
+            //  ReportError();
+            //}
+            string xml = @"<if>if<condition>(<expr><name>a</name><op:operator>==</op:operator><name>b</name></expr>)</condition><then> <block>{
+  <expr_stmt><expr><name>i</name> <op:operator>=</op:operator> <lit:literal type=""number"">17</lit:literal></expr>;</expr_stmt>
+}</block></then> <else>else <block>{
+  <expr_stmt><expr><name>i</name> <op:operator>=</op:operator> <lit:literal type=""number"">42</lit:literal></expr>;</expr_stmt>
+  <expr_stmt><expr><call><name>ReportError</name><argument_list>()</argument_list></call></expr>;</expr_stmt>
+}</block></else></if>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
+
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            var ifStmt = globalScope.ChildStatements.First() as IfStatement;
+            Assert.IsNotNull(ifStmt);
+            Assert.IsNull(ifStmt.Content);
+            Assert.IsNotNull(ifStmt.Condition);
+            Assert.AreEqual(1, ifStmt.ChildStatements.Count);
+            Assert.AreEqual(2, ifStmt.ElseStatements.Count);
+        }
+
+        [Test]
+        public void TestIfElseIf() {
+            //if(a==b) {
+            //  i = 17;
+            //} else if(a==c) {
+            //  i = 42;
+            //  foo();
+            //} else {
+            //  ReportError();
+            //}
+            string xml = @"<if>if<condition>(<expr><name>a</name><op:operator>==</op:operator><name>b</name></expr>)</condition><then> <block>{
+  <expr_stmt><expr><name>i</name> <op:operator>=</op:operator> <lit:literal type=""number"">17</lit:literal></expr>;</expr_stmt>
+}</block></then> <else>else <if>if<condition>(<expr><name>a</name><op:operator>==</op:operator><name>c</name></expr>)</condition><then> <block>{
+  <expr_stmt><expr><name>i</name> <op:operator>=</op:operator> <lit:literal type=""number"">42</lit:literal></expr>;</expr_stmt>
+  <expr_stmt><expr><call><name>foo</name><argument_list>()</argument_list></call></expr>;</expr_stmt>
+}</block></then> <else>else <block>{
+  <expr_stmt><expr><call><name>ReportError</name><argument_list>()</argument_list></call></expr>;</expr_stmt>
+}</block></else></if></else></if>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.h");
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+
+            var ifStmt = globalScope.ChildStatements.First() as IfStatement;
+            Assert.IsNotNull(ifStmt);
+            Assert.IsNull(ifStmt.Content);
+            Assert.IsNotNull(ifStmt.Condition);
+            Assert.AreEqual(1, ifStmt.ChildStatements.Count);
+            Assert.AreEqual(1, ifStmt.ElseStatements.Count);
+
+            var ifStmt2 = ifStmt.ElseStatements.First() as IfStatement;
+            Assert.IsNotNull(ifStmt2);
+            Assert.IsNull(ifStmt2.Content);
+            Assert.IsNotNull(ifStmt2.Condition);
+            Assert.AreEqual(2, ifStmt2.ChildStatements.Count);
+            Assert.AreEqual(1, ifStmt2.ElseStatements.Count);
+        }
     }
 }
