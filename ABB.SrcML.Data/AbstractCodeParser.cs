@@ -1075,8 +1075,7 @@ namespace ABB.SrcML.Data {
 
         #region Parse expression elements
         /// <summary>
-        /// Creates an Expression from the given element. The element must be a SRC.Expression or SRC.Declaration.
-        /// This method is just a helper that dispatches to ParseExpressionElement or ParseDeclarationElement as appropriate.
+        /// Creates an Expression from the given element.
         /// </summary>
         /// <param name="element">The element to parse.</param>
         /// <param name="context">The parser context to use.</param>
@@ -1087,19 +1086,39 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            if(element.Name == SRC.Expression) {
-                return ParseExpressionElement(element, context);
-            }
-            if(element.Name == SRC.Declaration) {
-                return ParseDeclarationElement(element, context);
-            }
+            try {
+                Expression exp = null;
+                if(element.Name == SRC.Expression) {
+                    exp = ParseExpressionElement(element, context);
+                } else if(element.Name == SRC.Declaration) {
+                    exp = ParseDeclarationElement(element, context);
+                } else if(element.Name == SRC.Name) {
+                    exp = ParseNameUseElement(element, context);
+                } else if(element.Name == OP.Operator) {
+                    exp = ParseOperatorElement(element, context);
+                } else if(element.Name == SRC.Call) {
+                    exp = ParseCallElement(element, context);
+                } else if(element.Name == LIT.Literal) {
+                    exp = ParseLiteralElement(element, context);
+                } else {
+                    //TODO: what to do about elements we don't want to parse or don't recognize? Throw exception or just skip?
+                    throw new ParseException(context.FileName, element.GetSrcLineNumber(), element.GetSrcLinePosition(), this,
+                                             string.Format("Unexpected {0} element", element.Name), null);
+                }
 
-            //TODO: how do we handle a function_declaration that's put in an expression-type place?
-            //For example, a function pointer declared in an if condition
-            
-            throw new ArgumentException("Must be a SRC.Expression or SRC.Declaration element", "element");
+                //TODO: how do we handle a function_declaration that's put in an expression-type place?
+                //For example, a function pointer declared in an if condition
+
+                return exp;
+            } catch(ParseException) {
+                throw;
+            } catch(Exception e) {
+                int lineNumber = element.GetSrcLineNumber();
+                int columnNumber = element.GetSrcLinePosition();
+                throw new ParseException(context.FileName, lineNumber, columnNumber, this, e.Message, e);
+            }
         }
-        
+
         protected virtual Expression ParseExpressionElement(XElement expElement, ParserContext context) {
             if(expElement == null)
                 throw new ArgumentNullException("expElement");
@@ -1108,26 +1127,8 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            var expList = new List<Expression>();
-            //add each component in the expression
-            // TODO Pat: look at CPlusPlusCodeParser.ParseNamePrefix when you fix this
-            foreach(var element in expElement.Elements()) {
-                Expression component = null;
-                if(element.Name == SRC.Name) {
-                    component = ParseNameUseElement(element, context);
-                } else if(element.Name == OP.Operator) {
-                    component = ParseOperatorElement(element, context);
-                } else if(element.Name == SRC.Call) {
-                    component = ParseCallElement(element, context);
-                } else if(element.Name == LIT.Literal) {
-                    component = ParseLiteralElement(element, context);
-                }
-
-                if(component != null) {
-                    expList.Add(component);
-                }
-            }
-
+            //parse each component in the expression
+            var expList = expElement.Elements().Select(e => ParseExpression(e, context)).ToList();
             //if there's only one component in this expression, just return that
             if(expList.Count == 1) {
                 return expList.First();
@@ -1331,16 +1332,7 @@ namespace ABB.SrcML.Data {
 
             var prefix = new NamePrefix();
             foreach(var part in prefixParts) {
-                //TODO: update this to use more general expression parsing, once available
-                Expression component = null;
-                if(SRC.Name == part.Name) {
-                    component = ParseNameUseElement(part, context);
-                } else if(OP.Operator == part.Name) {
-                    component = ParseOperatorElement(part, context);
-                }
-                if(null != component) {
-                    prefix.AddComponent(component);
-                }
+                prefix.AddComponent(ParseExpression(part, context));
             }
             return prefix;
         }
