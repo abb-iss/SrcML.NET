@@ -11,7 +11,8 @@ using System.Threading.Tasks;
 namespace ABB.SrcML.Data.Test {
     [TestFixture, Category("LongRunning")]
     public class RealWorldTests {
-        static List<RealWorldTestProject> TestProjects = ReadProjectMap(@"C:\Workspace\Source\TestProjects\mapping2.txt").ToList();
+        public const string MappingFile = @"..\..\TestInputs\project_mapping.txt";
+        static List<RealWorldTestProject> TestProjects = ReadProjectMap(MappingFile).ToList();
 
 
         [Test, TestCaseSource("TestProjects")]
@@ -121,17 +122,22 @@ namespace ABB.SrcML.Data.Test {
 
             return data;
         }
+
         private static IEnumerable<RealWorldTestProject> ReadProjectMap(string fileName) {
-            var projects = from line in File.ReadAllLines(fileName)
-                           let parts = line.Split(',')
-                           where 4 == parts.Length
-                           let projectName = parts[0]
-                           let projectVersion = parts[1]
-                           let projectLanguage
-                           = SrcMLElement.GetLanguageFromString(parts[2])
-                           let rootDirectory = parts[3]
-                           select new RealWorldTestProject(projectName, projectVersion, projectLanguage, rootDirectory);
-            return projects;
+            if(File.Exists(fileName)) {
+                var projects = from line in File.ReadAllLines(fileName)
+                               where !line.StartsWith("#")
+                               let parts = line.Split(',')
+                               where 4 == parts.Length
+                               let projectName = parts[0]
+                               let projectVersion = parts[1]
+                               let projectLanguage
+                               = SrcMLElement.GetLanguageFromString(parts[2])
+                               let rootDirectory = parts[3]
+                               select new RealWorldTestProject(projectName, projectVersion, projectLanguage, rootDirectory);
+                return projects;
+            }
+            return Enumerable.Empty<RealWorldTestProject>();
         }
 
         private static void CheckThatProjectExists(RealWorldTestProject project) {
