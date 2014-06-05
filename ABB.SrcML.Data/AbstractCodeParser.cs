@@ -279,19 +279,17 @@ namespace ABB.SrcML.Data {
 
         #region Parse statement elements
         /// <summary>
-        /// This is the main function that parses srcML nodes. It selects the appropriate parse
-        /// element to call and then adds declarations, method calls, and children to it
+        /// Creates a <see cref="Statement"/> object from the given <paramref name="element"/>.
+        /// This method simply dispatches to the appropriate element parsing method based on the name of the element.
         /// </summary>
-        /// <param name="element">The element to parse</param>
-        /// <param name="context">The parser context</param>
-        /// <returns>The scope representing
-        /// <paramref name="element"/></returns>
-        protected virtual Statement ParseElement(XElement element, ParserContext context) {
+        /// <param name="element">The element to parse.</param>
+        /// <param name="context">The parser context to use.</param>
+        /// <returns>A Statement corresponding to <paramref name="element"/>. 
+        /// If an unknown element type is passed in, this method will return null if LogUnknownElements is true, or throw an exception if LogUnknownElements is false.</returns>
+        protected virtual Statement ParseStatement(XElement element, ParserContext context) {
             try {
                 Statement stmt = null;
-                if(element.Name == SRC.Unit) {
-                    stmt = ParseUnitElement(element, context);
-                } else if(TypeElementNames.Contains(element.Name)) {
+                if(TypeElementNames.Contains(element.Name)) {
                     stmt = ParseTypeElement(element, context);
                 } else if(NamespaceElementNames.Contains(element.Name)) {
                     stmt = ParseNamespaceElement(element, context);
@@ -367,16 +365,15 @@ namespace ABB.SrcML.Data {
         /// Parses a file unit and returns a <see cref="NamespaceDefinition.IsGlobal">global</see>
         /// <see cref="NamespaceDefinition">namespace definition</see> object
         /// </summary>
-        /// <param name="fileUnit">The file unit to parse</param>
-        /// <returns>a global namespace definition for
-        /// <paramref name="fileUnit"/></returns>
-        public virtual NamespaceDefinition ParseFileUnit(XElement fileUnit) {
-            if(null == fileUnit)
-                throw new ArgumentNullException("fileUnit");
-            if(SRC.Unit != fileUnit.Name)
-                throw new ArgumentException("should be a SRC.Unit", "fileUnit");
+        /// <param name="unitElement">The file unit to parse. Must be a SRC.Unit element.</param>
+        /// <returns>A global namespace definition for <paramref name="unitElement"/>.</returns>
+        public virtual NamespaceDefinition ParseFileUnit(XElement unitElement) {
+            if(null == unitElement)
+                throw new ArgumentNullException("unitElement");
+            if(SRC.Unit != unitElement.Name)
+                throw new ArgumentException("should be a SRC.Unit", "unitElement");
 
-            var globalScope = ParseElement(fileUnit, new ParserContext()) as NamespaceDefinition;
+            var globalScope = ParseUnitElement(unitElement, new ParserContext());
             return globalScope;
         }
 
@@ -422,7 +419,7 @@ namespace ABB.SrcML.Data {
             var methodBlock = methodElement.Element(SRC.Block);
             if(methodBlock != null) {
                 foreach(var child in methodBlock.Elements()) {
-                    methodDefinition.AddChildStatement(ParseElement(child, context));
+                    methodDefinition.AddChildStatement(ParseStatement(child, context));
                 }
             }
 
@@ -477,25 +474,25 @@ namespace ABB.SrcML.Data {
                     //add the then statements
                     foreach(var thenChild in ifChild.Elements()) {
                         if(thenChild.Name == SRC.Block) {
-                            var blockStatements = thenChild.Elements().Select(e => ParseElement(e, context));
+                            var blockStatements = thenChild.Elements().Select(e => ParseStatement(e, context));
                             ifStmt.AddChildStatements(blockStatements);
                         } else {
-                            ifStmt.AddChildStatement(ParseElement(thenChild, context));
+                            ifStmt.AddChildStatement(ParseStatement(thenChild, context));
                         }
                     }
                 } else if(ifChild.Name == SRC.Else) {
                     //add the else statements
                     foreach(var elseChild in ifChild.Elements()) {
                         if(elseChild.Name == SRC.Block) {
-                            var blockStatements = elseChild.Elements().Select(e => ParseElement(e, context));
+                            var blockStatements = elseChild.Elements().Select(e => ParseStatement(e, context));
                             ifStmt.AddElseStatements(blockStatements);
                         } else {
-                            ifStmt.AddElseStatement(ParseElement(elseChild, context));
+                            ifStmt.AddElseStatement(ParseStatement(elseChild, context));
                         }
                     }
                 } else {
                     //Add as a child statement (i.e. a then statement)
-                    ifStmt.AddChildStatement(ParseElement(ifChild, context));
+                    ifStmt.AddChildStatement(ParseStatement(ifChild, context));
                 }
             }
 
@@ -528,11 +525,11 @@ namespace ABB.SrcML.Data {
                     }
                 } else if(whileChild.Name == SRC.Block) {
                     //has a block, add children
-                    var blockStatements = whileChild.Elements().Select(e => ParseElement(e, context));
+                    var blockStatements = whileChild.Elements().Select(e => ParseStatement(e, context));
                     whileStmt.AddChildStatements(blockStatements);
                 } else {
                     //child outside of block
-                    whileStmt.AddChildStatement(ParseElement(whileChild, context));
+                    whileStmt.AddChildStatement(ParseStatement(whileChild, context));
                 }
             }
 
@@ -581,11 +578,11 @@ namespace ABB.SrcML.Data {
                 }
                 else if(forChild.Name == SRC.Block) {
                     //add children from block
-                    var blockStatements = forChild.Elements().Select(e => ParseElement(e, context));
+                    var blockStatements = forChild.Elements().Select(e => ParseStatement(e, context));
                     forStmt.AddChildStatements(blockStatements);
                 } else {
                     //add child
-                    forStmt.AddChildStatement(ParseElement(forChild, context));
+                    forStmt.AddChildStatement(ParseStatement(forChild, context));
                 }
             }
 
@@ -613,11 +610,11 @@ namespace ABB.SrcML.Data {
                 }
                 else if(child.Name == SRC.Block) {
                     //add children from block
-                    var blockStatements = child.Elements().Select(e => ParseElement(e, context));
+                    var blockStatements = child.Elements().Select(e => ParseStatement(e, context));
                     foreachStmt.AddChildStatements(blockStatements);
                 } else {
                     //add child
-                    foreachStmt.AddChildStatement(ParseElement(child, context));
+                    foreachStmt.AddChildStatement(ParseStatement(child, context));
                 }
             }
 
@@ -644,11 +641,11 @@ namespace ABB.SrcML.Data {
                     }
                 } else if(doChild.Name == SRC.Block) {
                     //has a block, add children
-                    var blockStatements = doChild.Elements().Select(e => ParseElement(e, context));
+                    var blockStatements = doChild.Elements().Select(e => ParseStatement(e, context));
                     doStmt.AddChildStatements(blockStatements);
                 } else {
                     //child outside of block
-                    doStmt.AddChildStatement(ParseElement(doChild, context));
+                    doStmt.AddChildStatement(ParseStatement(doChild, context));
                 }
             }
 
@@ -675,11 +672,11 @@ namespace ABB.SrcML.Data {
                     }
                 } else if(switchChild.Name == SRC.Block) {
                     //add children from block
-                    var blockStatements = switchChild.Elements().Select(e => ParseElement(e, context));
+                    var blockStatements = switchChild.Elements().Select(e => ParseStatement(e, context));
                     switchStmt.AddChildStatements(blockStatements);
                 } else {
                     //add child
-                    switchStmt.AddChildStatement(ParseElement(switchChild, context));
+                    switchStmt.AddChildStatement(ParseStatement(switchChild, context));
                 }
             }
 
@@ -707,11 +704,11 @@ namespace ABB.SrcML.Data {
                 }
                 else if(caseChild.Name == SRC.Block) {
                     //add children from block
-                    var blockStatements = caseChild.Elements().Select(e => ParseElement(e, context));
+                    var blockStatements = caseChild.Elements().Select(e => ParseStatement(e, context));
                     caseStmt.AddChildStatements(blockStatements);
                 } else {
                     //add child
-                    caseStmt.AddChildStatement(ParseElement(caseChild, context));
+                    caseStmt.AddChildStatement(ParseStatement(caseChild, context));
                 }
             }
 
@@ -846,19 +843,19 @@ namespace ABB.SrcML.Data {
                     //add finally children
                     foreach(var finallyChild in tryChild.Elements()) {
                         if(finallyChild.Name == SRC.Block) {
-                            var blockStatements = finallyChild.Elements().Select(e => ParseElement(e, context));
+                            var blockStatements = finallyChild.Elements().Select(e => ParseStatement(e, context));
                             tryStmt.AddFinallyStatements(blockStatements);
                         } else {
-                            tryStmt.AddFinallyStatement(ParseElement(finallyChild, context));
+                            tryStmt.AddFinallyStatement(ParseStatement(finallyChild, context));
                         }
                     }
                 } else if(tryChild.Name == SRC.Block) {
                     //add children from block
-                    var blockStatements = tryChild.Elements().Select(e => ParseElement(e, context));
+                    var blockStatements = tryChild.Elements().Select(e => ParseStatement(e, context));
                     tryStmt.AddChildStatements(blockStatements);
                 } else {
                     //add child
-                    tryStmt.AddChildStatement(ParseElement(tryChild, context));
+                    tryStmt.AddChildStatement(ParseStatement(tryChild, context));
                 }
             }
 
@@ -882,11 +879,11 @@ namespace ABB.SrcML.Data {
                     catchStmt.Parameter = ParseParameterElement(catchChild, context);
                 } else if(catchChild.Name == SRC.Block) {
                     //add children of the block
-                    var blockStatements = catchChild.Elements().Select(e => ParseElement(e, context));
+                    var blockStatements = catchChild.Elements().Select(e => ParseStatement(e, context));
                     catchStmt.AddChildStatements(blockStatements);
                 } else {
                     //add child
-                    catchStmt.AddChildStatement(ParseElement(catchChild, context));
+                    catchStmt.AddChildStatement(ParseStatement(catchChild, context));
                 }
             }
 
@@ -909,7 +906,7 @@ namespace ABB.SrcML.Data {
                     stmt.Content = ParseExpressionElement(child, context);
                 } else {
                     //This should probably only be comments?
-                    stmt.AddChildStatement(ParseElement(child, context));
+                    stmt.AddChildStatement(ParseStatement(child, context));
                 }
             }
 
@@ -994,7 +991,7 @@ namespace ABB.SrcML.Data {
             var typeBlock = typeElement.Element(SRC.Block);
             if(typeBlock != null) {
                 foreach(var child in typeBlock.Elements()) {
-                    typeDefinition.AddChildStatement(ParseElement(child, context));
+                    typeDefinition.AddChildStatement(ParseStatement(child, context));
                 }
             }
 
@@ -1004,11 +1001,11 @@ namespace ABB.SrcML.Data {
         
 
         /// <summary>
-        /// Creates a global <see cref="INamespaceDefinition"/> object for
-        /// <paramref name="unitElement"/>and pushes it onto
-        /// <paramref name="context"/></summary>
-        /// <param name="unitElement">The element to parse</param>
-        /// <param name="context">The context to place the resulting namespace definition in</param>
+        /// Creates a global <see cref="NamespaceDefinition"/> object for <paramref name="unitElement"/>.
+        /// </summary>
+        /// <param name="unitElement">The SRC.Unit element to parse.</param>
+        /// <param name="context">The parser context to use.</param>
+        /// <returns>A NamespaceDefinition corresponding to <paramref name="unitElement"/>.</returns>
         protected virtual NamespaceDefinition ParseUnitElement(XElement unitElement, ParserContext context) {
             if(null == unitElement)
                 throw new ArgumentNullException("unitElement");
@@ -1027,7 +1024,7 @@ namespace ABB.SrcML.Data {
             namespaceForUnit.AddLocation(context.CreateLocation(unitElement));
 
             foreach(var child in unitElement.Elements()) {
-                namespaceForUnit.AddChildStatement(ParseElement(child, context));
+                namespaceForUnit.AddChildStatement(ParseStatement(child, context));
             }
             return namespaceForUnit;
         }
@@ -1052,7 +1049,7 @@ namespace ABB.SrcML.Data {
             bs.AddLocation(context.CreateLocation(blockElement));
 
             foreach(var child in blockElement.Elements()) {
-                bs.AddChildStatement(ParseElement(child, context));
+                bs.AddChildStatement(ParseStatement(child, context));
             }
 
             return bs;
@@ -1081,10 +1078,10 @@ namespace ABB.SrcML.Data {
                     es.LinkageType = exChild.Value;
                 } else if(exChild.Name == SRC.Block) {
                     //add children from block
-                    var blockStatements = exChild.Elements().Select(e => ParseElement(e, context));
+                    var blockStatements = exChild.Elements().Select(e => ParseStatement(e, context));
                     es.AddChildStatements(blockStatements);
                 } else {
-                    es.AddChildStatement(ParseElement(exChild, context));
+                    es.AddChildStatement(ParseStatement(exChild, context));
                 }
             }
 

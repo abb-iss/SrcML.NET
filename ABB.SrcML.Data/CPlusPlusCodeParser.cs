@@ -279,7 +279,7 @@ namespace ABB.SrcML.Data {
             var blockElement = namespaceElement.Element(SRC.Block);
             if(blockElement != null) {
                 foreach(var child in blockElement.Elements()) {
-                    nd.AddChildStatement(ParseElement(child, context));
+                    nd.AddChildStatement(ParseStatement(child, context));
                 }
             }
 
@@ -321,7 +321,7 @@ namespace ABB.SrcML.Data {
                     } else if(child.Name == SRC.Public) {
                         typeDefinition.AddChildStatements(ParseClassChildren(child, context, AccessModifier.Public));
                     } else {
-                        typeDefinition.AddChildStatement(ParseElement(child, context));
+                        typeDefinition.AddChildStatement(ParseStatement(child, context));
                     }
                 }
             }
@@ -343,7 +343,7 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            var children = accessBlockElement.Elements().Select(e => ParseElement(e, context)).ToList();
+            var children = accessBlockElement.Elements().Select(e => ParseStatement(e, context)).ToList();
             foreach(var ne in children.OfType<INamedEntity>()) {
                 ne.Accessibility = accessModifier;
             }
