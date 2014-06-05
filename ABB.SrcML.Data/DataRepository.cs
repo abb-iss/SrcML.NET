@@ -56,6 +56,10 @@ namespace ABB.SrcML.Data {
         private ReaderWriterLockSlim scopeLock;
         private TaskFactory _taskFactory;
 
+        public Dictionary<Language, AbstractCodeParser> Parsers {
+            get { return parsers; }
+        }
+
         /// <summary>
         /// Create a data archive for the given srcML archive. It will subscribe to the
         /// <see cref="AbstractArchive.FileChanged"/> event.
@@ -170,25 +174,11 @@ namespace ABB.SrcML.Data {
         /// <param name="fileUnitElement">The <see cref="SRC.Unit"/> XElement for the file to
         /// add.</param>
         public void AddFile(XElement fileUnitElement) {
-            throw new NotImplementedException();
 
-            //scopeLock.EnterWriteLock();
-            //try {
-            //    bool wasIdle = IsReady;
-            //    if(wasIdle) {
-            //        IsReady = false;
-            //    }
-            //    var scope = ParseFileUnit(fileUnitElement);
-            //    if(scope != null) {
-            //        MergeScope(scope);
-            //    }
-            //    if(wasIdle) {
-            //        IsReady = true;
-            //    }
-            //    //TODO: update other data structures as necessary
-            //} finally {
-            //    scopeLock.ExitWriteLock();
-            //}
+            var scope = ParseFileUnit(fileUnitElement);
+            if(null != scope) {
+                MergeScope(scope);
+            }
         }
 
         /// <summary>
@@ -209,16 +199,12 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="sourceFile">The path of the file to remove.</param>
         public void RemoveFile(string sourceFile) {
-            //TODO reimplement once merge has been implemented
-            //scopeLock.EnterWriteLock();
-            //try {
-            //    IsReady = false;
-            //    _globalScope.RemoveFile(sourceFile);
-            //    IsReady = true;
-            //} finally {
-            //    scopeLock.ExitWriteLock();
-            //}
-            throw new NotImplementedException();
+            scopeLock.EnterWriteLock();
+            try {
+                _globalScope.RemoveFile(sourceFile);
+            } finally {
+                scopeLock.ExitWriteLock();
+            }
         }
 
         #endregion Modification methods
@@ -512,15 +498,14 @@ namespace ABB.SrcML.Data {
             return (null != scope ? scope.GetAncestorsAndSelf<T>().FirstOrDefault() : null);
         }
 
-        //TODO: re-add this once merging has been implemented
-        //private void MergeScope(IScope scopeForFile) {
-        //    scopeLock.EnterWriteLock();
-        //    try {
-        //        globalScope = (globalScope != null ? globalScope.Merge(scopeForFile) : scopeForFile);
-        //    } finally {
-        //        scopeLock.ExitWriteLock();
-        //    }
-        //}
+        private void MergeScope(NamespaceDefinition scopeForFile) {
+            scopeLock.EnterWriteLock();
+            try {
+                _globalScope = (null == _globalScope ? scopeForFile : _globalScope.Merge(scopeForFile));
+            } finally {
+                scopeLock.ExitWriteLock();
+            }
+        }
 
         private void OnErrorRaised(ErrorRaisedArgs e) {
             EventHandler<ErrorRaisedArgs> handler = ErrorRaised;
@@ -571,37 +556,37 @@ namespace ABB.SrcML.Data {
         }
 
         private Task ReadArchiveAsync() {
-            //TODO reimplement once merge has been implemented
-            //if(null != Archive) {
-            //    return _taskFactory.StartNew(() => {
-            //    BlockingCollection<IScope> mergeQueue = new BlockingCollection<IScope>();
+            if(null != Archive) {
+                return _taskFactory.StartNew(() => {
+                    BlockingCollection<NamespaceDefinition> mergeQueue = new BlockingCollection<NamespaceDefinition>();
 
-            //        var parseTask = _taskFactory.StartNew(() => {
-            //            Parallel.ForEach(Archive.FileUnits, unit => {
-            //                var scope = ParseFileUnit(unit);
-            //                if(null != scope) {
-            //                mergeQueue.Add(scope);
-            //            }
-            //        });
-            //        mergeQueue.CompleteAdding();
-            //    });
+                    var parseTask = _taskFactory.StartNew(() => {
+                        Parallel.ForEach(Archive.FileUnits, unit => {
+                            var scope = ParseFileUnit(unit);
+                            if(null != scope) {
+                                mergeQueue.Add(scope);
+                            }
+                        });
+                        mergeQueue.CompleteAdding();
+                    });
 
-            //    var mergeTask =  _taskFactory.StartNew(() => {
-            //    scopeLock.EnterWriteLock();
-            //    try {
-            //        foreach(var scope in mergeQueue.GetConsumingEnumerable()) {
-            //            var fileName = scope.PrimaryLocation.SourceFileName;
-            //            MergeScope(scope);
-            //            OnFileProcessed(new FileEventRaisedArgs(FileEventType.FileAdded, fileName));
-            //        }
-            //    } finally {
-            //        scopeLock.ExitWriteLock();
-            //    }
-            //    });
-            //        Task.WaitAll(parseTask, mergeTask);
-            //    });
-            //}
-            throw new NotImplementedException();
+                    var mergeTask = _taskFactory.StartNew(() => {
+                        scopeLock.EnterWriteLock();
+                        try {
+                            foreach(var scope in mergeQueue.GetConsumingEnumerable()) {
+                                var fileName = scope.PrimaryLocation.SourceFileName;
+                                MergeScope(scope);
+                                OnFileProcessed(new FileEventRaisedArgs(FileEventType.FileAdded, fileName));
+                            }
+                        } finally {
+                            scopeLock.ExitWriteLock();
+                        }
+                    });
+
+                    Task.WaitAll(parseTask, mergeTask);
+                });
+            }
+            return null;
         }
 
         private void SetupParsers() {
