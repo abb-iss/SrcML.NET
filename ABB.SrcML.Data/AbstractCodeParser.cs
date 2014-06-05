@@ -45,6 +45,8 @@ namespace ABB.SrcML.Data {
             VariableDeclarationElementNames = new HashSet<XName>(new XName[] { SRC.Declaration, SRC.DeclarationStatement });
             ContainerReferenceElementNames = new HashSet<XName>(new XName[] { SRC.ClassDeclaration, SRC.StructDeclaration, SRC.UnionDeclaration,
                                                                                 SRC.ConstructorDeclaration, SRC.DestructorDeclaration, SRC.FunctionDeclaration });
+            LogUnknownElements = false;
+            ErrorLog = Console.Error;
         }
 
         /// <summary>
@@ -87,6 +89,17 @@ namespace ABB.SrcML.Data {
         /// Returns the XNames that represent variable declarations for this language
         /// </summary>
         public HashSet<XName> VariableDeclarationElementNames { get; protected set; }
+
+        /// <summary>
+        /// If true, the parser will raise log any unknown elements it encounters. If false, it will raise an exception
+        /// </summary>
+        public bool LogUnknownElements { get; set; }
+
+        /// <summary>
+        /// This is the output writer to use to log unknown elements. the default log is <see cref="System.Console.Error"/>.
+        /// If null is passed in, <see cref="System.Console.Error"/> logging is disabled.
+        /// </summary>
+        public TextWriter ErrorLog { get; set; }
 
         /// <summary>
         /// Creates a resolvable use from an expression
@@ -320,14 +333,20 @@ namespace ABB.SrcML.Data {
                     stmt = ParseBlockElement(element, context);
                 } else if(element.Name == SRC.Extern) {
                     stmt = ParseExternElement(element, context);
-                } else if(element.Name == SRC.Comment) {
+                } else if(element.Name == SRC.Comment && LogUnknownElements) {
                     //do nothing?
+                    LogUnknown(context, element);
                 } else if(element.Name == SRC.Package) {
                     //do nothing. This is already handled in JavaCodeParser.ParseUnitElement()
                 } else {
-                    //TODO: what to do about elements we don't want to parse or don't recognize? Throw exception or just skip?
-                    throw new ParseException(context.FileName, element.GetSrcLineNumber(), element.GetSrcLinePosition(), this,
+                    if(LogUnknownElements) {
+                        LogUnknown(context, element);
+                    } else {
+                        throw new ParseException(context.FileName, element.GetSrcLineNumber(), element.GetSrcLinePosition(), this,
                                              string.Format("Unexpected {0} element", element.Name), null);
+                    }
+                    //TODO: what to do about elements we don't want to parse or don't recognize? Throw exception or just skip?
+                    
                 }
                 //TODO: parse include/import/using statements. Actually, they need to be parsed in ParseNamespace and skipped here.
                 //TODO: parse using blocks
@@ -1102,8 +1121,12 @@ namespace ABB.SrcML.Data {
                     exp = ParseLiteralElement(element, context);
                 } else {
                     //TODO: what to do about elements we don't want to parse or don't recognize? Throw exception or just skip?
-                    throw new ParseException(context.FileName, element.GetSrcLineNumber(), element.GetSrcLinePosition(), this,
+                    if(LogUnknownElements) {
+                        ErrorLog.WriteLine("{0}:{1}:{2} Unexpected expression {3}", context.FileName, element.GetSrcLineNumber(), element.GetSrcLinePosition(), element.Name);
+                    } else {
+                        throw new ParseException(context.FileName, element.GetSrcLineNumber(), element.GetSrcLinePosition(), this,
                                              string.Format("Unexpected {0} element", element.Name), null);
+                    }
                 }
 
                 //TODO: how do we handle a function_declaration that's put in an expression-type place?
@@ -1959,6 +1982,17 @@ namespace ABB.SrcML.Data {
                 throw new ArgumentNullException("element");
 
             return element.Elements().FirstOrDefault(e => e.Name == SRC.Expression || e.Name == SRC.Declaration || e.Name == SRC.FunctionDeclaration);
+        }
+
+        /// <summary>
+        /// Write the given element to the <see cref="ErrorLog"/>.
+        /// </summary>
+        /// <param name="context">The parser context</param>
+        /// <param name="element">The unknown element</param>
+        protected void LogUnknown(ParserContext context, XElement element) {
+            if(null != ErrorLog) {
+                ErrorLog.WriteLine("{0}({1},{2}) Unexpected {3}", context.FileName, element.GetSrcLineNumber(), element.GetSrcLinePosition(), element.Name);
+            }
         }
 
         #endregion utilities
