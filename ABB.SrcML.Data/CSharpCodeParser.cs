@@ -194,7 +194,7 @@ namespace ABB.SrcML.Data {
             var blockElement = namespaceElement.Element(SRC.Block);
             if(blockElement != null) {
                 foreach(var child in blockElement.Elements()) {
-                    lastNS.AddChildStatement(ParseElement(child, context));
+                    lastNS.AddChildStatement(ParseStatement(child, context));
                 }
             }
 
@@ -281,10 +281,10 @@ namespace ABB.SrcML.Data {
                 }
                 else if(child.Name == SRC.Block) {
                     //add children from block. This should be the getter/setter methods
-                    var blockStatements = child.Elements().Select(e => ParseElement(e, context));
+                    var blockStatements = child.Elements().Select(e => ParseStatement(e, context));
                     propertyDef.AddChildStatements(blockStatements);
                 } else {
-                    propertyDef.AddChildStatement(ParseElement(child, context));
+                    propertyDef.AddChildStatement(ParseStatement(child, context));
                 }
             }
 

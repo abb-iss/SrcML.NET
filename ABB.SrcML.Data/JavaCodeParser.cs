@@ -207,7 +207,7 @@ namespace ABB.SrcML.Data {
 
             //add children to bottom namespace
             foreach(var child in unitElement.Elements()) {
-                var childStmt = ParseElement(child, context);
+                var childStmt = ParseStatement(child, context);
                 if(childStmt != null) {
                     bottomNamespace.AddChildStatement(childStmt);
                 }
@@ -249,11 +249,11 @@ namespace ABB.SrcML.Data {
                 }
                 else if(child.Name == SRC.Block) {
                     //add children from block
-                    var blockStatements = child.Elements().Select(e => ParseElement(e, context));
+                    var blockStatements = child.Elements().Select(e => ParseStatement(e, context));
                     foreachStmt.AddChildStatements(blockStatements);
                 } else {
                     //add child
-                    foreachStmt.AddChildStatement(ParseElement(child, context));
+                    foreachStmt.AddChildStatement(ParseStatement(child, context));
                 }
             }
 

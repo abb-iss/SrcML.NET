@@ -7,7 +7,7 @@ namespace ABB.SrcML.Data {
 
     /// <summary>
     /// Parser context objects store the current state of the
-    /// <see cref="AbstractCodeParser.ParseElement(XElement,ParserContext)"/> method.
+    /// <see cref="AbstractCodeParser.ParseStatement"/> method.
     /// </summary>
     public class ParserContext {
         private XElement fileUnitBeingParsed;
