@@ -19,6 +19,19 @@ namespace ABB.SrcML.Data.Test {
             CheckThatProjectExists(project);
 
             var data = SetupDataRepository(project, false, true);
+
+            NamespaceDefinition globalNamespace;
+            Assert.That(data.TryLockGlobalScope(5000, out globalNamespace));
+
+            try {
+                Console.WriteLine("Project Summary");
+                Console.WriteLine("============================");
+                Console.WriteLine("{0,10:N0} namespaces", globalNamespace.GetDescendants<NamespaceDefinition>().Count());
+                Console.WriteLine("{0,10:N0} types", globalNamespace.GetDescendants<TypeDefinition>().Count());
+                Console.WriteLine("{0,10:N0} methods", globalNamespace.GetDescendants<MethodDefinition>().Count());
+            } finally {
+                data.ReleaseGlobalScopeLock();
+            }
         }
 
         private static DataRepository SetupDataRepository(RealWorldTestProject project, bool shouldRegenerateSrcML, bool useAsyncMethods = false) {
@@ -93,12 +106,16 @@ namespace ABB.SrcML.Data.Test {
                         data.InitializeData();
                     }
                     end = DateTime.Now;
+                    Console.WriteLine("{0,5:N0} files completed in {1} with {2,5:N0} failures", numberOfFiles, DateTime.Now - start, stats.ErrorCount);
 
                     Console.WriteLine("{0} to generate data", end - start);
-                    Console.WriteLine("{0} different errors", stats.Errors.Count());
+                    Console.WriteLine();
+
+                    Console.WriteLine("Error Summary ({0} distinct)", stats.Errors.Count());
+                    Console.WriteLine("============================");
                     foreach(var error in stats.Errors) {
-                        Console.WriteLine("{0}\t{1}", stats.GetLocationsForError(error).Count(), error);
-                    }    
+                        Console.WriteLine("{0,5:N0}\t{1}", stats.GetLocationsForError(error).Count(), error);
+                    }
                 }
             }
 
