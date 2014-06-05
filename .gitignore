@@ -109,4 +109,3 @@ UpgradeLog*.XML
 UpgradeLog.htm
 VisualStudio/ProgramTransformationSetup/external.wxs
 .HistoryData/
-TestInputs/project_mapping.txt
