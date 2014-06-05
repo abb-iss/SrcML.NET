@@ -20,6 +20,7 @@ using ABB.SrcML.Test.Utilities;
 
 namespace ABB.SrcML.Data.Test {
     [TestFixture]
+    [Category("Build")]
     public class MergeTests {
         private Dictionary<Language, AbstractCodeParser> CodeParser;
         private Dictionary<Language, SrcMLFileUnitSetup> FileUnitSetup;

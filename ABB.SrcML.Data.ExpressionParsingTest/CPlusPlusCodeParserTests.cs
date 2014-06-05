@@ -301,7 +301,6 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        [Category("Todo")]
         public void TestCreateTypeDefinition_StaticMethod() {
             //class Example {
             //public:
@@ -319,7 +318,7 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("Example", example.Name);
             Assert.AreEqual(1, example.ChildStatements.Count());
             var foo = example.ChildStatements.OfType<MethodDefinition>().FirstOrDefault();
-            Assert.IsNotNull(foo, "TODO fix static methods");
+            Assert.IsNotNull(foo);
             Assert.AreEqual("Foo", foo.Name);
         }
 
@@ -770,7 +769,6 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        [Category("Todo")]
         public void TestThreeVariableDeclarations() {
             //int a,b,c;
             string testXml = @"<decl_stmt><decl><type><name>int</name></type> <name>a</name></decl><op:operator>,</op:operator><decl><type ref=""prev""/><name>b</name></decl><op:operator>,</op:operator><decl><type ref=""prev""/><name>c</name></decl>;</decl_stmt>";
@@ -781,7 +779,7 @@ namespace ABB.SrcML.Data.Test {
             var declStmt = globalScope.ChildStatements.First();
             var varDecls = declStmt.Content.Components.OfType<VariableDeclaration>().ToList();
 
-            Assert.AreEqual(3, varDecls.Count, "TODO fix multi-declaration parsing bug");
+            Assert.AreEqual(3, varDecls.Count);
             Assert.AreEqual("a", varDecls[0].Name);
             Assert.AreEqual("int", varDecls[0].VariableType.Name);
             Assert.AreEqual("b", varDecls[1].Name);
