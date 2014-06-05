@@ -11,7 +11,8 @@ using System.Threading.Tasks;
 namespace ABB.SrcML.Data.Test {
     [TestFixture, Category("LongRunning")]
     public class RealWorldTests {
-        static List<RealWorldTestProject> TestProjects = ReadProjectMap(@"C:\Workspace\Source\TestProjects\mapping2.txt").ToList();
+        public const string MappingFile = @"..\..\TestInputs\project_mapping.txt";
+        static List<RealWorldTestProject> TestProjects = ReadProjectMap(MappingFile).ToList();
 
 
         [Test, TestCaseSource("TestProjects")]
@@ -19,6 +20,19 @@ namespace ABB.SrcML.Data.Test {
             CheckThatProjectExists(project);
 
             var data = SetupDataRepository(project, false, true);
+
+            NamespaceDefinition globalNamespace;
+            Assert.That(data.TryLockGlobalScope(5000, out globalNamespace));
+
+            try {
+                Console.WriteLine("Project Summary");
+                Console.WriteLine("============================");
+                Console.WriteLine("{0,10:N0} namespaces", globalNamespace.GetDescendants<NamespaceDefinition>().Count());
+                Console.WriteLine("{0,10:N0} types", globalNamespace.GetDescendants<TypeDefinition>().Count());
+                Console.WriteLine("{0,10:N0} methods", globalNamespace.GetDescendants<MethodDefinition>().Count());
+            } finally {
+                data.ReleaseGlobalScopeLock();
+            }
         }
 
         private static DataRepository SetupDataRepository(RealWorldTestProject project, bool shouldRegenerateSrcML, bool useAsyncMethods = false) {
@@ -93,28 +107,37 @@ namespace ABB.SrcML.Data.Test {
                         data.InitializeData();
                     }
                     end = DateTime.Now;
+                    Console.WriteLine("{0,5:N0} files completed in {1} with {2,5:N0} failures", numberOfFiles, DateTime.Now - start, stats.ErrorCount);
 
                     Console.WriteLine("{0} to generate data", end - start);
-                    Console.WriteLine("{0} different errors", stats.Errors.Count());
+                    Console.WriteLine();
+
+                    Console.WriteLine("Error Summary ({0} distinct)", stats.Errors.Count());
+                    Console.WriteLine("============================");
                     foreach(var error in stats.Errors) {
-                        Console.WriteLine("{0}\t{1}", stats.GetLocationsForError(error).Count(), error);
-                    }    
+                        Console.WriteLine("{0,5:N0}\t{1}", stats.GetLocationsForError(error).Count(), error);
+                    }
                 }
             }
 
             return data;
         }
+
         private static IEnumerable<RealWorldTestProject> ReadProjectMap(string fileName) {
-            var projects = from line in File.ReadAllLines(fileName)
-                           let parts = line.Split(',')
-                           where 4 == parts.Length
-                           let projectName = parts[0]
-                           let projectVersion = parts[1]
-                           let projectLanguage
-                           = SrcMLElement.GetLanguageFromString(parts[2])
-                           let rootDirectory = parts[3]
-                           select new RealWorldTestProject(projectName, projectVersion, projectLanguage, rootDirectory);
-            return projects;
+            if(File.Exists(fileName)) {
+                var projects = from line in File.ReadAllLines(fileName)
+                               where !line.StartsWith("#")
+                               let parts = line.Split(',')
+                               where 4 == parts.Length
+                               let projectName = parts[0]
+                               let projectVersion = parts[1]
+                               let projectLanguage
+                               = SrcMLElement.GetLanguageFromString(parts[2])
+                               let rootDirectory = parts[3]
+                               select new RealWorldTestProject(projectName, projectVersion, projectLanguage, rootDirectory);
+                return projects;
+            }
+            return Enumerable.Empty<RealWorldTestProject>();
         }
 
         private static void CheckThatProjectExists(RealWorldTestProject project) {
