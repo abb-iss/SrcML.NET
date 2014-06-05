@@ -66,6 +66,7 @@
     <Compile Include="ConditionBlockStatement.cs" />
     <Compile Include="ContinueStatement.cs" />
     <Compile Include="CSharpVarTypeUse.cs" />
+    <Compile Include="DataRepositoryStatistics.cs" />
     <Compile Include="DoWhileStatement.cs" />
     <Compile Include="ErrorRaisedArgs.cs" />
     <Compile Include="Expression.cs" />
