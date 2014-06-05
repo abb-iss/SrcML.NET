@@ -64,12 +64,14 @@ namespace ABB.SrcML.Data {
         /// <param name="child">The Statement to add.</param>
         public override void AddChildStatement(Statement child) {
             base.AddChildStatement(child);
-            var method = child as MethodDefinition;
-            if(method != null) {
-                if(method.Name == "get") {
-                    this.getter = method;
-                } else if(method.Name == "set") {
-                    this.setter = method;
+            if(null != child) {
+                var method = child as MethodDefinition;
+                if(method != null) {
+                    if(method.Name == "get") {
+                        this.getter = method;
+                    } else if(method.Name == "set") {
+                        this.setter = method;
+                    }
                 }
             }
         }

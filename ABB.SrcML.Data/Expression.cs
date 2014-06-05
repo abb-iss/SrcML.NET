@@ -42,13 +42,14 @@ namespace ABB.SrcML.Data {
         public Language ProgrammingLanguage { get; set; }
 
         /// <summary>
-        /// Adds the given Expression to the Components collection.
+        /// Adds the given Expression to the Components collection. Nothing will be done if <paramref name="component"/> is null.
         /// </summary>
         /// <param name="component">The component to add.</param>
         public virtual void AddComponent(Expression component) {
-            if(component == null) { throw new ArgumentNullException("component"); }
-            component.ParentExpression = this;
-            componentsList.Add(component);
+            if(null != component) {
+                component.ParentExpression = this;
+                componentsList.Add(component);
+            }
         }
 
         /// <summary>

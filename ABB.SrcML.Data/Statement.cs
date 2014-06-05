@@ -81,13 +81,14 @@ namespace ABB.SrcML.Data {
 
         protected virtual bool ToBeDeleted { get { return 0 == Locations.Count; } }
         /// <summary>
-        /// Adds the given Statement to the ChildStatements collection.
+        /// Adds the given Statement to the ChildStatements collection. Nothing will be done if <paramref name="child"/> is null.
         /// </summary>
         /// <param name="child">The Statement to add.</param>
         public virtual void AddChildStatement(Statement child) {
-            if(child == null) { throw new ArgumentNullException("child"); }
-            child.ParentStatement = this;
-            childStatementsList.Add(child);
+            if(null != child) {
+                child.ParentStatement = this;
+                childStatementsList.Add(child);
+            }
         }
 
         /// <summary>
