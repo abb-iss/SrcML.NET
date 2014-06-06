@@ -29,6 +29,7 @@ namespace ABB.SrcML.Data {
     /// <see cref="ParseFileUnit(XElement)"/> method.</para>
     /// </summary>
     public abstract class AbstractCodeParser {
+        private TextWriter _synchronizedErrorLog;
 
         /// <summary>
         /// Creates a new abstract code parser object. Should only be called by child classes.
@@ -96,10 +97,20 @@ namespace ABB.SrcML.Data {
         public bool LogUnknownElements { get; set; }
 
         /// <summary>
-        /// This is the output writer to use to log unknown elements. the default log is <see cref="System.Console.Error"/>.
-        /// If null is passed in, <see cref="System.Console.Error"/> logging is disabled.
+        /// This is the output writer to use to log unknown elements. The default log is <see cref="System.Console.Error"/>.
+        /// If null is passed in, <see cref="System.Console.Error"/> logging is disabled. ErrorLog is threadsafe via the
+        /// <see cref="TextWriter.Synchronized(TextWriter)"/>.
         /// </summary>
-        public TextWriter ErrorLog { get; set; }
+        public TextWriter ErrorLog {
+            get { return _synchronizedErrorLog; }
+            set {
+                if(null != value) {
+                    _synchronizedErrorLog = TextWriter.Synchronized(value);
+                } else {
+                    _synchronizedErrorLog = null;
+                }
+            }
+        }
 
         /// <summary>
         /// Creates a resolvable use from an expression

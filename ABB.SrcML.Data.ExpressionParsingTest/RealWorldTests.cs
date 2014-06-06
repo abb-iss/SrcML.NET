@@ -91,35 +91,33 @@ namespace ABB.SrcML.Data.Test {
                 }
             };
 
-            using(var fileLog = new StreamWriter(fileLogPath)) {
-                using(var unknownLog = TextWriter.Synchronized(new StreamWriter(unknownLogPath))) {
-                    foreach(var parser in data.Parsers.Values) {
-                        parser.LogUnknownElements = true;
-                        parser.ErrorLog = unknownLog;
-                    }
-                    stats.Out = fileLog;
-                    stats.Error = fileLog;
+            using(TextWriter fileLog = new StreamWriter(fileLogPath),
+                             unknownLog = new StreamWriter(unknownLogPath)) {
+                foreach(var parser in data.Parsers.Values) {
+                    parser.LogUnknownElements = true;
+                    parser.ErrorLog = unknownLog;
+                }
+                stats.Out = fileLog;
+                stats.Error = fileLog;
 
-                    start = DateTime.Now;
-                    if(useAsyncMethods) {
-                        data.InitializeDataAsync().Wait();
-                    } else {
-                        data.InitializeData();
-                    }
-                    end = DateTime.Now;
-                    Console.WriteLine("{0,5:N0} files completed in {1} with {2,5:N0} failures", numberOfFiles, DateTime.Now - start, stats.ErrorCount);
+                start = DateTime.Now;
+                if(useAsyncMethods) {
+                    data.InitializeDataAsync().Wait();
+                } else {
+                    data.InitializeData();
+                }
+                end = DateTime.Now;
+                Console.WriteLine("{0,5:N0} files completed in {1} with {2,5:N0} failures", numberOfFiles, DateTime.Now - start, stats.ErrorCount);
 
-                    Console.WriteLine("{0} to generate data", end - start);
-                    Console.WriteLine();
+                Console.WriteLine("{0} to generate data", end - start);
+                Console.WriteLine();
 
-                    Console.WriteLine("Error Summary ({0} distinct)", stats.Errors.Count());
-                    Console.WriteLine("============================");
-                    foreach(var error in stats.Errors) {
-                        Console.WriteLine("{0,5:N0}\t{1}", stats.GetLocationsForError(error).Count(), error);
-                    }
+                Console.WriteLine("Error Summary ({0} distinct)", stats.Errors.Count());
+                Console.WriteLine("============================");
+                foreach(var error in stats.Errors) {
+                    Console.WriteLine("{0,5:N0}\t{1}", stats.GetLocationsForError(error).Count(), error);
                 }
             }
-
             return data;
         }
 
