@@ -20,6 +20,10 @@ namespace ABB.SrcML.Data {
 
         public IEnumerable<string> Errors { get { return errorMap.Keys; } }
 
+        /// <summary>
+        /// Used to log informational messages from <see cref="Data"/>. The default stream is <see cref="Console.Out"/>.
+        /// Out is threadsafe via the <see cref="TextWriter.Synchronized(TextWriter)"/>. Setting this to null disables informational logging.
+        /// </summary>
         public TextWriter Out {
             get { return _synchronizedOut; }
             set {
@@ -31,6 +35,11 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        /// <summary>
+        /// /// Used to log error messages from <see cref="Data"/>. The default stream is <see cref="Console.Error"/>.
+        /// Error is threadsafe via the <see cref="TextWriter.Synchronized(TextWriter)"/>.
+        /// Setting this to null disables error logging.
+        /// </summary>
         public TextWriter Error {
             get { return _synchronizedError; }
             set {
