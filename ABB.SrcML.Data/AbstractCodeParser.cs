@@ -1130,7 +1130,7 @@ namespace ABB.SrcML.Data {
                 } else {
                     //TODO: what to do about elements we don't want to parse or don't recognize? Throw exception or just skip?
                     if(LogUnknownElements) {
-                        ErrorLog.WriteLine("{0}:{1}:{2} Unexpected expression {3}", context.FileName, element.GetSrcLineNumber(), element.GetSrcLinePosition(), element.Name);
+                        LogUnknown(context, element);
                     } else {
                         throw new ParseException(context.FileName, element.GetSrcLineNumber(), element.GetSrcLinePosition(), this,
                                              string.Format("Unexpected {0} element", element.Name), null);
