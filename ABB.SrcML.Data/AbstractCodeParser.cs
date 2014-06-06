@@ -207,61 +207,7 @@ namespace ABB.SrcML.Data {
         /// <returns>An enumerable of type uses that represent parent types</returns>
         protected abstract IEnumerable<XElement> GetParentTypeUseElements(XElement typeElement);
 
-        /// <summary>
-        /// Creates an <see cref="Alias"/> object from a using import (such as using in C++ and C#
-        /// and import in Java).
-        /// </summary>
-        /// <param name="aliasStatement">The statement to parse. Should be of type see
-        /// cref="AliasElementName"/></param>
-        /// <param name="context">The context to place the resulting alias in</param>
-        /// <returns>a new alias object that represents this alias statement</returns>
-        protected Alias ParseAliasElement(XElement aliasStatement, ParserContext context) {
-            if(null == aliasStatement)
-                throw new ArgumentNullException("aliasStatement");
-            if(aliasStatement.Name != AliasElementName)
-                throw new ArgumentException(String.Format("must be a {0} statement", AliasElementName), "usingStatement");
-            if(context == null)
-                throw new ArgumentNullException("context");
-
-            var alias = new Alias() {
-                Location = context.CreateLocation(aliasStatement, true),
-                ProgrammingLanguage = ParserLanguage,
-            };
-
-            IEnumerable<XElement> namespaceNames = GetNamesFromAlias(aliasStatement);
-
-            if(!AliasIsNamespaceImport(aliasStatement)) {
-                var lastNameElement = namespaceNames.LastOrDefault();
-                namespaceNames = from name in namespaceNames
-                                 where name.IsBefore(lastNameElement)
-                                 select name;
-
-                alias.ImportedNamedScope = new NamedScopeUse() {
-                    Name = lastNameElement.Value,
-                    Location = context.CreateLocation(lastNameElement),
-                    ProgrammingLanguage = ParserLanguage,
-                };
-            }
-
-            NamespaceUse current = null;
-            foreach(var namespaceName in namespaceNames) {
-                var use = new NamespaceUse() {
-                    Name = namespaceName.Value,
-                    Location = context.CreateLocation(namespaceName),
-                    ProgrammingLanguage = ParserLanguage,
-                };
-
-                if(alias.ImportedNamespace == null) {
-                    alias.ImportedNamespace = use;
-                    current = use;
-                } else {
-                    current.ChildScopeUse = use;
-                    current = use;
-                }
-            }
-
-            return alias;
-        }
+        
 
         
 
@@ -293,6 +239,8 @@ namespace ABB.SrcML.Data {
                     stmt = ParseTypeElement(element, context);
                 } else if(NamespaceElementNames.Contains(element.Name)) {
                     stmt = ParseNamespaceElement(element, context);
+                } else if(element.Name == AliasElementName) {
+                    stmt = ParseAliasElement(element, context);
                 } else if(MethodElementNames.Contains(element.Name)) {
                     stmt = ParseMethodElement(element, context);
                 } else if(element.Name == SRC.If) {
@@ -346,7 +294,6 @@ namespace ABB.SrcML.Data {
                     //TODO: what to do about elements we don't want to parse or don't recognize? Throw exception or just skip?
                     
                 }
-                //TODO: parse include/import/using statements. Actually, they need to be parsed in ParseNamespace and skipped here.
                 //TODO: parse using blocks
                 //TODO: handle other CPP elements
                 
@@ -921,36 +868,11 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            var stmt = new Statement() {ProgrammingLanguage = ParserLanguage};
+            var stmt = new Statement() {
+                ProgrammingLanguage = ParserLanguage,
+                Content = ParseDeclarationElements(stmtElement.Elements(SRC.Declaration),context)
+            };
             stmt.AddLocation(context.CreateLocation(stmtElement));
-
-            var declList = new List<VariableDeclaration>();
-            foreach(var child in stmtElement.Elements()) {
-                if(child.Name == SRC.Declaration) {
-                    var varDecl = ParseDeclarationElement(child, context);
-                    if(varDecl.VariableType == null && declList.Any()) {
-                        //type will be null in cases of multiple declarations, e.g. int a, b;
-                        varDecl.VariableType = declList.First().VariableType;
-                        varDecl.Accessibility = declList.First().Accessibility;
-                    }
-                    declList.Add(varDecl);
-                } 
-                //else {
-                //    //This should probably only be comments? No, it might also be operators (the comma between decls)
-                //    stmt.AddChildStatement(ParseElement(child, context));
-                //}
-            }
-
-            if(declList.Count == 1) {
-                stmt.Content = declList.First();
-            }
-            else if(declList.Count > 1) {
-                stmt.Content = new Expression() {
-                    ProgrammingLanguage = ParserLanguage,
-                    Location = declList.First().Location
-                };
-                stmt.Content.AddComponents(declList);
-            }
 
             return stmt;
         }
@@ -962,6 +884,71 @@ namespace ABB.SrcML.Data {
         /// <param name="namespaceElement">The element to parse.</param>
         /// <param name="context">The context to use.</param>
         protected abstract NamespaceDefinition ParseNamespaceElement(XElement namespaceElement, ParserContext context);
+
+        /// <summary>
+        /// Parses the given <paramref name="aliasElement"/> and creates an ImportStatement or AliasStatement from it.
+        /// </summary>
+        /// <param name="aliasElement">The alias element to parse.</param>
+        /// <param name="context">The parser context to use.</param>
+        /// <returns>An ImportStatement if the element is an import, or an AliasStatement if it is an alias.</returns>
+        protected abstract Statement ParseAliasElement(XElement aliasElement, ParserContext context);
+
+
+        ///// <summary>
+        ///// Creates an <see cref="Alias"/> object from a using import (such as using in C++ and C#
+        ///// and import in Java).
+        ///// </summary>
+        ///// <param name="aliasStatement">The statement to parse. Should be of type see
+        ///// cref="AliasElementName"/></param>
+        ///// <param name="context">The context to place the resulting alias in</param>
+        ///// <returns>a new alias object that represents this alias statement</returns>
+        //protected Alias ParseAliasElement(XElement aliasStatement, ParserContext context) {
+        //    if(null == aliasStatement)
+        //        throw new ArgumentNullException("aliasStatement");
+        //    if(aliasStatement.Name != AliasElementName)
+        //        throw new ArgumentException(String.Format("must be a {0} statement", AliasElementName), "usingStatement");
+        //    if(context == null)
+        //        throw new ArgumentNullException("context");
+
+        //    var alias = new Alias() {
+        //        Location = context.CreateLocation(aliasStatement, true),
+        //        ProgrammingLanguage = ParserLanguage,
+        //    };
+
+        //    IEnumerable<XElement> namespaceNames = GetNamesFromAlias(aliasStatement);
+
+        //    if(!AliasIsNamespaceImport(aliasStatement)) {
+        //        var lastNameElement = namespaceNames.LastOrDefault();
+        //        namespaceNames = from name in namespaceNames
+        //                         where name.IsBefore(lastNameElement)
+        //                         select name;
+
+        //        alias.ImportedNamedScope = new NamedScopeUse() {
+        //            Name = lastNameElement.Value,
+        //            Location = context.CreateLocation(lastNameElement),
+        //            ProgrammingLanguage = ParserLanguage,
+        //        };
+        //    }
+
+        //    NamespaceUse current = null;
+        //    foreach(var namespaceName in namespaceNames) {
+        //        var use = new NamespaceUse() {
+        //            Name = namespaceName.Value,
+        //            Location = context.CreateLocation(namespaceName),
+        //            ProgrammingLanguage = ParserLanguage,
+        //        };
+
+        //        if(alias.ImportedNamespace == null) {
+        //            alias.ImportedNamespace = use;
+        //            current = use;
+        //        } else {
+        //            current.ChildScopeUse = use;
+        //            current = use;
+        //        }
+        //    }
+
+        //    return alias;
+        //}
 
         /// <summary>
         /// Parses an element corresponding to a type definition and creates a TypeDefinition object 
@@ -1014,10 +1001,10 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
             context.FileUnit = unitElement;
-            var aliases = from aliasStatement in GetAliasElementsForFile(unitElement)
-                          select ParseAliasElement(aliasStatement, context);
+            //var aliases = from aliasStatement in GetAliasElementsForFile(unitElement)
+            //              select ParseAliasElement(aliasStatement, context);
 
-            context.Aliases = new Collection<Alias>(aliases.ToList());
+            //context.Aliases = new Collection<Alias>(aliases.ToList());
 
             //create a global namespace for the file unit
             var namespaceForUnit = new NamespaceDefinition() {ProgrammingLanguage = ParserLanguage};
@@ -1208,6 +1195,45 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
+        /// Parses (possibly) multiple declaration elements, and combines them into an Expression.
+        /// </summary>
+        /// <param name="declElements">The declarations to parse.</param>
+        /// <param name="context">The parser context to use.</param>
+        /// <returns>An Expression with each of the parsed declarations as its components. 
+        /// If <paramref name="declElements"/> contains only a single value, the result will just be a single VariableDeclaration rather than an Expression.</returns>
+        protected virtual Expression ParseDeclarationElements(IEnumerable<XElement> declElements, ParserContext context) {
+            if(declElements == null)
+                throw new ArgumentNullException("declElements");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            var declList = new List<VariableDeclaration>();
+            foreach(var declElement in declElements) {
+                var varDecl = ParseDeclarationElement(declElement, context);
+                if(varDecl.VariableType == null && declList.Any()) {
+                    //type will be null in cases of multiple declarations, e.g. int a, b;
+                    varDecl.VariableType = declList.First().VariableType;
+                    varDecl.Accessibility = declList.First().Accessibility;
+                }
+                declList.Add(varDecl);
+            }
+
+            if(declList.Count == 0) {
+                return null;
+            }
+            if(declList.Count == 1) {
+                return declList.First();
+            }
+
+            var exp = new Expression() {
+                ProgrammingLanguage = ParserLanguage,
+                Location = context.CreateLocation(declElements.First().Parent)
+            };
+            exp.AddComponents(declList);
+            return exp;
+        }
+
+        /// <summary>
         /// Creates a NameUse object from the given name element.
         /// </summary>
         /// <param name="nameElement">The SRC.Name element to parse.</param>
@@ -1229,6 +1255,16 @@ namespace ABB.SrcML.Data {
             };
 
             return nu;
+        }
+
+        /// <summary>
+        /// Creates a NamespaceUse object from the given name element.
+        /// </summary>
+        /// <param name="nameElement">The SRC.Name element to parse.</param>
+        /// <param name="context">The parser context to use.</param>
+        /// <returns>A NamespaceUse corresponding to <paramref name="nameElement"/>.</returns>
+        protected virtual NamespaceUse ParseNamespaceUse(XElement nameElement, ParserContext context) {
+            throw new NotImplementedException();
         }
 
         /// <summary>

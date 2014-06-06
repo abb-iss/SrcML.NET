@@ -330,6 +330,16 @@ namespace ABB.SrcML.Data {
             return typeDefinition;
         }
 
+        /// <summary>
+        /// Parses the given <paramref name="aliasElement"/> and creates an ImportStatement or AliasStatement from it.
+        /// </summary>
+        /// <param name="aliasElement">The alias element to parse.</param>
+        /// <param name="context">The parser context to use.</param>
+        /// <returns>An ImportStatement if the element is an import, or an AliasStatement if it is an alias.</returns>
+        protected override Statement ParseAliasElement(XElement aliasElement, ParserContext context) {
+            throw new NotImplementedException();
+        }
+
         #region Private methods
         /// <summary>
         /// This method parses and returns the children within the public/protected/private block under a C++ class, 

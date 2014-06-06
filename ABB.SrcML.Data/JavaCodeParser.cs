@@ -187,10 +187,10 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
             context.FileUnit = unitElement;
-            var aliases = from aliasStatement in GetAliasElementsForFile(unitElement)
-                          select ParseAliasElement(aliasStatement, context);
+            //var aliases = from aliasStatement in GetAliasElementsForFile(unitElement)
+            //              select ParseAliasElement(aliasStatement, context);
 
-            context.Aliases = new Collection<Alias>(aliases.ToList());
+            //context.Aliases = new Collection<Alias>(aliases.ToList());
 
             //create a global namespace for the file unit
             var namespaceForUnit = new NamespaceDefinition() {ProgrammingLanguage = ParserLanguage};
@@ -258,6 +258,16 @@ namespace ABB.SrcML.Data {
             }
 
             return foreachStmt;
+        }
+
+        /// <summary>
+        /// Parses the given <paramref name="aliasElement"/> and creates an ImportStatement or AliasStatement from it.
+        /// </summary>
+        /// <param name="aliasElement">The alias element to parse.</param>
+        /// <param name="context">The parser context to use.</param>
+        /// <returns>An ImportStatement if the element is an import, or an AliasStatement if it is an alias.</returns>
+        protected override Statement ParseAliasElement(XElement aliasElement, ParserContext context) {
+            throw new NotImplementedException();
         }
     }
 }
