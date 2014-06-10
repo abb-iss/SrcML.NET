@@ -381,7 +381,7 @@
       </referencedType>
     </packageHasNamedElement>
     <logicalClassDesignerModelHasTypes>
-      <class Id="78546146-35c2-442c-b91e-5b31fe3cde3f" name="IncludeStatement" isAbstract="false" isLeaf="false" isActiveClass="false">
+      <class Id="78546146-35c2-442c-b91e-5b31fe3cde3f" name="ImportStatement" isAbstract="false" isLeaf="false" isActiveClass="false">
         <elementDefinition Id="7a3f9daf-8845-4da0-b3b1-c751078949ca" />
         <generalsInternal>
           <generalization Id="83c99a73-ad88-4c64-8344-45b1b6e313bd" isSubstitutable="false">
@@ -389,6 +389,14 @@
             <elementDefinition Id="847ea873-57a3-4e30-9711-29546317106f" />
           </generalization>
         </generalsInternal>
+        <ownedAttributesInternal>
+          <property Id="155a66fe-3832-41be-9137-dd3d965872d3" name="ImportedNamespace" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="1a719b0f-13ff-4c7e-a2dd-8033b6285028" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="c97ae5e6-1a47-45d2-913b-c91d9cf924b9" LastKnownName="NamespaceUse" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
       </class>
     </logicalClassDesignerModelHasTypes>
     <logicalClassDesignerModelHasTypes>
@@ -545,6 +553,22 @@
         </ownedAttributesInternal>
       </class>
     </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="63fadb5d-98cd-4b7c-a6e4-f523f7dcd027" name="AliasStatement" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="bafdfbf5-5e84-42ba-985b-073f6c3ef89b" />
+        <generalsInternal>
+          <generalization Id="443a9af2-e316-46f4-b2e2-0cd354271ed0" isSubstitutable="false">
+            <classMoniker Id="bba6f67c-b6ff-476b-8cdb-162ca35391c0" LastKnownName="Statement" />
+            <elementDefinition Id="85efb7eb-dcba-4d4d-876b-756dfaf8e8f6" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <packageHasNamedElement>
+      <referencedType Id="c97ae5e6-1a47-45d2-913b-c91d9cf924b9" name="NamespaceUse" isAbstract="false" isLeaf="false" cachedFullName="ABB.SrcML.Data.ExpressionParsingModels::NamespaceUse">
+        <elementDefinition Id="da6ad556-3753-4fd9-be4e-868f9ca1435f" />
+      </referencedType>
+    </packageHasNamedElement>
   </packagedElements>
   <package Id="c02869ee-47c8-48ad-8d27-a1ad32da6c58" name="ABB.SrcML.Data.ExpressionParsingModels">
     <elementDefinition Id="b7d58ad4-ad72-4d67-8187-3644da97b0b7" />

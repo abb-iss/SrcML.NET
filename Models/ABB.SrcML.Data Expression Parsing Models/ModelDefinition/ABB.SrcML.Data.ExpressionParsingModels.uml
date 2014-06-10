@@ -861,7 +861,7 @@
     <packageHasNamedElement>
       <class
         Id="7a3f9daf-8845-4da0-b3b1-c751078949ca"
-        name="IncludeStatement"
+        name="ImportStatement"
         isAbstract="false"
         isLeaf="false"
         isActiveClass="false">
@@ -875,6 +875,26 @@
               LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
           </generalization>
         </generalsInternal>
+        <ownedAttributesInternal>
+          <property
+            Id="1a719b0f-13ff-4c7e-a2dd-8033b6285028"
+            name="ImportedNamespace"
+            isLeaf="false"
+            isStatic="false"
+            isReadOnly="false"
+            isUnique="false"
+            isDerived="false"
+            isDerivedUnion="false"
+            aggregation="None"
+            isComposite="false">
+            <type_NamedElement>
+              <classMoniker
+                Id="da6ad556-3753-4fd9-be4e-868f9ca1435f"
+                LastKnownName="NamespaceUse"
+                LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
       </class>
     </packageHasNamedElement>
     <packageHasNamedElement>
@@ -1780,6 +1800,25 @@
       <undefinedType
         Id="54edabb0-ea75-450b-bc51-cc4d5be58133"
         name="LiteralKind" />
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <class
+        Id="bafdfbf5-5e84-42ba-985b-073f6c3ef89b"
+        name="AliasStatement"
+        isAbstract="false"
+        isLeaf="false"
+        isActiveClass="false">
+        <generalsInternal>
+          <generalization
+            Id="85efb7eb-dcba-4d4d-876b-756dfaf8e8f6"
+            isSubstitutable="false">
+            <classMoniker
+              Id="3c930dc3-adce-4432-b0c6-c7f3341a7529"
+              LastKnownName="Statement"
+              LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+          </generalization>
+        </generalsInternal>
+      </class>
     </packageHasNamedElement>
   </packagedElements>
   <primitiveType

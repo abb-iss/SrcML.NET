@@ -201,21 +201,82 @@ namespace ABB.SrcML.Data {
             return topNS;
         }
 
-        //TODO: implement C# Type Element parsing
-        ///// <summary>
-        ///// Parses the given typeElement and returns a TypeDefinition object.
-        ///// </summary>
-        ///// <param name="typeElement">the type XML type element.</param>
-        ///// <param name="context">the parser context</param>
-        ///// <returns>A new TypeDefinition object</returns>
-        //protected override TypeDefinition ParseTypeElement(XElement typeElement, ParserContext context) {
-        //    base.ParseTypeElement(typeElement, context);
+        /// <summary>
+        /// Parses the given <paramref name="aliasElement"/> and creates an ImportStatement or AliasStatement from it.
+        /// </summary>
+        /// <param name="aliasElement">The alias element to parse.</param>
+        /// <param name="context">The parser context to use.</param>
+        /// <returns>An ImportStatement if the element is an import, or an AliasStatement if it is an alias.</returns>
+        protected override Statement ParseAliasElement(XElement aliasElement, ParserContext context) {
+            if(aliasElement == null)
+                throw new ArgumentNullException("aliasElement");
+            if(aliasElement.Name != AliasElementName)
+                throw new ArgumentException(string.Format("Must be a SRC.{0} element", AliasElementName.LocalName), "aliasElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+            
+            Statement stmt = null;
+            if(aliasElement.Element(SRC.Declaration) != null) {
+                //using block
+                stmt = ParseUsingBlockElement(aliasElement, context);
+            } else if(aliasElement.Element(SRC.Init) != null) {
+                //alias
+                var alias = new AliasStatement() {ProgrammingLanguage = ParserLanguage};
+                alias.AddLocation(context.CreateLocation(aliasElement));
 
-        //    var partials = from specifiers in typeElement.Elements(SRC.Specifier)
-        //                   where specifiers.Value == "partial"
-        //                   select specifiers;
-        //    (context.CurrentStatement as ITypeDefinition).IsPartial = partials.Any();
-        //}
+                var nameElement = aliasElement.Element(SRC.Name);
+                if(nameElement != null) {
+                    alias.AliasName = nameElement.Value;
+                }
+
+                var initElement = aliasElement.Element(SRC.Init);
+                alias.Target = ParseExpression(GetFirstChildExpression(initElement), context) as NameUse;
+                
+                stmt = alias;
+            } else {
+                //import
+                var import = new ImportStatement() {ProgrammingLanguage = ParserLanguage};
+                import.AddLocation(context.CreateLocation(aliasElement));
+
+                var nameElement = aliasElement.Element(SRC.Name);
+                if(nameElement != null) {
+                    import.ImportedNamespace = ParseNamespaceUse(nameElement, context);
+                }
+
+                stmt = import;
+            }
+            
+            return stmt;
+        }
+
+        protected virtual UsingBlockStatement ParseUsingBlockElement(XElement usingElement, ParserContext context) {
+            if(usingElement == null)
+                throw new ArgumentNullException("usingElement");
+            if(usingElement.Name != SRC.Using)
+                throw new ArgumentException("Must be a SRC.Using element", "usingElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            var usingStmt = new UsingBlockStatement() {ProgrammingLanguage = ParserLanguage};
+            usingStmt.AddLocation(context.CreateLocation(usingElement));
+
+            foreach(var child in usingElement.Elements()) {
+                if(child.Name == SRC.Init) {
+                    //TODO: waiting for update to srcml
+                    usingStmt.Initializer = ParseExpression(GetChildExpressions(child), context);
+                    //TODO: update this to handle cases where it's not a declaration. Could be an expression
+                }
+                else if(child.Name == SRC.Block) {
+                    var blockStatements = child.Elements().Select(e => ParseStatement(e, context));
+                    usingStmt.AddChildStatements(blockStatements);
+                } else {
+                    usingStmt.AddChildStatement(ParseStatement(child, context));
+                }
+            }
+
+            return usingStmt;
+        }
+
 
         protected override MethodDefinition ParseMethodElement(XElement methodElement, ParserContext context) {
             var methodDefinition = base.ParseMethodElement(methodElement, context);

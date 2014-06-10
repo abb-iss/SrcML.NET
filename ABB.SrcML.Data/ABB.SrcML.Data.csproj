@@ -58,6 +58,7 @@
     <Compile Include="AbstractUse.cs" />
     <Compile Include="AccessModifier.cs" />
     <Compile Include="Alias.cs" />
+    <Compile Include="AliasStatement.cs" />
     <Compile Include="BlockStatement.cs" />
     <Compile Include="BreakStatement.cs" />
     <Compile Include="BuiltInTypeFactory.cs" />
@@ -75,6 +76,7 @@
     <Compile Include="ForStatement.cs" />
     <Compile Include="GotoStatement.cs" />
     <Compile Include="IfStatement.cs" />
+    <Compile Include="ImportStatement.cs" />
     <Compile Include="INamedEntity.cs" />
     <Compile Include="IResolvesToType.cs" />
     <Compile Include="IRootedObject.cs" />
@@ -117,6 +119,7 @@
     <Compile Include="TypeDefinition.cs" />
     <Compile Include="TypeKind.cs" />
     <Compile Include="TypeUse.cs" />
+    <Compile Include="UsingBlockStatement.cs" />
     <Compile Include="VariableDeclaration.cs" />
     <Compile Include="Scope.cs" />
     <Compile Include="VariableScopeIterator.cs" />

@@ -212,61 +212,7 @@ namespace ABB.SrcML.Data {
         /// <returns>An enumerable of type uses that represent parent types</returns>
         protected abstract IEnumerable<XElement> GetParentTypeUseElements(XElement typeElement);
 
-        /// <summary>
-        /// Creates an <see cref="Alias"/> object from a using import (such as using in C++ and C#
-        /// and import in Java).
-        /// </summary>
-        /// <param name="aliasStatement">The statement to parse. Should be of type see
-        /// cref="AliasElementName"/></param>
-        /// <param name="context">The context to place the resulting alias in</param>
-        /// <returns>a new alias object that represents this alias statement</returns>
-        protected Alias ParseAliasElement(XElement aliasStatement, ParserContext context) {
-            if(null == aliasStatement)
-                throw new ArgumentNullException("aliasStatement");
-            if(aliasStatement.Name != AliasElementName)
-                throw new ArgumentException(String.Format("must be a {0} statement", AliasElementName), "usingStatement");
-            if(context == null)
-                throw new ArgumentNullException("context");
-
-            var alias = new Alias() {
-                Location = context.CreateLocation(aliasStatement, true),
-                ProgrammingLanguage = ParserLanguage,
-            };
-
-            IEnumerable<XElement> namespaceNames = GetNamesFromAlias(aliasStatement);
-
-            if(!AliasIsNamespaceImport(aliasStatement)) {
-                var lastNameElement = namespaceNames.LastOrDefault();
-                namespaceNames = from name in namespaceNames
-                                 where name.IsBefore(lastNameElement)
-                                 select name;
-
-                alias.ImportedNamedScope = new NamedScopeUse() {
-                    Name = lastNameElement.Value,
-                    Location = context.CreateLocation(lastNameElement),
-                    ProgrammingLanguage = ParserLanguage,
-                };
-            }
-
-            NamespaceUse current = null;
-            foreach(var namespaceName in namespaceNames) {
-                var use = new NamespaceUse() {
-                    Name = namespaceName.Value,
-                    Location = context.CreateLocation(namespaceName),
-                    ProgrammingLanguage = ParserLanguage,
-                };
-
-                if(alias.ImportedNamespace == null) {
-                    alias.ImportedNamespace = use;
-                    current = use;
-                } else {
-                    current.ChildScopeUse = use;
-                    current = use;
-                }
-            }
-
-            return alias;
-        }
+        
 
         
 
@@ -298,6 +244,8 @@ namespace ABB.SrcML.Data {
                     stmt = ParseTypeElement(element, context);
                 } else if(NamespaceElementNames.Contains(element.Name)) {
                     stmt = ParseNamespaceElement(element, context);
+                } else if(element.Name == AliasElementName) {
+                    stmt = ParseAliasElement(element, context);
                 } else if(MethodElementNames.Contains(element.Name)) {
                     stmt = ParseMethodElement(element, context);
                 } else if(element.Name == SRC.If) {
@@ -351,7 +299,6 @@ namespace ABB.SrcML.Data {
                     //TODO: what to do about elements we don't want to parse or don't recognize? Throw exception or just skip?
                     
                 }
-                //TODO: parse include/import/using statements. Actually, they need to be parsed in ParseNamespace and skipped here.
                 //TODO: parse using blocks
                 //TODO: handle other CPP elements
                 
@@ -471,7 +418,7 @@ namespace ABB.SrcML.Data {
             foreach(var ifChild in ifElement.Elements()) {
                 if(ifChild.Name == SRC.Condition) {
                     //fill in condition
-                    var expElement = GetChildExpression(ifChild);
+                    var expElement = GetFirstChildExpression(ifChild);
                     if(expElement != null) {
                         ifStmt.Condition = ParseExpression(expElement, context);
                     }
@@ -524,7 +471,7 @@ namespace ABB.SrcML.Data {
             foreach(var whileChild in whileElement.Elements()) {
                 if(whileChild.Name == SRC.Condition) {
                     //fill in condition
-                    var expElement = GetChildExpression(whileChild);
+                    var expElement = GetFirstChildExpression(whileChild);
                     if(expElement != null) {
                         whileStmt.Condition = ParseExpression(expElement, context);
                     }
@@ -562,21 +509,21 @@ namespace ABB.SrcML.Data {
             foreach(var forChild in forElement.Elements()) {
                 if(forChild.Name == SRC.Init) {
                     //fill in initializer
-                    var expElement = GetChildExpression(forChild);
+                    var expElement = GetFirstChildExpression(forChild);
                     if(expElement != null) {
                         forStmt.Initializer = ParseExpression(expElement, context);
                     }
                 }
                 else if(forChild.Name == SRC.Condition) {
                     //fill in condition
-                    var expElement = GetChildExpression(forChild);
+                    var expElement = GetFirstChildExpression(forChild);
                     if(expElement != null) {
                         forStmt.Condition = ParseExpression(expElement, context);
                     }
                 }
                 else if(forChild.Name == SRC.Increment) {
                     //fill in incrementer
-                    var expElement = GetChildExpression(forChild);
+                    var expElement = GetFirstChildExpression(forChild);
                     if(expElement != null) {
                         forStmt.Incrementer = ParseExpression(expElement, context);
                     }
@@ -608,7 +555,7 @@ namespace ABB.SrcML.Data {
             foreach(var child in foreachElement.Elements()) {
                 if(child.Name == SRC.Init) {
                     //fill in condition/initializer
-                    var expElement = GetChildExpression(child);
+                    var expElement = GetFirstChildExpression(child);
                     if(expElement != null) {
                         foreachStmt.Condition = ParseExpression(expElement, context);
                     }
@@ -640,7 +587,7 @@ namespace ABB.SrcML.Data {
             foreach(var doChild in doElement.Elements()) {
                 if(doChild.Name == SRC.Condition) {
                     //fill in condition
-                    var expElement = GetChildExpression(doChild);
+                    var expElement = GetFirstChildExpression(doChild);
                     if(expElement != null) {
                         doStmt.Condition = ParseExpression(expElement, context);
                     }
@@ -671,7 +618,7 @@ namespace ABB.SrcML.Data {
             foreach(var switchChild in switchElement.Elements()) {
                 if(switchChild.Name == SRC.Condition) {
                     //fill in condition
-                    var expElement = GetChildExpression(switchChild);
+                    var expElement = GetFirstChildExpression(switchChild);
                     if(expElement != null) {
                         switchStmt.Condition = ParseExpression(expElement, context);
                     }
@@ -802,7 +749,7 @@ namespace ABB.SrcML.Data {
             var returnStmt = new ReturnStatement() {ProgrammingLanguage = ParserLanguage};
             returnStmt.AddLocation(context.CreateLocation(returnElement));
 
-            var expElement = GetChildExpression(returnElement);
+            var expElement = GetFirstChildExpression(returnElement);
             if(expElement != null) {
                 returnStmt.Content = ParseExpression(expElement, context);
             }
@@ -821,7 +768,7 @@ namespace ABB.SrcML.Data {
             var throwStmt = new ThrowStatement() {ProgrammingLanguage = ParserLanguage};
             throwStmt.AddLocation(context.CreateLocation(throwElement));
 
-            var expElement = GetChildExpression(throwElement);
+            var expElement = GetFirstChildExpression(throwElement);
             if(expElement != null) {
                 throwStmt.Content = ParseExpression(expElement, context);
             }
@@ -926,36 +873,11 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            var stmt = new Statement() {ProgrammingLanguage = ParserLanguage};
+            var stmt = new Statement() {
+                ProgrammingLanguage = ParserLanguage,
+                Content = ParseExpression(GetChildExpressions(stmtElement), context)
+            };
             stmt.AddLocation(context.CreateLocation(stmtElement));
-
-            var declList = new List<VariableDeclaration>();
-            foreach(var child in stmtElement.Elements()) {
-                if(child.Name == SRC.Declaration) {
-                    var varDecl = ParseDeclarationElement(child, context);
-                    if(varDecl.VariableType == null && declList.Any()) {
-                        //type will be null in cases of multiple declarations, e.g. int a, b;
-                        varDecl.VariableType = declList.First().VariableType;
-                        varDecl.Accessibility = declList.First().Accessibility;
-                    }
-                    declList.Add(varDecl);
-                } 
-                //else {
-                //    //This should probably only be comments? No, it might also be operators (the comma between decls)
-                //    stmt.AddChildStatement(ParseElement(child, context));
-                //}
-            }
-
-            if(declList.Count == 1) {
-                stmt.Content = declList.First();
-            }
-            else if(declList.Count > 1) {
-                stmt.Content = new Expression() {
-                    ProgrammingLanguage = ParserLanguage,
-                    Location = declList.First().Location
-                };
-                stmt.Content.AddComponents(declList);
-            }
 
             return stmt;
         }
@@ -967,6 +889,71 @@ namespace ABB.SrcML.Data {
         /// <param name="namespaceElement">The element to parse.</param>
         /// <param name="context">The context to use.</param>
         protected abstract NamespaceDefinition ParseNamespaceElement(XElement namespaceElement, ParserContext context);
+
+        /// <summary>
+        /// Parses the given <paramref name="aliasElement"/> and creates an ImportStatement or AliasStatement from it.
+        /// </summary>
+        /// <param name="aliasElement">The alias element to parse.</param>
+        /// <param name="context">The parser context to use.</param>
+        /// <returns>An ImportStatement if the element is an import, or an AliasStatement if it is an alias.</returns>
+        protected abstract Statement ParseAliasElement(XElement aliasElement, ParserContext context);
+
+
+        ///// <summary>
+        ///// Creates an <see cref="Alias"/> object from a using import (such as using in C++ and C#
+        ///// and import in Java).
+        ///// </summary>
+        ///// <param name="aliasStatement">The statement to parse. Should be of type see
+        ///// cref="AliasElementName"/></param>
+        ///// <param name="context">The context to place the resulting alias in</param>
+        ///// <returns>a new alias object that represents this alias statement</returns>
+        //protected Alias ParseAliasElement(XElement aliasStatement, ParserContext context) {
+        //    if(null == aliasStatement)
+        //        throw new ArgumentNullException("aliasStatement");
+        //    if(aliasStatement.Name != AliasElementName)
+        //        throw new ArgumentException(String.Format("must be a {0} statement", AliasElementName), "usingStatement");
+        //    if(context == null)
+        //        throw new ArgumentNullException("context");
+
+        //    var alias = new Alias() {
+        //        Location = context.CreateLocation(aliasStatement, true),
+        //        ProgrammingLanguage = ParserLanguage,
+        //    };
+
+        //    IEnumerable<XElement> namespaceNames = GetNamesFromAlias(aliasStatement);
+
+        //    if(!AliasIsNamespaceImport(aliasStatement)) {
+        //        var lastNameElement = namespaceNames.LastOrDefault();
+        //        namespaceNames = from name in namespaceNames
+        //                         where name.IsBefore(lastNameElement)
+        //                         select name;
+
+        //        alias.ImportedNamedScope = new NamedScopeUse() {
+        //            Name = lastNameElement.Value,
+        //            Location = context.CreateLocation(lastNameElement),
+        //            ProgrammingLanguage = ParserLanguage,
+        //        };
+        //    }
+
+        //    NamespaceUse current = null;
+        //    foreach(var namespaceName in namespaceNames) {
+        //        var use = new NamespaceUse() {
+        //            Name = namespaceName.Value,
+        //            Location = context.CreateLocation(namespaceName),
+        //            ProgrammingLanguage = ParserLanguage,
+        //        };
+
+        //        if(alias.ImportedNamespace == null) {
+        //            alias.ImportedNamespace = use;
+        //            current = use;
+        //        } else {
+        //            current.ChildScopeUse = use;
+        //            current = use;
+        //        }
+        //    }
+
+        //    return alias;
+        //}
 
         /// <summary>
         /// Parses an element corresponding to a type definition and creates a TypeDefinition object 
@@ -1019,10 +1006,10 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
             context.FileUnit = unitElement;
-            var aliases = from aliasStatement in GetAliasElementsForFile(unitElement)
-                          select ParseAliasElement(aliasStatement, context);
+            //var aliases = from aliasStatement in GetAliasElementsForFile(unitElement)
+            //              select ParseAliasElement(aliasStatement, context);
 
-            context.Aliases = new Collection<Alias>(aliases.ToList());
+            //context.Aliases = new Collection<Alias>(aliases.ToList());
 
             //create a global namespace for the file unit
             var namespaceForUnit = new NamespaceDefinition() {ProgrammingLanguage = ParserLanguage};
@@ -1144,6 +1131,49 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        /// <summary>
+        /// Parses (possibly) multiple expression component elements, and combines them into an Expression. 
+        /// All the elements must have the same parent.
+        /// </summary>
+        /// <param name="elements">The expression component elements to parse.</param>
+        /// <param name="context">The parser context to use.</param>
+        /// <returns>An Expression with each of the parsed elements as its components. 
+        /// If <paramref name="elements"/> contains only a single value, the result will be the same as if it were parsed directly..</returns>
+        protected virtual Expression ParseExpression(IEnumerable<XElement> elements, ParserContext context) {
+            if(elements == null)
+                throw new ArgumentNullException("elements");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            var expList = new List<Expression>();
+            var declList = new List<VariableDeclaration>();
+            foreach(var element in elements) {
+                var exp = ParseExpression(element, context);
+                var varDecl = exp as VariableDeclaration;
+                if(varDecl != null && varDecl.VariableType == null && declList.Any()) {
+                    //type will be null in cases of multiple declarations, e.g. int a, b;
+                    varDecl.VariableType = declList.First().VariableType;
+                    varDecl.Accessibility = declList.First().Accessibility;
+                }
+                expList.Add(exp);
+                if(varDecl != null) { declList.Add(varDecl); }
+            }
+
+            if(expList.Count == 0) {
+                return null;
+            }
+            if(expList.Count == 1) {
+                return expList.First();
+            }
+
+            var rootExp = new Expression() {
+                ProgrammingLanguage = ParserLanguage,
+                Location = context.CreateLocation(elements.First().Parent)
+            };
+            rootExp.AddComponents(expList);
+            return rootExp;
+        }
+
         protected virtual Expression ParseExpressionElement(XElement expElement, ParserContext context) {
             if(expElement == null)
                 throw new ArgumentNullException("expElement");
@@ -1202,7 +1232,7 @@ namespace ABB.SrcML.Data {
 
             var initElement = declElement.Element(SRC.Init);
             if(initElement != null) {
-                var expElement = GetChildExpression(initElement);
+                var expElement = GetFirstChildExpression(initElement);
                 if(expElement != null) {
                     varDecl.Initializer = ParseExpression(expElement, context);
                 }
@@ -1211,6 +1241,8 @@ namespace ABB.SrcML.Data {
 
             return varDecl;
         }
+
+        
 
         /// <summary>
         /// Creates a NameUse object from the given name element.
@@ -1234,6 +1266,16 @@ namespace ABB.SrcML.Data {
             };
 
             return nu;
+        }
+
+        /// <summary>
+        /// Creates a NamespaceUse object from the given name element.
+        /// </summary>
+        /// <param name="nameElement">The SRC.Name element to parse.</param>
+        /// <param name="context">The parser context to use.</param>
+        /// <returns>A NamespaceUse corresponding to <paramref name="nameElement"/>.</returns>
+        protected virtual NamespaceUse ParseNamespaceUse(XElement nameElement, ParserContext context) {
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -1425,7 +1467,7 @@ namespace ABB.SrcML.Data {
             var argList = callElement.Element(SRC.ArgumentList);
             if(argList != null) {
                 foreach(var argElement in argList.Elements(SRC.Argument)) {
-                    var exp = GetChildExpression(argElement);
+                    var exp = GetFirstChildExpression(argElement);
                     if(exp != null) {
                         mc.AddArgument(ParseExpression(exp, context));
                     }
@@ -1973,17 +2015,31 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
+        /// Get the children of <paramref name="element"/> that are expressions.
+        /// These may be elements of type SRC.Expression, SRC.Declaration or SRC.FunctionDeclaration.
+        /// </summary>
+        /// <param name="element">The parent element from which to find the child expressions.</param>
+        /// <returns>An enumerable of the expression elements, or an empty enumerable if none is found.</returns>
+        /// <exception cref="System.ArgumentNullException"><paramref name="element"/> is null.</exception>
+        protected virtual IEnumerable<XElement> GetChildExpressions(XElement element) {
+            if(element == null)
+                throw new ArgumentNullException("element");
+
+            return element.Elements().Where(e => e.Name == SRC.Expression || e.Name == SRC.Declaration || e.Name == SRC.FunctionDeclaration);
+        }
+
+        /// <summary>
         /// Get the first child of <paramref name="element"/> that is an expression.
         /// This might be an element of type SRC.Expression, SRC.Declaration or SRC.FunctionDeclaration.
         /// </summary>
         /// <param name="element">The parent element from which to find the child expression.</param>
         /// <returns>The first expression element, or null if none is found.</returns>
         /// <exception cref="System.ArgumentNullException"><paramref name="element"/> is null.</exception>
-        protected virtual XElement GetChildExpression(XElement element) {
+        protected virtual XElement GetFirstChildExpression(XElement element) {
             if(element == null)
                 throw new ArgumentNullException("element");
 
-            return element.Elements().FirstOrDefault(e => e.Name == SRC.Expression || e.Name == SRC.Declaration || e.Name == SRC.FunctionDeclaration);
+            return GetChildExpressions(element).First();
         }
 
         /// <summary>
