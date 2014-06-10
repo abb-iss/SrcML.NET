@@ -26,13 +26,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public TextWriter Out {
             get { return _synchronizedOut; }
-            set {
-                if(null != value) {
-                    _synchronizedOut = TextWriter.Synchronized(value);
-                } else {
-                    _synchronizedOut = null;
-                }
-            }
+            set { _synchronizedOut = (null == value ? value : TextWriter.Synchronized(value)); }
         }
 
         /// <summary>
@@ -42,13 +36,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public TextWriter Error {
             get { return _synchronizedError; }
-            set {
-                if(null != value) {
-                    _synchronizedError = TextWriter.Synchronized(value);
-                } else {
-                    _synchronizedError = null;
-                }
-            }
+            set { _synchronizedError = (null == value ? value : TextWriter.Synchronized(value)); }
         }
 
         public DataRepositoryStatistics(DataRepository data) {

@@ -103,13 +103,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public TextWriter ErrorLog {
             get { return _synchronizedErrorLog; }
-            set {
-                if(null != value) {
-                    _synchronizedErrorLog = TextWriter.Synchronized(value);
-                } else {
-                    _synchronizedErrorLog = null;
-                }
-            }
+            set { _synchronizedErrorLog = (null == value ? value : TextWriter.Synchronized(value)); }
         }
 
         /// <summary>
