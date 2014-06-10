@@ -230,7 +230,7 @@ namespace ABB.SrcML.Data {
                 }
 
                 var initElement = aliasElement.Element(SRC.Init);
-                alias.Target = ParseExpression(GetChildExpression(initElement), context) as NameUse;
+                alias.Target = ParseExpression(GetFirstChildExpression(initElement), context) as NameUse;
                 
                 stmt = alias;
             } else {
@@ -263,7 +263,7 @@ namespace ABB.SrcML.Data {
             foreach(var child in usingElement.Elements()) {
                 if(child.Name == SRC.Init) {
                     //TODO: waiting for update to srcml
-                    usingStmt.Declarations = ParseDeclarationElements(child.Elements(SRC.Declaration), context);
+                    usingStmt.Initializer = ParseExpression(GetChildExpressions(child), context);
                     //TODO: update this to handle cases where it's not a declaration. Could be an expression
                 }
                 else if(child.Name == SRC.Block) {
@@ -277,21 +277,6 @@ namespace ABB.SrcML.Data {
             return usingStmt;
         }
 
-        //TODO: implement C# Type Element parsing
-        ///// <summary>
-        ///// Parses the given typeElement and returns a TypeDefinition object.
-        ///// </summary>
-        ///// <param name="typeElement">the type XML type element.</param>
-        ///// <param name="context">the parser context</param>
-        ///// <returns>A new TypeDefinition object</returns>
-        //protected override TypeDefinition ParseTypeElement(XElement typeElement, ParserContext context) {
-        //    base.ParseTypeElement(typeElement, context);
-
-        //    var partials = from specifiers in typeElement.Elements(SRC.Specifier)
-        //                   where specifiers.Value == "partial"
-        //                   select specifiers;
-        //    (context.CurrentStatement as ITypeDefinition).IsPartial = partials.Any();
-        //}
 
         protected override MethodDefinition ParseMethodElement(XElement methodElement, ParserContext context) {
             var methodDefinition = base.ParseMethodElement(methodElement, context);

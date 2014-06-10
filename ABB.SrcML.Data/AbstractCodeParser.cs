@@ -424,7 +424,7 @@ namespace ABB.SrcML.Data {
             foreach(var ifChild in ifElement.Elements()) {
                 if(ifChild.Name == SRC.Condition) {
                     //fill in condition
-                    var expElement = GetChildExpression(ifChild);
+                    var expElement = GetFirstChildExpression(ifChild);
                     if(expElement != null) {
                         ifStmt.Condition = ParseExpression(expElement, context);
                     }
@@ -477,7 +477,7 @@ namespace ABB.SrcML.Data {
             foreach(var whileChild in whileElement.Elements()) {
                 if(whileChild.Name == SRC.Condition) {
                     //fill in condition
-                    var expElement = GetChildExpression(whileChild);
+                    var expElement = GetFirstChildExpression(whileChild);
                     if(expElement != null) {
                         whileStmt.Condition = ParseExpression(expElement, context);
                     }
@@ -515,21 +515,21 @@ namespace ABB.SrcML.Data {
             foreach(var forChild in forElement.Elements()) {
                 if(forChild.Name == SRC.Init) {
                     //fill in initializer
-                    var expElement = GetChildExpression(forChild);
+                    var expElement = GetFirstChildExpression(forChild);
                     if(expElement != null) {
                         forStmt.Initializer = ParseExpression(expElement, context);
                     }
                 }
                 else if(forChild.Name == SRC.Condition) {
                     //fill in condition
-                    var expElement = GetChildExpression(forChild);
+                    var expElement = GetFirstChildExpression(forChild);
                     if(expElement != null) {
                         forStmt.Condition = ParseExpression(expElement, context);
                     }
                 }
                 else if(forChild.Name == SRC.Increment) {
                     //fill in incrementer
-                    var expElement = GetChildExpression(forChild);
+                    var expElement = GetFirstChildExpression(forChild);
                     if(expElement != null) {
                         forStmt.Incrementer = ParseExpression(expElement, context);
                     }
@@ -561,7 +561,7 @@ namespace ABB.SrcML.Data {
             foreach(var child in foreachElement.Elements()) {
                 if(child.Name == SRC.Init) {
                     //fill in condition/initializer
-                    var expElement = GetChildExpression(child);
+                    var expElement = GetFirstChildExpression(child);
                     if(expElement != null) {
                         foreachStmt.Condition = ParseExpression(expElement, context);
                     }
@@ -593,7 +593,7 @@ namespace ABB.SrcML.Data {
             foreach(var doChild in doElement.Elements()) {
                 if(doChild.Name == SRC.Condition) {
                     //fill in condition
-                    var expElement = GetChildExpression(doChild);
+                    var expElement = GetFirstChildExpression(doChild);
                     if(expElement != null) {
                         doStmt.Condition = ParseExpression(expElement, context);
                     }
@@ -624,7 +624,7 @@ namespace ABB.SrcML.Data {
             foreach(var switchChild in switchElement.Elements()) {
                 if(switchChild.Name == SRC.Condition) {
                     //fill in condition
-                    var expElement = GetChildExpression(switchChild);
+                    var expElement = GetFirstChildExpression(switchChild);
                     if(expElement != null) {
                         switchStmt.Condition = ParseExpression(expElement, context);
                     }
@@ -755,7 +755,7 @@ namespace ABB.SrcML.Data {
             var returnStmt = new ReturnStatement() {ProgrammingLanguage = ParserLanguage};
             returnStmt.AddLocation(context.CreateLocation(returnElement));
 
-            var expElement = GetChildExpression(returnElement);
+            var expElement = GetFirstChildExpression(returnElement);
             if(expElement != null) {
                 returnStmt.Content = ParseExpression(expElement, context);
             }
@@ -774,7 +774,7 @@ namespace ABB.SrcML.Data {
             var throwStmt = new ThrowStatement() {ProgrammingLanguage = ParserLanguage};
             throwStmt.AddLocation(context.CreateLocation(throwElement));
 
-            var expElement = GetChildExpression(throwElement);
+            var expElement = GetFirstChildExpression(throwElement);
             if(expElement != null) {
                 throwStmt.Content = ParseExpression(expElement, context);
             }
@@ -881,7 +881,7 @@ namespace ABB.SrcML.Data {
 
             var stmt = new Statement() {
                 ProgrammingLanguage = ParserLanguage,
-                Content = ParseDeclarationElements(stmtElement.Elements(SRC.Declaration),context)
+                Content = ParseExpression(GetChildExpressions(stmtElement), context)
             };
             stmt.AddLocation(context.CreateLocation(stmtElement));
 
@@ -1137,6 +1137,49 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        /// <summary>
+        /// Parses (possibly) multiple expression component elements, and combines them into an Expression. 
+        /// All the elements must have the same parent.
+        /// </summary>
+        /// <param name="elements">The expression component elements to parse.</param>
+        /// <param name="context">The parser context to use.</param>
+        /// <returns>An Expression with each of the parsed elements as its components. 
+        /// If <paramref name="elements"/> contains only a single value, the result will be the same as if it were parsed directly..</returns>
+        protected virtual Expression ParseExpression(IEnumerable<XElement> elements, ParserContext context) {
+            if(elements == null)
+                throw new ArgumentNullException("elements");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            var expList = new List<Expression>();
+            var declList = new List<VariableDeclaration>();
+            foreach(var element in elements) {
+                var exp = ParseExpression(element, context);
+                var varDecl = exp as VariableDeclaration;
+                if(varDecl != null && varDecl.VariableType == null && declList.Any()) {
+                    //type will be null in cases of multiple declarations, e.g. int a, b;
+                    varDecl.VariableType = declList.First().VariableType;
+                    varDecl.Accessibility = declList.First().Accessibility;
+                }
+                expList.Add(exp);
+                if(varDecl != null) { declList.Add(varDecl); }
+            }
+
+            if(expList.Count == 0) {
+                return null;
+            }
+            if(expList.Count == 1) {
+                return expList.First();
+            }
+
+            var rootExp = new Expression() {
+                ProgrammingLanguage = ParserLanguage,
+                Location = context.CreateLocation(elements.First().Parent)
+            };
+            rootExp.AddComponents(expList);
+            return rootExp;
+        }
+
         protected virtual Expression ParseExpressionElement(XElement expElement, ParserContext context) {
             if(expElement == null)
                 throw new ArgumentNullException("expElement");
@@ -1195,7 +1238,7 @@ namespace ABB.SrcML.Data {
 
             var initElement = declElement.Element(SRC.Init);
             if(initElement != null) {
-                var expElement = GetChildExpression(initElement);
+                var expElement = GetFirstChildExpression(initElement);
                 if(expElement != null) {
                     varDecl.Initializer = ParseExpression(expElement, context);
                 }
@@ -1205,44 +1248,7 @@ namespace ABB.SrcML.Data {
             return varDecl;
         }
 
-        /// <summary>
-        /// Parses (possibly) multiple declaration elements, and combines them into an Expression.
-        /// </summary>
-        /// <param name="declElements">The declarations to parse.</param>
-        /// <param name="context">The parser context to use.</param>
-        /// <returns>An Expression with each of the parsed declarations as its components. 
-        /// If <paramref name="declElements"/> contains only a single value, the result will just be a single VariableDeclaration rather than an Expression.</returns>
-        protected virtual Expression ParseDeclarationElements(IEnumerable<XElement> declElements, ParserContext context) {
-            if(declElements == null)
-                throw new ArgumentNullException("declElements");
-            if(context == null)
-                throw new ArgumentNullException("context");
-
-            var declList = new List<VariableDeclaration>();
-            foreach(var declElement in declElements) {
-                var varDecl = ParseDeclarationElement(declElement, context);
-                if(varDecl.VariableType == null && declList.Any()) {
-                    //type will be null in cases of multiple declarations, e.g. int a, b;
-                    varDecl.VariableType = declList.First().VariableType;
-                    varDecl.Accessibility = declList.First().Accessibility;
-                }
-                declList.Add(varDecl);
-            }
-
-            if(declList.Count == 0) {
-                return null;
-            }
-            if(declList.Count == 1) {
-                return declList.First();
-            }
-
-            var exp = new Expression() {
-                ProgrammingLanguage = ParserLanguage,
-                Location = context.CreateLocation(declElements.First().Parent)
-            };
-            exp.AddComponents(declList);
-            return exp;
-        }
+        
 
         /// <summary>
         /// Creates a NameUse object from the given name element.
@@ -1467,7 +1473,7 @@ namespace ABB.SrcML.Data {
             var argList = callElement.Element(SRC.ArgumentList);
             if(argList != null) {
                 foreach(var argElement in argList.Elements(SRC.Argument)) {
-                    var exp = GetChildExpression(argElement);
+                    var exp = GetFirstChildExpression(argElement);
                     if(exp != null) {
                         mc.AddArgument(ParseExpression(exp, context));
                     }
@@ -2015,17 +2021,31 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
+        /// Get the children of <paramref name="element"/> that are expressions.
+        /// These may be elements of type SRC.Expression, SRC.Declaration or SRC.FunctionDeclaration.
+        /// </summary>
+        /// <param name="element">The parent element from which to find the child expressions.</param>
+        /// <returns>An enumerable of the expression elements, or an empty enumerable if none is found.</returns>
+        /// <exception cref="System.ArgumentNullException"><paramref name="element"/> is null.</exception>
+        protected virtual IEnumerable<XElement> GetChildExpressions(XElement element) {
+            if(element == null)
+                throw new ArgumentNullException("element");
+
+            return element.Elements().Where(e => e.Name == SRC.Expression || e.Name == SRC.Declaration || e.Name == SRC.FunctionDeclaration);
+        }
+
+        /// <summary>
         /// Get the first child of <paramref name="element"/> that is an expression.
         /// This might be an element of type SRC.Expression, SRC.Declaration or SRC.FunctionDeclaration.
         /// </summary>
         /// <param name="element">The parent element from which to find the child expression.</param>
         /// <returns>The first expression element, or null if none is found.</returns>
         /// <exception cref="System.ArgumentNullException"><paramref name="element"/> is null.</exception>
-        protected virtual XElement GetChildExpression(XElement element) {
+        protected virtual XElement GetFirstChildExpression(XElement element) {
             if(element == null)
                 throw new ArgumentNullException("element");
 
-            return element.Elements().FirstOrDefault(e => e.Name == SRC.Expression || e.Name == SRC.Declaration || e.Name == SRC.FunctionDeclaration);
+            return GetChildExpressions(element).First();
         }
 
         /// <summary>

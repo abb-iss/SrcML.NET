@@ -26,11 +26,9 @@ namespace ABB.SrcML.Data
     public class UsingBlockStatement : BlockStatement
     {
         /// <summary>
-        /// The variable declarations for the using block.
-        /// If there is only one, this property will be a VariableDeclaration.
-        /// If there are more than one, this property will be an expression with multiple VariableDeclarations as components.
+        /// The intialization expression for the using block.
         /// </summary>
-        public Expression Declarations { get; set; }
+        public Expression Initializer { get; set; }
 
     }
 }

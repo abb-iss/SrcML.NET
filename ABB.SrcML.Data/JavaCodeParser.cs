@@ -242,7 +242,7 @@ namespace ABB.SrcML.Data {
             foreach(var child in forElement.Elements()) {
                 if(child.Name == SRC.Init) {
                     //fill in condition/initializer
-                    var expElement = GetChildExpression(child);
+                    var expElement = GetFirstChildExpression(child);
                     if(expElement != null) {
                         foreachStmt.Condition = ParseExpression(expElement, context);
                     }
