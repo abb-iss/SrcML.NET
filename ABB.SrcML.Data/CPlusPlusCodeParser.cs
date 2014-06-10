@@ -375,8 +375,10 @@ namespace ABB.SrcML.Data {
                     alias.Target = ParseExpression(GetFirstChildExpression(initElement), context) as NameUse;
                 } else {
                     //example: using std::cout;
-                    alias.Target = ParseTypeUseElement(nameElement, context);
-                    alias.AliasName = NameHelper.GetLastName(nameElement);
+                    if(nameElement != null) {
+                        alias.Target = ParseTypeUseElement(nameElement, context);
+                        alias.AliasName = NameHelper.GetLastName(nameElement);
+                    }
                 }
 
                 stmt = alias;
