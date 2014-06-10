@@ -121,7 +121,7 @@ namespace ABB.SrcML.Data {
             var sb = new StringBuilder();
             if(Prefix != null) {
                 sb.Append(Prefix);
-                sb.Append('.');
+                //sb.Append('.');
             }
 
             sb.Append(Name);

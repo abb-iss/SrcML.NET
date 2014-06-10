@@ -8,7 +8,9 @@ namespace ABB.SrcML.Data {
 
         public string Text { get; set; }
 
-
-        //public OperatorKind Kind { get; set; }
+        /// <summary> Returns a string representation of this object. </summary>
+        public override string ToString() {
+            return Text;
+        }
     }
 }

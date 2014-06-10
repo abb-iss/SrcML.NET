@@ -107,6 +107,11 @@ namespace ABB.SrcML.Data {
         public new IEnumerable<Expression> GetDescendantsAndSelf() {
             return base.GetDescendantsAndSelf().Cast<Expression>();
         }
+
+        /// <summary> Returns a string representation of this expression. </summary>
+        public override string ToString() {
+            return string.Join(" ", componentsList);
+        }
     }
 
     

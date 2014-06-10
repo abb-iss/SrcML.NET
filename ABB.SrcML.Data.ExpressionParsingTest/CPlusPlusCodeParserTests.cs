@@ -226,19 +226,21 @@ namespace ABB.SrcML.Data.Test {
 //            Assert.AreSame(calledConstructor, constructorCall.FindMatches().FirstOrDefault());
 //        }
 
-//        [Test]
-//        public void TestCreateAliasesForFiles_ImportClass() {
-//            // using A::Foo;
-//            string xml = @"<using>using <name><name>A</name><op:operator>::</op:operator><name>Foo</name></name>;</using>";
+        [Test]
+        public void TestCreateAliasesForFiles_ImportClass() {
+            // using A::Foo;
+            string xml = @"<using>using <name><name>A</name><op:operator>::</op:operator><name>Foo</name></name>;</using>";
 
-//            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
 
-//            var actual = codeParser.ParseAliasElement(xmlElement.Element(SRC.Using), new ParserContext(xmlElement));
+            Assert.AreEqual(1, globalScope.ChildStatements.Count);
+            var actual = globalScope.ChildStatements[0] as AliasStatement;
+            Assert.IsNotNull(actual);
+            Assert.AreEqual("Foo", actual.AliasName);
+            Assert.AreEqual("A::Foo", actual.Target.ToString());
 
-//            Assert.AreEqual("Foo", actual.ImportedNamedScope.Name);
-//            Assert.AreEqual("A", actual.ImportedNamespace.Name);
-//            Assert.IsFalse(actual.IsNamespaceImport);
-//        }
+        }
 
 //        [Test]
 //        public void TestCreateAliasesForFiles_ImportNamespace() {
