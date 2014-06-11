@@ -284,6 +284,8 @@ namespace ABB.SrcML.Data {
                     stmt = ParseBlockElement(element, context);
                 } else if(element.Name == SRC.Extern) {
                     stmt = ParseExternElement(element, context);
+                } else if(element.Name == SRC.EmptyStatement) {
+                    stmt = ParseEmptyStatementElement(element, context);
                 } else if(element.Name == SRC.Comment && LogUnknownElements) {
                     //do nothing?
                     LogUnknown(context, element);
@@ -294,10 +296,10 @@ namespace ABB.SrcML.Data {
                         LogUnknown(context, element);
                     } else {
                         throw new ParseException(context.FileName, element.GetSrcLineNumber(), element.GetSrcLinePosition(), this,
-                                             string.Format("Unexpected {0} element", element.Name), null);
+                                                 string.Format("Unexpected {0} element", element.Name), null);
                     }
                     //TODO: what to do about elements we don't want to parse or don't recognize? Throw exception or just skip?
-                    
+
                 }
                 //TODO: parse using blocks
                 //TODO: handle other CPP elements
@@ -1079,6 +1081,26 @@ namespace ABB.SrcML.Data {
 
             return es;
         }
+
+        /// <summary>
+        /// Creates an empty Statement object from the given SRC.EmptyStatement element.
+        /// </summary>
+        /// <param name="emptyElement">A SRC.EmptyStatement element.</param>
+        /// <param name="context">The parser context to use.</param>
+        /// <returns>A Statement corresponding to <paramref name="emptyElement"/>.</returns>
+        protected virtual Statement ParseEmptyStatementElement(XElement emptyElement, ParserContext context) {
+            if(emptyElement == null)
+                throw new ArgumentNullException("emptyElement");
+            if(emptyElement.Name != SRC.EmptyStatement)
+                throw new ArgumentException("must be a SRC.EmptyStatement element", "emptyElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            var stmt = new Statement() {ProgrammingLanguage = ParserLanguage};
+            stmt.AddLocation(context.CreateLocation(emptyElement));
+            return stmt;
+        }
+
         #endregion Parse statement elements
 
         #region Parse expression elements

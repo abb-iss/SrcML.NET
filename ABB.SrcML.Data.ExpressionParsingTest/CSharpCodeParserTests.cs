@@ -221,20 +221,100 @@ namespace ABB.SrcML.Data.Test {
 //            Assert.AreSame(oneArgumentConstructor, methodCall.FindMatches().FirstOrDefault());
 //        }
 
-//        [Test]
-//        public void TestCreateAliasesForFiles_UsingNamespace() {
-//            // using x.y.z;
-//            string xml = @"<using>using <name><name>x</name><op:operator>.</op:operator><name>y</name><op:operator>.</op:operator><name>z</name></name>;</using>";
-//            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
+        [Test]
+        public void TestCreateAliasesForFiles_UsingNamespace() {
+            // using x.y.z;
+            string xml = @"<using>using <name><name>x</name><op:operator>.</op:operator><name>y</name><op:operator>.</op:operator><name>z</name></name>;</using>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
 
-//            var actual = codeParser.ParseAliasElement(xmlElement.Element(SRC.Using), new ParserContext(xmlElement));
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            Assert.AreEqual(1, globalScope.ChildStatements.Count);
 
-//            Assert.IsNull(actual.ImportedNamedScope);
-//            Assert.That(actual.IsNamespaceImport);
-//            Assert.AreEqual("x", actual.ImportedNamespace.Name);
-//            Assert.AreEqual("y", actual.ImportedNamespace.ChildScopeUse.Name);
-//            Assert.AreEqual("z", actual.ImportedNamespace.ChildScopeUse.ChildScopeUse.Name);
-//        }
+            var actual = globalScope.ChildStatements[0] as ImportStatement;
+            Assert.IsNotNull(actual);
+            Assert.AreEqual("x.y.z", actual.ImportedNamespace.ToString());
+        }
+
+        [Test]
+        public void TestCreateAliasesForFiles_UsingAlias() {
+            // using x = Foo.Bar.Baz;
+            string xml = @"<using>using <name>x</name> <init>= <expr><name><name>Foo</name><op:operator>.</op:operator><name>Bar</name><op:operator>.</op:operator><name>Baz</name></name></expr></init>;</using>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
+
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            Assert.AreEqual(1, globalScope.ChildStatements.Count);
+
+            var actual = globalScope.ChildStatements[0] as AliasStatement;
+            Assert.IsNotNull(actual);
+            Assert.AreEqual("x", actual.AliasName);
+            Assert.AreEqual("Foo.Bar.Baz", actual.Target.ToString());
+        }
+
+        [Test]
+        [Category("SrcMLUpdate")]
+        public void TestUsingBlock_SingleDecl() {
+            //using(var f = File.Open("out.txt")) {
+            //  ;
+            //}
+            string xml = @"<using>using(<decl><type><name>var</name></type> <name>f</name> <init>= <expr><call><name><name>File</name><op:operator>.</op:operator><name>Open</name></name><argument_list>(<argument><expr><lit:literal type=""string"">""out.txt""</lit:literal></expr></argument>)</argument_list></call></expr></init></decl>) <block>{
+  <empty_stmt>;</empty_stmt>
+}</block></using>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
+
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            Assert.AreEqual(1, globalScope.ChildStatements.Count);
+
+            var actual = globalScope.ChildStatements[0] as UsingBlockStatement;
+            Assert.IsNotNull(actual);
+            Assert.AreEqual(1, actual.ChildStatements.Count);
+            Assert.IsNotNull(actual.Initializer);
+            var decls = actual.Initializer.GetDescendantsAndSelf<VariableDeclaration>().ToList();
+            Assert.AreEqual(1, decls.Count);
+            Assert.AreEqual("f", decls[0].Name);
+            Assert.AreEqual("var", decls[0].VariableType.Name);
+            Assert.IsNotNull(decls[0].Initializer);
+        }
+
+        [Test]
+        [Category("SrcMLUpdate")]
+        public void TestUsingBlock_MultipleDecl() {
+            // using(Foo a = new Foo(1), b = new Foo(2)) { ; }
+            string xml = @"<using>using(<decl><type><name>Foo</name></type> <name>a</name> <init>= <expr><op:operator>new</op:operator> <call><name>Foo</name><argument_list>(<argument><expr><lit:literal type=""number"">1</lit:literal></expr></argument>)</argument_list></call></expr></init><op:operator>,</op:operator> <name>b</name> <init>= <expr><op:operator>new</op:operator> <call><name>Foo</name><argument_list>(<argument><expr><lit:literal type=""number"">2</lit:literal></expr></argument>)</argument_list></call></expr></init></decl>) <block>{ <empty_stmt>;</empty_stmt> }</block></using>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
+
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            Assert.AreEqual(1, globalScope.ChildStatements.Count);
+
+            var actual = globalScope.ChildStatements[0] as UsingBlockStatement;
+            Assert.IsNotNull(actual);
+            Assert.AreEqual(1, actual.ChildStatements.Count);
+            Assert.IsNotNull(actual.Initializer);
+            var decls = actual.Initializer.GetDescendantsAndSelf<VariableDeclaration>().ToList();
+            Assert.AreEqual(2, decls.Count);
+            Assert.AreEqual("a", decls[0].Name);
+            Assert.AreEqual("Foo", decls[0].VariableType.Name);
+            Assert.IsNotNull(decls[0].Initializer);
+            Assert.AreEqual("b", decls[1].Name);
+            Assert.AreEqual("Foo", decls[1].VariableType.Name);
+            Assert.IsNotNull(decls[1].Initializer);
+        }
+
+        [Test]
+        [Category("Todo")]
+        public void TestUsingBlock_Expression() {
+            //using(bar = new Foo()) { ; }
+            string xml = @"<using>using(<expr><name>bar</name> <op:operator>=</op:operator> <op:operator>new</op:operator> <call><name>Foo</name><argument_list>()</argument_list></call></expr>) <block>{ <empty_stmt>;</empty_stmt> }</block></using>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
+
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            Assert.AreEqual(1, globalScope.ChildStatements.Count);
+
+            var actual = globalScope.ChildStatements[0] as UsingBlockStatement;
+            Assert.IsNotNull(actual);
+            Assert.AreEqual(1, actual.ChildStatements.Count);
+            Assert.IsNotNull(actual.Initializer);
+            Assert.Fail("TODO add oracle for the initializer expression");
+        }
 
         [Test]
         public void TestCreateTypeDefinition_Class() {

@@ -216,7 +216,7 @@ namespace ABB.SrcML.Data {
                 throw new ArgumentNullException("context");
             
             Statement stmt = null;
-            if(aliasElement.Element(SRC.Declaration) != null) {
+            if(GetTextNodes(aliasElement).Any(n => n.Value.Contains("("))) {
                 //using block
                 stmt = ParseUsingBlockElement(aliasElement, context);
             } else if(aliasElement.Element(SRC.Init) != null) {

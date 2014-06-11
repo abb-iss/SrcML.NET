@@ -430,5 +430,10 @@ namespace ABB.SrcML {
         /// markup for the macro tag
         /// </summary>
         public static readonly XName Macro = NS + "macro"; // macro
+
+        /// <summary>
+        /// markup for the empty_stmt tag
+        /// </summary>
+        public static readonly XName EmptyStatement = NS + "empty_stmt";
     }
 }
