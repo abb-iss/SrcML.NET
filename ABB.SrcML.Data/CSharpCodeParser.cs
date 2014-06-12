@@ -415,30 +415,30 @@ namespace ABB.SrcML.Data {
 
         #region Private methods
 
-        private NamespaceUse CreateNamespaceUsePrefix(XElement nameElement, ParserContext context) {
-            IEnumerable<XElement> parentNameElements = Enumerable.Empty<XElement>();
+        //private NamespaceUse CreateNamespaceUsePrefix(XElement nameElement, ParserContext context) {
+        //    IEnumerable<XElement> parentNameElements = Enumerable.Empty<XElement>();
 
-            parentNameElements = NameHelper.GetNameElementsExceptLast(nameElement);
-            NamespaceUse current = null, root = null;
+        //    parentNameElements = NameHelper.GetNameElementsExceptLast(nameElement);
+        //    NamespaceUse current = null, root = null;
 
-            if(parentNameElements.Any()) {
-                foreach(var element in parentNameElements) {
-                    var namespaceUse = new NamespaceUse {
-                        Name = element.Value,
-                        Location = context.CreateLocation(element, false),
-                        ProgrammingLanguage = this.ParserLanguage,
-                    };
-                    if(null == root) {
-                        root = namespaceUse;
-                    }
-                    if(current != null) {
-                        current.ChildScopeUse = namespaceUse;
-                    }
-                    current = namespaceUse;
-                }
-            }
-            return root;
-        }
+        //    if(parentNameElements.Any()) {
+        //        foreach(var element in parentNameElements) {
+        //            var namespaceUse = new NamespaceUse {
+        //                Name = element.Value,
+        //                Location = context.CreateLocation(element, false),
+        //                ProgrammingLanguage = this.ParserLanguage,
+        //            };
+        //            if(null == root) {
+        //                root = namespaceUse;
+        //            }
+        //            if(current != null) {
+        //                current.ChildScopeUse = namespaceUse;
+        //            }
+        //            current = namespaceUse;
+        //        }
+        //    }
+        //    return root;
+        //}
 
         #endregion Private methods
     }

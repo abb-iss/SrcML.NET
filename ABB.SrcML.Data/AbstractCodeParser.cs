@@ -1124,19 +1124,23 @@ namespace ABB.SrcML.Data {
                     exp = ParseDeclarationElement(element, context);
                 } else if(element.Name == SRC.Name) {
                     exp = ParseNameUseElement(element, context);
+                } else if(element.Name == SRC.Type) {
+                    exp = ParseTypeUseElement(element, context);
                 } else if(element.Name == OP.Operator) {
                     exp = ParseOperatorElement(element, context);
                 } else if(element.Name == SRC.Call) {
                     exp = ParseCallElement(element, context);
                 } else if(element.Name == LIT.Literal) {
                     exp = ParseLiteralElement(element, context);
+                } else if(element.Name == SRC.Comment) {
+                    //skip
                 } else {
                     //TODO: what to do about elements we don't want to parse or don't recognize? Throw exception or just skip?
                     if(LogUnknownElements) {
                         LogUnknown(context, element);
                     } else {
                         throw new ParseException(context.FileName, element.GetSrcLineNumber(), element.GetSrcLinePosition(), this,
-                                             string.Format("Unexpected {0} element", element.Name), null);
+                                                 string.Format("Unexpected {0} element", element.Name), null);
                     }
                 }
 
@@ -1297,7 +1301,22 @@ namespace ABB.SrcML.Data {
         /// <param name="context">The parser context to use.</param>
         /// <returns>A NamespaceUse corresponding to <paramref name="nameElement"/>.</returns>
         protected virtual NamespaceUse ParseNamespaceUse(XElement nameElement, ParserContext context) {
-            throw new NotImplementedException();
+            if(nameElement == null)
+                throw new ArgumentNullException("nameElement");
+            if(nameElement.Name != SRC.Name)
+                throw new ArgumentException("should be a SRC.Name", "nameElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+            
+            var nu = new NamespaceUse() {
+                Location = context.CreateLocation(nameElement, true),
+                ProgrammingLanguage = ParserLanguage,
+                Name = NameHelper.GetLastName(nameElement),
+                Prefix = ParseNamePrefix(nameElement,context)
+            };
+
+            return nu;
+            
         }
 
         /// <summary>
