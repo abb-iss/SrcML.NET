@@ -119,31 +119,34 @@ namespace ABB.SrcML.Data {
             }
         }
 
-        public static T CreateFromReader<T>(XmlReader reader) where T : AbstractProgramElement, new() {
-            T tObj = new T();
-            tObj.ReadXml(reader);
-            return tObj;
-        }
-
         public XmlSchema GetSchema() { return null; }
 
         public void ReadXml(XmlReader reader) {
             reader.ReadStartElement();
-            ReadXmlContents(reader);
+            ReadAttributes(reader);
+
+            while(XmlNodeType.Element == reader.NodeType) {
+                ReadXmlChild(reader);
+            }
             reader.ReadEndElement();
         }
 
-        public abstract void WriteXml(XmlWriter writer);
+        public virtual void WriteXml(XmlWriter writer) {
+            WriteXmlAttributes(writer);
+            WriteXmlContents(writer);
+        }
 
-        protected abstract void ReadXmlContents(XmlReader reader);
-
-        protected void ReadLanguage(XmlReader reader) {
+        protected virtual void ReadAttributes(XmlReader reader) {
             ProgrammingLanguage = SrcMLElement.GetLanguageFromString(reader.GetAttribute(LanguageXmlName));
         }
 
-        protected void WriteLanguage(XmlWriter writer) {
+        protected virtual void WriteXmlAttributes(XmlWriter writer) {
             writer.WriteAttributeString(LanguageXmlName, KsuAdapter.GetLanguage(ProgrammingLanguage));
         }
+
+        protected abstract void ReadXmlChild(XmlReader reader);
+
+        protected abstract void WriteXmlContents(XmlWriter writer);
 
         /// <summary>
         /// Gets the <paramref name="startingPoint"/> (if <paramref name="returnStartingPoint"/> is true) and all of the descendants of the <paramref name="startingPoint"/>.

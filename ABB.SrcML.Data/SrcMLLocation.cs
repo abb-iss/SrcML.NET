@@ -86,6 +86,8 @@ namespace ABB.SrcML.Data {
             SetEndingLocation(element);
         }
 
+        public SrcMLLocation() : base() { }
+
         /// <summary>
         /// True if this location is a reference; false if it is a definition
         /// </summary>

@@ -22,6 +22,7 @@ namespace ABB.SrcML.Data {
         private List<Expression> componentsList;
         private Statement parentStmt;
 
+        public const string XmlComponentsName = "Components";
         public const string XmlName = "Expression";
 
         public Expression() {
@@ -112,14 +113,17 @@ namespace ABB.SrcML.Data {
 
         public override string GetXmlName() { return Expression.XmlName; }
 
-        protected override void ReadXmlContents(XmlReader reader) {
-            throw new NotImplementedException();
+        protected override void ReadXmlChild(XmlReader reader) {
+            if(SrcMLLocation.XmlName == reader.Name) {
+                Location = XmlSerialization.DeserializeSrcMLLocation(reader);
+            } else if(XmlComponentsName == reader.Name) {
+                AddComponents(XmlSerialization.DeserializeExpressions(reader));
+            }
         }
 
-        public override void WriteXml(XmlWriter writer) {
-            WriteLanguage(writer);
+        protected override void WriteXmlContents(XmlWriter writer) {
             XmlSerialization.WriteElement(writer, Location);
-            XmlSerialization.WriteCollection<Expression>(writer, "Components", Components);
+            XmlSerialization.WriteCollection<Expression>(writer, XmlComponentsName, Components);
 		}
 		
         /// <summary> Returns a string representation of this expression. </summary>

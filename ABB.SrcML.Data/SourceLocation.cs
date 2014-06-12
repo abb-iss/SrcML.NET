@@ -58,7 +58,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Creates a new empty SourceLocation
         /// </summary>
-        protected SourceLocation() {
+        public SourceLocation() {
         }
 
         /// <summary>
