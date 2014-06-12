@@ -18,9 +18,7 @@ using System.Text;
 
 namespace ABB.SrcML.Data {
     public class AliasStatement : Statement {
-        public NameUse Target;
-        public string AliasName;
-
-        
+        public NameUse Target { get; set; }
+        public string AliasName { get; set; }
     }
 }

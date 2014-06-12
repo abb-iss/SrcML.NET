@@ -120,6 +120,11 @@ namespace ABB.SrcML.Data {
             WriteLanguage(writer);
             XmlSerialization.WriteElement(writer, Location);
             XmlSerialization.WriteCollection<Expression>(writer, "Components", Components);
+		}
+		
+        /// <summary> Returns a string representation of this expression. </summary>
+        public override string ToString() {
+            return string.Join(" ", componentsList);
         }
     }
 

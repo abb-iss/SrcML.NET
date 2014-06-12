@@ -29,39 +29,34 @@ namespace ABB.SrcML.Data.Test {
             fileSetup = new SrcMLFileUnitSetup(Language.Java);
         }
 
-        //[Test]
-        //public void TestCreateAliasesForFiles_ImportClass() {
-        //    //import x.y.z;
-        //    string xml = @"<import>import <name>x</name>.<name>y</name>.<name>z</name>;</import>";
+        [Test]
+        public void TestCreateAliasesForFiles_ImportClass() {
+            //import x.y.z;
+            string xml = @"<import>import <name><name>x</name><op:operator>.</op:operator><name>y</name><op:operator>.</op:operator><name>z</name></name>;</import>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
 
-        //    XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            Assert.AreEqual(1, globalScope.ChildStatements.Count);
 
-        //    var actual = codeParser.ParseAliasElement(xmlElement.Element(SRC.Import), new ParserContext(xmlElement));
+            var actual = globalScope.ChildStatements[0] as AliasStatement;
+            Assert.IsNotNull(actual);
+            Assert.AreEqual("z", actual.AliasName);
+            Assert.AreEqual("x.y.z", actual.Target.ToString());
+        }
 
-        //    Assert.AreEqual("x", actual.ImportedNamespace.Name);
-        //    Assert.AreEqual("y", actual.ImportedNamespace.ChildScopeUse.Name);
-        //    Assert.IsNull(actual.ImportedNamespace.ChildScopeUse.ChildScopeUse);
+        [Test]
+        public void TestCreateAliasesForFiles_ImportNamespace() {
+            // import x . /*test */ y . z . /*test */ * /*test*/;
+            string xml = @"<import>import <name><name>x</name> <op:operator>.</op:operator> <comment type=""block"">/*test */</comment> <name>y</name> <op:operator>.</op:operator> <name>z</name> <op:operator>.</op:operator></name> <comment type=""block"">/*test */</comment> * <comment type=""block"">/*test*/</comment>;</import>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
 
-        //    Assert.AreEqual("z", actual.ImportedNamedScope.Name);
-        //    Assert.IsFalse(actual.IsNamespaceImport);
-        //}
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            Assert.AreEqual(1, globalScope.ChildStatements.Count);
 
-        //[Test]
-        //public void TestCreateAliasesForFiles_ImportNamespace() {
-        //    // import x . /*test */ y . z . /*test */ * /*test*/;
-        //    string xml = @"<import>import <name>x</name> . <comment type=""block"">/*test */</comment> <name>y</name> . <name>z</name> . <comment type=""block"">/*test */</comment>  * <comment type=""block"">/*test*/</comment>;</import>";
-
-        //    XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
-
-        //    var actual = codeParser.ParseAliasElement(xmlElement.Element(SRC.Import), new ParserContext(xmlElement));
-
-        //    Assert.AreEqual("x", actual.ImportedNamespace.Name);
-        //    Assert.AreEqual("y", actual.ImportedNamespace.ChildScopeUse.Name);
-        //    Assert.AreEqual("z", actual.ImportedNamespace.ChildScopeUse.ChildScopeUse.Name);
-        //    Assert.IsNull(actual.ImportedNamespace.ChildScopeUse.ChildScopeUse.ChildScopeUse);
-        //    Assert.IsNull(actual.ImportedNamedScope);
-        //    Assert.That(actual.IsNamespaceImport);
-        //}
+            var actual = globalScope.ChildStatements[0] as ImportStatement;
+            Assert.IsNotNull(actual);
+            Assert.AreEqual("x.y.z", actual.ImportedNamespace.ToString());
+        }
 
         [Test]
         public void TestCreateTypeDefinition_ClassInPackage() {

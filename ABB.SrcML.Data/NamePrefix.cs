@@ -27,5 +27,10 @@ namespace ABB.SrcML.Data {
             }
             return prefixMap[prefixes[prefixes.Count - 1]];
         }
+
+        /// <summary> Returns a string representation of this object. </summary>
+        public override string ToString() {
+            return string.Join("", Components);
+        }
     }
 }

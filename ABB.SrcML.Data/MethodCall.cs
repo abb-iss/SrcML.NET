@@ -14,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Text;
 
 namespace ABB.SrcML.Data {
 
@@ -75,6 +76,12 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        /// <summary> Returns a string representation of this object. </summary>
+        public override string ToString() {
+            var sb = new StringBuilder();
+            sb.AppendFormat("{0}{1}{2}({3})", CallingObject, Prefix, Name, string.Join(",",argumentList));
+            return sb.ToString();
+        }
 
         ///// <summary>
         ///// The parent scope for this method call. When you update the parent scope, the object also

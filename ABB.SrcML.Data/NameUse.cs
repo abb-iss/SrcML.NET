@@ -23,5 +23,10 @@ namespace ABB.SrcML.Data {
         /// The aliases active in the file at the point the name was used.
         /// </summary>
         public Collection<Alias> Aliases { get; set; }
+
+        /// <summary> Returns a string representation of this object. </summary>
+        public override string ToString() {
+            return string.Format("{0}{1}", Prefix, Name);
+        }
     }
 }

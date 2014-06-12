@@ -337,7 +337,54 @@ namespace ABB.SrcML.Data {
         /// <param name="context">The parser context to use.</param>
         /// <returns>An ImportStatement if the element is an import, or an AliasStatement if it is an alias.</returns>
         protected override Statement ParseAliasElement(XElement aliasElement, ParserContext context) {
-            throw new NotImplementedException();
+            if(null == aliasElement)
+                throw new ArgumentNullException("aliasElement");
+            if(aliasElement.Name != AliasElementName)
+                throw new ArgumentException(string.Format("Must be a SRC.{0} element", AliasElementName.LocalName), "aliasElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            Statement stmt = null;
+            bool containsNamespaceKeyword = (from textNode in GetTextNodes(aliasElement)
+                                             where textNode.Value.Contains("namespace")
+                                             select textNode).Any();
+            if(containsNamespaceKeyword) {
+                //import statement
+                var import = new ImportStatement() {ProgrammingLanguage = ParserLanguage};
+                import.AddLocation(context.CreateLocation(aliasElement));
+
+                var nameElement = aliasElement.Element(SRC.Name);
+                if(nameElement != null) {
+                    import.ImportedNamespace = ParseNamespaceUse(nameElement, context);
+                }
+
+                stmt = import;
+            } else {
+                //alias statement
+                var alias = new AliasStatement() {ProgrammingLanguage = ParserLanguage};
+                alias.AddLocation(context.CreateLocation(aliasElement));
+
+                var nameElement = aliasElement.Element(SRC.Name);
+                var initElement = aliasElement.Element(SRC.Init);
+                if(initElement != null) {
+                    //example: using foo = std::bar;
+                    if(nameElement != null) {
+                        alias.AliasName = nameElement.Value;
+                    }
+                    //TODO check this once srcml is updated to see if it's accurate
+                    alias.Target = ParseExpression(GetFirstChildExpression(initElement), context) as NameUse;
+                } else {
+                    //example: using std::cout;
+                    if(nameElement != null) {
+                        alias.Target = ParseTypeUseElement(nameElement, context);
+                        alias.AliasName = NameHelper.GetLastName(nameElement);
+                    }
+                }
+
+                stmt = alias;
+            }
+
+            return stmt;
         }
 
         #region Private methods

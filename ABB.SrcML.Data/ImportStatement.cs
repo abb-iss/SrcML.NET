@@ -18,6 +18,6 @@ using System.Text;
 
 namespace ABB.SrcML.Data {
     public class ImportStatement : Statement {
-        public NamespaceUse ImportedNamespace;
+        public NamespaceUse ImportedNamespace { get; set; }
     }
 }
