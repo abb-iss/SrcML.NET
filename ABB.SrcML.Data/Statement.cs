@@ -48,9 +48,6 @@ namespace ABB.SrcML.Data {
         [XmlIgnore]
         public Statement ParentStatement { get; set; }
 
-        /// <summary>The language that this statement is written in.</summary>
-        public Language ProgrammingLanguage { get; set; }
-
         /// <summary>The expression, if any, contained within the statement.</summary>
         public Expression Content {
             get { return contentExpression; }

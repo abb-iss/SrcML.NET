@@ -39,7 +39,6 @@ namespace ABB.SrcML.Data {
             }
         }
         public SrcMLLocation Location { get; set; }
-        public Language ProgrammingLanguage { get; set; }
 
         /// <summary>
         /// Adds the given Expression to the Components collection. Nothing will be done if <paramref name="component"/> is null.

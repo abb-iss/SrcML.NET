@@ -21,6 +21,9 @@ namespace ABB.SrcML.Data {
     /// both Statements and Expressions.
     /// </summary>
     public abstract class AbstractProgramElement {
+        /// <summary>The language that this statement is written in.</summary>
+        public Language ProgrammingLanguage { get; set; }
+
         /// <summary>Returns the parent of this element.</summary>
         protected abstract AbstractProgramElement GetParent();
         /// <summary>Returns the children of this element.</summary>
