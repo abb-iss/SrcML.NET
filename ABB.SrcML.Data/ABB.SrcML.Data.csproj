@@ -80,6 +80,7 @@
     <Compile Include="INamedEntity.cs" />
     <Compile Include="IResolvesToType.cs" />
     <Compile Include="IRootedObject.cs" />
+    <Compile Include="IXmlElement.cs" />
     <Compile Include="LabelStatement.cs" />
     <Compile Include="LiteralKind.cs" />
     <Compile Include="LiteralUse.cs" />
@@ -125,6 +126,7 @@
     <Compile Include="VariableScopeIterator.cs" />
     <Compile Include="VariableUse.cs" />
     <Compile Include="WhileStatement.cs" />
+    <Compile Include="XmlSerialization.cs" />
     <Compile Include="XNameMaps.cs" />
   </ItemGroup>
   <ItemGroup>

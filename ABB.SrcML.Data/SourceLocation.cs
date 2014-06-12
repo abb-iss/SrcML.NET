@@ -10,6 +10,8 @@
  *****************************************************************************/
 
 using System;
+using System.Xml;
+using System.Xml.Serialization;
 
 namespace ABB.SrcML.Data {
 
@@ -17,8 +19,13 @@ namespace ABB.SrcML.Data {
     /// Source locations indicate where in the original source code a <see cref="IScope"/> is
     /// located It stores the file name, line number, &amp; startingPosition
     /// </summary>
-    [Serializable]
-    public class SourceLocation {
+    public class SourceLocation : IXmlElement {
+        public const string XmlName = "Location";
+        public const string XmlFileAttributeName = "file";
+        public const string XmlStartingLineAttributeName = "sl";
+        public const string XmlStartingColumnAttributeName = "sc";
+        public const string XmlEndingLineAttributeName = "el";
+        public const string XmlEndingColumnAttributeName = "ec";
 
         /// <summary>
         /// Creates a new source location object
@@ -115,6 +122,46 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public override string ToString() {
             return string.Format("{0}: start({1},{2}) end({3},{4})", SourceFileName, StartingLineNumber, StartingColumnNumber, EndingLineNumber, EndingColumnNumber);
+        }
+
+        public System.Xml.Schema.XmlSchema GetSchema() {
+            return null;
+        }
+
+        public string GetXmlName() { return SourceLocation.XmlName; }
+
+        public void ReadXml(XmlReader reader) {
+            bool isEmpty = reader.IsEmptyElement;
+            reader.ReadStartElement();
+            ReadXmlContents(reader);
+            if(!isEmpty) {
+                reader.ReadEndElement();
+            }
+        }
+
+        protected virtual void ReadXmlContents(XmlReader reader) {
+            string attr = reader.GetAttribute(XmlFileAttributeName);
+            SourceFileName = attr;
+
+            attr = reader.GetAttribute(XmlStartingLineAttributeName);
+            StartingLineNumber = (String.IsNullOrEmpty(attr) ? 1 : Int32.Parse(attr));
+
+            attr = reader.GetAttribute(XmlStartingColumnAttributeName);
+            StartingColumnNumber = (String.IsNullOrEmpty(attr) ? 1 : Int32.Parse(attr));
+
+            attr = reader.GetAttribute(XmlEndingLineAttributeName);
+            EndingLineNumber = (String.IsNullOrEmpty(attr) ? 1 : Int32.Parse(attr));
+
+            attr = reader.GetAttribute(XmlEndingColumnAttributeName);
+            EndingColumnNumber = (String.IsNullOrEmpty(attr) ? 1 : Int32.Parse(attr));
+        }
+
+        public virtual void WriteXml(XmlWriter writer) {
+            writer.WriteAttributeString(XmlFileAttributeName, SourceFileName);
+            writer.WriteAttributeString(XmlStartingLineAttributeName, StartingLineNumber.ToString());
+            writer.WriteAttributeString(XmlStartingColumnAttributeName, StartingColumnNumber.ToString());
+            writer.WriteAttributeString(XmlEndingLineAttributeName, EndingLineNumber.ToString());
+            writer.WriteAttributeString(XmlEndingColumnAttributeName, EndingColumnNumber.ToString());
         }
     }
 }

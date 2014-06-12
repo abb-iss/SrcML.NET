@@ -23,12 +23,15 @@ namespace ABB.SrcML.Data {
     /// <summary>
     /// Represents a statement in a program.
     /// </summary>
-    [XmlRoot(IsNullable=false)]
     public class Statement : AbstractProgramElement {
         protected List<Statement> childStatementsList;
         protected List<SrcMLLocation> LocationList;
         private Expression contentExpression;
-        
+
+        public const string LocationsXmlName = "Locations";
+        public const string ChildrenXmlName = "ChildStatements";
+        public const string XmlName = "Statement";
+
         /// <summary>Creates a new empty Statement.</summary>
         public Statement() {
             childStatementsList = new List<Statement>();
@@ -41,11 +44,9 @@ namespace ABB.SrcML.Data {
         /// The statements that are nested below this one. 
         /// For example, the members of a class are children of the class statement, or the statements in an if-block are children of the if-statement.
         /// </summary>
-        [XmlArray(ElementName="Children")]
         public ReadOnlyCollection<Statement> ChildStatements { get; private set; }
 
         /// <summary>The statement that this statement is a child of.</summary>
-        [XmlIgnore]
         public Statement ParentStatement { get; set; }
 
         /// <summary>The expression, if any, contained within the statement.</summary>
@@ -240,5 +241,27 @@ namespace ABB.SrcML.Data {
             return new List<Statement>(childStatementMap.Values.OfType<Statement>());
         }
 
+        protected override void ReadXmlContents(XmlReader reader) {
+            ProgrammingLanguage = SrcMLElement.GetLanguageFromString(reader.GetAttribute("ProgrammingLanguage"));
+            while(XmlNodeType.Element == reader.NodeType) {
+                
+            }
+        }
+
+        public override string GetXmlName() { return Statement.XmlName; }
+
+        public override void WriteXml(XmlWriter writer) {
+            WriteLanguage(writer);
+
+            XmlSerialization.WriteCollection<SrcMLLocation>(writer, LocationsXmlName, Locations);
+
+            XmlSerialization.WriteCollection<Statement>(writer, ChildrenXmlName, ChildStatements);
+
+            if(null != Content) {
+                writer.WriteStartElement("Content");
+                XmlSerialization.WriteElement(writer, Content);
+                writer.WriteEndElement();
+            }
+        }
     }
 }

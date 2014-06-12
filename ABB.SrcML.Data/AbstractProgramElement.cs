@@ -10,17 +10,24 @@
  *    Vinay Augustine (ABB Group) - initial API, implementation, & documentation
  *****************************************************************************/
 
+using ABB.SrcML.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Xml;
+using System.Xml.Schema;
+using System.Xml.Serialization;
 
 namespace ABB.SrcML.Data {
     /// <summary>
     /// An abstract class representing a thing in a program. This exists to hold functionality common to
     /// both Statements and Expressions.
     /// </summary>
-    public abstract class AbstractProgramElement {
+    public abstract class AbstractProgramElement : IXmlElement {
+
+        public const string LanguageXmlName = "lang";
+
         /// <summary>The language that this statement is written in.</summary>
         public Language ProgrammingLanguage { get; set; }
 
@@ -28,6 +35,8 @@ namespace ABB.SrcML.Data {
         protected abstract AbstractProgramElement GetParent();
         /// <summary>Returns the children of this element.</summary>
         protected abstract IEnumerable<AbstractProgramElement> GetChildren();
+
+        public abstract string GetXmlName();
 
         /// <summary>
         /// Gets all of the parents of this element
@@ -110,6 +119,32 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        public static T CreateFromReader<T>(XmlReader reader) where T : AbstractProgramElement, new() {
+            T tObj = new T();
+            tObj.ReadXml(reader);
+            return tObj;
+        }
+
+        public XmlSchema GetSchema() { return null; }
+
+        public void ReadXml(XmlReader reader) {
+            reader.ReadStartElement();
+            ReadXmlContents(reader);
+            reader.ReadEndElement();
+        }
+
+        public abstract void WriteXml(XmlWriter writer);
+
+        protected abstract void ReadXmlContents(XmlReader reader);
+
+        protected void ReadLanguage(XmlReader reader) {
+            ProgrammingLanguage = SrcMLElement.GetLanguageFromString(reader.GetAttribute(LanguageXmlName));
+        }
+
+        protected void WriteLanguage(XmlWriter writer) {
+            writer.WriteAttributeString(LanguageXmlName, KsuAdapter.GetLanguage(ProgrammingLanguage));
+        }
+
         /// <summary>
         /// Gets the <paramref name="startingPoint"/> (if <paramref name="returnStartingPoint"/> is true) and all of the descendants of the <paramref name="startingPoint"/>.
         /// </summary>
@@ -127,7 +162,5 @@ namespace ABB.SrcML.Data {
                 }
             }
         }
-
-        
     }
 }

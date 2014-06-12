@@ -15,11 +15,14 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using System.Xml;
 
 namespace ABB.SrcML.Data {
     public class Expression : AbstractProgramElement {
         private List<Expression> componentsList;
         private Statement parentStmt;
+
+        public const string XmlName = "Expression";
 
         public Expression() {
             componentsList = new List<Expression>();
@@ -105,6 +108,18 @@ namespace ABB.SrcML.Data {
         /// <returns>This expression, followed by all of its descendants.</returns>
         public new IEnumerable<Expression> GetDescendantsAndSelf() {
             return base.GetDescendantsAndSelf().Cast<Expression>();
+        }
+
+        public override string GetXmlName() { return Expression.XmlName; }
+
+        protected override void ReadXmlContents(XmlReader reader) {
+            throw new NotImplementedException();
+        }
+
+        public override void WriteXml(XmlWriter writer) {
+            WriteLanguage(writer);
+            XmlSerialization.WriteElement(writer, Location);
+            XmlSerialization.WriteCollection<Expression>(writer, "Components", Components);
         }
     }
 

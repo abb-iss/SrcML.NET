@@ -11,7 +11,9 @@
 
 using System;
 using System.Linq;
+using System.Xml;
 using System.Xml.Linq;
+using System.Xml.Serialization;
 using System.Xml.XPath;
 
 namespace ABB.SrcML.Data {
@@ -20,8 +22,9 @@ namespace ABB.SrcML.Data {
     /// Represents a location in a SrcML document. This extends SourceLocation to include an XPath,
     /// and other relevant properties.
     /// </summary>
-    [Serializable]
     public class SrcMLLocation : SourceLocation {
+        public new const string XmlName = "SrcMLLocation";
+        public const string XmlXPathAttributeName = "xpath";
 
         /// <summary>
         /// Creates a new srcML location object
@@ -86,11 +89,13 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// True if this location is a reference; false if it is a definition
         /// </summary>
+        [XmlAttribute("ref")]
         public bool IsReference { get; set; }
 
         /// <summary>
         /// The XPath query that identifies this scope
         /// </summary>
+        [XmlAttribute("xpath")]
         public string XPath { get; set; }
 
 
@@ -127,6 +132,18 @@ namespace ABB.SrcML.Data {
             }
 
             return null;
+        }
+
+        public string GetXmlName() { return SrcMLLocation.XmlName; }
+
+        protected override void ReadXmlContents(XmlReader reader) {
+            base.ReadXmlContents(reader);
+            XPath = reader.GetAttribute(XmlXPathAttributeName);
+        }
+
+        public override void WriteXml(XmlWriter writer) {
+            base.WriteXml(writer);
+            writer.WriteAttributeString(XmlXPathAttributeName, XPath);
         }
 
         private void SetEndingLocation(XElement element) {
