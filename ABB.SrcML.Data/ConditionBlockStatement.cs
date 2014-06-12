@@ -14,12 +14,28 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Xml;
 
 namespace ABB.SrcML.Data {
     public class ConditionBlockStatement : BlockStatement {
+        public const string XmlConditionName = "Condition";
+
         public ConditionBlockStatement() : base() {}
 
         public Expression Condition { get; set; }
 
+        protected override void ReadXmlChild(XmlReader reader) {
+            if(XmlConditionName == reader.Name) {
+                Condition = XmlSerialization.DeserializeExpression(reader);
+            }
+            base.ReadXmlChild(reader);
+        }
+
+        protected override void WriteXmlContents(XmlWriter writer) {
+            writer.WriteStartElement(XmlConditionName);
+            Condition.WriteXml(writer);
+            writer.WriteEndElement();
+            base.WriteXmlContents(writer);
+        }
     }
 }

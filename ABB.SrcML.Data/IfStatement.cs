@@ -15,11 +15,15 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using System.Xml;
 
 namespace ABB.SrcML.Data {
     public class IfStatement : ConditionBlockStatement {
         private List<Statement> elseStatementsList;
-        
+
+        public const string XmlElseName = "Else";
+        public new const string XmlName = "IfStatement";
+
         public IfStatement() : base() {
             elseStatementsList = new List<Statement>();
             ElseStatements = new ReadOnlyCollection<Statement>(elseStatementsList);
@@ -37,6 +41,20 @@ namespace ABB.SrcML.Data {
             foreach(var stmt in elseStatements) {
                 AddElseStatement(stmt);
             }
+        }
+
+        public override string GetXmlName() { return IfStatement.XmlName; }
+
+        protected override void ReadXmlChild(XmlReader reader) {
+            if(XmlElseName == reader.Name) {
+                AddElseStatements(XmlSerialization.DeserializeStatements(reader));
+            }
+            base.ReadXmlChild(reader);
+        }
+
+        protected override void WriteXmlContents(XmlWriter writer) {
+            base.WriteXmlContents(writer);
+            XmlSerialization.WriteCollection<Statement>(writer, XmlElseName, ElseStatements);
         }
     }
 }
