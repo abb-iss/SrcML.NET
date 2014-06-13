@@ -40,11 +40,11 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public ReadOnlyCollection<Expression> Arguments { get; private set;}
 
-        /// <summary>
-        /// The calling object for a use is used when you have <c>a.Foo()</c> -- this method call
-        /// would refer to <c>Foo()</c> and the calling object would be <c>a</c>.
-        /// </summary>
-        public Expression CallingObject { get; set; }
+        ///// <summary>
+        ///// The calling object for a use is used when you have <c>a.Foo()</c> -- this method call
+        ///// would refer to <c>Foo()</c> and the calling object would be <c>a</c>.
+        ///// </summary>
+        //public Expression CallingObject { get; set; }
 
         /// <summary>
         /// True if this is a call to a constructor
@@ -79,7 +79,7 @@ namespace ABB.SrcML.Data {
         /// <summary> Returns a string representation of this object. </summary>
         public override string ToString() {
             var sb = new StringBuilder();
-            sb.AppendFormat("{0}{1}{2}({3})", CallingObject, Prefix, Name, string.Join(",",argumentList));
+            sb.AppendFormat("{0}{1}({2})", Prefix, Name, string.Join(",",argumentList));
             return sb.ToString();
         }
 
