@@ -23,10 +23,16 @@ namespace ABB.SrcML.Data {
     public class VariableUse : NameUse {
 
         /// <summary>
-        /// The calling object for a use is used when you have <c>a.b</c> -- this variable use would
-        /// refer to <c>b</c> and the calling object would be <c>a</c>.
+        /// The expression supplied as an index to the variable, if any.
+        /// For example, in myVar[17] the index is 17.
         /// </summary>
-        public IResolvesToType CallingObject { get; set; }
+        public Expression Index { get; set; }
+
+        ///// <summary>
+        ///// The calling object for a use is used when you have <c>a.b</c> -- this variable use would
+        ///// refer to <c>b</c> and the calling object would be <c>a</c>.
+        ///// </summary>
+        //public IResolvesToType CallingObject { get; set; }
 
         ///// <summary>
         ///// The scope that contains this variable use. If the parent scope is updated, then the
