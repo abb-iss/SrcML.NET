@@ -31,13 +31,38 @@ namespace ABB.SrcML.Data {
 
         internal static Dictionary<string, XmlInitializer<Statement>> XmlStatementMap = new Dictionary<string, XmlInitializer<Statement>>() {
             { Statement.XmlName, CreateFromReader<Statement> },
+            
+            /* alias & import statements */
+            { AliasStatement.XmlName, CreateFromReader<AliasStatement> },
+            { ImportStatement.XmlName, CreateFromReader<ImportStatement> },
+
+            /* basic statements */
+            { BreakStatement.XmlName, CreateFromReader<BreakStatement> },
+            { CaseStatement.XmlName, CreateFromReader<CaseStatement> },
+            { ContinueStatement.XmlName, CreateFromReader<ContinueStatement> },
+            { ExternStatement.XmlName, CreateFromReader<ExternStatement> },
+            { LabelStatement.XmlName, CreateFromReader<LabelStatement> },
+            { ReturnStatement.XmlName, CreateFromReader<ReturnStatement> },
+            { ThrowStatement.XmlName, CreateFromReader<ThrowStatement> },
+
+            /* block statements */
             { BlockStatement.XmlName, CreateFromReader<BlockStatement> },
+            { CatchStatement.XmlName, CreateFromReader<CatchStatement> },
             { ForStatement.XmlName, CreateFromReader<ForStatement> },
             { ForeachStatement.XmlName, CreateFromReader<ForeachStatement> },
             { IfStatement.XmlName, CreateFromReader<IfStatement> },
             { SwitchStatement.XmlName, CreateFromReader<SwitchStatement> },
+            { TryStatement.XmlName, CreateFromReader<TryStatement> },
             { WhileStatement.XmlName, CreateFromReader<WhileStatement> },
             { DoWhileStatement.XmlName, CreateFromReader<DoWhileStatement> },
+
+            { UsingBlockStatement.XmlName, CreateFromReader<UsingBlockStatement> },
+
+            /* Named statements */
+            { NamespaceDefinition.XmlName, CreateFromReader<NamespaceDefinition> },
+            { TypeDefinition.XmlName, CreateFromReader<TypeDefinition> },
+            { MethodDefinition.XmlName, CreateFromReader<MethodDefinition> },
+            { PropertyDefinition.XmlName, CreateFromReader<PropertyDefinition> },
         };
 
         internal static Dictionary<string, XmlInitializer<Expression>> XmlExpressionMap = new Dictionary<string, XmlInitializer<Expression>>() {

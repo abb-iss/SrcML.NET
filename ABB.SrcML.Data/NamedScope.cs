@@ -16,11 +16,27 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Xml;
 
 namespace ABB.SrcML.Data {
 
     public class NamedScope : BlockStatement, INamedEntity {
         private NamePrefix _prefix;
+
+        /// <summary>
+        /// XML Name for <see cref="Name" />
+        /// </summary>
+        public const string XmlNameName = "Name";
+
+        /// <summary>
+        /// XML Name for <see cref="NamePrefix" />
+        /// </summary>
+        public const string XmlPrefixName = "NamePrefix";
+
+        /// <summary>
+        /// XML Name for <see cref="Accessibility" />
+        /// </summary>
+        public const string XmlAccessibilityName = "Accessibility";
 
         public NamedScope() : base() {
             Name = string.Empty;
@@ -194,6 +210,30 @@ namespace ABB.SrcML.Data {
                 }
             }
         }
+
+        protected override void ReadXmlChild(XmlReader reader) {
+            if(XmlNameName == reader.Name) {
+                this.Name = reader.ReadContentAsString();
+            } else if(XmlAccessibilityName == reader.Name) {
+                this.Accessibility = AccessModifierExtensions.FromKeywordString(reader.ReadContentAsString());
+            } else if(XmlPrefixName == reader.Name) {
+                this.Prefix = XmlSerialization.ReadExpression(reader) as NamePrefix;
+            } else {
+                base.ReadXmlChild(reader);
+            }
+        }
+
+        protected override void WriteXmlContents(XmlWriter writer) {
+            if(null != Name) {
+                writer.WriteElementString(XmlNameName, Name);
+            }
+
+            writer.WriteElementString(XmlAccessibilityName, Accessibility.ToKeywordString());
+            XmlSerialization.WriteElement(writer, Prefix, XmlPrefixName);
+
+            base.WriteXmlContents(writer);
+        }
+
     }
 
 

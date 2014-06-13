@@ -16,11 +16,17 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Xml;
 
 namespace ABB.SrcML.Data {
 
     [DebuggerTypeProxy(typeof(StatementDebugView))]
     public class NamespaceDefinition : NamedScope {
+        /// <summary>
+        /// The XML name for NamespaceDefinition
+        /// </summary>
+        public new const string XmlName = "Namespace";
+
         /// <summary>
         /// Creates a new NamespaceDefinition object.
         /// </summary>
@@ -43,6 +49,12 @@ namespace ABB.SrcML.Data {
         }
 
         protected override bool ToBeDeleted { get { return Locations.All(l => l.IsReference); } }
+
+        /// <summary>
+        /// Instance method for getting <see cref="NamespaceDefinition.XmlName"/>
+        /// </summary>
+        /// <returns>Returns the XML name for NamespaceDefinition</returns>
+        public override string GetXmlName() { return NamespaceDefinition.XmlName; }
 
         public override Statement Merge(Statement otherStatement) {
             return Merge(otherStatement as NamespaceDefinition);

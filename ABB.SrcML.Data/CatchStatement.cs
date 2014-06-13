@@ -14,9 +14,41 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Xml;
 
 namespace ABB.SrcML.Data {
     public class CatchStatement : BlockStatement {
+        /// <summary>
+        /// The XML name for CatchStatement
+        /// </summary>
+        public new const string XmlName = "Catch";
+
+        /// <summary>
+        /// XML Name for <see cref="Parameter" />
+        /// </summary>
+        public const string XmlParameterName = "Parameter";
+
         public VariableDeclaration Parameter { get; set; }
+
+        /// <summary>
+        /// Instance method for getting <see cref="CatchStatement.XmlName"/>
+        /// </summary>
+        /// <returns>Returns the XML name for CatchStatement</returns>
+        public override string GetXmlName() { return CatchStatement.XmlName; }
+
+        protected override void ReadXmlChild(XmlReader reader) {
+            if(XmlParameterName == reader.Name) {
+                Parameter = XmlSerialization.ReadExpression(reader) as VariableDeclaration;
+            } else {
+                base.ReadXmlChild(reader);
+            }
+        }
+
+        protected override void WriteXmlContents(XmlWriter writer) {
+            if(null != Parameter) {
+                XmlSerialization.WriteElement(writer, Parameter, XmlParameterName);
+            }
+            base.WriteXmlContents(writer);
+        }
     }
 }

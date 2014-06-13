@@ -14,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Xml;
 
 namespace ABB.SrcML.Data
 {
@@ -26,9 +27,39 @@ namespace ABB.SrcML.Data
     public class UsingBlockStatement : BlockStatement
     {
         /// <summary>
+        /// The XML name for UsingBlockStatement
+        /// </summary>
+        public new const string XmlName = "UsingBlock";
+
+        /// <summary>
+        /// XML Name for <see cref="Initializer" />
+        /// </summary>
+        public const string XmlInitializerName = "Initializer";
+
+        /// <summary>
+        /// Instance method for getting <see cref="UsingBlockStatement.XmlName"/>
+        /// </summary>
+        /// <returns>Returns the XML name for UsingBlockStatement</returns>
+        public override string GetXmlName() { return UsingBlockStatement.XmlName; }
+
+        /// <summary>
         /// The intialization expression for the using block.
         /// </summary>
         public Expression Initializer { get; set; }
 
+        protected override void ReadXmlChild(XmlReader reader) {
+            if(XmlInitializerName == reader.Name) {
+                Initializer = XmlSerialization.ReadExpression(reader);
+            } else {
+                base.ReadXmlChild(reader);
+            }
+        }
+
+        protected override void WriteXmlContents(XmlWriter writer) {
+            if(null != Initializer) {
+                XmlSerialization.WriteElement(writer, Initializer, XmlInitializerName);
+            }
+            base.WriteXmlContents(writer);
+        }
     }
 }
