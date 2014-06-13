@@ -17,8 +17,10 @@ using System.Text;
 
 namespace ABB.SrcML.Data {
     public class DoWhileStatement : ConditionBlockStatement {
+        public new const string XmlName = "DoWhile";
+
         public DoWhileStatement() : base() {}
 
-        
+        public override string GetXmlName() { return DoWhileStatement.XmlName; }
     }
 }

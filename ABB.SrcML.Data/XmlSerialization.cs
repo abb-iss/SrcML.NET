@@ -31,7 +31,13 @@ namespace ABB.SrcML.Data {
 
         internal static Dictionary<string, XmlInitializer<Statement>> XmlStatementMap = new Dictionary<string, XmlInitializer<Statement>>() {
             { Statement.XmlName, CreateFromReader<Statement> },
+            { BlockStatement.XmlName, CreateFromReader<BlockStatement> },
+            { ForStatement.XmlName, CreateFromReader<ForStatement> },
+            { ForeachStatement.XmlName, CreateFromReader<ForeachStatement> },
             { IfStatement.XmlName, CreateFromReader<IfStatement> },
+            { SwitchStatement.XmlName, CreateFromReader<SwitchStatement> },
+            { WhileStatement.XmlName, CreateFromReader<WhileStatement> },
+            { DoWhileStatement.XmlName, CreateFromReader<DoWhileStatement> },
         };
 
         internal static Dictionary<string, XmlInitializer<Expression>> XmlExpressionMap = new Dictionary<string, XmlInitializer<Expression>>() {

@@ -20,5 +20,16 @@ namespace ABB.SrcML.Data {
 
         public BlockStatement() : base() {}
 
+        /// <summary>
+        /// The XML name for BlockStatement
+        /// </summary>
+        public new const string XmlName = "Block";
+
+        /// <summary>
+        /// Instance method for getting <see cref="BlockStatement.XmlName"/>
+        /// </summary>
+        /// <returns>Returns the XML name for BlockStatement</returns>
+        public override string GetXmlName() { return BlockStatement.XmlName; }
+
     }
 }
