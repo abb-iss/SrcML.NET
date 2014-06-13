@@ -244,13 +244,11 @@ namespace ABB.SrcML.Data {
 
         protected override void ReadXmlChild(XmlReader reader) {
             if(XmlChildrenName == reader.Name) {
-                AddChildStatements(XmlSerialization.DeserializeStatements(reader));
+                AddChildStatements(XmlSerialization.ReadStatements(reader));
             } else if(XmlLocationsName == reader.Name) {
-                AddLocations(XmlSerialization.DeserializeSrcMLLocations(reader));
+                AddLocations(XmlSerialization.ReadSrcMLLocations(reader));
             } else if(XmlContentName == reader.Name) {
-                reader.ReadStartElement();
-                Content = XmlSerialization.DeserializeExpression(reader);
-                reader.ReadEndElement();
+                Content = XmlSerialization.ReadExpression(reader);
             }
         }
 
@@ -262,9 +260,7 @@ namespace ABB.SrcML.Data {
             XmlSerialization.WriteCollection<Statement>(writer, XmlChildrenName, ChildStatements);
 
             if(null != Content) {
-                writer.WriteStartElement("Content");
-                XmlSerialization.WriteElement(writer, Content);
-                writer.WriteEndElement();
+                XmlSerialization.WriteElement(writer, Content, XmlContentName);
             }
         }
     }

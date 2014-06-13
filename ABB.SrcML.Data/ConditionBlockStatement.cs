@@ -26,15 +26,16 @@ namespace ABB.SrcML.Data {
 
         protected override void ReadXmlChild(XmlReader reader) {
             if(XmlConditionName == reader.Name) {
-                Condition = XmlSerialization.DeserializeExpression(reader);
+                Condition = XmlSerialization.ReadExpression(reader);
+            } else {
+                base.ReadXmlChild(reader);
             }
-            base.ReadXmlChild(reader);
         }
 
         protected override void WriteXmlContents(XmlWriter writer) {
-            writer.WriteStartElement(XmlConditionName);
-            Condition.WriteXml(writer);
-            writer.WriteEndElement();
+            if(null != Condition) {
+                XmlSerialization.WriteElement(writer, Condition, XmlConditionName);
+            }
             base.WriteXmlContents(writer);
         }
     }

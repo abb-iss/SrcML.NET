@@ -22,7 +22,7 @@ namespace ABB.SrcML.Data {
         private List<Statement> elseStatementsList;
 
         public const string XmlElseName = "Else";
-        public new const string XmlName = "IfStatement";
+        public new const string XmlName = "If";
 
         public IfStatement() : base() {
             elseStatementsList = new List<Statement>();
@@ -47,7 +47,7 @@ namespace ABB.SrcML.Data {
 
         protected override void ReadXmlChild(XmlReader reader) {
             if(XmlElseName == reader.Name) {
-                AddElseStatements(XmlSerialization.DeserializeStatements(reader));
+                AddElseStatements(XmlSerialization.ReadStatements(reader));
             }
             base.ReadXmlChild(reader);
         }
