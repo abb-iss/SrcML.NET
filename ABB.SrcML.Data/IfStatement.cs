@@ -47,7 +47,7 @@ namespace ABB.SrcML.Data {
 
         protected override void ReadXmlChild(XmlReader reader) {
             if(XmlElseName == reader.Name) {
-                AddElseStatements(XmlSerialization.ReadStatements(reader));
+                AddElseStatements(XmlSerialization.ReadChildStatements(reader));
             } else {
                 base.ReadXmlChild(reader);
             }

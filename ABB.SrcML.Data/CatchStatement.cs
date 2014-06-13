@@ -38,7 +38,7 @@ namespace ABB.SrcML.Data {
 
         protected override void ReadXmlChild(XmlReader reader) {
             if(XmlParameterName == reader.Name) {
-                Parameter = XmlSerialization.ReadExpression(reader) as VariableDeclaration;
+                Parameter = XmlSerialization.ReadChildExpression(reader) as VariableDeclaration;
             } else {
                 base.ReadXmlChild(reader);
             }

@@ -39,7 +39,7 @@ namespace ABB.SrcML.Data {
 
         protected override void ReadXmlChild(XmlReader reader) {
             if(XmlImportedNamespaceName == reader.Name) {
-                ImportedNamespace = XmlSerialization.ReadExpression(reader) as NamespaceUse;
+                ImportedNamespace = XmlSerialization.ReadChildExpression(reader) as NamespaceUse;
             } else {
                 base.ReadXmlChild(reader);
             }

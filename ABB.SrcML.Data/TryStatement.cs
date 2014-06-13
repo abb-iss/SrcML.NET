@@ -79,9 +79,9 @@ namespace ABB.SrcML.Data {
 
         protected override void ReadXmlChild(XmlReader reader) {
             if(XmlCatchName == reader.Name) {
-                AddCatchStatements(XmlSerialization.ReadStatements(reader).Cast<CatchStatement>());
+                AddCatchStatements(XmlSerialization.ReadChildStatements(reader).Cast<CatchStatement>());
             } else if(XmlFinallyName == reader.Name) {
-                AddFinallyStatements(XmlSerialization.ReadStatements(reader));
+                AddFinallyStatements(XmlSerialization.ReadChildStatements(reader));
             } else {
                 base.ReadXmlChild(reader);
             }

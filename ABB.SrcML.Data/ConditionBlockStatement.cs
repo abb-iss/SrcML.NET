@@ -26,7 +26,7 @@ namespace ABB.SrcML.Data {
 
         protected override void ReadXmlChild(XmlReader reader) {
             if(XmlConditionName == reader.Name) {
-                Condition = XmlSerialization.ReadExpression(reader);
+                Condition = XmlSerialization.ReadChildExpression(reader);
             } else {
                 base.ReadXmlChild(reader);
             }

@@ -49,7 +49,7 @@ namespace ABB.SrcML.Data
 
         protected override void ReadXmlChild(XmlReader reader) {
             if(XmlInitializerName == reader.Name) {
-                Initializer = XmlSerialization.ReadExpression(reader);
+                Initializer = XmlSerialization.ReadChildExpression(reader);
             } else {
                 base.ReadXmlChild(reader);
             }

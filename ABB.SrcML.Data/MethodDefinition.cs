@@ -189,7 +189,7 @@ namespace ABB.SrcML.Data {
             return id;
         }
 
-        protected override void ReadAttributes(XmlReader reader) {
+        protected override void ReadXmlAttributes(XmlReader reader) {
             string attribute = reader.GetAttribute(XmlIsConstructorName);
             if(null != attribute) {
                 IsConstructor = XmlConvert.ToBoolean(attribute);
@@ -202,14 +202,14 @@ namespace ABB.SrcML.Data {
             if(null != attribute) {
                 IsPartial = XmlConvert.ToBoolean(attribute);
             }
-            base.ReadAttributes(reader);
+            base.ReadXmlAttributes(reader);
         }
 
         protected override void ReadXmlChild(XmlReader reader) {
             if(XmlParametersName == reader.Name) {
-                AddMethodParameters(XmlSerialization.ReadExpressions(reader).Cast<VariableDeclaration>().ToList());
+                AddMethodParameters(XmlSerialization.ReadChildExpressions(reader).Cast<VariableDeclaration>().ToList());
             } else if(XmlReturnTypeName == reader.Name) {
-                AddReturnType(XmlSerialization.ReadExpression(reader) as TypeUse);
+                AddReturnType(XmlSerialization.ReadChildExpression(reader) as TypeUse);
             } else {
                 base.ReadXmlChild(reader);
             }

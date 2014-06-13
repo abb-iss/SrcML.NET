@@ -162,18 +162,18 @@ namespace ABB.SrcML.Data {
             //return typeDefinitions;
         }
 
-        protected override void ReadAttributes(XmlReader reader) {
+        protected override void ReadXmlAttributes(XmlReader reader) {
             var attribute = reader.GetAttribute(XmlIsPartialName);
             if(null != attribute) {
                 IsPartial = XmlConvert.ToBoolean(attribute);
             }
             Kind = TypeKindExtensions.FromKeyword(reader.GetAttribute(XmlKindName));
-            base.ReadAttributes(reader);
+            base.ReadXmlAttributes(reader);
         }
 
         protected override void ReadXmlChild(XmlReader reader) {
             if(XmlParentTypesName == reader.Name) {
-                foreach(var parentType in XmlSerialization.ReadExpressions(reader).Cast<TypeUse>()) {
+                foreach(var parentType in XmlSerialization.ReadChildExpressions(reader).Cast<TypeUse>()) {
                     AddParentType(parentType);
                 }
             } else {

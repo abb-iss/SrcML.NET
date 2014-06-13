@@ -105,11 +105,11 @@ namespace ABB.SrcML.Data {
 
         protected override void ReadXmlChild(XmlReader reader) {
             if(XmlGetterName == reader.Name) {
-                getter = XmlSerialization.ReadStatement(reader) as MethodDefinition;
+                getter = XmlSerialization.ReadChildStatement(reader) as MethodDefinition;
             } else if(XmlSetterName == reader.Name) {
-                setter = XmlSerialization.ReadStatement(reader) as MethodDefinition;
+                setter = XmlSerialization.ReadChildStatement(reader) as MethodDefinition;
             } else if(XmlReturnTypeName == reader.Name) {
-                ReturnType = XmlSerialization.ReadExpression(reader) as TypeUse;
+                ReturnType = XmlSerialization.ReadChildExpression(reader) as TypeUse;
             } else {
                 base.ReadXmlChild(reader);
             }

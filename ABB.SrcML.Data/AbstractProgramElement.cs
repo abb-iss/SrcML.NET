@@ -123,7 +123,7 @@ namespace ABB.SrcML.Data {
 
         public void ReadXml(XmlReader reader) {
             reader.ReadStartElement();
-            ReadAttributes(reader);
+            ReadXmlAttributes(reader);
 
             while(XmlNodeType.Element == reader.NodeType) {
                 ReadXmlChild(reader);
@@ -136,7 +136,7 @@ namespace ABB.SrcML.Data {
             WriteXmlContents(writer);
         }
 
-        protected virtual void ReadAttributes(XmlReader reader) {
+        protected virtual void ReadXmlAttributes(XmlReader reader) {
             ProgrammingLanguage = SrcMLElement.GetLanguageFromString(reader.GetAttribute(LanguageXmlName));
         }
 

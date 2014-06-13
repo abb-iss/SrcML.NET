@@ -117,7 +117,7 @@ namespace ABB.SrcML.Data {
             if(SrcMLLocation.XmlName == reader.Name) {
                 Location = XmlSerialization.DeserializeSrcMLLocation(reader);
             } else if(XmlComponentsName == reader.Name) {
-                AddComponents(XmlSerialization.ReadExpressions(reader));
+                AddComponents(XmlSerialization.ReadChildExpressions(reader));
             }
         }
 

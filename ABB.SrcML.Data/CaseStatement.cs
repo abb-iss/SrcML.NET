@@ -47,12 +47,12 @@ namespace ABB.SrcML.Data {
             base.WriteXmlAttributes(writer);
         }
 
-        protected override void ReadAttributes(XmlReader reader) {
+        protected override void ReadXmlAttributes(XmlReader reader) {
             var isDefaultAttribute = reader.GetAttribute(XmlIsDefaultName);
             if(null != isDefaultAttribute) {
                 IsDefault = XmlConvert.ToBoolean(isDefaultAttribute);
             }
-            base.ReadAttributes(reader);
+            base.ReadXmlAttributes(reader);
         }
     }
 }

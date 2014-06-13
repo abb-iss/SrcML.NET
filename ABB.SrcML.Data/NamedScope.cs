@@ -217,7 +217,7 @@ namespace ABB.SrcML.Data {
             } else if(XmlAccessibilityName == reader.Name) {
                 this.Accessibility = AccessModifierExtensions.FromKeywordString(reader.ReadContentAsString());
             } else if(XmlPrefixName == reader.Name) {
-                this.Prefix = XmlSerialization.ReadExpression(reader) as NamePrefix;
+                this.Prefix = XmlSerialization.ReadChildExpression(reader) as NamePrefix;
             } else {
                 base.ReadXmlChild(reader);
             }
