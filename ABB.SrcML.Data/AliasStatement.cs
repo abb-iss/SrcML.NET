@@ -15,10 +15,52 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Xml;
 
 namespace ABB.SrcML.Data {
     public class AliasStatement : Statement {
+        /// <summary>
+        /// The XML name for AliasStatement
+        /// </summary>
+        public new const string XmlName = "Alias";
+
+        /// <summary>
+        /// XML Name for <see cref="Target" />
+        /// </summary>
+        public const string XmlTargetName = "Target";
+
+        /// <summary>
+        /// XML Name for <see cref="AliasName" />
+        /// </summary>
+        public const string XmlAliasNameName = "AliasName";
+
         public NameUse Target { get; set; }
         public string AliasName { get; set; }
+
+        /// <summary>
+        /// Instance method for getting <see cref="AliasStatement.XmlName"/>
+        /// </summary>
+        /// <returns>Returns the XML name for AliasStatement</returns>
+        public override string GetXmlName() { return AliasStatement.XmlName; }
+
+        protected override void ReadXmlChild(XmlReader reader) {
+            if(XmlTargetName == reader.Name) {
+                Target = XmlSerialization.ReadChildExpression(reader) as NameUse;
+            } else if(XmlAliasNameName == reader.Name) {
+                AliasName = reader.ReadContentAsString();
+            } else {
+                base.ReadXmlChild(reader);
+            }
+        }
+
+        public override void WriteXml(XmlWriter writer) {
+            if(null != Target) {
+                XmlSerialization.WriteElement(writer, Target, XmlTargetName);
+            }
+            if(null != AliasName) {
+                writer.WriteElementString(XmlAliasNameName, AliasName);
+            }
+            base.WriteXml(writer);
+        }
     }
 }

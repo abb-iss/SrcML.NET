@@ -244,11 +244,11 @@ namespace ABB.SrcML.Data {
 
         protected override void ReadXmlChild(XmlReader reader) {
             if(XmlChildrenName == reader.Name) {
-                AddChildStatements(XmlSerialization.ReadStatements(reader));
+                AddChildStatements(XmlSerialization.ReadChildStatements(reader));
             } else if(XmlLocationsName == reader.Name) {
-                AddLocations(XmlSerialization.ReadSrcMLLocations(reader));
+                AddLocations(XmlSerialization.ReadChildSrcMLLocations(reader));
             } else if(XmlContentName == reader.Name) {
-                Content = XmlSerialization.ReadExpression(reader);
+                Content = XmlSerialization.ReadChildExpression(reader);
             }
         }
 

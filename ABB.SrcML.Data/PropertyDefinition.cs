@@ -11,6 +11,7 @@
  *****************************************************************************/
 
 using System.Linq;
+using System.Xml;
 
 namespace ABB.SrcML.Data {
     /// <summary>
@@ -19,6 +20,26 @@ namespace ABB.SrcML.Data {
     public class PropertyDefinition : NamedScope {
         private MethodDefinition getter;
         private MethodDefinition setter;
+
+        /// <summary>
+        /// The XML name for PropertyDefinition
+        /// </summary>
+        public new const string XmlName = "Property";
+
+        /// <summary>
+        /// XML Name for <see cref="Getter" />
+        /// </summary>
+        public const string XmlGetterName = "Getter";
+
+        /// <summary>
+        /// XML Name for <see cref="Setter" />
+        /// </summary>
+        public const string XmlSetterName = "Setter";
+
+        /// <summary>
+        /// XML Name for <see cref="ReturnType" />
+        /// </summary>
+        public const string XmlReturnTypeName = "ReturnType";
 
         /// <summary>
         /// Creates a new default PropertyDefinition.
@@ -73,6 +94,37 @@ namespace ABB.SrcML.Data {
                         this.setter = method;
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Instance method for getting <see cref="PropertyDefinition.XmlName"/>
+        /// </summary>
+        /// <returns>Returns the XML name for PropertyDefinition</returns>
+        public override string GetXmlName() { return PropertyDefinition.XmlName; }
+
+        protected override void ReadXmlChild(XmlReader reader) {
+            if(XmlGetterName == reader.Name) {
+                getter = XmlSerialization.ReadChildStatement(reader) as MethodDefinition;
+            } else if(XmlSetterName == reader.Name) {
+                setter = XmlSerialization.ReadChildStatement(reader) as MethodDefinition;
+            } else if(XmlReturnTypeName == reader.Name) {
+                ReturnType = XmlSerialization.ReadChildExpression(reader) as TypeUse;
+            } else {
+                base.ReadXmlChild(reader);
+            }
+        }
+
+        protected override void WriteXmlContents(XmlWriter writer) {
+            base.WriteXmlContents(writer);
+            if(null != Getter) {
+                XmlSerialization.WriteElement(writer, Getter, XmlGetterName);
+            }
+            if(null != Setter) {
+                XmlSerialization.WriteElement(writer, Setter, XmlSetterName);
+            }
+            if(null != ReturnType) {
+                XmlSerialization.WriteElement(writer, ReturnType, XmlReturnTypeName);
             }
         }
 

@@ -16,12 +16,33 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Xml;
 
 namespace ABB.SrcML.Data {
 
     public class TypeDefinition : NamedScope {
         private Collection<TypeUse> parentTypeCollection;
-        
+
+        /// <summary>
+        /// The XML name for TypeDefinition
+        /// </summary>
+        public new const string XmlName = "Type";
+
+        /// <summary>
+        /// XML Name for <see cref="Kind" />
+        /// </summary>
+        public const string XmlKindName = "kind";
+
+        /// <summary>
+        /// XML Name for <see cref="ParentTypes" />
+        /// </summary>
+        public const string XmlParentTypesName = "ParentTypes";
+
+        /// <summary>
+        /// XML Name for <see cref="IsPartial" />
+        /// </summary>
+        public const string XmlIsPartialName = "IsPartial";
+
         /// <summary>
         /// Creates a new type definition object
         /// </summary>
@@ -51,6 +72,12 @@ namespace ABB.SrcML.Data {
             parentTypeUse.ParentStatement = this;
             parentTypeCollection.Add(parentTypeUse);
         }
+
+        /// <summary>
+        /// Instance method for getting <see cref="TypeDefinition.XmlName"/>
+        /// </summary>
+        /// <returns>Returns the XML name for TypeDefinition</returns>
+        public override string GetXmlName() { return TypeDefinition.XmlName; }
 
         public override Statement Merge(Statement otherStatement) {
             return Merge(otherStatement as TypeDefinition);
@@ -135,6 +162,39 @@ namespace ABB.SrcML.Data {
             //return typeDefinitions;
         }
 
+        protected override void ReadXmlAttributes(XmlReader reader) {
+            var attribute = reader.GetAttribute(XmlIsPartialName);
+            if(null != attribute) {
+                IsPartial = XmlConvert.ToBoolean(attribute);
+            }
+            Kind = TypeKindExtensions.FromKeyword(reader.GetAttribute(XmlKindName));
+            base.ReadXmlAttributes(reader);
+        }
+
+        protected override void ReadXmlChild(XmlReader reader) {
+            if(XmlParentTypesName == reader.Name) {
+                foreach(var parentType in XmlSerialization.ReadChildExpressions(reader).Cast<TypeUse>()) {
+                    AddParentType(parentType);
+                }
+            } else {
+                base.ReadXmlChild(reader);
+            }
+        }
+
+        protected override void WriteXmlAttributes(XmlWriter writer) {
+            writer.WriteAttributeString(XmlKindName, Kind.ToKeyword());
+            if(IsPartial) {
+                writer.WriteAttributeString(XmlIsPartialName, XmlConvert.ToString(IsPartial));
+            }
+            base.WriteXmlAttributes(writer);
+        }
+
+        protected override void WriteXmlContents(XmlWriter writer) {
+            if(null != ParentTypes) {
+                XmlSerialization.WriteCollection<TypeUse>(writer, XmlParentTypesName, ParentTypes);
+            }
+            base.WriteXmlContents(writer);
+        }
     }
 
 

@@ -31,13 +31,38 @@ namespace ABB.SrcML.Data {
 
         internal static Dictionary<string, XmlInitializer<Statement>> XmlStatementMap = new Dictionary<string, XmlInitializer<Statement>>() {
             { Statement.XmlName, CreateFromReader<Statement> },
+            
+            /* alias & import statements */
+            { AliasStatement.XmlName, CreateFromReader<AliasStatement> },
+            { ImportStatement.XmlName, CreateFromReader<ImportStatement> },
+
+            /* basic statements */
+            { BreakStatement.XmlName, CreateFromReader<BreakStatement> },
+            { CaseStatement.XmlName, CreateFromReader<CaseStatement> },
+            { ContinueStatement.XmlName, CreateFromReader<ContinueStatement> },
+            { ExternStatement.XmlName, CreateFromReader<ExternStatement> },
+            { LabelStatement.XmlName, CreateFromReader<LabelStatement> },
+            { ReturnStatement.XmlName, CreateFromReader<ReturnStatement> },
+            { ThrowStatement.XmlName, CreateFromReader<ThrowStatement> },
+
+            /* block statements */
             { BlockStatement.XmlName, CreateFromReader<BlockStatement> },
+            { CatchStatement.XmlName, CreateFromReader<CatchStatement> },
             { ForStatement.XmlName, CreateFromReader<ForStatement> },
             { ForeachStatement.XmlName, CreateFromReader<ForeachStatement> },
             { IfStatement.XmlName, CreateFromReader<IfStatement> },
             { SwitchStatement.XmlName, CreateFromReader<SwitchStatement> },
+            { TryStatement.XmlName, CreateFromReader<TryStatement> },
             { WhileStatement.XmlName, CreateFromReader<WhileStatement> },
             { DoWhileStatement.XmlName, CreateFromReader<DoWhileStatement> },
+
+            { UsingBlockStatement.XmlName, CreateFromReader<UsingBlockStatement> },
+
+            /* Named statements */
+            { NamespaceDefinition.XmlName, CreateFromReader<NamespaceDefinition> },
+            { TypeDefinition.XmlName, CreateFromReader<TypeDefinition> },
+            { MethodDefinition.XmlName, CreateFromReader<MethodDefinition> },
+            { PropertyDefinition.XmlName, CreateFromReader<PropertyDefinition> },
         };
 
         internal static Dictionary<string, XmlInitializer<Expression>> XmlExpressionMap = new Dictionary<string, XmlInitializer<Expression>>() {
@@ -83,33 +108,34 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="reader">The XML reader</param>
         /// <returns>An enumerable of <see cref="SourceLocation"/> objects</returns>
-        internal static IEnumerable<SourceLocation> ReadLocations(XmlReader reader) { return ReadCollection<SourceLocation>(reader, DeserializeLocation); }
+        internal static IEnumerable<SourceLocation> ReadLocations(XmlReader reader) { return ReadChildCollection<SourceLocation>(reader, DeserializeLocation); }
 
-        internal static IEnumerable<SrcMLLocation> ReadSrcMLLocations(XmlReader reader) { return ReadCollection<SrcMLLocation>(reader, DeserializeSrcMLLocation); }
+        internal static IEnumerable<SrcMLLocation> ReadChildSrcMLLocations(XmlReader reader) { return ReadChildCollection<SrcMLLocation>(reader, DeserializeSrcMLLocation); }
 
-        internal static Expression ReadExpression(XmlReader reader) { return ReadElement<Expression>(reader, DeserializeExpression); }
+        internal static Expression ReadChildExpression(XmlReader reader) { return ReadChildElement<Expression>(reader, DeserializeExpression); }
 
         /// <summary>
         /// Deserializes a collection of <see cref="Expression"/> objects from <paramref name="reader"/>.
         /// </summary>
         /// <param name="reader">The XML reader</param>
         /// <returns>An enumerable of <see cref="Expression"/> objects</returns>
-        internal static IEnumerable<Expression> ReadExpressions(XmlReader reader) { return ReadCollection<Expression>(reader, DeserializeExpression); }
+        internal static IEnumerable<Expression> ReadChildExpressions(XmlReader reader) { return ReadChildCollection<Expression>(reader, DeserializeExpression); }
 
-        internal static Statement ReadStatement(XmlReader reader) { return ReadElement<Statement>(reader, DeserializeStatement); }
+        internal static Statement ReadChildStatement(XmlReader reader) { return ReadChildElement<Statement>(reader, DeserializeStatement); }
 
         /// <summary>
         /// Deserializes a collection of <see cref="Statement"/> objects from <paramref name="reader"/>.
         /// </summary>
         /// <param name="reader">The XML reader</param>
         /// <returns>An enumerable of <see cref="Statement"/> objects</returns>
-        internal static IEnumerable<Statement> ReadStatements(XmlReader reader) { return ReadCollection<Statement>(reader, DeserializeStatement); }
+        internal static IEnumerable<Statement> ReadChildStatements(XmlReader reader) { return ReadChildCollection<Statement>(reader, DeserializeStatement); }
 
         /// <summary>
         /// Writes the <paramref name="element"/> with <paramref name="writer"/>. The element name is taken from <see cref="IXmlElement.GetXmlName()"/>.
         /// </summary>
         /// <param name="writer">The XML writer</param>
         /// <param name="element">The object to write</param>
+        /// <param name="parentElementName">the parent element. If not null, <paramref name="element"/> is wrapped in an element with this name</param>
         internal static void WriteElement(XmlWriter writer, IXmlElement element, string parentElementName = null) {
             if(String.IsNullOrEmpty(parentElementName)) {
                 writer.WriteStartElement(parentElementName);
@@ -141,7 +167,7 @@ namespace ABB.SrcML.Data {
             }
         }
 
-        private static T ReadElement<T>(XmlReader reader, XmlInitializer<T> initializer) where T : IXmlElement, new() {
+        private static T ReadChildElement<T>(XmlReader reader, XmlInitializer<T> initializer) where T : IXmlElement, new() {
             T element = default(T);
             reader.ReadStartElement();
             if(!reader.IsEmptyElement) {
@@ -151,7 +177,7 @@ namespace ABB.SrcML.Data {
             return element;
         }
 
-        private static IEnumerable<T> ReadCollection<T>(XmlReader reader, XmlInitializer<T> initializer) where T : IXmlElement, new() {
+        private static IEnumerable<T> ReadChildCollection<T>(XmlReader reader, XmlInitializer<T> initializer) where T : IXmlElement, new() {
             reader.ReadStartElement();
             if(!reader.IsEmptyElement) {
                 while(XmlNodeType.Element != reader.NodeType) {

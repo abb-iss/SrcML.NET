@@ -10,6 +10,8 @@
  *    Patrick Francis (ABB Group) - initial API, implementation, & documentation
  *****************************************************************************/
 
+using System;
+using System.Collections.Generic;
 namespace ABB.SrcML.Data {
 
     /// <summary>
@@ -79,6 +81,21 @@ namespace ABB.SrcML.Data {
                 default:
                     return am.ToString();
             }
+        }
+
+        public static AccessModifier FromKeywordString(string am) {
+            Dictionary<string, AccessModifier> mapping = new Dictionary<string,AccessModifier>() {
+                { "public", AccessModifier.Public },
+                { "protected internal", AccessModifier.ProtectedInternal },
+                { "protected", AccessModifier.Protected },
+                { "internal", AccessModifier.Internal },
+                { "private", AccessModifier.Private },
+            };
+            AccessModifier output;
+            if(!String.IsNullOrEmpty(am) && mapping.TryGetValue(am, out output)) {
+                return output;
+            }
+            return AccessModifier.None;
         }
     }
 }

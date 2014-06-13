@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Xml;
 
 namespace ABB.SrcML.Data {
     /// <summary>
@@ -22,6 +23,37 @@ namespace ABB.SrcML.Data {
     /// Declarations that use extern as a storage specifier, such as <code>extern int myGlobalVar;</code>, will not be parsed as ExternStatements.
     /// </summary>
     public class ExternStatement : Statement {
+        /// <summary>
+        /// The XML name for ExternStatement
+        /// </summary>
+        public new const string XmlName = "Extern";
+
+        /// <summary>
+        /// XML Name for <see cref="LinkageType" />
+        /// </summary>
+        public const string XmlLinkageTypeName = "LinkageType";
+
         public string LinkageType { get; set; }
+
+        /// <summary>
+        /// Instance method for getting <see cref="ExternStatement.XmlName"/>
+        /// </summary>
+        /// <returns>Returns the XML name for ExternStatement</returns>
+        public override string GetXmlName() { return ExternStatement.XmlName; }
+
+        protected override void ReadXmlChild(XmlReader reader) {
+            if(XmlLinkageTypeName == reader.Name) {
+                LinkageType = reader.ReadElementContentAsString();
+            } else {
+                base.ReadXmlChild(reader);
+            }
+        }
+
+        protected override void WriteXmlContents(XmlWriter writer) {
+            if(null == LinkageType) {
+                writer.WriteElementString(XmlLinkageTypeName, LinkageType);
+            }
+            base.WriteXmlContents(writer);
+        }
     }
 }

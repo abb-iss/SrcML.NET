@@ -17,6 +17,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Xml;
 
 namespace ABB.SrcML.Data {
 
@@ -24,6 +25,36 @@ namespace ABB.SrcML.Data {
         private List<VariableDeclaration> parameterList;
         Dictionary<string, TypeUse> _returnTypeMap;
         Dictionary<string, List<VariableDeclaration>> _parameterMap;
+
+        /// <summary>
+        /// The XML name for MethodDefinition
+        /// </summary>
+        public new const string XmlName = "Method";
+
+        /// <summary>
+        /// XML Name for <see cref="IsConstructor" />
+        /// </summary>
+        public const string XmlIsConstructorName = "IsConstructor";
+
+        /// <summary>
+        /// XML Name for <see cref="IsDestructor" />
+        /// </summary>
+        public const string XmlIsDestructorName = "IsDestructor";
+
+        /// <summary>
+        /// XML Name for <see cref="IsPartial" />
+        /// </summary>
+        public const string XmlIsPartialName = "IsPartial";
+
+        /// <summary>
+        /// XML Name for <see cref="Parameters" />
+        /// </summary>
+        public const string XmlParametersName = "Parameters";
+
+        /// <summary>
+        /// XML Name for <see cref="ReturnType" />
+        /// </summary>
+        public const string XmlReturnTypeName = "ReturnType";
 
         /// <summary>
         /// Creates a new method definition object
@@ -87,6 +118,13 @@ namespace ABB.SrcML.Data {
             }
             _returnTypeMap[returnType.Location.ToString()] = returnType;
         }
+
+        /// <summary>
+        /// Instance method for getting <see cref="MethodDefinition.XmlName"/>
+        /// </summary>
+        /// <returns>Returns the XML name for MethodDefinition</returns>
+        public override string GetXmlName() { return MethodDefinition.XmlName; }
+
         public override Statement Merge(Statement otherStatement) {
             return this.Merge(otherStatement as MethodDefinition);
         }
@@ -149,6 +187,55 @@ namespace ABB.SrcML.Data {
             string id = String.Format("{0}:M{1}:{2}:{3}", KsuAdapter.GetLanguage(ProgrammingLanguage), methodType, this.Name, String.Join(",", parameterTypes));
 
             return id;
+        }
+
+        protected override void ReadXmlAttributes(XmlReader reader) {
+            string attribute = reader.GetAttribute(XmlIsConstructorName);
+            if(null != attribute) {
+                IsConstructor = XmlConvert.ToBoolean(attribute);
+            }
+            attribute = reader.GetAttribute(XmlIsDestructorName);
+            if(null != attribute) {
+                IsDestructor = XmlConvert.ToBoolean(attribute);
+            }
+            attribute = reader.GetAttribute(XmlIsPartialName);
+            if(null != attribute) {
+                IsPartial = XmlConvert.ToBoolean(attribute);
+            }
+            base.ReadXmlAttributes(reader);
+        }
+
+        protected override void ReadXmlChild(XmlReader reader) {
+            if(XmlParametersName == reader.Name) {
+                AddMethodParameters(XmlSerialization.ReadChildExpressions(reader).Cast<VariableDeclaration>().ToList());
+            } else if(XmlReturnTypeName == reader.Name) {
+                AddReturnType(XmlSerialization.ReadChildExpression(reader) as TypeUse);
+            } else {
+                base.ReadXmlChild(reader);
+            }
+        }
+
+        protected override void WriteXmlAttributes(XmlWriter writer) {
+            if(IsConstructor) {
+                writer.WriteAttributeString(XmlIsConstructorName, XmlConvert.ToString(IsConstructor));
+            }
+            if(IsDestructor) {
+                writer.WriteAttributeString(XmlIsDestructorName, XmlConvert.ToString(IsDestructor));
+            }
+            if(IsPartial) {
+                writer.WriteAttributeString(XmlIsPartialName, XmlConvert.ToString(IsPartial));
+            }
+            base.WriteXmlAttributes(writer);
+        }
+
+        protected override void WriteXmlContents(XmlWriter writer) {
+            if(null != Parameters) {
+                XmlSerialization.WriteCollection<VariableDeclaration>(writer, XmlParametersName, Parameters);
+            }
+            if(null != ReturnType) {
+                XmlSerialization.WriteElement(writer, ReturnType, XmlReturnTypeName);
+            }
+            base.WriteXmlContents(writer);
         }
 
         private static string GetParameterFingerprint(ICollection<VariableDeclaration> parameters) {

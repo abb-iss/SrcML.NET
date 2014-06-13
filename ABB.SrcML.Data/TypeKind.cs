@@ -10,6 +10,7 @@
  *    Patrick Francis (ABB Group) - initial API, implementation, & documentation
  *****************************************************************************/
 
+using System.Collections.Generic;
 namespace ABB.SrcML.Data {
 
     /// <summary>
@@ -46,5 +47,42 @@ namespace ABB.SrcML.Data {
         /// Enumeration type
         /// </summary>
         Enumeration
+    }
+
+    public static class TypeKindExtensions {
+        public static string ToKeyword(this TypeKind tk) {
+            switch(tk) {
+                case TypeKind.BuiltIn:
+                    return "built-in";
+                case TypeKind.Class:
+                    return "class";
+                case TypeKind.Struct:
+                    return "struct";
+                case TypeKind.Union:
+                    return "union";
+                case TypeKind.Interface:
+                    return "interface";
+                case TypeKind.Enumeration:
+                    return "enumeration";
+                default:
+                    return "built-in";
+            }
+        }
+
+        public static TypeKind FromKeyword(string keyword) {
+            Dictionary<string, TypeKind> mapping = new Dictionary<string, TypeKind>() {
+                { "built-in", TypeKind.BuiltIn },
+                { "class", TypeKind.Class },
+                { "struct", TypeKind.Struct },
+                { "union", TypeKind.Union },
+                { "interface", TypeKind.Interface },
+                { "enumeration", TypeKind.Enumeration },
+            };
+            TypeKind output;
+            if(!string.IsNullOrEmpty(keyword) && mapping.TryGetValue(keyword, out output)) {
+                return output;
+            }
+            return TypeKind.BuiltIn;
+        }
     }
 }
