@@ -62,7 +62,6 @@ namespace ABB.SrcML.Data.Test {
         public static bool MethodCallsAreEqual(MethodCall a, MethodCall b) {
             if(a == b) { return true; }
             return OrderedCollectionsAreEqual(a.Arguments, b.Arguments, ExpressionsAreEqual) &&
-                   ExpressionsAreEqual(a.CallingObject, b.CallingObject) &&
                    a.IsConstructor == b.IsConstructor &&
                    a.IsDestructor == b.IsDestructor &&
                    LocationsAreEqual(a.Location, b.Location) &&
@@ -113,7 +112,7 @@ namespace ABB.SrcML.Data.Test {
             if(a == b) { return true; }
             return a.Name == b.Name &&
                    LocationsAreEqual(a.Location, b.Location) &&
-                   IResolvesToTypesAreEqual(a.CallingObject, b.CallingObject);
+                   ExpressionsAreEqual(a.Index, b.Index);
         }
 
         /// <summary>
