@@ -204,8 +204,8 @@
           </generalization>
         </generalsInternal>
         <ownedAttributesInternal>
-          <property Id="4179551b-2282-49e1-affb-54983f2183c0" name="CallingObject" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
-            <elementDefinition Id="ffd37fb9-5175-486f-a20e-ed72e5b3fdd3" />
+          <property Id="fefe8058-ce79-4edc-bcb5-e5e689b535ee" name="Index" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="bcae0c64-ce3f-469e-8f36-0c99a48f0e30" />
             <type_NamedElement>
               <referencedTypeMoniker Id="c755bfb5-f52e-46ce-bce0-eae5d6d3d701" LastKnownName="Expression" />
             </type_NamedElement>
@@ -243,12 +243,6 @@
             <elementDefinition Id="64e1e2e9-0a7b-4bb9-b512-fcf00730282b" />
             <type_NamedElement>
               <referencedTypeMoniker Id="e1c78464-a21f-4c32-88fb-0e2dd2977e1d" LastKnownName="Collection&lt;Expression&gt;" />
-            </type_NamedElement>
-          </property>
-          <property Id="2691eb55-eb10-47d3-ac85-217a5d710d9b" name="CallingObject" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
-            <elementDefinition Id="10a174a1-467e-455d-891c-e427bb006d14" />
-            <type_NamedElement>
-              <referencedTypeMoniker Id="c755bfb5-f52e-46ce-bce0-eae5d6d3d701" LastKnownName="Expression" />
             </type_NamedElement>
           </property>
           <property Id="9bfbf304-517d-472b-bfa1-8101019478f4" name="IsConstructor" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">

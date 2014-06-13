@@ -42,5 +42,10 @@ namespace ABB.SrcML.Data {
                 return LiteralKind.String;
             throw new SrcMLException(String.Format("\"{0}\" is not a valid literal kind", kind));
         }
+
+        /// <summary> Returns the text value of this literal. </summary>
+        public override string ToString() {
+            return Value;
+        }
     }
 }

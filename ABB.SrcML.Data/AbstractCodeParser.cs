@@ -1276,13 +1276,17 @@ namespace ABB.SrcML.Data {
         /// <param name="nameElement">The SRC.Name element to parse.</param>
         /// <param name="context">The parser context to use.</param>
         /// <returns>A NameUse corresponding to <paramref name="nameElement"/>.</returns>
-        protected virtual NameUse ParseNameUseElement(XElement nameElement, ParserContext context) {
+        protected virtual Expression ParseNameUseElement(XElement nameElement, ParserContext context) {
             if(nameElement == null)
                 throw new ArgumentNullException("nameElement");
             if(nameElement.Name != SRC.Name)
                 throw new ArgumentException("should be a SRC.Name", "nameElement");
             if(context == null)
                 throw new ArgumentNullException("context");
+
+            if(nameElement.Elements(SRC.Index).Any()) {
+                return ParseVariableUse(nameElement, context);
+            }
 
             var nu = new NameUse() {
                 Location = context.CreateLocation(nameElement, true),
@@ -1583,6 +1587,42 @@ namespace ABB.SrcML.Data {
             };
 
             return litUse;
+        }
+
+
+        protected virtual Expression ParseVariableUse(XElement nameElement, ParserContext context) {
+            if(nameElement == null)
+                throw new ArgumentNullException("nameElement");
+            if(nameElement.Name != SRC.Name)
+                throw new ArgumentException("Must be a SRC.Name element", "nameElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            var vu = new VariableUse() {ProgrammingLanguage = ParserLanguage};
+
+            var childElements = nameElement.Elements().ToList();
+            if(childElements.Count == 0) {
+                vu.Name = nameElement.Value;
+                vu.Location = context.CreateLocation(nameElement);
+            } else {
+                //parse the index, if there is one
+                var indexElement = nameElement.Element(SRC.Index);
+                if(indexElement != null) {
+                    vu.Index = ParseExpression(GetFirstChildExpression(indexElement), context);
+                }
+                //get the name for variable being used
+                var lastName = nameElement.Elements(SRC.Name).LastOrDefault();
+                if(lastName != null) {
+                    vu.Name = lastName.Value;
+                    vu.Location = context.CreateLocation(lastName);
+                }
+                //parse the calling object expression
+                var callingObjects = lastName != null ? lastName.ElementsBeforeSelf() : nameElement.Elements();
+                var callingExp = ParseExpression(callingObjects, context);
+                return MergeExpressions(callingExp, vu);
+            }
+            
+            return vu;
         }
 
         #endregion Parse expression elements
@@ -2081,6 +2121,43 @@ namespace ABB.SrcML.Data {
                 throw new ArgumentNullException("element");
 
             return GetChildExpressions(element).First();
+        }
+
+        /// <summary>
+        /// Creates a new expression containing the components of expression <paramref name="a"/> and the components of expression <paramref name="b"/>.
+        /// If either expression does not have components, the root expression itself will be included instead.
+        /// The expressions must be adjacent to each other in the original srcml.
+        /// </summary>
+        protected virtual Expression MergeExpressions(Expression a, Expression b) {
+            if(a == null) { throw new ArgumentNullException("a"); }
+            if(b == null) { throw new ArgumentNullException("b"); }
+
+            var aIsContainer = a.GetType() == typeof(Expression);
+            var bIsContainer = b.GetType() == typeof(Expression);
+
+            var newExpression = new Expression() {ProgrammingLanguage = ParserLanguage};
+            if(aIsContainer) {
+                newExpression.Location = a.Location;
+            } else if(bIsContainer) {
+                newExpression.Location = b.Location;
+            } else {
+                //both are not containers
+                //set location to the first, although this won't be entirely accurate
+                newExpression.Location = a.Location;
+            }
+
+            if(aIsContainer) {
+                newExpression.AddComponents(a.Components);
+            } else {
+                newExpression.AddComponent(a);
+            }
+            if(bIsContainer) {
+                newExpression.AddComponents(b.Components);
+            } else {
+                newExpression.AddComponent(b);
+            }
+
+            return newExpression;
         }
 
         /// <summary>

@@ -958,5 +958,31 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual(0, actual.ChildStatements.Count);
             Assert.IsNull(actual.Content);
         }
+
+        [Test]
+        public void TestVariableUse_Index() {
+            //foo.bar[17];
+            string xml = @"<expr_stmt><expr><name><name>foo</name><op:operator>.</op:operator><name>bar</name><index>[<expr><lit:literal type=""number"">17</lit:literal></expr>]</index></name></expr>;</expr_stmt>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "a.cpp");
+
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            Assert.AreEqual(1, globalScope.ChildStatements.Count);
+            var exp = globalScope.ChildStatements[0].Content;
+            Assert.IsNotNull(exp);
+            Assert.AreEqual(3, exp.Components.Count);
+            var foo = exp.Components[0] as NameUse;
+            Assert.IsNotNull(foo);
+            Assert.AreEqual("foo", foo.Name);
+            var op = exp.Components[1] as OperatorUse;
+            Assert.IsNotNull(op);
+            Assert.AreEqual(".", op.Text);
+            var bar = exp.Components[2] as VariableUse;
+            Assert.IsNotNull(bar);
+            Assert.AreEqual("bar", bar.Name);
+            var index = bar.Index as LiteralUse;
+            Assert.IsNotNull(index);
+            Assert.AreEqual("17", index.Value);
+            Assert.AreEqual(LiteralKind.Number, index.Kind);
+        }
     }
 }

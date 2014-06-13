@@ -28,6 +28,14 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public Expression Index { get; set; }
 
+        /// <summary> Returns a string representation of this object. </summary>
+        public override string ToString() {
+            if(Index != null) {
+                return string.Format("{0}[{1}]", base.ToString(), Index);
+            } else {
+                return base.ToString();
+            }
+        }
         ///// <summary>
         ///// The calling object for a use is used when you have <c>a.b</c> -- this variable use would
         ///// refer to <c>b</c> and the calling object would be <c>a</c>.

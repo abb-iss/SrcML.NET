@@ -1356,8 +1356,8 @@
         </generalsInternal>
         <ownedAttributesInternal>
           <property
-            Id="ffd37fb9-5175-486f-a20e-ed72e5b3fdd3"
-            name="CallingObject"
+            Id="bcae0c64-ce3f-469e-8f36-0c99a48f0e30"
+            name="Index"
             isLeaf="false"
             isStatic="false"
             isReadOnly="false"
@@ -1428,24 +1428,6 @@
               <undefinedTypeMoniker
                 Id="664af602-3d21-4526-9e04-d2e34c380755"
                 LastKnownName="Collection&lt;Expression&gt;"
-                LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
-            </type_NamedElement>
-          </property>
-          <property
-            Id="10a174a1-467e-455d-891c-e427bb006d14"
-            name="CallingObject"
-            isLeaf="false"
-            isStatic="false"
-            isReadOnly="false"
-            isUnique="false"
-            isDerived="false"
-            isDerivedUnion="false"
-            aggregation="None"
-            isComposite="false">
-            <type_NamedElement>
-              <classMoniker
-                Id="ff2b925f-ec79-4d11-9dba-63fbc8f033f0"
-                LastKnownName="Expression"
                 LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
             </type_NamedElement>
           </property>
