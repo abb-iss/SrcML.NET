@@ -29,7 +29,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public const string XmlImportedNamespaceName = "ImportedNamespace";
 
-        public NamespaceUse ImportedNamespace { get; set; }
+        public Expression ImportedNamespace { get; set; }
 
         /// <summary>
         /// Instance method for getting <see cref="ImportStatement.XmlName"/>
@@ -39,7 +39,7 @@ namespace ABB.SrcML.Data {
 
         protected override void ReadXmlChild(XmlReader reader) {
             if(XmlImportedNamespaceName == reader.Name) {
-                ImportedNamespace = XmlSerialization.ReadChildExpression(reader) as NamespaceUse;
+                ImportedNamespace = XmlSerialization.ReadChildExpression(reader);
             } else {
                 base.ReadXmlChild(reader);
             }

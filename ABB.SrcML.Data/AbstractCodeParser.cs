@@ -1284,15 +1284,21 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
+            //check if we can be sure this is a variable use
             if(nameElement.Elements(SRC.Index).Any()) {
                 return ParseVariableUse(nameElement, context);
             }
 
+            if(nameElement.HasElements) {
+                return ParseExpression(nameElement.Elements(), context);
+            }
+
+            //no children
             var nu = new NameUse() {
                 Location = context.CreateLocation(nameElement, true),
                 ProgrammingLanguage = ParserLanguage,
                 Name = NameHelper.GetLastName(nameElement),
-                Prefix = ParseNamePrefix(nameElement,context)
+                //Prefix = ParseNamePrefix(nameElement,context)
             };
 
             return nu;
@@ -1304,23 +1310,38 @@ namespace ABB.SrcML.Data {
         /// <param name="nameElement">The SRC.Name element to parse.</param>
         /// <param name="context">The parser context to use.</param>
         /// <returns>A NamespaceUse corresponding to <paramref name="nameElement"/>.</returns>
-        protected virtual NamespaceUse ParseNamespaceUse(XElement nameElement, ParserContext context) {
+        protected virtual Expression ParseNamespaceUse(XElement nameElement, ParserContext context) {
             if(nameElement == null)
                 throw new ArgumentNullException("nameElement");
             if(nameElement.Name != SRC.Name)
                 throw new ArgumentException("should be a SRC.Name", "nameElement");
             if(context == null)
                 throw new ArgumentNullException("context");
-            
-            var nu = new NamespaceUse() {
-                Location = context.CreateLocation(nameElement, true),
-                ProgrammingLanguage = ParserLanguage,
-                Name = NameHelper.GetLastName(nameElement),
-                Prefix = ParseNamePrefix(nameElement,context)
-            };
 
-            return nu;
-            
+            Expression result;
+
+            if(nameElement.HasElements) {
+                result = new Expression() {
+                    ProgrammingLanguage = ParserLanguage,
+                    Location = context.CreateLocation(nameElement)
+                };
+                foreach(var child in nameElement.Elements()) {
+                    if(child.Name == SRC.Name) {
+                        result.AddComponent(ParseNamespaceUse(child, context));
+                    } else {
+                        result.AddComponent(ParseExpression(child, context));
+                    }
+                }
+            } else {
+                result = new NamespaceUse() {
+                    Location = context.CreateLocation(nameElement, true),
+                    ProgrammingLanguage = ParserLanguage,
+                    Name = NameHelper.GetLastName(nameElement),
+                    //Prefix = ParseNamePrefix(nameElement,context)
+                };
+            }
+
+            return result;
         }
 
         /// <summary>

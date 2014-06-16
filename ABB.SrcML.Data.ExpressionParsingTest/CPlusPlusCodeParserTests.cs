@@ -253,7 +253,7 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual(1, globalScope.ChildStatements.Count);
             var actual = globalScope.ChildStatements[0] as ImportStatement;
             Assert.IsNotNull(actual);
-            Assert.AreEqual("x::y::z", actual.ImportedNamespace.ToString());
+            Assert.AreEqual("x :: y :: z", actual.ImportedNamespace.ToString());
         }
 
         [Test]

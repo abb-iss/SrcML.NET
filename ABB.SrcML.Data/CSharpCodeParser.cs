@@ -230,7 +230,7 @@ namespace ABB.SrcML.Data {
                 }
 
                 var initElement = aliasElement.Element(SRC.Init);
-                alias.Target = ParseExpression(GetFirstChildExpression(initElement), context) as NameUse;
+                alias.Target = ParseExpression(GetFirstChildExpression(initElement), context);
                 
                 stmt = alias;
             } else {

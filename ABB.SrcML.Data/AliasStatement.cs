@@ -34,7 +34,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public const string XmlAliasNameName = "AliasName";
 
-        public NameUse Target { get; set; }
+        public Expression Target { get; set; }
         public string AliasName { get; set; }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace ABB.SrcML.Data {
 
         protected override void ReadXmlChild(XmlReader reader) {
             if(XmlTargetName == reader.Name) {
-                Target = XmlSerialization.ReadChildExpression(reader) as NameUse;
+                Target = XmlSerialization.ReadChildExpression(reader);
             } else if(XmlAliasNameName == reader.Name) {
                 AliasName = reader.ReadContentAsString();
             } else {

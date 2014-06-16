@@ -372,7 +372,7 @@ namespace ABB.SrcML.Data {
                         alias.AliasName = nameElement.Value;
                     }
                     //TODO check this once srcml is updated to see if it's accurate
-                    alias.Target = ParseExpression(GetFirstChildExpression(initElement), context) as NameUse;
+                    alias.Target = ParseExpression(GetFirstChildExpression(initElement), context);
                 } else {
                     //example: using std::cout;
                     if(nameElement != null) {
