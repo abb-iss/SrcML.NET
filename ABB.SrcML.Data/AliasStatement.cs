@@ -53,7 +53,7 @@ namespace ABB.SrcML.Data {
             }
         }
 
-        public override void WriteXml(XmlWriter writer) {
+        protected override void WriteXmlContents(XmlWriter writer) {
             if(null != Target) {
                 XmlSerialization.WriteElement(writer, Target, XmlTargetName);
             }
