@@ -108,7 +108,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="reader">The XML reader</param>
         /// <returns>An enumerable of <see cref="SourceLocation"/> objects</returns>
-        internal static IEnumerable<SourceLocation> ReadLocations(XmlReader reader) { return ReadChildCollection<SourceLocation>(reader, DeserializeLocation); }
+        internal static IEnumerable<SourceLocation> ReadChildLocations(XmlReader reader) { return ReadChildCollection<SourceLocation>(reader, DeserializeLocation); }
 
         internal static IEnumerable<SrcMLLocation> ReadChildSrcMLLocations(XmlReader reader) { return ReadChildCollection<SrcMLLocation>(reader, DeserializeSrcMLLocation); }
 
