@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using System.Xml;
 
 namespace ABB.SrcML.Data {
 
@@ -24,6 +25,26 @@ namespace ABB.SrcML.Data {
     [Serializable]
     public class MethodCall : NameUse {
         private List<Expression> argumentList;
+
+        /// <summary>
+        /// The XML name for MethodCall
+        /// </summary>
+        public new const string XmlName = "call";
+
+        /// <summary>
+        /// XML Name for <see cref="Arguments" />
+        /// </summary>
+        public const string XmlArgumentsName = "Arguments";
+
+        /// <summary>
+        /// XML Name for <see cref="IsConstructor" />
+        /// </summary>
+        public const string XmlIsConstructorName = "IsConstructor";
+
+        /// <summary>
+        /// XML Name for <see cref="IsDestructor" />
+        /// </summary>
+        public const string XmlIsDestructorName = "IsDestructor";
 
         /// <summary>
         /// Creates a new MethodCall object
@@ -202,6 +223,12 @@ namespace ABB.SrcML.Data {
         //}
 
         /// <summary>
+        /// Instance method for getting <see cref="MethodCall.XmlName"/>
+        /// </summary>
+        /// <returns>Returns the XML name for MethodCall</returns>
+        public override string GetXmlName() { return MethodCall.XmlName; }
+
+        /// <summary>
         /// Tests if the provided method definition matches this method call
         /// </summary>
         /// <param name="definition">The method definition to test</param>
@@ -223,6 +250,45 @@ namespace ABB.SrcML.Data {
             //       this.Arguments.Count >= numberOfMethodParameters - numberOfMethodParametersWithDefault &&
             //       this.Arguments.Count <= definition.Parameters.Count;// &&
             //                                                           //argumentsMatchParameters.All(a => a);
+        }
+
+        protected override void ReadXmlAttributes(XmlReader reader) {
+            string attribute = reader.GetAttribute(XmlIsConstructorName);
+            if(!String.IsNullOrEmpty(attribute)) {
+                IsConstructor = XmlConvert.ToBoolean(attribute);
+            }
+            attribute = reader.GetAttribute(XmlIsDestructorName);
+            if(!String.IsNullOrEmpty(attribute)) {
+                IsDestructor = XmlConvert.ToBoolean(attribute);
+            }
+            base.ReadXmlAttributes(reader);
+        }
+
+        protected override void ReadXmlChild(XmlReader reader) {
+            if(XmlArgumentsName == reader.Name) {
+                AddArguments(XmlSerialization.ReadChildExpressions(reader));
+            } else {
+                base.ReadXmlChild(reader);
+            }
+        }
+
+        protected override void WriteXmlAttributes(XmlWriter writer) {
+            if(IsConstructor) {
+                writer.WriteAttributeString(XmlIsConstructorName, XmlConvert.ToString(IsConstructor));
+            }
+
+            if(IsDestructor) {
+                writer.WriteAttributeString(XmlIsDestructorName, XmlConvert.ToString(IsDestructor));
+            }
+
+            base.WriteXmlAttributes(writer);
+        }
+
+        protected override void WriteXmlContents(XmlWriter writer) {
+            base.WriteXmlContents(writer);
+            if(Arguments.Count > 0) {
+                XmlSerialization.WriteCollection<Expression>(writer, XmlArgumentsName, Arguments);
+            }
         }
 
         /// <summary>

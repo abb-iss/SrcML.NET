@@ -13,6 +13,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml;
 
 namespace ABB.SrcML.Data {
 
@@ -20,6 +21,31 @@ namespace ABB.SrcML.Data {
     /// Represents a variable declaration
     /// </summary>
     public class VariableDeclaration : Expression {
+        /// <summary>
+        /// The XML name for VariableDeclaration
+        /// </summary>
+        public new const string XmlName = "var";
+
+        /// <summary>
+        /// XML Name for <see cref="Accessibility" />
+        /// </summary>
+        public const string XmlAccessibilityName = "Accessibility";
+
+        /// <summary>
+        /// XML Name for <see cref="Name" />
+        /// </summary>
+        public const string XmlNameName = "Name";
+
+        /// <summary>
+        /// XML Name for <see cref="Type" />
+        /// </summary>
+        public const string XmlTypeName = "Type";
+
+        /// <summary>
+        /// XML Name for <see cref="Initializer" />
+        /// </summary>
+        public const string XmlInitializerName = "Initializer";
+
         /// <summary>
         /// The access modifier assigned to this type
         /// </summary>
@@ -40,13 +66,18 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public Expression Initializer { get; set; }
 
-
         /// <summary>
         /// Returns the child expressions, including the Initializer.
         /// </summary>
         protected override IEnumerable<AbstractProgramElement> GetChildren() {
             return Enumerable.Repeat(Initializer, 1).Concat(base.GetChildren());
         }
+
+        /// <summary>
+        /// Instance method for getting <see cref="VariableDeclaration.XmlName"/>
+        /// </summary>
+        /// <returns>Returns the XML name for VariableDeclaration</returns>
+        public override string GetXmlName() { return VariableDeclaration.XmlName; }
 
         /// <summary>
         /// Returns a string representation of this object.
@@ -60,6 +91,33 @@ namespace ABB.SrcML.Data {
             return string.Format("{0} {1}", VariableType, Name);
         }
 
+        protected override void ReadXmlChild(XmlReader reader) {
+            if(XmlAccessibilityName == reader.Name) {
+                Accessibility = AccessModifierExtensions.FromKeywordString(reader.ReadContentAsString());
+            } else if(XmlNameName == reader.Name) {
+                Name = reader.ReadContentAsString();
+            } else if(XmlTypeName == reader.Name) {
+                VariableType = XmlSerialization.ReadChildExpression(reader) as TypeUse;
+            } else if(XmlInitializerName == reader.Name) {
+                Initializer = XmlSerialization.ReadChildExpression(reader);
+            }
+            base.ReadXmlChild(reader);
+        }
+
+        protected override void WriteXmlContents(XmlWriter writer) {
+            writer.WriteElementString(XmlAccessibilityName, Accessibility.ToKeywordString());
+            
+            if(null != VariableType) {
+                XmlSerialization.WriteElement(writer, VariableType, XmlTypeName);
+            }
+            
+            writer.WriteElementString(XmlNameName, Name);
+
+            if(null != Initializer) {
+                XmlSerialization.WriteElement(writer, Initializer, XmlInitializerName);
+            }
+            base.WriteXmlContents(writer);
+        }
         
     }
 }

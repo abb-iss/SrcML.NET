@@ -1,4 +1,17 @@
-﻿using System;
+﻿/******************************************************************************
+ * Copyright (c) 2014 ABB Group
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    Vinay Augustine (ABB Group) - initial API, implementation, & documentation
+ *    Patrick Francis (ABB Group) - API, implementation, & documentation
+ *****************************************************************************/
+
+using System;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace ABB.SrcML.Data {
@@ -9,6 +22,21 @@ namespace ABB.SrcML.Data {
     /// </summary>
     //[Serializable]
     public class LiteralUse : Expression {
+
+        /// <summary>
+        /// The XML name for LiteralUse
+        /// </summary>
+        public new const string XmlName = "lu";
+
+        /// <summary>
+        /// XML Name for <see cref="Kind" />
+        /// </summary>
+        public const string XmlKindName = "Kind";
+
+        /// <summary>
+        /// XML Name for <see cref="Value" />
+        /// </summary>
+        public const string XmlValueName = "Value";
 
         /// <summary>The text of the literal.</summary>
         public string Value { get; set; }
@@ -43,6 +71,30 @@ namespace ABB.SrcML.Data {
             throw new SrcMLException(String.Format("\"{0}\" is not a valid literal kind", kind));
         }
 
+        /// <summary>
+        /// Instance method for getting <see cref="LiteralUse.XmlName"/>
+        /// </summary>
+        /// <returns>Returns the XML name for LiteralUse</returns>
+        public override string GetXmlName() { return LiteralUse.XmlName; }
+
+        protected override void ReadXmlAttributes(XmlReader reader) {
+            string attribute = reader.GetAttribute(XmlKindName);
+            if(!String.IsNullOrEmpty(attribute)) {
+                Kind = LiteralKindExtensions.FromKeyword(attribute);
+            }
+            attribute = reader.GetAttribute(XmlValueName);
+            if(!String.IsNullOrEmpty(attribute)) {
+                Value = attribute;
+            }
+
+            base.ReadXmlAttributes(reader);
+        }
+
+        protected override void WriteXmlAttributes(XmlWriter writer) {
+            writer.WriteAttributeString(XmlKindName, Kind.ToKeyword());
+            writer.WriteAttributeString(XmlValueName, Value);
+            base.WriteXmlAttributes(writer);
+        }
         /// <summary> Returns the text value of this literal. </summary>
         public override string ToString() {
             return Value;

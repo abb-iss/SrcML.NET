@@ -13,6 +13,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml;
 
 namespace ABB.SrcML.Data {
 
@@ -21,6 +22,15 @@ namespace ABB.SrcML.Data {
     /// </summary>
     //[Serializable]
     public class VariableUse : NameUse {
+        /// <summary>
+        /// The XML name for VariableUse
+        /// </summary>
+        public new const string XmlName = "vu";
+
+        /// <summary>
+        /// XML Name for <see cref="Index" />
+        /// </summary>
+        public const string XmlIndexName = "idx";
 
         /// <summary>
         /// The expression supplied as an index to the variable, if any.
@@ -161,6 +171,26 @@ namespace ABB.SrcML.Data {
             //return typeDefinitions;
         }
 
+        /// <summary>
+        /// Instance method for getting <see cref="VariableUse.XmlName"/>
+        /// </summary>
+        /// <returns>Returns the XML name for VariableUse</returns>
+        public override string GetXmlName() { return VariableUse.XmlName; }
+
+        protected override void ReadXmlChild(XmlReader reader) {
+            if(XmlIndexName == reader.Name) {
+                Index = XmlSerialization.ReadChildExpression(reader);
+            } else {
+                base.ReadXmlChild(reader);
+            }
+        }
+
+        protected override void WriteXmlContents(XmlWriter writer) {
+            if(null != Index) {
+                XmlSerialization.WriteElement(writer, Index, XmlIndexName);
+            }
+            base.WriteXmlContents(writer);
+        }
         ///// <summary>
         ///// Tests if this variable usage is a match for
         ///// <paramref name="definition"/></summary>

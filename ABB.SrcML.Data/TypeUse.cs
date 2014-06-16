@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using System.Xml;
 
 namespace ABB.SrcML.Data {
 
@@ -23,6 +24,16 @@ namespace ABB.SrcML.Data {
     /// </summary>
     public class TypeUse : NameUse {
         private List<TypeUse> typeParameterList;
+
+        /// <summary>
+        /// The XML name for TypeUse
+        /// </summary>
+        public new const string XmlName = "tu";
+
+        /// <summary>
+        /// XML Name for <see cref="TypeParameters" />
+        /// </summary>
+        public const string XmlTypeParametersName = "TypeParameters";
 
         /// <summary>
         /// Create a new type use object.
@@ -115,6 +126,12 @@ namespace ABB.SrcML.Data {
         //}
 
         /// <summary>
+        /// Instance method for getting <see cref="TypeUse.XmlName"/>
+        /// </summary>
+        /// <returns>Returns the XML name for TypeUse</returns>
+        public override string GetXmlName() { return TypeUse.XmlName; }
+
+        /// <summary>
         /// Returns a string representation of this object.
         /// </summary>
         public override string ToString() {
@@ -130,6 +147,21 @@ namespace ABB.SrcML.Data {
                 sb.AppendFormat("<{0}>", String.Join(",", TypeParameters));
             }
             return sb.ToString();
+        }
+
+        protected override void ReadXmlChild(XmlReader reader) {
+            if(XmlTypeParametersName == reader.Name) {
+                AddTypeParameters(XmlSerialization.ReadChildExpressions(reader).Cast<TypeUse>());
+            } else {
+                base.ReadXmlChild(reader);
+            }
+        }
+
+        protected override void WriteXmlContents(XmlWriter writer) {
+            if(TypeParameters.Count > 0) {
+                XmlSerialization.WriteCollection<TypeUse>(writer, XmlTypeParametersName, TypeParameters);
+            }
+            base.WriteXmlContents(writer);
         }
     }
 }

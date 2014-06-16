@@ -33,7 +33,6 @@ namespace ABB.SrcML.Data {
             { Statement.XmlName, CreateFromReader<Statement> },
             
             /* alias & import statements */
-            { AliasStatement.XmlName, CreateFromReader<AliasStatement> },
             { ImportStatement.XmlName, CreateFromReader<ImportStatement> },
 
             /* basic statements */
@@ -55,7 +54,6 @@ namespace ABB.SrcML.Data {
             { TryStatement.XmlName, CreateFromReader<TryStatement> },
             { WhileStatement.XmlName, CreateFromReader<WhileStatement> },
             { DoWhileStatement.XmlName, CreateFromReader<DoWhileStatement> },
-
             { UsingBlockStatement.XmlName, CreateFromReader<UsingBlockStatement> },
 
             /* Named statements */
@@ -67,6 +65,15 @@ namespace ABB.SrcML.Data {
 
         internal static Dictionary<string, XmlInitializer<Expression>> XmlExpressionMap = new Dictionary<string, XmlInitializer<Expression>>() {
             { Expression.XmlName, CreateFromReader<Expression> },
+            { LiteralUse.XmlName, CreateFromReader<LiteralUse> },
+            { MethodCall.XmlName, CreateFromReader<MethodCall> },
+            { NameUse.XmlName, CreateFromReader<NameUse> },
+            { NamePrefix.XmlName, CreateFromReader<NamePrefix> },
+            { NamespaceUse.XmlName, CreateFromReader<NamespaceUse> },
+            { OperatorUse.XmlName, CreateFromReader<OperatorUse> },
+            { TypeUse.XmlName, CreateFromReader<TypeUse> },
+            { VariableDeclaration.XmlName, CreateFromReader<VariableDeclaration> },
+            { VariableUse.XmlName, CreateFromReader<VariableUse> },
         };
         
         /// <summary>
@@ -137,7 +144,7 @@ namespace ABB.SrcML.Data {
         /// <param name="element">The object to write</param>
         /// <param name="parentElementName">the parent element. If not null, <paramref name="element"/> is wrapped in an element with this name</param>
         internal static void WriteElement(XmlWriter writer, IXmlElement element, string parentElementName = null) {
-            if(String.IsNullOrEmpty(parentElementName)) {
+            if(!String.IsNullOrEmpty(parentElementName)) {
                 writer.WriteStartElement(parentElementName);
             }
             
@@ -145,7 +152,7 @@ namespace ABB.SrcML.Data {
             element.WriteXml(writer);
             writer.WriteEndElement();
 
-            if(String.IsNullOrEmpty(parentElementName)) {
+            if(!String.IsNullOrEmpty(parentElementName)) {
                 writer.WriteEndElement();
             }
         }
