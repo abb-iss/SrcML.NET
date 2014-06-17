@@ -180,28 +180,6 @@ namespace ABB.SrcML.Test
         }
 
         [Test]
-        public void ConcurrentGenerateXMLTest() {
-            var archive = new SrcMLArchive(ArchiveDirectory, false, new SrcMLGenerator(TestConstants.SrcmlPath));
-            
-            //Create the source files
-            List<string> files = new List<string>();
-            for(int i = 0; i < 100; i++) {
-                File.WriteAllText(SourceDirectory + "\\foo" + i + ".c", String.Format(@"int foo() {{{0}printf(""hello world!"");{0}}}", Environment.NewLine));
-                files.Add(SourceDirectory + "\\foo" + i.ToString() + ".c");
-            }
-
-            //Generate the SrcML
-            int levelOfConcurrency = 7;
-            archive.ConcurrentGenerateXmlForSource(files, levelOfConcurrency);
-
-            var xmlDirectory = new DirectoryInfo(archive.ArchivePath);
-
-            for(int i = 0; i < 10; i++) 
-                Assert.That(File.Exists(Path.Combine(xmlDirectory.FullName, "foo" + i.ToString() + ".c.1.xml")));
-
-        }
-
-        [Test]
         public void TestEmptyArchive() {
             var archive = new SrcMLArchive(ArchiveDirectory, false, new SrcMLGenerator(Path.Combine(".", "SrcML")));
             Assert.That(archive.IsEmpty);

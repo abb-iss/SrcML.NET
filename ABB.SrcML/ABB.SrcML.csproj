@@ -61,6 +61,7 @@
     <Compile Include="AbstractArchive.cs" />
     <Compile Include="AbstractDocument.cs" />
     <Compile Include="AbstractFileMonitor.cs" />
+    <Compile Include="AbstractGenerator.cs" />
     <Compile Include="DirectoryScanningMonitorEventArgs.cs" />
     <Compile Include="Exceptions\DirectoryScanningMonitorSubDirectoryException.cs" />
     <Compile Include="Exceptions\ForbiddenDirectoryException.cs" />
@@ -68,6 +69,7 @@
     <Compile Include="FileEventRaisedArgs.cs" />
     <Compile Include="FileInfoComparer.cs" />
     <Compile Include="FileSystemFolderMonitor.cs" />
+    <Compile Include="GeneratorArchive.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="IsReadyChangedEventArgs.cs" />
     <Compile Include="Language.cs" />
