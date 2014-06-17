@@ -14,10 +14,10 @@ namespace ABB.SrcML {
     /// The names of the XML files are relatively short to avoid exceeding the Windows file path
     /// character limit.
     /// </summary>
-    public class ShortXmlFileNameMapping : XmlFileNameMapping {
+    public class ShortXmlFileNameMapping : AbstractFileNameMapping {
         private const string mappingFile = "mapping.txt";
         private readonly object mappingLock = new object();
-
+        
         //maps source path to xml path
         //TODO should support case insensitive paths, add option in constructor
         private Dictionary<string, string> mapping;
@@ -25,13 +25,22 @@ namespace ABB.SrcML {
         //maps source files names (without path) to a count of how many times that name has been seen
         private Dictionary<string, int> nameCount;
 
+        
         /// <summary>
         /// Creates a new ShortXmlFileNameMapping.
         /// </summary>
-        /// <param name="xmlDirectory">The directory for the XML files.</param>
-        public ShortXmlFileNameMapping(string xmlDirectory)
-            : base(xmlDirectory) {
-            if(CheckIfDirectoryIsCaseInsensitive(xmlDirectory)) {
+        /// <param name="targetDirectory">The directory for the target files.</param>
+        public ShortXmlFileNameMapping(string targetDirectory)
+            : this(targetDirectory, "xml") { }
+
+        /// <summary>
+        /// Creates a new ShortXmlFileNameMapping
+        /// </summary>
+        /// <param name="targetDirectory">The directory for the target files</param>
+        /// <param name="targetExtension">the extension for the target files</param>
+        public ShortXmlFileNameMapping(string targetDirectory, string targetExtension)
+            : base(targetDirectory, targetExtension) {
+                if(CheckIfDirectoryIsCaseInsensitive(targetDirectory)) {
                 mapping = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase);
                 nameCount = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
             } else {
@@ -50,59 +59,59 @@ namespace ABB.SrcML {
 
         /// <summary>
         /// Returns the path where the source file for
-        /// <paramref name="xmlPath"/>is located.
+        /// <paramref name="targetPath"/>is located.
         /// </summary>
-        /// <param name="xmlPath">The path for the XML file.</param>
+        /// <param name="targetPath">The target file path</param>
         /// <returns>The full path for the source file that
-        /// <paramref name="xmlPath"/>is based on.</returns>
-        public override string GetSourcePath(string xmlPath) {
-            if(!Path.IsPathRooted(xmlPath)) {
-                xmlPath = Path.Combine(XmlDirectory, xmlPath);
+        /// <paramref name="targetPath"/>is based on.</returns>
+        public override string GetSourcePath(string targetPath) {
+            if(!Path.IsPathRooted(targetPath)) {
+                targetPath = Path.Combine(TargetDirectory, targetPath);
             }
             string result = null;
             lock(mappingLock) {
                 result = (from kvp in mapping
-                          where xmlPath.Equals(kvp.Value, StringComparison.CurrentCultureIgnoreCase)
+                          where targetPath.Equals(kvp.Value, StringComparison.CurrentCultureIgnoreCase)
                           select kvp.Key).FirstOrDefault();
             }
             return result;
         }
 
         /// <summary>
-        /// Returns the path for the XML file mapped to
+        /// Returns the path for the target file mapped to
         /// <paramref name="sourcePath"/>.
         /// </summary>
         /// <param name="sourcePath">The path for the source file.</param>
-        /// <returns>The full path for an XML file based on
+        /// <returns>The full path for a target file based on
         /// <paramref name="sourcePath"/>.</returns>
-        public override string GetXmlPath(string sourcePath) {
+        public override string GetTargetPath(string sourcePath) {
             if(string.IsNullOrWhiteSpace(sourcePath)) {
                 throw new ArgumentException("Argument cannot be null, string.Empty, or whitespace.", "sourcePath");
             }
 
             sourcePath = Path.GetFullPath(sourcePath);
-            string xmlPath;
+            string targetPath;
             lock(mappingLock) {
                 if(mapping.ContainsKey(sourcePath)) {
-                    xmlPath = mapping[sourcePath];
+                    targetPath = mapping[sourcePath];
                 } else {
                     var sourceName = Path.GetFileName(sourcePath);
                     int newNameNum = nameCount.ContainsKey(sourceName) ? nameCount[sourceName] + 1 : 1;
                     nameCount[sourceName] = newNameNum;
 
-                    xmlPath = Path.Combine(XmlDirectory, string.Format("{0}.{1}.xml", sourceName, newNameNum));
-                    mapping[sourcePath] = xmlPath;
+                    targetPath = Path.Combine(TargetDirectory, string.Format("{0}.{1}.{2}", sourceName, newNameNum, TargetExtension));
+                    mapping[sourcePath] = targetPath;
                 }
             }
-            return xmlPath;
+            return targetPath;
         }
 
         /// <summary>
-        /// Saves the file name mapping to the XmlDirectory.
+        /// Saves the file name mapping to the <see cref="AbstractFileNameMapping.TargetDirectory"/>.
         /// </summary>
         public override void SaveMapping() {
             lock(mappingLock) {
-                using(var outFile = new StreamWriter(Path.Combine(XmlDirectory, mappingFile))) {
+                using(var outFile = new StreamWriter(Path.Combine(TargetDirectory, mappingFile))) {
                     foreach(var kvp in mapping) {
                         outFile.WriteLine(string.Format("{0}|{1}", kvp.Key, kvp.Value));
                     }
@@ -114,12 +123,12 @@ namespace ABB.SrcML {
         /// Updates the mapping data structures with the info from a single map file entry.
         /// </summary>
         /// <param name="sourcePath"></param>
-        /// <param name="xmlPath"></param>
-        protected void ProcessMapFileEntry(string sourcePath, string xmlPath) {
+        /// <param name="targetPath"></param>
+        protected void ProcessMapFileEntry(string sourcePath, string targetPath) {
             lock(mappingLock) {
-                mapping[sourcePath] = xmlPath;
+                mapping[sourcePath] = targetPath;
                 //determine duplicate number
-                var m = Regex.Match(xmlPath, @"\.(\d+)\.xml$");
+                var m = Regex.Match(targetPath, @"\.(\d+)\.xml$");
                 if(m.Success) {
                     var sourceName = Path.GetFileName(sourcePath);
                     var nameNum = int.Parse(m.Groups[1].Value);
@@ -139,7 +148,7 @@ namespace ABB.SrcML {
         protected void ReadMapping() {
             lock(mappingLock) {
                 mapping.Clear();
-                var mappingPath = Path.Combine(XmlDirectory, mappingFile);
+                var mappingPath = Path.Combine(TargetDirectory, mappingFile);
                 if(File.Exists(mappingPath)) {
                     //read mapping file
                     foreach(var line in File.ReadLines(mappingPath)) {
@@ -154,8 +163,8 @@ namespace ABB.SrcML {
                 } else {
                     //mapping file doesn't exist, so construct mapping from the xml files in the directory
                     Debug.WriteLine(string.Format("Mapping file not found: {0}", mappingPath));
-                    if(Directory.Exists(XmlDirectory)) {
-                        foreach(var xmlFile in Directory.GetFiles(XmlDirectory, "*.xml")) {
+                    if(Directory.Exists(TargetDirectory)) {
+                        foreach(var xmlFile in Directory.GetFiles(TargetDirectory, "*.xml")) {
                             var unit = XmlHelper.StreamElements(xmlFile, SRC.Unit, 0).FirstOrDefault();
                             if(unit != null) {
                                 //should be a SrcML file
@@ -170,7 +179,7 @@ namespace ABB.SrcML {
             }
         }
 
-        private bool CheckIfDirectoryIsCaseInsensitive(string directory) {
+        private static bool CheckIfDirectoryIsCaseInsensitive(string directory) {
             bool isCaseInsensitive = false;
             string tempFile = string.Empty;
             try {

@@ -64,7 +64,7 @@ namespace ABB.SrcML {
         /// <param name="useExistingSrcML">If True, any existing SrcML files in <see cref="AbstractArchive.ArchivePath"/> will be used. If False, these files will be deleted and potentially recreated.</param>
         /// <param name="generator">The SrcMLGenerator to use to convert source files to SrcML.</param>
         /// <param name="xmlMapping">The XmlFileNameMapping to use to map source paths to xml file paths.</param>
-        public SrcMLArchive(string baseDirectory, bool useExistingSrcML, SrcMLGenerator generator, XmlFileNameMapping xmlMapping)
+        public SrcMLArchive(string baseDirectory, bool useExistingSrcML, SrcMLGenerator generator, AbstractFileNameMapping xmlMapping)
             : this(baseDirectory, DEFAULT_ARCHIVE_DIRECTORY, useExistingSrcML, generator, xmlMapping, TaskScheduler.Default) {
         }
         /// <summary>
@@ -108,7 +108,7 @@ namespace ABB.SrcML {
         /// <param name="generator">The SrcMLGenerator to use to convert source files to SrcML.</param>
         /// <param name="xmlMapping">The XmlFileNameMapping to use to map source paths to xml file paths.</param>
         /// <param name="scheduler">The task scheduler to for asynchronous tasks</param>
-        public SrcMLArchive(string baseDirectory, string srcMLDirectory, bool useExistingSrcML, SrcMLGenerator generator, XmlFileNameMapping mapping, TaskScheduler scheduler)
+        public SrcMLArchive(string baseDirectory, string srcMLDirectory, bool useExistingSrcML, SrcMLGenerator generator, AbstractFileNameMapping mapping, TaskScheduler scheduler)
             : base(baseDirectory, srcMLDirectory, useExistingSrcML, generator, mapping, scheduler) { }
 
         /// <summary>

@@ -23,7 +23,7 @@ namespace ABB.SrcML {
     /// keeps track of files by using the provided <see cref="Generator"/>. The files in the archive have their last-write time set to the corresponding file on disk
     /// </summary>
     public class GeneratorArchive : AbstractArchive {
-        private XmlFileNameMapping _fileMapping;
+        private AbstractFileNameMapping _fileMapping;
 
         /// <summary>
         /// The generator to use to power this archive
@@ -35,18 +35,19 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="baseDirectory">The parent directory of <paramref name="archiveDirectory"/>. <see cref="AbstractArchive.ArchivePath"/> will be set to <c>Path.Combine(baseDirectory, archiveDirectory)</c></param>
         /// <param name="archiveDirectory">The directory to store the archive files in</param>
+        /// <param name="useExistingArchive">if true, use any files found in the archive directory. Otherwise, delete them</param>
         /// <param name="generator">The generator to use</param>
         /// <param name="mapping">The file name mapping</param>
         /// <param name="scheduler">The task scheduler for asynchronous tasks</param>
-        public GeneratorArchive(string baseDirectory, string archiveDirectory, bool useExistingArchive, AbstractGenerator generator, XmlFileNameMapping mapping, TaskScheduler scheduler)
+        public GeneratorArchive(string baseDirectory, string archiveDirectory, bool useExistingArchive, AbstractGenerator generator, AbstractFileNameMapping mapping, TaskScheduler scheduler)
         : base(baseDirectory, archiveDirectory, TaskScheduler.Default) {
             _fileMapping = mapping;
             Generator = generator;
             if(!Directory.Exists(this.ArchivePath)) {
                 Directory.CreateDirectory(this.ArchivePath);
             } else if(!useExistingArchive) {
-                foreach(var file in Directory.GetFiles(ArchivePath, "*.xml")) {
-                    File.Delete(file);
+                foreach(var fileName in GetArchivedFiles().ToList()) {
+                    File.Delete(fileName);
                 }
             }
         }
@@ -85,7 +86,7 @@ namespace ABB.SrcML {
         /// <param name="sourcePath">The source path</param>
         /// <returns>The full path within the archive for <paramref name="sourcePath"/></returns>
         public string GetArchivePath(string sourcePath) {
-            return _fileMapping.GetXmlPath(sourcePath);
+            return _fileMapping.GetTargetPath(sourcePath);
         }
 
         /// <summary>
@@ -102,7 +103,7 @@ namespace ABB.SrcML {
         /// </summary>
         /// <returns>An enumerable of the stored files</returns>
         protected IEnumerable<string> GetArchivedFiles() {
-            return Directory.EnumerateFiles(this.ArchivePath, "*.xml", SearchOption.AllDirectories);
+            return _fileMapping.GetTargetFiles();
         }
 
         #region AbstractArchive members
@@ -216,7 +217,7 @@ namespace ABB.SrcML {
 
         #region IDisposable members
         /// <summary>
-        /// Disposes of the internal <see cref="XmlFileNameMapping"/> and then calls <see cref="AbstractArchive.Dispose()"/>
+        /// Disposes of the internal <see cref="AbstractFileNameMapping"/> and then calls <see cref="AbstractArchive.Dispose()"/>
         /// </summary>
         public override void Dispose() {
             _fileMapping.Dispose();
