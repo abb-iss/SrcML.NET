@@ -62,7 +62,7 @@
     <Compile Include="LastModifiedArchiveTests.cs" />
     <Compile Include="LimitedConcurrencyLevelTaskSchedulerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ShortXmlFileNameMappingTests.cs" />
+    <Compile Include="ShortFileNameMappingTests.cs" />
     <Compile Include="SrcMLArchiveTests.cs">
       <SubType>Code</SubType>
     </Compile>

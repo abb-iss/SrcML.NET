@@ -1,4 +1,16 @@
-﻿using System;
+﻿/******************************************************************************
+ * Copyright (c) 2013 ABB Group
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    Patrick Francis (ABB Group) - Initial implementation
+ *    Vinay Augustine (ABB Group) - Initial implementation
+ *****************************************************************************/
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -14,7 +26,7 @@ namespace ABB.SrcML {
     /// The names of the XML files are relatively short to avoid exceeding the Windows file path
     /// character limit.
     /// </summary>
-    public class ShortXmlFileNameMapping : AbstractFileNameMapping {
+    public class ShortFileNameMapping : AbstractFileNameMapping {
         private const string mappingFile = "mapping.txt";
         private readonly object mappingLock = new object();
         
@@ -30,7 +42,7 @@ namespace ABB.SrcML {
         /// Creates a new ShortXmlFileNameMapping.
         /// </summary>
         /// <param name="targetDirectory">The directory for the target files.</param>
-        public ShortXmlFileNameMapping(string targetDirectory)
+        public ShortFileNameMapping(string targetDirectory)
             : this(targetDirectory, "xml") { }
 
         /// <summary>
@@ -38,7 +50,7 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="targetDirectory">The directory for the target files</param>
         /// <param name="targetExtension">the extension for the target files</param>
-        public ShortXmlFileNameMapping(string targetDirectory, string targetExtension)
+        public ShortFileNameMapping(string targetDirectory, string targetExtension)
             : base(targetDirectory, targetExtension) {
                 if(CheckIfDirectoryIsCaseInsensitive(targetDirectory)) {
                 mapping = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase);

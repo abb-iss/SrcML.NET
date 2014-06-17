@@ -90,7 +90,7 @@
     <Compile Include="Utilities\IConcurrencyStrategy.cs" />
     <Compile Include="Utilities\LimitedConcurrencyLevelTaskScheduler.cs" />
     <Compile Include="Utilities\ReadyNotifier.cs" />
-    <Compile Include="ShortXmlFileNameMapping.cs" />
+    <Compile Include="ShortFileNameMapping.cs" />
     <Compile Include="DirectoryScanningMonitor.cs" />
     <Compile Include="Src2SrcMLRunner2.cs" />
     <Compile Include="SrcMLGenerator.cs" />
