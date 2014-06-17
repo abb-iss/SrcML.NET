@@ -285,6 +285,7 @@ namespace ABB.SrcML.Data {
                 var nameElement = aliasElement.Element(SRC.Name);
                 if(nameElement != null) {
                     import.ImportedNamespace = ParseNamespaceUse(nameElement, context);
+                    //TODO: fix to handle the trailing operator tag
                 }
                 stmt = import;
             } else {
@@ -293,7 +294,7 @@ namespace ABB.SrcML.Data {
                 alias.AddLocation(context.CreateLocation(aliasElement));
                 var nameElement = aliasElement.Element(SRC.Name);
                 if(nameElement != null) {
-                    alias.Target = ParseExpression(nameElement, context) as NameUse;
+                    alias.Target = ParseExpression(nameElement, context);
                     alias.AliasName = NameHelper.GetLastName(nameElement);
                 }
                 stmt = alias;

@@ -41,7 +41,7 @@ namespace ABB.SrcML.Data.Test {
             var actual = globalScope.ChildStatements[0] as AliasStatement;
             Assert.IsNotNull(actual);
             Assert.AreEqual("z", actual.AliasName);
-            Assert.AreEqual("x.y.z", actual.Target.ToString());
+            Assert.AreEqual("x . y . z", actual.Target.ToString());
         }
 
         [Test]
@@ -55,7 +55,7 @@ namespace ABB.SrcML.Data.Test {
 
             var actual = globalScope.ChildStatements[0] as ImportStatement;
             Assert.IsNotNull(actual);
-            Assert.AreEqual("x.y.z", actual.ImportedNamespace.ToString());
+            Assert.AreEqual("x . y . z", actual.ImportedNamespace.ToString());
         }
 
         [Test]
