@@ -1026,7 +1026,7 @@ namespace ABB.SrcML.Data.Test {
             Assert.IsFalse(callToPrintOutput.IsDestructor);
             Assert.IsFalse(callToPrintOutput.IsConstructor);
 
-            var callToAnalyze = callToPrintOutput.Arguments.First() as MethodCall;
+            var callToAnalyze = callToPrintOutput.Arguments.First().GetDescendantsAndSelf<MethodCall>().First();
             Assert.IsNotNull(callToAnalyze);
             Assert.AreEqual("analyze", callToAnalyze.Name);
             Assert.IsFalse(callToAnalyze.IsDestructor);
@@ -1041,7 +1041,7 @@ namespace ABB.SrcML.Data.Test {
             Assert.IsFalse(callToPrintError.IsDestructor);
             Assert.IsFalse(callToPrintError.IsConstructor);
 
-            var callToToString = callToPrintError.Arguments.First() as MethodCall;
+            var callToToString = callToPrintError.Arguments.First().GetDescendantsAndSelf<MethodCall>().First();
             Assert.IsNotNull(callToToString);
             Assert.AreEqual("ToString", callToToString.Name);
             Assert.IsFalse(callToToString.IsDestructor);
