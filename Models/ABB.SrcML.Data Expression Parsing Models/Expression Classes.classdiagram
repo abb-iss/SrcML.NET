@@ -257,6 +257,12 @@
               <referencedTypeMoniker Id="1b943ff1-e43c-4eb8-b021-4e0151d57af9" LastKnownName="bool" />
             </type_NamedElement>
           </property>
+          <property Id="afc97847-6bdb-43c3-8657-3279cb3e7220" name="TypeArguments" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="5383b2ea-b09a-4628-ac40-e7c7b3bcba91" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="661a6092-b8b9-41e6-9176-991afe081c60" LastKnownName="Collection&lt;TypeUse&gt;" />
+            </type_NamedElement>
+          </property>
         </ownedAttributesInternal>
       </class>
     </logicalClassDesignerModelHasTypes>

@@ -426,60 +426,7 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual(AccessModifier.Public, type.Accessibility);
         }
 
-//        [Test]
-//        public void TestMethodCallCreation() {
-//            // # A.java class A { public int Execute() { B b = new B(); for(int i = 0; i
-//            // < b.max(); i++) { try { PrintOutput(b.analyze(i)); } catch(Exception e) {
-//            // PrintError(e.ToString()); } } } }
-//            string xml = @"<class>class <name>A</name> <block>{
-//<function><type><specifier>public</specifier> <name>int</name></type> <name>Execute</name><parameter_list>()</parameter_list> <block>{
-//    <decl_stmt><decl><type><name>B</name></type> <name>b</name> =<init> <expr><op:operator>new</op:operator> <call><name>B</name><argument_list>()</argument_list></call></expr></init></decl>;</decl_stmt>
-//    <for>for(<init><decl><type><name>int</name></type> <name>i</name> =<init> <expr><lit:literal type=""number"">0</lit:literal></expr></init></decl>;</init> <condition><expr><name>i</name> <op:operator>&lt;</op:operator> <call><name><name>b</name><op:operator>.</op:operator><name>max</name></name><argument_list>()</argument_list></call></expr>;</condition> <incr><expr><name>i</name><op:operator>++</op:operator></expr></incr>) <block>{
-//        <try>try <block>{
-//            <expr_stmt><expr><call><name>PrintOutput</name><argument_list>(<argument><expr><call><name><name>b</name><op:operator>.</op:operator><name>analyze</name></name><argument_list>(<argument><expr><name>i</name></expr></argument>)</argument_list></call></expr></argument>)</argument_list></call></expr>;</expr_stmt>
-//        }</block> <catch>catch(<param><decl><type><name>Exception</name></type> <name>e</name></decl></param>) <block>{
-//            <expr_stmt><expr><call><name>PrintError</name><argument_list>(<argument><expr><call><name><name>e</name><op:operator>.</op:operator><name>ToString</name></name><argument_list>()</argument_list></call></expr></argument>)</argument_list></call></expr>;</expr_stmt>
-//        }</block></catch></try>
-//    }</block></for>
-//}</block></function>
-//}</block></class>";
 
-//            var fileUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
-
-//            var globalScope = codeParser.ParseFileUnit(fileUnit);
-
-//            var executeMethod = globalScope.ChildScopes.First().ChildScopes.First() as IMethodDefinition;
-
-//            var callToNewB = executeMethod.MethodCalls.First();
-//            Assert.AreEqual("B", callToNewB.Name);
-//            Assert.IsTrue(callToNewB.IsConstructor);
-//            Assert.IsFalse(callToNewB.IsDestructor);
-
-//            var forStatement = executeMethod.ChildScopes.First();
-//            var callToMax = forStatement.MethodCalls.First();
-//            Assert.AreEqual("max", callToMax.Name);
-//            Assert.IsFalse(callToMax.IsDestructor);
-//            Assert.IsFalse(callToMax.IsConstructor);
-
-//            var forBlock = forStatement.ChildScopes.First();
-//            var tryStatement = forBlock.ChildScopes.First();
-//            var tryBlock = tryStatement.ChildScopes.First();
-
-//            var callToPrintOutput = tryBlock.MethodCalls.First();
-//            Assert.AreEqual("PrintOutput", callToPrintOutput.Name);
-
-//            var callToAnalyze = tryBlock.MethodCalls.Last();
-//            Assert.AreEqual("analyze", callToAnalyze.Name);
-
-//            var catchStatement = tryStatement.ChildScopes.Last();
-//            var catchBlock = catchStatement.ChildScopes.First();
-
-//            var callToPrintError = catchBlock.MethodCalls.First();
-//            Assert.AreEqual("PrintError", callToPrintError.Name);
-
-//            var callToToString = catchBlock.MethodCalls.Last();
-//            Assert.AreEqual("ToString", callToToString.Name);
-//        }
 
 //        [Test]
 //        public void TestMethodCallCreation_WithConflictingMethodNames() {

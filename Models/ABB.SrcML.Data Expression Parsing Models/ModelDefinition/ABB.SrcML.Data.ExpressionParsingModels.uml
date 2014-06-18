@@ -1467,6 +1467,24 @@
                 LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
             </type_NamedElement>
           </property>
+          <property
+            Id="5383b2ea-b09a-4628-ac40-e7c7b3bcba91"
+            name="TypeArguments"
+            isLeaf="false"
+            isStatic="false"
+            isReadOnly="false"
+            isUnique="false"
+            isDerived="false"
+            isDerivedUnion="false"
+            aggregation="None"
+            isComposite="false">
+            <type_NamedElement>
+              <undefinedTypeMoniker
+                Id="c2629e6a-9211-4c33-94c9-f6fd59eefbd1"
+                LastKnownName="Collection&lt;TypeUse&gt;"
+                LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+            </type_NamedElement>
+          </property>
         </ownedAttributesInternal>
       </class>
     </packageHasNamedElement>
