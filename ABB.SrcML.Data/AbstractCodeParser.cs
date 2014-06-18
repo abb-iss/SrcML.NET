@@ -1171,33 +1171,59 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            var expList = new List<Expression>();
-            var declList = new List<VariableDeclaration>();
-            foreach(var element in elements) {
-                var exp = ParseExpression(element, context);
-                var varDecl = exp as VariableDeclaration;
-                if(varDecl != null && varDecl.VariableType == null && declList.Any()) {
-                    //type will be null in cases of multiple declarations, e.g. int a, b;
-                    varDecl.VariableType = declList.First().VariableType;
-                    varDecl.Accessibility = declList.First().Accessibility;
-                }
-                expList.Add(exp);
-                if(varDecl != null) { declList.Add(varDecl); }
-            }
+            var expElements = elements.ToList();
 
-            if(expList.Count == 0) {
+            if(expElements.Count == 0) {
                 return null;
             }
-            if(expList.Count == 1) {
-                return expList.First();
+            if(expElements.Count == 1) {
+                return ParseExpression(expElements.First(), context);
             }
 
-            var rootExp = new Expression() {
+            var expressionStack = new Stack<Expression>();
+            expressionStack.Push(new Expression() {
                 ProgrammingLanguage = ParserLanguage,
-                Location = context.CreateLocation(elements.First().Parent)
-            };
-            rootExp.AddComponents(expList);
-            return rootExp;
+                Location = context.CreateLocation(expElements.First().Parent)
+            });
+
+            //parse each of the components in the expression
+            var declList = new List<VariableDeclaration>();
+            foreach(var element in expElements) {
+                var exp = ParseExpression(element, context);
+                var varDecl = exp as VariableDeclaration;
+                if(varDecl != null) {
+                    if(varDecl.VariableType == null && declList.Any()) {
+                        //type will be null in cases of multiple declarations, e.g. int a, b;
+                        varDecl.VariableType = declList.First().VariableType;
+                        varDecl.Accessibility = declList.First().Accessibility;
+                    }
+                    declList.Add(varDecl);
+                }
+
+                //handle sub-expressions
+                var opUse = exp as OperatorUse;
+                if(opUse != null && opUse.Text == "(") {
+                    //this is the start of a sub-expression
+                    expressionStack.Push(new Expression() {
+                        ProgrammingLanguage = ParserLanguage,
+                        Location = context.CreateLocation(element.Parent)
+                    });
+                } else if(opUse != null && opUse.Text == ")") {
+                    //this is the end of a sub-expression
+                    var subExp = expressionStack.Pop();
+                    expressionStack.Peek().AddComponent(subExp);
+                } else {
+                    expressionStack.Peek().AddComponent(exp);
+                }
+            }
+
+            while(expressionStack.Count > 1) {
+                //we saw more lparens than rparens, just combine the expression fragments
+                var exp = expressionStack.Pop();
+                expressionStack.Peek().AddComponent(exp);
+            }
+
+            return expressionStack.Pop();
         }
 
         protected virtual Expression ParseExpressionElement(XElement expElement, ParserContext context) {
@@ -1208,20 +1234,7 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            //parse each component in the expression
-            var expList = expElement.Elements().Select(e => ParseExpression(e, context)).ToList();
-            //if there's only one component in this expression, just return that
-            if(expList.Count == 1) {
-                return expList.First();
-            }
-            //otherwise, create an Expression to contain the components
-            var exp = new Expression() {
-                Location = context.CreateLocation(expElement),
-                ProgrammingLanguage = ParserLanguage
-            };
-            exp.AddComponents(expList);
-
-            return exp;
+            return ParseExpression(expElement.Elements(), context);
         }
         
         /// <summary>

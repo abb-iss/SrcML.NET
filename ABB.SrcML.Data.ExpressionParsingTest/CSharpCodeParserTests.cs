@@ -300,7 +300,7 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        [Category("Todo")]
+        [Category("SrcMLUpdate")]
         public void TestUsingBlock_Expression() {
             //using(bar = new Foo()) { ; }
             string xml = @"<using>using(<expr><name>bar</name> <op:operator>=</op:operator> <op:operator>new</op:operator> <call><name>Foo</name><argument_list>()</argument_list></call></expr>) <block>{ <empty_stmt>;</empty_stmt> }</block></using>";
@@ -312,8 +312,22 @@ namespace ABB.SrcML.Data.Test {
             var actual = globalScope.ChildStatements[0] as UsingBlockStatement;
             Assert.IsNotNull(actual);
             Assert.AreEqual(1, actual.ChildStatements.Count);
+            var init = actual.Initializer;
             Assert.IsNotNull(actual.Initializer);
-            Assert.Fail("TODO add oracle for the initializer expression");
+            Assert.AreEqual(4, init.Components.Count);
+            var bar = init.Components[0] as NameUse;
+            Assert.IsNotNull(bar);
+            Assert.AreEqual("bar", bar.Name);
+            var equals = init.Components[1] as OperatorUse;
+            Assert.IsNotNull(equals);
+            Assert.AreEqual("=", equals.Text);
+            var newOp = init.Components[2] as OperatorUse;
+            Assert.IsNotNull(newOp);
+            Assert.AreEqual("new", newOp.Text);
+            var foo = init.Components[3] as MethodCall;
+            Assert.IsNotNull(foo);
+            Assert.AreEqual("Foo", foo.Name);
+            Assert.AreEqual(0, foo.Arguments.Count);
         }
 
         [Test]
