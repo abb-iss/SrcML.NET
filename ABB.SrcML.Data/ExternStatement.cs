@@ -50,7 +50,7 @@ namespace ABB.SrcML.Data {
         }
 
         protected override void WriteXmlContents(XmlWriter writer) {
-            if(null == LinkageType) {
+            if(!string.IsNullOrEmpty(LinkageType)) {
                 writer.WriteElementString(XmlLinkageTypeName, LinkageType);
             }
             base.WriteXmlContents(writer);

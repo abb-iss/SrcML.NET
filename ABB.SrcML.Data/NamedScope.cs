@@ -224,12 +224,17 @@ namespace ABB.SrcML.Data {
         }
 
         protected override void WriteXmlContents(XmlWriter writer) {
-            if(null != Name) {
+            if(!string.IsNullOrEmpty(Name)) {
                 writer.WriteElementString(XmlNameName, Name);
             }
 
-            writer.WriteElementString(XmlAccessibilityName, Accessibility.ToKeywordString());
-            XmlSerialization.WriteElement(writer, Prefix, XmlPrefixName);
+            string attribute = Accessibility.ToKeywordString();
+            if(AccessModifier.None != Accessibility) {
+                writer.WriteElementString(XmlAccessibilityName, Accessibility.ToKeywordString());
+            }
+            if(null != Prefix) {
+                XmlSerialization.WriteElement(writer, Prefix, XmlPrefixName);
+            }
 
             base.WriteXmlContents(writer);
         }

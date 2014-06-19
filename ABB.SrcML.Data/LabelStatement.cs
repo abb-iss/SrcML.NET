@@ -44,7 +44,7 @@ namespace ABB.SrcML.Data {
         }
 
         protected override void WriteXmlContents(XmlWriter writer) {
-            if(null != Name) {
+            if(!string.IsNullOrEmpty(Name)) {
                 writer.WriteElementString(XmlLabelNameName, Name);
             }
             base.WriteXmlContents(writer);

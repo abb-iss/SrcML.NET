@@ -57,7 +57,7 @@ namespace ABB.SrcML.Data {
             if(null != Target) {
                 XmlSerialization.WriteElement(writer, Target, XmlTargetName);
             }
-            if(null != AliasName) {
+            if(!string.IsNullOrEmpty(AliasName)) {
                 writer.WriteElementString(XmlAliasNameName, AliasName);
             }
             base.WriteXml(writer);

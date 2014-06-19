@@ -122,7 +122,9 @@ namespace ABB.SrcML.Data {
         }
 
         protected override void WriteXmlContents(XmlWriter writer) {
-            XmlSerialization.WriteElement(writer, Location);
+            if(null != Location) {
+                XmlSerialization.WriteElement(writer, Location);
+            }
             XmlSerialization.WriteCollection<Expression>(writer, XmlComponentsName, Components);
 		}
 		

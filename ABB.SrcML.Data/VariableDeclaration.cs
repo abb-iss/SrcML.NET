@@ -105,7 +105,9 @@ namespace ABB.SrcML.Data {
         }
 
         protected override void WriteXmlContents(XmlWriter writer) {
-            writer.WriteElementString(XmlAccessibilityName, Accessibility.ToKeywordString());
+            if(AccessModifier.None != Accessibility) {
+                writer.WriteElementString(XmlAccessibilityName, Accessibility.ToKeywordString());
+            }
             
             if(null != VariableType) {
                 XmlSerialization.WriteElement(writer, VariableType, XmlTypeName);
