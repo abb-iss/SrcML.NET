@@ -64,7 +64,7 @@ namespace ABB.SrcML {
         /// <summary>
         /// Creates a new SrcMLGenerator.
         /// </summary>
-        public SrcMLGenerator() {
+        public SrcMLGenerator() : base() {
             defaultExecutable = new Src2SrcMLRunner2();
             defaultArguments = new[] { LIT.ArgumentLabel, OP.ArgumentLabel, POS.ArgumentLabel, TYPE.ArgumentLabel };
             nonDefaultExecutables = new Dictionary<Language, Src2SrcMLRunner2>();
@@ -83,7 +83,7 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="defaultExecutableDirectory">The directory containing the default srcml executables to use.</param>
         /// <param name="namespaceArguments">The namespace arguments to use when converting to SrcML.</param>
-        public SrcMLGenerator(string defaultExecutableDirectory, IEnumerable<string> namespaceArguments) {
+        public SrcMLGenerator(string defaultExecutableDirectory, IEnumerable<string> namespaceArguments) : base() {
             defaultExecutable = new Src2SrcMLRunner2(defaultExecutableDirectory);
             defaultArguments = namespaceArguments.ToArray();
             nonDefaultExecutables = new Dictionary<Language, Src2SrcMLRunner2>();
@@ -384,12 +384,13 @@ namespace ABB.SrcML {
             return extensionMapForRunner;
         }
 
-        public override void GenerateFromFile(string inputFileName, string outputFileName) {
-            GenerateSrcMLFromFile(inputFileName, outputFileName);
-        }
-
         public override ICollection<string> SupportedExtensions {
             get { return ExtensionMapping.Keys; }
+        }
+
+        protected override bool GenerateImpl(string inputFileName, string outputFileName) {
+            GenerateSrcMLFromFile(inputFileName, outputFileName);
+            return true;
         }
     }
 }

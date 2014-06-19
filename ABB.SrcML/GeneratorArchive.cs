@@ -67,17 +67,17 @@ namespace ABB.SrcML {
             var lastWriteTime = File.GetLastWriteTime(sourcePath);
 
             var tempFileName = Path.GetTempFileName();
-            this.Generator.GenerateFromFile(sourcePath, tempFileName);
-
-            for(int i = 0; i < 10; i++) {
-                try {
-                    File.Copy(tempFileName, archivePath, true);
-                    File.SetLastWriteTime(archivePath, lastWriteTime);
-                } catch(IOException) {
-                    Thread.Sleep(10);
+            if(this.Generator.Generate(sourcePath, tempFileName)) {
+                for(int i = 0; i < 10; i++) {
+                    try {
+                        File.Copy(tempFileName, archivePath, true);
+                        File.SetLastWriteTime(archivePath, lastWriteTime);
+                    } catch(IOException) {
+                        Thread.Sleep(10);
+                    }
                 }
+                File.Delete(tempFileName);
             }
-            File.Delete(tempFileName);
         }
 
         /// <summary>

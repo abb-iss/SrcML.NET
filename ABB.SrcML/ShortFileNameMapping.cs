@@ -176,7 +176,7 @@ namespace ABB.SrcML {
                     //mapping file doesn't exist, so construct mapping from the xml files in the directory
                     Debug.WriteLine(string.Format("Mapping file not found: {0}", mappingPath));
                     if(Directory.Exists(TargetDirectory)) {
-                        foreach(var xmlFile in Directory.GetFiles(TargetDirectory, "*.xml")) {
+                        foreach(var xmlFile in Directory.GetFiles(TargetDirectory, String.Format("*.{0}", TargetExtension))) {
                             var unit = XmlHelper.StreamElements(xmlFile, SRC.Unit, 0).FirstOrDefault();
                             if(unit != null) {
                                 //should be a SrcML file

@@ -114,7 +114,7 @@ namespace ABB.SrcML {
         /// <summary>
         /// The SrcML generator used to generate srcML
         /// </summary>
-        public SrcMLGenerator XmlGenerator { get; set; }
+        public SrcMLGenerator XmlGenerator { get { return this.Generator as SrcMLGenerator; } }
 
         /// <summary>
         /// Enumerates over each file in the archive and returns a file unit

@@ -47,7 +47,7 @@ namespace ABB.SrcML {
         /// </summary>
         /// <returns>all of the files in <see cref="TargetDirectory"/> that have <see cref="TargetExtension"/></returns>
         public IEnumerable<string> GetTargetFiles() {
-            return (Directory.Exists(TargetExtension)
+            return (Directory.Exists(TargetDirectory)
                     ? Directory.EnumerateFiles(TargetDirectory, String.Format("*.{0}", TargetExtension), SearchOption.AllDirectories)
                     : Enumerable.Empty<string>());
         }

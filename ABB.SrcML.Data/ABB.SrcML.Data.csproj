@@ -67,6 +67,8 @@
     <Compile Include="ConditionBlockStatement.cs" />
     <Compile Include="ContinueStatement.cs" />
     <Compile Include="CSharpVarTypeUse.cs" />
+    <Compile Include="DataArchive.cs" />
+    <Compile Include="DataGenerator.cs" />
     <Compile Include="DataRepositoryStatistics.cs" />
     <Compile Include="DoWhileStatement.cs" />
     <Compile Include="ErrorRaisedArgs.cs" />
@@ -111,6 +113,7 @@
     <Compile Include="CPlusPlusCodeParser.cs" />
     <Compile Include="ScopeDetachedException.cs" />
     <Compile Include="SourceLocation.cs" />
+    <Compile Include="SrcMLArchiveMonitor.cs" />
     <Compile Include="SrcMLLocation.cs" />
     <Compile Include="Statement.cs" />
     <Compile Include="StatementDebugView.cs" />
