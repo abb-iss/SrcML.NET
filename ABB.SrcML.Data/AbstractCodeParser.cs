@@ -46,8 +46,7 @@ namespace ABB.SrcML.Data {
             VariableDeclarationElementNames = new HashSet<XName>(new XName[] { SRC.Declaration, SRC.DeclarationStatement });
             ContainerReferenceElementNames = new HashSet<XName>(new XName[] { SRC.ClassDeclaration, SRC.StructDeclaration, SRC.UnionDeclaration,
                                                                                 SRC.ConstructorDeclaration, SRC.DestructorDeclaration, SRC.FunctionDeclaration });
-            LogUnknownElements = false;
-            ErrorLog = Console.Error;
+            UnknownLog = null;
         }
 
         /// <summary>
@@ -92,18 +91,11 @@ namespace ABB.SrcML.Data {
         public HashSet<XName> VariableDeclarationElementNames { get; protected set; }
 
         /// <summary>
-        /// If true, the parser will raise log any unknown elements it encounters. If false, it will raise an exception
+        /// writer to log unknown elements to. If null no logging is done
         /// </summary>
-        public bool LogUnknownElements { get; set; }
-
-        /// <summary>
-        /// This is the output writer to use to log unknown elements. The default log is <see cref="System.Console.Error"/>.
-        /// If null is passed in, <see cref="System.Console.Error"/> logging is disabled. ErrorLog is threadsafe via the
-        /// <see cref="TextWriter.Synchronized(TextWriter)"/>.
-        /// </summary>
-        public TextWriter ErrorLog {
+        public TextWriter UnknownLog {
             get { return _synchronizedErrorLog; }
-            set { _synchronizedErrorLog = (null == value ? value : TextWriter.Synchronized(value)); }
+            set { _synchronizedErrorLog = (null == value ? null : TextWriter.Synchronized(value)); }
         }
 
         /// <summary>
@@ -212,9 +204,11 @@ namespace ABB.SrcML.Data {
         /// <returns>An enumerable of type uses that represent parent types</returns>
         protected abstract IEnumerable<XElement> GetParentTypeUseElements(XElement typeElement);
 
-        
-
-        
+        protected void LogUnknown(XElement element, ParserContext context) {
+            if(null != UnknownLog) {
+                UnknownLog.WriteLine("{0}({1},{2}) Unexpected {3}", context.FileName, element.GetSrcLineNumber(), element.GetSrcLinePosition(), element.Name);
+            }
+        }
 
         ///// <summary>
         ///// Creates a <see cref="IScope"/> object for
@@ -286,20 +280,12 @@ namespace ABB.SrcML.Data {
                     stmt = ParseExternElement(element, context);
                 } else if(element.Name == SRC.EmptyStatement) {
                     stmt = ParseEmptyStatementElement(element, context);
-                } else if(element.Name == SRC.Comment && LogUnknownElements) {
-                    //do nothing?
-                    LogUnknown(context, element);
+                } else if(element.Name == SRC.Comment) {
+                    // do nothing. we are ignoring comments
                 } else if(element.Name == SRC.Package) {
                     //do nothing. This is already handled in JavaCodeParser.ParseUnitElement()
                 } else {
-                    if(LogUnknownElements) {
-                        LogUnknown(context, element);
-                    } else {
-                        throw new ParseException(context.FileName, element.GetSrcLineNumber(), element.GetSrcLinePosition(), this,
-                                                 string.Format("Unexpected {0} element", element.Name), null);
-                    }
-                    //TODO: what to do about elements we don't want to parse or don't recognize? Throw exception or just skip?
-
+                    LogUnknown(element, context);
                 }
                 //TODO: parse using blocks
                 //TODO: handle other CPP elements
@@ -1135,13 +1121,7 @@ namespace ABB.SrcML.Data {
                 } else if(element.Name == SRC.Comment) {
                     //skip
                 } else {
-                    //TODO: what to do about elements we don't want to parse or don't recognize? Throw exception or just skip?
-                    if(LogUnknownElements) {
-                        LogUnknown(context, element);
-                    } else {
-                        throw new ParseException(context.FileName, element.GetSrcLineNumber(), element.GetSrcLinePosition(), this,
-                                                 string.Format("Unexpected {0} element", element.Name), null);
-                    }
+                    LogUnknown(element, context);
                 }
 
                 //TODO: how do we handle a function_declaration that's put in an expression-type place?
@@ -2180,18 +2160,6 @@ namespace ABB.SrcML.Data {
 
             return newExpression;
         }
-
-        /// <summary>
-        /// Write the given element to the <see cref="ErrorLog"/>.
-        /// </summary>
-        /// <param name="context">The parser context</param>
-        /// <param name="element">The unknown element</param>
-        protected void LogUnknown(ParserContext context, XElement element) {
-            if(null != ErrorLog) {
-                ErrorLog.WriteLine("{0}({1},{2}) Unexpected {3}", context.FileName, element.GetSrcLineNumber(), element.GetSrcLinePosition(), element.Name);
-            }
-        }
-
         #endregion utilities
     }
 }
