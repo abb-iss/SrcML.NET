@@ -75,7 +75,26 @@ namespace ABB.SrcML.Data {
             { VariableDeclaration.XmlName, CreateFromReader<VariableDeclaration> },
             { VariableUse.XmlName, CreateFromReader<VariableUse> },
         };
-        
+
+        internal static IXmlElement Load(string fileName) {
+            using(var reader = new XmlTextReader(fileName)) {
+                return DeserializeStatement(reader);
+            }
+        }
+
+        /// <summary>
+        /// Writes <paramref name="element"/> to <paramref name="fileName"/>.
+        /// </summary>
+        /// <param name="element">The element to serializer</param>
+        /// <param name="fileName">The file name to write <paramref name="element"/> to</param>
+        internal static void WriteElement(IXmlElement element, string fileName) {
+            using(var writer = new XmlTextWriter(fileName, null)) {
+                writer.WriteStartDocument();
+                WriteElement(writer, element);
+                writer.WriteEndDocument();
+            }
+        }
+
         /// <summary>
         /// Deserializes the <see cref="Expression"/> at the current <paramref name="reader"/> position. This automatically looks up the correct
         /// object to instantiate based on <see cref="XmlReader.Name"/>.
@@ -136,25 +155,6 @@ namespace ABB.SrcML.Data {
         /// <param name="reader">The XML reader</param>
         /// <returns>An enumerable of <see cref="Statement"/> objects</returns>
         internal static IEnumerable<Statement> ReadChildStatements(XmlReader reader) { return ReadChildCollection<Statement>(reader, DeserializeStatement); }
-
-        internal static IXmlElement Load(string fileName) {
-            using(var reader = new XmlTextReader(fileName)) {
-                return DeserializeStatement(reader);
-            }
-        }
-
-        /// <summary>
-        /// Writes <paramref name="element"/> to <paramref name="fileName"/>.
-        /// </summary>
-        /// <param name="element">The element to serializer</param>
-        /// <param name="fileName">The file name to write <paramref name="element"/> to</param>
-        internal static void WriteElement(IXmlElement element, string fileName) {
-            using(var writer = new XmlTextWriter(fileName, null)) {
-                writer.WriteStartDocument();
-                WriteElement(writer, element);
-                writer.WriteEndDocument();
-            }
-        }
 
         /// <summary>
         /// Writes the <paramref name="element"/> with <paramref name="writer"/>. The element name is taken from <see cref="IXmlElement.GetXmlName()"/>.
