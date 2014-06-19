@@ -35,6 +35,62 @@ namespace ABB.SrcML.Data.Test {
             }
         }
 
+        [Test, TestCaseSource("TestProjects")]
+        public void TestSerialization(RealWorldTestProject project) {
+            string dataRepoPath = String.Format("{0}_{1}", project.ProjectName, project.Version);
+
+            if(!Directory.Exists(dataRepoPath)) {
+                Directory.CreateDirectory(dataRepoPath);
+            }
+            var fileLogPath = Path.Combine(dataRepoPath, "error.log");
+            if(File.Exists(fileLogPath)) {
+                File.Delete(fileLogPath);
+            }
+
+            using(var errorLog = new StreamWriter(fileLogPath)) {
+                var archive = new SrcMLArchive(dataRepoPath, "srcML", true, new SrcMLGenerator("SrcML"));
+                archive.XmlGenerator.ExtensionMapping[".cxx"] = Language.CPlusPlus;
+                archive.XmlGenerator.ExtensionMapping[".c"] = Language.CPlusPlus;
+                archive.XmlGenerator.ExtensionMapping[".cc"] = Language.CPlusPlus;
+
+                var monitor = new FileSystemFolderMonitor(project.FullPath, dataRepoPath, new LastModifiedArchive(dataRepoPath), archive);
+
+                DateTime start = DateTime.Now, end = DateTime.MinValue;
+                monitor.UpdateArchivesAsync().Wait();
+                end = DateTime.Now;
+                Console.WriteLine("{0} to verify srcML", end - start);
+
+                var generator = new DataGenerator(archive);
+
+                var dataArchive = new DataArchive(dataRepoPath, archive, false);
+                dataArchive.DataGenerator.IsLoggingErrors = true;
+                dataArchive.DataGenerator.ErrorLog = errorLog;
+
+                var srcMLMonitor = new SrcMLArchiveMonitor(dataRepoPath, archive, dataArchive);
+                
+                start = DateTime.Now;
+                srcMLMonitor.UpdateArchivesAsync().Wait();
+                end = DateTime.Now;
+
+                Console.WriteLine("{0} to generate data", end - start);
+
+                foreach(var sourceFile in dataArchive.GetFiles()) {
+                    try {
+                        var fileUnit = archive.GetXElementForSourceFile(sourceFile);
+                        var data = dataArchive.DataGenerator.Parse(fileUnit);
+                        var serializedData = dataArchive.GetData(sourceFile);
+
+                        Assert.That(TestHelper.StatementsAreEqual(data, serializedData));
+                    } catch(Exception e) {
+                        Console.Error.WriteLine(e.Message);
+                    }
+                    
+
+                }
+            }
+            
+        }
+
         private static DataRepository SetupDataRepository(RealWorldTestProject project, bool shouldRegenerateSrcML, bool useAsyncMethods = false) {
             var dataRepoPath = String.Format("{0}_{1}", project.ProjectName, project.Version);
             bool regenerateSrcML = shouldRegenerateSrcML;
@@ -93,10 +149,6 @@ namespace ABB.SrcML.Data.Test {
 
             using(TextWriter fileLog = new StreamWriter(fileLogPath),
                              unknownLog = new StreamWriter(unknownLogPath)) {
-                foreach(var parser in data.Parsers.Values) {
-                    parser.LogUnknownElements = true;
-                    parser.ErrorLog = unknownLog;
-                }
                 stats.Out = fileLog;
                 stats.Error = fileLog;
 
