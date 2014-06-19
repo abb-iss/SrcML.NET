@@ -264,7 +264,6 @@ namespace ABB.SrcML.Data {
                 if(child.Name == SRC.Init) {
                     //TODO: waiting for update to srcml
                     usingStmt.Initializer = ParseExpression(GetChildExpressions(child), context);
-                    //TODO: update this to handle cases where it's not a declaration. Could be an expression
                 }
                 else if(child.Name == SRC.Block) {
                     var blockStatements = child.Elements().Select(e => ParseStatement(e, context));

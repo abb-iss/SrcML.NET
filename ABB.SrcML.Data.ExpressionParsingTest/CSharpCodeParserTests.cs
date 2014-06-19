@@ -300,7 +300,7 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        [Category("Todo")]
+        [Category("SrcMLUpdate")]
         public void TestUsingBlock_Expression() {
             //using(bar = new Foo()) { ; }
             string xml = @"<using>using(<expr><name>bar</name> <op:operator>=</op:operator> <op:operator>new</op:operator> <call><name>Foo</name><argument_list>()</argument_list></call></expr>) <block>{ <empty_stmt>;</empty_stmt> }</block></using>";
@@ -312,8 +312,22 @@ namespace ABB.SrcML.Data.Test {
             var actual = globalScope.ChildStatements[0] as UsingBlockStatement;
             Assert.IsNotNull(actual);
             Assert.AreEqual(1, actual.ChildStatements.Count);
+            var init = actual.Initializer;
             Assert.IsNotNull(actual.Initializer);
-            Assert.Fail("TODO add oracle for the initializer expression");
+            Assert.AreEqual(4, init.Components.Count);
+            var bar = init.Components[0] as NameUse;
+            Assert.IsNotNull(bar);
+            Assert.AreEqual("bar", bar.Name);
+            var equals = init.Components[1] as OperatorUse;
+            Assert.IsNotNull(equals);
+            Assert.AreEqual("=", equals.Text);
+            var newOp = init.Components[2] as OperatorUse;
+            Assert.IsNotNull(newOp);
+            Assert.AreEqual("new", newOp.Text);
+            var foo = init.Components[3] as MethodCall;
+            Assert.IsNotNull(foo);
+            Assert.AreEqual("Foo", foo.Name);
+            Assert.AreEqual(0, foo.Arguments.Count);
         }
 
         [Test]
@@ -970,83 +984,7 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual(AccessModifier.ProtectedInternal, type.Accessibility);
         }
 
-        [Test]
-        public void TestMethodCallCreation() {
-            //// A.cs
-            //class A {
-            //    public int Execute() {
-            //        B b = new B();
-            //        for(int i = 0; i < b.max(); i++) {
-            //            try {
-            //                PrintOutput(b.analyze(i));
-            //            } catch(Exception e) {
-            //                PrintError(e.ToString());
-            //            }
-            //        }
-            //    }
-            //}
-            string xml = @"<class>class <name>A</name> <block>{
-    <function><type><specifier>public</specifier> <name>int</name></type> <name>Execute</name><parameter_list>()</parameter_list> <block>{
-        <decl_stmt><decl><type><name>B</name></type> <name>b</name> =<init> <expr><op:operator>new</op:operator> <call><name>B</name><argument_list>()</argument_list></call></expr></init></decl>;</decl_stmt>
-        <for>for(<init><decl><type><name>int</name></type> <name>i</name> =<init> <expr><lit:literal type=""number"">0</lit:literal></expr></init></decl>;</init> <condition><expr><name>i</name> <op:operator>&lt;</op:operator> <call><name><name>b</name><op:operator>.</op:operator><name>max</name></name><argument_list>()</argument_list></call></expr>;</condition> <incr><expr><name>i</name><op:operator>++</op:operator></expr></incr>) <block>{
-            <try>try <block>{
-                <expr_stmt><expr><call><name>PrintOutput</name><argument_list>(<argument><expr><call><name><name>b</name><op:operator>.</op:operator><name>analyze</name></name><argument_list>(<argument><expr><name>i</name></expr></argument>)</argument_list></call></expr></argument>)</argument_list></call></expr>;</expr_stmt>
-            }</block> <catch>catch(<param><decl><type><name>Exception</name></type> <name>e</name></decl></param>) <block>{
-                <expr_stmt><expr><call><name>PrintError</name><argument_list>(<argument><expr><call><name><name>e</name><op:operator>.</op:operator><name>ToString</name></name><argument_list>()</argument_list></call></expr></argument>)</argument_list></call></expr>;</expr_stmt>
-            }</block></catch></try>
-        }</block></for>
-    }</block></function>
-}</block></class>";
-            var fileUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
-            var globalScope = codeParser.ParseFileUnit(fileUnit);
-
-            var executeMethod = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault();
-            Assert.IsNotNull(executeMethod);
-
-            var callToNewB = executeMethod.ChildStatements.First().Content.GetDescendantsAndSelf<MethodCall>().FirstOrDefault();
-            Assert.IsNotNull(callToNewB);
-            Assert.AreEqual("B", callToNewB.Name);
-            Assert.IsTrue(callToNewB.IsConstructor);
-            Assert.IsFalse(callToNewB.IsDestructor);
-
-            var forStatement = executeMethod.GetDescendants<ForStatement>().FirstOrDefault();
-            Assert.IsNotNull(forStatement);
-            var callToMax = forStatement.Condition.GetDescendantsAndSelf<MethodCall>().FirstOrDefault();
-            Assert.IsNotNull(callToMax);
-            Assert.AreEqual("max", callToMax.Name);
-            Assert.IsFalse(callToMax.IsDestructor);
-            Assert.IsFalse(callToMax.IsConstructor);
-
-            var tryStatement = forStatement.GetDescendants<TryStatement>().FirstOrDefault();
-            Assert.IsNotNull(tryStatement);
-
-            var callToPrintOutput = tryStatement.ChildStatements.First().Content as MethodCall;
-            Assert.IsNotNull(callToPrintOutput);
-            Assert.AreEqual("PrintOutput", callToPrintOutput.Name);
-            Assert.IsFalse(callToPrintOutput.IsDestructor);
-            Assert.IsFalse(callToPrintOutput.IsConstructor);
-
-            var callToAnalyze = callToPrintOutput.Arguments.First() as MethodCall;
-            Assert.IsNotNull(callToAnalyze);
-            Assert.AreEqual("analyze", callToAnalyze.Name);
-            Assert.IsFalse(callToAnalyze.IsDestructor);
-            Assert.IsFalse(callToAnalyze.IsConstructor);
-
-            var catchStatement = tryStatement.CatchStatements.FirstOrDefault();
-            Assert.IsNotNull(catchStatement);
-
-            var callToPrintError = catchStatement.ChildStatements.First().Content as MethodCall;
-            Assert.IsNotNull(callToPrintError);
-            Assert.AreEqual("PrintError", callToPrintError.Name);
-            Assert.IsFalse(callToPrintError.IsDestructor);
-            Assert.IsFalse(callToPrintError.IsConstructor);
-
-            var callToToString = callToPrintError.Arguments.First() as MethodCall;
-            Assert.IsNotNull(callToToString);
-            Assert.AreEqual("ToString", callToToString.Name);
-            Assert.IsFalse(callToToString.IsDestructor);
-            Assert.IsFalse(callToToString.IsConstructor);
-        }
+        
 
 //        [Test]
 //        public void TestMethodCallWithBaseKeyword() {

@@ -25,25 +25,21 @@ namespace ABB.SrcML.Data {
     [Serializable]
     public class MethodCall : NameUse {
         private List<Expression> argumentList;
+        private List<TypeUse> typeArgumentList;
 
-        /// <summary>
-        /// The XML name for MethodCall
-        /// </summary>
+        /// <summary> The XML name for MethodCall </summary>
         public new const string XmlName = "call";
-
-        /// <summary>
-        /// XML Name for <see cref="Arguments" />
-        /// </summary>
+        
+        /// <summary> XML Name for <see cref="Arguments" /> </summary>
         public const string XmlArgumentsName = "Arguments";
 
-        /// <summary>
-        /// XML Name for <see cref="IsConstructor" />
-        /// </summary>
+        /// <summary> XML name for <see cref="TypeArguments"/> </summary>
+        public const string XmlTypeArgumentsName = "TypeArguments";
+        
+        /// <summary> XML Name for <see cref="IsConstructor" /> </summary>
         public const string XmlIsConstructorName = "IsConstructor";
-
-        /// <summary>
-        /// XML Name for <see cref="IsDestructor" />
-        /// </summary>
+        
+        /// <summary> XML Name for <see cref="IsDestructor" /> </summary>
         public const string XmlIsDestructorName = "IsDestructor";
 
         /// <summary>
@@ -52,20 +48,22 @@ namespace ABB.SrcML.Data {
         public MethodCall() {
             argumentList = new List<Expression>();
             Arguments = new ReadOnlyCollection<Expression>(argumentList);
+            typeArgumentList = new List<TypeUse>();
+            TypeArguments = new ReadOnlyCollection<TypeUse>(typeArgumentList);
             IsConstructor = false;
             IsDestructor = false;
         }
 
         /// <summary>
-        /// The arguments to this call
+        /// The arguments to this call.
         /// </summary>
         public ReadOnlyCollection<Expression> Arguments { get; private set;}
 
-        ///// <summary>
-        ///// The calling object for a use is used when you have <c>a.Foo()</c> -- this method call
-        ///// would refer to <c>Foo()</c> and the calling object would be <c>a</c>.
-        ///// </summary>
-        //public Expression CallingObject { get; set; }
+        /// <summary>
+        /// The type arguments to this method call. 
+        /// For example, in "Foo&lt;int&gt;(17)", int is a type argument.
+        /// </summary>
+        public ReadOnlyCollection<TypeUse> TypeArguments { get; private set; }
 
         /// <summary>
         /// True if this is a call to a constructor
@@ -94,6 +92,26 @@ namespace ABB.SrcML.Data {
         public void AddArguments(IEnumerable<Expression> args) {
             foreach(var arg in args) {
                 AddArgument(arg);
+            }
+        }
+
+        /// <summary>
+        /// Adds the given type argument to the TypeArguments collection.
+        /// </summary>
+        /// <param name="arg">The type argument to add.</param>
+        public void AddTypeArgument(TypeUse arg) {
+            if(arg == null) { throw new ArgumentNullException("arg"); }
+            arg.ParentExpression = this;
+            typeArgumentList.Add(arg);
+        }
+
+        /// <summary>
+        /// Adds the given type arguments to the TypeArguments collection.
+        /// </summary>
+        /// <param name="args">The type arguments to add.</param>
+        public void AddTypeArguments(IEnumerable<TypeUse> args) {
+            foreach(var arg in args) {
+                AddTypeArgument(arg);
             }
         }
 
@@ -267,6 +285,8 @@ namespace ABB.SrcML.Data {
         protected override void ReadXmlChild(XmlReader reader) {
             if(XmlArgumentsName == reader.Name) {
                 AddArguments(XmlSerialization.ReadChildExpressions(reader));
+            } else if(XmlTypeArgumentsName == reader.Name) {
+                AddTypeArguments(XmlSerialization.ReadChildExpressions(reader).Cast<TypeUse>());
             } else {
                 base.ReadXmlChild(reader);
             }
@@ -288,6 +308,9 @@ namespace ABB.SrcML.Data {
             base.WriteXmlContents(writer);
             if(Arguments.Count > 0) {
                 XmlSerialization.WriteCollection<Expression>(writer, XmlArgumentsName, Arguments);
+            }
+            if(TypeArguments.Count > 0) {
+                XmlSerialization.WriteCollection<TypeUse>(writer, XmlTypeArgumentsName, TypeArguments);
             }
         }
 

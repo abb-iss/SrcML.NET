@@ -87,16 +87,7 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("int", field.VariableType.Name);
         }
 
-        [Test]
-        [Category("Todo")]
-        public void TestSimpleExpression() {
-            //int foo = 42;
-            string xml = @"<decl_stmt><decl><type><name>int</name></type> <name>foo</name> =<init> <expr><lit:literal type=""number"">42</lit:literal></expr></init></decl>;</decl_stmt>";
-
-            var globalScope = codeParser.ParseFileUnit(fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp"));
-
-            Assert.Fail("TODO add test oracle");
-        }
+        
 
         [Test]
         public void TestFreeStandingBlock() {
@@ -525,22 +516,36 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("int", testDeclaration.VariableType.TypeParameters.First().Name);
         }
 
-//        [Test]
-//        public void TestLengthyCallingObjectChain() {
-//            //a->b.Foo();
-//            string xml = @"<expr_stmt><expr><name>a</name><op:operator>-&gt;</op:operator><name>b</name><op:operator>.</op:operator><call><name>Foo</name><argument_list>()</argument_list></call></expr>;</expr_stmt>";
+        [Test]
+        public void TestMethodCallCreation_LengthyCallingExpression() {
+            //a->b.Foo();
+            string xml = @"<expr_stmt><expr><call><name><name>a</name><op:operator>-&gt;</op:operator><name>b</name><op:operator>.</op:operator><name>Foo</name></name><argument_list>()</argument_list></call></expr>;</expr_stmt>";
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cpp");
 
-//            var testUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cpp");
+            var globalScope = codeParser.ParseFileUnit(testUnit);
+            Assert.AreEqual(1, globalScope.ChildStatements.Count);
 
-//            var testScope = codeParser.ParseFileUnit(testUnit);
-
-//            var testCall = testScope.MethodCalls.FirstOrDefault();
-//            Assert.IsNotNull(testCall, "could not find any test calls");
-//            Assert.AreEqual("Foo", testCall.Name);
-//            Assert.AreEqual("b", (testCall.CallingObject as IVariableUse).Name);
-//            Assert.AreEqual("a", (testCall.CallingObject.CallingObject as IVariableUse).Name);
-//            Assert.IsNull(testCall.CallingObject.CallingObject.CallingObject);
-//        }
+            var exp = globalScope.ChildStatements[0].Content;
+            Assert.IsNotNull(exp);
+            Assert.AreEqual(5, exp.Components.Count);
+            var a = exp.Components[0] as NameUse;
+            Assert.IsNotNull(a);
+            Assert.AreEqual("a", a.Name);
+            var arrow = exp.Components[1] as OperatorUse;
+            Assert.IsNotNull(arrow);
+            Assert.AreEqual("->", arrow.Text);
+            var b = exp.Components[2] as NameUse;
+            Assert.IsNotNull(b);
+            Assert.AreEqual("b", b.Name);
+            var dot = exp.Components[3] as OperatorUse;
+            Assert.IsNotNull(dot);
+            Assert.AreEqual(".", dot.Text);
+            var foo = exp.Components[4] as MethodCall;
+            Assert.IsNotNull(foo);
+            Assert.AreEqual("Foo", foo.Name);
+            Assert.AreEqual(0, foo.Arguments.Count);
+            Assert.AreEqual(0, foo.TypeArguments.Count);
+        }
 
 //        [Test]
 //        [Category("Todo")]

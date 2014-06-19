@@ -1151,33 +1151,59 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            var expList = new List<Expression>();
-            var declList = new List<VariableDeclaration>();
-            foreach(var element in elements) {
-                var exp = ParseExpression(element, context);
-                var varDecl = exp as VariableDeclaration;
-                if(varDecl != null && varDecl.VariableType == null && declList.Any()) {
-                    //type will be null in cases of multiple declarations, e.g. int a, b;
-                    varDecl.VariableType = declList.First().VariableType;
-                    varDecl.Accessibility = declList.First().Accessibility;
-                }
-                expList.Add(exp);
-                if(varDecl != null) { declList.Add(varDecl); }
-            }
+            var expElements = elements.ToList();
 
-            if(expList.Count == 0) {
+            if(expElements.Count == 0) {
                 return null;
             }
-            if(expList.Count == 1) {
-                return expList.First();
+            if(expElements.Count == 1) {
+                return ParseExpression(expElements.First(), context);
             }
 
-            var rootExp = new Expression() {
+            var expressionStack = new Stack<Expression>();
+            expressionStack.Push(new Expression() {
                 ProgrammingLanguage = ParserLanguage,
-                Location = context.CreateLocation(elements.First().Parent)
-            };
-            rootExp.AddComponents(expList);
-            return rootExp;
+                Location = context.CreateLocation(expElements.First().Parent)
+            });
+
+            //parse each of the components in the expression
+            var declList = new List<VariableDeclaration>();
+            foreach(var element in expElements) {
+                var exp = ParseExpression(element, context);
+                var varDecl = exp as VariableDeclaration;
+                if(varDecl != null) {
+                    if(varDecl.VariableType == null && declList.Any()) {
+                        //type will be null in cases of multiple declarations, e.g. int a, b;
+                        varDecl.VariableType = declList.First().VariableType;
+                        varDecl.Accessibility = declList.First().Accessibility;
+                    }
+                    declList.Add(varDecl);
+                }
+
+                //handle sub-expressions
+                var opUse = exp as OperatorUse;
+                if(opUse != null && opUse.Text == "(") {
+                    //this is the start of a sub-expression
+                    expressionStack.Push(new Expression() {
+                        ProgrammingLanguage = ParserLanguage,
+                        Location = context.CreateLocation(element.Parent)
+                    });
+                } else if(opUse != null && opUse.Text == ")") {
+                    //this is the end of a sub-expression
+                    var subExp = expressionStack.Pop();
+                    expressionStack.Peek().AddComponent(subExp);
+                } else {
+                    expressionStack.Peek().AddComponent(exp);
+                }
+            }
+
+            while(expressionStack.Count > 1) {
+                //we saw more lparens than rparens, just combine the expression fragments
+                var exp = expressionStack.Pop();
+                expressionStack.Peek().AddComponent(exp);
+            }
+
+            return expressionStack.Pop();
         }
 
         protected virtual Expression ParseExpressionElement(XElement expElement, ParserContext context) {
@@ -1188,20 +1214,7 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            //parse each component in the expression
-            var expList = expElement.Elements().Select(e => ParseExpression(e, context)).ToList();
-            //if there's only one component in this expression, just return that
-            if(expList.Count == 1) {
-                return expList.First();
-            }
-            //otherwise, create an Expression to contain the components
-            var exp = new Expression() {
-                Location = context.CreateLocation(expElement),
-                ProgrammingLanguage = ParserLanguage
-            };
-            exp.AddComponents(expList);
-
-            return exp;
+            return ParseExpression(expElement.Elements(), context);
         }
         
         /// <summary>
@@ -1456,7 +1469,7 @@ namespace ABB.SrcML.Data {
         /// <param name="callElement">The XML element to parse</param>
         /// <param name="context">The parser context</param>
         /// <returns>A method call for <paramref name="callElement"/>.</returns>
-        protected virtual MethodCall ParseCallElement(XElement callElement, ParserContext context) {
+        protected virtual Expression ParseCallElement(XElement callElement, ParserContext context) {
             if(callElement == null)
                 throw new ArgumentNullException("callElement");
             if(callElement.Name != SRC.Call)
@@ -1464,52 +1477,53 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
             
-            
-            XElement methodNameElement = null;
-            string name = String.Empty;
-            bool isConstructor = false;
-            bool isDestructor = false;
-            IEnumerable<XElement> callingObjectNames = Enumerable.Empty<XElement>();
-
-            var nameElement = callElement.Element(SRC.Name);
-            if(null != nameElement) {
-                methodNameElement = NameHelper.GetLastNameElement(nameElement);
-                callingObjectNames = NameHelper.GetNameElementsExceptLast(nameElement);
-            }
-            if(null != methodNameElement) {
-                if(null != methodNameElement.Element(SRC.ArgumentList)) {
-                    name = methodNameElement.Element(SRC.Name).Value;
-                } else {
-                    name = methodNameElement.Value;
-                }
-            }
-            if(methodNameElement != null && methodNameElement.Element(SRC.ArgumentList) != null) {
-                name = methodNameElement.Element(SRC.Name).Value;
-            }
-            var precedingElements = callElement.ElementsBeforeSelf();
-
-            foreach(var pe in precedingElements) {
-                if(pe.Name == OP.Operator && pe.Value == "new") {
-                    isConstructor = true;
-                } else if(pe.Name == OP.Operator && pe.Value == "~") {
-                    isDestructor = true;
-                }
-            }
-
-            var parentElement = callElement.Parent;
-            if(null != parentElement && parentElement.Name == SRC.MemberList) {
-                var container = parentElement.Parent;
-                isConstructor = (container != null && container.Name == SRC.Constructor);
-            }
-
             var mc = new MethodCall() {
-                Name = name,
-                IsConstructor = isConstructor,
-                IsDestructor = isDestructor,
                 Location = context.CreateLocation(callElement),
                 ProgrammingLanguage = ParserLanguage
             };
 
+            XElement methodNameElement = null;
+            Expression callingExpression = null;
+
+            //parse the name element for the call
+            var nameElement = callElement.Element(SRC.Name);
+            if(nameElement != null) {
+                if(!nameElement.HasElements) {
+                    methodNameElement = nameElement;
+                } else {
+                    methodNameElement = nameElement.Elements(SRC.Name).Last();
+                    callingExpression = ParseExpression(methodNameElement.ElementsBeforeSelf(), context);
+                }
+            }
+            if(methodNameElement != null) {
+                var argListElement = methodNameElement.Element(SRC.ArgumentList);
+                if(argListElement != null) {
+                    //this is a method call with type arguments
+                    mc.Name = methodNameElement.Element(SRC.Name).Value;
+                    foreach(var argElement in argListElement.Elements(SRC.Argument)) {
+                        var typeName = argElement.Descendants(SRC.Name).First();
+                        if(typeName != null) {
+                            mc.AddTypeArgument(ParseTypeUseElement(typeName, context));
+                        }
+                    }
+                } else {
+                    mc.Name = methodNameElement.Value;
+                }
+            }
+
+            //check if this is a call to a constructor
+            if(callElement.ElementsBeforeSelf().Any(e => e.Name == OP.Operator && e.Value == "new")) {
+                mc.IsConstructor = true;
+            }
+            var parentElement = callElement.Parent;
+            if(parentElement != null && parentElement.Name == SRC.MemberList) {
+                var container = parentElement.Parent;
+                if(container != null && container.Name == SRC.Constructor) {
+                    mc.IsConstructor = true;
+                }
+            }
+
+            //parse the arguments to the method call
             var argList = callElement.Element(SRC.ArgumentList);
             if(argList != null) {
                 foreach(var argElement in argList.Elements(SRC.Argument)) {
@@ -1520,50 +1534,7 @@ namespace ABB.SrcML.Data {
                 }
             }
 
-            //IResolvesToType current = methodCall;
-            //// This foreach block gets all of the name elements included in the actual <call>
-            //// element this is done primarily in C# and Java where they can reliably be included
-            //// there
-            //foreach(var callingObjectName in callingObjectNames.Reverse()) {
-            //    var callingObject = this.CreateVariableUse(callingObjectName, context);
-            //    current.CallingObject = callingObject;
-            //    current = callingObject;
-            //}
-
-            //// after getting those, we look at the name elements that appear *before* a call we keep
-            //// taking name elements as long as they are preceded by "." or "->" we want to accept
-            //// get 'a', 'b', and 'c' from "a.b->c" only 'b' and 'c' from "a + b->c"
-            //var elementsBeforeCall = callElement.ElementsBeforeSelf().ToArray();
-            //int i = elementsBeforeCall.Length - 1;
-
-            //while(i > 0 && elementsBeforeCall[i].Name == OP.Operator &&
-            //      (elementsBeforeCall[i].Value == "." || elementsBeforeCall[i].Value == "->")) {
-            //    i--;
-            //    if(i >= 0) {
-            //        if(elementsBeforeCall[i].Name == SRC.Name) {
-            //            var callingObject = CreateVariableUse(elementsBeforeCall[i], context);
-            //            current.CallingObject = callingObject;
-            //            current = callingObject;
-            //        } else if(elementsBeforeCall[i].Name == SRC.Call) {
-            //            var callingObject = ParseCallElement(elementsBeforeCall[i], context);
-            //            current.CallingObject = callingObject;
-            //            current = callingObject;
-            //        }
-            //    }
-            //    //if(i >= 0 && elementsBeforeCall[i].Name == SRC.Name) {
-            //    //    var callingObject = CreateVariableUse(elementsBeforeCall[i], context);
-            //    //    current.CallingObject = callingObject;
-            //    //    current = callingObject;
-            //    //}
-            //    i--;
-            //}
-            //if(methodCall.CallingObject == null) {
-            //    methodCall.AddAliases(context.Aliases);
-            //} else if(current != null && current is IVariableUse) {
-            //    ((IVariableUse) current).AddAliases(context.Aliases);
-            //}
-
-            return mc;
+            return callingExpression != null ? MergeExpressions(callingExpression, mc) : mc;
         }
 
         /// <summary>

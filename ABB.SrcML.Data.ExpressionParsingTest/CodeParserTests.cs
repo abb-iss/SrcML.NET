@@ -1,0 +1,213 @@
+﻿/******************************************************************************
+ * Copyright (c) 2013 ABB Group
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    Vinay Augustine (ABB Group) - initial API, implementation, & documentation
+ *    Patrick Francis (ABB Group) - implementation and documentation
+ *****************************************************************************/
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using ABB.SrcML.Test.Utilities;
+using NUnit.Framework;
+
+namespace ABB.SrcML.Data.Test
+{
+    [TestFixture]
+    [Category("Build")]
+    public class CodeParserTests {
+        private Dictionary<Language, AbstractCodeParser> codeParsers;
+        private Dictionary<Language, SrcMLFileUnitSetup> fileSetup;
+
+        [TestFixtureSetUp]
+        public void ClassSetup() {
+            codeParsers = new Dictionary<Language, AbstractCodeParser>() {
+                {Language.CPlusPlus, new CPlusPlusCodeParser()},
+                {Language.CSharp, new CSharpCodeParser()},
+                {Language.Java, new JavaCodeParser()}
+            };
+            fileSetup = new Dictionary<Language, SrcMLFileUnitSetup>() {
+                {Language.CPlusPlus, new SrcMLFileUnitSetup(Language.CPlusPlus)},
+                {Language.CSharp, new SrcMLFileUnitSetup(Language.CSharp)},
+                {Language.Java, new SrcMLFileUnitSetup(Language.Java)}
+            };
+        }
+
+        [TestCase(Language.CPlusPlus)]
+        [TestCase(Language.CSharp)]
+        [TestCase(Language.Java)]
+        public void TestTwoVariableDeclarations(Language lang) {
+            //int a,b;
+            string testXml = @"<decl_stmt><decl><type><name>int</name></type> <name>a</name></decl><op:operator>,</op:operator><decl><type ref=""prev""/><name>b</name></decl>;</decl_stmt>";
+            var testUnit = fileSetup[lang].GetFileUnitForXmlSnippet(testXml, "test.cpp");
+
+            var globalScope = codeParsers[lang].ParseFileUnit(testUnit);
+
+            var declStmt = globalScope.ChildStatements.First();
+            var varDecls = declStmt.Content.Components.OfType<VariableDeclaration>().ToList();
+
+            Assert.AreEqual(2, varDecls.Count);
+            Assert.AreEqual("a", varDecls[0].Name);
+            Assert.AreEqual("int", varDecls[0].VariableType.Name);
+            Assert.AreEqual("b", varDecls[1].Name);
+            Assert.AreSame(varDecls[0].VariableType, varDecls[1].VariableType);
+        }
+
+        [TestCase(Language.CSharp)]
+        [TestCase(Language.Java)]
+        public void TestMethodCallCreation(Language lang) {
+            //// A.cs
+            //class A {
+            //    public int Execute() {
+            //        B b = new B();
+            //        for(int i = 0; i < b.max(); i++) {
+            //            try {
+            //                PrintOutput(b.analyze(i));
+            //            } catch(Exception e) {
+            //                PrintError(e.ToString());
+            //            }
+            //        }
+            //    }
+            //}
+            string xml = @"<class>class <name>A</name> <block>{
+    <function><type><specifier>public</specifier> <name>int</name></type> <name>Execute</name><parameter_list>()</parameter_list> <block>{
+        <decl_stmt><decl><type><name>B</name></type> <name>b</name> =<init> <expr><op:operator>new</op:operator> <call><name>B</name><argument_list>()</argument_list></call></expr></init></decl>;</decl_stmt>
+        <for>for(<init><decl><type><name>int</name></type> <name>i</name> =<init> <expr><lit:literal type=""number"">0</lit:literal></expr></init></decl>;</init> <condition><expr><name>i</name> <op:operator>&lt;</op:operator> <call><name><name>b</name><op:operator>.</op:operator><name>max</name></name><argument_list>()</argument_list></call></expr>;</condition> <incr><expr><name>i</name><op:operator>++</op:operator></expr></incr>) <block>{
+            <try>try <block>{
+                <expr_stmt><expr><call><name>PrintOutput</name><argument_list>(<argument><expr><call><name><name>b</name><op:operator>.</op:operator><name>analyze</name></name><argument_list>(<argument><expr><name>i</name></expr></argument>)</argument_list></call></expr></argument>)</argument_list></call></expr>;</expr_stmt>
+            }</block> <catch>catch(<param><decl><type><name>Exception</name></type> <name>e</name></decl></param>) <block>{
+                <expr_stmt><expr><call><name>PrintError</name><argument_list>(<argument><expr><call><name><name>e</name><op:operator>.</op:operator><name>ToString</name></name><argument_list>()</argument_list></call></expr></argument>)</argument_list></call></expr>;</expr_stmt>
+            }</block></catch></try>
+        }</block></for>
+    }</block></function>
+}</block></class>";
+            var fileUnit = fileSetup[lang].GetFileUnitForXmlSnippet(xml, "test.code");
+            var globalScope = codeParsers[lang].ParseFileUnit(fileUnit);
+
+            var executeMethod = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault();
+            Assert.IsNotNull(executeMethod);
+
+            var callToNewB = executeMethod.ChildStatements.First().Content.GetDescendantsAndSelf<MethodCall>().FirstOrDefault();
+            Assert.IsNotNull(callToNewB);
+            Assert.AreEqual("B", callToNewB.Name);
+            Assert.IsTrue(callToNewB.IsConstructor);
+            Assert.IsFalse(callToNewB.IsDestructor);
+
+            var forStatement = executeMethod.GetDescendants<ForStatement>().FirstOrDefault();
+            Assert.IsNotNull(forStatement);
+            var callToMax = forStatement.Condition.GetDescendantsAndSelf<MethodCall>().FirstOrDefault();
+            Assert.IsNotNull(callToMax);
+            Assert.AreEqual("max", callToMax.Name);
+            Assert.IsFalse(callToMax.IsDestructor);
+            Assert.IsFalse(callToMax.IsConstructor);
+
+            var tryStatement = forStatement.GetDescendants<TryStatement>().FirstOrDefault();
+            Assert.IsNotNull(tryStatement);
+
+            var callToPrintOutput = tryStatement.ChildStatements.First().Content as MethodCall;
+            Assert.IsNotNull(callToPrintOutput);
+            Assert.AreEqual("PrintOutput", callToPrintOutput.Name);
+            Assert.IsFalse(callToPrintOutput.IsDestructor);
+            Assert.IsFalse(callToPrintOutput.IsConstructor);
+
+            var callToAnalyze = callToPrintOutput.Arguments.First().GetDescendantsAndSelf<MethodCall>().First();
+            Assert.IsNotNull(callToAnalyze);
+            Assert.AreEqual("analyze", callToAnalyze.Name);
+            Assert.IsFalse(callToAnalyze.IsDestructor);
+            Assert.IsFalse(callToAnalyze.IsConstructor);
+
+            var catchStatement = tryStatement.CatchStatements.FirstOrDefault();
+            Assert.IsNotNull(catchStatement);
+
+            var callToPrintError = catchStatement.ChildStatements.First().Content as MethodCall;
+            Assert.IsNotNull(callToPrintError);
+            Assert.AreEqual("PrintError", callToPrintError.Name);
+            Assert.IsFalse(callToPrintError.IsDestructor);
+            Assert.IsFalse(callToPrintError.IsConstructor);
+
+            var callToToString = callToPrintError.Arguments.First().GetDescendantsAndSelf<MethodCall>().First();
+            Assert.IsNotNull(callToToString);
+            Assert.AreEqual("ToString", callToToString.Name);
+            Assert.IsFalse(callToToString.IsDestructor);
+            Assert.IsFalse(callToToString.IsConstructor);
+        }
+
+        [TestCase(Language.CPlusPlus)]
+        [TestCase(Language.CSharp)]
+        [TestCase(Language.Java)]
+        public void TestSimpleExpression(Language lang) {
+            //foo = 2+3;
+            string xml = @"<expr_stmt><expr><name>foo</name> <op:operator>=</op:operator> <lit:literal type=""number"">2</lit:literal><op:operator>+</op:operator><lit:literal type=""number"">3</lit:literal></expr>;</expr_stmt>";
+            var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(xml, "test.code");
+
+            var globalScope = codeParsers[lang].ParseFileUnit(xmlElement);
+            Assert.AreEqual(1, globalScope.ChildStatements.Count);
+            var exp = globalScope.ChildStatements[0].Content;
+            Assert.IsNotNull(exp);
+            Assert.AreEqual(5, exp.Components.Count);
+            var foo = exp.Components[0] as NameUse;
+            Assert.IsNotNull(foo);
+            Assert.AreEqual("foo", foo.Name);
+            var equals = exp.Components[1] as OperatorUse;
+            Assert.IsNotNull(equals);
+            Assert.AreEqual("=", equals.Text);
+            var two = exp.Components[2] as LiteralUse;
+            Assert.IsNotNull(two);
+            Assert.AreEqual("2", two.Value);
+            var plus = exp.Components[3] as OperatorUse;
+            Assert.IsNotNull(plus);
+            Assert.AreEqual("+", plus.Text);
+            var three = exp.Components[4] as LiteralUse;
+            Assert.IsNotNull(three);
+            Assert.AreEqual("3", three.Value);
+        }
+
+        [TestCase(Language.CPlusPlus)]
+        [TestCase(Language.CSharp)]
+        [TestCase(Language.Java)]
+        public void TestSubExpression(Language lang) {
+            //foo = (2+3)*5;
+            string xml = @"<expr_stmt><expr><name>foo</name> <op:operator>=</op:operator> <op:operator>(</op:operator><lit:literal type=""number"">2</lit:literal><op:operator>+</op:operator><lit:literal type=""number"">3</lit:literal><op:operator>)</op:operator><op:operator>*</op:operator><lit:literal type=""number"">5</lit:literal></expr>;</expr_stmt>";
+            var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(xml, "test.code");
+
+            var globalScope = codeParsers[lang].ParseFileUnit(xmlElement);
+            Assert.AreEqual(1, globalScope.ChildStatements.Count);
+            var exp = globalScope.ChildStatements[0].Content;
+            Assert.IsNotNull(exp);
+            Assert.AreEqual(5, exp.Components.Count);
+            var foo = exp.Components[0] as NameUse;
+            Assert.IsNotNull(foo);
+            Assert.AreEqual("foo", foo.Name);
+            var equals = exp.Components[1] as OperatorUse;
+            Assert.IsNotNull(equals);
+            Assert.AreEqual("=", equals.Text);
+
+            var subExp = exp.Components[2];
+            Assert.AreEqual(typeof(Expression), subExp.GetType());
+            Assert.AreEqual(3, subExp.Components.Count);
+            var two = subExp.Components[0] as LiteralUse;
+            Assert.IsNotNull(two);
+            Assert.AreEqual("2", two.Value);
+            var plus = subExp.Components[1] as OperatorUse;
+            Assert.IsNotNull(plus);
+            Assert.AreEqual("+", plus.Text);
+            var three = subExp.Components[2] as LiteralUse;
+            Assert.IsNotNull(three);
+            Assert.AreEqual("3", three.Value);
+
+            var times = exp.Components[3] as OperatorUse;
+            Assert.IsNotNull(times);
+            Assert.AreEqual("*", times.Text);
+            var five = exp.Components[4] as LiteralUse;
+            Assert.IsNotNull(five);
+            Assert.AreEqual("5", five.Value);
+        }
+    }
+}
