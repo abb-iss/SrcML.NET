@@ -137,6 +137,25 @@ namespace ABB.SrcML.Data {
         /// <returns>An enumerable of <see cref="Statement"/> objects</returns>
         internal static IEnumerable<Statement> ReadChildStatements(XmlReader reader) { return ReadChildCollection<Statement>(reader, DeserializeStatement); }
 
+        internal static IXmlElement Load(string fileName) {
+            using(var reader = new XmlTextReader(fileName)) {
+                return DeserializeStatement(reader);
+            }
+        }
+
+        /// <summary>
+        /// Writes <paramref name="element"/> to <paramref name="fileName"/>.
+        /// </summary>
+        /// <param name="element">The element to serializer</param>
+        /// <param name="fileName">The file name to write <paramref name="element"/> to</param>
+        internal static void WriteElement(IXmlElement element, string fileName) {
+            using(var writer = new XmlTextWriter(fileName, null)) {
+                writer.WriteStartDocument();
+                WriteElement(writer, element);
+                writer.WriteEndDocument();
+            }
+        }
+
         /// <summary>
         /// Writes the <paramref name="element"/> with <paramref name="writer"/>. The element name is taken from <see cref="IXmlElement.GetXmlName()"/>.
         /// </summary>
