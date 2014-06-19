@@ -74,17 +74,33 @@ namespace ABB.SrcML.Data.Test {
 
                 Console.WriteLine("{0} to generate data", end - start);
 
+                int numSrcMLFiles = archive.FileUnits.Count();
+                int numDataFiles = dataArchive.GetFiles().Count();
+
+                Console.WriteLine("Generated {0} srcML files", numSrcMLFiles);
+                Console.WriteLine("Generated {0} data files", numDataFiles);
+                Console.WriteLine("Parsed {0:P0} of the files in {1} {2}", numDataFiles / (double) numSrcMLFiles, project.ProjectName, project.Version);
                 foreach(var sourceFile in dataArchive.GetFiles()) {
+                    NamespaceDefinition data;
+                    NamespaceDefinition serializedData;
                     try {
                         var fileUnit = archive.GetXElementForSourceFile(sourceFile);
-                        var data = dataArchive.DataGenerator.Parse(fileUnit);
-                        var serializedData = dataArchive.GetData(sourceFile);
-
-                        Assert.That(TestHelper.StatementsAreEqual(data, serializedData));
+                        data = dataArchive.DataGenerator.Parse(fileUnit);
                     } catch(Exception e) {
                         Console.Error.WriteLine(e.Message);
+                        data = null;
                     }
-                    
+
+                    try {
+                        serializedData = dataArchive.GetData(sourceFile);
+                    } catch(Exception e) {
+                        Console.Error.WriteLine(e.Message);
+                        serializedData = null;
+                    }
+
+                    Assert.IsNotNull(data);
+                    Assert.IsNotNull(serializedData);
+                    Assert.That(TestHelper.StatementsAreEqual(data, serializedData));
 
                 }
             }
