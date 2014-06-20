@@ -9,45 +9,16 @@ namespace ABB.SrcML.Data.Test {
 
     public static class TestHelper {
 
-        public static bool AliasesAreEqual(Alias a, Alias b) {
+        public static bool StatementsAreEqual(Statement a, Statement b) {
             if(a == b) { return true; }
-            return LocationsAreEqual(a.Location, b.Location) &&
-                   NamedScopeUsesAreEqual(a.ImportedNamedScope, b.ImportedNamedScope) &&
-                   NamedScopeUsesAreEqual(a.ImportedNamespace, b.ImportedNamespace);
-        }
-
-        public static bool IResolvesToTypesAreEqual(IResolvesToType a, IResolvesToType b) {
-            throw new NotImplementedException();
-
-            //TODO: reimplement this using proper OO-ish design
-            //if(a == b) { return true; }
-            //if(a == null || b == null) { return false; }
-            //var aType = a.GetType();
-            //if(aType != b.GetType()) { return false; }
-            //if(aType.Name == "VariableUse") {
-            //    return VariableUsesAreEqual((VariableUse) a, (VariableUse) b);
-            //} else if(aType.Name == "MethodCall") {
-            //    return MethodCallsAreEqual(MethodCall) a, (MethodCall) b);
-            //} else if(aType.Name == "TypeUse") {
-            //    return TypeUsesAreEqual((TypeUse) a, (TypeUse) b);
-            //} else if(aType.Name == "LiteralUse") {
-            //    return LiteralUsesAreEqual((LiteralUse) a, (LiteralUse) b);
-            //}
-
-            //return false;
+            if(a.GetType() != b.GetType()) { return false; }
+            return TestEquality((dynamic) a, (dynamic) b);
         }
 
         public static bool ExpressionsAreEqual(Expression a, Expression b) {
-            //TODO: implement ExpressionsAreEqual properly
-            
-            return true;
-        }
-
-        public static bool LiteralUsesAreEqual(LiteralUse a, LiteralUse b) {
             if(a == b) { return true; }
-            return a.Kind == b.Kind &&
-                   a.Value == b.Value &&
-                   ExpressionsAreEqual(a, b);
+            if(a.GetType() != b.GetType()) { return false; }
+            return TestEquality((dynamic) a, (dynamic) b);
         }
 
         public static bool LocationsAreEqual(SrcMLLocation a, SrcMLLocation b) {
@@ -59,61 +30,6 @@ namespace ABB.SrcML.Data.Test {
                    a.XPath == b.XPath;
         }
 
-        public static bool MethodCallsAreEqual(MethodCall a, MethodCall b) {
-            if(a == b) { return true; }
-            return OrderedCollectionsAreEqual(a.Arguments, b.Arguments, ExpressionsAreEqual) &&
-                   a.IsConstructor == b.IsConstructor &&
-                   a.IsDestructor == b.IsDestructor &&
-                   LocationsAreEqual(a.Location, b.Location) &&
-                   a.Name == b.Name;
-        }
-
-        public static bool NameUsesAreEqual(NameUse a, NameUse b) {
-            if(a == b) { return true; }
-
-            return a.Name == b.Name && NamePrefixesAreEqual(a.Prefix, b.Prefix);
-        }
-        public static bool NamePrefixesAreEqual(NamePrefix a, NamePrefix b) {
-            if(a == b) { return true; }
-            return OrderedCollectionsAreEqual(a.Names.ToList(), b.Names.ToList(), NameUsesAreEqual);
-        }
-        public static bool NamedScopeUsesAreEqual(NamedScopeUse a, NamedScopeUse b) {
-            if(a == b) { return true; }
-            return a.Name == b.Name &&
-                   LocationsAreEqual(a.Location, b.Location) &&
-                   a.ProgrammingLanguage == b.ProgrammingLanguage &&
-                   NamedScopeUsesAreEqual(a.ChildScopeUse, b.ChildScopeUse);
-        }
-
-        public static bool StatementsAreEqual(Statement a, Statement b) {
-            if(a == b) { return true; }
-            
-            if(a.GetType() != b.GetType()) { return false; }
-            return TestEquality((dynamic) a, (dynamic) b);
-        }
-
-        public static bool TypeUsesAreEqual(TypeUse a, TypeUse b) {
-            if(a == b) { return true; }
-            return LocationsAreEqual(a.Location, b.Location) &&
-                   a.Name == b.Name &&
-                   a.IsGeneric == b.IsGeneric &&
-                   OrderedCollectionsAreEqual(a.TypeParameters, b.TypeParameters, TypeUsesAreEqual);
-        }
-
-        public static bool VariableDeclarationsAreEqual(VariableDeclaration a, VariableDeclaration b) {
-            if(a == b) { return true; }
-            return LocationsAreEqual(a.Location, b.Location) &&
-                   a.Name == b.Name &&
-                   // TODO a.Accessibility == b.Accessibility &&
-                   TypeUsesAreEqual(a.VariableType, b.VariableType);
-        }
-
-        public static bool VariableUsesAreEqual(VariableUse a, VariableUse b) {
-            if(a == b) { return true; }
-            return a.Name == b.Name &&
-                   LocationsAreEqual(a.Location, b.Location) &&
-                   ExpressionsAreEqual(a.Index, b.Index);
-        }
 
         /// <summary>
         /// Checks whether two collections have the same contents. The ordering is ignored.
@@ -140,36 +56,158 @@ namespace ABB.SrcML.Data.Test {
             return equal;
         }
 
+        #region Statement equality methods
         private static bool TestEquality(Statement a, Statement b) {
-            return OrderedCollectionsAreEqual(a.ChildStatements.ToList(), b.ChildStatements.ToList(), StatementsAreEqual) &&
-                   CollectionsAreEqual(a.Locations.ToList(), b.Locations.ToList(), LocationsAreEqual) &&
-                   a.ProgrammingLanguage == b.ProgrammingLanguage;
+            return a.ProgrammingLanguage == b.ProgrammingLanguage &&
+                   CollectionsAreEqual(a.Locations, b.Locations, LocationsAreEqual) &&
+                   ExpressionsAreEqual(a.Content, b.Content) &&
+                   OrderedCollectionsAreEqual(a.ChildStatements, b.ChildStatements, StatementsAreEqual);
+        }
+
+        private static bool TestEquality(ImportStatement a, ImportStatement b) {
+            return ExpressionsAreEqual(a.ImportedNamespace, b.ImportedNamespace) &&
+                   TestEquality((Statement)a, (Statement)b);
+        }
+
+        private static bool TestEquality(AliasStatement a, AliasStatement b) {
+            return a.AliasName == b.AliasName &&
+                   ExpressionsAreEqual(a.Target, b.Target) &&
+                   TestEquality((Statement)a, (Statement)b);
+        }
+
+        private static bool TestEquality(LabelStatement a, LabelStatement b) {
+            return a.Name == b.Name &&
+                   TestEquality((Statement)a, (Statement)b);
+        }
+
+        private static bool TestEquality(ExternStatement a, ExternStatement b) {
+            return a.LinkageType == b.LinkageType &&
+                   TestEquality((Statement)a, (Statement)b);
+        }
+
+        private static bool TestEquality(BlockStatement a, BlockStatement b) {
+            return TestEquality((Statement)a, (Statement)b);
+        }
+
+        private static bool TestEquality(UsingBlockStatement a, UsingBlockStatement b) {
+            return ExpressionsAreEqual(a.Initializer, b.Initializer) &&
+                   TestEquality((BlockStatement)a, (BlockStatement)b);
+        }
+
+        private static bool TestEquality(TryStatement a, TryStatement b) {
+            return OrderedCollectionsAreEqual(a.CatchStatements, b.CatchStatements, StatementsAreEqual) &&
+                   OrderedCollectionsAreEqual(a.FinallyStatements, b.FinallyStatements, StatementsAreEqual) &&
+                   TestEquality((BlockStatement)a, (BlockStatement)b);
+        }
+
+        private static bool TestEquality(CatchStatement a, CatchStatement b) {
+            return ExpressionsAreEqual(a.Parameter, b.Parameter) &&
+                   TestEquality((BlockStatement)a, (BlockStatement)b);
         }
 
         private static bool TestEquality(NamedScope a, NamedScope b) {
             return a.Name == b.Name &&
-                   NamePrefixesAreEqual(a.Prefix, b.Prefix) &&
-                   TestEquality((Statement) a, (Statement) b);
+                   ExpressionsAreEqual(a.Prefix, b.Prefix) &&
+                   TestEquality((BlockStatement) a, (BlockStatement) b);
+            //Accessibility is not tested because it's not merged/unmerged losslessly
         }
-
-        private static bool TestEquality(NamespaceDefinition a, NamespaceDefinition b) {
-            return a.IsAnonymous == b.IsAnonymous &&
-                   TestEquality((NamedScope) a, (NamedScope) b);
-        }
-
+        
         private static bool TestEquality(TypeDefinition a, TypeDefinition b) {
             return a.IsPartial == b.IsPartial &&
                    a.Kind == b.Kind &&
-                   CollectionsAreEqual(a.ParentTypes, b.ParentTypes, TypeUsesAreEqual) &&
+                   CollectionsAreEqual(a.ParentTypes, b.ParentTypes, ExpressionsAreEqual) &&
                    TestEquality((NamedScope) a, (NamedScope) b);
         }
 
         private static bool TestEquality(MethodDefinition a, MethodDefinition b) {
             return a.IsConstructor == b.IsConstructor &&
                    a.IsDestructor == b.IsDestructor &&
-                   TypeUsesAreEqual(a.ReturnType, b.ReturnType) &&
-                   OrderedCollectionsAreEqual(a.Parameters, b.Parameters, VariableDeclarationsAreEqual) &&
+                   a.IsPartial == b.IsPartial &&
+                   ExpressionsAreEqual(a.ReturnType, b.ReturnType) &&
+                   OrderedCollectionsAreEqual(a.Parameters, b.Parameters, ExpressionsAreEqual) &&
                    TestEquality((NamedScope) a, (NamedScope) b);
         }
+
+        private static bool TestEquality(PropertyDefinition a, PropertyDefinition b) {
+            return ExpressionsAreEqual(a.ReturnType, b.ReturnType) &&
+                   StatementsAreEqual(a.Getter, b.Getter) &&
+                   StatementsAreEqual(a.Setter, b.Setter) &&
+                   TestEquality((NamedScope)a, (NamedScope)b);
+        }
+
+        private static bool TestEquality(ConditionBlockStatement a, ConditionBlockStatement b) {
+            return ExpressionsAreEqual(a.Condition, b.Condition) &&
+                   TestEquality((BlockStatement) a, (BlockStatement) b);
+        }
+
+        private static bool TestEquality(IfStatement a, IfStatement b) {
+            return OrderedCollectionsAreEqual(a.ElseStatements,b.ElseStatements,StatementsAreEqual) &&
+                   TestEquality((ConditionBlockStatement) a, (ConditionBlockStatement) b);
+        }
+
+        private static bool TestEquality(CaseStatement a, CaseStatement b) {
+            return a.IsDefault == b.IsDefault &&
+                   TestEquality((ConditionBlockStatement) a, (ConditionBlockStatement) b);
+        }
+
+        private static bool TestEquality(ForStatement a, ForStatement b) {
+            return ExpressionsAreEqual(a.Initializer, b.Initializer) &&
+                   ExpressionsAreEqual(a.Incrementer, b.Incrementer) &&
+                   TestEquality((ConditionBlockStatement)a, (ConditionBlockStatement)b);
+        }
+
+        #endregion Statement equality methods
+
+        #region Expression equality methods
+        private static bool TestEquality(Expression a, Expression b) {
+            return a.ProgrammingLanguage == b.ProgrammingLanguage &&
+                   LocationsAreEqual(a.Location, b.Location) &&
+                   OrderedCollectionsAreEqual(a.Components, b.Components, ExpressionsAreEqual);
+        }
+
+        private static bool TestEquality(OperatorUse a, OperatorUse b) {
+            return a.Text == b.Text &&
+                   TestEquality((Expression)a, (Expression)b);
+        }
+
+        private static bool TestEquality(VariableDeclaration a, VariableDeclaration b) {
+            return a.Name == b.Name &&
+                   ExpressionsAreEqual(a.Initializer, b.Initializer) &&
+                   ExpressionsAreEqual(a.VariableType, b.VariableType) &&
+                   TestEquality((Expression)a, (Expression)b);
+            //Accessibility is not compared because this field is not merged/un-merged losslessly
+        }
+
+        private static bool TestEquality(LiteralUse a, LiteralUse b) {
+            return a.Kind == b.Kind &&
+                   a.Value == b.Value &&
+                   TestEquality((Expression)a, (Expression)b);
+        }
+
+        private static bool TestEquality(NameUse a, NameUse b) {
+            return a.Name == b.Name &&
+                   ExpressionsAreEqual(a.Prefix, b.Prefix) &&
+                   TestEquality((Expression)a, (Expression)b);
+        }
+
+        private static bool TestEquality(TypeUse a, TypeUse b) {
+            return OrderedCollectionsAreEqual(a.TypeParameters, b.TypeParameters, ExpressionsAreEqual) &&
+                   TestEquality((NameUse)a, (NameUse)b);
+        }
+
+        private static bool TestEquality(MethodCall a, MethodCall b) {
+            return a.IsConstructor == b.IsConstructor &&
+                   a.IsDestructor == b.IsDestructor &&
+                   OrderedCollectionsAreEqual(a.Arguments, b.Arguments, ExpressionsAreEqual) &&
+                   OrderedCollectionsAreEqual(a.TypeArguments, b.TypeArguments, ExpressionsAreEqual) &&
+                   TestEquality((NameUse)a, (NameUse)b);
+        }
+
+        private static bool TestEquality(VariableUse a, VariableUse b) {
+            return ExpressionsAreEqual(a.Index, b.Index) &&
+                   TestEquality((NameUse)a, (NameUse)b);
+        }
+
+        #endregion Expression equality methods
     }
 }

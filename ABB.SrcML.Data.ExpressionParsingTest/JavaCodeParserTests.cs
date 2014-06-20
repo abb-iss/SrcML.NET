@@ -46,8 +46,8 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestCreateAliasesForFiles_ImportNamespace() {
-            // import x . /*test */ y . z . /*test */ * /*test*/;
-            string xml = @"<import>import <name><name>x</name> <op:operator>.</op:operator> <comment type=""block"">/*test */</comment> <name>y</name> <op:operator>.</op:operator> <name>z</name> <op:operator>.</op:operator></name> <comment type=""block"">/*test */</comment> * <comment type=""block"">/*test*/</comment>;</import>";
+            // import x . /*test */ y  /*test */ . z .* /*test*/;
+            string xml = @"<import>import <name><name>x</name> <op:operator>.</op:operator> <comment type=""block"">/*test */</comment> <name>y</name>  <comment type=""block"">/*test */</comment> <op:operator>.</op:operator> <name>z</name></name> .* <comment type=""block"">/*test*/</comment>;</import>";
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
