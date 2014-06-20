@@ -25,7 +25,7 @@ namespace ABB.SrcML.Data {
     public class SrcMLLocation : SourceLocation {
         public new const string XmlName = "SrcMLLocation";
         public const string XmlXPathAttributeName = "xpath";
-
+        public const string XmlIsReferenceAttribute = "is_ref";
         /// <summary>
         /// Creates a new srcML location object
         /// </summary>
@@ -91,13 +91,11 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// True if this location is a reference; false if it is a definition
         /// </summary>
-        [XmlAttribute("ref")]
         public bool IsReference { get; set; }
 
         /// <summary>
         /// The XPath query that identifies this scope
         /// </summary>
-        [XmlAttribute("xpath")]
         public string XPath { get; set; }
 
 
@@ -136,16 +134,25 @@ namespace ABB.SrcML.Data {
             return null;
         }
 
-        public string GetXmlName() { return SrcMLLocation.XmlName; }
+        public override string GetXmlName() { return SrcMLLocation.XmlName; }
 
-        protected override void ReadXmlContents(XmlReader reader) {
-            base.ReadXmlContents(reader);
+        protected override void ReadXmlAttributes(XmlReader reader) {
             XPath = reader.GetAttribute(XmlXPathAttributeName);
+            string attribute = reader.GetAttribute(XmlIsReferenceAttribute);
+
+            if(null != attribute) {
+                IsReference = XmlConvert.ToBoolean(attribute);
+            }
+
+            base.ReadXmlAttributes(reader);
         }
 
         public override void WriteXml(XmlWriter writer) {
             base.WriteXml(writer);
             writer.WriteAttributeString(XmlXPathAttributeName, XPath);
+            if(IsReference) {
+                writer.WriteAttributeString(XmlIsReferenceAttribute, XmlConvert.ToString(IsReference));
+            }
         }
 
         private void SetEndingLocation(XElement element) {

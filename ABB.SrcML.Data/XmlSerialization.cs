@@ -23,7 +23,7 @@ namespace ABB.SrcML.Data {
     /// <summary>
     /// XmlSerialization provides helper methods that aid in serializing and deserializing different objects in SrcML.Data.
     /// </summary>
-    internal class XmlSerialization {
+    public class XmlSerialization {
         internal static Dictionary<string, XmlInitializer<SourceLocation>> XmlLocationMap = new Dictionary<string, XmlInitializer<SourceLocation>>() {
             { SourceLocation.XmlName, CreateFromReader<SourceLocation> },
             { SrcMLLocation.XmlName, CreateFromReader<SrcMLLocation> },
@@ -76,8 +76,9 @@ namespace ABB.SrcML.Data {
             { VariableUse.XmlName, CreateFromReader<VariableUse> },
         };
 
-        internal static IXmlElement Load(string fileName) {
-            using(var reader = new XmlTextReader(fileName)) {
+        public static IXmlElement Load(string fileName) {
+            using(var reader = XmlTextReader.Create(fileName)) {
+                reader.MoveToContent();
                 return DeserializeStatement(reader);
             }
         }
@@ -87,7 +88,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="element">The element to serializer</param>
         /// <param name="fileName">The file name to write <paramref name="element"/> to</param>
-        internal static void WriteElement(IXmlElement element, string fileName) {
+        public static void WriteElement(IXmlElement element, string fileName) {
             using(var writer = new XmlTextWriter(fileName, null)) {
                 writer.WriteStartDocument();
                 WriteElement(writer, element);
@@ -195,8 +196,9 @@ namespace ABB.SrcML.Data {
 
         private static T ReadChildElement<T>(XmlReader reader, XmlInitializer<T> initializer) where T : IXmlElement, new() {
             T element = default(T);
+            bool isEmpty = reader.IsEmptyElement;
             reader.ReadStartElement();
-            if(!reader.IsEmptyElement) {
+            if(!isEmpty) {
                 element = initializer(reader);
                 reader.ReadEndElement();
             }
@@ -204,9 +206,10 @@ namespace ABB.SrcML.Data {
         }
 
         private static IEnumerable<T> ReadChildCollection<T>(XmlReader reader, XmlInitializer<T> initializer) where T : IXmlElement, new() {
+            bool isEmpty = reader.IsEmptyElement;
             reader.ReadStartElement();
-            if(!reader.IsEmptyElement) {
-                while(XmlNodeType.Element != reader.NodeType) {
+            if(!isEmpty) {
+                while(XmlNodeType.Element == reader.NodeType) {
                     yield return initializer(reader);
                 }
                 reader.ReadEndElement();

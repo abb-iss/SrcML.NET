@@ -37,7 +37,7 @@ namespace ABB.SrcML.Data {
     /// If your new class is a subclass of <see cref="Statement"/> or <see cref="Expression"/>, you should also add it to
     /// either <see cref="XmlSerialization.XmlStatementMap"/> or <see cref="XmlSerialization.XmlExpressionMap"/>.
     /// </summary>
-    internal interface IXmlElement : IXmlSerializable {
+    public interface IXmlElement : IXmlSerializable {
         /// <summary>
         /// Returns the default XML element name to use for this class.
         /// </summary>

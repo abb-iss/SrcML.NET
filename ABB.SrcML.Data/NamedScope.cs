@@ -213,9 +213,9 @@ namespace ABB.SrcML.Data {
 
         protected override void ReadXmlChild(XmlReader reader) {
             if(XmlNameName == reader.Name) {
-                this.Name = reader.ReadContentAsString();
+                this.Name = reader.ReadElementContentAsString();
             } else if(XmlAccessibilityName == reader.Name) {
-                this.Accessibility = AccessModifierExtensions.FromKeywordString(reader.ReadContentAsString());
+                this.Accessibility = AccessModifierExtensions.FromKeywordString(reader.ReadElementContentAsString());
             } else if(XmlPrefixName == reader.Name) {
                 this.Prefix = XmlSerialization.ReadChildExpression(reader) as NamePrefix;
             } else {

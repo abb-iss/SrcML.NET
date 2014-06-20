@@ -93,9 +93,9 @@ namespace ABB.SrcML.Data {
 
         protected override void ReadXmlChild(XmlReader reader) {
             if(XmlAccessibilityName == reader.Name) {
-                Accessibility = AccessModifierExtensions.FromKeywordString(reader.ReadContentAsString());
+                Accessibility = AccessModifierExtensions.FromKeywordString(reader.ReadElementContentAsString());
             } else if(XmlNameName == reader.Name) {
-                Name = reader.ReadContentAsString();
+                Name = reader.ReadElementContentAsString();
             } else if(XmlTypeName == reader.Name) {
                 VariableType = XmlSerialization.ReadChildExpression(reader) as TypeUse;
             } else if(XmlInitializerName == reader.Name) {

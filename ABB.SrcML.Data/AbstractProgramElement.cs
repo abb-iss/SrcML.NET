@@ -122,9 +122,9 @@ namespace ABB.SrcML.Data {
         public XmlSchema GetSchema() { return null; }
 
         public void ReadXml(XmlReader reader) {
-            reader.ReadStartElement();
+            // you have to call ReadXmlAttributes prior to calling ReadStartElement()
             ReadXmlAttributes(reader);
-
+            reader.ReadStartElement();
             while(XmlNodeType.Element == reader.NodeType) {
                 ReadXmlChild(reader);
             }

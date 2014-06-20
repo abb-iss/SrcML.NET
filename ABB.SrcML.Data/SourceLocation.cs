@@ -128,18 +128,20 @@ namespace ABB.SrcML.Data {
             return null;
         }
 
-        public string GetXmlName() { return SourceLocation.XmlName; }
+        public virtual string GetXmlName() { return SourceLocation.XmlName; }
 
         public void ReadXml(XmlReader reader) {
             bool isEmpty = reader.IsEmptyElement;
+
+            ReadXmlAttributes(reader);
             reader.ReadStartElement();
-            ReadXmlContents(reader);
+            
             if(!isEmpty) {
                 reader.ReadEndElement();
             }
         }
 
-        protected virtual void ReadXmlContents(XmlReader reader) {
+        protected virtual void ReadXmlAttributes(XmlReader reader) {
             string attr = reader.GetAttribute(XmlFileAttributeName);
             SourceFileName = attr;
 

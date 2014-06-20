@@ -14,6 +14,20 @@ namespace ABB.SrcML.Data.Test {
         public const string MappingFile = @"..\..\TestInputs\project_mapping.txt";
         static List<RealWorldTestProject> TestProjects = ReadProjectMap(MappingFile).ToList();
 
+        [Test,
+        TestCase(@"..\..\TestInputs\A.cpp"),
+        TestCase(@"..\..\TestInputs\A.h")]
+        public void TestSingleFile(string sourceFileName) {
+            var srcMLGenerator = new SrcMLGenerator("SrcML");
+            var dataGenerator = new DataGenerator();
+
+            Assert.That(srcMLGenerator.Generate(sourceFileName, "test.xml"));
+            var fileUnit = SrcMLElement.Load("test.xml");
+            var nsd = dataGenerator.Parse(fileUnit) as NamespaceDefinition;
+            XmlSerialization.WriteElement(nsd, "test_data.xml");
+            var nsdFromFile = XmlSerialization.Load("test_data.xml") as NamespaceDefinition;
+            Assert.That(TestHelper.StatementsAreEqual(nsd, nsdFromFile));
+        }
 
         [Test, TestCaseSource("TestProjects")]
         public void TestDataGeneration(RealWorldTestProject project) {
@@ -80,28 +94,47 @@ namespace ABB.SrcML.Data.Test {
                 Console.WriteLine("Generated {0} srcML files", numSrcMLFiles);
                 Console.WriteLine("Generated {0} data files", numDataFiles);
                 Console.WriteLine("Parsed {0:P0} of the files in {1} {2}", numDataFiles / (double) numSrcMLFiles, project.ProjectName, project.Version);
+
+                long count = 0, parseElapsed = 0, deserializeElapsed = 0, compareElapsed = 0;
+
+                Console.WriteLine("# Files\tParse\tDeserialize\tComparison");
                 foreach(var sourceFile in dataArchive.GetFiles()) {
                     NamespaceDefinition data;
                     NamespaceDefinition serializedData;
                     try {
                         var fileUnit = archive.GetXElementForSourceFile(sourceFile);
+                        start = DateTime.Now;
                         data = dataArchive.DataGenerator.Parse(fileUnit);
-                    } catch(Exception e) {
-                        Console.Error.WriteLine(e.Message);
+                        end = DateTime.Now;
+                        parseElapsed += (end - start).Ticks;
+                    } catch(Exception ex) {
+                        Console.Error.WriteLine(ex.Message);
                         data = null;
                     }
 
                     try {
+                        start = DateTime.Now;
                         serializedData = dataArchive.GetData(sourceFile);
-                    } catch(Exception e) {
-                        Console.Error.WriteLine(e.Message);
+                        end = DateTime.Now;
+                        deserializeElapsed += (end - start).Ticks;
+                    } catch(Exception ex) {
+                        Console.Error.WriteLine(ex.Message);
                         serializedData = null;
                     }
 
                     Assert.IsNotNull(data);
                     Assert.IsNotNull(serializedData);
-                    Assert.That(TestHelper.StatementsAreEqual(data, serializedData));
+                    start = DateTime.Now;
+                    Assert.That(TestHelper.StatementsAreEqual(data, serializedData), sourceFile);
+                    end = DateTime.Now;
+                    compareElapsed += (end - start).Ticks;
 
+                    if(++count % 100 == 0) {
+                        Console.WriteLine("{0,7}\t{1} ms\t{2} ms\t{3} ms", ++count,
+                                (double) parseElapsed / TimeSpan.TicksPerMillisecond / count,
+                                (double) deserializeElapsed / TimeSpan.TicksPerMillisecond / count,
+                                (double) compareElapsed / TimeSpan.TicksPerMillisecond / count);
+                    }
                 }
             }
             
