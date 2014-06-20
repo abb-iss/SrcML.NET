@@ -326,6 +326,17 @@
         <elementDefinition Id="54edabb0-ea75-450b-bc51-cc4d5be58133" />
       </referencedType>
     </packageHasNamedElement>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="3c23092f-cc73-4e21-a8ea-c0bbff8a1a33" name="NamePrefix" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="0195b0c6-5715-4d4a-b71c-919929a97dbf" />
+        <generalsInternal>
+          <generalization Id="f8b71106-2249-4ac7-a6a0-cfe10b5b697e" isSubstitutable="false">
+            <classMoniker Id="f2cde41f-ab47-4cb3-bd27-7e77219b07e2" LastKnownName="Expression" />
+            <elementDefinition Id="8119b104-8f42-472e-9eae-6b45ebd98f24" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
   </packagedElements>
   <package Id="0ae6a79f-8c43-424e-86ea-075f118cc557" name="ABB.SrcML.Data.ExpressionParsingModels">
     <elementDefinition Id="b7d58ad4-ad72-4d67-8187-3644da97b0b7" />
