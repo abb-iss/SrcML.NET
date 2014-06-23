@@ -16,10 +16,11 @@ using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML.Data {
+    /// <summary>
+    /// Represents a while-loop in a program.
+    /// </summary>
     public class WhileStatement : ConditionBlockStatement {
-        /// <summary>
-        /// The XML name for WhileStatement
-        /// </summary>
+        /// <summary> The XML name for WhileStatement </summary>
         public new const string XmlName = "While";
 
         /// <summary>
@@ -28,9 +29,5 @@ namespace ABB.SrcML.Data {
         /// <returns>Returns the XML name for WhileStatement</returns>
         public override string GetXmlName() { return WhileStatement.XmlName; }
 
-
-        public WhileStatement() : base() {}
-
-        
     }
 }

@@ -17,16 +17,17 @@ using System.Text;
 using System.Xml;
 
 namespace ABB.SrcML.Data {
+    /// <summary>
+    /// Represents a label statement in a program.
+    /// </summary>
     public class LabelStatement : Statement {
-        /// <summary>
-        /// The XML name for LabelStatement
-        /// </summary>
+        /// <summary> The XML name for LabelStatement </summary>
         public new const string XmlName = "Label";
 
-        /// <summary>
-        /// XML Name for <see cref="LabelName" />
-        /// </summary>
+        /// <summary> XML Name for <see cref="Name" /> </summary>
         public const string XmlLabelNameName = "LabelName";
+        
+        /// <summary> The text of the label. </summary>
         public string Name { get; set; }
 
         /// <summary>

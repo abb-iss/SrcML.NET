@@ -19,12 +19,12 @@ using System.Linq;
 using System.Xml;
 
 namespace ABB.SrcML.Data {
-
+    /// <summary>
+    /// Represents a namespace definition in a program.
+    /// </summary>
     [DebuggerTypeProxy(typeof(StatementDebugView))]
     public class NamespaceDefinition : NamedScope {
-        /// <summary>
-        /// The XML name for NamespaceDefinition
-        /// </summary>
+        /// <summary> The XML name for NamespaceDefinition. </summary>
         public new const string XmlName = "Namespace";
 
         /// <summary>

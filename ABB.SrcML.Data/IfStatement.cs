@@ -18,18 +18,33 @@ using System.Text;
 using System.Xml;
 
 namespace ABB.SrcML.Data {
+    /// <summary>
+    /// Represents an if-statement in a program.
+    /// </summary>
     public class IfStatement : ConditionBlockStatement {
         private List<Statement> elseStatementsList;
-
-        public const string XmlElseName = "Else";
+        
+        /// <summary> The XML name for IfStatement. </summary>
         public new const string XmlName = "If";
 
+        /// <summary> The XML name for <see cref="ElseStatements"/>. </summary>
+        public const string XmlElseName = "Else";
+
+        /// <summary> Creates a new empty IfStatement. </summary>
         public IfStatement() : base() {
             elseStatementsList = new List<Statement>();
             ElseStatements = new ReadOnlyCollection<Statement>(elseStatementsList);
         }
         
+        /// <summary>
+        /// The statements contained within the else block, if any.
+        /// </summary>
         public ReadOnlyCollection<Statement> ElseStatements { get; private set; }
+        
+        /// <summary>
+        /// Adds the given statement to the ElseStatements collection.
+        /// </summary>
+        /// <param name="child">The statement to add.</param>
         public void AddElseStatement(Statement child) {
             if(child == null) { throw new ArgumentNullException("child"); }
 
@@ -37,6 +52,10 @@ namespace ABB.SrcML.Data {
             elseStatementsList.Add(child);
         }
 
+        /// <summary>
+        /// Adds the given statements to the ElseStatements collection.
+        /// </summary>
+        /// <param name="elseStatements">An enumerable of statements to add.</param>
         public void AddElseStatements(IEnumerable<Statement> elseStatements) {
             foreach(var stmt in elseStatements) {
                 AddElseStatement(stmt);

@@ -19,31 +19,32 @@ using System.Text;
 using System.Xml;
 
 namespace ABB.SrcML.Data {
-
+    /// <summary>
+    /// Represents a program scope that has a name.
+    /// </summary>
     public class NamedScope : BlockStatement, INamedEntity {
         private NamePrefix _prefix;
 
-        /// <summary>
-        /// XML Name for <see cref="Name" />
-        /// </summary>
+        /// <summary> The XML name for NamedScope. </summary>
+        public new const string XmlName = "NamedScope";
+
+        /// <summary> XML Name for <see cref="Name" /> </summary>
         public const string XmlNameName = "Name";
 
-        /// <summary>
-        /// XML Name for <see cref="NamePrefix" />
-        /// </summary>
+        /// <summary> XML Name for <see cref="NamePrefix" /> </summary>
         public const string XmlPrefixName = "NamePrefix";
 
-        /// <summary>
-        /// XML Name for <see cref="Accessibility" />
-        /// </summary>
+        /// <summary> XML Name for <see cref="Accessibility" /> </summary>
         public const string XmlAccessibilityName = "Accessibility";
 
+        /// <summary> Creates an empty NamedScope. </summary>
         public NamedScope() : base() {
             Name = string.Empty;
             Accessibility = AccessModifier.None;
             PrefixIsResolved = true;
         }
 
+        /// <summary> The name of the scope. </summary>
         public string Name { get; set; }
 
         /// <summary>
@@ -55,6 +56,7 @@ namespace ABB.SrcML.Data {
             set {
                 if(value != _prefix) {
                     _prefix = value;
+                    _prefix.ParentStatement = this;
                     PrefixIsResolved = (null == _prefix);
                 }
             }
@@ -62,7 +64,11 @@ namespace ABB.SrcML.Data {
 
         public bool PrefixIsResolved { get; private set; }
 
+        /// <summary>
+        /// The accessibility for this scope, e.g. public, private, etc.
+        /// </summary>
         public AccessModifier Accessibility { get; set; }
+
         /// <summary>
         /// Gets the full name by finding all of the named scope ancestors and combining them.
         /// </summary>

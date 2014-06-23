@@ -17,18 +17,26 @@ using System.Text;
 using System.Xml;
 
 namespace ABB.SrcML.Data {
+    /// <summary>
+    /// Represents a catch statement.
+    /// </summary>
     public class CatchStatement : BlockStatement {
-        /// <summary>
-        /// The XML name for CatchStatement
-        /// </summary>
+        private VariableDeclaration parameter;
+        
+        /// <summary> The XML name for CatchStatement </summary>
         public new const string XmlName = "Catch";
 
-        /// <summary>
-        /// XML Name for <see cref="Parameter" />
-        /// </summary>
+        /// <summary> XML Name for <see cref="Parameter" /> </summary>
         public const string XmlParameterName = "Parameter";
 
-        public VariableDeclaration Parameter { get; set; }
+        /// <summary> The exception that the catch statement will catch. </summary>
+        public VariableDeclaration Parameter {
+            get { return parameter; }
+            set {
+                parameter = value;
+                parameter.ParentStatement = this;
+            }
+        }
 
         /// <summary>
         /// Instance method for getting <see cref="CatchStatement.XmlName"/>

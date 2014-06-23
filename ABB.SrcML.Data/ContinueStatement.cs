@@ -16,10 +16,11 @@ using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML.Data {
+    /// <summary>
+    /// Represents a continue statement.
+    /// </summary>
     public class ContinueStatement : Statement {
-        /// <summary>
-        /// The XML name for ContinueStatement
-        /// </summary>
+        /// <summary> The XML name for ContinueStatement </summary>
         public new const string XmlName = "Continue";
 
         /// <summary>

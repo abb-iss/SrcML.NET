@@ -16,10 +16,11 @@ using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML.Data {
+    /// <summary>
+    /// Represents a switch statement in a program.
+    /// </summary>
     public class SwitchStatement : ConditionBlockStatement {
-        /// <summary>
-        /// The XML name for SwitchStatement
-        /// </summary>
+        /// <summary> The XML name for SwitchStatement </summary>
         public new const string XmlName = "Switch";
 
         /// <summary>

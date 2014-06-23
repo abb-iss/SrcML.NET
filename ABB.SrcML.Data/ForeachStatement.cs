@@ -16,13 +16,12 @@ using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML.Data {
+    /// <summary>
+    /// Represents a foreach statement in a program.
+    /// </summary>
     public class ForeachStatement : ConditionBlockStatement {
-        /// <summary>
-        /// The XML name for ForeachStatement
-        /// </summary>
+        /// <summary> The XML name for ForeachStatement </summary>
         public new const string XmlName = "Foreach";
-
-        public ForeachStatement() : base() {}
 
         /// <summary>
         /// Instance method for getting <see cref="ForeachStatement.XmlName"/>

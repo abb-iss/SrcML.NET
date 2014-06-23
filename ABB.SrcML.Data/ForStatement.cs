@@ -18,24 +18,39 @@ using System.Xml;
 
 namespace ABB.SrcML.Data
 {
+    /// <summary>
+    /// Represents a for-loop in a program.
+    /// </summary>
     public class ForStatement : ConditionBlockStatement {
-        /// <summary>
-        /// XML Name for <see cref="Initializer" />
-        /// </summary>
+        private Expression initExpression;
+        private Expression incrExpression;
+        
+        /// <summary> XML Name for <see cref="Initializer" /> </summary>
         public const string XmlInitializerName = "Initializer";
 
-        /// <summary>
-        /// XML Name for <see cref="Incrementer" />
-        /// </summary>
+        /// <summary> XML Name for <see cref="Incrementer" /> </summary>
         public const string XmlIncrementerName = "Incrementer";
 
-        /// <summary>
-        /// The XML name for ForStatement
-        /// </summary>
+        /// <summary> The XML name for ForStatement </summary>
         public new const string XmlName = "For";
 
-        public Expression Initializer { get; set; }
-        public Expression Incrementer { get; set; }
+        /// <summary> The initialization expression for the for-loop. </summary>
+        public Expression Initializer {
+            get { return initExpression; }
+            set {
+                initExpression = value;
+                initExpression.ParentStatement = this;
+            }
+        }
+
+        /// <summary> The incrementer expression for the for-loop. </summary>
+        public Expression Incrementer {
+            get { return incrExpression; }
+            set {
+                incrExpression = value;
+                incrExpression.ParentStatement = this;
+            }
+        }
 
         /// <summary>
         /// Instance method for getting <see cref="ForStatement.XmlName"/>

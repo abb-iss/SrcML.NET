@@ -17,12 +17,23 @@ using System.Text;
 using System.Xml;
 
 namespace ABB.SrcML.Data {
-    public class ConditionBlockStatement : BlockStatement {
+    /// <summary>
+    /// Represents a program control structure that contains a condition, e.g. an if statement or while loop.
+    /// </summary>
+    public abstract class ConditionBlockStatement : BlockStatement {
+        private Expression conditionExpression;
+        
+        /// <summary> XML name for <see cref="Condition"/>. </summary>
         public const string XmlConditionName = "Condition";
 
-        public ConditionBlockStatement() : base() {}
-
-        public Expression Condition { get; set; }
+        /// <summary> The condition expression controlling the block. </summary>
+        public Expression Condition {
+            get { return conditionExpression; }
+            set {
+                conditionExpression = value;
+                conditionExpression.ParentStatement = this;
+            }
+        }
 
         protected override void ReadXmlChild(XmlReader reader) {
             if(XmlConditionName == reader.Name) {

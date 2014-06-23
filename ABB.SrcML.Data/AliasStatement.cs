@@ -18,23 +18,32 @@ using System.Text;
 using System.Xml;
 
 namespace ABB.SrcML.Data {
+    /// <summary>
+    /// Represents a statement declaring an alias in a file.
+    /// For example: using File = System.IO.File;
+    /// </summary>
     public class AliasStatement : Statement {
-        /// <summary>
-        /// The XML name for AliasStatement
-        /// </summary>
+        private Expression targetExpression;
+        
+        /// <summary> The XML name for AliasStatement </summary>
         public new const string XmlName = "Alias";
 
-        /// <summary>
-        /// XML Name for <see cref="Target" />
-        /// </summary>
+        /// <summary> XML Name for <see cref="Target" /> </summary>
         public const string XmlTargetName = "Target";
 
-        /// <summary>
-        /// XML Name for <see cref="AliasName" />
-        /// </summary>
+        /// <summary> XML Name for <see cref="AliasName" /> </summary>
         public const string XmlAliasNameName = "AliasName";
 
-        public Expression Target { get; set; }
+        /// <summary> The thing that the alias is pointing to. </summary>
+        public Expression Target {
+            get { return targetExpression; }
+            set {
+                targetExpression = value;
+                targetExpression.ParentStatement = this;
+            }
+        }
+
+        /// <summary> The new declared name for the target. </summary>
         public string AliasName { get; set; }
 
         /// <summary>

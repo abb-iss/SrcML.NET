@@ -24,16 +24,13 @@ namespace ABB.SrcML.Data
     /// <code> using(Foo f = new Foo()) { ... } </code>
     /// Note that this is different from a using directive, e.g. <code>using System.Text;</code>
     /// </summary>
-    public class UsingBlockStatement : BlockStatement
-    {
-        /// <summary>
-        /// The XML name for UsingBlockStatement
-        /// </summary>
+    public class UsingBlockStatement : BlockStatement {
+        private Expression initExpression;
+
+        /// <summary> The XML name for UsingBlockStatement </summary>
         public new const string XmlName = "UsingBlock";
 
-        /// <summary>
-        /// XML Name for <see cref="Initializer" />
-        /// </summary>
+        /// <summary> XML Name for <see cref="Initializer" /> </summary>
         public const string XmlInitializerName = "Initializer";
 
         /// <summary>
@@ -42,10 +39,14 @@ namespace ABB.SrcML.Data
         /// <returns>Returns the XML name for UsingBlockStatement</returns>
         public override string GetXmlName() { return UsingBlockStatement.XmlName; }
 
-        /// <summary>
-        /// The intialization expression for the using block.
-        /// </summary>
-        public Expression Initializer { get; set; }
+        /// <summary> The intialization expression for the using block. </summary>
+        public Expression Initializer {
+            get { return initExpression; }
+            set {
+                initExpression = value;
+                initExpression.ParentStatement = this;
+            }
+        }
 
         protected override void ReadXmlChild(XmlReader reader) {
             if(XmlInitializerName == reader.Name) {

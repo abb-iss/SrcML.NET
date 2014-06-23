@@ -16,6 +16,9 @@ using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML.Data {
+    /// <summary>
+    /// Represents a break statement.
+    /// </summary>
     public class BreakStatement : Statement {
         /// <summary>
         /// The XML name for BreakStatement

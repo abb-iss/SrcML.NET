@@ -20,39 +20,34 @@ namespace ABB.SrcML.Data {
     public class PropertyDefinition : NamedScope {
         private MethodDefinition getter;
         private MethodDefinition setter;
+        private TypeUse returnType;
 
-        /// <summary>
-        /// The XML name for PropertyDefinition
-        /// </summary>
+        /// <summary> The XML name for PropertyDefinition </summary>
         public new const string XmlName = "Property";
 
-        /// <summary>
-        /// XML Name for <see cref="Getter" />
-        /// </summary>
+        /// <summary> XML Name for <see cref="Getter" /> </summary>
         public const string XmlGetterName = "Getter";
 
-        /// <summary>
-        /// XML Name for <see cref="Setter" />
-        /// </summary>
+        /// <summary> XML Name for <see cref="Setter" /> </summary>
         public const string XmlSetterName = "Setter";
 
-        /// <summary>
-        /// XML Name for <see cref="ReturnType" />
-        /// </summary>
+        /// <summary> XML Name for <see cref="ReturnType" /> </summary>
         public const string XmlReturnTypeName = "ReturnType";
 
-        /// <summary>
-        /// Creates a new default PropertyDefinition.
-        /// </summary>
+        /// <summary> Creates a new default PropertyDefinition. </summary>
         public PropertyDefinition() : base() {
             getter = null;
             setter = null;
         }
 
-        /// <summary>
-        /// The type of the property.
-        /// </summary>
-        public TypeUse ReturnType { get; set; }
+        /// <summary> The type of the property. </summary>
+        public TypeUse ReturnType {
+            get { return returnType; }
+            set {
+                returnType = value;
+                returnType.ParentStatement = this;
+            }
+        }
 
         /// <summary>
         /// The getter method for this property, if any.

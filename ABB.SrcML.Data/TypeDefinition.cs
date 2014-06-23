@@ -19,33 +19,25 @@ using System.Linq;
 using System.Xml;
 
 namespace ABB.SrcML.Data {
-
+    /// <summary>
+    /// Represents a type definition in a program.
+    /// </summary>
     public class TypeDefinition : NamedScope {
         private Collection<TypeUse> parentTypeCollection;
 
-        /// <summary>
-        /// The XML name for TypeDefinition
-        /// </summary>
+        /// <summary> The XML name for TypeDefinition </summary>
         public new const string XmlName = "Type";
 
-        /// <summary>
-        /// XML Name for <see cref="Kind" />
-        /// </summary>
+        /// <summary> XML Name for <see cref="Kind" /> </summary>
         public const string XmlKindName = "kind";
 
-        /// <summary>
-        /// XML Name for <see cref="ParentTypes" />
-        /// </summary>
+        /// <summary> XML Name for <see cref="ParentTypes" /> </summary>
         public const string XmlParentTypesName = "ParentTypes";
 
-        /// <summary>
-        /// XML Name for <see cref="IsPartial" />
-        /// </summary>
+        /// <summary> XML Name for <see cref="IsPartial" /> </summary>
         public const string XmlIsPartialName = "IsPartial";
 
-        /// <summary>
-        /// Creates a new type definition object
-        /// </summary>
+        /// <summary> Creates a new type definition object </summary>
         public TypeDefinition()
             : base() {
             parentTypeCollection = new Collection<TypeUse>();
@@ -53,16 +45,21 @@ namespace ABB.SrcML.Data {
             IsPartial = false;
         }
 
-        
+        /// <summary>
+        /// The kind of type this object represents, e.g. class, struct, etc.
+        /// </summary>
         public TypeKind Kind { get; set; }
+
+        /// <summary> The parents of this type. </summary>
         public ReadOnlyCollection<TypeUse> ParentTypes { get; protected set; }
+
+        /// <summary> Indicates whether this is a partial type. </summary>
         public bool IsPartial { get; set; }
 
         protected override bool ToBeDeleted { get { return Locations.All(l => l.IsReference); } }
 
         /// <summary>
-        /// Adds
-        /// <paramref name="parentTypeUse"/>as a parent type for this type definition.
+        /// Adds <paramref name="parentTypeUse"/>as a parent type for this type definition.
         /// </summary>
         /// <param name="parentTypeUse">The parent type to add</param>
         public void AddParentType(TypeUse parentTypeUse) {

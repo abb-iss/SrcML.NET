@@ -20,40 +20,30 @@ using System.Text;
 using System.Xml;
 
 namespace ABB.SrcML.Data {
-
+    /// <summary>
+    /// Represents a method definition in a program.
+    /// </summary>
     public class MethodDefinition : NamedScope {
         private List<VariableDeclaration> parameterList;
-        Dictionary<string, TypeUse> _returnTypeMap;
-        Dictionary<string, List<VariableDeclaration>> _parameterMap;
+        private Dictionary<string, TypeUse> _returnTypeMap;
+        private Dictionary<string, List<VariableDeclaration>> _parameterMap;
 
-        /// <summary>
-        /// The XML name for MethodDefinition
-        /// </summary>
+        /// <summary> The XML name for MethodDefinition </summary>
         public new const string XmlName = "Method";
 
-        /// <summary>
-        /// XML Name for <see cref="IsConstructor" />
-        /// </summary>
+        /// <summary> XML Name for <see cref="IsConstructor" /> </summary>
         public const string XmlIsConstructorName = "IsConstructor";
 
-        /// <summary>
-        /// XML Name for <see cref="IsDestructor" />
-        /// </summary>
+        /// <summary> XML Name for <see cref="IsDestructor" /> </summary>
         public const string XmlIsDestructorName = "IsDestructor";
 
-        /// <summary>
-        /// XML Name for <see cref="IsPartial" />
-        /// </summary>
+        /// <summary> XML Name for <see cref="IsPartial" /> </summary>
         public const string XmlIsPartialName = "IsPartial";
 
-        /// <summary>
-        /// XML Name for <see cref="Parameters" />
-        /// </summary>
+        /// <summary> XML Name for <see cref="Parameters" /> </summary>
         public const string XmlParametersName = "Parameters";
 
-        /// <summary>
-        /// XML Name for <see cref="ReturnType" />
-        /// </summary>
+        /// <summary> XML Name for <see cref="ReturnType" /> </summary>
         public const string XmlReturnTypeName = "ReturnType";
 
         /// <summary>
@@ -68,12 +58,19 @@ namespace ABB.SrcML.Data {
             Parameters = new ReadOnlyCollection<VariableDeclaration>(parameterList);
         }
 
+        /// <summary> Indicates whether this method is a constructor. </summary>
         public bool IsConstructor { get; set; }
+        
+        /// <summary> Indicates whether this method is a destructor. </summary>
         public bool IsDestructor { get; set; }
+        
+        /// <summary> Indicates whether this is a partial method. </summary>
         public bool IsPartial { get; set; }
 
+        /// <summary> The parameters to the method. </summary>
         public ReadOnlyCollection<VariableDeclaration> Parameters { get; private set; }
         
+        /// <summary> The return type of the method. </summary>
         public TypeUse ReturnType {
             get {
                 if(_returnTypeMap.Count > 0) {
@@ -97,6 +94,10 @@ namespace ABB.SrcML.Data {
                 if(parameterList.Count > 0 && GetParameterFingerprint(parameterList) != GetParameterFingerprint(parameters)) {
                     _parameterMap.Clear();
                 }
+
+                foreach(var param in parameters) {
+                    param.ParentStatement = this;
+                }
                 _parameterMap[parameters[0].Location.ToString()] = parameters;
 
                 if(parameterList.Count == 0 || ComputeParameterInfoScore(parameterList) < ComputeParameterInfoScore(parameters)) {
@@ -116,6 +117,7 @@ namespace ABB.SrcML.Data {
             if(null != ReturnType && this.ReturnType.Name != returnType.Name) {
                 _returnTypeMap.Clear();
             }
+            returnType.ParentStatement = this;
             _returnTypeMap[returnType.Location.ToString()] = returnType;
         }
 

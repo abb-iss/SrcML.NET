@@ -16,10 +16,11 @@ using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML.Data {
+    /// <summary>
+    /// Represents a goto statement in a program.
+    /// </summary>
     public class GotoStatement : Statement {
-        /// <summary>
-        /// The XML name for GotoStatement
-        /// </summary>
+        /// <summary> The XML name for GotoStatement </summary>
         public new const string XmlName = "Goto";
 
         /// <summary>

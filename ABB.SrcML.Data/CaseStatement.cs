@@ -17,17 +17,17 @@ using System.Text;
 using System.Xml;
 
 namespace ABB.SrcML.Data {
+    /// <summary>
+    /// Represents a case statement within a switch.
+    /// </summary>
     public class CaseStatement : ConditionBlockStatement {
-        /// <summary>
-        /// The XML name for CaseStatement
-        /// </summary>
+        /// <summary> The XML name for CaseStatement </summary>
         public new const string XmlName = "Case";
-
-        /// <summary>
-        /// XML Name for <see cref="IsDefault" />
-        /// </summary>
+        
+        /// <summary> XML Name for <see cref="IsDefault" /> </summary>
         public const string XmlIsDefaultName = "IsDefault";
 
+        /// <summary> Indicates whether this case is the default for the switch. </summary>
         public bool IsDefault { get; set; }
 
         /// <summary>

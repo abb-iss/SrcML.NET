@@ -23,16 +23,16 @@ namespace ABB.SrcML.Data {
     /// Declarations that use extern as a storage specifier, such as <code>extern int myGlobalVar;</code>, will not be parsed as ExternStatements.
     /// </summary>
     public class ExternStatement : Statement {
-        /// <summary>
-        /// The XML name for ExternStatement
-        /// </summary>
+        /// <summary> The XML name for ExternStatement. </summary>
         public new const string XmlName = "Extern";
 
-        /// <summary>
-        /// XML Name for <see cref="LinkageType" />
-        /// </summary>
+        /// <summary> XML Name for <see cref="LinkageType" /> </summary>
         public const string XmlLinkageTypeName = "LinkageType";
 
+        /// <summary>
+        /// The specified linkage type.
+        /// For example, in <code>extern "C" { #include&lt;stdio.h&gt; }</code> the linkage type is C.
+        /// </summary>
         public string LinkageType { get; set; }
 
         /// <summary>

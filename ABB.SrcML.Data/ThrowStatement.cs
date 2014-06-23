@@ -16,10 +16,11 @@ using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML.Data {
+    /// <summary>
+    /// Represents a throw statement in a program.
+    /// </summary>
     public class ThrowStatement : Statement {
-        /// <summary>
-        /// The XML name for ThrowStatement
-        /// </summary>
+        /// <summary> The XML name for ThrowStatement </summary>
         public new const string XmlName = "Throw";
 
         /// <summary>

@@ -16,10 +16,11 @@ using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML.Data {
+    /// <summary>
+    /// Represents a return statement in a program.
+    /// </summary>
     public class ReturnStatement : Statement {
-        /// <summary>
-        /// The XML name for ReturnStatement
-        /// </summary>
+        /// <summary> The XML name for ReturnStatement </summary>
         public new const string XmlName = "Return";
 
         /// <summary>
