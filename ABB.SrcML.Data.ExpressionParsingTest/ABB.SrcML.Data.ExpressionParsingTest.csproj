@@ -45,6 +45,7 @@
     <Compile Include="..\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
+    <Compile Include="DataAssert.cs" />
     <Compile Include="CodeParserTests.cs" />
     <Compile Include="CPlusPlusCodeParserTests.cs" />
     <Compile Include="CSharpCodeParserTests.cs" />
@@ -55,7 +56,6 @@
     <Compile Include="MergeTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RealWorldTests.cs" />
-    <Compile Include="TestHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

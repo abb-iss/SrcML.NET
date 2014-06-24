@@ -48,7 +48,7 @@ namespace ABB.SrcML.Data.Test {
 
             afterScope.RemoveFile("A.h");
 
-            Assert.IsTrue(TestHelper.StatementsAreEqual(beforeScope, afterScope));
+            DataAssert.StatementsAreEqual(beforeScope, afterScope);
         }
 
         [Test]
@@ -83,7 +83,7 @@ namespace ABB.SrcML.Data.Test {
 
             afterScope.RemoveFile("A.cpp");
 
-            Assert.IsTrue(TestHelper.StatementsAreEqual(beforeScope, afterScope));
+            DataAssert.StatementsAreEqual(beforeScope, afterScope);
         }
 
         [Test]
@@ -105,7 +105,7 @@ namespace ABB.SrcML.Data.Test {
 
             afterScope.RemoveFile("Foo.h");
 
-            Assert.IsTrue(TestHelper.StatementsAreEqual(beforeScope, afterScope));
+            DataAssert.StatementsAreEqual(beforeScope, afterScope);
         }
 
         [Test]
@@ -141,7 +141,7 @@ namespace ABB.SrcML.Data.Test {
 
             afterScope.RemoveFile("A.cpp");
 
-            Assert.IsTrue(TestHelper.StatementsAreEqual(beforeScope, afterScope));
+            DataAssert.StatementsAreEqual(beforeScope, afterScope);
         }
 
         [Test]
@@ -163,7 +163,7 @@ namespace ABB.SrcML.Data.Test {
 
             afterScope.RemoveFile("Foo.cpp");
 
-            Assert.IsTrue(TestHelper.StatementsAreEqual(beforeScope, afterScope));
+            DataAssert.StatementsAreEqual(beforeScope, afterScope);
         }
 
         [Test]
@@ -183,7 +183,7 @@ namespace ABB.SrcML.Data.Test {
 
             afterScope.RemoveFile("Baz.cpp");
 
-            Assert.IsTrue(TestHelper.StatementsAreEqual(beforeScope, afterScope));
+            DataAssert.StatementsAreEqual(beforeScope, afterScope);
         }
 
         [Test]
@@ -212,7 +212,7 @@ namespace ABB.SrcML.Data.Test {
 
             afterScope.RemoveFile("B.cpp");
 
-            Assert.IsTrue(TestHelper.StatementsAreEqual(beforeScope, afterScope));
+            DataAssert.StatementsAreEqual(beforeScope, afterScope);
         }
 
         [Test]
@@ -242,7 +242,7 @@ namespace ABB.SrcML.Data.Test {
 
             afterScope.RemoveFile("A2.cpp");
 
-            Assert.IsTrue(TestHelper.StatementsAreEqual(beforeScope, afterScope));
+            DataAssert.StatementsAreEqual(beforeScope, afterScope);
         }
 
         [Test]
@@ -273,7 +273,7 @@ namespace ABB.SrcML.Data.Test {
 
             afterScope.RemoveFile("Foo.cpp");
 
-            Assert.That(TestHelper.StatementsAreEqual(beforeScope, afterScope));
+            DataAssert.StatementsAreEqual(beforeScope, afterScope);
         }
 
         [Test]
@@ -304,7 +304,7 @@ namespace ABB.SrcML.Data.Test {
 
             afterScope.RemoveFile("Foo.h");
 
-            Assert.That(TestHelper.StatementsAreEqual(beforeScope, afterScope));
+            DataAssert.StatementsAreEqual(beforeScope, afterScope);
         }
 
         [Test]
@@ -323,7 +323,7 @@ namespace ABB.SrcML.Data.Test {
             var fileunit = FileUnitSetup.GetFileUnitForXmlSnippet(xml, "A.h");
             var scope1 = CodeParser.ParseFileUnit(fileunit);
             var scope2 = CodeParser.ParseFileUnit(fileunit);
-            Assert.IsTrue(TestHelper.StatementsAreEqual(scope1, scope2));
+            DataAssert.StatementsAreEqual(scope1, scope2);
         }
     }
 }

@@ -48,7 +48,7 @@ namespace ABB.SrcML.Data.Test {
 
             afterScope.RemoveFile("Baz.cs");
 
-            Assert.IsTrue(TestHelper.StatementsAreEqual(beforeScope, afterScope));
+            DataAssert.StatementsAreEqual(beforeScope, afterScope);
         }
 
         [Test]
@@ -76,7 +76,7 @@ namespace ABB.SrcML.Data.Test {
 
             afterScope.RemoveFile("B.cs");
 
-            Assert.IsTrue(TestHelper.StatementsAreEqual(beforeScope, afterScope));
+            DataAssert.StatementsAreEqual(beforeScope, afterScope);
         }
 
         [Test]
@@ -117,7 +117,7 @@ namespace ABB.SrcML.Data.Test {
 
             afterScope.RemoveFile("A2.cs");
 
-            Assert.IsTrue(TestHelper.StatementsAreEqual(beforeScope, afterScope));
+            DataAssert.StatementsAreEqual(beforeScope, afterScope);
         }
 
         [Test]
@@ -151,7 +151,7 @@ namespace ABB.SrcML.Data.Test {
 
             afterScope.RemoveFile("A1.cs");
 
-            Assert.IsTrue(TestHelper.StatementsAreEqual(beforeScope, afterScope));
+            DataAssert.StatementsAreEqual(beforeScope, afterScope);
         }
 
         [Test]
@@ -185,7 +185,7 @@ namespace ABB.SrcML.Data.Test {
 
             afterScope.RemoveFile("A2.cs");
 
-            Assert.IsTrue(TestHelper.StatementsAreEqual(beforeScope, afterScope));
+           DataAssert.StatementsAreEqual(beforeScope, afterScope);
         }
 
         [Test]
@@ -214,7 +214,7 @@ namespace ABB.SrcML.Data.Test {
 
             afterScope.RemoveFile("A2.cs");
 
-            Assert.IsTrue(TestHelper.StatementsAreEqual(beforeScope, afterScope));
+            DataAssert.StatementsAreEqual(beforeScope, afterScope);
         }
 
         [Test]

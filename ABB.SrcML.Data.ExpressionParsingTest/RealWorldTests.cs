@@ -1,4 +1,16 @@
-﻿using ABB.SrcML.Utilities;
+﻿/******************************************************************************
+ * Copyright (c) 2014 ABB Group
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    Vinay Augustine (ABB Group) - initial API, implementation, & documentation
+ *    Patrick Francis (ABB Group) - initial API, implementation, & documentation
+ *****************************************************************************/
+
+using ABB.SrcML.Utilities;
 using NUnit.Framework;
 using System;
 using System.Collections;
@@ -26,7 +38,7 @@ namespace ABB.SrcML.Data.Test {
             var nsd = dataGenerator.Parse(fileUnit) as NamespaceDefinition;
             XmlSerialization.WriteElement(nsd, "test_data.xml");
             var nsdFromFile = XmlSerialization.Load("test_data.xml") as NamespaceDefinition;
-            Assert.That(TestHelper.StatementsAreEqual(nsd, nsdFromFile));
+            DataAssert.StatementsAreEqual(nsd, nsdFromFile);
         }
 
         [Test, TestCaseSource("TestProjects")]
@@ -97,13 +109,13 @@ namespace ABB.SrcML.Data.Test {
 
                 long count = 0, parseElapsed = 0, deserializeElapsed = 0, compareElapsed = 0;
 
-                Console.WriteLine("# Files\tParse\tDeserialize\tComparison");
-                foreach(var sourceFile in dataArchive.GetFiles()) {
+                Console.WriteLine("{0,-12} {1,-12} {2,-12} {3,-12}", "# Files", "Parse", "Deserialize", "Comparison");
+                foreach(var sourceFile in dataArchive.GetFiles().OrderBy(elem => Guid.NewGuid())) {
                     NamespaceDefinition data;
                     NamespaceDefinition serializedData;
                     try {
-                        var fileUnit = archive.GetXElementForSourceFile(sourceFile);
                         start = DateTime.Now;
+                        var fileUnit = archive.GetXElementForSourceFile(sourceFile);
                         data = dataArchive.DataGenerator.Parse(fileUnit);
                         end = DateTime.Now;
                         parseElapsed += (end - start).Ticks;
@@ -125,17 +137,31 @@ namespace ABB.SrcML.Data.Test {
                     Assert.IsNotNull(data);
                     Assert.IsNotNull(serializedData);
                     start = DateTime.Now;
-                    Assert.That(TestHelper.StatementsAreEqual(data, serializedData), sourceFile);
+                    DataAssert.StatementsAreEqual(data, serializedData);
                     end = DateTime.Now;
                     compareElapsed += (end - start).Ticks;
 
-                    if(++count % 100 == 0) {
-                        Console.WriteLine("{0,7}\t{1} ms\t{2} ms\t{3} ms", ++count,
+                    if(++count % 25 == 0) {
+                        Console.WriteLine("{0,7} {1,9:0.00} ms {2,9:0.00} ms {3,9:0.00} ms", count,
                                 (double) parseElapsed / TimeSpan.TicksPerMillisecond / count,
                                 (double) deserializeElapsed / TimeSpan.TicksPerMillisecond / count,
                                 (double) compareElapsed / TimeSpan.TicksPerMillisecond / count);
                     }
                 }
+
+                Console.WriteLine(@"Project: {0} {1}
+============================
+{2,-15} {3,9}
+{4,-15} {5,9:0.00} ms
+{6,-15} {7,9:0.00} ms
+{8,-15} {9,9:0.00} ms
+============================
+{10,-15} {11,9:0.00} ms
+", project.ProjectName, project.Version, "# Files", count,
+                        "Parsing", parseElapsed / TimeSpan.TicksPerMillisecond,
+                        "Deserializing", deserializeElapsed / TimeSpan.TicksPerMillisecond,
+                        "Comparing", compareElapsed / TimeSpan.TicksPerMillisecond,
+                        "Total", (parseElapsed + deserializeElapsed + compareElapsed) / TimeSpan.TicksPerMillisecond);
             }
             
         }
