@@ -12,6 +12,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Xml;
@@ -24,6 +26,18 @@ namespace ABB.SrcML.Data {
     /// XmlSerialization provides helper methods that aid in serializing and deserializing different objects in SrcML.Data.
     /// </summary>
     public class XmlSerialization {
+
+        /// <summary>
+        /// The default extension to use for serialized files
+        /// </summary>
+        public const string DEFAULT_EXTENSION = ".dml";
+
+        /// <summary>
+        /// The default extension to use for <see cref="GZipStream">compressed</see> serialized files
+        /// </summary>
+        public const string DEFAULT_COMPRESSED_EXTENSION = ".dgz";
+
+        #region internal xml name mappings
         internal static Dictionary<string, XmlInitializer<SourceLocation>> XmlLocationMap = new Dictionary<string, XmlInitializer<SourceLocation>>() {
             { SourceLocation.XmlName, CreateFromReader<SourceLocation> },
             { SrcMLLocation.XmlName, CreateFromReader<SrcMLLocation> },
@@ -75,9 +89,45 @@ namespace ABB.SrcML.Data {
             { VariableDeclaration.XmlName, CreateFromReader<VariableDeclaration> },
             { VariableUse.XmlName, CreateFromReader<VariableUse> },
         };
-
+        #endregion internal xml name mappings
+        
+        /// <summary>
+        /// Loads serialized data from <paramref name="fileName"/>. If <paramref name="fileName"/> has
+        /// <see cref="DEFAULT_COMPRESSED_EXTENSION"/> as its extension it is treated as a compressed file.
+        /// </summary>
+        /// <param name="fileName">the file name to deserialize</param>
+        /// <returns>The object stored in <paramref name="fileName"/></returns>
         public static IXmlElement Load(string fileName) {
-            using(var reader = XmlTextReader.Create(fileName)) {
+            var extension = Path.GetExtension(fileName);
+            bool fileIsCompressed = extension.Equals(DEFAULT_COMPRESSED_EXTENSION, StringComparison.InvariantCultureIgnoreCase);
+            return Load(fileName, fileIsCompressed);
+        }
+
+        /// <summary>
+        /// Loads serialized data from <paramref name="fileName"/>
+        /// </summary>
+        /// <param name="fileName">The file name to deserialize</param>
+        /// <param name="fileIsCompressed">If true, the file is decompressed through a <see cref="GZipStream"/></param>
+        /// <returns>The object stored in <paramref name="fileName"/></returns>
+        public static IXmlElement Load(string fileName, bool fileIsCompressed) {
+            using(var fileStream = File.OpenRead(fileName)) {
+                if(fileIsCompressed) {
+                    using(var zipStream = new GZipStream(fileStream, CompressionMode.Decompress)) {
+                        return Load(zipStream);
+                    }
+                } else {
+                    return Load(fileStream);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Loads serialized data from <paramref name="fileName"/>
+        /// </summary>
+        /// <param name="inputStream">The stream to deserialize from</param>
+        /// <returns>The object stored in <paramref name="inputStream"/></returns>
+        public static IXmlElement Load(Stream inputStream) {
+            using(var reader = XmlReader.Create(inputStream)) {
                 reader.MoveToContent();
                 return DeserializeStatement(reader);
             }
@@ -89,7 +139,36 @@ namespace ABB.SrcML.Data {
         /// <param name="element">The element to serializer</param>
         /// <param name="fileName">The file name to write <paramref name="element"/> to</param>
         public static void WriteElement(IXmlElement element, string fileName) {
-            using(var writer = new XmlTextWriter(fileName, null)) {
+            var extension = Path.GetExtension(fileName);
+            var compressionEnabled = extension.Equals(DEFAULT_COMPRESSED_EXTENSION, StringComparison.InvariantCultureIgnoreCase);
+            WriteElement(element, fileName, compressionEnabled);
+        }
+
+        /// <summary>
+        /// Writes <paramref name="element"/> to <paramref name="fileName"/> with or without <paramref name="compressionEnabled"/>
+        /// </summary>
+        /// <param name="element">The element to serialize</param>
+        /// <param name="fileName">The file name to write <paramref name="fileName"/> to</param>
+        /// <param name="compressionEnabled">if true, compress the output with <see cref="System.IO.Compression.GzipStream"/></param>
+        public static void WriteElement(IXmlElement element, string fileName, bool compressionEnabled) {
+            using(var fileStream = File.OpenWrite(fileName)) {
+                if(compressionEnabled) {
+                    using(var zipStream = new GZipStream(fileStream, CompressionMode.Compress)) {
+                        WriteElement(element, zipStream);
+                    }
+                } else {
+                    WriteElement(element, fileStream);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Writes <see cref="element"/> to <paramref name="outputStream"/>
+        /// </summary>
+        /// <param name="element">The element to serialize</param>
+        /// <param name="outputStream">The output stream</param>
+        public static void WriteElement(IXmlElement element, Stream outputStream) {
+            using(var writer = XmlWriter.Create(outputStream)) {
                 writer.WriteStartDocument();
                 WriteElement(writer, element);
                 writer.WriteEndDocument();
