@@ -26,21 +26,6 @@ namespace ABB.SrcML.Data.Test {
         public const string MappingFile = @"..\..\TestInputs\project_mapping.txt";
         static List<RealWorldTestProject> TestProjects = ReadProjectMap(MappingFile).ToList();
 
-        [Test,
-        TestCase(@"..\..\TestInputs\A.cpp"),
-        TestCase(@"..\..\TestInputs\A.h")]
-        public void TestSingleFile(string sourceFileName) {
-            var srcMLGenerator = new SrcMLGenerator("SrcML");
-            var dataGenerator = new DataGenerator();
-
-            Assert.That(srcMLGenerator.Generate(sourceFileName, "test.xml"));
-            var fileUnit = SrcMLElement.Load("test.xml");
-            var nsd = dataGenerator.Parse(fileUnit) as NamespaceDefinition;
-            XmlSerialization.WriteElement(nsd, "test_data.xml");
-            var nsdFromFile = XmlSerialization.Load("test_data.xml") as NamespaceDefinition;
-            DataAssert.StatementsAreEqual(nsd, nsdFromFile);
-        }
-
         [Test, TestCaseSource("TestProjects")]
         public void TestDataGeneration(RealWorldTestProject project) {
             CheckThatProjectExists(project);
