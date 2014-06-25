@@ -198,7 +198,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 // Create a new instance of SrcML.NET's SrcMLArchive
                 SrcMLArchive sourceArchive = new SrcMLArchive(baseDirectory, SrcMLArchive.DEFAULT_ARCHIVE_DIRECTORY, true,
                                                               new SrcMLGenerator(srcMLBinaryDirectory),
-                                                              new ShortFileNameMapping(Path.Combine(baseDirectory, SrcMLArchive.DEFAULT_ARCHIVE_DIRECTORY)),
+                                                              new SrcMLFileNameMapping(Path.Combine(baseDirectory, SrcMLArchive.DEFAULT_ARCHIVE_DIRECTORY)),
                                                               _taskManager.GlobalScheduler);
                 CurrentSrcMLArchive = sourceArchive;
 

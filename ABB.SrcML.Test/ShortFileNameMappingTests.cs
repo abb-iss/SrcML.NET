@@ -86,7 +86,7 @@ namespace ABB.SrcML.Test {
                                Environment.CurrentDirectory+@"\mappingTest\Sample.h.1.xml",
                            };
 
-            var map = new ShortFileNameMapping("mappingTest");
+            var map = new SrcMLFileNameMapping("mappingTest");
             var worker = new Thread(() => ConcurrentWorker(map, sourceFiles2));
             worker.Start();
             foreach(var file in sourceFiles1) {
@@ -115,7 +115,8 @@ namespace ABB.SrcML.Test {
 
         [Test]
         public void TestConstructor_CurrentDirectory() {
-            var map = new ShortFileNameMapping(".");
+            Directory.SetCurrentDirectory("mappingTest");
+            var map = new SrcMLFileNameMapping(".");
             var xmlPath = map.GetTargetPath("Foo.cs");
             Assert.That(xmlPath.StartsWith(Environment.CurrentDirectory));
         }
@@ -123,7 +124,7 @@ namespace ABB.SrcML.Test {
         [Test]
         public void TestDispose() {
             Assert.IsTrue(!File.Exists("mappingTest\\mapping.txt"));
-            using(var map = new ShortFileNameMapping("mappingTest")) {
+            using(var map = new SrcMLFileNameMapping("mappingTest")) {
                 map.GetTargetPath(@"foo\bar\Example.cs");
                 map.GetTargetPath(@"foo\bar\Data.cs");
                 map.GetTargetPath(@"foo\bar\baz\Example.cs");
@@ -132,12 +133,12 @@ namespace ABB.SrcML.Test {
         }
 
         [Test]
-        public void TestFolderWithXmlNoMappingFile() {
+        public void TestSrcMLWithNoMappingFile() {
             File.Copy(@"..\..\TestInputs\function_def.xml", @"mappingTest\function_def.xml", true);
             File.Copy(@"..\..\TestInputs\method_def.xml", @"mappingTest\method_def.xml", true);
             File.Copy(@"..\..\TestInputs\nested_scopes.xml", @"mappingTest\nested_scopes.xml", true);
 
-            var map = new ShortFileNameMapping("mappingTest");
+            var map = new SrcMLFileNameMapping("mappingTest");
             Assert.AreEqual(@"C:\Workspaces\SrcML.NET\TestInputs\function_def.cpp", map.GetSourcePath(@"function_def.xml"));
             Assert.AreEqual(@"C:\Workspaces\SrcML.NET\TestInputs\method_def.cpp", map.GetSourcePath(@"method_def.xml"));
             Assert.AreEqual(@"C:\Workspaces\SrcML.NET\TestInputs\nested_scopes.c", map.GetSourcePath(@"nested_scopes.xml"));
@@ -150,7 +151,7 @@ namespace ABB.SrcML.Test {
             File.Copy(@"..\..\TestInputs\nested_scopes.xml", @"mappingTest\nested_scopes.xml", true);
             File.Copy(@"..\..\TestInputs\NotSrcML.xml", @"mappingTest\NotSrcML.xml", true);
 
-            var map = new ShortFileNameMapping("mappingTest");
+            var map = new SrcMLFileNameMapping("mappingTest");
             Assert.AreEqual(@"C:\Workspaces\SrcML.NET\TestInputs\function_def.cpp", map.GetSourcePath(@"function_def.xml"));
             Assert.AreEqual(@"C:\Workspaces\SrcML.NET\TestInputs\method_def.cpp", map.GetSourcePath(@"method_def.xml"));
             Assert.AreEqual(@"C:\Workspaces\SrcML.NET\TestInputs\nested_scopes.c", map.GetSourcePath(@"nested_scopes.xml"));
@@ -163,7 +164,7 @@ C:\Foo\Bar\Example.cs|C:\srcmlArchive\Example.cs.1.xml
 C:\Foo\Bar\xyzzy\Example.cs|C:\srcmlArchive\Example.cs.2.xml";
             File.WriteAllText(@"mappingTest\mapping.txt", fileContents);
 
-            var map = new ShortFileNameMapping("mappingTest");
+            var map = new SrcMLFileNameMapping("mappingTest");
             var sourcePath = map.GetSourcePath(@"C:\srcmlArchive\Example.cs.1.xml");
             Assert.AreEqual(@"C:\Foo\Bar\Example.cs", sourcePath);
         }
@@ -175,21 +176,21 @@ C:\Foo\Bar\Example.cs|{0}\mappingTest\Example.cs.1.xml
 C:\Foo\Bar\xyzzy\Example.cs|{0}\mappingTest\Example.cs.2.xml";
             File.WriteAllText(@"mappingTest\mapping.txt", string.Format(fileContents, Environment.CurrentDirectory));
 
-            var map = new ShortFileNameMapping("mappingTest");
+            var map = new SrcMLFileNameMapping("mappingTest");
             var sourcePath = map.GetSourcePath(@"Example.cs.2.xml");
             Assert.AreEqual(@"C:\Foo\Bar\xyzzy\Example.cs", sourcePath);
         }
 
         [Test]
         public void TestGetXmlPath_CorrectDir() {
-            var map = new ShortFileNameMapping("mappingTest");
+            var map = new SrcMLFileNameMapping("mappingTest");
             var xmlPath = map.GetTargetPath("Example.cpp");
             Assert.That(xmlPath.StartsWith(map.TargetDirectory));
         }
 
         [Test]
         public void TestGetXmlPath_DifferentCase() {
-            var map = new ShortFileNameMapping("mappingTest");
+            var map = new SrcMLFileNameMapping("mappingTest");
             var xmlPath1 = map.GetTargetPath("foo\\Example.cpp");
             var xmlPath2 = map.GetTargetPath("bar\\example.CPP");
             //If the file system is case insensitive, the paths should be Example.cpp.1.xml and example.CPP.2.xml
@@ -203,7 +204,7 @@ C:\Foo\Bar\xyzzy\Example.cs|{0}\mappingTest\Example.cs.2.xml";
 C:\Foo\Bar\Example.cs|C:\srcmlArchive\Example.cs.1.xml
 C:\Foo\Bar\xyzzy\Example.cs|C:\srcmlArchive\Example.cs.2.xml";
             File.WriteAllText(@"mappingTest\mapping.txt", fileContents);
-            var map = new ShortFileNameMapping("mappingTest");
+            var map = new SrcMLFileNameMapping("mappingTest");
             var thirdName = map.GetTargetPath(@"C:\OtherDir\Example.cs");
             Assert.AreEqual(Path.Combine(Environment.CurrentDirectory, @"mappingTest\Example.cs.3.xml"), thirdName);
         }
@@ -211,14 +212,14 @@ C:\Foo\Bar\xyzzy\Example.cs|C:\srcmlArchive\Example.cs.2.xml";
         [Test]
         public void TestGetXmlPath_NonExistentDir() {
             Assert.That(!File.Exists("MissingDir"));
-            var map = new ShortFileNameMapping("MissingDir");
+            var map = new SrcMLFileNameMapping("MissingDir");
             var xmlPath = map.GetTargetPath("Example.cpp");
             Assert.That(xmlPath.StartsWith(map.TargetDirectory));
         }
 
         [Test]
         public void TestGetXmlPath_Repeated() {
-            var map = new ShortFileNameMapping("mappingTest");
+            var map = new SrcMLFileNameMapping("mappingTest");
             var xmlPath1 = map.GetTargetPath("Example.cpp");
             var xmlPath2 = map.GetTargetPath("Example.cpp");
             Assert.AreEqual(xmlPath1, xmlPath2);
@@ -226,7 +227,7 @@ C:\Foo\Bar\xyzzy\Example.cs|C:\srcmlArchive\Example.cs.2.xml";
 
         [Test]
         public void TestGetXmlPath_SameName() {
-            var map = new ShortFileNameMapping("mappingTest");
+            var map = new SrcMLFileNameMapping("mappingTest");
             var xmlPath1 = map.GetTargetPath("Example.cpp");
             var xmlPath2 = map.GetTargetPath(@"Subdir\Example.cpp");
             Assert.AreNotEqual(xmlPath1, xmlPath2);
@@ -238,7 +239,7 @@ C:\Foo\Bar\xyzzy\Example.cs|C:\srcmlArchive\Example.cs.2.xml";
 C:\Foo\Bar\Example.cs|C:\srcmlArchive\Example.cs.1.xml
 C:\Foo\Bar\xyzzy\Example.cs|C:\srcmlArchive\Example.cs.2.xml";
             File.WriteAllText(@"mappingTest\mapping.txt", fileContents);
-            var map = new ShortFileNameMapping("mappingTest");
+            var map = new SrcMLFileNameMapping("mappingTest");
             Assert.AreEqual(@"C:\srcmlArchive\test.cs.1.xml", map.GetTargetPath(@"C:\Foo\Bar\test.cs"));
             Assert.AreEqual(@"C:\srcmlArchive\Example.cs.1.xml", map.GetTargetPath(@"C:\Foo\Bar\Example.cs"));
             Assert.AreEqual(@"C:\srcmlArchive\Example.cs.2.xml", map.GetTargetPath(@"C:\Foo\Bar\xyzzy\Example.cs"));
@@ -246,14 +247,14 @@ C:\Foo\Bar\xyzzy\Example.cs|C:\srcmlArchive\Example.cs.2.xml";
 
         [Test]
         public void TestRountrip() {
-            var map = new ShortFileNameMapping("mappingTest");
+            var map = new SrcMLFileNameMapping("mappingTest");
             var xmlPath = map.GetTargetPath("Foo.cs");
             Assert.AreEqual(Path.GetFullPath("Foo.cs"), map.GetSourcePath(xmlPath));
         }
 
         [Test]
         public void TestSaveMapping() {
-            var map = new ShortFileNameMapping("mappingTest");
+            var map = new SrcMLFileNameMapping("mappingTest");
             map.GetTargetPath("main.c");
             map.GetTargetPath("integer.cpp");
             map.SaveMapping();
@@ -278,7 +279,7 @@ C:\Foo\Bar\xyzzy\Example.cs|C:\srcmlArchive\Example.cs.2.xml";
 
             File.Copy(xmlFilePath, @"mappingTest\function_def.xml", true);
 
-            var map = new ShortFileNameMapping("mappingTest");
+            var map = new SrcMLFileNameMapping("mappingTest");
             var storedXmlPath = map.GetTargetPath(sourceFilePath);
             Assert.IsNotNull(map.GetSourcePath(storedXmlPath));
 
@@ -287,7 +288,7 @@ C:\Foo\Bar\xyzzy\Example.cs|C:\srcmlArchive\Example.cs.2.xml";
             Assert.IsNotNull(map.GetSourcePath(absoluteXmlPath));
         }
 
-        private void ConcurrentWorker(ShortFileNameMapping map, IEnumerable<string> sourceFiles) {
+        private void ConcurrentWorker(SrcMLFileNameMapping map, IEnumerable<string> sourceFiles) {
             foreach(var file in sourceFiles) {
                 map.GetTargetPath(file);
             }

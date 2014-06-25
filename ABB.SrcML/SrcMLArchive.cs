@@ -95,7 +95,7 @@ namespace ABB.SrcML {
         /// <param name="generator">The SrcMLGenerator to use to convert source files to SrcML.</param>
         public SrcMLArchive(string baseDirectory, string srcMLDirectory, bool useExistingSrcML, SrcMLGenerator generator)
             : this(baseDirectory, srcMLDirectory, useExistingSrcML, generator,
-                   new ShortFileNameMapping(Path.Combine(baseDirectory, srcMLDirectory)), TaskScheduler.Default) {
+                   new SrcMLFileNameMapping(Path.Combine(baseDirectory, srcMLDirectory)), TaskScheduler.Default) {
 
         }
 

@@ -20,20 +20,32 @@ namespace ABB.SrcML {
     /// Maintains a mapping between source file paths and their corresponding target file paths.
     /// </summary>
     public abstract class AbstractFileNameMapping : IDisposable {
+        private string _targetExtension;
+
         /// <summary>
         /// The directory where the target files should be located.
         /// </summary>
         public string TargetDirectory { get; protected set; }
 
         /// <summary>
-        /// The extension to use for the target files
+        /// The extension to use for the target files. This will always have a starting period.
         /// </summary>
-        public string TargetExtension { get; protected set; }
+        public string TargetExtension {
+            get { return _targetExtension; }
+            protected set {
+                if(!String.IsNullOrWhiteSpace(value) || '.' == value[0]) {
+                    _targetExtension = value;
+                } else {
+                    _targetExtension = value.Insert(0, ".");
+                }
+            }
+        }
 
         /// <summary>
         /// Creates a new AbstractFileNameMapping.
         /// </summary>
         /// <param name="targetDirectory">The directory for the XML files.</param>
+        /// <param name="targetExtension">The target extension. If the extension has no starting period, one will be added.</param>
         protected AbstractFileNameMapping(string targetDirectory, string targetExtension) {
             if(string.IsNullOrWhiteSpace(targetDirectory)) {
                 throw new ArgumentException("Argument cannot be null, empty, or whitespace.", "xmlDirectory");
@@ -48,7 +60,7 @@ namespace ABB.SrcML {
         /// <returns>all of the files in <see cref="TargetDirectory"/> that have <see cref="TargetExtension"/></returns>
         public IEnumerable<string> GetTargetFiles() {
             return (Directory.Exists(TargetDirectory)
-                    ? Directory.EnumerateFiles(TargetDirectory, String.Format("*.{0}", TargetExtension), SearchOption.AllDirectories)
+                    ? Directory.EnumerateFiles(TargetDirectory, String.Format("*{0}", TargetExtension), SearchOption.AllDirectories)
                     : Enumerable.Empty<string>());
         }
 

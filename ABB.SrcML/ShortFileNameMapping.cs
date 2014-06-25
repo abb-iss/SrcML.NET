@@ -17,85 +17,42 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Xml;
 
 namespace ABB.SrcML {
-
     /// <summary>
     /// Maintains a mapping between source file paths and the paths where XML versions are stored.
     /// The names of the XML files are relatively short to avoid exceeding the Windows file path
     /// character limit.
     /// </summary>
     public class ShortFileNameMapping : AbstractFileNameMapping {
-        private const string mappingFile = "mapping.txt";
         private readonly object mappingLock = new object();
-        
-        //maps source path to xml path
-        //TODO should support case insensitive paths, add option in constructor
         private Dictionary<string, string> mapping;
-
-        //maps source files names (without path) to a count of how many times that name has been seen
         private Dictionary<string, int> nameCount;
 
-        
         /// <summary>
-        /// Creates a new ShortXmlFileNameMapping.
+        /// The name to use to save this mapping to disk
         /// </summary>
-        /// <param name="targetDirectory">The directory for the target files.</param>
-        public ShortFileNameMapping(string targetDirectory)
-            : this(targetDirectory, "xml") { }
+        protected const string mappingFile = "mapping.txt";
 
         /// <summary>
-        /// Creates a new ShortXmlFileNameMapping
+        /// Creates a new abstract short file name mapping
         /// </summary>
-        /// <param name="targetDirectory">The directory for the target files</param>
-        /// <param name="targetExtension">the extension for the target files</param>
-        public ShortFileNameMapping(string targetDirectory, string targetExtension)
-            : base(targetDirectory, targetExtension) {
-                if(CheckIfDirectoryIsCaseInsensitive(targetDirectory)) {
-                mapping = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase);
-                nameCount = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
-            } else {
-                mapping = new Dictionary<string, string>();
-                nameCount = new Dictionary<string, int>();
-            }
+        /// <param name="targetDirectory">The target directory to store the mapped files in</param>
+        /// <param name="targetExtension">The target extension</param>
+        protected ShortFileNameMapping(string targetDirectory, string targetExtension) 
+        : base(targetDirectory, targetExtension) {
+            bool directoryIsCaseInsensitive = CheckIfDirectoryIsCaseInsensitive(targetDirectory);
+            mapping = new Dictionary<string, string>(directoryIsCaseInsensitive ? StringComparer.InvariantCultureIgnoreCase : StringComparer.InvariantCulture);
+            nameCount = new Dictionary<string, int>(directoryIsCaseInsensitive ? StringComparer.InvariantCultureIgnoreCase : StringComparer.InvariantCulture);
+
             ReadMapping();
         }
-
+        
         /// <summary>
-        /// Disposes of the object. This will write the mapping file to disk.
+        /// Gets the target path for <paramref name="sourcePath" />.
         /// </summary>
-        public override void Dispose() {
-            SaveMapping();
-        }
-
-        /// <summary>
-        /// Returns the path where the source file for
-        /// <paramref name="targetPath"/>is located.
-        /// </summary>
-        /// <param name="targetPath">The target file path</param>
-        /// <returns>The full path for the source file that
-        /// <paramref name="targetPath"/>is based on.</returns>
-        public override string GetSourcePath(string targetPath) {
-            if(!Path.IsPathRooted(targetPath)) {
-                targetPath = Path.Combine(TargetDirectory, targetPath);
-            }
-            string result = null;
-            lock(mappingLock) {
-                result = (from kvp in mapping
-                          where targetPath.Equals(kvp.Value, StringComparison.CurrentCultureIgnoreCase)
-                          select kvp.Key).FirstOrDefault();
-            }
-            return result;
-        }
-
-        /// <summary>
-        /// Returns the path for the target file mapped to
-        /// <paramref name="sourcePath"/>.
-        /// </summary>
-        /// <param name="sourcePath">The path for the source file.</param>
-        /// <returns>The full path for a target file based on
-        /// <paramref name="sourcePath"/>.</returns>
+        /// <param name="sourcePath">The source path</param>
+        /// <returns>The target path</returns>
         public override string GetTargetPath(string sourcePath) {
             if(string.IsNullOrWhiteSpace(sourcePath)) {
                 throw new ArgumentException("Argument cannot be null, string.Empty, or whitespace.", "sourcePath");
@@ -111,7 +68,7 @@ namespace ABB.SrcML {
                     int newNameNum = nameCount.ContainsKey(sourceName) ? nameCount[sourceName] + 1 : 1;
                     nameCount[sourceName] = newNameNum;
 
-                    targetPath = Path.Combine(TargetDirectory, string.Format("{0}.{1}.{2}", sourceName, newNameNum, TargetExtension));
+                    targetPath = Path.Combine(TargetDirectory, string.Format("{0}.{1}{2}", sourceName, newNameNum, TargetExtension));
                     mapping[sourcePath] = targetPath;
                 }
             }
@@ -119,23 +76,28 @@ namespace ABB.SrcML {
         }
 
         /// <summary>
-        /// Saves the file name mapping to the <see cref="AbstractFileNameMapping.TargetDirectory"/>.
+        /// Returns the source path for a give target path.
         /// </summary>
-        public override void SaveMapping() {
-            lock(mappingLock) {
-                using(var outFile = new StreamWriter(Path.Combine(TargetDirectory, mappingFile))) {
-                    foreach(var kvp in mapping) {
-                        outFile.WriteLine(string.Format("{0}|{1}", kvp.Key, kvp.Value));
-                    }
-                }
+        /// <param name="targetPath">The target path</param>
+        /// <returns>The corresponding source path for <paramref name="targetPath"/>. If <paramref name="targetPath"/> is not in the mapping, null is returned.</returns>
+        public override string GetSourcePath(string targetPath) {
+            if(!Path.IsPathRooted(targetPath)) {
+                targetPath = Path.Combine(TargetDirectory, targetPath);
             }
+            string result = null;
+            lock(mappingLock) {
+                result = (from kvp in mapping
+                          where targetPath.Equals(kvp.Value, StringComparison.CurrentCultureIgnoreCase)
+                          select kvp.Key).FirstOrDefault();
+            }
+            return result;
         }
 
         /// <summary>
         /// Updates the mapping data structures with the info from a single map file entry.
         /// </summary>
-        /// <param name="sourcePath"></param>
-        /// <param name="targetPath"></param>
+        /// <param name="sourcePath">The source path</param>
+        /// <param name="targetPath">The target path</param>
         protected void ProcessMapFileEntry(string sourcePath, string targetPath) {
             lock(mappingLock) {
                 mapping[sourcePath] = targetPath;
@@ -151,6 +113,15 @@ namespace ABB.SrcML {
                     nameCount[sourceName] = nameNum > currMax ? nameNum : currMax;
                 }
             }
+        }
+
+        /// <summary>
+        /// Gets the source path from a target file. This may require reading the file to find out what the source path is.
+        /// </summary>
+        /// <param name="targetPath">The target path</param>
+        /// <returns>The source path found in <paramref name="targetPath"/>. If the source path can't be found in the target file, then null is returned.</returns>
+        protected virtual string GetSourcePathFromTargetFile(string targetPath) {
+            return null;
         }
 
         /// <summary>
@@ -174,18 +145,26 @@ namespace ABB.SrcML {
                     //TODO: remove file from disk
                 } else {
                     //mapping file doesn't exist, so construct mapping from the xml files in the directory
-                    Debug.WriteLine(string.Format("Mapping file not found: {0}", mappingPath));
                     if(Directory.Exists(TargetDirectory)) {
-                        foreach(var xmlFile in Directory.GetFiles(TargetDirectory, String.Format("*.{0}", TargetExtension))) {
-                            var unit = XmlHelper.StreamElements(xmlFile, SRC.Unit, 0).FirstOrDefault();
-                            if(unit != null) {
-                                //should be a SrcML file
-                                var sourcePath = SrcMLElement.GetFileNameForUnit(unit);
-                                if(!string.IsNullOrWhiteSpace(sourcePath)) {
-                                    ProcessMapFileEntry(sourcePath, Path.GetFullPath(xmlFile));
-                                }
+                        foreach(var targetFile in Directory.GetFiles(TargetDirectory, String.Format("*{0}", TargetExtension))) {
+                            var sourcePath = GetSourcePathFromTargetFile(targetFile);
+                            if(!string.IsNullOrWhiteSpace(sourcePath)) {
+                                ProcessMapFileEntry(sourcePath, Path.GetFullPath(targetFile));
                             }
                         }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Saves the mapping to disk
+        /// </summary>
+        public override void SaveMapping() {
+            lock(mappingLock) {
+                using(var outFile = new StreamWriter(Path.Combine(TargetDirectory, mappingFile))) {
+                    foreach(var kvp in mapping) {
+                        outFile.WriteLine(string.Format("{0}|{1}", kvp.Key, kvp.Value));
                     }
                 }
             }
@@ -208,6 +187,13 @@ namespace ABB.SrcML {
                 }
             }
             return isCaseInsensitive;
+        }
+
+        /// <summary>
+        /// Disposes of this mapping object. It first calls <see cref="SaveMapping"/>
+        /// </summary>
+        public override void Dispose() {
+            SaveMapping();
         }
     }
 }
