@@ -91,6 +91,10 @@ namespace ABB.SrcML.Data {
             return string.Format("{0} {1}", VariableType, Name);
         }
 
+        /// <summary>
+        /// Processes the child of the current reader position into a child of this object.
+        /// </summary>
+        /// <param name="reader">The XML reader</param>
         protected override void ReadXmlChild(XmlReader reader) {
             if(XmlAccessibilityName == reader.Name) {
                 Accessibility = AccessModifierExtensions.FromKeywordString(reader.ReadElementContentAsString());
@@ -104,6 +108,10 @@ namespace ABB.SrcML.Data {
             base.ReadXmlChild(reader);
         }
 
+        /// <summary>
+        /// Writes the contents of this object to <paramref name="writer"/>.
+        /// </summary>
+        /// <param name="writer">The XML writer to write to</param>
         protected override void WriteXmlContents(XmlWriter writer) {
             if(AccessModifier.None != Accessibility) {
                 writer.WriteElementString(XmlAccessibilityName, Accessibility.ToKeywordString());

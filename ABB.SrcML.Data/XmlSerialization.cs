@@ -122,7 +122,7 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Loads serialized data from <paramref name="fileName"/>
+        /// Loads serialized data from <paramref name="inputStream"/>
         /// </summary>
         /// <param name="inputStream">The stream to deserialize from</param>
         /// <returns>The object stored in <paramref name="inputStream"/></returns>
@@ -149,7 +149,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="element">The element to serialize</param>
         /// <param name="fileName">The file name to write <paramref name="fileName"/> to</param>
-        /// <param name="compressionEnabled">if true, compress the output with <see cref="System.IO.Compression.GzipStream"/></param>
+        /// <param name="compressionEnabled">if true, compress the output with <see cref="System.IO.Compression.GZipStream"/></param>
         public static void WriteElement(IXmlElement element, string fileName, bool compressionEnabled) {
             using(var fileStream = File.OpenWrite(fileName)) {
                 if(compressionEnabled) {
@@ -163,7 +163,7 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Writes <see cref="element"/> to <paramref name="outputStream"/>
+        /// Writes <paramref name="element"/> to <paramref name="outputStream"/>
         /// </summary>
         /// <param name="element">The element to serialize</param>
         /// <param name="outputStream">The output stream</param>

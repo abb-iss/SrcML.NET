@@ -58,6 +58,10 @@ namespace ABB.SrcML.Data
         /// <returns>Returns the XML name for ForStatement</returns>
         public override string GetXmlName() { return ForStatement.XmlName; }
 
+        /// <summary>
+        /// Processes the child of the current reader position into a child of this object.
+        /// </summary>
+        /// <param name="reader">The XML reader</param>
         protected override void ReadXmlChild(XmlReader reader) {
             if(XmlInitializerName == reader.Name) {
                 Initializer = XmlSerialization.ReadChildExpression(reader);
@@ -68,6 +72,10 @@ namespace ABB.SrcML.Data
             }
         }
 
+        /// <summary>
+        /// Writes the contents of this object to <paramref name="writer"/>.
+        /// </summary>
+        /// <param name="writer">The XML writer to write to</param>
         protected override void WriteXmlContents(XmlWriter writer) {
             if(null != Initializer) {
                 XmlSerialization.WriteElement(writer, Initializer, XmlInitializerName);

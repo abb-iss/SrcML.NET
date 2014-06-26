@@ -20,11 +20,22 @@ namespace ABB.SrcML.Data {
     /// located It stores the file name, line number, &amp; startingPosition
     /// </summary>
     public class SourceLocation : IXmlElement {
+        /// <summary>XML name for serialization</summary>
         public const string XmlName = "Location";
+
+        /// <summary>XML name for the file attribute</summary>
         public const string XmlFileAttributeName = "file";
+
+        /// <summary>XML name for the starting line number</summary>
         public const string XmlStartingLineAttributeName = "sl";
+
+        /// <summary>XML name for the starting column number</summary>
         public const string XmlStartingColumnAttributeName = "sc";
+
+        /// <summary>XML name for the ending line number</summary>
         public const string XmlEndingLineAttributeName = "el";
+
+        /// <summary>XML name for the ending column number</summary>
         public const string XmlEndingColumnAttributeName = "ec";
 
         /// <summary>

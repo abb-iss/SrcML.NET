@@ -31,6 +31,8 @@ namespace ABB.SrcML.Data {
         public const string XmlChildrenName = "ChildStatements";
         public const string XmlContentName = "Content";
         public const string XmlLocationsName = "Locations";
+        
+        /// <summary>XML name for serialization</summary>
         public const string XmlName = "Statement";
 
         /// <summary>Creates a new empty Statement.</summary>
@@ -242,6 +244,10 @@ namespace ABB.SrcML.Data {
             return new List<Statement>(childStatementMap.Values.OfType<Statement>());
         }
 
+        /// <summary>
+        /// Processes the child of the current reader position into a child of this object.
+        /// </summary>
+        /// <param name="reader">The XML reader</param>
         protected override void ReadXmlChild(XmlReader reader) {
             if(XmlChildrenName == reader.Name) {
                 AddChildStatements(XmlSerialization.ReadChildStatements(reader));
@@ -254,6 +260,10 @@ namespace ABB.SrcML.Data {
 
         public override string GetXmlName() { return Statement.XmlName; }
 
+        /// <summary>
+        /// Writes the contents of this object to <paramref name="writer"/>.
+        /// </summary>
+        /// <param name="writer">The XML writer to write to</param>
         protected override void WriteXmlContents(XmlWriter writer) {
             XmlSerialization.WriteCollection<SrcMLLocation>(writer, XmlLocationsName, Locations);
             

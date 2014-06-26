@@ -149,6 +149,10 @@ namespace ABB.SrcML.Data {
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Processes the child of the current reader position into a child of this object.
+        /// </summary>
+        /// <param name="reader">The XML reader</param>
         protected override void ReadXmlChild(XmlReader reader) {
             if(XmlTypeParametersName == reader.Name) {
                 AddTypeParameters(XmlSerialization.ReadChildExpressions(reader).Cast<TypeUse>());
@@ -157,6 +161,10 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        /// <summary>
+        /// Writes the contents of this object to <paramref name="writer"/>.
+        /// </summary>
+        /// <param name="writer">The XML writer to write to</param>
         protected override void WriteXmlContents(XmlWriter writer) {
             if(TypeParameters.Count > 0) {
                 XmlSerialization.WriteCollection<TypeUse>(writer, XmlTypeParametersName, TypeParameters);
