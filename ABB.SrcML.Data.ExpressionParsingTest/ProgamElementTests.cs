@@ -20,6 +20,7 @@ using NUnit.Framework;
 namespace ABB.SrcML.Data.Test
 {
     [TestFixture]
+    [Category("Build")]
     public class ProgamElementTests
     {
         [Test]
