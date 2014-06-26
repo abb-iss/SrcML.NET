@@ -60,9 +60,9 @@ namespace ABB.SrcML.Data.Test {
 
             using(var errorLog = new StreamWriter(fileLogPath)) {
                 var archive = new SrcMLArchive(dataRepoPath, "srcML", true, new SrcMLGenerator("SrcML"));
-                archive.XmlGenerator.ExtensionMapping[".cxx"] = Language.CPlusPlus;
-                archive.XmlGenerator.ExtensionMapping[".c"] = Language.CPlusPlus;
-                archive.XmlGenerator.ExtensionMapping[".cc"] = Language.CPlusPlus;
+                archive.Generator.ExtensionMapping[".cxx"] = Language.CPlusPlus;
+                archive.Generator.ExtensionMapping[".c"] = Language.CPlusPlus;
+                archive.Generator.ExtensionMapping[".cc"] = Language.CPlusPlus;
 
                 var monitor = new FileSystemFolderMonitor(project.FullPath, dataRepoPath, new LastModifiedArchive(dataRepoPath), archive);
 
@@ -74,8 +74,8 @@ namespace ABB.SrcML.Data.Test {
                 var generator = new DataGenerator();
 
                 var dataArchive = new DataArchive(dataRepoPath, archive, false);
-                dataArchive.DataGenerator.IsLoggingErrors = true;
-                dataArchive.DataGenerator.ErrorLog = errorLog;
+                dataArchive.Generator.IsLoggingErrors = true;
+                dataArchive.Generator.ErrorLog = errorLog;
 
                 var srcMLMonitor = new ArchiveMonitor<SrcMLArchive>(dataRepoPath, archive, dataArchive);
                 
@@ -101,7 +101,7 @@ namespace ABB.SrcML.Data.Test {
                     try {
                         start = DateTime.Now;
                         var fileUnit = archive.GetXElementForSourceFile(sourcePath);
-                        data = dataArchive.DataGenerator.Parse(fileUnit);
+                        data = dataArchive.Generator.Parse(fileUnit);
                         end = DateTime.Now;
                         parseElapsed += (end - start).Ticks;
                     } catch(Exception ex) {
@@ -176,9 +176,9 @@ namespace ABB.SrcML.Data.Test {
             }
 
             var archive = new SrcMLArchive(dataRepoPath, "srcML", !regenerateSrcML, new SrcMLGenerator("SrcML"));
-            archive.XmlGenerator.ExtensionMapping[".cxx"] = Language.CPlusPlus;
-            archive.XmlGenerator.ExtensionMapping[".c"] = Language.CPlusPlus;
-            archive.XmlGenerator.ExtensionMapping[".cc"] = Language.CPlusPlus;
+            archive.Generator.ExtensionMapping[".cxx"] = Language.CPlusPlus;
+            archive.Generator.ExtensionMapping[".c"] = Language.CPlusPlus;
+            archive.Generator.ExtensionMapping[".cc"] = Language.CPlusPlus;
 
             var monitor = new FileSystemFolderMonitor(project.FullPath, dataRepoPath, new LastModifiedArchive(dataRepoPath), archive);
 

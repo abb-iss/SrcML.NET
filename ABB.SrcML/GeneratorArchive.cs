@@ -22,13 +22,14 @@ namespace ABB.SrcML {
     /// <summary>
     /// keeps track of files by using the provided <see cref="Generator"/>. The files in the archive have their last-write time set to the corresponding file on disk
     /// </summary>
-    public class GeneratorArchive : AbstractArchive {
+    /// <typeparam name="TGenerator">The generator type for this archive</typeparam>
+    public class GeneratorArchive<TGenerator> : AbstractArchive where TGenerator : AbstractGenerator {
         private AbstractFileNameMapping _fileMapping;
 
         /// <summary>
         /// The generator to use to power this archive
         /// </summary>
-        public AbstractGenerator Generator { get; set; }
+        public TGenerator Generator { get; set; }
 
         /// <summary>
         /// 
@@ -39,7 +40,7 @@ namespace ABB.SrcML {
         /// <param name="generator">The generator to use</param>
         /// <param name="mapping">The file name mapping</param>
         /// <param name="scheduler">The task scheduler for asynchronous tasks</param>
-        public GeneratorArchive(string baseDirectory, string archiveDirectory, bool useExistingArchive, AbstractGenerator generator, AbstractFileNameMapping mapping, TaskScheduler scheduler)
+        public GeneratorArchive(string baseDirectory, string archiveDirectory, bool useExistingArchive, TGenerator generator, AbstractFileNameMapping mapping, TaskScheduler scheduler)
         : base(baseDirectory, archiveDirectory, TaskScheduler.Default) {
             _fileMapping = mapping;
             Generator = generator;

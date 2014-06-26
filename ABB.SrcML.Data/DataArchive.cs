@@ -20,7 +20,7 @@ namespace ABB.SrcML.Data {
     /// <summary>
     /// The data archive uses a <see cref="MonitoredArchive">SrcML Archive</see> to generate and store SrcML Data for each <see cref="SrcMLArchive.FileUnits">file unit</see>.
     /// </summary>
-    public class DataArchive : GeneratorArchive {
+    public class DataArchive : GeneratorArchive<DataGenerator> {
         /// <summary>
         /// The default directory to store the data contents in
         /// </summary>
@@ -30,11 +30,6 @@ namespace ABB.SrcML.Data {
         /// The srcML archive to monitor for changes
         /// </summary>
         public SrcMLArchive MonitoredArchive { get; set; }
-
-        /// <summary>
-        /// The data generator for this archive
-        /// </summary>
-        public DataGenerator DataGenerator { get {return Generator as DataGenerator; } }
 
         /// <summary>
         /// Creates a new data archive

@@ -27,7 +27,7 @@ namespace ABB.SrcML {
     /// This is an implementation of <see cref="AbstractArchive"/>. File changes trigger the addition, update, and deletion of srcML archives in
     /// the archive directory
     /// </summary>
-    public class SrcMLArchive : GeneratorArchive {
+    public class SrcMLArchive : GeneratorArchive<SrcMLGenerator> {
         public const string DEFAULT_ARCHIVE_DIRECTORY = "srcML";
 
         /// <summary>
@@ -112,11 +112,6 @@ namespace ABB.SrcML {
             : base(baseDirectory, srcMLDirectory, useExistingSrcML, generator, mapping, scheduler) { }
 
         /// <summary>
-        /// The SrcML generator used to generate srcML
-        /// </summary>
-        public SrcMLGenerator XmlGenerator { get { return this.Generator as SrcMLGenerator; } }
-
-        /// <summary>
         /// Enumerates over each file in the archive and returns a file unit
         /// </summary>
         public IEnumerable<XElement> FileUnits {
@@ -140,7 +135,7 @@ namespace ABB.SrcML {
         /// <returns>True if the file can be converted to SrcML; False otherwise.</returns>
         public bool IsValidFileExtension(string filePath) {
             string fileExtension = Path.GetExtension(filePath);
-            if(fileExtension != null && XmlGenerator.ExtensionMapping.ContainsKey(fileExtension)) {
+            if(fileExtension != null && Generator.ExtensionMapping.ContainsKey(fileExtension)) {
                 return true;
             }
             return false;
