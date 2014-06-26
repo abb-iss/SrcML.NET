@@ -83,6 +83,7 @@
     <Compile Include="Namespaces\POS.cs" />
     <Compile Include="Namespaces\SRC.cs" />
     <Compile Include="Namespaces\TYPE.cs" />
+    <Compile Include="ArchiveMonitor.cs" />
     <Compile Include="SrcMLElement.cs" />
     <Compile Include="Exceptions\SrcMLException.cs" />
     <Compile Include="SrcMLNamespaces.cs" />

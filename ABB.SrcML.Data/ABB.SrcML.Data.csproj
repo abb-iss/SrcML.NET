@@ -113,7 +113,6 @@
     <Compile Include="CPlusPlusCodeParser.cs" />
     <Compile Include="ScopeDetachedException.cs" />
     <Compile Include="SourceLocation.cs" />
-    <Compile Include="SrcMLArchiveMonitor.cs" />
     <Compile Include="SrcMLLocation.cs" />
     <Compile Include="Statement.cs" />
     <Compile Include="StatementDebugView.cs" />

@@ -48,8 +48,13 @@ namespace ABB.SrcML {
         /// <param name="targetPath">The target srcML file</param>
         /// <returns>The file name stored in <paramref name="targetPath"/></returns>
         protected override string GetSourcePathFromTargetFile(string targetPath) {
-            var unit = XmlHelper.StreamElements(targetPath, SRC.Unit, 0).FirstOrDefault();
-            return (null != unit ? SrcMLElement.GetFileNameForUnit(unit) : null);
+            try {
+                var unit = XmlHelper.StreamElements(targetPath, SRC.Unit, 0).FirstOrDefault();
+                return (null != unit ? SrcMLElement.GetFileNameForUnit(unit) : null);
+            } catch(XmlException) {
+                return null;
+            }
+            
         }
     }
 }
