@@ -36,10 +36,6 @@ namespace ABB.SrcML.Data {
         /// <returns>Returns the XML name for CaseStatement</returns>
         public override string GetXmlName() { return CaseStatement.XmlName; }
 
-        protected override void ReadXmlChild(XmlReader reader) {
-            base.ReadXmlChild(reader);
-        }
-
         protected override void WriteXmlAttributes(XmlWriter writer) {
             if(IsDefault) {
                 writer.WriteAttributeString(XmlIsDefaultName, XmlConvert.ToString(IsDefault));

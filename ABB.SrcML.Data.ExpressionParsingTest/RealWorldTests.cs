@@ -60,9 +60,9 @@ namespace ABB.SrcML.Data.Test {
 
             using(var errorLog = new StreamWriter(fileLogPath)) {
                 var archive = new SrcMLArchive(dataRepoPath, "srcML", true, new SrcMLGenerator("SrcML"));
-                archive.XmlGenerator.ExtensionMapping[".cxx"] = Language.CPlusPlus;
-                archive.XmlGenerator.ExtensionMapping[".c"] = Language.CPlusPlus;
-                archive.XmlGenerator.ExtensionMapping[".cc"] = Language.CPlusPlus;
+                archive.Generator.ExtensionMapping[".cxx"] = Language.CPlusPlus;
+                archive.Generator.ExtensionMapping[".c"] = Language.CPlusPlus;
+                archive.Generator.ExtensionMapping[".cc"] = Language.CPlusPlus;
 
                 var monitor = new FileSystemFolderMonitor(project.FullPath, dataRepoPath, new LastModifiedArchive(dataRepoPath), archive);
 
@@ -71,13 +71,13 @@ namespace ABB.SrcML.Data.Test {
                 end = DateTime.Now;
                 Console.WriteLine("{0} to verify srcML", end - start);
 
-                var generator = new DataGenerator(archive);
+                var generator = new DataGenerator();
 
                 var dataArchive = new DataArchive(dataRepoPath, archive, false);
-                dataArchive.DataGenerator.IsLoggingErrors = true;
-                dataArchive.DataGenerator.ErrorLog = errorLog;
+                dataArchive.Generator.IsLoggingErrors = true;
+                dataArchive.Generator.ErrorLog = errorLog;
 
-                var srcMLMonitor = new SrcMLArchiveMonitor(dataRepoPath, archive, dataArchive);
+                var srcMLMonitor = new ArchiveMonitor<SrcMLArchive>(dataRepoPath, archive, dataArchive);
                 
                 start = DateTime.Now;
                 srcMLMonitor.UpdateArchivesAsync().Wait();
@@ -95,13 +95,13 @@ namespace ABB.SrcML.Data.Test {
                 long count = 0, parseElapsed = 0, deserializeElapsed = 0, compareElapsed = 0;
 
                 Console.WriteLine("{0,-12} {1,-12} {2,-12} {3,-12}", "# Files", "Parse", "Deserialize", "Comparison");
-                foreach(var sourceFile in dataArchive.GetFiles().OrderBy(elem => Guid.NewGuid())) {
+                foreach(var sourcePath in dataArchive.GetFiles().OrderBy(elem => Guid.NewGuid())) {
                     NamespaceDefinition data;
                     NamespaceDefinition serializedData;
                     try {
                         start = DateTime.Now;
-                        var fileUnit = archive.GetXElementForSourceFile(sourceFile);
-                        data = dataArchive.DataGenerator.Parse(fileUnit);
+                        var fileUnit = archive.GetXElementForSourceFile(sourcePath);
+                        data = dataArchive.Generator.Parse(fileUnit);
                         end = DateTime.Now;
                         parseElapsed += (end - start).Ticks;
                     } catch(Exception ex) {
@@ -111,7 +111,7 @@ namespace ABB.SrcML.Data.Test {
 
                     try {
                         start = DateTime.Now;
-                        serializedData = dataArchive.GetData(sourceFile);
+                        serializedData = dataArchive.GetData(sourcePath);
                         end = DateTime.Now;
                         deserializeElapsed += (end - start).Ticks;
                     } catch(Exception ex) {
@@ -176,9 +176,9 @@ namespace ABB.SrcML.Data.Test {
             }
 
             var archive = new SrcMLArchive(dataRepoPath, "srcML", !regenerateSrcML, new SrcMLGenerator("SrcML"));
-            archive.XmlGenerator.ExtensionMapping[".cxx"] = Language.CPlusPlus;
-            archive.XmlGenerator.ExtensionMapping[".c"] = Language.CPlusPlus;
-            archive.XmlGenerator.ExtensionMapping[".cc"] = Language.CPlusPlus;
+            archive.Generator.ExtensionMapping[".cxx"] = Language.CPlusPlus;
+            archive.Generator.ExtensionMapping[".c"] = Language.CPlusPlus;
+            archive.Generator.ExtensionMapping[".cc"] = Language.CPlusPlus;
 
             var monitor = new FileSystemFolderMonitor(project.FullPath, dataRepoPath, new LastModifiedArchive(dataRepoPath), archive);
 

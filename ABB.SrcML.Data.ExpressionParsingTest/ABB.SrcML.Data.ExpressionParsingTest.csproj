@@ -49,6 +49,7 @@
     <Compile Include="CodeParserTests.cs" />
     <Compile Include="CPlusPlusCodeParserTests.cs" />
     <Compile Include="CSharpCodeParserTests.cs" />
+    <Compile Include="DataFileNameMappingTests.cs" />
     <Compile Include="FileRemovalTests_Cpp.cs" />
     <Compile Include="FileRemovalTests_CSharp.cs" />
     <Compile Include="FileRemovalTests_Java.cs" />

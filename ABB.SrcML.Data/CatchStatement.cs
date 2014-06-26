@@ -44,6 +44,10 @@ namespace ABB.SrcML.Data {
         /// <returns>Returns the XML name for CatchStatement</returns>
         public override string GetXmlName() { return CatchStatement.XmlName; }
 
+        /// <summary>
+        /// Processes the child of the current reader position into a child of this object.
+        /// </summary>
+        /// <param name="reader">The XML reader</param>
         protected override void ReadXmlChild(XmlReader reader) {
             if(XmlParameterName == reader.Name) {
                 Parameter = XmlSerialization.ReadChildExpression(reader) as VariableDeclaration;
@@ -52,6 +56,10 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        /// <summary>
+        /// Writes the contents of this object to <paramref name="writer"/>.
+        /// </summary>
+        /// <param name="writer">The XML writer to write to</param>
         protected override void WriteXmlContents(XmlWriter writer) {
             if(null != Parameter) {
                 XmlSerialization.WriteElement(writer, Parameter, XmlParameterName);

@@ -22,13 +22,14 @@ namespace ABB.SrcML {
     /// <summary>
     /// keeps track of files by using the provided <see cref="Generator"/>. The files in the archive have their last-write time set to the corresponding file on disk
     /// </summary>
-    public class GeneratorArchive : AbstractArchive {
+    /// <typeparam name="TGenerator">The generator type for this archive</typeparam>
+    public class GeneratorArchive<TGenerator> : AbstractArchive where TGenerator : AbstractGenerator {
         private AbstractFileNameMapping _fileMapping;
 
         /// <summary>
         /// The generator to use to power this archive
         /// </summary>
-        public AbstractGenerator Generator { get; set; }
+        public TGenerator Generator { get; set; }
 
         /// <summary>
         /// 
@@ -39,7 +40,7 @@ namespace ABB.SrcML {
         /// <param name="generator">The generator to use</param>
         /// <param name="mapping">The file name mapping</param>
         /// <param name="scheduler">The task scheduler for asynchronous tasks</param>
-        public GeneratorArchive(string baseDirectory, string archiveDirectory, bool useExistingArchive, AbstractGenerator generator, AbstractFileNameMapping mapping, TaskScheduler scheduler)
+        public GeneratorArchive(string baseDirectory, string archiveDirectory, bool useExistingArchive, TGenerator generator, AbstractFileNameMapping mapping, TaskScheduler scheduler)
         : base(baseDirectory, archiveDirectory, TaskScheduler.Default) {
             _fileMapping = mapping;
             Generator = generator;
@@ -57,21 +58,23 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="sourcePath">the input file</param>
         public void GenerateOutputForSource(string sourcePath) {
-            var archivePath = GetArchivePath(sourcePath);
-            
-            var directory = Path.GetDirectoryName(archivePath);
+            var inputPath = GetInputPath(sourcePath);
+            var outputPath = GetArchivePath(sourcePath);
+
+            var directory = Path.GetDirectoryName(outputPath);
             if(!Directory.Exists(directory)) {
                 Directory.CreateDirectory(directory);
             }
 
             var lastWriteTime = File.GetLastWriteTime(sourcePath);
-
-            var tempFileName = Path.GetTempFileName();
-            if(this.Generator.Generate(sourcePath, tempFileName)) {
+            var extension = Path.GetExtension(outputPath);
+            var tempFileName = Path.ChangeExtension(Path.GetTempFileName(), extension);
+            
+            if(this.Generator.Generate(inputPath, tempFileName)) {
                 for(int i = 0; i < 10; i++) {
                     try {
-                        File.Copy(tempFileName, archivePath, true);
-                        File.SetLastWriteTime(archivePath, lastWriteTime);
+                        File.Copy(tempFileName, outputPath, true);
+                        File.SetLastWriteTime(outputPath, lastWriteTime);
                     } catch(IOException) {
                         Thread.Sleep(10);
                     }
@@ -214,6 +217,16 @@ namespace ABB.SrcML {
             _fileMapping.SaveMapping();
         }
         #endregion AbstractArchive members
+
+        /// <summary>
+        /// For a given source path, get the input path that should be passed by the <see cref="Generator"/>. By default, this is just the source path.
+        /// It may be overriden in archives that require a file related to the <paramref name="sourcePath"/> (<seealso cref="DataArchive.GetInputPath"/>
+        /// </summary>
+        /// <param name="sourcePath">The source path</param>
+        /// <returns>The generator path that corresponds to the <paramref name="sourcePath"/></returns>
+        protected virtual string GetInputPath(string sourcePath) {
+            return sourcePath;
+        }
 
         #region IDisposable members
         /// <summary>

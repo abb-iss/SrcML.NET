@@ -62,6 +62,7 @@
     <Compile Include="AbstractDocument.cs" />
     <Compile Include="AbstractFileMonitor.cs" />
     <Compile Include="AbstractGenerator.cs" />
+    <Compile Include="ShortFileNameMapping.cs" />
     <Compile Include="DirectoryScanningMonitorEventArgs.cs" />
     <Compile Include="Exceptions\DirectoryScanningMonitorSubDirectoryException.cs" />
     <Compile Include="Exceptions\ForbiddenDirectoryException.cs" />
@@ -82,6 +83,7 @@
     <Compile Include="Namespaces\POS.cs" />
     <Compile Include="Namespaces\SRC.cs" />
     <Compile Include="Namespaces\TYPE.cs" />
+    <Compile Include="ArchiveMonitor.cs" />
     <Compile Include="SrcMLElement.cs" />
     <Compile Include="Exceptions\SrcMLException.cs" />
     <Compile Include="SrcMLNamespaces.cs" />
@@ -90,7 +92,7 @@
     <Compile Include="Utilities\IConcurrencyStrategy.cs" />
     <Compile Include="Utilities\LimitedConcurrencyLevelTaskScheduler.cs" />
     <Compile Include="Utilities\ReadyNotifier.cs" />
-    <Compile Include="ShortFileNameMapping.cs" />
+    <Compile Include="SrcMLFileNameMapping.cs" />
     <Compile Include="DirectoryScanningMonitor.cs" />
     <Compile Include="Src2SrcMLRunner2.cs" />
     <Compile Include="SrcMLGenerator.cs" />

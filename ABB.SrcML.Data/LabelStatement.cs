@@ -36,6 +36,10 @@ namespace ABB.SrcML.Data {
         /// <returns>Returns the XML name for LabelStatement</returns>
         public override string GetXmlName() { return LabelStatement.XmlName; }
 
+        /// <summary>
+        /// Processes the child of the current reader position into a child of this object.
+        /// </summary>
+        /// <param name="reader">The XML reader</param>
         protected override void ReadXmlChild(XmlReader reader) {
             if(XmlLabelNameName == reader.Name) {
                 Name = reader.ReadElementContentAsString();
@@ -44,6 +48,10 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        /// <summary>
+        /// Writes the contents of this object to <paramref name="writer"/>.
+        /// </summary>
+        /// <param name="writer">The XML writer to write to</param>
         protected override void WriteXmlContents(XmlWriter writer) {
             if(!string.IsNullOrEmpty(Name)) {
                 writer.WriteElementString(XmlLabelNameName, Name);

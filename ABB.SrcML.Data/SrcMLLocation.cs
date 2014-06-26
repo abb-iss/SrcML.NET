@@ -23,6 +23,7 @@ namespace ABB.SrcML.Data {
     /// and other relevant properties.
     /// </summary>
     public class SrcMLLocation : SourceLocation {
+        /// <summary>XML name for serialization</summary>
         public new const string XmlName = "SrcMLLocation";
         public const string XmlXPathAttributeName = "xpath";
         public const string XmlIsReferenceAttribute = "is_ref";
