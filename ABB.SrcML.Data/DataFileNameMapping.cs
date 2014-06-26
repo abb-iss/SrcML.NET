@@ -46,8 +46,13 @@ namespace ABB.SrcML.Data {
         /// <returns></returns>
         protected override string GetSourcePathFromTargetFile(string targetPath) {
             string sourcePath = null;
+            var targetExtension = Path.GetExtension(targetPath);
+            bool targetNeedsDecompression = String.IsNullOrWhiteSpace(targetExtension) ||
+                                            targetExtension.Equals(XmlSerialization.DEFAULT_COMPRESSED_EXTENSION,
+                                                                   StringComparison.InvariantCultureIgnoreCase);
+
             using(var fileStream = File.OpenRead(targetPath)) {
-                if(_compressionEnabled) {
+                if(targetNeedsDecompression) {
                     using(var zipStream = new GZipStream(fileStream, CompressionMode.Decompress)) {
                         sourcePath = GetSourcePathFromTarget(zipStream);
                     }
