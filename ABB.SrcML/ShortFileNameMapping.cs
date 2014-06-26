@@ -150,6 +150,8 @@ namespace ABB.SrcML {
                             var sourcePath = GetSourcePathFromTargetFile(targetFile);
                             if(!string.IsNullOrWhiteSpace(sourcePath)) {
                                 ProcessMapFileEntry(sourcePath, Path.GetFullPath(targetFile));
+                            } else {
+                                File.Delete(targetFile);
                             }
                         }
                     }
