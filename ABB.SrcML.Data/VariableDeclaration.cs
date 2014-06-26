@@ -104,8 +104,9 @@ namespace ABB.SrcML.Data {
                 VariableType = XmlSerialization.ReadChildExpression(reader) as TypeUse;
             } else if(XmlInitializerName == reader.Name) {
                 Initializer = XmlSerialization.ReadChildExpression(reader);
+            } else {
+                base.ReadXmlChild(reader);
             }
-            base.ReadXmlChild(reader);
         }
 
         /// <summary>
