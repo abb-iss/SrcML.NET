@@ -107,6 +107,59 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
+        /// Returns the siblings of this element (i.e. the children of its parent) that occur before this element.
+        /// The siblings are returned in document order.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">This element is not a child of its parent.</exception>
+        public IEnumerable<AbstractProgramElement> GetSiblingsBeforeSelf() {
+            var parent = GetParent();
+            if(parent == null) { return Enumerable.Empty<AbstractProgramElement>(); }
+
+            var siblings = parent.GetChildren().ToList();
+            if(!siblings.Contains(this)) {
+                throw new InvalidOperationException("Program element is not a child of its parent!");
+            }
+            return siblings.TakeWhile(e => e != this);
+        }
+
+        /// <summary>
+        /// Returns the siblings of this element (i.e. the children of its parent) that occur before this element
+        /// and have type T.
+        /// The siblings are returned in document order.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">This element is not a child of its parent.</exception>
+        public IEnumerable<T> GetSiblingsBeforeSelf<T>() where T : AbstractProgramElement {
+            return GetSiblingsBeforeSelf().OfType<T>();
+        }
+
+        /// <summary>
+        /// Returns the siblings of this element (i.e. the children of its parent) that occur after this element.
+        /// The siblings are returned in document order.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">This element is not a child of its parent.</exception>
+        public IEnumerable<AbstractProgramElement> GetSiblingsAfterSelf() {
+            var parent = GetParent();
+            if(parent == null) { return Enumerable.Empty<AbstractProgramElement>(); }
+
+            var siblings = parent.GetChildren();
+            var selfAndAfter = siblings.SkipWhile(e => e != this);
+            if(selfAndAfter.First() != this) {
+                throw new InvalidOperationException("Program element is not a child of its parent!");
+            }
+            return selfAndAfter.Skip(1);
+        }
+
+        /// <summary>
+        /// Returns the siblings of this element (i.e. the children of its parent) that occur after this element
+        /// and have type T.
+        /// The siblings are returned in document order.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">This element is not a child of its parent.</exception>
+        public IEnumerable<T> GetSiblingsAfterSelf<T>() where T : AbstractProgramElement {
+            return GetSiblingsAfterSelf().OfType<T>();
+        }
+
+        /// <summary>
         /// Gets an element and all of its ancestors
         /// </summary>
         /// <param name="startingPoint">The first element to return</param>

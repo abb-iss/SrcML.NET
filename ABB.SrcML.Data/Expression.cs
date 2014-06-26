@@ -18,20 +18,31 @@ using System.Text;
 using System.Xml;
 
 namespace ABB.SrcML.Data {
+    /// <summary>
+    /// Represents an expression in a program.
+    /// </summary>
     public class Expression : AbstractProgramElement {
         private List<Expression> componentsList;
         private Statement parentStmt;
 
-        public const string XmlComponentsName = "Components";
+        /// <summary> The XML name for Expression. </summary>
         public const string XmlName = "Expression";
-
+        /// <summary> The XML name for <see cref="Components"/>. </summary>
+        public const string XmlComponentsName = "Components";
+        
+        /// <summary> Creates a new empty Expression. </summary>
         public Expression() {
             componentsList = new List<Expression>();
             Components = new ReadOnlyCollection<Expression>(componentsList);
         }
 
+        /// <summary> The individual parts that comprise this expression. </summary>
         public ReadOnlyCollection<Expression> Components { get; private set; }
+        
+        /// <summary> The expression that this sub-expression is a part of, if any. </summary>
         public Expression ParentExpression { get; set;}
+        
+        /// <summary> The statement containing this expression. </summary>
         public Statement ParentStatement {
             get { return parentStmt; }
             set {
@@ -42,6 +53,8 @@ namespace ABB.SrcML.Data {
                 }
             }
         }
+
+        /// <summary> The location in the code where this expression appears. </summary>
         public SrcMLLocation Location { get; set; }
 
         /// <summary>
@@ -111,6 +124,24 @@ namespace ABB.SrcML.Data {
             return base.GetDescendantsAndSelf().Cast<Expression>();
         }
 
+        /// <summary>
+        /// Returns the siblings of this expression (i.e. the children of its parent) that occur before this expression.
+        /// The siblings are returned in document order.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">This expression is not a child of its parent.</exception>
+        public new IEnumerable<Expression> GetSiblingsBeforeSelf() {
+            return base.GetSiblingsBeforeSelf().Cast<Expression>();
+        }
+
+        /// <summary>
+        /// Returns the siblings of this expression (i.e. the children of its parent) that occur after this expression.
+        /// The siblings are returned in document order.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">This expression is not a child of its parent.</exception>
+        public new IEnumerable<Expression> GetSiblingsAfterSelf() {
+            return base.GetSiblingsAfterSelf().Cast<Expression>();
+        }
+
         public override string GetXmlName() { return Expression.XmlName; }
 
         protected override void ReadXmlChild(XmlReader reader) {
@@ -131,6 +162,14 @@ namespace ABB.SrcML.Data {
         /// <summary> Returns a string representation of this expression. </summary>
         public override string ToString() {
             return string.Join(" ", componentsList);
+        }
+
+        /// <summary>
+        /// Determines the possible types of this expression.
+        /// </summary>
+        /// <returns>An enumerable of the matching TypeDefinitions for this expression's possible types.</returns>
+        public virtual IEnumerable<TypeDefinition> ResolveType() {
+            throw new NotImplementedException();
         }
     }
 

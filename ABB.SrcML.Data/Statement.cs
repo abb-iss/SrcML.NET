@@ -162,6 +162,23 @@ namespace ABB.SrcML.Data {
             return base.GetDescendantsAndSelf().Cast<Statement>();
         }
 
+        /// <summary>
+        /// Returns the siblings of this statement (i.e. the children of its parent) that occur before this statement.
+        /// The siblings are returned in document order.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">This statement is not a child of its parent.</exception>
+        public new IEnumerable<Statement> GetSiblingsBeforeSelf() {
+            return base.GetSiblingsBeforeSelf().Cast<Statement>();
+        }
+
+        /// <summary>
+        /// Returns the siblings of this statement (i.e. the children of its parent) that occur after this statement.
+        /// The siblings are returned in document order.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">This statement is not a child of its parent.</exception>
+        public new IEnumerable<Statement> GetSiblingsAfterSelf() {
+            return base.GetSiblingsAfterSelf().Cast<Statement>();
+        }
 
         public virtual bool CanBeMergedWith(Statement otherStatement) {
             return this.ComputeMergeId() == otherStatement.ComputeMergeId();

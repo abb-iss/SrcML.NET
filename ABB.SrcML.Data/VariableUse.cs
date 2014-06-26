@@ -69,11 +69,11 @@ namespace ABB.SrcML.Data {
         //}
 
         /// <summary>
-        /// Gets the first result from <see cref="FindMatchingTypes()"/>
+        /// Gets the first result from <see cref="ResolveType"/>
         /// </summary>
         /// <returns>The first matching variable type definition</returns>
         public TypeDefinition FindFirstMatchingType() {
-            return FindMatchingTypes().FirstOrDefault();
+            return ResolveType().FirstOrDefault();
         }
 
         /// <summary>
@@ -118,8 +118,8 @@ namespace ABB.SrcML.Data {
         /// match this variable use
         /// </summary>
         /// <returns>An enumerable of matching type definitions</returns>
-        public IEnumerable<TypeDefinition> FindMatchingTypes() {
-            //TODO: implement FindMatchingTypes
+        public override IEnumerable<TypeDefinition> ResolveType() {
+            //TODO: implement ResolveType
             return Enumerable.Empty<TypeDefinition>();
 
             //IEnumerable<TypeDefinition> typeDefinitions;

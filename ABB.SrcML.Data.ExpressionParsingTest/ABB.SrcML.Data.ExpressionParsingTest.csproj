@@ -54,6 +54,7 @@
     <Compile Include="FileRemovalTests_Java.cs" />
     <Compile Include="JavaCodeParserTests.cs" />
     <Compile Include="MergeTests.cs" />
+    <Compile Include="ProgamElementTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RealWorldTests.cs" />
     <Compile Include="SerializationTests.cs" />
