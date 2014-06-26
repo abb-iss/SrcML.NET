@@ -68,6 +68,7 @@
     <Compile Include="ContinueStatement.cs" />
     <Compile Include="CSharpVarTypeUse.cs" />
     <Compile Include="DataArchive.cs" />
+    <Compile Include="DataFileNameMapping.cs" />
     <Compile Include="DataGenerator.cs" />
     <Compile Include="DataRepositoryStatistics.cs" />
     <Compile Include="DoWhileStatement.cs" />

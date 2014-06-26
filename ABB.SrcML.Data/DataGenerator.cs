@@ -22,6 +22,7 @@ namespace ABB.SrcML.Data {
     /// 
     /// </summary>
     public class DataGenerator : AbstractGenerator {
+        private static List<string> _supportedExtensions = new List<string>() { ".xml" };
 
         private Dictionary<Language, AbstractCodeParser> _parserMap = new Dictionary<Language, AbstractCodeParser>() {
             { Language.C, new CPlusPlusCodeParser() },
@@ -31,54 +32,45 @@ namespace ABB.SrcML.Data {
         };
 
         /// <summary>
-        /// The SrcML Archive to generate data from
-        /// </summary>
-        public SrcMLArchive Archive;
-
-        /// <summary>
-        /// The data generator supports the same set of extensions as <see cref="Archive"/>
+        /// The data generator supports the same set of extensions ".xml" as its extension
         /// </summary>
         public override ICollection<string> SupportedExtensions {
-            get { return Archive.SupportedExtensions; }
+            get { return _supportedExtensions; }
         }
 
         /// <summary>
-        /// Creates a new data generator with no <see cref="Archive"/>
+        /// Creates a new data generator with no
         /// </summary>
-        public DataGenerator() : this(null) { }
+        public DataGenerator() : base() { }
 
         /// <summary>
-        /// Creates a new data generator object
+        /// Parses a srcML file and returns a <see cref="NamespaceDefinition"/>
         /// </summary>
-        /// <param name="archive">The archive to use for loading srcML</param>
-        public DataGenerator(SrcMLArchive archive) : base() { this.Archive = archive; }
-
+        /// <param name="srcMLFileName">The path to the srcML file</param>
+        /// <returns>The namespace definition for <paramref name="srcMLFileName"/></returns>
+        public NamespaceDefinition Parse(string srcMLFileName) {
+            var unit = SrcMLElement.Load(srcMLFileName);
+            return Parse(unit);
+        }
         /// <summary>
         /// Parses a srcML file unit element
         /// </summary>
-        /// <param name="fileUnit"></param>
-        /// <returns></returns>
+        /// <param name="fileUnit">The srcML file unit element</param>
+        /// <returns>The namespace definition for <paramref name="fileUnit"/></returns>
         public NamespaceDefinition Parse(XElement fileUnit) {
             var language = SrcMLElement.GetLanguageForUnit(fileUnit);
             return _parserMap[language].ParseFileUnit(fileUnit);
         }
 
-        public XElement GetSrcMLUnit(string sourceFileName) {
-            if(null == Archive) {
-                var e = new InvalidOperationException("Archive is null");
-                if(IsLoggingErrors) {
-                    LogError(e);
-                    return null;
-                } else {
-                    throw e;
-                }
-            }
-            return Archive.GetXElementForSourceFile(sourceFileName);
-        }
-
+        /// <summary>
+        /// Generates <paramref name="outputFileName"/> from <see cref="inputFileName">the srcML file</see>.
+        /// This works by calling <see cref="Parse(string)"/>.
+        /// </summary>
+        /// <param name="inputFileName">The path to a srcML file</param>
+        /// <param name="outputFileName">the path to store the resulting namespace definition in.</param>
+        /// <returns></returns>
         protected override bool GenerateImpl(string inputFileName, string outputFileName) {
-            var unit = Archive.GetXElementForSourceFile(inputFileName);
-            var data = Parse(unit);
+            var data = Parse(inputFileName);
             XmlSerialization.WriteElement(data, outputFileName);
             return true;
         }
