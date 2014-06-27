@@ -36,6 +36,10 @@ namespace ABB.SrcML.Data {
 
         public string Text { get; set; }
 
+        /// <summary>
+        /// Read the XML attributes from the current <paramref name="reader"/> position
+        /// </summary>
+        /// <param name="reader">The XML reader</param>
         protected override void ReadXmlAttributes(XmlReader reader) {
             var textAttribute = reader.GetAttribute(XmlTextName);
             if(!String.IsNullOrEmpty(textAttribute)) {
@@ -43,6 +47,11 @@ namespace ABB.SrcML.Data {
             }
             base.ReadXmlAttributes(reader);
         }
+
+        /// <summary>
+        /// Writes XML attributes from this object to the XML writer
+        /// </summary>
+        /// <param name="writer">The XML writer</param>
         protected override void WriteXmlAttributes(XmlWriter writer) {
             if(!string.IsNullOrEmpty(Text)) {
                 writer.WriteAttributeString(XmlTextName, Text);

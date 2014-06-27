@@ -141,6 +141,10 @@ namespace ABB.SrcML.Data {
 
         public virtual string GetXmlName() { return SourceLocation.XmlName; }
 
+        /// <summary>
+        /// Read the current XML element into this object
+        /// </summary>
+        /// <param name="reader">The XML reader</param>
         public void ReadXml(XmlReader reader) {
             bool isEmpty = reader.IsEmptyElement;
 
@@ -152,6 +156,10 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        /// <summary>
+        /// Read the XML attributes from the current <paramref name="reader"/> position
+        /// </summary>
+        /// <param name="reader">The XML reader</param>
         protected virtual void ReadXmlAttributes(XmlReader reader) {
             string attr = reader.GetAttribute(XmlFileAttributeName);
             SourceFileName = attr;
@@ -169,6 +177,12 @@ namespace ABB.SrcML.Data {
             EndingColumnNumber = (String.IsNullOrEmpty(attr) ? 1 : Int32.Parse(attr));
         }
 
+        /// <summary>
+        /// Writes all of the data to be serialized to <paramref name="writer"/>.
+        /// This works by calling <see cref="WriteXmlAttributes(XmlWriter)"/>
+        /// and then <see cref="WriteXmlContents(XmlWriter)"/>
+        /// </summary>
+        /// <param name="writer">The XML writer</param>
         public virtual void WriteXml(XmlWriter writer) {
             writer.WriteAttributeString(XmlFileAttributeName, SourceFileName);
             writer.WriteAttributeString(XmlStartingLineAttributeName, StartingLineNumber.ToString());

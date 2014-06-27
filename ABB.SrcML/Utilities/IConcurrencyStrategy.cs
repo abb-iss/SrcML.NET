@@ -15,7 +15,15 @@ using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML {
+    /// <summary>
+    /// A concurrency strategy is used to compute the number of available
+    /// cores for the <see cref="LimitedConcurrencyLevelTaskScheduler"/>
+    /// </summary>
     public interface IConcurrencyStrategy {
+        /// <summary>
+        /// Returns the number of available cores
+        /// </summary>
+        /// <returns>The number of available cores</returns>
         int ComputeAvailableCores();
     }
 }

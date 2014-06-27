@@ -191,6 +191,10 @@ namespace ABB.SrcML.Data {
             return id;
         }
 
+        /// <summary>
+        /// Read the XML attributes from the current <paramref name="reader"/> position
+        /// </summary>
+        /// <param name="reader">The XML reader</param>
         protected override void ReadXmlAttributes(XmlReader reader) {
             string attribute = reader.GetAttribute(XmlIsConstructorName);
             if(null != attribute) {
@@ -221,6 +225,10 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        /// <summary>
+        /// Writes XML attributes from this object to the XML writer
+        /// </summary>
+        /// <param name="writer">The XML writer</param>
         protected override void WriteXmlAttributes(XmlWriter writer) {
             if(IsConstructor) {
                 writer.WriteAttributeString(XmlIsConstructorName, XmlConvert.ToString(IsConstructor));

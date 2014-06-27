@@ -22,6 +22,7 @@ namespace ABB.SrcML.Data {
         private List<Expression> componentsList;
         private Statement parentStmt;
 
+        /// <summary>XML name for <see cref="Components"/></summary>
         public const string XmlComponentsName = "Components";
 
         /// <summary>XML name for serialization</summary>
