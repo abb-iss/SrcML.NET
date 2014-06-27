@@ -147,7 +147,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <returns>The first matching type definition</returns>
         public TypeDefinition FindFirstMatchingType() {
-            return FindMatchingTypes().FirstOrDefault();
+            return ResolveType().FirstOrDefault();
         }
 
         /// <summary>
@@ -203,7 +203,7 @@ namespace ABB.SrcML.Data {
         /// Finds all of the matching type definitions for the return type of this method definition
         /// </summary>
         /// <returns>An enumerable of the matching type definitions for this method</returns>
-        public IEnumerable<TypeDefinition> FindMatchingTypes() {
+        public override IEnumerable<TypeDefinition> ResolveType() {
             //TODO: review this method and update it for changes in TypeUse structure
             throw new NotImplementedException();
             //foreach(var methodDefinition in FindMatches()) {
@@ -343,7 +343,7 @@ namespace ABB.SrcML.Data {
         /// otherwise</returns>
         private bool ArgumentMatchesDefinition(IResolvesToType argument, VariableDeclaration parameter) {
             var possibleArgumentTypes = argument.FindMatchingTypes();
-            var possibleParameterTypes = parameter.VariableType.FindMatchingTypes();
+            var possibleParameterTypes = parameter.VariableType.ResolveType();
 
             return possibleArgumentTypes.Intersect(possibleParameterTypes).Any();
         }

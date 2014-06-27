@@ -71,19 +71,12 @@ namespace ABB.SrcML.Data {
             typeParameterList.AddRange(typeParameters);
         }
 
-        /// <summary>
-        /// Gets the first type that matches this use
-        /// </summary>
-        /// <returns>The matching type; null if there aren't any</returns>
-        public TypeDefinition FindFirstMatchingType() {
-            return this.FindMatches().FirstOrDefault();
-        }
 
         /// <summary>
         /// Finds all of the matches for this type
         /// </summary>
         /// <returns>All of the type definitions that match this type use</returns>
-        public IEnumerable<TypeDefinition> FindMatches() {
+        public override IEnumerable<TypeDefinition> ResolveType() {
             //TODO: review this method and update it for changes in TypeUse structure
             //TODO: handle case of C# var type. Delete CSharpVarTypeUse if no longer necessary.
             throw new NotImplementedException();
@@ -108,13 +101,7 @@ namespace ABB.SrcML.Data {
             //}
         }
 
-        /// <summary>
-        /// This is just a call to <see cref="FindMatches()"/>
-        /// </summary>
-        /// <returns>The matching type definitions for this use</returns>
-        public IEnumerable<TypeDefinition> FindMatchingTypes() {
-            return this.FindMatches();
-        }
+        
 
         ///// <summary>
         ///// Tests if this type use is a match for the given
