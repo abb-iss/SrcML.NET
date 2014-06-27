@@ -25,7 +25,11 @@ namespace ABB.SrcML.Data {
     public class SrcMLLocation : SourceLocation {
         /// <summary>XML name for serialization</summary>
         public new const string XmlName = "SrcMLLocation";
+
+        /// <summary>XML attribute name for the <see cref="XPath"/> property</summary>
         public const string XmlXPathAttributeName = "xpath";
+
+        /// <summary>XML attribute name for the <see cref="IsReference"/> property</summary>
         public const string XmlIsReferenceAttribute = "is_ref";
         /// <summary>
         /// Creates a new srcML location object
@@ -137,6 +141,10 @@ namespace ABB.SrcML.Data {
 
         public override string GetXmlName() { return SrcMLLocation.XmlName; }
 
+        /// <summary>
+        /// Read the XML attributes from the current <paramref name="reader"/> position
+        /// </summary>
+        /// <param name="reader">The XML reader</param>
         protected override void ReadXmlAttributes(XmlReader reader) {
             XPath = reader.GetAttribute(XmlXPathAttributeName);
             string attribute = reader.GetAttribute(XmlIsReferenceAttribute);
@@ -148,6 +156,12 @@ namespace ABB.SrcML.Data {
             base.ReadXmlAttributes(reader);
         }
 
+        /// <summary>
+        /// Writes all of the data to be serialized to <paramref name="writer"/>.
+        /// This works by calling <see cref="WriteXmlAttributes(XmlWriter)"/>
+        /// and then <see cref="WriteXmlContents(XmlWriter)"/>
+        /// </summary>
+        /// <param name="writer">The XML writer</param>
         public override void WriteXml(XmlWriter writer) {
             base.WriteXml(writer);
             writer.WriteAttributeString(XmlXPathAttributeName, XPath);

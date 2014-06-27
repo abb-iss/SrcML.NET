@@ -36,6 +36,10 @@ namespace ABB.SrcML.Data {
         /// <returns>Returns the XML name for CaseStatement</returns>
         public override string GetXmlName() { return CaseStatement.XmlName; }
 
+        /// <summary>
+        /// Writes XML attributes from this object to the XML writer
+        /// </summary>
+        /// <param name="writer">The XML writer</param>
         protected override void WriteXmlAttributes(XmlWriter writer) {
             if(IsDefault) {
                 writer.WriteAttributeString(XmlIsDefaultName, XmlConvert.ToString(IsDefault));
@@ -43,6 +47,10 @@ namespace ABB.SrcML.Data {
             base.WriteXmlAttributes(writer);
         }
 
+        /// <summary>
+        /// Read the XML attributes from the current <paramref name="reader"/> position
+        /// </summary>
+        /// <param name="reader">The XML reader</param>
         protected override void ReadXmlAttributes(XmlReader reader) {
             var isDefaultAttribute = reader.GetAttribute(XmlIsDefaultName);
             if(null != isDefaultAttribute) {

@@ -16,6 +16,9 @@ namespace ABB.SrcML {
     public class LastModifiedArchive : AbstractArchive {
         // private readonly object mapLock = new object();
 
+        /// <summary>
+        /// The default file name to store this archive in
+        /// </summary>
         public const string DEFAULT_FILENAME = "lastmodifiedmap.txt";
 
         //private Dictionary<string, DateTime> lastModifiedMap;

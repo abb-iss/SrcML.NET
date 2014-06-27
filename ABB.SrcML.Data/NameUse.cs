@@ -72,6 +72,10 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        /// <summary>
+        /// Read the XML attributes from the current <paramref name="reader"/> position
+        /// </summary>
+        /// <param name="reader">The XML reader</param>
         protected override void ReadXmlAttributes(XmlReader reader) {
             string attribute = reader.GetAttribute(XmlNameName);
             if(!String.IsNullOrEmpty(attribute)) {
@@ -91,10 +95,15 @@ namespace ABB.SrcML.Data {
             base.WriteXmlContents(writer);
         }
 
+        /// <summary>
+        /// Writes XML attributes from this object to the XML writer
+        /// </summary>
+        /// <param name="writer">The XML writer</param>
         protected override void WriteXmlAttributes(XmlWriter writer) {
             writer.WriteAttributeString(XmlNameName, Name);
             base.WriteXmlAttributes(writer);
         }
+
         /// <summary> Returns a string representation of this object. </summary>
         public override string ToString() {
             return string.Format("{0}{1}", Prefix, Name);

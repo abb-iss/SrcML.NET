@@ -27,9 +27,13 @@ namespace ABB.SrcML.Data {
         protected List<Statement> childStatementsList;
         protected List<SrcMLLocation> LocationList;
         private Expression contentExpression;
-
+        /// <summary>XML name for the <see cref="ChildStatements"/> property</summary>
         public const string XmlChildrenName = "ChildStatements";
+
+        /// <summary>XML name for the <see cref="Content"/> property</summary>
         public const string XmlContentName = "Content";
+
+        /// <summary>XML name for the <see cref="Locations"/> property</summary>
         public const string XmlLocationsName = "Locations";
         
         /// <summary>XML name for serialization</summary>

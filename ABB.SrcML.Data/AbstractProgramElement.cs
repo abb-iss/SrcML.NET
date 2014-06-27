@@ -174,6 +174,10 @@ namespace ABB.SrcML.Data {
 
         public XmlSchema GetSchema() { return null; }
 
+        /// <summary>
+        /// Read the current XML element into this object
+        /// </summary>
+        /// <param name="reader">The XML reader</param>
         public void ReadXml(XmlReader reader) {
             // you have to call ReadXmlAttributes prior to calling ReadStartElement()
             ReadXmlAttributes(reader);
@@ -184,15 +188,29 @@ namespace ABB.SrcML.Data {
             reader.ReadEndElement();
         }
 
+        /// <summary>
+        /// Writes all of the data to be serialized to <paramref name="writer"/>.
+        /// This works by calling <see cref="WriteXmlAttributes(XmlWriter)"/>
+        /// and then <see cref="WriteXmlContents(XmlWriter)"/>
+        /// </summary>
+        /// <param name="writer">The XML writer</param>
         public virtual void WriteXml(XmlWriter writer) {
             WriteXmlAttributes(writer);
             WriteXmlContents(writer);
         }
 
+        /// <summary>
+        /// Read the XML attributes from the current <paramref name="reader"/> position
+        /// </summary>
+        /// <param name="reader">The XML reader</param>
         protected virtual void ReadXmlAttributes(XmlReader reader) {
             ProgrammingLanguage = SrcMLElement.GetLanguageFromString(reader.GetAttribute(LanguageXmlName));
         }
 
+        /// <summary>
+        /// Writes XML attributes from this object to the XML writer
+        /// </summary>
+        /// <param name="writer">The XML writer</param>
         protected virtual void WriteXmlAttributes(XmlWriter writer) {
             writer.WriteAttributeString(LanguageXmlName, KsuAdapter.GetLanguage(ProgrammingLanguage));
         }
