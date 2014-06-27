@@ -22,30 +22,32 @@ namespace ABB.SrcML.Data {
     /// Represents the generalized use of a name. This does not distinguish whether the name represents a type, or variable, or what.
     /// </summary>
     public class NameUse : Expression {
-        /// <summary>
-        /// The XML name for NameUse
-        /// </summary>
+        private NamePrefix prefix;
+        
+        /// <summary> The XML name for NameUse </summary>
         public new const string XmlName = "n";
 
-        /// <summary>
-        /// XML Name for <see cref="Name" />
-        /// </summary>
+        /// <summary> XML Name for <see cref="Name" /> </summary>
         public const string XmlNameName = "val";
 
-        /// <summary>
-        /// XML Name for <see cref="Prefix" />
-        /// </summary>
+        /// <summary> XML Name for <see cref="Prefix" /> </summary>
         public const string XmlPrefixName = "Prefix";
 
-        /// <summary>
-        /// The name being used.
-        /// </summary>
+        /// <summary> The name being used. </summary>
         public string Name { get; set; }
 
         /// <summary>
         /// The prefix of the name. In a fully-qualified name like System.IO.File, the name is File and the prefix is System.IO.
         /// </summary>
-        public NamePrefix Prefix { get; set; }
+        public NamePrefix Prefix {
+            get { return prefix; }
+            set {
+                prefix = value;
+                if(prefix != null) {
+                    prefix.ParentExpression = this;
+                }
+            }
+        }
 
         /// <summary>
         /// The aliases active in the file at the point the name was used.

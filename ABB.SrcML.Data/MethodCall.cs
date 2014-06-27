@@ -22,7 +22,6 @@ namespace ABB.SrcML.Data {
     /// <summary>
     /// Represents a method call
     /// </summary>
-    [Serializable]
     public class MethodCall : NameUse {
         private List<Expression> argumentList;
         private List<TypeUse> typeArgumentList;
@@ -65,14 +64,10 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public ReadOnlyCollection<TypeUse> TypeArguments { get; private set; }
 
-        /// <summary>
-        /// True if this is a call to a constructor
-        /// </summary>
+        /// <summary> True if this is a call to a constructor </summary>
         public bool IsConstructor { get; set; }
 
-        /// <summary>
-        /// True if this is a call to a destructor
-        /// </summary>
+        /// <summary> True if this is a call to a destructor </summary>
         public bool IsDestructor { get; set; }
 
         /// <summary>
@@ -121,26 +116,6 @@ namespace ABB.SrcML.Data {
             sb.AppendFormat("{0}{1}({2})", Prefix, Name, string.Join(",",argumentList));
             return sb.ToString();
         }
-
-        ///// <summary>
-        ///// The parent scope for this method call. When you update the parent scope, the object also
-        ///// updates the parent scope of <see cref="CallingObject"/> and all of the
-        ///// <see cref="Arguments"/>
-        ///// </summary>
-        //public override Scope ParentScope {
-        //    get {
-        //        return base.ParentScope;
-        //    }
-        //    set {
-        //        base.ParentScope = value;
-        //        if(this.CallingObject != null) {
-        //            this.CallingObject.ParentScope = this.ParentScope;
-        //        }
-        //        foreach(var argument in this.Arguments) {
-        //            argument.ParentScope = this.ParentScope;
-        //        }
-        //    }
-        //}
 
         /// <summary>
         /// Gets the first type definition that matches the return type for this method

@@ -34,7 +34,9 @@ namespace ABB.SrcML.Data {
             get { return parameter; }
             set {
                 parameter = value;
-                parameter.ParentStatement = this;
+                if(parameter != null) {
+                    parameter.ParentStatement = this;
+                }
             }
         }
 

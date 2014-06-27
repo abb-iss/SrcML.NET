@@ -21,21 +21,27 @@ namespace ABB.SrcML.Data {
     /// The variable use class represents a use of a variable.
     /// </summary>
     public class VariableUse : NameUse {
-        /// <summary>
-        /// The XML name for VariableUse
-        /// </summary>
+        private Expression indexExpression;
+        
+        /// <summary> The XML name for VariableUse </summary>
         public new const string XmlName = "vu";
 
-        /// <summary>
-        /// XML Name for <see cref="Index" />
-        /// </summary>
+        /// <summary> XML Name for <see cref="Index" /> </summary>
         public const string XmlIndexName = "idx";
 
         /// <summary>
         /// The expression supplied as an index to the variable, if any.
         /// For example, in myVar[17] the index is 17.
         /// </summary>
-        public Expression Index { get; set; }
+        public Expression Index {
+            get { return indexExpression; }
+            set {
+                indexExpression = value;
+                if(indexExpression != null) {
+                    indexExpression.ParentExpression = this;
+                }
+            }
+        }
 
         /// <summary> Returns a string representation of this object. </summary>
         public override string ToString() {
@@ -45,27 +51,7 @@ namespace ABB.SrcML.Data {
                 return base.ToString();
             }
         }
-        ///// <summary>
-        ///// The calling object for a use is used when you have <c>a.b</c> -- this variable use would
-        ///// refer to <c>b</c> and the calling object would be <c>a</c>.
-        ///// </summary>
-        //public IResolvesToType CallingObject { get; set; }
-
-        ///// <summary>
-        ///// The scope that contains this variable use. If the parent scope is updated, then the
-        ///// parent scope of the calling object is also updated.
-        ///// </summary>
-        //public override Scope ParentScope {
-        //    get {
-        //        return base.ParentScope;
-        //    }
-        //    set {
-        //        base.ParentScope = value;
-        //        if(this.CallingObject != null) {
-        //            this.CallingObject.ParentScope = this.ParentScope;
-        //        }
-        //    }
-        //}
+        
 
         /// <summary>
         /// Gets the first result from <see cref="ResolveType"/>

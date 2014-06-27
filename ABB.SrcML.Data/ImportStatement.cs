@@ -40,7 +40,9 @@ namespace ABB.SrcML.Data {
             get { return importExpression; }
             set {
                 importExpression = value;
-                importExpression.ParentStatement = this;
+                if(importExpression != null) {
+                    importExpression.ParentStatement = this;
+                }
             }
         }
 

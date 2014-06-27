@@ -90,13 +90,17 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="parameters">The collection of method parameters to add</param>
         public void AddMethodParameters(List<VariableDeclaration> parameters) {
+            if(parameters == null) { throw new ArgumentNullException("parameters"); }
+
             if(parameters.Count > 0) {
                 if(parameterList.Count > 0 && GetParameterFingerprint(parameterList) != GetParameterFingerprint(parameters)) {
                     _parameterMap.Clear();
                 }
 
                 foreach(var param in parameters) {
-                    param.ParentStatement = this;
+                    if(param != null) {
+                        param.ParentStatement = this;
+                    }
                 }
                 _parameterMap[parameters[0].Location.ToString()] = parameters;
 
@@ -114,6 +118,8 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="returnType">The return type object to add</param>
         public void AddReturnType(TypeUse returnType) {
+            if(returnType == null) { throw new ArgumentNullException("returnType"); }
+
             if(null != ReturnType && this.ReturnType.Name != returnType.Name) {
                 _returnTypeMap.Clear();
             }

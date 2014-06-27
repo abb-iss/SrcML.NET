@@ -17,24 +17,25 @@ using System.Text;
 using System.Xml;
 
 namespace ABB.SrcML.Data {
+    /// <summary>
+    /// Represents the use of an operator in an expression.
+    /// </summary>
     public class OperatorUse : Expression {
 
-        /// <summary>
-        /// The XML name for OperatorUse
-        /// </summary>
+        /// <summary> The XML name for OperatorUse </summary>
         public new const string XmlName = "op";
 
-        /// <summary>
-        /// XML Name for <see cref="Text" />
-        /// </summary>
+        /// <summary> XML Name for <see cref="Text" /> </summary>
         public const string XmlTextName = "text";
+        
+        /// <summary> The text of the operator. </summary>
+        public string Text { get; set; }
+
         /// <summary>
         /// Instance method for getting <see cref="OperatorUse.XmlName"/>
         /// </summary>
         /// <returns>Returns the XML name for OperatorUse</returns>
         public override string GetXmlName() { return OperatorUse.XmlName; }
-
-        public string Text { get; set; }
 
         protected override void ReadXmlAttributes(XmlReader reader) {
             var textAttribute = reader.GetAttribute(XmlTextName);

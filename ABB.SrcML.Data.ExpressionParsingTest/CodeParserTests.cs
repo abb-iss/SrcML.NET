@@ -160,13 +160,13 @@ namespace ABB.SrcML.Data.Test
             Assert.AreEqual("=", equals.Text);
             var two = exp.Components[2] as LiteralUse;
             Assert.IsNotNull(two);
-            Assert.AreEqual("2", two.Value);
+            Assert.AreEqual("2", two.Text);
             var plus = exp.Components[3] as OperatorUse;
             Assert.IsNotNull(plus);
             Assert.AreEqual("+", plus.Text);
             var three = exp.Components[4] as LiteralUse;
             Assert.IsNotNull(three);
-            Assert.AreEqual("3", three.Value);
+            Assert.AreEqual("3", three.Text);
         }
 
         [TestCase(Language.CPlusPlus)]
@@ -194,20 +194,20 @@ namespace ABB.SrcML.Data.Test
             Assert.AreEqual(3, subExp.Components.Count);
             var two = subExp.Components[0] as LiteralUse;
             Assert.IsNotNull(two);
-            Assert.AreEqual("2", two.Value);
+            Assert.AreEqual("2", two.Text);
             var plus = subExp.Components[1] as OperatorUse;
             Assert.IsNotNull(plus);
             Assert.AreEqual("+", plus.Text);
             var three = subExp.Components[2] as LiteralUse;
             Assert.IsNotNull(three);
-            Assert.AreEqual("3", three.Value);
+            Assert.AreEqual("3", three.Text);
 
             var times = exp.Components[3] as OperatorUse;
             Assert.IsNotNull(times);
             Assert.AreEqual("*", times.Text);
             var five = exp.Components[4] as LiteralUse;
             Assert.IsNotNull(five);
-            Assert.AreEqual("5", five.Value);
+            Assert.AreEqual("5", five.Text);
         }
     }
 }

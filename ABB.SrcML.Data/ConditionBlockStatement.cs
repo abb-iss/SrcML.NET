@@ -31,7 +31,9 @@ namespace ABB.SrcML.Data {
             get { return conditionExpression; }
             set {
                 conditionExpression = value;
-                conditionExpression.ParentStatement = this;
+                if(conditionExpression != null) {
+                    conditionExpression.ParentStatement = this;
+                }
             }
         }
 

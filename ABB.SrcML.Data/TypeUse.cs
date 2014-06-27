@@ -25,19 +25,13 @@ namespace ABB.SrcML.Data {
     public class TypeUse : NameUse {
         private List<TypeUse> typeParameterList;
 
-        /// <summary>
-        /// The XML name for TypeUse
-        /// </summary>
+        /// <summary> The XML name for TypeUse </summary>
         public new const string XmlName = "tu";
 
-        /// <summary>
-        /// XML Name for <see cref="TypeParameters" />
-        /// </summary>
+        /// <summary> XML Name for <see cref="TypeParameters" /> </summary>
         public const string XmlTypeParametersName = "TypeParameters";
 
-        /// <summary>
-        /// Create a new type use object.
-        /// </summary>
+        /// <summary> Create a new type use object. </summary>
         public TypeUse() {
             Name = String.Empty;
             typeParameterList = new List<TypeUse>();
@@ -60,6 +54,8 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="typeParameter">The type parameter to add</param>
         public void AddTypeParameter(TypeUse typeParameter) {
+            if(typeParameter == null) { throw new ArgumentNullException("typeParameter"); }
+            typeParameter.ParentExpression = this;
             typeParameterList.Add(typeParameter);
         }
 

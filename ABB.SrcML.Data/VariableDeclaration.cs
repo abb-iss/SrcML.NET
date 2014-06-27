@@ -21,50 +21,51 @@ namespace ABB.SrcML.Data {
     /// Represents a variable declaration
     /// </summary>
     public class VariableDeclaration : Expression {
-        /// <summary>
-        /// The XML name for VariableDeclaration
-        /// </summary>
+        private TypeUse varType;
+        private Expression initExpression;
+        
+        /// <summary> The XML name for VariableDeclaration </summary>
         public new const string XmlName = "var";
 
-        /// <summary>
-        /// XML Name for <see cref="Accessibility" />
-        /// </summary>
+        /// <summary> XML Name for <see cref="Accessibility" /> </summary>
         public const string XmlAccessibilityName = "Accessibility";
 
-        /// <summary>
-        /// XML Name for <see cref="Name" />
-        /// </summary>
+        /// <summary> XML Name for <see cref="Name" /> </summary>
         public const string XmlNameName = "Name";
 
-        /// <summary>
-        /// XML Name for <see cref="Type" />
-        /// </summary>
+        /// <summary> XML Name for <see cref="Type" /> </summary>
         public const string XmlTypeName = "Type";
 
-        /// <summary>
-        /// XML Name for <see cref="Initializer" />
-        /// </summary>
+        /// <summary> XML Name for <see cref="Initializer" /> </summary>
         public const string XmlInitializerName = "Initializer";
 
-        /// <summary>
-        /// The access modifier assigned to this type
-        /// </summary>
+        /// <summary> The access modifier assigned to this type </summary>
         public AccessModifier Accessibility { get; set; }
 
-        /// <summary>
-        /// The name of the variable
-        /// </summary>
+        /// <summary> The name of the variable </summary>
         public string Name { get; set; }
 
-        /// <summary>
-        /// Description of the type for this variable
-        /// </summary>
-        public virtual TypeUse VariableType { get; set; }
+        /// <summary> Description of the type for this variable </summary>
+        public virtual TypeUse VariableType {
+            get { return varType; }
+            set {
+                varType = value;
+                if(varType != null) {
+                    varType.ParentExpression = this;
+                }
+            }
+        }
 
-        /// <summary>
-        /// The expression, if any, used to intialize this variable
-        /// </summary>
-        public Expression Initializer { get; set; }
+        /// <summary> The expression, if any, used to intialize this variable </summary>
+        public Expression Initializer {
+            get { return initExpression; }
+            set {
+                initExpression = value;
+                if(initExpression != null) {
+                    initExpression.ParentExpression = this;
+                }
+            }
+        }
 
         /// <summary>
         /// Returns the child expressions, including the Initializer.

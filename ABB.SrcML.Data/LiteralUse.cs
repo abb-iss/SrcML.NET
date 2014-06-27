@@ -20,26 +20,19 @@ namespace ABB.SrcML.Data {
     /// Represents a use of a literal in a program.
     /// For example, in "int a = 42;" 42 is a literal use.
     /// </summary>
-    //[Serializable]
     public class LiteralUse : Expression {
 
-        /// <summary>
-        /// The XML name for LiteralUse
-        /// </summary>
+        /// <summary> The XML name for LiteralUse </summary>
         public new const string XmlName = "lu";
 
-        /// <summary>
-        /// XML Name for <see cref="Kind" />
-        /// </summary>
+        /// <summary> XML Name for <see cref="Kind" /> </summary>
         public const string XmlKindName = "Kind";
 
-        /// <summary>
-        /// XML Name for <see cref="Value" />
-        /// </summary>
-        public const string XmlValueName = "Value";
+        /// <summary> XML Name for <see cref="Text" /> </summary>
+        public const string XmlTextName = "Text";
 
         /// <summary>The text of the literal.</summary>
-        public string Value { get; set; }
+        public string Text { get; set; }
 
         /// <summary>The kind of literal.</summary>
         public LiteralKind Kind { get; set; }
@@ -82,9 +75,9 @@ namespace ABB.SrcML.Data {
             if(!String.IsNullOrEmpty(attribute)) {
                 Kind = LiteralKindExtensions.FromKeyword(attribute);
             }
-            attribute = reader.GetAttribute(XmlValueName);
+            attribute = reader.GetAttribute(XmlTextName);
             if(!String.IsNullOrEmpty(attribute)) {
-                Value = attribute;
+                Text = attribute;
             }
 
             base.ReadXmlAttributes(reader);
@@ -92,12 +85,12 @@ namespace ABB.SrcML.Data {
 
         protected override void WriteXmlAttributes(XmlWriter writer) {
             writer.WriteAttributeString(XmlKindName, Kind.ToKeyword());
-            writer.WriteAttributeString(XmlValueName, Value);
+            writer.WriteAttributeString(XmlTextName, Text);
             base.WriteXmlAttributes(writer);
         }
         /// <summary> Returns the text value of this literal. </summary>
         public override string ToString() {
-            return Value;
+            return Text;
         }
     }
 }

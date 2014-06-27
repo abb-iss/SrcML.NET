@@ -18,9 +18,7 @@ namespace ABB.SrcML.Data {
     /// Represents the use of a namespace. This is primarily used in <see cref="AliasStatement"/> and <see cref="ImportStatement"/> objects.
     /// </summary>
     public class NamespaceUse : NameUse {
-        /// <summary>
-        /// The XML name for NamespaceUse
-        /// </summary>
+        /// <summary> The XML name for NamespaceUse </summary>
         public new const string XmlName = "nsu";
 
         /// <summary>

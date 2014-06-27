@@ -39,7 +39,9 @@ namespace ABB.SrcML.Data
             get { return initExpression; }
             set {
                 initExpression = value;
-                initExpression.ParentStatement = this;
+                if(initExpression != null) {
+                    initExpression.ParentStatement = this;
+                }
             }
         }
 
@@ -48,7 +50,9 @@ namespace ABB.SrcML.Data
             get { return incrExpression; }
             set {
                 incrExpression = value;
-                incrExpression.ParentStatement = this;
+                if(incrExpression != null) {
+                    incrExpression.ParentStatement = this;
+                }
             }
         }
 

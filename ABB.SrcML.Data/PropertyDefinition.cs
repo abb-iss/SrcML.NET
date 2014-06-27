@@ -45,7 +45,9 @@ namespace ABB.SrcML.Data {
             get { return returnType; }
             set {
                 returnType = value;
-                returnType.ParentStatement = this;
+                if(returnType != null) {
+                    returnType.ParentStatement = this;
+                }
             }
         }
 

@@ -367,7 +367,7 @@ namespace ABB.SrcML.Data.Test {
         private static void TestEquality(LiteralUse expected, LiteralUse actual, string propertyName) {
             try {
                 IsTrue(expected.Kind == actual.Kind, "Kind");
-                IsTrue(expected.Value == actual.Value, "Value");
+                IsTrue(expected.Text == actual.Text, "Value");
             } catch(DataAssertionException e) {
                 e.Add(propertyName);
                 throw e;

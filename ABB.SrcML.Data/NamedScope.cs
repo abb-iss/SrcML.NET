@@ -56,7 +56,9 @@ namespace ABB.SrcML.Data {
             set {
                 if(value != _prefix) {
                     _prefix = value;
-                    _prefix.ParentStatement = this;
+                    if(_prefix != null) {
+                        _prefix.ParentStatement = this;
+                    }
                     PrefixIsResolved = (null == _prefix);
                 }
             }

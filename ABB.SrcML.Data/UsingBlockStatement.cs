@@ -44,7 +44,9 @@ namespace ABB.SrcML.Data
             get { return initExpression; }
             set {
                 initExpression = value;
-                initExpression.ParentStatement = this;
+                if(initExpression != null) {
+                    initExpression.ParentStatement = this;
+                }
             }
         }
 

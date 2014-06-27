@@ -17,19 +17,24 @@ using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML.Data {
+    /// <summary>
+    /// Represents the expression, if any, prefixing the use of a name.
+    /// For example, in void Foo::Bar() {...}, "Foo::" is the prefix of Bar
+    /// </summary>
     public class NamePrefix : Expression {
-        /// <summary>
-        /// The XML name for NamePrefix
-        /// </summary>
+        /// <summary> The XML name for NamePrefix. </summary>
         public new const string XmlName = "Prefix";
 
-        public NamePrefix() : base() { }
-
+        /// <summary> The NameUses in this prefix. </summary>
         public IEnumerable<NameUse> Names { get { return Components.OfType<NameUse>(); } }
 
+        /// <summary>
+        /// Returns an enumerable of possible NamedScopes that this prefix might be referring to.
+        /// </summary>
+        /// <param name="root">The root NamedScope from which to begin searching for matches.</param>
         public IEnumerable<NamedScope> FindMatches(NamedScope root) {
             var prefixes = Names.ToList();
-            Dictionary<NameUse, List<NamedScope>> prefixMap = new Dictionary<NameUse, List<NamedScope>>();
+            var prefixMap = new Dictionary<NameUse, List<NamedScope>>();
             for(int i = 0; i < prefixes.Count; i++) {
                 if(0 == i) {
                     prefixMap[prefixes[i]] = (from child in root.ChildStatements.OfType<NamedScope>()

@@ -57,7 +57,9 @@ namespace ABB.SrcML.Data {
             get { return contentExpression; }
             set {
                 contentExpression = value;
-                contentExpression.ParentStatement = this;
+                if(contentExpression != null) {
+                    contentExpression.ParentStatement = this;
+                }
             }
         }
 

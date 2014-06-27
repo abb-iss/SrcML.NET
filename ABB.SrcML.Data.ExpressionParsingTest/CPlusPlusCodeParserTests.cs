@@ -867,12 +867,12 @@ namespace ABB.SrcML.Data.Test {
 
             var numLit = globalScope.ChildStatements[0].Content.GetDescendantsAndSelf<LiteralUse>().FirstOrDefault();
             Assert.IsNotNull(numLit);
-            Assert.AreEqual("17", numLit.Value);
+            Assert.AreEqual("17", numLit.Text);
             Assert.AreEqual(LiteralKind.Number, numLit.Kind);
 
             var stringLit = globalScope.ChildStatements[1].Content.GetDescendantsAndSelf<LiteralUse>().FirstOrDefault();
             Assert.IsNotNull(stringLit);
-            Assert.AreEqual("\"watermelon\"", stringLit.Value);
+            Assert.AreEqual("\"watermelon\"", stringLit.Text);
             Assert.AreEqual(LiteralKind.String, stringLit.Kind);
 
             var ifStmt = globalScope.ChildStatements[2] as IfStatement;
@@ -880,12 +880,12 @@ namespace ABB.SrcML.Data.Test {
 
             var boolLit = ifStmt.Condition as LiteralUse;
             Assert.IsNotNull(boolLit);
-            Assert.AreEqual("true", boolLit.Value);
+            Assert.AreEqual("true", boolLit.Text);
             Assert.AreEqual(LiteralKind.Boolean, boolLit.Kind);
 
             var charLit = ifStmt.ChildStatements[0].Content.GetDescendantsAndSelf<LiteralUse>().FirstOrDefault();
             Assert.IsNotNull(charLit);
-            Assert.AreEqual("\'h\'", charLit.Value);
+            Assert.AreEqual("\'h\'", charLit.Text);
             Assert.AreEqual(LiteralKind.Character, charLit.Kind);
         }
 
@@ -986,7 +986,7 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("bar", bar.Name);
             var index = bar.Index as LiteralUse;
             Assert.IsNotNull(index);
-            Assert.AreEqual("17", index.Value);
+            Assert.AreEqual("17", index.Text);
             Assert.AreEqual(LiteralKind.Number, index.Kind);
         }
     }

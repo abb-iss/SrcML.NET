@@ -1554,7 +1554,7 @@ namespace ABB.SrcML.Data {
             var litUse = new LiteralUse() {
                 Location = context.CreateLocation(literalElement),
                 ProgrammingLanguage = ParserLanguage,
-                Value = literalElement.Value,
+                Text = literalElement.Value,
                 Kind = LiteralUse.GetLiteralKind(literalElement)
             };
 
