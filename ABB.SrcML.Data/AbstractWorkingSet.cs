@@ -38,7 +38,7 @@ namespace ABB.SrcML.Data {
         private bool _disposed;
 
         /// <summary>
-        /// Event that indicates whether or not this working set has changed
+        /// Event that indicates this working set has changed
         /// </summary>
         public event EventHandler Changed;
 
@@ -50,9 +50,9 @@ namespace ABB.SrcML.Data {
         private AbstractWorkingSet() { }
 
         /// <summary>
-        /// Creates a new 
+        /// Creates a new working set object
         /// </summary>
-        /// <param name="archive"></param>
+        /// <param name="archive">The archive to monitor</param>
         protected AbstractWorkingSet(DataArchive archive) {
             Archive = archive;
             _disposed = false;
@@ -271,6 +271,5 @@ namespace ABB.SrcML.Data {
                 handler(this, e);
             }
         }
-
     }
 }
