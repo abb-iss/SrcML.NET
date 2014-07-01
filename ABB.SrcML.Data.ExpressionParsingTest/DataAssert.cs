@@ -241,7 +241,7 @@ namespace ABB.SrcML.Data.Test {
             try {
                 IsTrue(expected.IsPartial == actual.IsPartial, "IsPartial");
                 IsTrue(expected.Kind == actual.Kind, "Kind");
-                UnorderedCollectionsAreEqual<TypeUse>(expected.ParentTypes, actual.ParentTypes, ExpressionsAreEqual, "ParentTypes");
+                UnorderedCollectionsAreEqual<TypeUse>(expected.ParentTypeNames, actual.ParentTypeNames, ExpressionsAreEqual, "ParentTypes");
             } catch(DataAssertionException e) {
                 e.Add(propertyName);
                 throw e;

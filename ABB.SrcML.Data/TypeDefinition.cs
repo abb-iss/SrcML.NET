@@ -31,8 +31,8 @@ namespace ABB.SrcML.Data {
         /// <summary> XML Name for <see cref="Kind" /> </summary>
         public const string XmlKindName = "kind";
 
-        /// <summary> XML Name for <see cref="ParentTypes" /> </summary>
-        public const string XmlParentTypesName = "ParentTypes";
+        /// <summary> XML Name for <see cref="ParentTypeNames" /> </summary>
+        public const string XmlParentTypeNamesName = "ParentTypes";
 
         /// <summary> XML Name for <see cref="IsPartial" /> </summary>
         public const string XmlIsPartialName = "IsPartial";
@@ -41,7 +41,7 @@ namespace ABB.SrcML.Data {
         public TypeDefinition()
             : base() {
             parentTypeCollection = new Collection<TypeUse>();
-            ParentTypes = new ReadOnlyCollection<TypeUse>(parentTypeCollection);
+            ParentTypeNames = new ReadOnlyCollection<TypeUse>(parentTypeCollection);
             IsPartial = false;
         }
 
@@ -51,7 +51,7 @@ namespace ABB.SrcML.Data {
         public TypeKind Kind { get; set; }
 
         /// <summary> The parents of this type. </summary>
-        public ReadOnlyCollection<TypeUse> ParentTypes { get; protected set; }
+        public ReadOnlyCollection<TypeUse> ParentTypeNames { get; protected set; }
 
         /// <summary> Indicates whether this is a partial type. </summary>
         public bool IsPartial { get; set; }
@@ -88,14 +88,14 @@ namespace ABB.SrcML.Data {
             combinedType.Kind = this.Kind;
             combinedType.IsPartial = this.IsPartial;
             TypeDefinition typeWithParents = null;
-            if(this.ParentTypes.Count > 0) {
+            if(this.ParentTypeNames.Count > 0) {
                 typeWithParents = this;
-            } else if(otherType.ParentTypes.Count > 0) {
+            } else if(otherType.ParentTypeNames.Count > 0) {
                 typeWithParents = otherType;
             }
 
             if(null != typeWithParents) {
-                foreach(var parentType in typeWithParents.ParentTypes) {
+                foreach(var parentType in typeWithParents.ParentTypeNames) {
                     combinedType.AddParentType(parentType);
                 }
             }
@@ -137,6 +137,7 @@ namespace ABB.SrcML.Data {
             string id = String.Format("{0}:T{1}:{2}", KsuAdapter.GetLanguage(ProgrammingLanguage), typeSpecifier, this.Name);
             return id;
         }
+        
         /// <summary>
         /// This handles the "base" keyword (C# only) and the "this" keyword. It searches for the
         /// appropriate type definition depending on the context of the
@@ -144,19 +145,48 @@ namespace ABB.SrcML.Data {
         /// <typeparam name="T">The use type</typeparam>
         /// <param name="use">The use to find the containing class for</param>
         /// <returns>The class referred to by the keyword</returns>
-        public static IEnumerable<TypeDefinition> GetTypeForKeyword<T>(AbstractUse<T> use) where T : class {
+        public static IEnumerable<TypeDefinition> GetTypeForKeyword(NameUse use) {
             //TODO: review this method and update it for changes in TypeUse structure
-            throw new NotImplementedException();
 
-            //var typeDefinitions = Enumerable.Empty<ITypeDefinition>();
-            //if(use.Name == "this") {
-            //    typeDefinitions = use.ParentScopes.OfType<ITypeDefinition>().Take(1);
-            //} else if(use.Name == "base" && use.ProgrammingLanguage == Language.CSharp) {
-            //    typeDefinitions = from containingType in use.ParentScopes.OfType<ITypeDefinition>()
-            //                      from parentType in containingType.GetParentTypes()
-            //                      select parentType;
-            //}
-            //return typeDefinitions;
+            var typeDefinitions = Enumerable.Empty<TypeDefinition>();
+            if(use.Name == "this") {
+                typeDefinitions = use.GetAncestors<TypeDefinition>().Take(1);
+            } else if(use.Name == "base" && use.ProgrammingLanguage == Language.CSharp) {
+                typeDefinitions = from containingType in use.GetAncestors<TypeDefinition>()
+                                  from parentType in containingType.GetParentTypes(true)
+                                  select parentType;
+            }
+            return typeDefinitions;
+        }
+
+        /// <summary>
+        /// Resolves the parent type uses for this type definition.
+        /// This method will only return the first 100 matches.
+        /// </summary>
+        /// <param name="recursive">Whether or not to recursively get the parents of this type's parents.</param>
+        /// <returns>Matching parent types for this type</returns>
+        public IEnumerable<TypeDefinition> GetParentTypes(bool recursive) {
+            IEnumerable<TypeDefinition> results;
+            if(recursive) {
+                results = from typeUse in ParentTypeNames
+                          from type in typeUse.ResolveType()
+                          from nextType in type.GetParentTypesAndSelf(recursive)
+                          select nextType;
+            } else {
+                results = ParentTypeNames.SelectMany(typeUse => typeUse.ResolveType());
+            }
+            return results.Take(100);
+        }
+
+        /// <summary>
+        /// Returns this class followed by all of its parent classes (via a call to
+        /// <see cref="GetParentTypes(bool)"/>
+        /// </summary>
+        /// <param name="recursive">Whether or not to recursively get the parents of this type's parents.</param>
+        /// <returns>An enumerable consisting of this object followed by the results of see
+        /// cref="GetParentTypes(bool)"/></returns>
+        public IEnumerable<TypeDefinition> GetParentTypesAndSelf(bool recursive) {
+            return Enumerable.Repeat(this, 1).Concat(GetParentTypes(recursive));
         }
 
         /// <summary>
@@ -177,7 +207,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="reader">The XML reader</param>
         protected override void ReadXmlChild(XmlReader reader) {
-            if(XmlParentTypesName == reader.Name) {
+            if(XmlParentTypeNamesName == reader.Name) {
                 foreach(var parentType in XmlSerialization.ReadChildExpressions(reader).Cast<TypeUse>()) {
                     AddParentType(parentType);
                 }
@@ -203,8 +233,8 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="writer">The XML writer to write to</param>
         protected override void WriteXmlContents(XmlWriter writer) {
-            if(null != ParentTypes) {
-                XmlSerialization.WriteCollection<TypeUse>(writer, XmlParentTypesName, ParentTypes);
+            if(null != ParentTypeNames) {
+                XmlSerialization.WriteCollection<TypeUse>(writer, XmlParentTypeNamesName, ParentTypeNames);
             }
             base.WriteXmlContents(writer);
         }

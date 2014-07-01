@@ -126,52 +126,63 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Finds matching <see cref="IMethodDefinition">method definitions</see> from the
-        /// <see cref="IScope.GetParentScopes()"/> of this usage. Because method calls can also be
+        /// Finds matching <see cref="MethodDefinition">method definitions</see> for this method call.
+        /// This method searches for matches in the ancestor scopes of the call. Because method calls can also be
         /// to constructors and destructors, this will also search for matching types and then
         /// constructors within those types
         /// </summary>
         /// <returns>An enumerable of method definitions that match this method call</returns>
         public IEnumerable<MethodDefinition> FindMatches() {
             //TODO: review this method and update it for changes in TypeUse structure
-            throw new NotImplementedException();
-            //IEnumerable<MethodDefinition> matchingMethods = Enumerable.Empty<MethodDefinition>();
+            
+            var matchingMethods = Enumerable.Empty<MethodDefinition>();
 
-            //if(IsConstructor || IsDestructor) {
-            //    IEnumerable<TypeDefinition> typeDefinitions;
-            //    if(this.Name == "this" || (this.Name == "base" && this.ProgrammingLanguage == Language.CSharp)) {
-            //        typeDefinitions = TypeDefinition.GetTypeForKeyword(this);
-            //    } else {
-            //        TypeUse tempTypeUse = new TypeUse() {
-            //            Name = this.Name,
-            //            ParentScope = this.ParentScope,
-            //        };
-            //        tempTypeUse.AddAliases(this.Aliases);
-            //        typeDefinitions = tempTypeUse.FindMatches();
-            //    }
+            if(IsConstructor || IsDestructor) {
+                IEnumerable<TypeDefinition> typeDefinitions;
+                if(this.Name == "this" || (this.Name == "base" && this.ProgrammingLanguage == Language.CSharp)) {
+                    typeDefinitions = TypeDefinition.GetTypeForKeyword(this);
+                } else {
+                    //var tempTypeUse = new TypeUse() {
+                    //    Name = this.Name,
+                    //    ParentScope = this.ParentScope,
+                    //};
+                    //tempTypeUse.AddAliases(this.Aliases);
+                    //typeDefinitions = tempTypeUse.FindMatches();
+                    throw new NotImplementedException();
+                }
 
-            //    matchingMethods = from typeDefinition in typeDefinitions
-            //                      from method in typeDefinition.GetChildScopesWithId<MethodDefinition>(typeDefinition.Name)
-            //                      where Matches(method)
-            //                      select method;
-            //} else if(CallingObject != null) {
-            //    matchingMethods = from matchingType in CallingObject.FindMatchingTypes()
-            //                      from typeDefinition in matchingType.GetParentTypesAndSelf()
-            //                      from method in typeDefinition.GetChildScopesWithId<IMethodDefinition>(this.Name)
-            //                      where Matches(method)
-            //                      select method;
-            //} else {
-            //    var matches = base.FindMatches();
-            //    var matchingTypeMethods = from containingType in ParentScope.GetParentScopesAndSelf<TypeDefinition>()
-            //                              from typeDefinition in containingType.GetParentTypes()
-            //                              from method in typeDefinition.GetChildScopesWithId<IMethodDefinition>(this.Name)
-            //                              where Matches(method)
-            //                              select method;
-            //    matchingMethods = matches.Concat(matchingTypeMethods);
-            //}
-            //foreach(var method in matchingMethods) {
-            //    yield return method;
-            //}
+                //matchingMethods = from typeDefinition in typeDefinitions
+                //                  from method in typeDefinition.GetChildScopesWithId<MethodDefinition>(typeDefinition.Name)
+                //                  where Matches(method)
+                //                  select method;
+                throw new NotImplementedException();
+            } else {
+                var callingExpression = GetSiblingsBeforeSelf().ToList();
+
+                if(callingExpression.Any()) {
+                    //matchingMethods = from matchingType in CallingObject.FindMatchingTypes()
+                    //                  from typeDefinition in matchingType.GetParentTypesAndSelf()
+                    //                  from method in typeDefinition.GetChildScopesWithId<IMethodDefinition>(this.Name)
+                    //                  where Matches(method)
+                    //                  select method;
+                    throw new NotImplementedException();
+                } else {
+                    //TODO: look for matches starting from the global scope?
+                    //var matches = base.FindMatches();
+
+                    //if the method call occurs within a class, search that class (and its parents) for a matching method
+                    var matchingTypeMethods = from containingType in ParentStatement.GetAncestorsAndSelf<TypeDefinition>()
+                                              from typeDefinition in containingType.GetParentTypesAndSelf(true)
+                                              from method in typeDefinition.GetChildScopes<MethodDefinition>(this.Name)
+                                              where Matches(method)
+                                              select method;
+
+                    //matchingMethods = matches.Concat(matchingTypeMethods);
+                    matchingMethods = matchingTypeMethods;
+                }
+            }
+
+            return matchingMethods;
         }
 
         /// <summary>
@@ -179,47 +190,42 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <returns>An enumerable of the matching type definitions for this method</returns>
         public override IEnumerable<TypeDefinition> ResolveType() {
-            //TODO: review this method and update it for changes in TypeUse structure
-            throw new NotImplementedException();
-            //foreach(var methodDefinition in FindMatches()) {
-            //    IEnumerable<TypeDefinition> matchingTypes = Enumerable.Empty<TypeDefinition>();
+            foreach(var methodDefinition in FindMatches()) {
+                var matchingTypes = Enumerable.Empty<TypeDefinition>();
 
-            //    if(methodDefinition.ReturnType != null) {
-            //        matchingTypes = methodDefinition.ReturnType.FindMatches();
-            //    } else if(methodDefinition.IsConstructor) {
-            //        matchingTypes = from type in methodDefinition.GetParentScopes<TypeDefinition>()
-            //                        where type.Name == methodDefinition.Name
-            //                        select type;
-            //    }
-            //    foreach(var result in matchingTypes) {
-            //        yield return result;
-            //    }
-            //}
+                if(methodDefinition.ReturnType != null) {
+                    matchingTypes = methodDefinition.ReturnType.ResolveType();
+                } else if(methodDefinition.IsConstructor) {
+                    var methodName = methodDefinition.Name; //define local var because of Resharper warning about accessing foreach var in closure
+                    matchingTypes = methodDefinition.GetAncestors<TypeDefinition>().Where(td => td.Name == methodName);
+                }
+                foreach(var result in matchingTypes) {
+                    yield return result;
+                }
+            }
         }
 
-        //public IEnumerable<string> GetPossibleNames() {
-        //    if(this.Name == "this") {
-        //        foreach(var containingType in ParentScopes.OfType<TypeDefinition>().Take(1)) {
-        //            yield return containingType.Name;
-        //        }
-        //    } else if(this.Name == "base" && ProgrammingLanguage == Language.CSharp) {
-        //        var typeDefinitions = from containingType in ParentScopes.OfType<TypeDefinition>()
-        //                              from parentTypeReference in containingType.ParentTypes
-        //                              from parentType in parentTypeReference.FindMatchingTypes()
-        //                              select parentType;
-        //        foreach(var baseType in typeDefinitions) {
-        //            yield return baseType.Name;
-        //        }
-        //    } else {
-        //        yield return this.Name;
-        //    }
-        //}
-
         /// <summary>
-        /// Instance method for getting <see cref="MethodCall.XmlName"/>
+        /// Returns the possible names for this method call. 
+        /// This is used to translate keywords like 'this' or 'base' to actual method names.
         /// </summary>
-        /// <returns>Returns the XML name for MethodCall</returns>
-        public override string GetXmlName() { return MethodCall.XmlName; }
+        public IEnumerable<string> GetPossibleNames() {
+            if(this.Name == "this") {
+                foreach(var containingType in GetAncestors<TypeDefinition>().Take(1)) {
+                    yield return containingType.Name;
+                }
+            } else if(this.Name == "base" && ProgrammingLanguage == Language.CSharp) {
+                var typeDefinitions = from containingType in GetAncestors<TypeDefinition>()
+                                      from parentTypeReference in containingType.ParentTypeNames
+                                      from parentType in parentTypeReference.ResolveType()
+                                      select parentType;
+                foreach(var baseType in typeDefinitions) {
+                    yield return baseType.Name;
+                }
+            } else {
+                yield return this.Name;
+            }
+        }
 
         /// <summary>
         /// Tests if the provided method definition matches this method call
@@ -227,23 +233,28 @@ namespace ABB.SrcML.Data {
         /// <param name="definition">The method definition to test</param>
         /// <returns>True if this method call matches the provided method definition</returns>
         public bool Matches(MethodDefinition definition) {
-            //TODO: review this method and update it for changes in TypeUse structure
-            throw new NotImplementedException();
-            //if(null == definition)
-            //    return false;
+            if(null == definition) {
+                return false;
+            }
 
-            ////var argumentsMatchParameters = Enumerable.Zip(this.Arguments, definition.Parameters,
-            ////                                              (a,p) => ArgumentMatchesDefinition(a,p));
-            //var numberOfMethodParameters = definition.Parameters.Count;
-            //var numberOfMethodParametersWithDefault = definition.Parameters.Where(p => p.HasDefaultValue).Count();
+            //var argumentsMatchParameters = Enumerable.Zip(this.Arguments, definition.Parameters,
+            //                                              (a,p) => ArgumentMatchesDefinition(a,p));
+            var numberOfMethodParameters = definition.Parameters.Count;
+            var numberOfMethodParametersWithDefault = definition.Parameters.Count(p => p.Initializer != null);
 
-            //return this.IsConstructor == definition.IsConstructor &&
-            //       this.IsDestructor == definition.IsDestructor &&
-            //       GetPossibleNames().Any(n => n == definition.Name) &&
-            //       this.Arguments.Count >= numberOfMethodParameters - numberOfMethodParametersWithDefault &&
-            //       this.Arguments.Count <= definition.Parameters.Count;// &&
-            //                                                           //argumentsMatchParameters.All(a => a);
+            return this.IsConstructor == definition.IsConstructor &&
+                   this.IsDestructor == definition.IsDestructor &&
+                   GetPossibleNames().Any(n => n == definition.Name) &&
+                   this.Arguments.Count >= numberOfMethodParameters - numberOfMethodParametersWithDefault &&
+                   this.Arguments.Count <= numberOfMethodParameters;// &&
+                                                                       //argumentsMatchParameters.All(a => a);
         }
+
+        /// <summary>
+        /// Instance method for getting <see cref="MethodCall.XmlName"/>
+        /// </summary>
+        /// <returns>Returns the XML name for MethodCall</returns>
+        public override string GetXmlName() { return MethodCall.XmlName; }
 
         /// <summary>
         /// Read the XML attributes from the current <paramref name="reader"/> position
