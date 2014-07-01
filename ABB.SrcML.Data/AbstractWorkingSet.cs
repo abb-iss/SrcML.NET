@@ -11,9 +11,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace ABB.SrcML.Data {
     /// <summary>
@@ -24,7 +26,7 @@ namespace ABB.SrcML.Data {
     /// <list type="number">
     /// <item><description>Obtain a write lock via <see cref="TryObtainWriteLock"/></description></item>
     /// <item><description></description>Modify the method possibly via calls to <see cref="TryAddOrUpdateFile"/>,
-    /// <see cref="TryRemoveFile"/>, and <see cref="ContainsFile"/></item>
+    /// <see cref="TryRemoveFile"/>, and <see cref="ContainsFile(NamespaceDefinition,string)"/></item>
     /// <item><description>Release the write lock <see cref="ReleaseWriteLock"/></description></item>
     /// <item><description>If the working set has changed, call <see cref="OnChanged"/> to notify subscribed clients</description></item>
     /// </list>
@@ -35,7 +37,6 @@ namespace ABB.SrcML.Data {
     public abstract class AbstractWorkingSet : IDisposable {
         private NamespaceDefinition _globalScope;
         private ReaderWriterLockSlim _globalScopeLock;
-        private bool _disposed;
 
         /// <summary>
         /// Event that indicates this working set has changed
@@ -47,17 +48,78 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public DataArchive Archive { get; private set; }
 
+        /// <summary>
+        /// The task factory to use for asynchronous methods
+        /// </summary>
+        public TaskFactory Factory { get; private set; }
+
+        /// <summary>
+        /// Returns true if <see cref="Dispose"/> has been called
+        /// </summary>
+        protected bool IsDisposed { get; private set; }
+
         private AbstractWorkingSet() { }
 
         /// <summary>
         /// Creates a new working set object
         /// </summary>
         /// <param name="archive">The archive to monitor</param>
-        protected AbstractWorkingSet(DataArchive archive) {
+        /// <param name="factory">The task factory</param>
+        protected AbstractWorkingSet(DataArchive archive, TaskFactory factory) {
             Archive = archive;
-            _disposed = false;
+            Factory = factory;
+            IsDisposed = false;
             _globalScope = null;
             _globalScopeLock = new ReaderWriterLockSlim();
+        }
+
+        /// <summary>
+        /// Checks to see if the working set contains <paramref name="sourceFileName"/>. This calls 
+        /// <see cref="ContainsFile(string,int)"/> with <see cref="Timeout.Infinite"/> for the timeout.
+        /// </summary>
+        /// <param name="sourceFileName">The source file name to search for</param>
+        /// <returns>True if the working set contains <paramref name="sourceFileName"/>, False if not</returns>
+        public virtual bool ContainsFile(string sourceFileName) {
+            return ContainsFile(sourceFileName, Timeout.Infinite);
+        }
+
+        /// <summary>
+        /// Checks to see if the working set contains <paramref name="sourceFileName"/>
+        /// </summary>
+        /// <param name="sourceFileName">The source file name to search for</param>
+        /// <param name="readLockTimeout">The timeout in milliseconds to wait for the read lock</param>
+        /// <returns>True if the working set contains <paramref name="sourceFileName"/>, False otherwise</returns>
+        public virtual bool ContainsFile(string sourceFileName, int readLockTimeout) {
+            if(IsDisposed) { throw new ObjectDisposedException(null); }
+            if(String.IsNullOrWhiteSpace(sourceFileName)) { throw new ArgumentException("Argument is null or empty", "sourceFileName"); }
+
+            NamespaceDefinition globalScope;
+
+            if(TryObtainReadLock(readLockTimeout, out globalScope)) {
+                try {
+                    return ContainsFile(globalScope, sourceFileName);
+                } finally {
+                    ReleaseReadLock();
+                }
+            }
+            throw new TimeoutException();
+        }
+
+        /// <summary>
+        /// Starts monitoring <see cref="Archive"/> by responding to
+        /// <see cref="AbstractArchive.FileChanged"/> with <see cref="Archive_FileChanged"/>.
+        /// </summary>
+        public virtual void StartMonitoring() {
+            if(IsDisposed) { throw new ObjectDisposedException(null); }
+            SubscribeToArchive();
+        }
+
+        /// <summary>
+        /// Stops monitoring <see cref="Archive"/>
+        /// </summary>
+        public virtual void StopMonitoring() {
+            if(IsDisposed) { throw new ObjectDisposedException(null); }
+            UnsubscribeFromArchive();
         }
 
         #region global scope modification
@@ -66,7 +128,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="sourceFileName">the source file to add</param>
         public void AddOrUpdateFile(string sourceFileName) {
-            if(_disposed) { throw new ObjectDisposedException(null); }
+            if(IsDisposed) { throw new ObjectDisposedException(null); }
 
             bool workingSetChanged = false;
             NamespaceDefinition globalScope;
@@ -88,7 +150,7 @@ namespace ABB.SrcML.Data {
         /// Clears the data in this working set
         /// </summary>
         public virtual void Clear() {
-            if(_disposed) { throw new ObjectDisposedException(null); }
+            if(IsDisposed) { throw new ObjectDisposedException(null); }
 
             bool workingSetChanged = false;
             NamespaceDefinition globalScope;
@@ -114,7 +176,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="sourceFileName">The source file to remove</param>
         public virtual void RemoveFile(string sourceFileName) {
-            if(_disposed) { throw new ObjectDisposedException(null); }
+            if(IsDisposed) { throw new ObjectDisposedException(null); }
 
             bool workingSetChanged = false;
             NamespaceDefinition globalScope;
@@ -131,6 +193,30 @@ namespace ABB.SrcML.Data {
                 OnChanged(new EventArgs());
             }
         }
+
+        /// <summary>
+        /// Renames <paramref name="oldSourceFileName"/> to <paramref name="newSourceFileName"/>
+        /// </summary>
+        /// <param name="oldSourceFileName">the old file name to be removed</param>
+        /// <param name="newSourceFileName">the new file name to be added</param>
+        public virtual void RenameFile(string oldSourceFileName, string newSourceFileName) {
+            if(IsDisposed) { throw new ObjectDisposedException(null); }
+
+            bool workingSetChanged = false;
+            NamespaceDefinition globalScope;
+
+            if(TryObtainWriteLock(Timeout.Infinite, out globalScope)) {
+                try {
+                    workingSetChanged = TryRenameFile(globalScope, oldSourceFileName, newSourceFileName);
+                } finally {
+                    ReleaseWriteLock();
+                }
+            }
+
+            if(workingSetChanged) {
+                OnChanged(new EventArgs());
+            }
+        }
         #endregion global scope modification
 
         #region global scope access
@@ -138,7 +224,7 @@ namespace ABB.SrcML.Data {
         /// Releases the read lock
         /// </summary>
         public void ReleaseReadLock() {
-            if(_disposed) { throw new ObjectDisposedException(null); }
+            if(IsDisposed) { throw new ObjectDisposedException(null); }
             _globalScopeLock.ExitReadLock();
         }
 
@@ -146,7 +232,7 @@ namespace ABB.SrcML.Data {
         /// Releases the write lock
         /// </summary>
         protected void ReleaseWriteLock() {
-            if(_disposed) { throw new ObjectDisposedException(null); }
+            if(IsDisposed) { throw new ObjectDisposedException(null); }
             _globalScopeLock.ExitWriteLock();
         }
 
@@ -158,7 +244,7 @@ namespace ABB.SrcML.Data {
         /// <param name="globalScope">out parameter for the global scope</param>
         /// <returns>True if the read lock was obtained; false otherwise</returns>
         public bool TryObtainReadLock(int millisecondsTimeout, out NamespaceDefinition globalScope) {
-            if(_disposed) { throw new ObjectDisposedException(null); }
+            if(IsDisposed) { throw new ObjectDisposedException(null); }
             if(_globalScopeLock.TryEnterReadLock(millisecondsTimeout)) {
                 globalScope = this._globalScope;
                 return true;
@@ -175,7 +261,7 @@ namespace ABB.SrcML.Data {
         /// <param name="globalScope">out parameter for the global scope</param>
         /// <returns>True if the write lock was obtained; false otherwise</returns>
         protected bool TryObtainWriteLock(int millisecondsTimeout, out NamespaceDefinition globalScope) {
-            if(_disposed) { throw new ObjectDisposedException(null); }
+            if(IsDisposed) { throw new ObjectDisposedException(null); }
 
             if(_globalScopeLock.TryEnterWriteLock(millisecondsTimeout)) {
                 globalScope = _globalScope;
@@ -192,12 +278,37 @@ namespace ABB.SrcML.Data {
         /// This will also call <see cref="AbstractArchive.Dispose()"/> on the <see cref="Archive"/>.
         /// </summary>
         public void Dispose() {
-            if(!_disposed) {
+            if(!IsDisposed) {
+                StopMonitoring();
                 Clear();
                 Archive.Dispose();
-                _disposed = true;
+                IsDisposed = true;
                 Changed = null;
                 _globalScopeLock.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Responds to <see cref="AbstractArchive.FileChanged"/> events from <see cref="Archive"/>.
+        /// Subclasses should override this method and only respond when the 
+        /// </summary>
+        /// <param name="sender">The event sender</param>
+        /// <param name="e">The event argument</param>
+        protected virtual void Archive_FileChanged(object sender, FileEventRaisedArgs e) {
+            switch(e.EventType) {
+                case FileEventType.FileAdded:
+                    goto case FileEventType.FileChanged;
+                case FileEventType.FileChanged:
+                    AddOrUpdateFile(e.FilePath);
+                    break;
+                case FileEventType.FileDeleted:
+                    RemoveFile(e.FilePath);
+                    break;
+                case FileEventType.FileRenamed:
+                    RenameFile(e.OldFilePath, e.FilePath);
+                    break;
+                default:
+                    throw new InvalidOperationException("Invalid FileEventType");
             }
         }
 
@@ -208,20 +319,46 @@ namespace ABB.SrcML.Data {
         /// <param name="sourceFileName">The source file to check for</param>
         /// <returns>True if <paramref name="globalScope"/> contains <paramref name="sourceFileName"/></returns>
         protected bool ContainsFile(NamespaceDefinition globalScope, string sourceFileName) {
-            if(_disposed) { throw new ObjectDisposedException(null); }
+            if(IsDisposed) { throw new ObjectDisposedException(null); }
             if(null == sourceFileName) { throw new ArgumentNullException("sourceFileName"); }
 
             return globalScope.Locations.Any(l => l.SourceFileName.Equals(sourceFileName, StringComparison.InvariantCultureIgnoreCase));
         }
 
         /// <summary>
+        /// This method should only be used when initializing a working set. After initialization,
+        /// <see cref="TryAddOrUpdateFile"/> should be used as it first attempts to remove a file
+        /// </summary>
+        /// <param name="globalScope">The global scope object</param>
+        /// <param name="sourceFileName">True if <paramref name="globalScope"/> was modified; false otherwise</param>
+        /// <returns></returns>
+        protected bool TryAddFile(NamespaceDefinition globalScope, string sourceFileName) {
+            if(IsDisposed) { throw new ObjectDisposedException(null); }
+            if(null == Archive) { throw new InvalidOperationException("Archive is null"); }
+
+            bool workingSetChanged = false;
+            var data = Archive.GetData(sourceFileName);
+
+            if(null != data) {
+                if(null == globalScope) {
+                    globalScope = data;
+                } else {
+                    globalScope = globalScope.Merge(data);
+                }
+                workingSetChanged = true;
+            }
+
+            return workingSetChanged;
+        }
+        /// <summary>
         /// Adds or updates <paramref name="sourceFileName"/> in the given <paramref name="globalScope"/>.
+        /// The file is removed from <paramref name="globalScope"/> if it already exists via <see cref="TryRemoveFile"/>.
         /// </summary>
         /// <param name="globalScope">The global scope object</param>
         /// <param name="sourceFileName">The source file to check for</param>
         /// <returns>True if <paramref name="globalScope"/> was modified; false otherwise</returns>
         protected bool TryAddOrUpdateFile(NamespaceDefinition globalScope, string sourceFileName) {
-            if(_disposed) { throw new ObjectDisposedException(null); }
+            if(IsDisposed) { throw new ObjectDisposedException(null); }
             if(null == Archive) { throw new InvalidOperationException("Archive is null"); }
 
             bool workingSetChanged = false;
@@ -247,7 +384,7 @@ namespace ABB.SrcML.Data {
         /// <param name="sourceFileName">the source file to remove</param>
         /// <returns>True if <paramref name="globalScope"/> was modified; false otherwise</returns>
         protected bool TryRemoveFile(NamespaceDefinition globalScope, string sourceFileName) {
-            if(_disposed) { throw new ObjectDisposedException(null); }
+            if(IsDisposed) { throw new ObjectDisposedException(null); }
 
             bool workingSetChanged = false;
 
@@ -260,16 +397,52 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
+        /// <see cref="TryRemoveFile">Removes</see> <paramref name="oldSourceFileName"/> and
+        /// <see cref="TryAddOrUpdateFile">adds or updates</see> <paramref name="newSourceFileName"/>from
+        /// <paramref name="globalScope"/>.
+        /// </summary>
+        /// <param name="globalScope">The global scope</param>
+        /// <param name="oldSourceFileName">The old file name to remove</param>
+        /// <param name="newSourceFileName">The new file name to add or update</param>
+        /// <returns>True if <paramref name="globalScope"/> was modified; false otherwise</returns>
+        protected bool TryRenameFile(NamespaceDefinition globalScope, string oldSourceFileName, String newSourceFileName) {
+            if(IsDisposed) { throw new ObjectDisposedException(null); }
+
+            bool workingSetChanged = TryRemoveFile(globalScope, oldSourceFileName);
+            workingSetChanged = TryAddOrUpdateFile(globalScope, newSourceFileName);
+            return workingSetChanged;
+        }
+        /// <summary>
         /// Raises the <see cref="Changed"/> event
         /// </summary>
         /// <param name="e">empty event args</param>
         protected virtual void OnChanged(EventArgs e) {
-            if(_disposed) { throw new ObjectDisposedException(null); }
+            if(IsDisposed) { throw new ObjectDisposedException(null); }
 
             EventHandler handler = Changed;
             if(null != handler) {
                 handler(this, e);
             }
+        }
+
+        /// <summary>
+        /// Subscribes <see cref="Archive_FileChanged"/> to <see cref="Archive"/>
+        /// </summary>
+        protected void SubscribeToArchive() {
+            if(IsDisposed) { throw new ObjectDisposedException(null); }
+            if(null == Archive) { throw new InvalidOperationException("Archive is null"); }
+
+            Archive.FileChanged += Archive_FileChanged;
+        }
+
+        /// <summary>
+        /// Unsubscribes <see cref="Archive_FileChanged"/> from <see cref="Archive"/>
+        /// </summary>
+        protected void UnsubscribeFromArchive() {
+            if(IsDisposed) { throw new ObjectDisposedException(null); }
+            if(null == Archive) { throw new InvalidOperationException("Archive is null"); }
+
+            Archive.FileChanged -= Archive_FileChanged;
         }
     }
 }
