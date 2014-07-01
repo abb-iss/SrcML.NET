@@ -255,6 +255,22 @@ namespace ABB.SrcML.Data {
             base.WriteXmlContents(writer);
         }
 
+        /// <summary>
+        /// Returns the named child scopes of this object with the given name, if any.
+        /// </summary>
+        /// <param name="name">The name of the scope to look for.</param>
+        public IEnumerable<NamedScope> GetChildScopes(string name) {
+            return ChildStatements.OfType<NamedScope>().Where(ns => ns.Name == name);
+        }
+
+        /// <summary>
+        /// Returns the named child scopes of this object with the given name and type, if any.
+        /// </summary>
+        /// <typeparam name="T">The type of scope to look for.</typeparam>
+        /// <param name="name">The name of the scope to look for.</param>
+        public IEnumerable<T> GetChildScopes<T>(string name) where T : NamedScope {
+            return ChildStatements.OfType<T>().Where(ns => ns.Name == name);
+        }
     }
 
 
