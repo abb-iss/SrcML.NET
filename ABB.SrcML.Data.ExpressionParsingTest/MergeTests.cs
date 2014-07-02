@@ -40,6 +40,68 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
+        public void TestConstructorMerge_Cpp() {
+            //A.h class A { A(); };
+            string header_xml = @"<class>class <name>A</name> <block>{<private type=""default""> <constructor_decl><name>A</name><parameter_list>()</parameter_list>;</constructor_decl> </private>}</block>;</class>";
+
+            //A.cpp A::A() { }
+            string impl_xml = @"<constructor><name><name>A</name><op:operator>::</op:operator><name>A</name></name><parameter_list>()</parameter_list> <block>{ }</block></constructor>";
+
+            var header = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(header_xml, "A.h");
+            var implementation = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(impl_xml, "A.cpp");
+
+            var headerScope = CodeParser[Language.CPlusPlus].ParseFileUnit(header);
+            var implementationScope = CodeParser[Language.CPlusPlus].ParseFileUnit(implementation);
+
+            var globalScope = headerScope.Merge(implementationScope);
+
+            Assert.AreEqual(1, globalScope.ChildStatements.Count());
+
+            var typeA = globalScope.ChildStatements.First() as TypeDefinition;
+            Assert.AreEqual("A", typeA.Name);
+            Assert.AreEqual(1, typeA.ChildStatements.Count());
+            Assert.AreEqual("A.h", typeA.PrimaryLocation.SourceFileName);
+
+            var constructor = typeA.ChildStatements.First() as MethodDefinition;
+            Assert.That(constructor.IsConstructor);
+            Assert.IsFalse(constructor.IsDestructor);
+            Assert.IsFalse(constructor.IsPartial);
+            Assert.AreEqual(AccessModifier.Private, constructor.Accessibility);
+            Assert.AreEqual("A.cpp", constructor.PrimaryLocation.SourceFileName);
+        }
+
+        [Test]
+        public void TestDestructorMerge_Cpp() {
+            //A.h class A { ~A(); };
+            string header_xml = @"<class>class <name>A</name> <block>{<private type=""default""> <destructor_decl><name>~<name>A</name></name><parameter_list>()</parameter_list>;</destructor_decl> </private>}</block>;</class>
+";
+
+            //A.cpp A::~A() { }
+            string impl_xml = @"<destructor><name><name>A</name><op:operator>::</op:operator>~<name>A</name></name><parameter_list>()</parameter_list> <block>{ }</block></destructor>";
+
+            var header = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(header_xml, "A.h");
+            var implementation = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(impl_xml, "A.cpp");
+
+            var headerScope = CodeParser[Language.CPlusPlus].ParseFileUnit(header);
+            var implementationScope = CodeParser[Language.CPlusPlus].ParseFileUnit(implementation);
+
+            var globalScope = headerScope.Merge(implementationScope);
+
+            Assert.AreEqual(1, globalScope.ChildStatements.Count());
+
+            var typeA = globalScope.ChildStatements.First() as TypeDefinition;
+            Assert.AreEqual("A", typeA.Name);
+            Assert.AreEqual(1, typeA.ChildStatements.Count());
+            Assert.AreEqual("A.h", typeA.PrimaryLocation.SourceFileName);
+
+            var destructor = typeA.ChildStatements.First() as MethodDefinition;
+            Assert.That(destructor.IsDestructor);
+            Assert.IsFalse(destructor.IsConstructor);
+            Assert.IsFalse(destructor.IsPartial);
+            Assert.AreEqual(AccessModifier.Private, destructor.Accessibility);
+            Assert.AreEqual("A.cpp", destructor.PrimaryLocation.SourceFileName);
+        }
+        [Test]
         public void TestMethodDefinitionMerge_Cpp() {
             // # A.h class A { int Foo(); };
             string header_xml = @"<class>class <name>A</name> <block>{<private type=""default"">
