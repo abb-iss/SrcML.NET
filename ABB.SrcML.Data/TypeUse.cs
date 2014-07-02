@@ -76,11 +76,16 @@ namespace ABB.SrcML.Data {
             //TODO: review this method and update it for changes in TypeUse structure
             //TODO: handle case of C# var type. Delete CSharpVarTypeUse if no longer necessary.
             throw new NotImplementedException();
-            // if this is a built-in type, then just return that otherwise, go hunting for matching
-            // types
+
+            //// if this is a built-in type, then just return that 
+            //// otherwise, go hunting for matching types
             //if(BuiltInTypeFactory.IsBuiltIn(this)) {
             //    yield return BuiltInTypeFactory.GetBuiltIn(this);
-            //} else if(null != Prefix) {
+            //}
+
+            //var aliases = GetAliases();
+
+            //if(null != Prefix) {
             //    var matches = from prefixMatch in Prefix.FindMatches()
             //                  from match in prefixMatch.GetChildScopesWithId<TypeDefinition>(this.Name)
             //                  select match;
@@ -99,14 +104,15 @@ namespace ABB.SrcML.Data {
 
         
 
-        ///// <summary>
-        ///// Tests if this type use is a match for the given
-        ///// <paramref name="definition"/></summary>
-        ///// <param name="definition">the definition to compare to</param>
-        ///// <returns>true if the definitions match; false otherwise</returns>
-        //public override bool Matches(TypeDefinition definition) {
-        //    return definition != null && definition.Name == this.Name;
-        //}
+        /// <summary>
+        /// Tests if this type use is a match for the given
+        /// <paramref name="definition"/></summary>
+        /// <param name="definition">the definition to compare to</param>
+        /// <returns>true if the definitions match; false otherwise</returns>
+        public bool Matches(TypeDefinition definition) {
+            //TODO: add checking for type arguments
+            return definition != null && definition.Name == this.Name;
+        }
 
         /// <summary>
         /// Instance method for getting <see cref="TypeUse.XmlName"/>

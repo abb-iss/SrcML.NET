@@ -262,6 +262,100 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
+        public void TestGetAliases_Import() {
+            //using namespace x::y::z;
+            //foo = 17;
+            string xml = @"<using>using namespace <name><name>x</name><op:operator>::</op:operator><name>y</name><op:operator>::</op:operator><name>z</name></name>;</using>
+<expr_stmt><expr><name>foo</name> <op:operator>=</op:operator> <lit:literal type=""number"">17</lit:literal></expr>;</expr_stmt>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
+            
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            Assert.AreEqual(2, globalScope.ChildStatements.Count);
+            var foo = globalScope.ChildStatements[1].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(n => n.Name == "foo");
+            Assert.IsNotNull(foo);
+            var aliases = foo.GetAliases();
+            Assert.AreEqual(1, aliases.Count);
+            Assert.AreEqual("x :: y :: z", aliases[0].Item1.ToString());
+            Assert.IsNull(aliases[0].Item2);
+        }
+
+        [Test]
+        public void TestGetAliases_NestedImportNamespace() {
+            //using namespace x::y::z;
+            //if(bar) {
+            //  using namespace std;
+            //  foo = 17;
+            //}
+            string xml = @"<using>using namespace <name><name>x</name><op:operator>::</op:operator><name>y</name><op:operator>::</op:operator><name>z</name></name>;</using>
+<if>if<condition>(<expr><name>bar</name></expr>)</condition><then> <block>{
+  <using>using namespace <name>std</name>;</using>
+  <expr_stmt><expr><name>foo</name> <op:operator>=</op:operator> <lit:literal type=""number"">17</lit:literal></expr>;</expr_stmt>
+}</block></then></if>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
+            
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            var foo = globalScope.ChildStatements[1].ChildStatements[1].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(n => n.Name == "foo");
+            Assert.IsNotNull(foo);
+            var aliases = foo.GetAliases();
+            Assert.AreEqual(2, aliases.Count);
+            Assert.AreEqual("std", aliases[0].Item1.ToString());
+            Assert.IsNull(aliases[0].Item2);
+            Assert.AreEqual("x :: y :: z", aliases[1].Item1.ToString());
+            Assert.IsNull(aliases[1].Item2);
+        }
+
+        [Test]
+        public void TestGetAliases_NestedImportClass() {
+            //using namespace x::y::z;
+            //if(bar) {
+            //  using B::Bar;
+            //  foo = 17;
+            //}
+            string xml = @"<using>using namespace <name><name>x</name><op:operator>::</op:operator><name>y</name><op:operator>::</op:operator><name>z</name></name>;</using>
+<if>if<condition>(<expr><name>bar</name></expr>)</condition><then> <block>{
+  <using>using <name><name>B</name><op:operator>::</op:operator><name>Bar</name></name>;</using>
+  <expr_stmt><expr><name>foo</name> <op:operator>=</op:operator> <lit:literal type=""number"">17</lit:literal></expr>;</expr_stmt>
+}</block></then></if>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
+            
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            var foo = globalScope.ChildStatements[1].ChildStatements[1].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(n => n.Name == "foo");
+            Assert.IsNotNull(foo);
+            var aliases = foo.GetAliases();
+            Assert.AreEqual(2, aliases.Count);
+            Assert.AreEqual("B::Bar", aliases[0].Item1.ToString());
+            Assert.AreEqual("Bar", aliases[0].Item2);
+            Assert.AreEqual("x :: y :: z", aliases[1].Item1.ToString());
+            Assert.IsNull(aliases[1].Item2);
+        }
+
+        [Test]
+        [Category("SrcMLUpdate")]
+        public void TestGetAliases_NestedTypeAlias() {
+            //using namespace x::y::z;
+            //if(bar) {
+            //  using x = foo::bar::baz;
+            //  foo = 17;
+            //}
+            string xml = @"<using>using namespace <name><name>x</name><op:operator>::</op:operator><name>y</name><op:operator>::</op:operator><name>z</name></name>;</using>
+<if>if<condition>(<expr><name>bar</name></expr>)</condition><then> <block>{
+  <using>using <name>x</name> = <decl_stmt><decl><type><name><name>foo</name><op:operator>::</op:operator><name>bar</name><op:operator>::</op:operator><name>baz</name></name></type></decl>;</decl_stmt></using>
+  <expr_stmt><expr><name>foo</name> <op:operator>=</op:operator> <lit:literal type=""number"">17</lit:literal></expr>;</expr_stmt>
+}</block></then></if>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
+            
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            var foo = globalScope.ChildStatements[1].ChildStatements[1].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(n => n.Name == "foo");
+            Assert.IsNotNull(foo);
+            var aliases = foo.GetAliases();
+            Assert.AreEqual(2, aliases.Count);
+            Assert.AreEqual("foo :: bar :: baz", aliases[0].Item1.ToString());
+            Assert.AreEqual("x", aliases[0].Item2);
+            Assert.AreEqual("x :: y :: z", aliases[1].Item1.ToString());
+            Assert.IsNull(aliases[1].Item2);
+        }
+
+        [Test]
         public void TestCreateTypeDefinition_ClassInNamespace() {
             // namespace A { class B { }; }
             string xml = @"<namespace>namespace <name>A</name> <block>{

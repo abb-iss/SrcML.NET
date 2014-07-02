@@ -23,6 +23,7 @@ namespace ABB.SrcML.Data {
     /// </summary>
     public class NameUse : Expression {
         private NamePrefix prefix;
+        private List<Tuple<Expression, string>> aliases;
         
         /// <summary> The XML name for NameUse </summary>
         public new const string XmlName = "n";
@@ -50,9 +51,30 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// The aliases active in the file at the point the name was used.
+        /// Determines the set of aliases/imports active at the site of this name use.
         /// </summary>
-        public Collection<Alias> Aliases { get; set; }
+        /// <returns>A list of tuples describing each alias. Each tuple contains (1) the target and (2) the new name for it, if any.</returns>
+        public IList<Tuple<Expression, string>> GetAliases() {
+            if(aliases == null) {
+                //alias list not yet initialized
+                //search through prior statements for imports/aliases
+                aliases = new List<Tuple<Expression, string>>();
+                var currentStmt = this.ParentStatement;
+                while(currentStmt != null) {
+                    foreach(var sibling in currentStmt.GetSiblingsBeforeSelf()) {
+                        if(sibling is ImportStatement) {
+                            var import = sibling as ImportStatement;
+                            aliases.Add(new Tuple<Expression, string>(import.ImportedNamespace, null));
+                        } else if(sibling is AliasStatement) {
+                            var alias = sibling as AliasStatement;
+                            aliases.Add(new Tuple<Expression, string>(alias.Target, alias.AliasName));
+                        }
+                    }
+                    currentStmt = currentStmt.ParentStatement;
+                }
+            }
+            return aliases;
+        }
 
         /// <summary>
         /// Instance method for getting <see cref="NameUse.XmlName"/>
@@ -107,6 +129,14 @@ namespace ABB.SrcML.Data {
         /// <summary> Returns a string representation of this object. </summary>
         public override string ToString() {
             return string.Format("{0}{1}", Prefix, Name);
+        }
+
+        /// <summary>
+        /// Finds definitions that match this name.
+        /// </summary>
+        /// <returns></returns>
+        public virtual IEnumerable<INamedEntity> FindMatches() {
+            throw new NotImplementedException();
         }
     }
 }

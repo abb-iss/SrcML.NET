@@ -11,6 +11,8 @@
  *****************************************************************************/
 
 using System;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace ABB.SrcML.Data {
 
@@ -27,5 +29,21 @@ namespace ABB.SrcML.Data {
         /// <returns>Returns the XML name for NamespaceUse</returns>
         public override string GetXmlName() { return NamespaceUse.XmlName; }
 
+        public override IEnumerable<TypeDefinition> ResolveType() {
+            return null;
+        }
+
+        public override IEnumerable<INamedEntity> FindMatches() {
+            throw new NotImplementedException();
+            
+            var siblings = GetSiblingsBeforeSelf().ToList();
+            var nameInclusionOperators = new[] {".", "->", "::"};
+            var priorOp = siblings.Last() as OperatorUse;
+            if(priorOp != null && nameInclusionOperators.Contains(priorOp.Text)) {
+                
+            }
+
+
+        }
     }
 }

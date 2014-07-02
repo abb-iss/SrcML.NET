@@ -132,7 +132,7 @@ namespace ABB.SrcML.Data {
         /// constructors within those types
         /// </summary>
         /// <returns>An enumerable of method definitions that match this method call</returns>
-        public IEnumerable<MethodDefinition> FindMatches() {
+        public override IEnumerable<INamedEntity> FindMatches() {
             //TODO: review this method and update it for changes in TypeUse structure
             
             var matchingMethods = Enumerable.Empty<MethodDefinition>();
@@ -190,7 +190,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <returns>An enumerable of the matching type definitions for this method</returns>
         public override IEnumerable<TypeDefinition> ResolveType() {
-            foreach(var methodDefinition in FindMatches()) {
+            foreach(var methodDefinition in FindMatches().Cast<MethodDefinition>()) {
                 var matchingTypes = Enumerable.Empty<TypeDefinition>();
 
                 if(methodDefinition.ReturnType != null) {

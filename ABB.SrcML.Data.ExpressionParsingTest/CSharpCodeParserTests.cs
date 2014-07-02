@@ -253,6 +253,74 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
+        public void TestGetAliases_ImportNamespace() {
+            //using x.y.z;
+            //foo = 17;
+            string xml = @"<using>using <name><name>x</name><op:operator>.</op:operator><name>y</name><op:operator>.</op:operator><name>z</name></name>;</using>
+<expr_stmt><expr><name>foo</name> <op:operator>=</op:operator> <lit:literal type=""number"">17</lit:literal></expr>;</expr_stmt>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
+            
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            Assert.AreEqual(2, globalScope.ChildStatements.Count);
+            var foo = globalScope.ChildStatements[1].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(n => n.Name == "foo");
+            Assert.IsNotNull(foo);
+            var aliases = foo.GetAliases();
+            Assert.AreEqual(1, aliases.Count);
+            Assert.AreEqual("x . y . z", aliases[0].Item1.ToString());
+            Assert.IsNull(aliases[0].Item2);
+        }
+
+        [Test]
+        public void TestGetAliases_NestedImportNamespace() {
+            //using x.y.z;
+            //if(bar) {
+            //  using bar.baz;
+            //  foo = 17;
+            //}
+            string xml = @"<using>using <name><name>x</name><op:operator>.</op:operator><name>y</name><op:operator>.</op:operator><name>z</name></name>;</using>
+<if>if<condition>(<expr><name>bar</name></expr>)</condition><then> <block>{
+  <using>using <name><name>bar</name><op:operator>.</op:operator><name>baz</name></name>;</using>
+  <expr_stmt><expr><name>foo</name> <op:operator>=</op:operator> <lit:literal type=""number"">17</lit:literal></expr>;</expr_stmt>
+}</block></then></if>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
+            
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            var foo = globalScope.ChildStatements[1].ChildStatements[1].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(n => n.Name == "foo");
+            Assert.IsNotNull(foo);
+            var aliases = foo.GetAliases();
+            Assert.AreEqual(2, aliases.Count);
+            Assert.AreEqual("bar . baz", aliases[0].Item1.ToString());
+            Assert.IsNull(aliases[0].Item2);
+            Assert.AreEqual("x . y . z", aliases[1].Item1.ToString());
+            Assert.IsNull(aliases[1].Item2);
+        }
+
+        [Test]
+        public void TestGetAliases_NestedUsingAlias() {
+            //using x.y.z;
+            //if(bar) {
+            //  using x = bar.baz;
+            //  foo = 17;
+            //}
+            string xml = @"<using>using <name><name>x</name><op:operator>.</op:operator><name>y</name><op:operator>.</op:operator><name>z</name></name>;</using>
+<if>if<condition>(<expr><name>bar</name></expr>)</condition><then> <block>{
+  <using>using <name>x</name> <init>= <expr><name><name>bar</name><op:operator>.</op:operator><name>baz</name></name></expr></init>;</using>
+  <expr_stmt><expr><name>foo</name> <op:operator>=</op:operator> <lit:literal type=""number"">17</lit:literal></expr>;</expr_stmt>
+}</block></then></if>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
+            
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            var foo = globalScope.ChildStatements[1].ChildStatements[1].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(n => n.Name == "foo");
+            Assert.IsNotNull(foo);
+            var aliases = foo.GetAliases();
+            Assert.AreEqual(2, aliases.Count);
+            Assert.AreEqual("bar . baz", aliases[0].Item1.ToString());
+            Assert.AreEqual("x", aliases[0].Item2);
+            Assert.AreEqual("x . y . z", aliases[1].Item1.ToString());
+            Assert.IsNull(aliases[1].Item2);
+        }
+
+        [Test]
         [Category("SrcMLUpdate")]
         public void TestUsingBlock_SingleDecl() {
             //using(var f = File.Open("out.txt")) {
