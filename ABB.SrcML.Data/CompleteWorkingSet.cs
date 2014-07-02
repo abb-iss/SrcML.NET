@@ -53,10 +53,10 @@ namespace ABB.SrcML.Data {
             var mergedScopeFromArchive = ReadArchive();
 
             if(null != mergedScopeFromArchive) {
-                NamespaceDefinition globalScope;
-                if(TryObtainWriteLock(Timeout.Infinite, out globalScope)) {
+                GlobalScopeManager scopeManager;
+                if(TryObtainWriteLock(Timeout.Infinite, out scopeManager)) {
                     try {
-                        globalScope = mergedScopeFromArchive;
+                        scopeManager.GlobalScope = mergedScopeFromArchive;
                         workingSetChanged = true;
                     } finally {
                         ReleaseWriteLock();
@@ -80,10 +80,10 @@ namespace ABB.SrcML.Data {
                 var mergedScopeFromArchive = ReadArchive();
 
                 if(null != mergedScopeFromArchive) {
-                    NamespaceDefinition globalScope;
-                    if(TryObtainWriteLock(Timeout.Infinite, out globalScope)) {
+                    GlobalScopeManager scopeManager;
+                    if(TryObtainWriteLock(Timeout.Infinite, out scopeManager)) {
                         try {
-                            globalScope = mergedScopeFromArchive;
+                            scopeManager.GlobalScope = mergedScopeFromArchive;
                             return true;
                         } finally {
                             ReleaseWriteLock();

@@ -35,7 +35,7 @@ namespace ABB.SrcML.Data {
     /// the working set by calling <see cref="TryObtainReadLock"/> and <see cref="ReleaseReadLock"/>.
     /// </summary>
     public abstract class AbstractWorkingSet : IDisposable {
-        private NamespaceDefinition _globalScope;
+        private GlobalScopeManager _globalScopeManager;
         private ReaderWriterLockSlim _globalScopeLock;
 
         /// <summary>
@@ -69,7 +69,7 @@ namespace ABB.SrcML.Data {
             Archive = archive;
             Factory = factory;
             IsDisposed = false;
-            _globalScope = null;
+            _globalScopeManager = new GlobalScopeManager();
             _globalScopeLock = new ReaderWriterLockSlim();
         }
 
@@ -131,11 +131,11 @@ namespace ABB.SrcML.Data {
             if(IsDisposed) { throw new ObjectDisposedException(null); }
 
             bool workingSetChanged = false;
-            NamespaceDefinition globalScope;
+            GlobalScopeManager scopeManager;
             
-            if(TryObtainWriteLock(Timeout.Infinite, out globalScope)) {
+            if(TryObtainWriteLock(Timeout.Infinite, out scopeManager)) {
                 try {
-                    workingSetChanged = TryAddOrUpdateFile(globalScope, sourceFileName);
+                    workingSetChanged = TryAddOrUpdateFile(scopeManager, sourceFileName);
                 } finally {
                     ReleaseWriteLock();
                 }
@@ -153,12 +153,12 @@ namespace ABB.SrcML.Data {
             if(IsDisposed) { throw new ObjectDisposedException(null); }
 
             bool workingSetChanged = false;
-            NamespaceDefinition globalScope;
+            GlobalScopeManager scopeManager;
 
-            if(TryObtainWriteLock(Timeout.Infinite, out globalScope)) {
+            if(TryObtainWriteLock(Timeout.Infinite, out scopeManager)) {
                 try {
-                    if(null != globalScope) {
-                        globalScope = null;
+                    if(null != scopeManager) {
+                        scopeManager.GlobalScope = null;
                         workingSetChanged = true;
                     }
                 } finally {
@@ -179,11 +179,11 @@ namespace ABB.SrcML.Data {
             if(IsDisposed) { throw new ObjectDisposedException(null); }
 
             bool workingSetChanged = false;
-            NamespaceDefinition globalScope;
+            GlobalScopeManager scopeManager;
 
-            if(TryObtainWriteLock(Timeout.Infinite, out globalScope)) {
+            if(TryObtainWriteLock(Timeout.Infinite, out scopeManager)) {
                 try {
-                    workingSetChanged = TryRemoveFile(globalScope, sourceFileName);
+                    workingSetChanged = TryRemoveFile(scopeManager, sourceFileName);
                 } finally {
                     ReleaseWriteLock();
                 }
@@ -203,11 +203,11 @@ namespace ABB.SrcML.Data {
             if(IsDisposed) { throw new ObjectDisposedException(null); }
 
             bool workingSetChanged = false;
-            NamespaceDefinition globalScope;
+            GlobalScopeManager scopeManager;
 
-            if(TryObtainWriteLock(Timeout.Infinite, out globalScope)) {
+            if(TryObtainWriteLock(Timeout.Infinite, out scopeManager)) {
                 try {
-                    workingSetChanged = TryRenameFile(globalScope, oldSourceFileName, newSourceFileName);
+                    workingSetChanged = TryRenameFile(scopeManager, oldSourceFileName, newSourceFileName);
                 } finally {
                     ReleaseWriteLock();
                 }
@@ -246,7 +246,7 @@ namespace ABB.SrcML.Data {
         public bool TryObtainReadLock(int millisecondsTimeout, out NamespaceDefinition globalScope) {
             if(IsDisposed) { throw new ObjectDisposedException(null); }
             if(_globalScopeLock.TryEnterReadLock(millisecondsTimeout)) {
-                globalScope = this._globalScope;
+                globalScope = this._globalScopeManager.GlobalScope;
                 return true;
             }
             globalScope = null;
@@ -254,20 +254,20 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Gets a write lock for this working set. If timeout is exceeded, then false is returned and <paramref name="globalScope"/> will be null.
-        /// If the write lock is obtained, true is returned and <paramref name="globalScope"/> will contain the global scope object.
+        /// Gets a write lock for this working set. If timeout is exceeded, then false is returned and <paramref name="scopeManager"/> will be null.
+        /// If the write lock is obtained, true is returned and <paramref name="scopeManager"/> will contain the internal scope manager for this object.
         /// </summary>
         /// <param name="millisecondsTimeout">the timeout</param>
-        /// <param name="globalScope">out parameter for the global scope</param>
+        /// <param name="scopeManager">out parameter for the global scope manager</param>
         /// <returns>True if the write lock was obtained; false otherwise</returns>
-        protected bool TryObtainWriteLock(int millisecondsTimeout, out NamespaceDefinition globalScope) {
+        protected bool TryObtainWriteLock(int millisecondsTimeout, out GlobalScopeManager scopeManager) {
             if(IsDisposed) { throw new ObjectDisposedException(null); }
 
             if(_globalScopeLock.TryEnterWriteLock(millisecondsTimeout)) {
-                globalScope = _globalScope;
+                scopeManager = _globalScopeManager;
                 return true;
             }
-            globalScope = null;
+            scopeManager = null;
             return false;
         }
 
@@ -351,25 +351,26 @@ namespace ABB.SrcML.Data {
             return workingSetChanged;
         }
         /// <summary>
-        /// Adds or updates <paramref name="sourceFileName"/> in the given <paramref name="globalScope"/>.
-        /// The file is removed from <paramref name="globalScope"/> if it already exists via <see cref="TryRemoveFile"/>.
+        /// Adds or updates <paramref name="sourceFileName"/> in the given <paramref name="scopeManager"/>.
+        /// The file is removed from the global scope in <paramref name="scopeManager"/> if it already exists via <see cref="TryRemoveFile"/>.
         /// </summary>
-        /// <param name="globalScope">The global scope object</param>
+        /// <param name="scopeManager">The global scope manager</param>
         /// <param name="sourceFileName">The source file to check for</param>
-        /// <returns>True if <paramref name="globalScope"/> was modified; false otherwise</returns>
-        protected bool TryAddOrUpdateFile(NamespaceDefinition globalScope, string sourceFileName) {
+        /// <returns>True if the global scope was modified; false otherwise</returns>
+        protected bool TryAddOrUpdateFile(GlobalScopeManager scopeManager, string sourceFileName) {
             if(IsDisposed) { throw new ObjectDisposedException(null); }
             if(null == Archive) { throw new InvalidOperationException("Archive is null"); }
+            if(null == scopeManager) { throw new ArgumentNullException("scopeManager"); }
 
             bool workingSetChanged = false;
             var data = Archive.GetData(sourceFileName);
 
             if(null != data) {
-                if(null == globalScope) {
-                    globalScope = data;
+                if(null == scopeManager.GlobalScope) {
+                    scopeManager.GlobalScope = data;
                 } else {
-                    TryRemoveFile(globalScope, sourceFileName);
-                    globalScope = globalScope.Merge(data);
+                    TryRemoveFile(scopeManager, sourceFileName);
+                    scopeManager.GlobalScope = scopeManager.GlobalScope.Merge(data);
                 }
                 workingSetChanged = true;
             }
@@ -378,18 +379,19 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Removes <paramref name="sourceFileName"/> from <paramref name="globalScope"/>
+        /// Removes <paramref name="sourceFileName"/> from <paramref name="scopeManager"/>
         /// </summary>
-        /// <param name="globalScope">The global scope object</param>
+        /// <param name="scopeManager">The global scope manager</param>
         /// <param name="sourceFileName">the source file to remove</param>
-        /// <returns>True if <paramref name="globalScope"/> was modified; false otherwise</returns>
-        protected bool TryRemoveFile(NamespaceDefinition globalScope, string sourceFileName) {
+        /// <returns>True if the global scope was modified; false otherwise</returns>
+        protected bool TryRemoveFile(GlobalScopeManager scopeManager, string sourceFileName) {
             if(IsDisposed) { throw new ObjectDisposedException(null); }
+            if(null == scopeManager) { throw new ArgumentNullException("scopeManager"); }
 
             bool workingSetChanged = false;
 
-            if(ContainsFile(globalScope, sourceFileName)) {
-                globalScope.RemoveFile(sourceFileName);
+            if(ContainsFile(scopeManager.GlobalScope, sourceFileName)) {
+                scopeManager.GlobalScope.RemoveFile(sourceFileName);
                 workingSetChanged = true;
             }
 
@@ -399,19 +401,21 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// <see cref="TryRemoveFile">Removes</see> <paramref name="oldSourceFileName"/> and
         /// <see cref="TryAddOrUpdateFile">adds or updates</see> <paramref name="newSourceFileName"/>from
-        /// <paramref name="globalScope"/>.
+        /// the global scope.
         /// </summary>
-        /// <param name="globalScope">The global scope</param>
+        /// <param name="scopeManager">The global scope manager</param>
         /// <param name="oldSourceFileName">The old file name to remove</param>
         /// <param name="newSourceFileName">The new file name to add or update</param>
-        /// <returns>True if <paramref name="globalScope"/> was modified; false otherwise</returns>
-        protected bool TryRenameFile(NamespaceDefinition globalScope, string oldSourceFileName, String newSourceFileName) {
+        /// <returns>True if the global scope was modified; false otherwise</returns>
+        protected bool TryRenameFile(GlobalScopeManager scopeManager, string oldSourceFileName, String newSourceFileName) {
             if(IsDisposed) { throw new ObjectDisposedException(null); }
+            if(null == scopeManager) { throw new ArgumentNullException("scopeManager"); }
 
-            bool workingSetChanged = TryRemoveFile(globalScope, oldSourceFileName);
-            workingSetChanged = TryAddOrUpdateFile(globalScope, newSourceFileName);
+            bool workingSetChanged = TryRemoveFile(scopeManager, oldSourceFileName);
+            workingSetChanged = TryAddOrUpdateFile(scopeManager, newSourceFileName);
             return workingSetChanged;
         }
+
         /// <summary>
         /// Raises the <see cref="Changed"/> event
         /// </summary>
@@ -443,6 +447,25 @@ namespace ABB.SrcML.Data {
             if(null == Archive) { throw new InvalidOperationException("Archive is null"); }
 
             Archive.FileChanged -= Archive_FileChanged;
+        }
+
+        /// <summary>
+        /// The global scope manager provides a reference to a global scope object. It is returned via <see cref="TryObtainWriteLock"/>.
+        /// the global scope manager allows you to 
+        /// </summary>
+        protected class GlobalScopeManager {
+            /// <summary>
+            /// Create a new global scope manager
+            /// </summary>
+            public GlobalScopeManager() {
+                GlobalScope = null;
+            }
+
+            /// <summary>
+            /// The global scope managed by this object
+            /// </summary>
+            public NamespaceDefinition GlobalScope { get; set; }
+
         }
     }
 }
