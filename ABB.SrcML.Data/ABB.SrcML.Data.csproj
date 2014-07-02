@@ -72,7 +72,6 @@
     <Compile Include="DataArchive.cs" />
     <Compile Include="DataFileNameMapping.cs" />
     <Compile Include="DataGenerator.cs" />
-    <Compile Include="DataRepositoryStatistics.cs" />
     <Compile Include="DoWhileStatement.cs" />
     <Compile Include="ErrorRaisedArgs.cs" />
     <Compile Include="Expression.cs" />
@@ -90,7 +89,6 @@
     <Compile Include="LiteralKind.cs" />
     <Compile Include="LiteralUse.cs" />
     <Compile Include="CSharpCodeParser.cs" />
-    <Compile Include="LockTimeoutExceededException.cs" />
     <Compile Include="MethodCall.cs" />
     <Compile Include="NamePrefix.cs" />
     <Compile Include="NamedScope.cs" />
@@ -108,7 +106,6 @@
     <Compile Include="Queries\ScopeForLocationQuery.cs" />
     <Compile Include="ReturnStatement.cs" />
     <Compile Include="ScopeDebugView.cs" />
-    <Compile Include="DataRepository.cs" />
     <Compile Include="JavaCodeParser.cs" />
     <Compile Include="MethodDefinition.cs" />
     <Compile Include="NamespaceDefinition.cs" />
