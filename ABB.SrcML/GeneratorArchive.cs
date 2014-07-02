@@ -68,7 +68,8 @@ namespace ABB.SrcML {
 
             var lastWriteTime = File.GetLastWriteTime(sourcePath);
             var extension = Path.GetExtension(outputPath);
-            var tempFileName = Path.ChangeExtension(Path.GetTempFileName(), extension);
+            
+            var tempFileName = Path.Combine(Path.GetTempPath(), Path.ChangeExtension(Path.GetRandomFileName(), extension));
             
             if(this.Generator.Generate(inputPath, tempFileName)) {
                 for(int i = 0; i < 10; i++) {
