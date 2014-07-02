@@ -143,6 +143,10 @@ namespace ABB.SrcML.Data {
             }
 
             MethodDefinition combinedMethod = Merge<MethodDefinition>(this, otherMethod);
+            
+            combinedMethod.IsPartial = this.IsPartial;
+            combinedMethod.IsConstructor = this.IsConstructor;
+            combinedMethod.IsDestructor = this.IsDestructor;
 
             foreach(var returnType in this._returnTypeMap.Values.Concat(otherMethod._returnTypeMap.Values)) {
                 combinedMethod.AddReturnType(returnType);

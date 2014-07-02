@@ -146,6 +146,8 @@ namespace ABB.SrcML.Data.Test {
             Assert.IsNotNull(typeA);
             Assert.AreEqual(1, typeA.ChildStatements.OfType<MethodDefinition>().Count());
             var foo = typeA.ChildStatements.First() as MethodDefinition;
+            Assert.That(foo.IsPartial);
+
             Assert.IsNotNull(foo);
             Assert.AreEqual("Foo", foo.Name);
 
