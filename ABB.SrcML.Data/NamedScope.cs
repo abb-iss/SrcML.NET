@@ -255,21 +255,25 @@ namespace ABB.SrcML.Data {
             base.WriteXmlContents(writer);
         }
 
+        
         /// <summary>
-        /// Returns the named child scopes of this object with the given name, if any.
+        /// Returns the children of this scope that have the given name.
+        /// This method searches only the immediate children, and not further descendants.
         /// </summary>
-        /// <param name="name">The name of the scope to look for.</param>
-        public IEnumerable<NamedScope> GetChildScopes(string name) {
-            return ChildStatements.OfType<NamedScope>().Where(ns => ns.Name == name);
+        /// <param name="name">The name to search for.</param>
+        public IEnumerable<INamedEntity> GetNamedChildren(string name) {
+            return GetNamedChildren<INamedEntity>(name);
         }
 
         /// <summary>
-        /// Returns the named child scopes of this object with the given name and type, if any.
+        /// Returns the children of this scope that have the given name, and the given type.
+        /// This method searches only the immediate children, and not further descendants.
         /// </summary>
-        /// <typeparam name="T">The type of scope to look for.</typeparam>
-        /// <param name="name">The name of the scope to look for.</param>
-        public IEnumerable<T> GetChildScopes<T>(string name) where T : NamedScope {
+        /// <typeparam name="T">The type of children to return.</typeparam>
+        /// <param name="name">The name to search for.</param>
+        public IEnumerable<T> GetNamedChildren<T>(string name) where T : INamedEntity {
             return ChildStatements.OfType<T>().Where(ns => ns.Name == name);
+            //TODO: update to search variable/field declarations as well
         }
     }
 

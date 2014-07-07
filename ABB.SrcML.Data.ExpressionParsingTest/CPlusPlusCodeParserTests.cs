@@ -263,20 +263,40 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestGetAliases_Import() {
+            //A.cpp
+            //namespace x {
+            //  namespace y {
+            //    namespace z {}
+            //  }
+            //}
+            string xmlA = @"<namespace>namespace <name>x</name> <block>{
+  <namespace>namespace <name>y</name> <block>{
+    <namespace>namespace <name>z</name> <block>{}</block></namespace>
+  }</block></namespace>
+}</block></namespace>";
+            XElement xmlElementA = fileSetup.GetFileUnitForXmlSnippet(xmlA, "A.cpp");
+            //B.cpp
             //using namespace x::y::z;
             //foo = 17;
-            string xml = @"<using>using namespace <name><name>x</name><op:operator>::</op:operator><name>y</name><op:operator>::</op:operator><name>z</name></name>;</using>
+            string xmlB = @"<using>using namespace <name><name>x</name><op:operator>::</op:operator><name>y</name><op:operator>::</op:operator><name>z</name></name>;</using>
 <expr_stmt><expr><name>foo</name> <op:operator>=</op:operator> <lit:literal type=""number"">17</lit:literal></expr>;</expr_stmt>";
-            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
-            
-            var globalScope = codeParser.ParseFileUnit(xmlElement);
-            Assert.AreEqual(2, globalScope.ChildStatements.Count);
-            var foo = globalScope.ChildStatements[1].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(n => n.Name == "foo");
+            XElement xmlElementB = fileSetup.GetFileUnitForXmlSnippet(xmlB, "B.cpp");
+
+            var scopeA = codeParser.ParseFileUnit(xmlElementA);
+            var scopeB = codeParser.ParseFileUnit(xmlElementB);
+            var globalScope = scopeA.Merge(scopeB);
+            Assert.AreEqual(3, globalScope.ChildStatements.Count);
+            var foo = globalScope.ChildStatements[2].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(n => n.Name == "foo");
             Assert.IsNotNull(foo);
             var aliases = foo.GetAliases();
             Assert.AreEqual(1, aliases.Count);
             Assert.AreEqual("x :: y :: z", aliases[0].Item1.ToString());
             Assert.IsNull(aliases[0].Item2);
+
+            var zDef = globalScope.GetDescendants<NamespaceDefinition>().FirstOrDefault(ns => ns.Name == "z");
+            Assert.IsNotNull(zDef);
+            var zUse = aliases[0].Item1.GetDescendantsAndSelf<NameUse>().First(n => n.Name == "z");
+            Assert.AreSame(zDef, zUse.FindMatches().FirstOrDefault());
         }
 
         [Test]
@@ -306,20 +326,31 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestGetAliases_NestedImportClass() {
+            //A.cpp
+            //namespace B {
+            //  class Bar {}
+            //}
+            string xmlA = @"<namespace>namespace <name>B</name> <block>{
+  <class>class <name>Bar</name> <block>{<private type=""default""/>}</block>
+<decl/></class>}</block></namespace>";
+            XElement xmlElementA = fileSetup.GetFileUnitForXmlSnippet(xmlA, "A.cpp");
+            //B.cpp
             //using namespace x::y::z;
             //if(bar) {
             //  using B::Bar;
             //  foo = 17;
             //}
-            string xml = @"<using>using namespace <name><name>x</name><op:operator>::</op:operator><name>y</name><op:operator>::</op:operator><name>z</name></name>;</using>
+            string xmlB = @"<using>using namespace <name><name>x</name><op:operator>::</op:operator><name>y</name><op:operator>::</op:operator><name>z</name></name>;</using>
 <if>if<condition>(<expr><name>bar</name></expr>)</condition><then> <block>{
   <using>using <name><name>B</name><op:operator>::</op:operator><name>Bar</name></name>;</using>
   <expr_stmt><expr><name>foo</name> <op:operator>=</op:operator> <lit:literal type=""number"">17</lit:literal></expr>;</expr_stmt>
 }</block></then></if>";
-            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
+            XElement xmlElementB = fileSetup.GetFileUnitForXmlSnippet(xmlB, "B.cpp");
             
-            var globalScope = codeParser.ParseFileUnit(xmlElement);
-            var foo = globalScope.ChildStatements[1].ChildStatements[1].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(n => n.Name == "foo");
+            var scopeA = codeParser.ParseFileUnit(xmlElementA);
+            var scopeB = codeParser.ParseFileUnit(xmlElementB);
+            var globalScope = scopeA.Merge(scopeB);
+            var foo = globalScope.ChildStatements[2].ChildStatements[1].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(n => n.Name == "foo");
             Assert.IsNotNull(foo);
             var aliases = foo.GetAliases();
             Assert.AreEqual(2, aliases.Count);
@@ -327,6 +358,11 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("Bar", aliases[0].Item2);
             Assert.AreEqual("x :: y :: z", aliases[1].Item1.ToString());
             Assert.IsNull(aliases[1].Item2);
+
+            var barDef = globalScope.GetDescendants<TypeDefinition>().FirstOrDefault(ns => ns.Name == "Bar");
+            Assert.IsNotNull(barDef);
+            var barUse = aliases[0].Item1.GetDescendantsAndSelf<NameUse>().First(n => n.Name == "Bar");
+            Assert.AreSame(barDef, barUse.FindMatches().FirstOrDefault());
         }
 
         [Test]
@@ -853,8 +889,8 @@ namespace ABB.SrcML.Data.Test {
             var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cpp");
             var globalScope = codeParser.ParseFileUnit(unit);
 
-            var fooMethod = globalScope.GetChildScopes<MethodDefinition>("foo").FirstOrDefault();
-            var mainMethod = globalScope.GetChildScopes<MethodDefinition>("main").FirstOrDefault();
+            var fooMethod = globalScope.GetNamedChildren<MethodDefinition>("foo").FirstOrDefault();
+            var mainMethod = globalScope.GetNamedChildren<MethodDefinition>("main").FirstOrDefault();
 
             Assert.IsNotNull(fooMethod);
             Assert.IsNotNull(mainMethod);

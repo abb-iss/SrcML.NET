@@ -111,7 +111,7 @@
     <Compile Include="NamespaceDefinition.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CPlusPlusCodeParser.cs" />
-    <Compile Include="ScopeDetachedException.cs" />
+    <Compile Include="StatementDetachedException.cs" />
     <Compile Include="SourceLocation.cs" />
     <Compile Include="SrcMLLocation.cs" />
     <Compile Include="Statement.cs" />

@@ -173,7 +173,7 @@ namespace ABB.SrcML.Data {
                     //if the method call occurs within a class, search that class (and its parents) for a matching method
                     var matchingTypeMethods = from containingType in ParentStatement.GetAncestorsAndSelf<TypeDefinition>()
                                               from typeDefinition in containingType.GetParentTypesAndSelf(true)
-                                              from method in typeDefinition.GetChildScopes<MethodDefinition>(this.Name)
+                                              from method in typeDefinition.GetNamedChildren<MethodDefinition>(this.Name)
                                               where Matches(method)
                                               select method;
 

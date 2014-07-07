@@ -29,21 +29,40 @@ namespace ABB.SrcML.Data {
         /// <returns>Returns the XML name for NamespaceUse</returns>
         public override string GetXmlName() { return NamespaceUse.XmlName; }
 
+        /// <summary>
+        /// Determines the possible types for this expression. 
+        /// Since this is a NamespaceUse, there are never any matching types.
+        /// </summary>
         public override IEnumerable<TypeDefinition> ResolveType() {
-            return null;
+            return Enumerable.Empty<TypeDefinition>();
         }
 
+        /// <summary>
+        /// Finds Namespaces that match this usage.
+        /// </summary>
         public override IEnumerable<INamedEntity> FindMatches() {
-            throw new NotImplementedException();
-            
-            var siblings = GetSiblingsBeforeSelf().ToList();
-            var nameInclusionOperators = new[] {".", "->", "::"};
-            var priorOp = siblings.Last() as OperatorUse;
-            if(priorOp != null && nameInclusionOperators.Contains(priorOp.Text)) {
-                
+            if(this.ParentStatement == null) {
+                throw new InvalidOperationException("ParentStatement is null");
             }
 
+            //check if this namespace is the child of something else in the expression
+            var siblings = GetSiblingsBeforeSelf().ToList();
+            var nameInclusionOperators = new[] {".", "->", "::"};
+            var priorOp = siblings.LastOrDefault() as OperatorUse;
+            if(priorOp != null && nameInclusionOperators.Contains(priorOp.Text)) {
+                var priorName = siblings[siblings.Count - 2] as NameUse; //second-to-last sibling
+                if(priorName != null) {
+                    var parents = priorName.FindMatches();
+                    return parents.SelectMany(p => p.GetNamedChildren<NamespaceDefinition>(this.Name));
+                }
+            } 
 
+            //search for namespace starting from the global root
+            var globalNS = this.ParentStatement.GetAncestorsAndSelf<NamespaceDefinition>().FirstOrDefault(nd => nd.IsGlobal);
+            if(globalNS == null) {
+                throw new StatementDetachedException(this.ParentStatement);
+            }
+            return globalNS.GetNamedChildren<NamespaceDefinition>(this.Name);
         }
     }
 }
