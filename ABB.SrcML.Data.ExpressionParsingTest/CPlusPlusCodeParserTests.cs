@@ -325,6 +325,7 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
+        [Category("Todo")]
         public void TestGetAliases_NestedImportClass() {
             //A.cpp
             //namespace B {

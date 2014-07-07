@@ -320,6 +320,7 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
+        [Category("Todo")]
         public void TestGetAliases_NestedUsingAlias() {
             //A.cs
             //namespace bar {
@@ -354,7 +355,7 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("x . y . z", aliases[1].Item1.ToString());
             Assert.IsNull(aliases[1].Item2);
 
-            var baz = globalScope.GetDescendants<NamespaceDefinition>().FirstOrDefault(ns => ns.Name == "baz");
+            var baz = globalScope.GetDescendants<TypeDefinition>().FirstOrDefault(ns => ns.Name == "baz");
             Assert.IsNotNull(baz);
             var bazUse = aliases[0].Item1.GetDescendantsAndSelf<NameUse>().Last(nu => nu.Name == "baz");
             Assert.AreSame(baz, bazUse.FindMatches().First());
