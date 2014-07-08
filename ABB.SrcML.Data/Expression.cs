@@ -43,7 +43,7 @@ namespace ABB.SrcML.Data {
         public Expression ParentExpression { get; set;}
         
         /// <summary> The statement containing this expression. </summary>
-        public Statement ParentStatement {
+        public virtual Statement ParentStatement {
             get { return parentStmt; }
             set {
                 parentStmt = value;

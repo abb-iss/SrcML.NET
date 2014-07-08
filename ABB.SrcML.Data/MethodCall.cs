@@ -70,6 +70,16 @@ namespace ABB.SrcML.Data {
         /// <summary> True if this is a call to a destructor </summary>
         public bool IsDestructor { get; set; }
 
+        /// <summary> The statement containing this expression. </summary>
+        public override Statement ParentStatement {
+            get { return base.ParentStatement; }
+            set {
+                base.ParentStatement = value;
+                foreach(var arg in Arguments) { arg.ParentStatement = value; }
+                foreach(var typeArg in TypeArguments) { typeArg.ParentStatement = value; }
+            }
+        }
+
         /// <summary>
         /// Adds the given argument to the Arguments collection.
         /// </summary>
@@ -77,6 +87,7 @@ namespace ABB.SrcML.Data {
         public void AddArgument(Expression arg) {
             if(arg == null) { throw new ArgumentNullException("arg"); }
             arg.ParentExpression = this;
+            arg.ParentStatement = this.ParentStatement;
             argumentList.Add(arg);
         }
 
@@ -97,6 +108,7 @@ namespace ABB.SrcML.Data {
         public void AddTypeArgument(TypeUse arg) {
             if(arg == null) { throw new ArgumentNullException("arg"); }
             arg.ParentExpression = this;
+            arg.ParentStatement = this.ParentStatement;
             typeArgumentList.Add(arg);
         }
 

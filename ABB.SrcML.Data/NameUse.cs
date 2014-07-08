@@ -34,6 +34,11 @@ namespace ABB.SrcML.Data {
         /// <summary> XML Name for <see cref="Prefix" /> </summary>
         public const string XmlPrefixName = "Prefix";
 
+        /// <summary>
+        /// The binary operators that indicate that the name on the right-hand side is a child of the left-hand side.
+        /// </summary>
+        protected static readonly string[] NameInclusionOperators = {".", "->", "::"};
+
         /// <summary> The name being used. </summary>
         public string Name { get; set; }
 
@@ -46,7 +51,17 @@ namespace ABB.SrcML.Data {
                 prefix = value;
                 if(prefix != null) {
                     prefix.ParentExpression = this;
+                    prefix.ParentStatement = this.ParentStatement;
                 }
+            }
+        }
+
+        /// <summary> The statement containing this expression. </summary>
+        public override Statement ParentStatement {
+            get { return base.ParentStatement; }
+            set {
+                base.ParentStatement = value;
+                if(Prefix != null) { Prefix.ParentStatement = value; }
             }
         }
 
@@ -136,7 +151,16 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <returns></returns>
         public virtual IEnumerable<INamedEntity> FindMatches() {
+            if(ParentStatement == null) {
+                throw new InvalidOperationException("ParentStatement is null");
+            }
+            
             throw new NotImplementedException();
+        }
+
+        public override IEnumerable<TypeDefinition> ResolveType()
+        {
+            return base.ResolveType();
         }
     }
 }

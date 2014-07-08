@@ -49,6 +49,15 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public ReadOnlyCollection<TypeUse> TypeParameters { get; private set; }
 
+        /// <summary> The statement containing this expression. </summary>
+        public override Statement ParentStatement {
+            get { return base.ParentStatement; }
+            set {
+                base.ParentStatement = value;
+                foreach(var param in TypeParameters) { param.ParentStatement = value; }
+            }
+        }
+
         /// <summary>
         /// Adds a generic type parameter to this type use
         /// </summary>
@@ -56,6 +65,7 @@ namespace ABB.SrcML.Data {
         public void AddTypeParameter(TypeUse typeParameter) {
             if(typeParameter == null) { throw new ArgumentNullException("typeParameter"); }
             typeParameter.ParentExpression = this;
+            typeParameter.ParentStatement = this.ParentStatement;
             typeParameterList.Add(typeParameter);
         }
 
@@ -75,13 +85,36 @@ namespace ABB.SrcML.Data {
         public override IEnumerable<TypeDefinition> ResolveType() {
             //TODO: review this method and update it for changes in TypeUse structure
             //TODO: handle case of C# var type. Delete CSharpVarTypeUse if no longer necessary.
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
+            if(ParentStatement == null) {
+                throw new InvalidOperationException("ParentStatement is null");
+            }
 
-            //// if this is a built-in type, then just return that 
-            //// otherwise, go hunting for matching types
-            //if(BuiltInTypeFactory.IsBuiltIn(this)) {
-            //    yield return BuiltInTypeFactory.GetBuiltIn(this);
-            //}
+            // if this is a built-in type, then just return that 
+            // otherwise, go hunting for matching types
+            if(BuiltInTypeFactory.IsBuiltIn(this)) {
+                return Enumerable.Repeat(BuiltInTypeFactory.GetBuiltIn(this), 1);
+            }
+
+            //If there's a prefix, resolve that and search under results
+            if(Prefix != null) {
+                return Prefix.FindMatches().SelectMany(ns => ns.GetNamedChildren<TypeDefinition>(this.Name));
+            }
+
+            //If preceded by a name, match and search under results
+            var siblings = GetSiblingsBeforeSelf().ToList();
+            var priorOp = siblings.LastOrDefault() as OperatorUse;
+            if(priorOp != null && NameInclusionOperators.Contains(priorOp.Text)) {
+                var priorName = siblings[siblings.Count - 2] as NameUse; //second-to-last sibling
+                if(priorName != null) {
+                    var parents = priorName.FindMatches();
+                    return parents.SelectMany(p => p.GetNamedChildren<TypeDefinition>(this.Name));
+                }
+            } 
+
+            //get aliases
+            //search up data tree and using aliases
+
 
             //var aliases = GetAliases();
 
@@ -100,6 +133,28 @@ namespace ABB.SrcML.Data {
             //        yield return match;
             //    }
             //}
+
+
+            ////look in surrounding type definition and its parents for a matching type
+            //var mt = from containingType in ParentStatement.GetAncestorsAndSelf<TypeDefinition>()
+            //         from type in containingType.GetParentTypesAndSelf(true)
+            //         where Matches(type)
+            //         select type;
+
+            ////look in surrounding type definition and its parents for a sub-type that matches
+            //var matchingTypes = from containingType in ParentStatement.GetAncestorsAndSelf<TypeDefinition>()
+            //                    from typeDefinition in containingType.GetParentTypesAndSelf(true)
+            //                    from type in typeDefinition.GetNamedChildren<TypeDefinition>(this.Name)
+            //                    where Matches(type)
+            //                    select type;
+
+
+            var lex = from containingScope in ParentStatement.GetAncestorsAndSelf<NamedScope>()
+                      from type in containingScope.GetNamedChildren<TypeDefinition>(this.Name)
+                      where Matches(type)
+                      select type;
+
+            return lex;
         }
 
         

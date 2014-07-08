@@ -51,6 +51,18 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
+        /// Returns an enumerable of possible NamedScopes that this prefix might be referring to.
+        /// </summary>
+        public IEnumerable<NamedScope> FindMatches() {
+            var lastName = Names.LastOrDefault();
+            if(lastName != null) {
+                return lastName.FindMatches().OfType<NamedScope>();
+            } else {
+                return Enumerable.Empty<NamedScope>();
+            }
+        }
+
+        /// <summary>
         /// Instance method for getting <see cref="NamePrefix.XmlName"/>
         /// </summary>
         /// <returns>Returns the XML name for NamePrefix</returns>

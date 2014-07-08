@@ -39,7 +39,17 @@ namespace ABB.SrcML.Data {
                 indexExpression = value;
                 if(indexExpression != null) {
                     indexExpression.ParentExpression = this;
+                    indexExpression.ParentStatement = this.ParentStatement;
                 }
+            }
+        }
+
+        /// <summary> The statement containing this expression. </summary>
+        public override Statement ParentStatement {
+            get { return base.ParentStatement; }
+            set {
+                base.ParentStatement = value;
+                if(Index != null) { Index.ParentStatement = value; }
             }
         }
 

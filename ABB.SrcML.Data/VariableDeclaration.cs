@@ -52,6 +52,7 @@ namespace ABB.SrcML.Data {
                 varType = value;
                 if(varType != null) {
                     varType.ParentExpression = this;
+                    varType.ParentStatement = this.ParentStatement;
                 }
             }
         }
@@ -63,7 +64,18 @@ namespace ABB.SrcML.Data {
                 initExpression = value;
                 if(initExpression != null) {
                     initExpression.ParentExpression = this;
+                    initExpression.ParentStatement = this.ParentStatement;
                 }
+            }
+        }
+
+        /// <summary> The statement containing this expression. </summary>
+        public override Statement ParentStatement {
+            get { return base.ParentStatement; }
+            set {
+                base.ParentStatement = value;
+                if(VariableType != null) { VariableType.ParentStatement = value; }
+                if(Initializer != null) { Initializer.ParentStatement = value; }
             }
         }
 

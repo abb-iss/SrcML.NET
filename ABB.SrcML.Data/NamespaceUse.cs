@@ -45,11 +45,13 @@ namespace ABB.SrcML.Data {
                 throw new InvalidOperationException("ParentStatement is null");
             }
 
+            //TODO: determine if we need to consider aliases in this method
+
+
             //check if this namespace is the child of something else in the expression
             var siblings = GetSiblingsBeforeSelf().ToList();
-            var nameInclusionOperators = new[] {".", "->", "::"};
             var priorOp = siblings.LastOrDefault() as OperatorUse;
-            if(priorOp != null && nameInclusionOperators.Contains(priorOp.Text)) {
+            if(priorOp != null && NameInclusionOperators.Contains(priorOp.Text)) {
                 var priorName = siblings[siblings.Count - 2] as NameUse; //second-to-last sibling
                 if(priorName != null) {
                     var parents = priorName.FindMatches();
