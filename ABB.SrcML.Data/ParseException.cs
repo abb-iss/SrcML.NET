@@ -79,5 +79,12 @@ namespace ABB.SrcML.Data {
         /// The parser object that threw the exception
         /// </summary>
         public AbstractCodeParser Parser { get; protected set; }
+
+        /// <summary>
+        /// A string representation of the exception. Includes the file name, line and column numbers, and the exception message.
+        /// </summary>
+        public override string ToString() {
+            return string.Format("Error parsing {0} ({1},{2}):{3}{4}", FileName, LineNumber, ColumnNumber, Environment.NewLine, base.ToString());
+        }
     }
 }

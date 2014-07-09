@@ -62,7 +62,7 @@ namespace ABB.SrcML {
 
         protected virtual void LogError(Exception e) {
             if(null != ErrorLog) {
-                ErrorLog.WriteLine(e.Message);
+                ErrorLog.WriteLine(e);
             }
         }
 

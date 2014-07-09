@@ -284,12 +284,11 @@ namespace ABB.SrcML.Data {
                     // do nothing. we are ignoring comments
                 } else if(element.Name == SRC.Package) {
                     //do nothing. This is already handled in JavaCodeParser.ParseUnitElement()
+                } else if(element.Name.Namespace == CPP.NS) {
+                    //do nothing. skip any cpp preprocessor macros
                 } else {
                     LogUnknown(element, context);
                 }
-                //TODO: parse using blocks
-                //TODO: handle other CPP elements
-                
 
                 return stmt;
             } catch(ParseException) {
@@ -1594,7 +1593,9 @@ namespace ABB.SrcML.Data {
                 //parse the calling object expression
                 var callingObjects = lastName != null ? lastName.ElementsBeforeSelf() : nameElement.Elements();
                 var callingExp = ParseExpression(callingObjects, context);
-                return MergeExpressions(callingExp, vu);
+                if(callingExp != null) {
+                    return MergeExpressions(callingExp, vu);
+                }
             }
             
             return vu;

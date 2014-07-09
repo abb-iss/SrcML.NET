@@ -71,7 +71,7 @@ namespace ABB.SrcML.Data.Test {
                     end = DateTime.Now;
                     parseElapsed += (end - start);
                 } catch(Exception ex) {
-                    Console.Error.WriteLine(ex.Message);
+                    Console.Error.WriteLine(ex);
                     data = null;
                 }
 
@@ -81,7 +81,7 @@ namespace ABB.SrcML.Data.Test {
                     end = DateTime.Now;
                     deserializeElapsed += (end - start);
                 } catch(Exception ex) {
-                    Console.Error.WriteLine(ex.Message);
+                    Console.Error.WriteLine(ex);
                     serializedData = null;
                 }
 
