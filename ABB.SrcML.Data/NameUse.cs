@@ -154,17 +154,12 @@ namespace ABB.SrcML.Data {
             if(ParentStatement == null) {
                 throw new InvalidOperationException("ParentStatement is null");
             }
-            
-            if(Name == "this") {
-                return Enumerable.Repeat(ParentStatement.GetAncestorsAndSelf<TypeDefinition>().FirstOrDefault(), 1);
-            }
-            if(Name == "base") {
-                var enclosingType = ParentStatement.GetAncestorsAndSelf<TypeDefinition>().FirstOrDefault();
-                if(enclosingType == null) {
-                    return Enumerable.Empty<INamedEntity>();
-                } else {
-                    return enclosingType.GetParentTypes(true);
-                }
+
+            //handle keywords
+            if(Name == "this" ||
+               (Name == "base" && ProgrammingLanguage == Language.CSharp) ||
+               (Name == "super" && ProgrammingLanguage == Language.Java)) {
+                return TypeDefinition.GetTypeForKeyword(this);
             }
 
 

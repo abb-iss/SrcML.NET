@@ -713,92 +713,93 @@ namespace ABB.SrcML.Data.Test {
 //            Assert.IsTrue(TestHelper.ScopesAreEqual(globalScope, globalScope_implementationFirst));
 //        }
 
-//        [Test]
-//        public void TestMethodCallCreation_WithConflictingMethodNames() {
-//            //# A.h
-//            //class A {
-//            //    B b;
-//            //public:
-//            //    bool Contains() { b.Contains(); }
-//            //};
-//            string a_xml = @"<class>class <name>A</name> <block>{<private type=""default"">
-//    <decl_stmt><decl><type><name>B</name></type> <name>b</name></decl>;</decl_stmt>
-//</private><public>public:
-//    <function><type><name>bool</name></type> <name>Contains</name><parameter_list>()</parameter_list> <block>{ <expr_stmt><expr><name>b</name><op:operator>.</op:operator><call><name>Contains</name><argument_list>()</argument_list></call></expr>;</expr_stmt> }</block></function>
-//</public>}</block>;</class>";
+        [Test]
+        [Category("Todo")]
+        public void TestMethodCallCreation_WithConflictingMethodNames() {
+            //# A.h
+            //class A {
+            //    B b;
+            //public:
+            //    bool Contains() { b.Contains(); }
+            //};
+            string a_xml = @"<class>class <name>A</name> <block>{<private type=""default"">
+    <decl_stmt><decl><type><name>B</name></type> <name>b</name></decl>;</decl_stmt>
+</private><public>public:
+    <function><type><name>bool</name></type> <name>Contains</name><parameter_list>()</parameter_list> <block>{ <expr_stmt><expr><name>b</name><op:operator>.</op:operator><call><name>Contains</name><argument_list>()</argument_list></call></expr>;</expr_stmt> }</block></function>
+</public>}</block>;</class>";
 
-//            //# B.h
-//            //class B {
-//            //public:
-//            //    bool Contains() { return true; }
-//            //};
-//            string b_xml = @"<class>class <name>B</name> <block>{<private type=""default"">
-//</private><public>public:
-//    <function><type><name>bool</name></type> <name>Contains</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><lit:literal type=""boolean"">true</lit:literal></expr>;</return> }</block></function>
-//</public>}</block>;</class>";
+            //# B.h
+            //class B {
+            //public:
+            //    bool Contains() { return true; }
+            //};
+            string b_xml = @"<class>class <name>B</name> <block>{<private type=""default"">
+</private><public>public:
+    <function><type><name>bool</name></type> <name>Contains</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><lit:literal type=""boolean"">true</lit:literal></expr>;</return> }</block></function>
+</public>}</block>;</class>";
 
-//            var fileUnitA = fileSetup.GetFileUnitForXmlSnippet(a_xml, "A.h");
-//            var fileUnitB = fileSetup.GetFileUnitForXmlSnippet(b_xml, "B.h");
+            var fileUnitA = fileSetup.GetFileUnitForXmlSnippet(a_xml, "A.h");
+            var fileUnitB = fileSetup.GetFileUnitForXmlSnippet(b_xml, "B.h");
 
-//            var scopeForA = codeParser.ParseFileUnit(fileUnitA);
-//            var scopeForB = codeParser.ParseFileUnit(fileUnitB);
-//            var globalScope = scopeForA.Merge(scopeForB);
+            var scopeForA = codeParser.ParseFileUnit(fileUnitA);
+            var scopeForB = codeParser.ParseFileUnit(fileUnitB);
+            var globalScope = scopeForA.Merge(scopeForB);
+            Assert.AreEqual(2, globalScope.ChildStatements.Count);
 
-//            var classA = globalScope.ChildScopes.First() as ITypeDefinition;
-//            var classB = globalScope.ChildScopes.Last() as ITypeDefinition;
-//            Assert.AreEqual("A", classA.Name);
-//            Assert.AreEqual("B", classB.Name);
+            var classA = globalScope.GetDescendants<TypeDefinition>().FirstOrDefault(t => t.Name == "A");
+            Assert.IsNotNull(classA);
+            var classB = globalScope.GetDescendants<TypeDefinition>().FirstOrDefault(t => t.Name == "B");
+            Assert.IsNotNull(classB);
 
-//            var aDotContains = classA.ChildScopes.First() as IMethodDefinition;
-//            var bDotContains = classB.ChildScopes.First() as IMethodDefinition;
+            var aDotContains = classA.GetNamedChildren<MethodDefinition>("Contains").FirstOrDefault();
+            Assert.IsNotNull(aDotContains);
+            var bDotContains = classB.GetNamedChildren<MethodDefinition>("Contains").FirstOrDefault();
+            Assert.IsNotNull(bDotContains);
 
-//            Assert.AreEqual("A.Contains", aDotContains.GetFullName());
-//            Assert.AreEqual("B.Contains", bDotContains.GetFullName());
+            Assert.AreEqual(1, aDotContains.ChildStatements.Count);
+            var methodCall = aDotContains.ChildStatements[0].Content.GetDescendantsAndSelf<MethodCall>().FirstOrDefault();
+            Assert.IsNotNull(methodCall);
 
-//            var methodCall = aDotContains.MethodCalls.First();
-//            var variableB = classA.DeclaredVariables.First();
+            Assert.AreSame(bDotContains, methodCall.FindMatches().FirstOrDefault());
+            Assert.AreNotSame(aDotContains, methodCall.FindMatches().FirstOrDefault());
+        }
 
-//            Assert.AreEqual("b", (methodCall.CallingObject as IVariableUse).Name);
-//            Assert.AreEqual("b", variableB.Name);
-//            Assert.AreSame(variableB, (methodCall.CallingObject as IVariableUse).FindMatches().First());
+        [Test]
+        public void TestMethodCallCreation_WithThisKeyword() {
+            //class A {
+            //    void Bar() { }
+            //    class B {
+            //        int a;
+            //        void Foo() { this->Bar(); }
+            //        void Bar() { return this->a; }
+            //    };
+            //};
+            string a_xml = @"<class>class <name>A</name> <block>{<private type=""default"">
+    <function><type><name>void</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ }</block></function>
+    <class>class <name>B</name> <block>{<private type=""default"">
+        <decl_stmt><decl><type><name>int</name></type> <name>a</name></decl>;</decl_stmt>
+        <function><type><name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><name>this</name><op:operator>-&gt;</op:operator><call><name>Bar</name><argument_list>()</argument_list></call></expr>;</return> }</block></function>
+        <function><type><name>void</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><name>this</name><op:operator>-&gt;</op:operator><name>a</name></expr>;</return> }</block></function>
+    </private>}</block>;</class>
+</private>}</block>;</class>";
+            var fileUnit = fileSetup.GetFileUnitForXmlSnippet(a_xml, "A.cpp");
+            var globalScope = codeParser.ParseFileUnit(fileUnit);
 
-//            Assert.AreSame(bDotContains, methodCall.FindMatches().First());
-//            Assert.AreNotSame(aDotContains, methodCall.FindMatches().First());
-//        }
+            var aDotBar = globalScope.GetNamedChildren("A").First().GetNamedChildren<MethodDefinition>("Bar").FirstOrDefault();
+            Assert.IsNotNull(aDotBar);
+            var classB = globalScope.GetDescendants<TypeDefinition>().FirstOrDefault(t => t.Name == "B");
+            Assert.IsNotNull(classB);
+            var aDotBDotFoo = classB.GetNamedChildren<MethodDefinition>("Foo").FirstOrDefault();
+            Assert.IsNotNull(aDotBDotFoo);
+            var aDotBDotBar = classB.GetNamedChildren<MethodDefinition>("Bar").FirstOrDefault();
+            Assert.IsNotNull(aDotBDotBar);
 
-//        [Test]
-//        public void TestMethodCallCreation_WithThisKeyword() {
-//            //class A {
-//            //    void Bar() { }
-//            //    class B {
-//            //        int a;
-//            //        void Foo() { this->Bar(); }
-//            //        void Bar() { return this->a; }
-//            //    };
-//            //};
-//            string a_xml = @"<class>class <name>A</name> <block>{<private type=""default"">
-//    <function><type><name>void</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ }</block></function>
-//    <class>class <name>B</name> <block>{<private type=""default"">
-//        <decl_stmt><decl><type><name>int</name></type> <name>a</name></decl>;</decl_stmt>
-//        <function><type><name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><name>this</name><op:operator>-&gt;</op:operator><call><name>Bar</name><argument_list>()</argument_list></call></expr>;</return> }</block></function>
-//        <function><type><name>void</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><name>this</name><op:operator>-&gt;</op:operator><name>a</name></expr>;</return> }</block></function>
-//    </private>}</block>;</class>
-//</private>}</block>;</class>";
-
-//            var fileUnit = fileSetup.GetFileUnitForXmlSnippet(a_xml, "A.java");
-//            var globalScope = codeParser.ParseFileUnit(fileUnit);
-
-//            var aDotBar = globalScope.ChildScopes.First().ChildScopes.First() as IMethodDefinition;
-//            var aDotBDotFoo = globalScope.ChildScopes.First().ChildScopes.Last().ChildScopes.First() as IMethodDefinition;
-//            var aDotBDotBar = globalScope.ChildScopes.First().ChildScopes.Last().ChildScopes.Last() as IMethodDefinition;
-
-//            Assert.AreEqual("A.Bar", aDotBar.GetFullName());
-//            Assert.AreEqual("A.B.Foo", aDotBDotFoo.GetFullName());
-//            Assert.AreEqual("A.B.Bar", aDotBDotBar.GetFullName());
-
-//            Assert.AreSame(aDotBDotBar, aDotBDotFoo.MethodCalls.First().FindMatches().First());
-//            Assert.AreEqual(1, aDotBDotFoo.MethodCalls.First().FindMatches().Count());
-//        }
+            Assert.AreEqual(1, aDotBDotFoo.ChildStatements.Count);
+            var barCall = aDotBDotFoo.ChildStatements[0].Content.GetDescendantsAndSelf<MethodCall>().FirstOrDefault();
+            Assert.IsNotNull(barCall);
+            Assert.AreSame(aDotBDotBar, barCall.FindMatches().FirstOrDefault());
+            Assert.AreNotSame(aDotBar, barCall.FindMatches().FirstOrDefault());
+        }
 
         [Test]
         public void TestMethodDefinitionWithReturnType() {

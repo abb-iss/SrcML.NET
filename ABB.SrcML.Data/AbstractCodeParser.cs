@@ -1522,6 +1522,9 @@ namespace ABB.SrcML.Data {
                     mc.IsConstructor = true;
                 }
             }
+            if(mc.Name == "super" && mc.ProgrammingLanguage == Language.Java) {
+                mc.IsConstructor = true;
+            }
 
             //parse the arguments to the method call
             var argList = callElement.Element(SRC.ArgumentList);

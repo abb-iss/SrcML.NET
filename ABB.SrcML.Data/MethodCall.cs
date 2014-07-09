@@ -145,12 +145,15 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <returns>An enumerable of method definitions that match this method call</returns>
         public override IEnumerable<INamedEntity> FindMatches() {
-            //TODO: review this method and update it for changes in TypeUse structure
-            
+            if(ParentStatement == null) {
+                throw new InvalidOperationException("ParentStatement is null");
+            }            
 
             if(IsConstructor || IsDestructor) {
                 IEnumerable<TypeDefinition> typeDefinitions;
-                if(this.Name == "this" || (this.Name == "base" && this.ProgrammingLanguage == Language.CSharp)) {
+                if(this.Name == "this" ||
+                   (this.Name == "base" && this.ProgrammingLanguage == Language.CSharp) ||
+                   (this.Name == "super" && this.ProgrammingLanguage == Language.Java)) {
                     typeDefinitions = TypeDefinition.GetTypeForKeyword(this);
                 } else {
                     //var tempTypeUse = new TypeUse() {
@@ -161,6 +164,10 @@ namespace ABB.SrcML.Data {
                     //typeDefinitions = tempTypeUse.FindMatches();
                     throw new NotImplementedException();
                 }
+                
+                //TODO: handle case of C++ constructor initialization lists. 
+                //These will be marked as constructor calls. They can be used to initialize fields, though, in which case the call name will be the field name,
+                //rather than a type name.
 
                 //matchingMethods = from typeDefinition in typeDefinitions
                 //                  from method in typeDefinition.GetChildScopesWithId<MethodDefinition>(typeDefinition.Name)

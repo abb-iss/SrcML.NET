@@ -139,24 +139,33 @@ namespace ABB.SrcML.Data {
         }
         
         /// <summary>
-        /// This handles the "base" keyword (C# only) and the "this" keyword. It searches for the
-        /// appropriate type definition depending on the context of the
+        /// This handles the "this" keyword, the "base" keyword (C# only), and the "super" keyword (Java only).
+        /// It searches for the appropriate type definition depending on the context of the usage.
         /// </summary>
-        /// <typeparam name="T">The use type</typeparam>
-        /// <param name="use">The use to find the containing class for</param>
-        /// <returns>The class referred to by the keyword</returns>
+        /// <param name="use">The use to find the containing type for</param>
+        /// <returns>The type(s) referred to by the keyword</returns>
         public static IEnumerable<TypeDefinition> GetTypeForKeyword(NameUse use) {
-            //TODO: review this method and update it for changes in TypeUse structure
-
-            var typeDefinitions = Enumerable.Empty<TypeDefinition>();
-            if(use.Name == "this") {
-                typeDefinitions = use.GetAncestors<TypeDefinition>().Take(1);
-            } else if(use.Name == "base" && use.ProgrammingLanguage == Language.CSharp) {
-                typeDefinitions = from containingType in use.GetAncestors<TypeDefinition>()
-                                  from parentType in containingType.GetParentTypes(true)
-                                  select parentType;
+            if(use == null) { throw new ArgumentNullException("use"); }
+            if(use.ParentStatement == null) {
+                throw new ArgumentException("ParentStatement is null", "use");
             }
-            return typeDefinitions;
+
+            if(use.Name == "this") {
+                //return the surrounding type definition
+                return use.ParentStatement.GetAncestorsAndSelf<TypeDefinition>().Take(1);
+            }
+            if((use.Name == "base" && use.ProgrammingLanguage == Language.CSharp) ||
+               (use.Name == "super" && use.ProgrammingLanguage == Language.Java)) {
+                //return all the parent classes of the surrounding type definition
+                var enclosingType = use.ParentStatement.GetAncestorsAndSelf<TypeDefinition>().FirstOrDefault();
+                if(enclosingType == null) {
+                    return Enumerable.Empty<TypeDefinition>();
+                } else {
+                    return enclosingType.GetParentTypes(true);
+                }
+            }
+
+            return Enumerable.Empty<TypeDefinition>();
         }
 
         /// <summary>

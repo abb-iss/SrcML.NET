@@ -486,6 +486,81 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreSame(aDotBDotBar, matches.First());
         }
 
+        [Test]
+        public void TestMethodCallCreation_WithSuperKeyword() {
+            //class B {
+            //  public void Foo() { } 
+            //}
+            //class C extends B { 
+            //  public void Foo() { }
+            //  public void Bar() { 
+            //    super.Foo(); 
+            //  }
+            //}
+            string xml = @"<class>class <name>B</name> <block>{
+  <function><type><specifier>public</specifier> <name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></function> 
+}</block></class>
+<class>class <name>C</name> <super><extends>extends <name>B</name></extends></super> <block>{ 
+  <function><type><specifier>public</specifier> <name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></function>
+  <function><type><specifier>public</specifier> <name>void</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ 
+    <expr_stmt><expr><call><name><name>super</name><op:operator>.</op:operator><name>Foo</name></name><argument_list>()</argument_list></call></expr>;</expr_stmt> 
+  }</block></function>
+}</block></class>";
+            var xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
+
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            Assert.AreEqual(2, globalScope.ChildStatements.Count);
+
+            var fooMethods = globalScope.GetDescendants<MethodDefinition>().ToList();
+
+            var bDotFoo = fooMethods.FirstOrDefault(m => m.GetAncestors<TypeDefinition>().FirstOrDefault().Name == "B");
+            Assert.IsNotNull(bDotFoo);
+            var cDotFoo = fooMethods.FirstOrDefault(m => m.GetAncestors<TypeDefinition>().FirstOrDefault().Name == "C");
+            Assert.IsNotNull(cDotFoo);
+
+            var bar = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(md => md.Name == "Bar");
+            Assert.IsNotNull(bar);
+            Assert.AreEqual(1, bar.ChildStatements.Count);
+            var methodCall = bar.ChildStatements[0].Content.GetDescendantsAndSelf<MethodCall>().FirstOrDefault();
+            Assert.IsNotNull(methodCall);
+            Assert.AreSame(bDotFoo, methodCall.FindMatches().FirstOrDefault());
+        }
+
+        [Test]
+        [Category("Todo")]
+        public void TestMethodCallCreation_SuperConstructor() {
+            //class B {
+            //  public B(int num) { }
+            //}
+            //class C extends B { 
+            //  public C() {
+            //    super(17);
+            //  }
+            //}
+            string xml = @"<class>class <name>B</name> <block>{
+  <constructor><specifier>public</specifier> <name>B</name><parameter_list>(<param><decl><type><name>int</name></type> <name>num</name></decl></param>)</parameter_list> <block>{ }</block></constructor>
+}</block></class>
+<class>class <name>C</name> <super><extends>extends <name>B</name></extends></super> <block>{ 
+  <constructor><specifier>public</specifier> <name>C</name><parameter_list>()</parameter_list> <block>{
+    <expr_stmt><expr><call><name>super</name><argument_list>(<argument><expr><lit:literal type=""number"">17</lit:literal></expr></argument>)</argument_list></call></expr>;</expr_stmt>
+  }</block></constructor>
+}</block></class>";
+            var xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
+
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            Assert.AreEqual(2, globalScope.ChildStatements.Count);
+
+            var bConstructor = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "B");
+            Assert.IsNotNull(bConstructor);
+            var cConstructor = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "C");
+            Assert.IsNotNull(cConstructor);
+            
+            Assert.AreEqual(1, cConstructor.ChildStatements.Count);
+            var superCall = cConstructor.ChildStatements[0].Content.GetDescendantsAndSelf<MethodCall>().FirstOrDefault();
+            Assert.IsNotNull(superCall);
+            Assert.IsTrue(superCall.IsConstructor);
+            Assert.AreSame(bConstructor, superCall.FindMatches().FirstOrDefault());
+        }
         
         [Test]
         public void TestVariablesWithSpecifiers() {
