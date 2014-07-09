@@ -113,6 +113,8 @@ namespace ABB.SrcML.Data {
             } 
 
             //get aliases
+            //TODO: handle aliases
+
             //search up data tree and using aliases
 
 
@@ -148,6 +150,7 @@ namespace ABB.SrcML.Data {
             //                    where Matches(type)
             //                    select type;
 
+            //TODO: search in more places
 
             var lex = from containingScope in ParentStatement.GetAncestorsAndSelf<NamedScope>()
                       from type in containingScope.GetNamedChildren<TypeDefinition>(this.Name)
@@ -157,7 +160,12 @@ namespace ABB.SrcML.Data {
             return lex;
         }
 
-        
+        /// <summary>
+        /// Finds TypeDefinitions that match this use.
+        /// </summary>
+        public override IEnumerable<INamedEntity> FindMatches() {
+            return ResolveType();
+        }
 
         /// <summary>
         /// Tests if this type use is a match for the given

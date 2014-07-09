@@ -155,7 +155,45 @@ namespace ABB.SrcML.Data {
                 throw new InvalidOperationException("ParentStatement is null");
             }
             
-            throw new NotImplementedException();
+            if(Name == "this") {
+                return Enumerable.Repeat(ParentStatement.GetAncestorsAndSelf<TypeDefinition>().FirstOrDefault(), 1);
+            }
+            if(Name == "base") {
+                var enclosingType = ParentStatement.GetAncestorsAndSelf<TypeDefinition>().FirstOrDefault();
+                if(enclosingType == null) {
+                    return Enumerable.Empty<INamedEntity>();
+                } else {
+                    return enclosingType.GetParentTypes(true);
+                }
+            }
+
+
+            //TODO: search for variable declarations
+            //search for types/namespaces/methods/properties
+
+            //If there's a prefix, resolve that and search under results
+            if(Prefix != null) {
+                return Prefix.FindMatches().SelectMany(ns => ns.GetNamedChildren<TypeDefinition>(this.Name));
+            }
+
+            //If preceded by a name, match and search under results
+            var siblings = GetSiblingsBeforeSelf().ToList();
+            var priorOp = siblings.LastOrDefault() as OperatorUse;
+            if(priorOp != null && NameInclusionOperators.Contains(priorOp.Text)) {
+                var priorName = siblings[siblings.Count - 2] as NameUse; //second-to-last sibling
+                if(priorName != null) {
+                    var parents = priorName.FindMatches();
+                    return parents.SelectMany(p => p.GetNamedChildren<INamedEntity>(this.Name));
+                }
+            } 
+
+            //TODO: handle aliases
+
+            //TODO: search better?
+
+            var lex = ParentStatement.GetAncestorsAndSelf<NamedScope>().SelectMany(ns => ns.GetNamedChildren<INamedEntity>(this.Name));
+
+            return lex;
         }
 
         public override IEnumerable<TypeDefinition> ResolveType()

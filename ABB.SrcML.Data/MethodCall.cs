@@ -147,7 +147,6 @@ namespace ABB.SrcML.Data {
         public override IEnumerable<INamedEntity> FindMatches() {
             //TODO: review this method and update it for changes in TypeUse structure
             
-            var matchingMethods = Enumerable.Empty<MethodDefinition>();
 
             if(IsConstructor || IsDestructor) {
                 IEnumerable<TypeDefinition> typeDefinitions;
@@ -168,33 +167,38 @@ namespace ABB.SrcML.Data {
                 //                  where Matches(method)
                 //                  select method;
                 throw new NotImplementedException();
-            } else {
-                var callingExpression = GetSiblingsBeforeSelf().ToList();
-
-                if(callingExpression.Any()) {
-                    //matchingMethods = from matchingType in CallingObject.FindMatchingTypes()
-                    //                  from typeDefinition in matchingType.GetParentTypesAndSelf()
-                    //                  from method in typeDefinition.GetChildScopesWithId<IMethodDefinition>(this.Name)
-                    //                  where Matches(method)
-                    //                  select method;
-                    throw new NotImplementedException();
-                } else {
-                    //TODO: look for matches starting from the global scope?
-                    //var matches = base.FindMatches();
-
-                    //if the method call occurs within a class, search that class (and its parents) for a matching method
-                    var matchingTypeMethods = from containingType in ParentStatement.GetAncestorsAndSelf<TypeDefinition>()
-                                              from typeDefinition in containingType.GetParentTypesAndSelf(true)
-                                              from method in typeDefinition.GetNamedChildren<MethodDefinition>(this.Name)
-                                              where Matches(method)
-                                              select method;
-
-                    //matchingMethods = matches.Concat(matchingTypeMethods);
-                    matchingMethods = matchingTypeMethods;
-                }
             }
 
-            return matchingMethods;
+            //If there's a calling expression, resolve and search under the results
+            var siblings = GetSiblingsBeforeSelf().ToList();
+            var priorOp = siblings.LastOrDefault() as OperatorUse;
+            if(priorOp != null && NameInclusionOperators.Contains(priorOp.Text)) {
+                var callingExp = siblings[siblings.Count - 2]; //second-to-last sibling
+                IEnumerable<INamedEntity> parents;
+                if(callingExp is NameUse) {
+                    parents = ((NameUse)callingExp).FindMatches();
+                    //TODO: fix this, we actually need to get the type if this resolves to a method or property. Fix in other resolution methods too.
+                } else {
+                    parents = callingExp.ResolveType();
+                }
+                return parents.SelectMany(p => p.GetNamedChildren<MethodDefinition>(this.Name)).Where(Matches);
+            }
+
+            
+
+            //TODO: look for matches starting from the global scope?
+            //var matches = base.FindMatches();
+
+            //if the method call occurs within a class, search that class (and its parents) for a matching method
+            var matchingTypeMethods = from containingType in ParentStatement.GetAncestorsAndSelf<TypeDefinition>()
+                                      from typeDefinition in containingType.GetParentTypesAndSelf(true)
+                                      from method in typeDefinition.GetNamedChildren<MethodDefinition>(this.Name)
+                                      where Matches(method)
+                                      select method;
+
+            //matchingMethods = matches.Concat(matchingTypeMethods);
+            return matchingTypeMethods;
+
         }
 
         /// <summary>
