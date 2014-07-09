@@ -43,13 +43,14 @@ namespace ABB.SrcML.Data {
         
         /// <summary>
         /// Adds the given statement to the ElseStatements collection.
+        /// If <paramref name="child"/> is null, nothing will be done.
         /// </summary>
         /// <param name="child">The statement to add.</param>
         public void AddElseStatement(Statement child) {
-            if(child == null) { throw new ArgumentNullException("child"); }
-
-            child.ParentStatement = this;
-            elseStatementsList.Add(child);
+            if(child != null) {
+                child.ParentStatement = this;
+                elseStatementsList.Add(child);
+            }
         }
 
         /// <summary>

@@ -56,12 +56,14 @@ namespace ABB.SrcML.Data {
 
         /// <summary>
         /// Adds the given catch to the CatchStatements collection.
+        /// If <paramref name="catchStmt"/> is null, nothing will be done.
         /// </summary>
         /// <param name="catchStmt">The catch statement to add.</param>
         public void AddCatchStatement(CatchStatement catchStmt) {
-            if(catchStmt == null) { throw new ArgumentNullException("catchStmt"); }
-            catchStmt.ParentStatement = this;
-            catchStatementsList.Add(catchStmt);
+            if(catchStmt != null) {
+                catchStmt.ParentStatement = this;
+                catchStatementsList.Add(catchStmt);
+            }
         }
 
         /// <summary>
@@ -76,12 +78,14 @@ namespace ABB.SrcML.Data {
 
         /// <summary>
         /// Adds the given statement to the FinallyStatements collection.
+        /// If <paramref name="finallyStmt"/> is null, nothing will be done.
         /// </summary>
         /// <param name="finallyStmt">The statement to add.</param>
         public void AddFinallyStatement(Statement finallyStmt) {
-            if(finallyStmt == null) { throw new ArgumentNullException("finallyStmt"); }
-            finallyStmt.ParentStatement = this;
-            finallyStatementsList.Add(finallyStmt);
+            if(finallyStmt != null) {
+                finallyStmt.ParentStatement = this;
+                finallyStatementsList.Add(finallyStmt);
+            }
         }
 
         /// <summary>

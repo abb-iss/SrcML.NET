@@ -55,7 +55,7 @@ namespace ABB.SrcML {
                     LogError(e);
                     return false;
                 } else {
-                    throw e;
+                    throw;
                 }
             }
         }
