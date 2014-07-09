@@ -135,9 +135,10 @@ namespace ABB.SrcML.Tools.MethodCallSurvey {
         }
 
         private IEnumerable<MethodDefinition> GetMatches() {
-            var matches = (from method in Data.FindMatches()
-                           select new MethodDefinition(Archive, method, this)).Distinct(new MethodDefinitionComparer());
-            return matches;
+            throw new NotImplementedException();
+            //var matches = (from method in Data.FindMatches()
+            //               select new MethodDefinition(Archive, method, this)).Distinct(new MethodDefinitionComparer());
+            //return matches;
         }
 
         private string GetSourceCode() {

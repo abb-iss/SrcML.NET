@@ -78,53 +78,56 @@ namespace ABB.SrcML.Tools.MethodCallSurvey {
             }
         }
 
-        private void LoadArchive(BackgroundWorker worker, string pathToMappingFile, out SrcMLArchive archive, out DataRepository data, out string projectName) {
-            string pathToArchive = FilePath.GetDirectoryName(pathToMappingFile);
-            string archiveDirectoryName = FilePath.GetFileName(pathToArchive);
-            string baseDirectory = FilePath.GetFullPath(FilePath.GetDirectoryName(pathToArchive));
+        private void LoadArchive(BackgroundWorker worker, string pathToMappingFile, out SrcMLArchive archive, out AbstractWorkingSet data, out string projectName) {
+            throw new NotImplementedException();
+            //string pathToArchive = FilePath.GetDirectoryName(pathToMappingFile);
+            //string archiveDirectoryName = FilePath.GetFileName(pathToArchive);
+            //string baseDirectory = FilePath.GetFullPath(FilePath.GetDirectoryName(pathToArchive));
 
-            projectName = FilePath.GetFileName(baseDirectory);
-            worker.ReportProgress(0, String.Format("Loading {0}", projectName));
-            archive = new SrcMLArchive(baseDirectory, archiveDirectoryName);
-            int numberOfFiles = archive.FileUnits.Count();
-            worker.ReportProgress(0, String.Format("Loading {0} ({1} files)", projectName, numberOfFiles));
+            //projectName = FilePath.GetFileName(baseDirectory);
+            //worker.ReportProgress(0, String.Format("Loading {0}", projectName));
+            //archive = new SrcMLArchive(baseDirectory, archiveDirectoryName);
+            //int numberOfFiles = archive.FileUnits.Count();
+            //worker.ReportProgress(0, String.Format("Loading {0} ({1} files)", projectName, numberOfFiles));
 
-            data = new DataRepository(archive);
-            int i = 0;
-            foreach(var unit in archive.FileUnits) {
-                try {
-                    data.AddFile(unit);
-                } catch(Exception) {
-                }
+            //data = new DataRepository(archive);
+            //int i = 0;
+            //foreach(var unit in archive.FileUnits) {
+            //    try {
+            //        data.AddFile(unit);
+            //    } catch(Exception) {
+            //    }
 
-                if(++i % 25 == 0) {
-                    int percentComplete = (int) (100 * (double) i / (double) numberOfFiles);
-                    worker.ReportProgress(percentComplete, String.Format("Loading {0} ({1} / {2} files)", projectName, i, numberOfFiles));
-                }
-            }
-            worker.ReportProgress(100, String.Format("Loaded {0} ({1} files)", baseDirectory, i));
+            //    if(++i % 25 == 0) {
+            //        int percentComplete = (int) (100 * (double) i / (double) numberOfFiles);
+            //        worker.ReportProgress(percentComplete, String.Format("Loading {0} ({1} / {2} files)", projectName, i, numberOfFiles));
+            //    }
+            //}
+            //worker.ReportProgress(100, String.Format("Loaded {0} ({1} files)", baseDirectory, i));
         }
 
         private void loadWorker_DoWork(object sender, DoWorkEventArgs e) {
-            SrcMLArchive archive;
-            DataRepository data;
-            string projectName;
-            LoadArchive(sender as BackgroundWorker, e.Argument as string, out archive, out data, out projectName);
-            string commonPath = FileHelper.GetCommonPath(archive.GetFiles());
-            List<object> results = new List<object>();
-            results.Add(archive);
-            results.Add(data);
-            results.Add(projectName);
-            e.Result = results;
+            throw new NotImplementedException();
+            //SrcMLArchive archive;
+            //DataRepository data;
+            //string projectName;
+            //LoadArchive(sender as BackgroundWorker, e.Argument as string, out archive, out data, out projectName);
+            //string commonPath = FileHelper.GetCommonPath(archive.GetFiles());
+            //List<object> results = new List<object>();
+            //results.Add(archive);
+            //results.Add(data);
+            //results.Add(projectName);
+            //e.Result = results;
         }
 
         private void loadWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e) {
-            List<object> results = e.Result as List<object>;
-            Sample.Archive = results[0] as SrcMLArchive;
-            Sample.Data = results[1] as DataRepository;
-            Sample.ProjectName = results[2] as string;
-            StatusBarProgress.Value = 0;
-            sampleWorker.RunWorkerAsync(Sample);
+            throw new NotImplementedException();
+            //List<object> results = e.Result as List<object>;
+            //Sample.Archive = results[0] as SrcMLArchive;
+            //Sample.Data = results[1] as DataRepository;
+            //Sample.ProjectName = results[2] as string;
+            //StatusBarProgress.Value = 0;
+            //sampleWorker.RunWorkerAsync(Sample);
         }
 
         private void MenuItemOpenArchive_Click(object sender, RoutedEventArgs e) {

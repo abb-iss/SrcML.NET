@@ -219,28 +219,29 @@ namespace ABB.SrcML.Tools.DataTester {
         }
 
         private static void PrintScopeReport(NamespaceDefinition globalScope, string sourcePath, string csvDirectory) {
-            var csvPath = Path.Combine(csvDirectory, "scopes.csv");
-            Console.WriteLine("\nScope Report");
-            Console.WriteLine("===============");
+            //var csvPath = Path.Combine(csvDirectory, "scopes.csv");
+            //Console.WriteLine("\nScope Report");
+            //Console.WriteLine("===============");
 
-            var allScopes = VariableScopeIterator.Visit(globalScope);
-            int numScopes = allScopes.Count();
-            int numNamedScopes = allScopes.OfType<INamedScope>().Count();
-            int numNamespaces = allScopes.OfType<NamespaceDefinition>().Count();
-            int numTypes = allScopes.OfType<ITypeDefinition>().Count();
-            int numMethods = allScopes.OfType<IMethodDefinition>().Count();
+            //var allScopes = VariableScopeIterator.Visit(globalScope);
+            //int numScopes = allScopes.Count();
+            //int numNamedScopes = allScopes.OfType<INamedScope>().Count();
+            //int numNamespaces = allScopes.OfType<NamespaceDefinition>().Count();
+            //int numTypes = allScopes.OfType<ITypeDefinition>().Count();
+            //int numMethods = allScopes.OfType<IMethodDefinition>().Count();
 
-            Console.WriteLine("{0,10:N0} scopes", numScopes);
+            //Console.WriteLine("{0,10:N0} scopes", numScopes);
 
-            Console.WriteLine("{0,10:N0} named scopes", numNamedScopes);
+            //Console.WriteLine("{0,10:N0} named scopes", numNamedScopes);
 
-            Console.WriteLine("{0,10:N0} namespaces", numNamespaces);
-            Console.WriteLine("{0,10:N0} types", numTypes);
-            Console.WriteLine("{0,10:N0} methods", numMethods);
-            if(!File.Exists(csvPath)) {
-                File.WriteAllText(csvPath, String.Format("{0}{1}", String.Join(",", "Project", "Scopes", "Named Scopes", "Namespaces", "Types", "Methods"), Environment.NewLine));
-            }
-            File.AppendAllText(csvPath, String.Format("{0}{1}", String.Join(",", sourcePath, numScopes, numNamedScopes, numNamespaces, numTypes, numMethods), Environment.NewLine));
+            //Console.WriteLine("{0,10:N0} namespaces", numNamespaces);
+            //Console.WriteLine("{0,10:N0} types", numTypes);
+            //Console.WriteLine("{0,10:N0} methods", numMethods);
+            //if(!File.Exists(csvPath)) {
+            //    File.WriteAllText(csvPath, String.Format("{0}{1}", String.Join(",", "Project", "Scopes", "Named Scopes", "Namespaces", "Types", "Methods"), Environment.NewLine));
+            //}
+            //File.AppendAllText(csvPath, String.Format("{0}{1}", String.Join(",", sourcePath, numScopes, numNamedScopes, numNamespaces, numTypes, numMethods), Environment.NewLine));
+            throw new NotImplementedException();
         }
 
         private static Dictionary<string, string> ReadMapping(string mappingFilePath) {

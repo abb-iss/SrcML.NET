@@ -30,7 +30,7 @@ namespace ABB.SrcML.VisualStudio.Interfaces {
 
         bool IsUpdating { get; }
 
-        DataRepository GetDataRepository();
+        AbstractWorkingSet GetDataRepository();
     }
     [Guid("4F09B16E-9048-40BA-89FA-31F692C5D8E0")]
     public interface SSrcMLDataService { }
