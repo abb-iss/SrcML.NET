@@ -1584,7 +1584,10 @@ namespace ABB.SrcML.Data {
                 //parse the index, if there is one
                 var indexElement = nameElement.Element(SRC.Index);
                 if(indexElement != null) {
-                    vu.Index = ParseExpression(GetFirstChildExpression(indexElement), context);
+                    var expElement = GetFirstChildExpression(indexElement);
+                    if(expElement != null) {
+                        vu.Index = ParseExpression(expElement, context);
+                    }
                 }
                 //get the name for variable being used
                 var lastName = nameElement.Elements(SRC.Name).LastOrDefault();
