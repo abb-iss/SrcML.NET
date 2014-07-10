@@ -2096,7 +2096,7 @@ namespace ABB.SrcML.Data {
             if(element == null)
                 throw new ArgumentNullException("element");
 
-            return GetChildExpressions(element).First();
+            return GetChildExpressions(element).FirstOrDefault();
         }
 
         /// <summary>
