@@ -204,9 +204,27 @@ namespace ABB.SrcML.Data {
         /// <returns>An enumerable of type uses that represent parent types</returns>
         protected abstract IEnumerable<XElement> GetParentTypeUseElements(XElement typeElement);
 
+        /// <summary>
+        /// Logs the given element as unknown. This will do nothing if <see cref="UnknownLog"/> is null.
+        /// </summary>
+        /// <param name="element">The unknown element</param>
+        /// <param name="context">The parser context</param>
         protected void LogUnknown(XElement element, ParserContext context) {
+            LogUnknown(element, context, null);
+        }
+
+        /// <summary>
+        /// Logs the given element as unknown along with an optional message. This will do nothing if <see cref="UnknownLog"/> is null.
+        /// </summary>
+        /// <param name="element">The unknown element</param>
+        /// <param name="context">The parser context</param>
+        /// <param name="message">An optional message</param>
+        protected void LogUnknown(XElement element, ParserContext context, string message) {
             if(null != UnknownLog) {
-                UnknownLog.WriteLine("{0}({1},{2}) Unexpected {3}", context.FileName, element.GetSrcLineNumber(), element.GetSrcLinePosition(), element.Name);
+                UnknownLog.Write("{0}({1},{2}) Unexpected {3}", context.FileName, element.GetSrcLineNumber(), element.GetSrcLinePosition(), element.Name, message);
+                if(!String.IsNullOrWhiteSpace(message)) {
+                    UnknownLog.WriteLine(" ({0})", message);
+                }
             }
         }
 
@@ -287,7 +305,7 @@ namespace ABB.SrcML.Data {
                 } else if(element.Name.Namespace == CPP.NS) {
                     //do nothing. skip any cpp preprocessor macros
                 } else {
-                    LogUnknown(element, context);
+                    LogUnknown(element, context, "ParseStatement");
                 }
 
                 return stmt;
@@ -1114,7 +1132,7 @@ namespace ABB.SrcML.Data {
                 } else if(element.Name == SRC.Comment) {
                     //skip
                 } else {
-                    LogUnknown(element, context);
+                    LogUnknown(element, context, "ParseExpression");
                 }
 
                 //TODO: how do we handle a function_declaration that's put in an expression-type place?
