@@ -23,6 +23,7 @@ namespace ABB.SrcML.Data {
     /// </summary>
     public class DataGenerator : AbstractGenerator {
         private static List<string> _supportedExtensions = new List<string>() { ".xml" };
+        private TextWriter _unknownLog;
 
         private Dictionary<Language, AbstractCodeParser> _parserMap = new Dictionary<Language, AbstractCodeParser>() {
             { Language.C, new CPlusPlusCodeParser() },
@@ -39,9 +40,23 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Creates a new data generator with no
+        /// Sets the <see cref="AbstractCodeParser.UnknownLog"/> property for each <see cref="AbstractCodeParser"/>.
         /// </summary>
-        public DataGenerator() : base() { }
+        public TextWriter UnknownLog {
+            get { return _unknownLog; }
+            set { 
+                TextWriter writer = (value != null ? TextWriter.Synchronized(value) : null);
+                foreach(var parser in _parserMap.Values) {
+                    parser.UnknownLog = writer;
+                }
+            }
+        }
+        /// <summary>
+        /// Creates a new data generator with no unknown logger
+        /// </summary>
+        public DataGenerator() : base() {
+            UnknownLog = null;
+        }
 
         /// <summary>
         /// Parses a srcML file and returns a <see cref="NamespaceDefinition"/>

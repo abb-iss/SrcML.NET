@@ -154,11 +154,18 @@ namespace ABB.SrcML.Data.Test {
             if(File.Exists(fileLogPath)) {
                 File.Delete(fileLogPath);
             }
+            
+            var unknownLogPath = Path.Combine(project.DataDirectory, "unknown.log");
+            if(File.Exists(unknownLogPath)) {
+                File.Delete(unknownLogPath);
+            }
 
             var dataArchive = new DataArchive(project.DataDirectory, archive, false);
             dataArchive.Generator.IsLoggingErrors = true;
-            using(var errorLog = new StreamWriter(fileLogPath)) {
+            using(StreamWriter errorLog = new StreamWriter(fileLogPath),
+                               unknownLog = new StreamWriter(unknownLogPath)) {
                 dataArchive.Generator.ErrorLog = errorLog;
+                dataArchive.Generator.UnknownLog = unknownLog;
                 var srcMLMonitor = new ArchiveMonitor<SrcMLArchive>(project.DataDirectory, archive, dataArchive);
                 DateTime start = DateTime.Now, end;
                 if(useAsyncMethods) {
