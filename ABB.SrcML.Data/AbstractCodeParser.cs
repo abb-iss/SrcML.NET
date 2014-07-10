@@ -1523,9 +1523,17 @@ namespace ABB.SrcML.Data {
             var argList = callElement.Element(SRC.ArgumentList);
             if(argList != null) {
                 foreach(var argElement in argList.Elements(SRC.Argument)) {
-                    var exp = GetFirstChildExpression(argElement);
-                    if(exp != null) {
-                        mc.AddArgument(ParseExpression(exp, context));
+                    var expElement = GetFirstChildExpression(argElement);
+                    if(expElement != null) {
+                        var exp = ParseExpression(expElement, context);
+                        if(exp == null) {
+                            //we still want to record the argument, even if we can't parse it properly
+                            exp = new Expression() {
+                                ProgrammingLanguage = ParserLanguage,
+                                Location = context.CreateLocation(expElement)
+                            };
+                        }
+                        mc.AddArgument(exp);
                     }
                 }
             }
