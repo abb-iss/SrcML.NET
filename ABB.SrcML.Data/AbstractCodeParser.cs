@@ -694,14 +694,8 @@ namespace ABB.SrcML.Data {
             gotoStmt.AddLocation(context.CreateLocation(gotoElement));
 
             if(gotoElement.HasElements) {
-                throw new NotImplementedException();
-                //gotoStmt.Content = ParseExpression(gotoElement.Elements().First(), context);
-                //TODO: we know that this will be a name element corresponding to a label. Should we just create the NameUse object here
-                //instead of calling ParseExpression?
+                gotoStmt.Content = ParseExpression(gotoElement.Elements().First(), context);
             }
-            //TODO: in C#, you can write "goto case 3;" within a switch statement. SrcML does not mark up the case 3 as anything.
-            //<goto>goto case 3;</goto>
-            //Mike collard to fix "in next release".
 
             return gotoStmt;
         }

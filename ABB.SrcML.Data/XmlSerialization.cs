@@ -47,12 +47,14 @@ namespace ABB.SrcML.Data {
             { Statement.XmlName, CreateFromReader<Statement> },
             
             /* alias & import statements */
+            { AliasStatement.XmlName, CreateFromReader<AliasStatement> },
             { ImportStatement.XmlName, CreateFromReader<ImportStatement> },
 
             /* basic statements */
             { BreakStatement.XmlName, CreateFromReader<BreakStatement> },
             { CaseStatement.XmlName, CreateFromReader<CaseStatement> },
             { ContinueStatement.XmlName, CreateFromReader<ContinueStatement> },
+            { GotoStatement.XmlName, CreateFromReader<GotoStatement> },
             { ExternStatement.XmlName, CreateFromReader<ExternStatement> },
             { LabelStatement.XmlName, CreateFromReader<LabelStatement> },
             { ReturnStatement.XmlName, CreateFromReader<ReturnStatement> },
@@ -71,6 +73,7 @@ namespace ABB.SrcML.Data {
             { UsingBlockStatement.XmlName, CreateFromReader<UsingBlockStatement> },
 
             /* Named statements */
+            { NamedScope.XmlName, CreateFromReader<NamedScope> },
             { NamespaceDefinition.XmlName, CreateFromReader<NamespaceDefinition> },
             { TypeDefinition.XmlName, CreateFromReader<TypeDefinition> },
             { MethodDefinition.XmlName, CreateFromReader<MethodDefinition> },
