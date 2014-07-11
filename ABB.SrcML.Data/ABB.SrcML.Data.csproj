@@ -54,11 +54,8 @@
     <Compile Include="AbstractCodeParser.cs" />
     <Compile Include="AbstractProgramElement.cs" />
     <Compile Include="AbstractQuery.cs" />
-    <Compile Include="AbstractScopeUse.cs" />
-    <Compile Include="AbstractUse.cs" />
     <Compile Include="AbstractWorkingSet.cs" />
     <Compile Include="AccessModifier.cs" />
-    <Compile Include="Alias.cs" />
     <Compile Include="AliasStatement.cs" />
     <Compile Include="BlockStatement.cs" />
     <Compile Include="BreakStatement.cs" />
@@ -82,7 +79,6 @@
     <Compile Include="IfStatement.cs" />
     <Compile Include="ImportStatement.cs" />
     <Compile Include="INamedEntity.cs" />
-    <Compile Include="IResolvesToType.cs" />
     <Compile Include="IRootedObject.cs" />
     <Compile Include="IXmlElement.cs" />
     <Compile Include="LabelStatement.cs" />
@@ -93,12 +89,10 @@
     <Compile Include="NamePrefix.cs" />
     <Compile Include="NamedScope.cs" />
     <Compile Include="NameHelper.cs" />
-    <Compile Include="NamedScopeUse.cs" />
     <Compile Include="NamespaceUse.cs" />
     <Compile Include="NameUse.cs" />
     <Compile Include="OperatorUse.cs" />
     <Compile Include="OperatorKind.cs" />
-    <Compile Include="ParameterDeclaration.cs" />
     <Compile Include="ParseException.cs" />
     <Compile Include="ParserContext.cs" />
     <Compile Include="PropertyDefinition.cs" />

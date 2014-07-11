@@ -29,11 +29,11 @@ namespace ABB.SrcML.Data {
             //StatementStack = new Stack<Statement>();
         }
 
-        /// <summary>
-        /// The aliases for this context. This should be set by a call to
-        /// <see cref="AbstractCodeParser.ParseUnitElement"/>.
-        /// </summary>
-        public Collection<Alias> Aliases { get; set; }
+        ///// <summary>
+        ///// The aliases for this context. This should be set by a call to
+        ///// <see cref="AbstractCodeParser.ParseUnitElement"/>.
+        ///// </summary>
+        //public Collection<Alias> Aliases { get; set; }
 
         ///// <summary>
         ///// The current statement on <see cref="ParentStatementStack"/>. If the stack is empty, it returns

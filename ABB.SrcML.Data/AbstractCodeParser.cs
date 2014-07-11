@@ -98,37 +98,7 @@ namespace ABB.SrcML.Data {
             set { _synchronizedErrorLog = (null == value ? null : TextWriter.Synchronized(value)); }
         }
 
-        /// <summary>
-        /// Creates a resolvable use from an expression
-        /// </summary>
-        /// <param name="element">The element to parse</param>
-        /// <param name="context">The parser context</param>
-        /// <returns>A resolvable use object</returns>
-        // TODO make this fit in with the rest of the parse methods (rename to parse)
-        protected virtual IResolvesToType CreateResolvableUse(XElement element, ParserContext context) {
-            throw new NotImplementedException();
-
-            //XElement expression = null;
-            //if(element.Name == SRC.Expression) {
-            //    expression = element;
-            //} else if(element.Name == SRC.Argument || element.Name == SRC.ExpressionStatement) {
-            //    expression = element.Elements(SRC.Expression).FirstOrDefault();
-            //}
-
-            //var use = new VariableUse() {
-            //    Location = context.CreateLocation(element, true),
-            //    ParentScope = context.CurrentStatement,
-            //    ProgrammingLanguage = ParserLanguage,
-            //};
-
-            //if(expression != null) {
-            //    if(expression.Elements(SRC.Name).Count() == 1) {
-            //        use.Name = expression.Element(SRC.Name).Value;
-            //    }
-            //}
-
-            //return use;
-        }
+        
 
         /// <summary>
         /// Creates a variable use from the given element. Must be a

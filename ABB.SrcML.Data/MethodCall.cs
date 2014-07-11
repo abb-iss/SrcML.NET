@@ -339,22 +339,22 @@ namespace ABB.SrcML.Data {
             }
         }
 
-        /// <summary>
-        /// Computes the intersection of the matching types for
-        /// <paramref name="argument"/>and
-        /// <paramref name="parameter"/>. It returns true if the intersection has any elements in
-        /// it.
-        /// </summary>
-        /// <param name="argument">an argument from see cref="Arguments"/></param>
-        /// <param name="parameter">a parameter from see
-        /// cref="MethodDefinition.Parameters"/></param>
-        /// <returns>true if the argument and the parameter have a matching type in common; false
-        /// otherwise</returns>
-        private bool ArgumentMatchesDefinition(IResolvesToType argument, VariableDeclaration parameter) {
-            var possibleArgumentTypes = argument.FindMatchingTypes();
-            var possibleParameterTypes = parameter.VariableType.ResolveType();
+        ///// <summary>
+        ///// Computes the intersection of the matching types for
+        ///// <paramref name="argument"/>and
+        ///// <paramref name="parameter"/>. It returns true if the intersection has any elements in
+        ///// it.
+        ///// </summary>
+        ///// <param name="argument">an argument from see cref="Arguments"/></param>
+        ///// <param name="parameter">a parameter from see
+        ///// cref="MethodDefinition.Parameters"/></param>
+        ///// <returns>true if the argument and the parameter have a matching type in common; false
+        ///// otherwise</returns>
+        //private bool ArgumentMatchesDefinition(IResolvesToType argument, VariableDeclaration parameter) {
+        //    var possibleArgumentTypes = argument.FindMatchingTypes();
+        //    var possibleParameterTypes = parameter.VariableType.ResolveType();
 
-            return possibleArgumentTypes.Intersect(possibleParameterTypes).Any();
-        }
+        //    return possibleArgumentTypes.Intersect(possibleParameterTypes).Any();
+        //}
     }
 }

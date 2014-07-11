@@ -25,7 +25,7 @@ namespace ABB.SrcML.Data {
     /// both Statements and Expressions.
     /// </summary>
     public abstract class AbstractProgramElement : IXmlElement {
-
+        /// <summary> XML Name for <see cref="ProgrammingLanguage" /> </summary>
         public const string LanguageXmlName = "lang";
 
         /// <summary>The language that this statement is written in.</summary>
@@ -36,6 +36,7 @@ namespace ABB.SrcML.Data {
         /// <summary>Returns the children of this element.</summary>
         protected abstract IEnumerable<AbstractProgramElement> GetChildren();
 
+        /// <summary> Returns the XML name for this program element. </summary>
         public abstract string GetXmlName();
 
         /// <summary>
@@ -172,6 +173,7 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        /// <summary> Returns the XML schema for this program element. </summary>
         public XmlSchema GetSchema() { return null; }
 
         /// <summary>
