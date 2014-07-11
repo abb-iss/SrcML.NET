@@ -213,7 +213,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <returns>An enumerable of the matching type definitions for this method</returns>
         public override IEnumerable<TypeDefinition> ResolveType() {
-            foreach(var methodDefinition in FindMatches().Cast<MethodDefinition>()) {
+            foreach(var methodDefinition in FindMatches().OfType<MethodDefinition>()) {
                 var matchingTypes = Enumerable.Empty<TypeDefinition>();
 
                 if(methodDefinition.ReturnType != null) {
