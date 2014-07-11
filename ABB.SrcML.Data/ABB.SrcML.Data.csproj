@@ -79,7 +79,6 @@
     <Compile Include="IfStatement.cs" />
     <Compile Include="ImportStatement.cs" />
     <Compile Include="INamedEntity.cs" />
-    <Compile Include="IRootedObject.cs" />
     <Compile Include="IXmlElement.cs" />
     <Compile Include="LabelStatement.cs" />
     <Compile Include="LiteralKind.cs" />
@@ -92,7 +91,6 @@
     <Compile Include="NamespaceUse.cs" />
     <Compile Include="NameUse.cs" />
     <Compile Include="OperatorUse.cs" />
-    <Compile Include="OperatorKind.cs" />
     <Compile Include="ParseException.cs" />
     <Compile Include="ParserContext.cs" />
     <Compile Include="PropertyDefinition.cs" />

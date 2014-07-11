@@ -142,6 +142,7 @@ namespace ABB.SrcML.Data {
             return base.GetSiblingsAfterSelf().Cast<Expression>();
         }
 
+        /// <summary> Returns the XML name for this program element. </summary>
         public override string GetXmlName() { return Expression.XmlName; }
 
         /// <summary>

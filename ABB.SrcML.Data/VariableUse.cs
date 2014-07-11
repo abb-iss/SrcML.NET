@@ -72,11 +72,10 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Searches through the <see cref="IScope.DeclaredVariables"/> to see if any of them
-        /// <see cref="Matches(IVariableDeclaration)">matches</see>
+        /// Finds variable declarations that match this name.
         /// </summary>
-        /// <returns>An enumerable of matching variable declarations.</returns>
-        public IEnumerable<VariableDeclaration> FindMatches() {
+        /// <returns>An enumerable of possible matches for this variable use.</returns>
+        public override IEnumerable<INamedEntity> FindMatches() {
             //TODO: review this method and update it for changes in TypeUse structure
             throw new NotImplementedException();
             //IEnumerable<VariableDeclaration> matchingVariables = Enumerable.Empty<VariableDeclaration>();

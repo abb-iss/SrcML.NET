@@ -84,7 +84,7 @@ namespace ABB.SrcML.Data {
 
         /// <summary>
         /// Adds set of method parameters to this method. If the <paramref name="parameters"/> have a different set of
-        /// <see cref="VariableDeclaration.VariableType.Name"/> values than <see cref="Parameters"/>, then the current list is cleared
+        /// type name values than <see cref="Parameters"/>, then the current list is cleared
         /// and <paramref name="parameters"/> is used. If the variable type names match, then <paramref name="parameters"/>
         /// only matches if it has extra information (such as variable names or initializers).
         /// </summary>
@@ -113,7 +113,7 @@ namespace ABB.SrcML.Data {
 
         /// <summary>
         /// Adds a return type to the internal return type collection. If the <paramref name="returnType"/> has a different
-        /// <see cref="TypeUse.Name"/> than this object, then the map is cleared and <paramref name="returnType" /> is the
+        /// type name than this object, then the map is cleared and <paramref name="returnType" /> is the
         /// sole return type for this method.
         /// </summary>
         /// <param name="returnType">The return type object to add</param>

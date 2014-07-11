@@ -102,8 +102,8 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Overrides <see cref="GeneratorArchive.GetInputPath"/> in order to provide a srcML file to the
-        /// <see cref="GeneratorArchive.Generator"/>. It does this by calling <see cref="GeneratorArchive.GetArchivePath"/>
+        /// Overrides <see cref="GeneratorArchive{TGenerator}.GetInputPath"/> in order to provide a srcML file to the
+        /// <see cref="GeneratorArchive{TGenerator}.Generator"/>. It does this by calling <see cref="GeneratorArchive{TGenerator}.GetArchivePath"/>
         /// </summary>
         /// <param name="sourcePath"></param>
         /// <returns></returns>

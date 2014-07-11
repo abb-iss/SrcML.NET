@@ -24,9 +24,14 @@ namespace ABB.SrcML.Data {
     /// Represents a statement in a program.
     /// </summary>
     public class Statement : AbstractProgramElement {
-        protected List<Statement> childStatementsList;
-        protected List<SrcMLLocation> LocationList;
         private Expression contentExpression;
+        
+        /// <summary> Internal list of this statement's children. </summary>
+        protected List<Statement> ChildStatementsList;
+        
+        /// <summary> Internal list of this statements locations. </summary>
+        protected List<SrcMLLocation> LocationList;
+        
         /// <summary>XML name for the <see cref="ChildStatements"/> property</summary>
         public const string XmlChildrenName = "ChildStatements";
 
@@ -41,8 +46,8 @@ namespace ABB.SrcML.Data {
 
         /// <summary>Creates a new empty Statement.</summary>
         public Statement() {
-            childStatementsList = new List<Statement>();
-            ChildStatements = new ReadOnlyCollection<Statement>(childStatementsList);
+            ChildStatementsList = new List<Statement>();
+            ChildStatements = new ReadOnlyCollection<Statement>(ChildStatementsList);
             LocationList = new List<SrcMLLocation>(1);
             Locations = new ReadOnlyCollection<SrcMLLocation>(LocationList);
         }
@@ -94,7 +99,7 @@ namespace ABB.SrcML.Data {
         public virtual void AddChildStatement(Statement child) {
             if(null != child) {
                 child.ParentStatement = this;
-                childStatementsList.Add(child);
+                ChildStatementsList.Add(child);
             }
         }
 
@@ -135,7 +140,7 @@ namespace ABB.SrcML.Data {
         /// Returns the child statements.
         /// </summary>
         protected override IEnumerable<AbstractProgramElement> GetChildren() {
-            return childStatementsList;
+            return ChildStatementsList;
         }
 
         /// <summary>
@@ -192,8 +197,9 @@ namespace ABB.SrcML.Data {
             return this.ComputeMergeId() == otherStatement.ComputeMergeId();
         }
 
+        /// <summary> Clears the <see cref="ChildStatements"/> collection. </summary>
         protected void ClearChildren() {
-            childStatementsList.Clear();
+            ChildStatementsList.Clear();
         }
 
         protected virtual string ComputeMergeId() {
@@ -207,8 +213,12 @@ namespace ABB.SrcML.Data {
             return Merge<Statement>(this, otherStatement);
         }
 
+        /// <summary>
+        /// Removes <paramref name="child"/> from <see cref="ChildStatements"/>.
+        /// </summary>
+        /// <param name="child">The child statement to remove.</param>
         public void RemoveChild(Statement child) {
-            childStatementsList.Remove(child);
+            ChildStatementsList.Remove(child);
         }
 
         public virtual void RemoveFile(string fileName) {
@@ -242,7 +252,7 @@ namespace ABB.SrcML.Data {
             for(int i = ChildStatements.Count - 1; i >= 0; i--) {
                 ChildStatements[i].RemoveFile(fileName);
                 if(ChildStatements[i].ToBeDeleted) {
-                    childStatementsList.RemoveAt(i);
+                    ChildStatementsList.RemoveAt(i);
                 }
             }
         }
@@ -281,6 +291,7 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        /// <summary> Returns the XML name for this program element. </summary>
         public override string GetXmlName() { return Statement.XmlName; }
 
         /// <summary>

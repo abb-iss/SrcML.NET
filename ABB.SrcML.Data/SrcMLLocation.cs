@@ -91,6 +91,7 @@ namespace ABB.SrcML.Data {
             SetEndingLocation(element);
         }
 
+        /// <summary> Creates a new empty SrcMLLocation object. </summary>
         public SrcMLLocation() : base() { }
 
         /// <summary>
@@ -139,6 +140,7 @@ namespace ABB.SrcML.Data {
             return null;
         }
 
+        /// <summary> Returns the XML name for this program element. </summary>
         public override string GetXmlName() { return SrcMLLocation.XmlName; }
 
         /// <summary>
@@ -158,8 +160,6 @@ namespace ABB.SrcML.Data {
 
         /// <summary>
         /// Writes all of the data to be serialized to <paramref name="writer"/>.
-        /// This works by calling <see cref="WriteXmlAttributes(XmlWriter)"/>
-        /// and then <see cref="WriteXmlContents(XmlWriter)"/>
         /// </summary>
         /// <param name="writer">The XML writer</param>
         public override void WriteXml(XmlWriter writer) {

@@ -83,6 +83,9 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        /// <summary>
+        /// Converts a keyword string to its enum value.
+        /// </summary>
         public static AccessModifier FromKeywordString(string am) {
             Dictionary<string, AccessModifier> mapping = new Dictionary<string,AccessModifier>() {
                 { "public", AccessModifier.Public },

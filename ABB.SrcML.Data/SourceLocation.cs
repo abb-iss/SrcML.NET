@@ -16,8 +16,8 @@ using System.Xml.Serialization;
 namespace ABB.SrcML.Data {
 
     /// <summary>
-    /// Source locations indicate where in the original source code a <see cref="IScope"/> is
-    /// located It stores the file name, line number, &amp; startingPosition
+    /// Source locations indicate where in the original source code a <see cref="AbstractProgramElement">program element</see> 
+    /// is located. It stores the file name, line number, &amp; startingPosition.
     /// </summary>
     public class SourceLocation : IXmlElement {
         /// <summary>XML name for serialization</summary>
@@ -135,10 +135,12 @@ namespace ABB.SrcML.Data {
             return string.Format("{0}: start({1},{2}) end({3},{4})", SourceFileName, StartingLineNumber, StartingColumnNumber, EndingLineNumber, EndingColumnNumber);
         }
 
+        /// <summary> Returns the XML schema for this object. </summary>
         public System.Xml.Schema.XmlSchema GetSchema() {
             return null;
         }
 
+        /// <summary> Returns the XML name for this object. </summary>
         public virtual string GetXmlName() { return SourceLocation.XmlName; }
 
         /// <summary>
@@ -179,8 +181,6 @@ namespace ABB.SrcML.Data {
 
         /// <summary>
         /// Writes all of the data to be serialized to <paramref name="writer"/>.
-        /// This works by calling <see cref="WriteXmlAttributes(XmlWriter)"/>
-        /// and then <see cref="WriteXmlContents(XmlWriter)"/>
         /// </summary>
         /// <param name="writer">The XML writer</param>
         public virtual void WriteXml(XmlWriter writer) {

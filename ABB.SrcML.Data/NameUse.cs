@@ -191,6 +191,10 @@ namespace ABB.SrcML.Data {
             return lex;
         }
 
+        /// <summary>
+        /// Determines the possible types of this expression.
+        /// </summary>
+        /// <returns>An enumerable of the matching TypeDefinitions for this expression's possible types.</returns>
         public override IEnumerable<TypeDefinition> ResolveType() {
             return base.ResolveType();
             //TODO: add type to INamedEntity interface, and update this method to retrieve it from the results of FindMatches()

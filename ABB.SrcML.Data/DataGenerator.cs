@@ -46,6 +46,7 @@ namespace ABB.SrcML.Data {
             get { return _unknownLog; }
             set { 
                 TextWriter writer = (value != null ? TextWriter.Synchronized(value) : null);
+                _unknownLog = writer;
                 foreach(var parser in _parserMap.Values) {
                     parser.UnknownLog = writer;
                 }
@@ -78,7 +79,7 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Generates <paramref name="outputFileName"/> from <see cref="inputFileName">the srcML file</see>.
+        /// Generates <paramref name="outputFileName"/> from the srcML file designated by <paramref name="inputFileName"/>.
         /// This works by calling <see cref="Parse(string)"/>.
         /// </summary>
         /// <param name="inputFileName">The path to a srcML file</param>

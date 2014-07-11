@@ -63,6 +63,7 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        /// <summary> Returns the XML name for this program element. </summary>
         public override string GetXmlName() { return IfStatement.XmlName; }
 
         /// <summary>

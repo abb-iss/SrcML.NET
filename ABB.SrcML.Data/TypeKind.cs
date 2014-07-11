@@ -49,7 +49,11 @@ namespace ABB.SrcML.Data {
         Enumeration
     }
 
+    /// <summary>
+    /// Contains extension methods for the TypeKind enum.
+    /// </summary>
     public static class TypeKindExtensions {
+        /// <summary> Returns a keyword string for this TypeKind. </summary>
         public static string ToKeyword(this TypeKind tk) {
             switch(tk) {
                 case TypeKind.BuiltIn:
@@ -69,14 +73,15 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        /// <summary> Returns a LiteralKind for the given keyword string. </summary>
         public static TypeKind FromKeyword(string keyword) {
-            Dictionary<string, TypeKind> mapping = new Dictionary<string, TypeKind>() {
-                { "built-in", TypeKind.BuiltIn },
-                { "class", TypeKind.Class },
-                { "struct", TypeKind.Struct },
-                { "union", TypeKind.Union },
-                { "interface", TypeKind.Interface },
-                { "enumeration", TypeKind.Enumeration },
+            var mapping = new Dictionary<string, TypeKind>() {
+                {"built-in", TypeKind.BuiltIn},
+                {"class", TypeKind.Class},
+                {"struct", TypeKind.Struct},
+                {"union", TypeKind.Union},
+                {"interface", TypeKind.Interface},
+                {"enumeration", TypeKind.Enumeration},
             };
             TypeKind output;
             if(!string.IsNullOrEmpty(keyword) && mapping.TryGetValue(keyword, out output)) {

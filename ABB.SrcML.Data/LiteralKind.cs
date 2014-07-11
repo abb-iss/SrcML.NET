@@ -39,7 +39,11 @@ namespace ABB.SrcML.Data {
         Number,
     }
 
+    /// <summary>
+    /// Contains extension methods for the LiteralKind enum.
+    /// </summary>
     public static class LiteralKindExtensions {
+        /// <summary> Returns a keyword string for this LiteralKind. </summary>
         public static string ToKeyword(this LiteralKind lk) {
             switch(lk) {
                 case LiteralKind.String:
@@ -55,13 +59,14 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        /// <summary> Returns a LiteralKind for the given keyword string. </summary>
         public static LiteralKind FromKeyword(string keyword) {
-            Dictionary<string, LiteralKind> mapping = new Dictionary<string, LiteralKind>() {
-                { "String", LiteralKind.String },
-                { "Boolean", LiteralKind.Boolean },
-                { "Character", LiteralKind.Character },
-                { "Number", LiteralKind.Number },
-        };
+            var mapping = new Dictionary<string, LiteralKind>() {
+                {"String", LiteralKind.String},
+                {"Boolean", LiteralKind.Boolean},
+                {"Character", LiteralKind.Character},
+                {"Number", LiteralKind.Number},
+            };
 
             LiteralKind output;
             if(!string.IsNullOrEmpty(keyword) && mapping.TryGetValue(keyword, out output)) {

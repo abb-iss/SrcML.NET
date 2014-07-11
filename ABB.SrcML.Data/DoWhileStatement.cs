@@ -23,6 +23,7 @@ namespace ABB.SrcML.Data {
         /// <summary> The XML name for DoWhileStatement. </summary>
         public new const string XmlName = "DoWhile";
 
+        /// <summary> Returns the XML name for this program element. </summary>
         public override string GetXmlName() { return DoWhileStatement.XmlName; }
     }
 }
