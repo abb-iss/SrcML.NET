@@ -35,104 +35,44 @@ namespace ABB.SrcML.Data {
         /// Creates a new abstract code parser object. Should only be called by child classes.
         /// </summary>
         protected AbstractCodeParser() {
-            ContainerElementNames = new HashSet<XName>(new XName[] {
-                SRC.Block, SRC.Catch, SRC.Class, SRC.Constructor, SRC.ConstructorDeclaration, SRC.Destructor,  SRC.DestructorDeclaration, SRC.Do,
-                SRC.Else, SRC.Enum, SRC.Extern, SRC.For, SRC.Function, SRC.FunctionDeclaration, SRC.If, SRC.Namespace, SRC.Struct, SRC.Switch,
-                SRC.Template, SRC.Then, SRC.Try, SRC.Typedef, SRC.Union, SRC.Unit, SRC.While,
-            });
             MethodElementNames = new HashSet<XName>(new XName[] { SRC.Function, SRC.Constructor, SRC.Destructor,
                                                                   SRC.FunctionDeclaration, SRC.ConstructorDeclaration, SRC.DestructorDeclaration });
             NamespaceElementNames = new HashSet<XName>(new XName[] { SRC.Namespace });
             VariableDeclarationElementNames = new HashSet<XName>(new XName[] { SRC.Declaration, SRC.DeclarationStatement });
             ContainerReferenceElementNames = new HashSet<XName>(new XName[] { SRC.ClassDeclaration, SRC.StructDeclaration, SRC.UnionDeclaration,
-                                                                                SRC.ConstructorDeclaration, SRC.DestructorDeclaration, SRC.FunctionDeclaration });
+                                                                              SRC.ConstructorDeclaration, SRC.DestructorDeclaration, SRC.FunctionDeclaration });
             UnknownLog = null;
         }
 
-        /// <summary>
-        /// Returns the XName that represents an import statement
-        /// </summary>
+        /// <summary> Returns the XName that represents an import or alias statement. </summary>
         public XName AliasElementName { get; protected set; }
 
-        /// <summary>
-        /// Returns the XNames that represent containers for this language
-        /// </summary>
-        public HashSet<XName> ContainerElementNames { get; protected set; }
-
-        /// <summary>
-        /// Returns the XNames that represent reference elements (such as function_decl and
-        /// class_decl)
-        /// </summary>
+        /// <summary> Returns the XNames that represent reference elements (such as function_decl and class_decl) </summary>
         public HashSet<XName> ContainerReferenceElementNames { get; protected set; }
 
-        /// <summary>
-        /// Returns the XNames that represent types for this language
-        /// </summary>
+        /// <summary> Returns the XNames that represent types for this language. </summary>
         public HashSet<XName> MethodElementNames { get; protected set; }
 
-        /// <summary>
-        /// Returns the XNames that represent namespaces for this language
-        /// </summary>
+        /// <summary> Returns the XNames that represent namespaces for this language. </summary>
         public HashSet<XName> NamespaceElementNames { get; protected set; }
 
-        /// <summary>
-        /// Returns the Language that this parser supports
-        /// </summary>
+        /// <summary> Returns the XNames that represent types for this language. </summary>
+        public HashSet<XName> TypeElementNames { get; protected set; }
+
+        /// <summary> Returns the XNames that represent variable declarations for this language. </summary>
+        public HashSet<XName> VariableDeclarationElementNames { get; protected set; }
+
+        /// <summary> Returns the Language that this parser supports. </summary>
         public abstract Language ParserLanguage { get; }
 
         /// <summary>
-        /// Returns the XNames that represent types for this language
-        /// </summary>
-        public HashSet<XName> TypeElementNames { get; protected set; }
-
-        /// <summary>
-        /// Returns the XNames that represent variable declarations for this language
-        /// </summary>
-        public HashSet<XName> VariableDeclarationElementNames { get; protected set; }
-
-        /// <summary>
-        /// writer to log unknown elements to. If null no logging is done
+        /// Writer to log unknown elements to. If null no logging is done
         /// </summary>
         public TextWriter UnknownLog {
             get { return _synchronizedErrorLog; }
             set { _synchronizedErrorLog = (null == value ? null : TextWriter.Synchronized(value)); }
         }
 
-        
-
-        /// <summary>
-        /// Creates a variable use from the given element. Must be a
-        /// <see cref="ABB.SrcML.SRC.Expression"/>, <see cref="ABB.SrcML.SRC.Name"/>, or
-        /// <see cref="ABB.SrcML.SRC.ExpressionStatement"/>
-        /// </summary>
-        /// <param name="element">The element to parse</param>
-        /// <param name="context">The parser context</param>
-        /// <returns>A variable use object</returns>
-        // TODO make this fit in with the rest of the parse methods
-        protected virtual VariableUse CreateVariableUse(XElement element, ParserContext context) {
-            throw new NotImplementedException();
-
-            //XElement nameElement;
-            //if(element.Name == SRC.Name) {
-            //    nameElement = element;
-            //} else if(element.Name == SRC.Expression) {
-            //    nameElement = element.Element(SRC.Name);
-            //} else if(element.Name == SRC.ExpressionStatement || element.Name == SRC.Argument) {
-            //    nameElement = element.Element(SRC.Expression).Element(SRC.Name);
-            //} else {
-            //    throw new ArgumentException("element should be an expression, expression statement, argument, or name", "element");
-            //}
-
-            //var lastNameElement = NameHelper.GetLastNameElement(nameElement);
-
-            //IVariableUse variableUse = new VariableUse() {
-            //    Location = context.CreateLocation(lastNameElement, true),
-            //    Name = lastNameElement.Value,
-            //    ParentScope = context.CurrentStatement,
-            //    ProgrammingLanguage = ParserLanguage,
-            //};
-            //return variableUse;
-        }
 
         /// <summary>
         /// Gets the alias elements for this file. This only returns the aliases at the root of the
@@ -197,17 +137,6 @@ namespace ABB.SrcML.Data {
                 }
             }
         }
-
-        ///// <summary>
-        ///// Creates a <see cref="IScope"/> object for
-        ///// <paramref name="element"/>and pushes it onto
-        ///// <paramref name="context"/></summary>
-        ///// <param name="element">The element to parse</param>
-        ///// <param name="context">the context to place the resulting scope on</param>
-        //public virtual void ParseContainerElement(XElement element, ParserContext context) {
-        //    var scope = new Scope();
-        //    context.Push(scope);
-        //}
 
 
         #region Parse statement elements
@@ -290,7 +219,7 @@ namespace ABB.SrcML.Data {
 
         /// <summary>
         /// Parses a file unit and returns a <see cref="NamespaceDefinition.IsGlobal">global</see>
-        /// <see cref="NamespaceDefinition">namespace definition</see> object
+        /// <see cref="NamespaceDefinition">namespace definition</see> object.
         /// </summary>
         /// <param name="unitElement">The file unit to parse. Must be a SRC.Unit element.</param>
         /// <returns>A global namespace definition for <paramref name="unitElement"/>.</returns>
@@ -429,9 +358,9 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Creates a <see cref="WhileStatement"/> object for <paramref name="whileElement"/>.
         /// </summary>
-        /// <param name="whileElement">The element to parse.</param>
+        /// <param name="whileElement">The SRC.While element to parse.</param>
         /// <param name="context">The context to use.</param>
-        /// <returns>A WhileStatement corresponding to whileElement.</returns>
+        /// <returns>A <see cref="WhileStatement"/> corresponding to <paramref name="whileElement"/>.</returns>
         protected virtual WhileStatement ParseWhileElement(XElement whileElement, ParserContext context) {
             if(whileElement == null)
                 throw new ArgumentNullException("whileElement");
@@ -516,6 +445,12 @@ namespace ABB.SrcML.Data {
             return forStmt;
         }
 
+        /// <summary>
+        /// Creates a ForeachStatement from the given element.
+        /// </summary>
+        /// <param name="foreachElement">The SRC.Foreach element to parse.</param>
+        /// <param name="context">The parser context to use.</param>
+        /// <returns>A ForeachStatement corresponding to foreachElement. </returns>
         protected virtual ForeachStatement ParseForeachElement(XElement foreachElement, ParserContext context) {
             if(foreachElement == null)
                 throw new ArgumentNullException("foreachElement");
@@ -548,6 +483,12 @@ namespace ABB.SrcML.Data {
             return foreachStmt;
         }
 
+        /// <summary>
+        /// Creates a <see cref="DoWhileStatement"/> object for <paramref name="doElement"/>.
+        /// </summary>
+        /// <param name="doElement">The SRC.Do element to parse.</param>
+        /// <param name="context">The context to use.</param>
+        /// <returns>A <see cref="DoWhileStatement"/> corresponding to <paramref name="doElement"/>.</returns>
         protected virtual DoWhileStatement ParseDoElement(XElement doElement, ParserContext context) {
             if(doElement == null)
                 throw new ArgumentNullException("doElement");
@@ -579,6 +520,12 @@ namespace ABB.SrcML.Data {
             return doStmt;
         }
 
+        /// <summary>
+        /// Creates a <see cref="SwitchStatement"/> object for <paramref name="switchElement"/>.
+        /// </summary>
+        /// <param name="switchElement">The SRC.Switch element to parse.</param>
+        /// <param name="context">The context to use.</param>
+        /// <returns>A <see cref="SwitchStatement"/> corresponding to <paramref name="switchElement"/>.</returns>
         protected virtual SwitchStatement ParseSwitchElement(XElement switchElement, ParserContext context) {
             if(switchElement == null)
                 throw new ArgumentNullException("switchElement");
@@ -610,6 +557,12 @@ namespace ABB.SrcML.Data {
             return switchStmt;
         }
 
+        /// <summary>
+        /// Creates a <see cref="CaseStatement"/> object for <paramref name="caseElement"/>.
+        /// </summary>
+        /// <param name="caseElement">The SRC.Case or SRC.Default element to parse.</param>
+        /// <param name="context">The context to use.</param>
+        /// <returns>A <see cref="CaseStatement"/> corresponding to <paramref name="caseElement"/>.</returns>
         protected virtual CaseStatement ParseCaseElement(XElement caseElement, ParserContext context) {
             if(caseElement == null)
                 throw new ArgumentNullException("caseElement");
@@ -642,6 +595,12 @@ namespace ABB.SrcML.Data {
             return caseStmt;
         }
 
+        /// <summary>
+        /// Creates a <see cref="BreakStatement"/> object for <paramref name="breakElement"/>.
+        /// </summary>
+        /// <param name="breakElement">The SRC.Break element to parse.</param>
+        /// <param name="context">The context to use.</param>
+        /// <returns>A <see cref="BreakStatement"/> corresponding to <paramref name="breakElement"/>.</returns>
         protected virtual BreakStatement ParseBreakElement(XElement breakElement, ParserContext context) {
             if(breakElement == null)
                 throw new ArgumentNullException("breakElement");
@@ -656,6 +615,12 @@ namespace ABB.SrcML.Data {
             return breakStmt;
         }
 
+        /// <summary>
+        /// Creates a <see cref="ContinueStatement"/> object for <paramref name="continueElement"/>.
+        /// </summary>
+        /// <param name="continueElement">The SRC.Continue element to parse.</param>
+        /// <param name="context">The context to use.</param>
+        /// <returns>A <see cref="ContinueStatement"/> corresponding to <paramref name="continueElement"/>.</returns>
         protected virtual ContinueStatement ParseContinueElement(XElement continueElement, ParserContext context) {
             if(continueElement == null)
                 throw new ArgumentNullException("continueElement");
@@ -670,6 +635,12 @@ namespace ABB.SrcML.Data {
             return continueStmt;
         }
 
+        /// <summary>
+        /// Creates a <see cref="GotoStatement"/> object for <paramref name="gotoElement"/>.
+        /// </summary>
+        /// <param name="gotoElement">The SRC.Goto element to parse.</param>
+        /// <param name="context">The context to use.</param>
+        /// <returns>A <see cref="GotoStatement"/> corresponding to <paramref name="gotoElement"/>.</returns>
         protected virtual GotoStatement ParseGotoElement(XElement gotoElement, ParserContext context) {
             if(gotoElement == null)
                 throw new ArgumentNullException("gotoElement");
@@ -688,6 +659,12 @@ namespace ABB.SrcML.Data {
             return gotoStmt;
         }
 
+        /// <summary>
+        /// Creates a <see cref="LabelStatement"/> object for <paramref name="labelElement"/>.
+        /// </summary>
+        /// <param name="labelElement">The SRC.Label element to parse.</param>
+        /// <param name="context">The context to use.</param>
+        /// <returns>A <see cref="LabelStatement"/> corresponding to <paramref name="labelElement"/>.</returns>
         protected virtual LabelStatement ParseLabelElement(XElement labelElement, ParserContext context) {
             if(labelElement == null)
                 throw new ArgumentNullException("labelElement");
@@ -707,6 +684,12 @@ namespace ABB.SrcML.Data {
             return labelStmt;
         }
 
+        /// <summary>
+        /// Creates a <see cref="ReturnStatement"/> object for <paramref name="returnElement"/>.
+        /// </summary>
+        /// <param name="returnElement">The SRC.Return element to parse.</param>
+        /// <param name="context">The context to use.</param>
+        /// <returns>A <see cref="ReturnStatement"/> corresponding to <paramref name="returnElement"/>.</returns>
         protected virtual ReturnStatement ParseReturnElement(XElement returnElement, ParserContext context) {
             if(returnElement == null)
                 throw new ArgumentNullException("returnElement");
@@ -726,6 +709,12 @@ namespace ABB.SrcML.Data {
             return returnStmt;
         }
 
+        /// <summary>
+        /// Creates a <see cref="ThrowStatement"/> object for <paramref name="throwElement"/>.
+        /// </summary>
+        /// <param name="throwElement">The SRC.Throw element to parse.</param>
+        /// <param name="context">The context to use.</param>
+        /// <returns>A <see cref="ThrowStatement"/> corresponding to <paramref name="throwElement"/>.</returns>
         protected virtual ThrowStatement ParseThrowElement(XElement throwElement, ParserContext context) {
             if(throwElement == null)
                 throw new ArgumentNullException("throwElement");
@@ -745,6 +734,12 @@ namespace ABB.SrcML.Data {
             return throwStmt;
         }
 
+        /// <summary>
+        /// Creates a <see cref="TryStatement"/> object for <paramref name="tryElement"/>.
+        /// </summary>
+        /// <param name="tryElement">The SRC.Try element to parse.</param>
+        /// <param name="context">The context to use.</param>
+        /// <returns>A <see cref="TryStatement"/> corresponding to <paramref name="tryElement"/>.</returns>
         protected virtual TryStatement ParseTryElement(XElement tryElement, ParserContext context) {
             if(tryElement == null)
                 throw new ArgumentNullException("tryElement");
@@ -783,6 +778,12 @@ namespace ABB.SrcML.Data {
             return tryStmt;
         }
 
+        /// <summary>
+        /// Creates a <see cref="CatchStatement"/> object for <paramref name="catchElement"/>.
+        /// </summary>
+        /// <param name="catchElement">The SRC.Catch element to parse.</param>
+        /// <param name="context">The context to use.</param>
+        /// <returns>A <see cref="CatchStatement"/> corresponding to <paramref name="catchElement"/>.</returns>
         protected virtual CatchStatement ParseCatchElement(XElement catchElement, ParserContext context) {
             if(catchElement == null)
                 throw new ArgumentNullException("catchElement");
@@ -811,6 +812,14 @@ namespace ABB.SrcML.Data {
             return catchStmt;
         }
 
+        /// <summary>
+        /// Creates a <see cref="Statement"/> object for <paramref name="stmtElement"/>.
+        /// The expression contained within <paramref name="stmtElement"/> will be parsed and placed in 
+        /// Statement.Content.
+        /// </summary>
+        /// <param name="stmtElement">The SRC.ExpressionStatement element to parse.</param>
+        /// <param name="context">The context to use.</param>
+        /// <returns>A <see cref="Statement"/> corresponding to <paramref name="stmtElement"/>.</returns>
         protected virtual Statement ParseExpressionStatementElement(XElement stmtElement, ParserContext context) {
             if(stmtElement == null)
                 throw new ArgumentNullException("stmtElement");
@@ -834,6 +843,14 @@ namespace ABB.SrcML.Data {
             return stmt;
         }
 
+        /// <summary>
+        /// Creates a <see cref="Statement"/> object for <paramref name="stmtElement"/>.
+        /// The expression contained within <paramref name="stmtElement"/> will be parsed and placed in 
+        /// Statement.Content.
+        /// </summary>
+        /// <param name="stmtElement">The SRC.DeclarationStatement element to parse.</param>
+        /// <param name="context">The context to use.</param>
+        /// <returns>A <see cref="Statement"/> corresponding to <paramref name="stmtElement"/>.</returns>
         protected virtual Statement ParseDeclarationStatementElement(XElement stmtElement, ParserContext context) {
             if(stmtElement == null)
                 throw new ArgumentNullException("stmtElement");
@@ -867,62 +884,6 @@ namespace ABB.SrcML.Data {
         /// <returns>An ImportStatement if the element is an import, or an AliasStatement if it is an alias.</returns>
         protected abstract Statement ParseAliasElement(XElement aliasElement, ParserContext context);
 
-
-        ///// <summary>
-        ///// Creates an <see cref="Alias"/> object from a using import (such as using in C++ and C#
-        ///// and import in Java).
-        ///// </summary>
-        ///// <param name="aliasStatement">The statement to parse. Should be of type see
-        ///// cref="AliasElementName"/></param>
-        ///// <param name="context">The context to place the resulting alias in</param>
-        ///// <returns>a new alias object that represents this alias statement</returns>
-        //protected Alias ParseAliasElement(XElement aliasStatement, ParserContext context) {
-        //    if(null == aliasStatement)
-        //        throw new ArgumentNullException("aliasStatement");
-        //    if(aliasStatement.Name != AliasElementName)
-        //        throw new ArgumentException(String.Format("must be a {0} statement", AliasElementName), "usingStatement");
-        //    if(context == null)
-        //        throw new ArgumentNullException("context");
-
-        //    var alias = new Alias() {
-        //        Location = context.CreateLocation(aliasStatement, true),
-        //        ProgrammingLanguage = ParserLanguage,
-        //    };
-
-        //    IEnumerable<XElement> namespaceNames = GetNamesFromAlias(aliasStatement);
-
-        //    if(!AliasIsNamespaceImport(aliasStatement)) {
-        //        var lastNameElement = namespaceNames.LastOrDefault();
-        //        namespaceNames = from name in namespaceNames
-        //                         where name.IsBefore(lastNameElement)
-        //                         select name;
-
-        //        alias.ImportedNamedScope = new NamedScopeUse() {
-        //            Name = lastNameElement.Value,
-        //            Location = context.CreateLocation(lastNameElement),
-        //            ProgrammingLanguage = ParserLanguage,
-        //        };
-        //    }
-
-        //    NamespaceUse current = null;
-        //    foreach(var namespaceName in namespaceNames) {
-        //        var use = new NamespaceUse() {
-        //            Name = namespaceName.Value,
-        //            Location = context.CreateLocation(namespaceName),
-        //            ProgrammingLanguage = ParserLanguage,
-        //        };
-
-        //        if(alias.ImportedNamespace == null) {
-        //            alias.ImportedNamespace = use;
-        //            current = use;
-        //        } else {
-        //            current.ChildScopeUse = use;
-        //            current = use;
-        //        }
-        //    }
-
-        //    return alias;
-        //}
 
         /// <summary>
         /// Parses an element corresponding to a type definition and creates a TypeDefinition object 
@@ -958,8 +919,6 @@ namespace ABB.SrcML.Data {
 
             return typeDefinition;
         }
-
-        
 
         /// <summary>
         /// Creates a global <see cref="NamespaceDefinition"/> object for <paramref name="unitElement"/>.
@@ -1187,6 +1146,12 @@ namespace ABB.SrcML.Data {
             return expressionStack.Pop();
         }
 
+        /// <summary>
+        /// Creates an <see cref="Expression"/> object for <paramref name="expElement"/>.
+        /// </summary>
+        /// <param name="expElement">The SRC.Expression element to parse.</param>
+        /// <param name="context">The context to use.</param>
+        /// <returns>A <see cref="Expression"/> corresponding to <paramref name="expElement"/>.</returns>
         protected virtual Expression ParseExpressionElement(XElement expElement, ParserContext context) {
             if(expElement == null)
                 throw new ArgumentNullException("expElement");
@@ -1342,12 +1307,11 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Creates a type use element
+        /// Creates a <see cref="TypeUse"/> object for <paramref name="typeUseElement"/>.
         /// </summary>
-        /// <param name="typeUseElement">the element to parse. Must be of a
-        /// <see cref="ABB.SrcML.SRC.Type"/> or <see cref="ABB.SrcML.SRC.Name"/>.</param>
-        /// <param name="context">the parser context</param>
-        /// <returns>A Type Use object</returns>
+        /// <param name="typeUseElement">The type use element to parse. This must be a SRC.Type or SRC.Name element.</param>
+        /// <param name="context">The context to use.</param>
+        /// <returns>A <see cref="TypeUse"/> corresponding to <paramref name="typeUseElement"/>.</returns>
         protected virtual TypeUse ParseTypeUseElement(XElement typeUseElement, ParserContext context) {
             if(typeUseElement == null)
                 throw new ArgumentNullException("typeUseElement");
@@ -1445,11 +1409,11 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Creates a method call object.
+        /// Creates an <see cref="Expression"/> object for <paramref name="callElement"/>.
         /// </summary>
-        /// <param name="callElement">The XML element to parse</param>
-        /// <param name="context">The parser context</param>
-        /// <returns>A method call for <paramref name="callElement"/>.</returns>
+        /// <param name="callElement">The SRC.Call element to parse.</param>
+        /// <param name="context">The context to use.</param>
+        /// <returns>An <see cref="Expression"/> corresponding to <paramref name="callElement"/>.</returns>
         protected virtual Expression ParseCallElement(XElement callElement, ParserContext context) {
             if(callElement == null)
                 throw new ArgumentNullException("callElement");
@@ -1553,7 +1517,14 @@ namespace ABB.SrcML.Data {
             return litUse;
         }
 
-
+        /// <summary>
+        /// Creates an <see cref="Expression"/> object for <paramref name="nameElement"/>.
+        /// This returns an Expression rather than a VariableUse because any calling expression nested within the
+        /// nameElement will be parsed and added to an Expression along with a VariableUse.
+        /// </summary>
+        /// <param name="nameElement">The SRC.Name element to parse.</param>
+        /// <param name="context">The context to use.</param>
+        /// <returns>An <see cref="Expression"/> corresponding to <paramref name="nameElement"/>.</returns>
         protected virtual Expression ParseVariableUse(XElement nameElement, ParserContext context) {
             if(nameElement == null)
                 throw new ArgumentNullException("nameElement");
@@ -1595,242 +1566,6 @@ namespace ABB.SrcML.Data {
         }
 
         #endregion Parse expression elements
-
-        #region aliases
-
-        /// <summary>
-        /// Checks if this alias statement is a namespace import or something more specific (such as
-        /// a type or method)
-        /// </summary>
-        /// <param name="aliasStatement">The alias statement to check. Must be of type see
-        /// cref="AliasElementName"/></param>
-        /// <returns>True if this is a namespace import; false otherwise</returns>
-        protected abstract bool AliasIsNamespaceImport(XElement aliasStatement);
-
-        /// <summary>
-        /// Gets all of the names for this alias
-        /// </summary>
-        /// <param name="aliasStatement">The alias statement. Must be of type see
-        /// cref="AliasElementName"/></param>
-        /// <returns>An enumerable of all the <see cref="ABB.SrcML.SRC.Name">name elements</see> for
-        /// this statement</returns>
-        protected virtual IEnumerable<XElement> GetNamesFromAlias(XElement aliasStatement) {
-            if(null == aliasStatement)
-                throw new ArgumentNullException("aliasStatement");
-            if(aliasStatement.Name != AliasElementName)
-                throw new ArgumentException(String.Format("should be an {0} statement", AliasElementName), "aliasStatement");
-
-            var nameElement = aliasStatement.Element(SRC.Name);
-            if(null != nameElement)
-                return NameHelper.GetNameElementsFromName(nameElement);
-            return Enumerable.Empty<XElement>();
-        }
-
-        #endregion aliases
-
-        //#region get child containers from scope
-
-        ///// <summary>
-        ///// Gets all of the child containers for the given container
-        ///// </summary>
-        ///// <param name="container">The container</param>
-        ///// <returns>An enumerable of all the children</returns>
-        //protected virtual IEnumerable<XElement> GetChildContainers(XElement container) {
-        //    if(null == container)
-        //        return Enumerable.Empty<XElement>();
-        //    IEnumerable<XElement> children;
-
-        //    if(TypeElementNames.Contains(container.Name)) {
-        //        children = GetChildContainersFromType(container);
-        //    } else if(MethodElementNames.Contains(container.Name)) {
-        //        children = GetChildContainersFromMethod(container);
-        //    } else if(NamespaceElementNames.Contains(container.Name)) {
-        //        children = GetChildContainersFromNamespace(container);
-        //    } else {
-        //        children = from child in container.Elements()
-        //                   where ContainerElementNames.Contains(child.Name)
-        //                   select child;
-        //    }
-        //    return children;
-        //}
-
-        ///// <summary>
-        ///// Gets all of the child containers for a method. It calls
-        ///// <see cref="GetChildContainers(XElement)"/> on the child block.
-        ///// </summary>
-        ///// <param name="container">The method container</param>
-        ///// <returns>All of the child containers</returns>
-        //protected virtual IEnumerable<XElement> GetChildContainersFromMethod(XElement container) {
-        //    var block = container.Element(SRC.Block);
-        //    return GetChildContainers(block);
-        //}
-
-        ///// <summary>
-        ///// Gets all of the child containers for a namespace. It calls
-        ///// <see cref="GetChildContainers(XElement)"/> on the child block.
-        ///// </summary>
-        ///// <param name="container">The namespace container</param>
-        ///// <returns>All of the child containers</returns>
-        //protected virtual IEnumerable<XElement> GetChildContainersFromNamespace(XElement container) {
-        //    var block = container.Element(SRC.Block);
-        //    return GetChildContainers(block);
-        //}
-
-        ///// <summary>
-        ///// Gets all of the child containers for a type. It calls
-        ///// <see cref="GetChildContainers(XElement)"/> on the child block.
-        ///// </summary>
-        ///// <param name="container">The namespace type</param>
-        ///// <returns>All of the child containers</returns>
-        //protected virtual IEnumerable<XElement> GetChildContainersFromType(XElement container) {
-        //    var block = container.Element(SRC.Block);
-        //    return GetChildContainers(block);
-        //}
-
-        //#endregion get child containers from scope
-
-        //#region get method calls from scope
-
-        ///// <summary>
-        ///// Gets the method calls from an element
-        ///// </summary>
-        ///// <param name="element">The element to search</param>
-        ///// <returns>All of the call elements from the element</returns>
-        //protected virtual IEnumerable<XElement> GetMethodCallsFromElement(XElement element) {
-        //    if(SRC.Constructor == element.Name) {
-        //        return GetCallsFromConstructorElement(element);
-        //    } else if(MethodElementNames.Contains(element.Name) ||
-        //       NamespaceElementNames.Contains(element.Name) ||
-        //       TypeElementNames.Contains(element.Name)) {
-        //        return GetCallsFromBlockParent(element);
-        //    }
-        //    return GetMethodCallsFromBlockElement(element);
-        //}
-
-        //private IEnumerable<XElement> GetCallsFromBlockParent(XElement container) {
-        //    var block = container.Element(SRC.Block);
-        //    if(null == block)
-        //        return Enumerable.Empty<XElement>();
-        //    return GetMethodCallsFromBlockElement(block);
-        //}
-
-        //private IEnumerable<XElement> GetCallsFromConstructorElement(XElement element) {
-        //    var blockCalls = GetCallsFromBlockParent(element);
-        //    if(element.Element(SRC.MemberList) != null) {
-        //        var memberListCalls = from call in element.Element(SRC.MemberList).Elements(SRC.Call)
-        //                              select call;
-        //        return memberListCalls.Concat(blockCalls);
-        //    }
-        //    return blockCalls;
-        //}
-
-        //private IEnumerable<XElement> GetMethodCallsFromBlockElement(XElement container) {
-        //    var methodCalls = from child in container.Elements()
-        //                      where !ContainerElementNames.Contains(child.Name)
-        //                      from call in child.Descendants(SRC.Call)
-        //                      select call;
-        //    return methodCalls;
-        //}
-
-        //#endregion get method calls from scope
-
-        //#region get declarations from scope
-
-        ///// <summary>
-        ///// Gets all of the variable declarations for this block.
-        ///// </summary>
-        ///// <param name="container">The type container</param>
-        ///// <returns>An enumerable of all the declaration XElements.</returns>
-        //protected virtual IEnumerable<XElement> GetDeclarationsFromBlockElement(XElement container) {
-        //    if(null == container)
-        //        return Enumerable.Empty<XElement>();
-        //    var declarations = from stmtElement in container.Elements(SRC.DeclarationStatement)
-        //                       let declElement = stmtElement.Element(SRC.Declaration)
-        //                       select declElement;
-        //    return declarations;
-        //}
-
-        ///// <summary>
-        ///// Gets all of the variable declarations for this catch block. It finds the variable
-        ///// declarations in <see cref="ABB.SrcML.SRC.ParameterList"/>.
-        ///// </summary>
-        ///// <param name="container">The catch container</param>
-        ///// <returns>An enumerable of all the declaration XElements.</returns>
-        //protected virtual IEnumerable<XElement> GetDeclarationsFromCatchElement(XElement container) {
-        //    var declarations = from parameter in container.Elements(SRC.Parameter)
-        //                       let declElement = parameter.Element(SRC.Declaration)
-        //                       let typeElement = declElement.Element(SRC.Type)
-        //                       where typeElement != null
-        //                       where !typeElement.Elements(TYPE.Modifier).Any()
-        //                       select declElement;
-        //    return declarations;
-        //}
-
-        ///// <summary>
-        ///// Gets the declaration elements from an element
-        ///// </summary>
-        ///// <param name="element">The element to search</param>
-        ///// <returns>All of the declaration elements from an element</returns>
-        //protected virtual IEnumerable<XElement> GetDeclarationsFromElement(XElement element) {
-        //    if(null == element)
-        //        return Enumerable.Empty<XElement>();
-
-        //    IEnumerable<XElement> declarationElements;
-
-        //    if(SRC.Block == element.Name || SRC.Unit == element.Name) {
-        //        declarationElements = GetDeclarationsFromBlockElement(element);
-        //    } else if(SRC.Catch == element.Name) {
-        //        declarationElements = GetDeclarationsFromCatchElement(element);
-        //    } else if(SRC.For == element.Name) {
-        //        declarationElements = GetDeclarationsFromForElement(element);
-        //    } else if(MethodElementNames.Contains(element.Name)) {
-        //        declarationElements = GetDeclarationsFromMethodElement(element);
-        //    } else if(TypeElementNames.Contains(element.Name)) {
-        //        declarationElements = GetDeclarationsFromTypeElement(element);
-        //    } else {
-        //        declarationElements = Enumerable.Empty<XElement>();
-        //    }
-
-        //    return declarationElements;
-        //}
-
-        ///// <summary>
-        ///// Gets all of the variable declarations for this for loop. It finds the variable
-        ///// declaration in the <see cref="ABB.SrcML.SRC.Init"/> statement.
-        ///// </summary>
-        ///// <param name="container">The type container</param>
-        ///// <returns>An enumerable of all the declaration XElements.</returns>
-        //protected virtual IEnumerable<XElement> GetDeclarationsFromForElement(XElement container) {
-        //    var declarations = from declElement in container.Element(SRC.Init).Elements(SRC.Declaration)
-        //                       select declElement;
-        //    return declarations;
-        //}
-
-        ///// <summary>
-        ///// Gets all of the variable declarations for this method. It finds the variable
-        ///// declarations in the child block.
-        ///// </summary>
-        ///// <param name="container">The method container</param>
-        ///// <returns>An enumerable of all the declaration XElements.</returns>
-        //protected virtual IEnumerable<XElement> GetDeclarationsFromMethodElement(XElement container) {
-        //    var block = container.Element(SRC.Block);
-        //    return GetDeclarationsFromBlockElement(block);
-        //}
-
-        ///// <summary>
-        ///// Gets all of the variable declarations for this type. It finds the variable declarations
-        ///// in the child block.
-        ///// </summary>
-        ///// <param name="container">The type container</param>
-        ///// <returns>An enumerable of all the declaration XElements.</returns>
-        //protected virtual IEnumerable<XElement> GetDeclarationsFromTypeElement(XElement container) {
-        //    var block = container.Element(SRC.Block);
-        //    foreach(var declElement in GetDeclarationsFromBlockElement(block)) {
-        //        yield return declElement;
-        //    }
-        //}
-
-        //#endregion get declarations from scope
 
         #region access modifiers
 
@@ -1967,31 +1702,6 @@ namespace ABB.SrcML.Data {
         /// <param name="literalValue">The literal value to parse</param>
         /// <returns>The type name</returns>
         protected abstract string GetTypeForStringLiteral(string literalValue);
-
-        ///// <summary>
-        ///// Parses a literal use element
-        ///// </summary>
-        ///// <param name="literalElement">The literal element to parse</param>
-        ///// <param name="context">The parser context</param>
-        ///// <returns>A literal use object</returns>
-        //protected virtual LiteralUse ParseLiteralElement(XElement literalElement, ParserContext context) {
-        //    if(literalElement == null)
-        //        throw new ArgumentNullException("literalElement");
-        //    if(literalElement.Name != LIT.Literal)
-        //        throw new ArgumentException("should be a literal", "literalElement");
-
-        //    var kind = LiteralUse.GetLiteralKind(literalElement);
-        //    string typeName = string.Empty;
-
-        //    var use = new LiteralUse() {
-        //        Kind = kind,
-        //        Location = context.CreateLocation(literalElement),
-        //        Name = GetTypeForLiteralValue(kind, literalElement.Value),
-        //        ParentScope = context.CurrentStatement,
-        //    };
-
-        //    return use;
-        //}
 
         #endregion parse literal types
 

@@ -47,24 +47,6 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public HashSet<XName> SpecifierContainerNames { get; set; }
 
-        /// <summary>
-        /// Checks if this alias statement represents a namespace import or something more specific
-        /// (such as a method or class alias). In C++, namespace aliases contain the "namespace"
-        /// keyword (for instance, <c>using namespace std;</c>).
-        /// </summary>
-        /// <param name="aliasStatement">The statement to parse. Should be of type see
-        /// cref="AbstractCodeParser.AliasElementName"/></param>
-        /// <returns>True if this is a namespace import; false otherwise</returns>
-        protected override bool AliasIsNamespaceImport(XElement aliasStatement) {
-            if(null == aliasStatement)
-                throw new ArgumentNullException("aliasStatement");
-            if(aliasStatement.Name != AliasElementName)
-                throw new ArgumentException(String.Format("should be an {0} statement", AliasElementName), "aliasStatement");
-            var containsNamespaceKeyword = (from textNode in GetTextNodes(aliasStatement)
-                                            where textNode.Value.Contains("namespace")
-                                            select textNode).Any();
-            return containsNamespaceKeyword;
-        }
 
         /// <summary>
         /// Gets the access modifiers for this method. In C++, methods are contained within
@@ -96,52 +78,6 @@ namespace ABB.SrcML.Data {
         protected override AccessModifier GetAccessModifierForType(XElement typeElement) {
             return AccessModifier.None;
         }
-
-        ///// <summary>
-        ///// Gets the child containers for a C++ type typeUseElement. This iterates over the public,
-        ///// private, and protected blocks that appear in C++ classes in srcML.
-        ///// </summary>
-        ///// <param name="container">the type typeUseElement</param>
-        ///// <returns>the child elements of this C++ type</returns>
-        //protected override IEnumerable<XElement> GetChildContainersFromType(XElement container) {
-        //    foreach(var child in base.GetChildContainersFromType(container)) {
-        //        yield return child;
-        //    }
-
-        //    var block = container.Element(SRC.Block);
-        //    var specifierBlocks = from child in block.Elements()
-        //                          where SpecifierContainerNames.Contains(child.Name)
-        //                          select child;
-
-        //    foreach(var specifierBlock in specifierBlocks) {
-        //        foreach(var child in GetChildContainers(specifierBlock)) {
-        //            yield return child;
-        //        }
-        //    }
-        //}
-
-        ///// <summary>
-        ///// Gets the variables declared in this C++ type typeUseElement. This iterates over the
-        ///// public, private, and protected blocks that appear in C++ classes in srcML.
-        ///// </summary>
-        ///// <param name="container">the type typeUseElement</param>
-        ///// <returns>The decl elements for this type typeUseElement</returns>
-        //protected override IEnumerable<XElement> GetDeclarationsFromTypeElement(XElement container) {
-        //    foreach(var decl in base.GetDeclarationsFromTypeElement(container)) {
-        //        yield return decl;
-        //    }
-
-        //    var block = container.Element(SRC.Block);
-        //    var specifierElements = from child in block.Elements()
-        //                            where SpecifierContainerNames.Contains(child.Name)
-        //                            select child;
-
-        //    foreach(var specifierElement in specifierElements) {
-        //        foreach(var declElement in GetDeclarationsFromBlockElement(specifierElement)) {
-        //            yield return declElement;
-        //        }
-        //    }
-        //}
 
         /// <summary>
         /// Gets the name for a method. This is the unqualified name, not any class names that might

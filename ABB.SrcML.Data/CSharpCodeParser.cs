@@ -39,23 +39,13 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Checks if the using statement is a namespace import
-        /// </summary>
-        /// <param name="aliasStatement"></param>
-        /// <returns></returns>
-        protected override bool AliasIsNamespaceImport(XElement aliasStatement) {
-            // TODO handle "using A = B.C"
-            return true;
-        }
-
-        /// <summary>
         /// Tests whether this container is a reference or whether it includes a definition.
         /// </summary>
         /// <param name="element">The element to test</param>
         /// <returns>True if this is a reference element; false otherwise</returns>
         protected override bool ContainerIsReference(XElement element) {
             if(element == null) {
-                throw new ArgumentNullException("typeUseElement");
+                throw new ArgumentNullException("element");
             }
 
             var functionNames = new[] { SRC.Function, SRC.Constructor, SRC.Destructor };
@@ -249,6 +239,12 @@ namespace ABB.SrcML.Data {
             return stmt;
         }
 
+        /// <summary>
+        /// Parses the given <paramref name="usingElement"/> and creates a <see cref="UsingBlockStatement"/> from it.
+        /// </summary>
+        /// <param name="usingElement">The SRC.Using element to parse.</param>
+        /// <param name="context">The parser context to use.</param>
+        /// <returns>A UsingBlockStatement created from the given usingElement.</returns>
         protected virtual UsingBlockStatement ParseUsingBlockElement(XElement usingElement, ParserContext context) {
             if(usingElement == null)
                 throw new ArgumentNullException("usingElement");
@@ -276,7 +272,11 @@ namespace ABB.SrcML.Data {
             return usingStmt;
         }
 
-
+        /// <summary>
+        /// Creates a <see cref="MethodDefinition"/> object for <paramref name="methodElement"/>.
+        /// </summary>
+        /// <param name="methodElement">The element to parse</param>
+        /// <param name="context">The context to use</param>
         protected override MethodDefinition ParseMethodElement(XElement methodElement, ParserContext context) {
             var methodDefinition = base.ParseMethodElement(methodElement, context);
             
@@ -285,19 +285,28 @@ namespace ABB.SrcML.Data {
 
             return methodDefinition;
         }
+
+        /// <summary>
+        /// Parses an element corresponding to a type definition and creates a TypeDefinition object 
+        /// </summary>
+        /// <param name="typeElement">The type element to parse. This must be one of the elements contained in TypeElementNames.</param>
+        /// <param name="context">The parser context</param>
+        /// <returns>A TypeDefinition parsed from the element</returns>
         protected override TypeDefinition ParseTypeElement(XElement typeElement, ParserContext context) {
             var typeDefinition = base.ParseTypeElement(typeElement, context);
             typeDefinition.IsPartial = ElementHasPartialKeyword(typeElement);
             return typeDefinition;
         }
 
-        private bool ElementHasPartialKeyword(XElement element) {
-            var partials = from specifier in element.Elements(SRC.Specifier)
-                           where specifier.Value == "partial"
-                           select specifier;
-            return partials.Any();
-        }
-
+        
+        /// <summary>
+        /// Creates a <see cref="Statement"/> object for <paramref name="stmtElement"/>.
+        /// The expression contained within <paramref name="stmtElement"/> will be parsed and placed in 
+        /// Statement.Content.
+        /// </summary>
+        /// <param name="stmtElement">The SRC.ExpressionStatement element to parse.</param>
+        /// <param name="context">The context to use.</param>
+        /// <returns>A <see cref="Statement"/> corresponding to <paramref name="stmtElement"/>.</returns>
         protected override Statement ParseDeclarationStatementElement(XElement stmtElement, ParserContext context) {
             if(stmtElement == null)
                 throw new ArgumentNullException("stmtElement");
@@ -320,6 +329,12 @@ namespace ABB.SrcML.Data {
             return base.ParseDeclarationStatementElement(stmtElement, context);
         }
 
+        /// <summary>
+        /// Creates a <see cref="PropertyDefinition"/> object for <paramref name="declElement"/>.
+        /// </summary>
+        /// <param name="declElement">The SRC.Declaration element to parse. This must be a declaration of a property.</param>
+        /// <param name="context">The context to use.</param>
+        /// <returns>A <see cref="PropertyDefinition"/> corresponding to <paramref name="declElement"/>.</returns>
         protected virtual PropertyDefinition ParsePropertyDeclarationElement(XElement declElement, ParserContext context) {
             if(declElement == null)
                 throw new ArgumentNullException("declElement");
@@ -351,93 +366,17 @@ namespace ABB.SrcML.Data {
             return propertyDef;
         }
 
-        //TODO: implement C# type use parsing
-        ///// <summary>
-        ///// Parses the given typeUseElement and returns a TypeUse object. This handles the "var"
-        ///// keyword for C# if used
-        ///// </summary>
-        ///// <param name="typeUseElement">The XML type use element</param>
-        ///// <param name="context">The parser context</param>
-        ///// <returns>A new TypeUse object</returns>
-        //protected override TypeUse ParseTypeUseElement(XElement typeUseElement, ParserContext context) {
-        //    if(typeUseElement == null)
-        //        throw new ArgumentNullException("typeUseElement");
-
-        //    XElement typeElement;
-        //    XElement typeNameElement;
-
-        //    // validate the type use typeUseElement (must be a SRC.Name or SRC.Type)
-        //    if(typeUseElement.Name == SRC.Type) {
-        //        typeElement = typeUseElement;
-        //        typeNameElement = typeUseElement.Elements(SRC.Name).LastOrDefault();
-        //    } else if(typeUseElement.Name == SRC.Name) {
-        //        typeElement = typeUseElement.Ancestors(SRC.Type).FirstOrDefault();
-        //        typeNameElement = typeUseElement;
-        //    } else {
-        //        throw new ArgumentException("typeUseElement should be of type type or name", "typeUseElement");
-        //    }
-
-        //    if(typeNameElement.Value == "var") {
-        //        var initElement = typeElement.ElementsAfterSelf(SRC.Init).FirstOrDefault();
-        //        var expressionElement = (null == initElement ? null : initElement.Element(SRC.Expression));
-        //        var callElement = (null == expressionElement ? null : expressionElement.Element(SRC.Call));
-
-        //        IResolvesToType initializer = (null == callElement ? null : ParseCallElement(callElement, context));
-        //        var typeUse = new CSharpVarTypeUse() {
-        //            Name = typeNameElement.Value,
-        //            Initializer = initializer,
-        //            ParentScope = context.CurrentStatement,
-        //            Location = context.CreateLocation(typeNameElement),
-        //            ProgrammingLanguage = this.ParserLanguage,
-        //        };
-        //        return typeUse;
-        //    } else {
-        //        return base.ParseTypeUseElement(typeUseElement, context);
-        //    }
-        //}
-
-        //TODO: implement support for using blocks, once SrcML has been fixed to parse them correctly
-        ///// <summary>
-        ///// Gets all of the variable declarations from a container
-        ///// </summary>
-        ///// <param name="container">the container</param>
-        ///// <param name="fileUnit">the containing file unit</param>
-        ///// <returns>An enumerable of variable declarations</returns>
-        //public override IEnumerable<VariableDeclaration> GetVariableDeclarationsFromContainer(XElement container, XElement fileUnit, Scope parentScope) {
-        //    if(null == container) return Enumerable.Empty<VariableDeclaration>();
-
-        // if(container.Name != SRC.Using) { return
-        // base.GetVariableDeclarationsFromContainer(container, fileUnit, parentScope); } //parse
-        // using typeUseElement
-
-        //}
-
         #region Private methods
 
-        //private NamespaceUse CreateNamespaceUsePrefix(XElement nameElement, ParserContext context) {
-        //    IEnumerable<XElement> parentNameElements = Enumerable.Empty<XElement>();
-
-        //    parentNameElements = NameHelper.GetNameElementsExceptLast(nameElement);
-        //    NamespaceUse current = null, root = null;
-
-        //    if(parentNameElements.Any()) {
-        //        foreach(var element in parentNameElements) {
-        //            var namespaceUse = new NamespaceUse {
-        //                Name = element.Value,
-        //                Location = context.CreateLocation(element, false),
-        //                ProgrammingLanguage = this.ParserLanguage,
-        //            };
-        //            if(null == root) {
-        //                root = namespaceUse;
-        //            }
-        //            if(current != null) {
-        //                current.ChildScopeUse = namespaceUse;
-        //            }
-        //            current = namespaceUse;
-        //        }
-        //    }
-        //    return root;
-        //}
+        /// <summary>
+        /// Determines whether the given element contains a specifier element with the value "partial".
+        /// </summary>
+        private bool ElementHasPartialKeyword(XElement element) {
+            var partials = from specifier in element.Elements(SRC.Specifier)
+                           where specifier.Value == "partial"
+                           select specifier;
+            return partials.Any();
+        }
 
         #endregion Private methods
     }

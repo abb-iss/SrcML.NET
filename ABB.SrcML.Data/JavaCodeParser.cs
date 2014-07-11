@@ -39,44 +39,6 @@ namespace ABB.SrcML.Data {
             get { return Language.Java; }
         }
 
-        /// <summary>
-        /// Checks if this java import statement is a wild card (<c>import java.lang.*</c>) or for a
-        /// specific class (<c>import java.lang.String</c>)
-        /// </summary>
-        /// <param name="aliasStatement">The alias statement to check. Must be of type see
-        /// cref="AbstractCodeParser.AliasElementName"/></param>
-        /// <returns>True if this import statement ends with an asterisk; false otherwise</returns>
-        protected override bool AliasIsNamespaceImport(XElement aliasStatement) {
-            if(null == aliasStatement)
-                throw new ArgumentNullException("aliasStatement");
-            if(aliasStatement.Name != AliasElementName)
-                throw new ArgumentException(String.Format("should be an {0} statement", AliasElementName), "aliasStatement");
-
-            var lastName = aliasStatement.Elements(SRC.Name).LastOrDefault();
-            var textContainsAsterisk = (from textNode in GetTextNodes(aliasStatement)
-                                        where textNode.IsAfter(lastName)
-                                        where textNode.Value.Contains("*")
-                                        select textNode).Any();
-            return textContainsAsterisk;
-        }
-
-        /// <summary>
-        /// Gets all of the names for this alias
-        /// </summary>
-        /// <param name="aliasStatement">The alias statement. Must be of type see
-        /// cref="AbstractCodeParser.AliasElementName"/></param>
-        /// <returns>An enumerable of all the <see cref="ABB.SrcML.SRC.Name">name elements</see> for
-        /// this statement</returns>
-        protected override IEnumerable<XElement> GetNamesFromAlias(XElement aliasStatement) {
-            if(null == aliasStatement)
-                throw new ArgumentNullException("aliasStatement");
-            if(aliasStatement.Name != AliasElementName)
-                throw new ArgumentException(String.Format("should be an {0} statement", AliasElementName), "aliasStatement");
-
-            var nameElements = from name in aliasStatement.Elements(SRC.Name)
-                               select name;
-            return nameElements;
-        }
 
         /// <summary>
         /// Gets the parent type from a java type
