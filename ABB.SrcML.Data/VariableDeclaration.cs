@@ -20,7 +20,7 @@ namespace ABB.SrcML.Data {
     /// <summary>
     /// Represents a variable declaration
     /// </summary>
-    public class VariableDeclaration : Expression {
+    public class VariableDeclaration : Expression, INamedEntity {
         private TypeUse varType;
         private Expression initExpression;
         
@@ -84,6 +84,25 @@ namespace ABB.SrcML.Data {
         /// </summary>
         protected override IEnumerable<AbstractProgramElement> GetChildren() {
             return Enumerable.Repeat(Initializer, 1).Concat(base.GetChildren());
+        }
+
+        /// <summary>
+        /// Returns the children of this declaration that have the given name.
+        /// This method searches only the immediate children, and not further descendants.
+        /// </summary>
+        /// <param name="name">The name to search for.</param>
+        public IEnumerable<INamedEntity> GetNamedChildren(string name) {
+            return GetNamedChildren<INamedEntity>(name);
+        }
+
+        /// <summary>
+        /// Returns the children of this declaration that have the given name, and the given type.
+        /// This method searches only the immediate children, and not further descendants.
+        /// </summary>
+        /// <typeparam name="T">The type of children to return.</typeparam>
+        /// <param name="name">The name to search for.</param>
+        public IEnumerable<T> GetNamedChildren<T>(string name) where T : INamedEntity {
+            return GetChildren().OfType<T>().Where(c => c.Name == name);
         }
 
         /// <summary>

@@ -176,20 +176,10 @@ namespace ABB.SrcML.Data {
             }
 
             //If there's a calling expression, resolve and search under the results
-            var siblings = GetSiblingsBeforeSelf().ToList();
-            var priorOp = siblings.LastOrDefault() as OperatorUse;
-            if(priorOp != null && NameInclusionOperators.Contains(priorOp.Text)) {
-                var callingExp = siblings[siblings.Count - 2]; //second-to-last sibling
-                IEnumerable<INamedEntity> parents;
-                if(callingExp is NameUse) {
-                    parents = ((NameUse)callingExp).FindMatches();
-                    //TODO: fix this, we actually need to get the type if this resolves to a method or property. Fix in other resolution methods too.
-                } else {
-                    parents = callingExp.ResolveType();
-                }
-                return parents.SelectMany(p => p.GetNamedChildren<MethodDefinition>(this.Name)).Where(Matches);
+            var callingScopes = GetCallingScope();
+            if(callingScopes != null) {
+                return callingScopes.SelectMany(s => s.GetNamedChildren<MethodDefinition>(this.Name).Where(Matches));
             }
-
             
 
             //TODO: look for matches starting from the global scope?

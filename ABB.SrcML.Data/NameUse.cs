@@ -171,16 +171,11 @@ namespace ABB.SrcML.Data {
                 return Prefix.FindMatches().SelectMany(ns => ns.GetNamedChildren<TypeDefinition>(this.Name));
             }
 
-            //If preceded by a name, match and search under results
-            var siblings = GetSiblingsBeforeSelf().ToList();
-            var priorOp = siblings.LastOrDefault() as OperatorUse;
-            if(priorOp != null && NameInclusionOperators.Contains(priorOp.Text)) {
-                var priorName = siblings[siblings.Count - 2] as NameUse; //second-to-last sibling
-                if(priorName != null) {
-                    var parents = priorName.FindMatches();
-                    return parents.SelectMany(p => p.GetNamedChildren<INamedEntity>(this.Name));
-                }
-            } 
+            //If there's a calling expression, match and search under results
+            var callingScopes = GetCallingScope();
+            if(callingScopes != null) {
+                return callingScopes.SelectMany(s => s.GetNamedChildren<INamedEntity>(this.Name));
+            }
 
             //TODO: handle aliases
 
@@ -196,8 +191,66 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <returns>An enumerable of the matching TypeDefinitions for this expression's possible types.</returns>
         public override IEnumerable<TypeDefinition> ResolveType() {
-            return base.ResolveType();
             //TODO: add type to INamedEntity interface, and update this method to retrieve it from the results of FindMatches()
+
+            var matches = FindMatches();
+            foreach(var match in matches) {
+                if(match is TypeDefinition) {
+                    yield return match as TypeDefinition;
+                } else if(match is PropertyDefinition) {
+                    foreach(var retType in ((PropertyDefinition)match).ReturnType.ResolveType()) {
+                        yield return retType;
+                    }
+                } else if(match is MethodDefinition) {
+                    foreach(var retType in ((MethodDefinition)match).ReturnType.ResolveType()) {
+                        yield return retType;
+                    }
+                } else if(match is VariableDeclaration) {
+                    foreach(var retType in ((VariableDeclaration)match).VariableType.ResolveType()) {
+                        yield return retType;
+                    }
+                } else {
+                    yield return null;
+                }
+            }
+        }
+
+        /// <summary>
+        /// If there is a calling expession preceding this NameUse, this method resolves it
+        /// to determine the scope(s) in which to search for the use's name.
+        /// </summary>
+        /// <returns>An enumerable of the named entities that may contain the name being used in this NameUse.
+        /// Returns null if there is no suitable calling expression.
+        /// Returns an empty enumerable if there is a calling expression, but not matches are found.</returns>
+        protected IEnumerable<INamedEntity> GetCallingScope() {
+            var siblings = GetSiblingsBeforeSelf().ToList();
+            var priorOp = siblings.LastOrDefault() as OperatorUse;
+            if(priorOp == null || !NameInclusionOperators.Contains(priorOp.Text)) {
+                return null;
+            }
+
+            var callingExp = siblings[siblings.Count - 2]; //second-to-last sibling
+            var callingName = callingExp as NameUse;
+            if(callingName == null) {
+                //Not a NameUse, probably an Expression
+                return callingExp.ResolveType();
+            }
+
+            var matches = callingName.FindMatches();
+            var scopes = new List<INamedEntity>();
+            foreach(var match in matches) {
+                //TODO: update this to use GetEntityType method from INamedEntity
+                if(match is MethodDefinition) {
+                    scopes.AddRange(((MethodDefinition)match).ReturnType.ResolveType());
+                } else if(match is PropertyDefinition) {
+                    scopes.AddRange(((PropertyDefinition)match).ReturnType.ResolveType());
+                } else if(match is VariableDeclaration) {
+                    scopes.AddRange(((VariableDeclaration)match).VariableType.ResolveType());
+                } else {
+                    scopes.Add(match);
+                }
+            }
+            return scopes;
         }
     }
 }
