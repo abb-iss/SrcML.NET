@@ -156,24 +156,23 @@ namespace ABB.SrcML.Data {
                    (this.Name == "super" && this.ProgrammingLanguage == Language.Java)) {
                     typeDefinitions = TypeDefinition.GetTypeForKeyword(this);
                 } else {
-                    //var tempTypeUse = new TypeUse() {
-                    //    Name = this.Name,
-                    //    ParentScope = this.ParentScope,
-                    //};
+                    var tempTypeUse = new TypeUse() {
+                        Name = this.Name,
+                        ParentStatement = this.ParentStatement
+                    };
                     //tempTypeUse.AddAliases(this.Aliases);
-                    //typeDefinitions = tempTypeUse.FindMatches();
-                    throw new NotImplementedException();
+                    typeDefinitions = tempTypeUse.ResolveType();
                 }
                 
                 //TODO: handle case of C++ constructor initialization lists. 
                 //These will be marked as constructor calls. They can be used to initialize fields, though, in which case the call name will be the field name,
                 //rather than a type name.
 
-                //matchingMethods = from typeDefinition in typeDefinitions
-                //                  from method in typeDefinition.GetChildScopesWithId<MethodDefinition>(typeDefinition.Name)
-                //                  where Matches(method)
-                //                  select method;
-                throw new NotImplementedException();
+                var matchingMethods = from typeDefinition in typeDefinitions
+                                      from method in typeDefinition.GetNamedChildren<MethodDefinition>(typeDefinition.Name)
+                                      where Matches(typeDefinition.Name, method)
+                                      select method;
+                return matchingMethods;
             }
 
             //If there's a calling expression, resolve and search under the results
@@ -228,27 +227,6 @@ namespace ABB.SrcML.Data {
             }
         }
 
-        /// <summary>
-        /// Returns the possible names for this method call. 
-        /// This is used to translate keywords like 'this' or 'base' to actual method names.
-        /// </summary>
-        public IEnumerable<string> GetPossibleNames() {
-            if(this.Name == "this") {
-                foreach(var containingType in GetAncestors<TypeDefinition>().Take(1)) {
-                    yield return containingType.Name;
-                }
-            } else if(this.Name == "base" && ProgrammingLanguage == Language.CSharp) {
-                var typeDefinitions = from containingType in GetAncestors<TypeDefinition>()
-                                      from parentTypeReference in containingType.ParentTypeNames
-                                      from parentType in parentTypeReference.ResolveType()
-                                      select parentType;
-                foreach(var baseType in typeDefinitions) {
-                    yield return baseType.Name;
-                }
-            } else {
-                yield return this.Name;
-            }
-        }
 
         /// <summary>
         /// Tests if the provided method definition matches this method call
@@ -256,6 +234,19 @@ namespace ABB.SrcML.Data {
         /// <param name="definition">The method definition to test</param>
         /// <returns>True if this method call matches the provided method definition</returns>
         public bool Matches(MethodDefinition definition) {
+            return Matches(this.Name, definition);
+        }
+
+        /// <summary>
+        /// Tests if the provided method definition matches this method call. The parameter <paramref name="callName"/>
+        /// specifies the name to use for this method call. This is useful for cases where the call is a
+        /// keyword, like "base", "this" or "super". The caller can first translate the keyword to the
+        /// actual method name to match against.
+        /// </summary>
+        /// <param name="definition">The method definition to test</param>
+        /// <param name="callName">The name to use for the method call.</param>
+        /// <returns>True if this method call matches the provided method definition</returns>
+        public bool Matches(string callName, MethodDefinition definition) {
             if(null == definition) {
                 return false;
             }
@@ -267,7 +258,7 @@ namespace ABB.SrcML.Data {
 
             return this.IsConstructor == definition.IsConstructor &&
                    this.IsDestructor == definition.IsDestructor &&
-                   GetPossibleNames().Any(n => n == definition.Name) &&
+                   callName == definition.Name &&
                    this.Arguments.Count >= numberOfMethodParameters - numberOfMethodParametersWithDefault &&
                    this.Arguments.Count <= numberOfMethodParameters;// &&
                                                                        //argumentsMatchParameters.All(a => a);

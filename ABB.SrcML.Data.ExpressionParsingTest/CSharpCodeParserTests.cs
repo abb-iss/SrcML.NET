@@ -146,6 +146,32 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreSame(queryMethod, callToQuery.FindMatches().FirstOrDefault());
         }
 
+        [Test]
+        public void TestCallConstructor() {
+            //class Foo {
+            //  public Foo() { }
+            //}
+            //class Bar {
+            //  Foo myFoo = new Foo();
+            //}
+            string xml = @"<class>class <name>Foo</name> <block>{
+  <constructor><specifier>public</specifier> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></constructor>
+}</block></class>
+<class>class <name>Bar</name> <block>{
+  <decl_stmt><decl><type><name>Foo</name></type> <name>myFoo</name> <init>= <expr><op:operator>new</op:operator> <call><name>Foo</name><argument_list>()</argument_list></call></expr></init></decl>;</decl_stmt>
+}</block></class>";
+            var xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
+
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            Assert.AreEqual(2, globalScope.ChildStatements.Count);
+
+            var fooConstructor = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "Foo");
+            Assert.IsNotNull(fooConstructor);
+            var fooCall = globalScope.ChildStatements[1].ChildStatements[0].Content.GetDescendantsAndSelf<MethodCall>().FirstOrDefault(mc => mc.Name == "Foo");
+            Assert.IsNotNull(fooCall);
+            Assert.AreSame(fooConstructor, fooCall.FindMatches().First());
+        }
+
 //        [Test]
 //        public void TestConstructorWithBaseKeyword() {
 //            // B.cs namespace A { class B { public B() { } } }
