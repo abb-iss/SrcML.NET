@@ -1951,6 +1951,25 @@
         </generalsInternal>
       </class>
     </packageHasNamedElement>
+    <packageHasNamedElement>
+      <class
+        Id="d501f85c-f971-4046-934f-20e181dbbd33"
+        name="DeclarationStatement"
+        isAbstract="false"
+        isLeaf="false"
+        isActiveClass="false">
+        <generalsInternal>
+          <generalization
+            Id="1d73cd11-18aa-4713-9279-e53533c6b59b"
+            isSubstitutable="false">
+            <classMoniker
+              Id="3c930dc3-adce-4432-b0c6-c7f3341a7529"
+              LastKnownName="Statement"
+              LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </packageHasNamedElement>
   </packagedElements>
   <primitiveType
     Id="220a3521-e091-4221-bae9-3ef9018e845c"

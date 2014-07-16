@@ -59,6 +59,7 @@ namespace ABB.SrcML.Data {
             { LabelStatement.XmlName, CreateFromReader<LabelStatement> },
             { ReturnStatement.XmlName, CreateFromReader<ReturnStatement> },
             { ThrowStatement.XmlName, CreateFromReader<ThrowStatement> },
+            { DeclarationStatement.XmlName, CreateFromReader<DeclarationStatement> },
 
             /* block statements */
             { BlockStatement.XmlName, CreateFromReader<BlockStatement> },

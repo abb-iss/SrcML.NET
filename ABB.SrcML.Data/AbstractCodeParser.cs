@@ -850,7 +850,8 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="stmtElement">The SRC.DeclarationStatement element to parse.</param>
         /// <param name="context">The context to use.</param>
-        /// <returns>A <see cref="Statement"/> corresponding to <paramref name="stmtElement"/>.</returns>
+        /// <returns>A <see cref="DeclarationStatement"/> corresponding to <paramref name="stmtElement"/>.
+        /// The return type is <see cref="Statement"/> so that subclasses can return another type, as necessary. </returns>
         protected virtual Statement ParseDeclarationStatementElement(XElement stmtElement, ParserContext context) {
             if(stmtElement == null)
                 throw new ArgumentNullException("stmtElement");
@@ -859,7 +860,7 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            var stmt = new Statement() {
+            var stmt = new DeclarationStatement() {
                 ProgrammingLanguage = ParserLanguage,
                 Content = ParseExpression(GetChildExpressions(stmtElement), context)
             };

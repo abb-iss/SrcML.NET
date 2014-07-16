@@ -60,6 +60,66 @@ namespace ABB.SrcML.Data.Test
             Assert.AreSame(varDecls[0].VariableType, varDecls[1].VariableType);
         }
 
+        
+        [TestCase(Language.CSharp)]
+        [TestCase(Language.Java)]
+        public void TestField(Language lang) {
+            //class A {
+            //  int Foo;
+            //  Bar baz;
+            //}
+            string xml = @"<class>class <name>A</name> <block>{
+  <decl_stmt><decl><type><name>int</name></type> <name>Foo</name></decl>;</decl_stmt>
+  <decl_stmt><decl><type><name>Bar</name></type> <name>baz</name></decl>;</decl_stmt>
+}</block></class>";
+            var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(xml, "test.code");
+
+            var globalScope = codeParsers[lang].ParseFileUnit(xmlElement);
+            var declStmts = globalScope.GetDescendantsAndSelf<DeclarationStatement>().ToList();
+            Assert.AreEqual(2, declStmts.Count);
+            
+            var foo = declStmts[0].Content.GetDescendantsAndSelf<VariableDeclaration>().FirstOrDefault();
+            Assert.IsNotNull(foo);
+            Assert.AreEqual("Foo", foo.Name);
+            Assert.AreEqual("int", foo.VariableType.Name);
+            Assert.AreEqual(AccessModifier.None, foo.Accessibility);
+
+            var baz = declStmts[1].Content.GetDescendantsAndSelf<VariableDeclaration>().FirstOrDefault();
+            Assert.IsNotNull(baz);
+            Assert.AreEqual("baz", baz.Name);
+            Assert.AreEqual("Bar", baz.VariableType.Name);
+            Assert.AreEqual(AccessModifier.None, baz.Accessibility);
+        }
+
+        [TestCase(Language.CPlusPlus)]
+        public void TestField_Cpp(Language lang) {
+            //class A {
+            //  int Foo;
+            //  Bar baz;
+            //}
+            string xml = @"<class>class <name>A</name> <block>{<private type=""default"">
+  <decl_stmt><decl><type><name>int</name></type> <name>Foo</name></decl>;</decl_stmt>
+  <decl_stmt><decl><type><name>Bar</name></type> <name>baz</name></decl>;</decl_stmt>
+</private>}</block><decl/></class>";
+            var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(xml, "test.code");
+
+            var globalScope = codeParsers[lang].ParseFileUnit(xmlElement);
+            var declStmts = globalScope.GetDescendantsAndSelf<DeclarationStatement>().ToList();
+            Assert.AreEqual(2, declStmts.Count);
+            
+            var foo = declStmts[0].Content.GetDescendantsAndSelf<VariableDeclaration>().FirstOrDefault();
+            Assert.IsNotNull(foo);
+            Assert.AreEqual("Foo", foo.Name);
+            Assert.AreEqual("int", foo.VariableType.Name);
+            Assert.AreEqual(AccessModifier.None, foo.Accessibility);
+
+            var baz = declStmts[1].Content.GetDescendantsAndSelf<VariableDeclaration>().FirstOrDefault();
+            Assert.IsNotNull(baz);
+            Assert.AreEqual("baz", baz.Name);
+            Assert.AreEqual("Bar", baz.VariableType.Name);
+            Assert.AreEqual(AccessModifier.None, baz.Accessibility);
+        }
+
         [TestCase(Language.CSharp)]
         [TestCase(Language.Java)]
         public void TestMethodCallCreation(Language lang) {

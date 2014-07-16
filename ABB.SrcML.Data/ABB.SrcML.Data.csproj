@@ -69,6 +69,7 @@
     <Compile Include="DataArchive.cs" />
     <Compile Include="DataFileNameMapping.cs" />
     <Compile Include="DataGenerator.cs" />
+    <Compile Include="DeclarationStatement.cs" />
     <Compile Include="DoWhileStatement.cs" />
     <Compile Include="ErrorRaisedArgs.cs" />
     <Compile Include="Expression.cs" />

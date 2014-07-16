@@ -193,6 +193,27 @@ namespace ABB.SrcML.Data {
             return base.GetSiblingsAfterSelf().Cast<Statement>();
         }
 
+
+        ///// <summary>
+        ///// Returns the variables declared within this statement.
+        ///// </summary>
+        ///// <param name="recursive">If true, the method returns the variables declared within the statement's children. If false, it does not.</param>
+        //public virtual IEnumerable<VariableDeclaration> GetDeclarations(bool recursive) {
+        //    if(Content != null) {
+        //        foreach(var decl in Content.GetDescendantsAndSelf<VariableDeclaration>()) {
+        //            yield return decl;
+        //        }
+        //    }
+
+        //    //TODO: fix recursiveness to properly handle block statements, where the user would want to get the immediate children (i.e. the things in the block)
+        //    //but not any lower children.
+        //    if(recursive) {
+        //        foreach(var decl in GetChildren().OfType<Statement>().SelectMany(s => s.GetDeclarations(true))) {
+        //            yield return decl;
+        //        }
+        //    }
+        //}
+
         public virtual bool CanBeMergedWith(Statement otherStatement) {
             return this.ComputeMergeId() == otherStatement.ComputeMergeId();
         }
