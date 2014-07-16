@@ -272,7 +272,13 @@ namespace ABB.SrcML.Data {
         /// <typeparam name="T">The type of children to return.</typeparam>
         /// <param name="name">The name to search for.</param>
         public IEnumerable<T> GetNamedChildren<T>(string name) where T : INamedEntity {
-            return ChildStatements.OfType<T>().Where(ns => ns.Name == name);
+            var scopes = GetChildren().OfType<T>().Where(ns => ns.Name == name);
+            var decls = from declStmt in GetChildren().OfType<DeclarationStatement>()
+                        from decl in declStmt.GetDeclarations().OfType<T>()
+                        where decl.Name == name
+                        select decl;
+
+            return scopes.Concat(decls);
             //TODO: update to search variable/field declarations as well
         }
     }

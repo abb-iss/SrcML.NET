@@ -19,5 +19,17 @@ namespace ABB.SrcML.Data {
         public override string GetXmlName() {
             return DeclarationStatement.XmlName;
         }
+
+        /// <summary>
+        /// Returns an enumerable of the variable declarations in this statement.
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<VariableDeclaration> GetDeclarations() {
+            if(Content != null) {
+                return Content.GetDescendantsAndSelf<VariableDeclaration>();
+            } else {
+                return Enumerable.Empty<VariableDeclaration>();
+            }
+        }
     }
 }

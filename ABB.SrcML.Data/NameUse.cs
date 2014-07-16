@@ -174,7 +174,7 @@ namespace ABB.SrcML.Data {
             }
 
 
-            //TODO: search for variable declarations
+            //TODO: search for local variables
             //search for types/namespaces/methods/properties
 
             //If there's a prefix, resolve that and search under results
