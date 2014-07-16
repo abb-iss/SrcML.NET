@@ -80,10 +80,18 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Returns the child expressions, including the Initializer.
+        /// Returns the child expressions, including the VariableType and Initializer.
         /// </summary>
         protected override IEnumerable<AbstractProgramElement> GetChildren() {
-            return Enumerable.Repeat(Initializer, 1).Concat(base.GetChildren());
+            if(VariableType != null) {
+                yield return VariableType;
+            }
+            if(Initializer != null) {
+                yield return Initializer;
+            }
+            foreach(var child in base.GetChildren()) {
+                yield return child;
+            }
         }
 
         /// <summary>

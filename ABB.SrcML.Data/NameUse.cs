@@ -92,6 +92,17 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
+        /// Returns the child expressions, including the Prefix.
+        /// </summary>
+        protected override IEnumerable<AbstractProgramElement> GetChildren() {
+            if(Prefix != null) {
+                return Enumerable.Repeat(Prefix, 1).Concat(base.GetChildren());
+            } else {
+                return base.GetChildren();
+            }
+        }
+
+        /// <summary>
         /// Instance method for getting <see cref="NameUse.XmlName"/>
         /// </summary>
         /// <returns>Returns the XML name for NameUse</returns>
@@ -168,7 +179,7 @@ namespace ABB.SrcML.Data {
 
             //If there's a prefix, resolve that and search under results
             if(Prefix != null) {
-                return Prefix.FindMatches().SelectMany(ns => ns.GetNamedChildren<TypeDefinition>(this.Name));
+                return Prefix.FindMatches().SelectMany(ns => ns.GetNamedChildren<INamedEntity>(this.Name));
             }
 
             //If there's a calling expression, match and search under results

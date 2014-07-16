@@ -122,6 +122,13 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        /// <summary>
+        /// Returns the child expressions, including the TypeArguments and Arguments.
+        /// </summary>
+        protected override IEnumerable<AbstractProgramElement> GetChildren() {
+            return TypeArguments.Concat(Arguments).Concat(base.GetChildren());
+        }
+
         /// <summary> Returns a string representation of this object. </summary>
         public override string ToString() {
             var sb = new StringBuilder();

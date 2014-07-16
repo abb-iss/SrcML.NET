@@ -209,5 +209,49 @@ namespace ABB.SrcML.Data.Test
             Assert.IsNotNull(five);
             Assert.AreEqual("5", five.Text);
         }
+
+        [TestCase(Language.CPlusPlus)]
+        [TestCase(Language.Java)]
+        [TestCase(Language.CSharp)]
+        public void TestGetChildren_Statements(Language lang) {
+            //if(foo == 0) {
+            //  return;
+            //  try {
+            //    return;
+            //  } catch(Exception e) {
+            //    return;
+            //  } 
+            //} else {
+            //  return;
+            //}
+            string xml = @"<if>if<condition>(<expr><name>foo</name> <op:operator>==</op:operator> <lit:literal type=""number"">0</lit:literal></expr>)</condition><then> <block>{
+  <return>return;</return>
+  <try>try <block>{
+    <return>return;</return>
+  }</block> <catch>catch<parameter_list>(<param><decl><type><name>Exception</name></type> <name>e</name></decl></param>)</parameter_list> <block>{
+    <return>return;</return>
+  }</block></catch></try> 
+}</block></then> <else>else <block>{
+  <return>return;</return>
+}</block></else></if>";
+            var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(xml, "test.code");
+
+            var globalScope = codeParsers[lang].ParseFileUnit(xmlElement);
+            Assert.AreEqual(1, globalScope.ChildStatements.Count);
+            Assert.AreEqual(4, globalScope.GetDescendantsAndSelf<ReturnStatement>().Count());
+        }
+
+        [TestCase(Language.CPlusPlus)]
+        [TestCase(Language.Java)]
+        [TestCase(Language.CSharp)]
+        public void TestGetChildren_Expressions(Language lang) {
+            //Foo f = (bar + baz(qux(17))).Xyzzy();
+            string xml = @"<decl_stmt><decl><type><name>Foo</name></type> <name>f</name> <init>= <expr><op:operator>(</op:operator><name>bar</name> <op:operator>+</op:operator> <call><name>baz</name><argument_list>(<argument><expr><call><name>qux</name><argument_list>(<argument><expr><lit:literal type=""number"">17</lit:literal></expr></argument>)</argument_list></call></expr></argument>)</argument_list></call><op:operator>)</op:operator><op:operator>.</op:operator><call><name>Xyzzy</name><argument_list>()</argument_list></call></expr></init></decl>;</decl_stmt>";
+            var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(xml, "test.code");
+
+            var globalScope = codeParsers[lang].ParseFileUnit(xmlElement);
+            Assert.AreEqual(1, globalScope.ChildStatements.Count);
+            Assert.AreEqual(3, globalScope.ChildStatements[0].Content.GetDescendantsAndSelf<MethodCall>().Count());
+        }
     }
 }

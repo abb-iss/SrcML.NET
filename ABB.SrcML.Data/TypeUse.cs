@@ -77,6 +77,12 @@ namespace ABB.SrcML.Data {
             typeParameterList.AddRange(typeParameters);
         }
 
+        /// <summary>
+        /// Returns the child expressions, including the TypeParameters.
+        /// </summary>
+        protected override IEnumerable<AbstractProgramElement> GetChildren() {
+            return TypeParameters.Concat(base.GetChildren());
+        }
 
         /// <summary>
         /// Finds all of the matches for this type

@@ -99,6 +99,13 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
+        /// Returns the child statements, including the catch and finally statements.
+        /// </summary>
+        protected override IEnumerable<AbstractProgramElement> GetChildren() {
+            return base.GetChildren().Concat(CatchStatements).Concat(FinallyStatements);
+        }
+
+        /// <summary>
         /// Processes the child of the current reader position into a child of this object.
         /// </summary>
         /// <param name="reader">The XML reader</param>

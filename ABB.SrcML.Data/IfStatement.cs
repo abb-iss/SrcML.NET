@@ -63,6 +63,13 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        /// <summary>
+        /// Returns the child statements, including those in the Else block.
+        /// </summary>
+        protected override IEnumerable<AbstractProgramElement> GetChildren() {
+            return base.GetChildren().Concat(ElseStatements);
+        }
+
         /// <summary> Returns the XML name for this program element. </summary>
         public override string GetXmlName() { return IfStatement.XmlName; }
 

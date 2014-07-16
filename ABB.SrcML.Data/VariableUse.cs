@@ -53,6 +53,17 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        /// <summary>
+        /// Returns the child expressions, including the Index.
+        /// </summary>
+        protected override IEnumerable<AbstractProgramElement> GetChildren() {
+            if(Index != null) {
+                return base.GetChildren().Concat(Enumerable.Repeat(Index, 1));
+            } else {
+                return base.GetChildren();
+            }
+        }
+
         /// <summary> Returns a string representation of this object. </summary>
         public override string ToString() {
             if(Index != null) {
