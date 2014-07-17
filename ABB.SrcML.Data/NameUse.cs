@@ -173,10 +173,6 @@ namespace ABB.SrcML.Data {
                 return TypeDefinition.GetTypeForKeyword(this);
             }
 
-
-            //TODO: search for local variables
-            //search for types/namespaces/methods/properties
-
             //If there's a prefix, resolve that and search under results
             if(Prefix != null) {
                 return Prefix.FindMatches().SelectMany(ns => ns.GetNamedChildren<INamedEntity>(this.Name));
@@ -187,6 +183,8 @@ namespace ABB.SrcML.Data {
             if(callingScopes != null) {
                 return callingScopes.SelectMany(s => s.GetNamedChildren<INamedEntity>(this.Name));
             }
+
+            //TODO: search for local variables
 
             //TODO: handle aliases
 

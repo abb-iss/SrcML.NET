@@ -802,6 +802,39 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
+        public void TestMethodCallCreation_GlobalFunction() {
+            //void foo(int a) { printf(a); }
+            //int main() {
+            //    foo(5);
+            //    return 0;
+            //}
+            string xml = @"<function><type><name>void</name></type> <name>foo</name><parameter_list>(<param><decl><type><name>int</name></type> <name>a</name></decl></param>)</parameter_list> <block>{ <expr_stmt><expr><call><name>printf</name><argument_list>(<argument><expr><name>a</name></expr></argument>)</argument_list></call></expr>;</expr_stmt> }</block></function>
+<function><type><name>int</name></type> <name>main</name><parameter_list>()</parameter_list> <block>{
+    <expr_stmt><expr><call><name>foo</name><argument_list>(<argument><expr><lit:literal type=""number"">5</lit:literal></expr></argument>)</argument_list></call></expr>;</expr_stmt>
+    <return>return <expr><lit:literal type=""number"">0</lit:literal></expr>;</return>
+}</block></function>
+";
+
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cpp");
+            var globalScope = codeParser.ParseFileUnit(unit);
+            Assert.AreEqual(2, globalScope.ChildStatements.Count);
+
+            var fooMethod = globalScope.GetNamedChildren<MethodDefinition>("foo").FirstOrDefault();
+            var mainMethod = globalScope.GetNamedChildren<MethodDefinition>("main").FirstOrDefault();
+
+            Assert.IsNotNull(fooMethod);
+            Assert.IsNotNull(mainMethod);
+            //Assert.AreEqual(2, mainMethod.MethodCalls.Count());
+
+            Assert.AreEqual(2, mainMethod.ChildStatements.Count);
+
+            var fiveCall = mainMethod.ChildStatements[0].Content.GetDescendantsAndSelf<MethodCall>().FirstOrDefault();
+            Assert.IsNotNull(fiveCall);
+            var matches = fiveCall.FindMatches();
+            Assert.AreSame(fooMethod, matches.FirstOrDefault());
+        }
+
+        [Test]
         public void TestMethodDefinitionWithReturnType() {
             //int Foo() { }
             string xml = @"<function><type><name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></function>";
@@ -890,6 +923,7 @@ namespace ABB.SrcML.Data.Test {
 
             var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cpp");
             var globalScope = codeParser.ParseFileUnit(unit);
+            Assert.AreEqual(2, globalScope.ChildStatements.Count);
 
             var fooMethod = globalScope.GetNamedChildren<MethodDefinition>("foo").FirstOrDefault();
             var mainMethod = globalScope.GetNamedChildren<MethodDefinition>("main").FirstOrDefault();

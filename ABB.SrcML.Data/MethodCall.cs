@@ -188,19 +188,18 @@ namespace ABB.SrcML.Data {
                 return callingScopes.SelectMany(s => s.GetNamedChildren<MethodDefinition>(this.Name).Where(Matches));
             }
             
+            //Search enclosing scopes for the method
+            var matches = new List<MethodDefinition>();
+            foreach(var containingScope in ParentStatement.GetAncestorsAndSelf<NamedScope>()) {
+                matches.AddRange(containingScope.GetNamedChildren<MethodDefinition>(this.Name));
+                //If this is a TypeDefinition, also search the parent types
+                var containingType = containingScope as TypeDefinition;
+                if(containingType != null) {
+                    matches.AddRange(containingType.GetParentTypes(true).SelectMany(t => t.GetNamedChildren<MethodDefinition>(this.Name)));
+                }
+            }
 
-            //TODO: look for matches starting from the global scope?
-            //var matches = base.FindMatches();
-
-            //if the method call occurs within a class, search that class (and its parents) for a matching method
-            var matchingTypeMethods = from containingType in ParentStatement.GetAncestorsAndSelf<TypeDefinition>()
-                                      from typeDefinition in containingType.GetParentTypesAndSelf(true)
-                                      from method in typeDefinition.GetNamedChildren<MethodDefinition>(this.Name)
-                                      where Matches(method)
-                                      select method;
-
-            //matchingMethods = matches.Concat(matchingTypeMethods);
-            return matchingTypeMethods;
+            return matches.Distinct();
 
         }
 
