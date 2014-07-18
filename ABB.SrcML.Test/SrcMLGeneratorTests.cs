@@ -29,6 +29,7 @@ namespace ABB.SrcML.Test {
         public static void FixtureInitialize() {
             Directory.CreateDirectory("srcmltest");
             Directory.CreateDirectory("srcml_xml");
+
             File.WriteAllText("srcmltest\\foo.c", String.Format(@"int foo() {{{0}printf(""hello world!"");{0}}}", Environment.NewLine));
 
             File.WriteAllText("srcmltest\\bar.c", String.Format(@"int bar() {{{0}    printf(""goodbye, world!"");{0}}}", Environment.NewLine));
@@ -63,6 +64,12 @@ namespace LoggingTransformation
 }
 ");
             File.WriteAllText("srcmltest\\File with spaces.cpp", String.Format(@"int foo() {{{0}    printf(""hello world!"");{0}}}", Environment.NewLine));
+
+            Directory.CreateDirectory("srcmltest\\BadPath™");
+            File.WriteAllText("srcmltest\\BadPath™\\badPathTest.c", String.Format(@"int foo() {{{0}printf(""hello world!"");{0}}}", Environment.NewLine));
+
+            File.WriteAllText("srcmltest\\fooBody.c", String.Format(@"int foo() {{{0}printf(""hello world!™"");{0}}}", Environment.NewLine));
+
         }
 
         [TestFixtureTearDown]
@@ -90,6 +97,22 @@ namespace LoggingTransformation
         public void DifferentLanguageTest() {
             generator.GenerateSrcMLFromFile("srcmltest\\CSHARP.cs", "srcml_xml\\differentlanguage_java.xml", Language.Java);
             var doc = new SrcMLFile("srcml_xml\\differentlanguage_java.xml");
+            Assert.IsNotNull(doc);
+        }
+
+        [Test]
+        public void PathWithWesternEuropeanEncoding()
+        {
+            generator.GenerateSrcMLFromFile("srcmltest\\BadPath™\\badPathTest.c", "srcml_xml\\badPathTest.xml", Language.C);
+            var doc = new SrcMLFile("srcml_xml\\badPathTest.xml");
+            Assert.IsNotNull(doc);
+        }
+
+        [Test]
+        public void BodyWithWesternEuropeanEncoding()
+        {
+            generator.GenerateSrcMLFromFile("srcmltest\\fooBody.c", "srcml_xml\\fooBody.xml", Language.C);
+            var doc = new SrcMLFile("srcml_xml\\fooBody.xml");
             Assert.IsNotNull(doc);
         }
 

@@ -15,13 +15,14 @@ using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 using System.Xml;
+using System.IO;
 
 namespace ABB.SrcML
 {
     /// <summary>
     /// Collection of static functions for working with XML.
     /// </summary>
-    internal static class XmlHelper
+    public static class XmlHelper
     {
         /// <summary>
         /// Stream elements that have the given name.
@@ -34,7 +35,7 @@ namespace ABB.SrcML
         /// <returns>elements from this XML document with name <paramref name="name"/></returns>
         public static IEnumerable<XElement> StreamElements(string fileName, XName name, int minimumDepth = 1)
         {
-            using (XmlReader reader = XmlReader.Create(fileName))
+            using (XmlReader reader = XmlReader.Create(GetCorrectlyEncodedStream(fileName)))
             {
                 IXmlLineInfo xmlLineInfo = reader as IXmlLineInfo;
 
@@ -63,6 +64,11 @@ namespace ABB.SrcML
                     }
                 }
             }
+        }
+
+        public static System.IO.TextReader GetCorrectlyEncodedStream(string fileName)
+        {
+            return new StreamReader(fileName, Encoding.GetEncoding(1252));
         }
 
         /// <summary>
