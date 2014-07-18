@@ -89,9 +89,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <returns>All of the type definitions that match this type use</returns>
         public override IEnumerable<TypeDefinition> ResolveType() {
-            //TODO: review this method and update it for changes in TypeUse structure
             //TODO: handle case of C# var type. Delete CSharpVarTypeUse if no longer necessary.
-            //throw new NotImplementedException();
             if(ParentStatement == null) {
                 throw new InvalidOperationException("ParentStatement is null");
             }
@@ -107,6 +105,7 @@ namespace ABB.SrcML.Data {
                 return Prefix.FindMatches().SelectMany(ns => ns.GetNamedChildren<TypeDefinition>(this.Name));
             }
 
+            //TODO: update to handle calling expression using new helper methods
             //If preceded by a name, match and search under results
             var siblings = GetSiblingsBeforeSelf().ToList();
             var priorOp = siblings.LastOrDefault() as OperatorUse;
@@ -118,29 +117,16 @@ namespace ABB.SrcML.Data {
                 }
             } 
 
-            //get aliases
-            //TODO: handle aliases
+            //search if there is an alias for this name
+            foreach(var alias in GetAliases()) {
+                if(alias.AliasName == this.Name) {
+                    var targetName = alias.Target.GetDescendantsAndSelf<NameUse>().LastOrDefault();
+                    if(targetName != null) {
+                        return targetName.FindMatches().OfType<TypeDefinition>();
+                    }
+                }
+            }
 
-            //search up data tree and using aliases
-
-
-            //var aliases = GetAliases();
-
-            //if(null != Prefix) {
-            //    var matches = from prefixMatch in Prefix.FindMatches()
-            //                  from match in prefixMatch.GetChildScopesWithId<TypeDefinition>(this.Name)
-            //                  select match;
-            //    foreach(var match in matches) {
-            //        yield return match;
-            //    }
-            //} else {
-            //    // First, just call AbstractUse.FindMatches() this will search everything in
-            //    // ParentScope.GetParentScopesAndSelf<TypeDefinition>() for a matching type and
-            //    // return it
-            //    foreach(var match in base.FindMatches()) {
-            //        yield return match;
-            //    }
-            //}
 
 
             ////look in surrounding type definition and its parents for a matching type
@@ -156,14 +142,22 @@ namespace ABB.SrcML.Data {
             //                    where Matches(type)
             //                    select type;
 
-            //TODO: search in more places
+            //TODO: search in more places, such as base types
 
-            var lex = from containingScope in ParentStatement.GetAncestorsAndSelf<NamedScope>()
-                      from type in containingScope.GetNamedChildren<TypeDefinition>(this.Name)
-                      where Matches(type)
-                      select type;
+            var lex = (from containingScope in ParentStatement.GetAncestorsAndSelf<NamedScope>()
+                       from type in containingScope.GetNamedChildren<TypeDefinition>(this.Name)
+                       where Matches(type)
+                       select type).ToList();
 
-            return lex;
+            if(lex.Any()) {
+                return lex;
+            }
+
+            //we didn't find it locally, search under imported namespaces
+            return (from import in GetImports()
+                    from match in import.ImportedNamespace.GetDescendantsAndSelf<NameUse>().Last().FindMatches()
+                    from child in match.GetNamedChildren<TypeDefinition>(this.Name)
+                    select child);
         }
 
         /// <summary>

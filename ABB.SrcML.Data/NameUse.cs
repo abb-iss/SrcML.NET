@@ -23,7 +23,7 @@ namespace ABB.SrcML.Data {
     /// </summary>
     public class NameUse : Expression {
         private NamePrefix prefix;
-        private List<Tuple<Expression, string>> aliases;
+        private List<Statement> aliases;
         
         /// <summary> The XML name for NameUse </summary>
         public new const string XmlName = "n";
@@ -66,30 +66,27 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Determines the set of aliases/imports active at the site of this name use.
+        /// Determines the set of aliases active at the site of this name use.
         /// </summary>
-        /// <returns>A list of tuples describing each alias. Each tuple contains (1) the target and (2) the new name for it, if any.</returns>
-        public IList<Tuple<Expression, string>> GetAliases() {
+        /// <returns>The AliasStatements occuring prior to this NameUse.</returns>
+        public IEnumerable<AliasStatement> GetAliases() {
             if(aliases == null) {
-                //alias list not yet initialized
-                //search through prior statements for imports/aliases
-                aliases = new List<Tuple<Expression, string>>();
-                var currentStmt = this.ParentStatement;
-                while(currentStmt != null) {
-                    foreach(var sibling in currentStmt.GetSiblingsBeforeSelf()) {
-                        if(sibling is ImportStatement) {
-                            var import = sibling as ImportStatement;
-                            aliases.Add(new Tuple<Expression, string>(import.ImportedNamespace, null));
-                        } else if(sibling is AliasStatement) {
-                            var alias = sibling as AliasStatement;
-                            aliases.Add(new Tuple<Expression, string>(alias.Target, alias.AliasName));
-                        }
-                    }
-                    currentStmt = currentStmt.ParentStatement;
-                }
+                aliases = DetermineAliases();
             }
-            return aliases;
+            return aliases.OfType<AliasStatement>();
         }
+
+        /// <summary>
+        /// Determines the set of imports active at the site of this name use.
+        /// </summary>
+        /// <returns>The ImportStatements occuring prior to this NameUse.</returns>
+        public IEnumerable<ImportStatement> GetImports() {
+            if(aliases == null) {
+                aliases = DetermineAliases();
+            }
+            return aliases.OfType<ImportStatement>();
+        }
+        
 
         /// <summary>
         /// Returns the child expressions, including the Prefix.
@@ -186,13 +183,28 @@ namespace ABB.SrcML.Data {
 
             //TODO: search for local variables
 
-            //TODO: handle aliases
+            //search if there is an alias for this name
+            foreach(var alias in GetAliases()) {
+                if(alias.AliasName == this.Name) {
+                    var targetName = alias.Target.GetDescendantsAndSelf<NameUse>().LastOrDefault();
+                    if(targetName != null) {
+                        return targetName.FindMatches();
+                    }
+                }
+            }
 
             //TODO: search better?
 
-            var lex = ParentStatement.GetAncestorsAndSelf<NamedScope>().SelectMany(ns => ns.GetNamedChildren<INamedEntity>(this.Name));
+            var lex = ParentStatement.GetAncestorsAndSelf<NamedScope>().SelectMany(ns => ns.GetNamedChildren<INamedEntity>(this.Name)).ToList();
+            if(lex.Any()) {
+                return lex;
+            }
 
-            return lex;
+            //we didn't find it locally, search under imported namespaces
+            return (from import in GetImports()
+                    from match in import.ImportedNamespace.GetDescendantsAndSelf<NameUse>().Last().FindMatches()
+                    from child in match.GetNamedChildren(this.Name)
+                    select child);
         }
 
         /// <summary>
@@ -261,5 +273,24 @@ namespace ABB.SrcML.Data {
             }
             return scopes;
         }
+
+        #region Private Methods
+        /// <summary>
+        /// Searches for the ImportStatements/AliasStatements that occur prior to this NameUse.
+        /// </summary>
+        private List<Statement> DetermineAliases() {
+            //search through prior statements for imports/aliases
+            aliases = new List<Statement>();
+            var currentStmt = this.ParentStatement;
+            while(currentStmt != null) {
+                //TODO: update to check that the alias is in the same file as the NameUse
+                foreach(var sibling in currentStmt.GetSiblingsBeforeSelf().Where(s => s is AliasStatement || s is ImportStatement)) {
+                    aliases.Add(sibling);
+                }
+                currentStmt = currentStmt.ParentStatement;
+            }
+            return aliases;
+        }
+        #endregion Private Methods
     }
 }

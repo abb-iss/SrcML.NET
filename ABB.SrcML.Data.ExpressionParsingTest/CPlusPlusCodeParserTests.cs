@@ -288,14 +288,13 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual(3, globalScope.ChildStatements.Count);
             var foo = globalScope.ChildStatements[2].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(n => n.Name == "foo");
             Assert.IsNotNull(foo);
-            var aliases = foo.GetAliases();
-            Assert.AreEqual(1, aliases.Count);
-            Assert.AreEqual("x :: y :: z", aliases[0].Item1.ToString());
-            Assert.IsNull(aliases[0].Item2);
+            var imports = foo.GetImports().ToList();
+            Assert.AreEqual(1, imports.Count);
+            Assert.AreEqual("x :: y :: z", imports[0].ImportedNamespace.ToString());
 
             var zDef = globalScope.GetDescendants<NamespaceDefinition>().FirstOrDefault(ns => ns.Name == "z");
             Assert.IsNotNull(zDef);
-            var zUse = aliases[0].Item1.GetDescendantsAndSelf<NameUse>().First(n => n.Name == "z");
+            var zUse = imports[0].ImportedNamespace.GetDescendantsAndSelf<NameUse>().First(n => n.Name == "z");
             Assert.AreSame(zDef, zUse.FindMatches().FirstOrDefault());
         }
 
@@ -316,12 +315,10 @@ namespace ABB.SrcML.Data.Test {
             var globalScope = codeParser.ParseFileUnit(xmlElement);
             var foo = globalScope.ChildStatements[1].ChildStatements[1].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(n => n.Name == "foo");
             Assert.IsNotNull(foo);
-            var aliases = foo.GetAliases();
-            Assert.AreEqual(2, aliases.Count);
-            Assert.AreEqual("std", aliases[0].Item1.ToString());
-            Assert.IsNull(aliases[0].Item2);
-            Assert.AreEqual("x :: y :: z", aliases[1].Item1.ToString());
-            Assert.IsNull(aliases[1].Item2);
+            var imports = foo.GetImports().ToList();
+            Assert.AreEqual(2, imports.Count);
+            Assert.AreEqual("std", imports[0].ImportedNamespace.ToString());
+            Assert.AreEqual("x :: y :: z", imports[1].ImportedNamespace.ToString());
         }
 
         [Test]
@@ -353,16 +350,17 @@ namespace ABB.SrcML.Data.Test {
             var globalScope = scopeA.Merge(scopeB);
             var foo = globalScope.ChildStatements[2].ChildStatements[1].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(n => n.Name == "foo");
             Assert.IsNotNull(foo);
-            var aliases = foo.GetAliases();
-            Assert.AreEqual(2, aliases.Count);
-            Assert.AreEqual("B::Bar", aliases[0].Item1.ToString());
-            Assert.AreEqual("Bar", aliases[0].Item2);
-            Assert.AreEqual("x :: y :: z", aliases[1].Item1.ToString());
-            Assert.IsNull(aliases[1].Item2);
+            var aliases = foo.GetAliases().ToList();
+            Assert.AreEqual(1, aliases.Count);
+            Assert.AreEqual("B::Bar", aliases[0].Target.ToString());
+            Assert.AreEqual("Bar", aliases[0].AliasName);
+            var imports = foo.GetImports().ToList();
+            Assert.AreEqual(1, imports.Count);
+            Assert.AreEqual("x :: y :: z", imports[0].ImportedNamespace.ToString());
 
             var barDef = globalScope.GetDescendants<TypeDefinition>().FirstOrDefault(ns => ns.Name == "Bar");
             Assert.IsNotNull(barDef);
-            var barUse = aliases[0].Item1.GetDescendantsAndSelf<NameUse>().First(n => n.Name == "Bar");
+            var barUse = aliases[0].Target.GetDescendantsAndSelf<NameUse>().First(n => n.Name == "Bar");
             Assert.AreSame(barDef, barUse.FindMatches().FirstOrDefault());
         }
 
@@ -384,12 +382,12 @@ namespace ABB.SrcML.Data.Test {
             var globalScope = codeParser.ParseFileUnit(xmlElement);
             var foo = globalScope.ChildStatements[1].ChildStatements[1].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(n => n.Name == "foo");
             Assert.IsNotNull(foo);
-            var aliases = foo.GetAliases();
-            Assert.AreEqual(2, aliases.Count);
-            Assert.AreEqual("foo :: bar :: baz", aliases[0].Item1.ToString());
-            Assert.AreEqual("x", aliases[0].Item2);
-            Assert.AreEqual("x :: y :: z", aliases[1].Item1.ToString());
-            Assert.IsNull(aliases[1].Item2);
+            var aliases = foo.GetAliases().ToList();
+            Assert.AreEqual(1, aliases.Count);
+            Assert.AreEqual("foo :: bar :: baz", aliases[0].Target.ToString());
+            Assert.AreEqual("x", aliases[0].AliasName);
+            var imports = foo.GetImports().ToList();
+            Assert.AreEqual("x :: y :: z", imports[0].ImportedNamespace.ToString());
         }
 
         [Test]

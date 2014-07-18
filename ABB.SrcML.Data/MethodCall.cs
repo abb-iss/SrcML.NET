@@ -195,11 +195,19 @@ namespace ABB.SrcML.Data {
                 //If this is a TypeDefinition, also search the parent types
                 var containingType = containingScope as TypeDefinition;
                 if(containingType != null) {
-                    matches.AddRange(containingType.GetParentTypes(true).SelectMany(t => t.GetNamedChildren<MethodDefinition>(this.Name)));
+                    matches.AddRange(containingType.GetParentTypes(true).SelectMany(t => t.GetNamedChildren<MethodDefinition>(this.Name).Where(Matches)));
                 }
             }
+            if(matches.Any()) {
+                return matches.Distinct();
+            }
 
-            return matches.Distinct();
+            //we didn't find it locally, search under imported namespaces
+            return (from import in GetImports()
+                    from match in import.ImportedNamespace.GetDescendantsAndSelf<NameUse>().Last().FindMatches()
+                    from child in match.GetNamedChildren<MethodDefinition>(this.Name)
+                    where Matches(child)
+                    select child);
 
         }
 
