@@ -120,7 +120,11 @@ namespace ABB.SrcML.Data {
             //search if there is an alias for this name
             foreach(var alias in GetAliases()) {
                 if(alias.AliasName == this.Name) {
-                    var targetName = alias.Target.GetDescendantsAndSelf<NameUse>().LastOrDefault();
+                    var targetName = alias.Target as NameUse;
+                    if(targetName == null) {
+                        //Target is not a NameUse, probably an Expression
+                        targetName = alias.Target.GetDescendantsAndSelf<NameUse>().LastOrDefault();
+                    }
                     if(targetName != null) {
                         return targetName.FindMatches().OfType<TypeDefinition>();
                     }

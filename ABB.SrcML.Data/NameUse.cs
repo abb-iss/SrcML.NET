@@ -186,7 +186,11 @@ namespace ABB.SrcML.Data {
             //search if there is an alias for this name
             foreach(var alias in GetAliases()) {
                 if(alias.AliasName == this.Name) {
-                    var targetName = alias.Target.GetDescendantsAndSelf<NameUse>().LastOrDefault();
+                    var targetName = alias.Target as NameUse;
+                    if(targetName == null) {
+                        //Target is not a NameUse, probably an Expression
+                        targetName = alias.Target.GetDescendantsAndSelf<NameUse>().LastOrDefault();
+                    }
                     if(targetName != null) {
                         return targetName.FindMatches();
                     }
@@ -285,7 +289,9 @@ namespace ABB.SrcML.Data {
             while(currentStmt != null) {
                 //TODO: update to check that the alias is in the same file as the NameUse
                 foreach(var sibling in currentStmt.GetSiblingsBeforeSelf().Where(s => s is AliasStatement || s is ImportStatement)) {
-                    aliases.Add(sibling);
+                    if(sibling.Locations.Any(l => string.Equals(l.SourceFileName, this.Location.SourceFileName, StringComparison.CurrentCultureIgnoreCase))) {
+                        aliases.Add(sibling);
+                    }
                 }
                 currentStmt = currentStmt.ParentStatement;
             }

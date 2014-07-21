@@ -165,7 +165,8 @@ namespace ABB.SrcML.Data {
                 } else {
                     var tempTypeUse = new TypeUse() {
                         Name = this.Name,
-                        ParentStatement = this.ParentStatement
+                        ParentStatement = this.ParentStatement,
+                        Location = this.Location
                     };
                     //tempTypeUse.AddAliases(this.Aliases);
                     typeDefinitions = tempTypeUse.ResolveType();

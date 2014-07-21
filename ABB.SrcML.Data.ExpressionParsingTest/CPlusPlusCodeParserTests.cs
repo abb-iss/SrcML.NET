@@ -262,7 +262,7 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestGetAliases_Import() {
+        public void TestGetImports() {
             //A.cpp
             //namespace x {
             //  namespace y {
@@ -299,7 +299,7 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestGetAliases_NestedImportNamespace() {
+        public void TestGetImports_NestedImportNamespace() {
             //using namespace x::y::z;
             //if(bar) {
             //  using namespace std;
@@ -387,6 +387,182 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("x", aliases[0].AliasName);
             var imports = foo.GetImports().ToList();
             Assert.AreEqual("x :: y :: z", imports[0].ImportedNamespace.ToString());
+        }
+
+        [Test]
+        public void TestImport_NameResolution() {
+            //A.cpp
+            //using namespace Foo::Bar;
+            //
+            //namespace A {
+            //  class Robot {
+            //  public: 
+            //    Baz GetThingy() { 
+            //      Baz* b = new Baz();
+            //      return *b;
+            //    }
+            //  }
+            //}
+            string xmlA = @"<using>using namespace <name><name>Foo</name><op:operator>::</op:operator><name>Bar</name></name>;</using>
+
+<namespace>namespace <name>A</name> <block>{
+  <class>class <name>Robot</name> <block>{<private type=""default"">
+  </private><public>public: 
+    <function><type><name>Baz</name></type> <name>GetThingy</name><parameter_list>()</parameter_list> <block>{ 
+      <decl_stmt><decl><type><name>Baz</name><type:modifier>*</type:modifier></type> <name>b</name> <init>= <expr><op:operator>new</op:operator> <call><name>Baz</name><argument_list>()</argument_list></call></expr></init></decl>;</decl_stmt>
+      <return>return <expr><op:operator>*</op:operator><name>b</name></expr>;</return>
+    }</block></function>
+  </public>}</block>
+<decl/></class>}</block></namespace>";
+            XElement xmlElementA = fileSetup.GetFileUnitForXmlSnippet(xmlA, "A.cpp");
+            //B.cpp
+            //namespace Foo {
+            //  namespace Bar {
+            //    class Baz {
+            //    public:
+            //      Baz() { }
+            //  }
+            //}
+            string xmlB = @"<namespace>namespace <name>Foo</name> <block>{
+  <namespace>namespace <name>Bar</name> <block>{
+    <class>class <name>Baz</name> <block>{<private type=""default"">
+    </private><public>public:
+      <constructor><name>Baz</name><parameter_list>()</parameter_list> <block>{ }</block></constructor>
+  </public>}</block>
+<decl/></class>}</block></namespace></block></namespace>";
+            XElement xmlElementB = fileSetup.GetFileUnitForXmlSnippet(xmlB, "B.cpp");
+            
+            var scopeA = codeParser.ParseFileUnit(xmlElementA);
+            var scopeB = codeParser.ParseFileUnit(xmlElementB);
+            var globalScope = scopeA.Merge(scopeB);
+            Assert.AreEqual(3, globalScope.ChildStatements.Count);
+
+            var baz = globalScope.GetDescendants<TypeDefinition>().FirstOrDefault(t => t.Name == "Baz");
+            Assert.IsNotNull(baz);
+
+            var thingy = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "GetThingy");
+            Assert.IsNotNull(thingy);
+            var thingyTypes = thingy.ReturnType.FindMatches().ToList();
+            Assert.AreEqual(1, thingyTypes.Count);
+            Assert.AreSame(baz, thingyTypes[0]);
+
+            var bazDef = baz.GetNamedChildren<MethodDefinition>("Baz").First();
+            var bazCall = thingy.ChildStatements[0].Content.GetDescendantsAndSelf<MethodCall>().FirstOrDefault(mc => mc.Name == "Baz");
+            Assert.IsNotNull(bazCall);
+            Assert.AreSame(bazDef, bazCall.FindMatches().FirstOrDefault());
+        }
+
+        [Test]
+        public void TestAlias_NameResolution_ImportType() {
+            //A.cpp
+            //namespace Foo {
+            //  namespace Bar {
+            //    class Baz {
+            //    public:
+            //      static void DoTheThing() { }
+            //  }
+            //}
+            string xmlA = @"<namespace>namespace <name>Foo</name> <block>{
+  <namespace>namespace <name>Bar</name> <block>{
+    <class>class <name>Baz</name> <block>{<private type=""default"">
+    </private><public>public:
+      <function><type><specifier>static</specifier> <name>void</name></type> <name>DoTheThing</name><parameter_list>()</parameter_list> <block>{ }</block></function>
+  </public>}</block>
+<decl/></class>}</block></namespace></block></namespace>";
+            XElement xmlElementA = fileSetup.GetFileUnitForXmlSnippet(xmlA, "A.cpp");
+            //B.cpp
+            //using Foo::Bar::Baz;
+            //namespace A {
+            //  class B {
+            //  public:
+            //    B() {
+            //      Baz::DoTheThing();
+            //    }
+            //  }
+            //}
+            string xmlB = @"<using>using <name><name>Foo</name><op:operator>::</op:operator><name>Bar</name><op:operator>::</op:operator><name>Baz</name></name>;</using>
+<namespace>namespace <name>A</name> <block>{
+  <class>class <name>B</name> <block>{<private type=""default"">
+  </private><public>public:
+    <constructor><name>B</name><parameter_list>()</parameter_list> <block>{
+      <expr_stmt><expr><call><name><name>Baz</name><op:operator>::</op:operator><name>DoTheThing</name></name><argument_list>()</argument_list></call></expr>;</expr_stmt>
+    }</block></constructor>
+  </public>}</block>
+<decl/></class>}</block></namespace>";
+            XElement xmlElementB = fileSetup.GetFileUnitForXmlSnippet(xmlB, "B.cpp");
+            
+            var scopeA = codeParser.ParseFileUnit(xmlElementA);
+            var scopeB = codeParser.ParseFileUnit(xmlElementB);
+            var globalScope = scopeA.Merge(scopeB);
+            Assert.AreEqual(3, globalScope.ChildStatements.Count);
+
+            var thingDef = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(md => md.Name == "DoTheThing");
+            Assert.IsNotNull(thingDef);
+            Assert.AreEqual("Baz", ((TypeDefinition)thingDef.ParentStatement).Name);
+
+            var bDef = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(md => md.Name == "B");
+            Assert.IsNotNull(bDef);
+            Assert.AreEqual(1, bDef.ChildStatements.Count);
+            var thingCall = bDef.ChildStatements[0].Content.GetDescendantsAndSelf<MethodCall>().FirstOrDefault();
+            Assert.IsNotNull(thingCall);
+            Assert.AreSame(thingDef, thingCall.FindMatches().First());
+        }
+
+        [Test]
+        [Category("SrcMLUpdate")]
+        public void TestAlias_NameResolution_TypeAlias() {
+            //A.cpp
+            //namespace Foo {
+            //  namespace Bar {
+            //    class Baz {
+            //    public:
+            //      static void DoTheThing() { }
+            //  }
+            //}
+            string xmlA = @"<namespace>namespace <name>Foo</name> <block>{
+  <namespace>namespace <name>Bar</name> <block>{
+    <class>class <name>Baz</name> <block>{<private type=""default"">
+    </private><public>public:
+      <function><type><specifier>static</specifier> <name>void</name></type> <name>DoTheThing</name><parameter_list>()</parameter_list> <block>{ }</block></function>
+  </public>}</block>
+<decl/></class>}</block></namespace></block></namespace>";
+            XElement xmlElementA = fileSetup.GetFileUnitForXmlSnippet(xmlA, "A.cpp");
+            //B.cpp
+            //using X = Foo::Bar::Baz;
+            //namespace A {
+            //  class B {
+            //  public:
+            //    B() {
+            //      X::DoTheThing();
+            //    }
+            //  }
+            //}
+            string xmlB = @"<using>using <name>X</name> = <decl_stmt><decl><type><name><name>Foo</name><op:operator>::</op:operator><name>Bar</name><op:operator>::</op:operator><name>Baz</name></name></type></decl>;</decl_stmt></using>
+<namespace>namespace <name>A</name> <block>{
+  <class>class <name>B</name> <block>{<private type=""default"">
+  </private><public>public:
+    <constructor><name>B</name><parameter_list>()</parameter_list> <block>{
+      <expr_stmt><expr><call><name><name>X</name><op:operator>::</op:operator><name>DoTheThing</name></name><argument_list>()</argument_list></call></expr>;</expr_stmt>
+    }</block></constructor>
+  </public>}</block>
+<decl/></class>}</block></namespace>";
+            XElement xmlElementB = fileSetup.GetFileUnitForXmlSnippet(xmlB, "B.cpp");
+            
+            var scopeA = codeParser.ParseFileUnit(xmlElementA);
+            var scopeB = codeParser.ParseFileUnit(xmlElementB);
+            var globalScope = scopeA.Merge(scopeB);
+            Assert.AreEqual(3, globalScope.ChildStatements.Count);
+
+            var thingDef = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(md => md.Name == "DoTheThing");
+            Assert.IsNotNull(thingDef);
+            Assert.AreEqual("Baz", ((TypeDefinition)thingDef.ParentStatement).Name);
+
+            var bDef = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(md => md.Name == "B");
+            Assert.IsNotNull(bDef);
+            Assert.AreEqual(1, bDef.ChildStatements.Count);
+            var thingCall = bDef.ChildStatements[0].Content.GetDescendantsAndSelf<MethodCall>().FirstOrDefault();
+            Assert.IsNotNull(thingCall);
+            Assert.AreSame(thingDef, thingCall.FindMatches().First());
         }
 
         [Test]
