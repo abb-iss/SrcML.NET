@@ -77,7 +77,6 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        [Category("Todo")]
         public void TestCallToGrandparent() {
             //namespace A {
             //    public class B { public void Foo() { } }
@@ -381,7 +380,6 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        [Category("Todo")]
         public void TestGetAliases_NestedUsingAlias() {
             //A.cs
             //namespace bar {
@@ -425,7 +423,6 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        [Category("Todo")]
         public void TestImport() {
             //A.cs
             //using Foo.Bar;
@@ -912,7 +909,6 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        [Category("Todo")]
         public void TestFindParentType() {
             // namespace A { class B : C { } }
             string bXml = @"<namespace>namespace <name>A</name> <block>{ <class>class <name>B</name> <super>: <name>C</name></super> <block>{<private type=""default""> </private>}</block> <decl/></class>}</block></namespace>";
@@ -938,7 +934,6 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        [Category("Todo")]
         public void TestFindQualifiedParentType() {
             // namespace A { class B : C.D { } }
             string bXml = @"<namespace>namespace <name>A</name> <block>{ <class>class <name>B</name> <super>: <name><name>C</name><op:operator>.</op:operator><name>D</name></name></super> <block>{<private type=""default""> </private>}</block> <decl/></class>}</block></namespace>";
@@ -1199,7 +1194,6 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        [Category("Todo")]
         public void TestMethodCallWithBaseKeyword() {
             // B.cs namespace A { class B { public virtual void Foo() { } } }
             string bXml = @"<namespace>namespace <name>A</name> <block>{ <class>class <name>B</name> <block>{ <function><type><specifier>public</specifier> <specifier>virtual</specifier> <name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></function> }</block></class> }</block></namespace>";
@@ -1295,7 +1289,6 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        [Category("Todo")]
         public void TestPropertyAsCallingObject() {
             // B.cs
             //namespace A {
@@ -1353,7 +1346,6 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        [Category("Todo")]
         public void TestStaticMethodCall() {
             //namespace A { public class B { public static void Bar() { } } }
             var bXml = @"<namespace>namespace <name>A</name> <block>{ <class><specifier>public</specifier> class <name>B</name> <block>{ <function><type><specifier>public</specifier> <specifier>static</specifier> <name>void</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ }</block></function> }</block></class> }</block></namespace>";
@@ -1380,7 +1372,6 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        [Category("Todo")]
         public void TestStaticMethodCallInDifferentNamespace() {
             //namespace A { public class B { public static void Bar() { } } }
             var bXml = @"<namespace>namespace <name>A</name> <block>{ <class><specifier>public</specifier> class <name>B</name> <block>{ <function><type><specifier>public</specifier> <specifier>static</specifier> <name>void</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ }</block></function> }</block></class> }</block></namespace>";
@@ -1447,7 +1438,6 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        [Category("Todo")]
         public void TestStaticInstanceVariable() {
             //namespace A {
             //	class B {
@@ -1481,7 +1471,6 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        [Category("Todo")]
         public void TestStaticInstanceVariableInDifferentNamespace() {
             //namespace A {
             //	class B {
@@ -1527,7 +1516,6 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        [Category("Todo")]
         public void TestCallAsCallingObject() {
             //namespace A {
             //	public class B {

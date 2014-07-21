@@ -402,7 +402,6 @@ namespace ABB.SrcML.Data.Test {
 
 
         [Test]
-        [Category("Todo")]
         public void TestMethodCallCreation_WithConflictingMethodNames() {
             //# A.java
             //class A {
@@ -445,7 +444,6 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        [Category("Todo")]
         public void TestMethodCallCreation_WithThisKeyword() {
             //class A {
             //    void Bar() { }
@@ -527,7 +525,6 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        [Category("Todo")]
         public void TestMethodCallCreation_SuperConstructor() {
             //class B {
             //  public B(int num) { }

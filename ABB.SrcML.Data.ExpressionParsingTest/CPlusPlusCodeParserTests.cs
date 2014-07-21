@@ -322,7 +322,6 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        [Category("Todo")]
         public void TestGetAliases_NestedImportClass() {
             //A.cpp
             //namespace B {
@@ -674,45 +673,44 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual(0, foo.TypeArguments.Count);
         }
 
-//        [Test]
-//        [Category("Todo")]
-//        public void TestMergeWithUsing() {
-//            // namespace A { class B { void Foo(); }; }
-//            string headerXml = @"<namespace>namespace <name>A</name> <block>{ <class>class <name>B</name> <block>{<private type=""default""> <function_decl><type><name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list>;</function_decl> </private>}</block>;</class> }</block></namespace>";
-
-//            //using namespace A;
-//            //
-//            //void B::Foo() { }
-//            string implementationXml = @"<using>using namespace <name>A</name>;</using>
-//
-//<function><type><name>void</name></type> <name><name>B</name><op:operator>::</op:operator><name>Foo</name></name><parameter_list>()</parameter_list> <block>{ }</block></function>";
-
-//            var headerScope = codeParser.ParseFileUnit(fileSetup.GetFileUnitForXmlSnippet(headerXml, "A.h"));
-//            var implementationScope = codeParser.ParseFileUnit(fileSetup.GetFileUnitForXmlSnippet(implementationXml, "A.cpp"));
-
-//            var globalScope = headerScope.Merge(implementationScope);
-
-//            Assert.AreEqual(1, globalScope.ChildScopes.Count(), "TODO implement using statements in C++");
-
-//            var namespaceA = globalScope.ChildScopes.First() as INamespaceDefinition;
-//            Assert.AreEqual("A", namespaceA.Name);
-//            Assert.AreEqual(1, namespaceA.ChildScopes.Count());
-
-//            var typeB = namespaceA.ChildScopes.First() as ITypeDefinition;
-//            Assert.AreEqual("B", typeB.Name);
-//            Assert.AreEqual(1, typeB.ChildScopes.Count());
-
-//            var methodFoo = typeB.ChildScopes.First() as IMethodDefinition;
-//            Assert.AreEqual("Foo", methodFoo);
-//            Assert.IsEmpty(typeB.ChildScopes);
-
-//            var globalScope_implementationFirst = implementationScope.Merge(headerScope);
-
-//            Assert.IsTrue(TestHelper.ScopesAreEqual(globalScope, globalScope_implementationFirst));
-//        }
-
         [Test]
         [Category("Todo")]
+        public void TestMergeWithUsing() {
+            // namespace A { class B { void Foo(); }; }
+            string headerXml = @"<namespace>namespace <name>A</name> <block>{ <class>class <name>B</name> <block>{<private type=""default""> <function_decl><type><name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list>;</function_decl> </private>}</block>;</class> }</block></namespace>";
+
+            //using namespace A;
+            //
+            //void B::Foo() { }
+            string implementationXml = @"<using>using namespace <name>A</name>;</using>
+
+<function><type><name>void</name></type> <name><name>B</name><op:operator>::</op:operator><name>Foo</name></name><parameter_list>()</parameter_list> <block>{ }</block></function>";
+
+            var headerScope = codeParser.ParseFileUnit(fileSetup.GetFileUnitForXmlSnippet(headerXml, "A.h"));
+            var implementationScope = codeParser.ParseFileUnit(fileSetup.GetFileUnitForXmlSnippet(implementationXml, "A.cpp"));
+
+            var globalScope = headerScope.Merge(implementationScope);
+            Assert.AreEqual(1, globalScope.ChildStatements.OfType<NamedScope>().Count());
+
+            var namespaceA = globalScope.GetDescendants<NamespaceDefinition>().FirstOrDefault(n => n.Name == "A");
+            Assert.IsNotNull(namespaceA);
+            Assert.AreEqual(1, namespaceA.ChildStatements.Count);
+
+            var typeB = namespaceA.GetDescendants<TypeDefinition>().FirstOrDefault(t => t.Name == "B");
+            Assert.IsNotNull(typeB);
+            Assert.AreEqual(1, typeB.ChildStatements.Count);
+
+            var methodFoo = typeB.GetNamedChildren<MethodDefinition>("Foo").FirstOrDefault();
+            Assert.IsNotNull(methodFoo);
+            Assert.AreEqual(0, methodFoo.ChildStatements.Count);
+            Assert.AreEqual(2, methodFoo.Locations.Count);
+
+            var globalScope_implementationFirst = implementationScope.Merge(headerScope);
+
+            DataAssert.StatementsAreEqual(globalScope, globalScope_implementationFirst);
+        }
+
+        [Test]
         public void TestMethodCallCreation_WithConflictingMethodNames() {
             //# A.h
             //class A {
@@ -898,7 +896,6 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        [Category("Todo")]
         public void TestMethodWithDefaultArguments() {
             //void foo(int a = 0);
             //
@@ -920,7 +917,7 @@ namespace ABB.SrcML.Data.Test {
 <function><type><name>void</name></type> <name>foo</name><parameter_list>(<param><decl><type><name>int</name></type> <name>a</name></decl></param>)</parameter_list> <block>{ }</block></function>";
 
             var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cpp");
-            var globalScope = codeParser.ParseFileUnit(unit);
+            var globalScope = codeParser.ParseFileUnit(unit).Merge(new NamespaceDefinition());
             Assert.AreEqual(2, globalScope.ChildStatements.Count);
 
             var fooMethod = globalScope.GetNamedChildren<MethodDefinition>("foo").FirstOrDefault();
@@ -928,7 +925,6 @@ namespace ABB.SrcML.Data.Test {
 
             Assert.IsNotNull(fooMethod);
             Assert.IsNotNull(mainMethod);
-            //Assert.AreEqual(2, mainMethod.MethodCalls.Count());
 
             Assert.AreEqual(3, mainMethod.ChildStatements.Count);
             var defaultCall = mainMethod.ChildStatements[0].Content.GetDescendantsAndSelf<MethodCall>().FirstOrDefault();
