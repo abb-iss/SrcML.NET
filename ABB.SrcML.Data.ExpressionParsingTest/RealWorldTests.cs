@@ -57,6 +57,9 @@ namespace ABB.SrcML.Data.Test {
             var archive = GenerateSrcML(project, false, true);
             var dataArchive = GenerateData(project, archive, true, true);
 
+            dataArchive.Generator.UnknownLog = null;
+            dataArchive.Generator.ErrorLog = Console.Error;
+
             long count = 0;
             TimeSpan parseElapsed = new TimeSpan(0), deserializeElapsed = new TimeSpan(0), compareElapsed = new TimeSpan(0);
             DateTime start, end;
