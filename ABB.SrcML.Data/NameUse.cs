@@ -266,6 +266,7 @@ namespace ABB.SrcML.Data {
             foreach(var match in matches) {
                 //TODO: update this to use GetEntityType method from INamedEntity
                 if(match is MethodDefinition) {
+                    //TODO: update this to not crash if match is a constructor/destructor
                     scopes.AddRange(((MethodDefinition)match).ReturnType.ResolveType());
                 } else if(match is PropertyDefinition) {
                     scopes.AddRange(((PropertyDefinition)match).ReturnType.ResolveType());

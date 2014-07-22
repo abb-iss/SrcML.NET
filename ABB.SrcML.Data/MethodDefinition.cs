@@ -25,6 +25,7 @@ namespace ABB.SrcML.Data {
     /// </summary>
     public class MethodDefinition : NamedScope {
         private List<VariableDeclaration> parameterList;
+        private List<MethodCall> initializerList;
         private Dictionary<string, TypeUse> _returnTypeMap;
         private Dictionary<string, List<VariableDeclaration>> _parameterMap;
 
@@ -56,6 +57,9 @@ namespace ABB.SrcML.Data {
 
             parameterList = new List<VariableDeclaration>();
             Parameters = new ReadOnlyCollection<VariableDeclaration>(parameterList);
+
+            initializerList = new List<MethodCall>();
+            ConstructorInitializers = new ReadOnlyCollection<MethodCall>(initializerList);
         }
 
         /// <summary> Indicates whether this method is a constructor. </summary>
@@ -69,7 +73,10 @@ namespace ABB.SrcML.Data {
 
         /// <summary> The parameters to the method. </summary>
         public ReadOnlyCollection<VariableDeclaration> Parameters { get; private set; }
-        
+
+        /// <summary> The list of initialization calls appearing in a constructor. This is only applicable to C++ and C#. </summary>
+        public ReadOnlyCollection<MethodCall> ConstructorInitializers { get; private set; }
+
         /// <summary> The return type of the method. </summary>
         public TypeUse ReturnType {
             get {
@@ -125,6 +132,27 @@ namespace ABB.SrcML.Data {
             }
             returnType.ParentStatement = this;
             _returnTypeMap[returnType.Location.ToString()] = returnType;
+        }
+
+        /// <summary>
+        /// Adds the given initializer call to the ConstructorInitializers collection.
+        /// </summary>
+        /// <param name="initializerCall">The initializer to add.</param>
+        public void AddInitializer(MethodCall initializerCall) {
+            if(initializerCall == null) { throw new ArgumentNullException("initializerCall"); }
+            initializerCall.ParentStatement = this;
+            initializerCall.IsConstructorInitializer = true;
+            initializerList.Add(initializerCall);
+        }
+
+        /// <summary>
+        /// Adds the given initializer calls to the ConstructorInitializers collection.
+        /// </summary>
+        /// <param name="initializerCalls">The initializers to add.</param>
+        public void AddInitializers(IEnumerable<MethodCall> initializerCalls) {
+            foreach(var call in initializerCalls) {
+                AddInitializer(call);
+            }
         }
 
         /// <summary>

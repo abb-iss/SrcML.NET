@@ -171,82 +171,64 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreSame(fooConstructor, fooCall.FindMatches().First());
         }
 
-//        [Test]
-//        public void TestConstructorWithBaseKeyword() {
-//            // B.cs namespace A { class B { public B() { } } }
-//            string bXml = @"<namespace>namespace <name>A</name> <block>{ <class>class <name>B</name> <block>{ <constructor><specifier>public</specifier> <name>B</name><parameter_list>()</parameter_list> <block>{ }</block></constructor> }</block></class> }</block></namespace>";
-//            // C.cs namespace A { class C : B { public C() : base() { } } }
-//            string cXml = @"<namespace>namespace <name>A</name> <block>{ <class>class <name>C</name> <super>: <name>B</name></super> <block>{ <constructor><specifier>public</specifier> <name>C</name><parameter_list>()</parameter_list> <member_list>: <call><name>base</name><argument_list>()</argument_list></call> </member_list><block>{ }</block></constructor> }</block></class> }</block></namespace>";
+        [Test]
+        public void TestConstructorWithBaseKeyword() {
+            // B.cs namespace A { class B { public B() { } } }
+            string bXml = @"<namespace>namespace <name>A</name> <block>{ <class>class <name>B</name> <block>{ <constructor><specifier>public</specifier> <name>B</name><parameter_list>()</parameter_list> <block>{ }</block></constructor> }</block></class> }</block></namespace>";
+            // C.cs namespace A { class C : B { public C() : base() { } } }
+            string cXml = @"<namespace>namespace <name>A</name> <block>{ <class>class <name>C</name> <super>: <name>B</name></super> <block>{ <constructor><specifier>public</specifier> <name>C</name><parameter_list>()</parameter_list> <member_list>: <call><name>base</name><argument_list>()</argument_list></call> </member_list><block>{ }</block></constructor> }</block></class> }</block></namespace>";
 
-//            var bUnit = fileSetup.GetFileUnitForXmlSnippet(bXml, "B.cs");
-//            var cUnit = fileSetup.GetFileUnitForXmlSnippet(cXml, "C.cs");
+            var bUnit = fileSetup.GetFileUnitForXmlSnippet(bXml, "B.cs");
+            var cUnit = fileSetup.GetFileUnitForXmlSnippet(cXml, "C.cs");
 
-//            var bScope = codeParser.ParseFileUnit(bUnit);
-//            var cScope = codeParser.ParseFileUnit(cUnit);
-//            var globalScope = bScope.Merge(cScope);
+            var bScope = codeParser.ParseFileUnit(bUnit);
+            var cScope = codeParser.ParseFileUnit(cUnit);
+            var globalScope = bScope.Merge(cScope);
 
-//            var constructors = from methodDefinition in globalScope.GetDescendantScopes<IMethodDefinition>()
-//                               where methodDefinition.IsConstructor
-//                               select methodDefinition;
+            var bConstructor = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == "B" && m.IsConstructor);
+            var cConstructor = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == "C" && m.IsConstructor);
+            Assert.AreEqual(1, cConstructor.ConstructorInitializers.Count);
 
-//            var bConstructor = (from method in constructors
-//                                where method.GetParentScopes<ITypeDefinition>().FirstOrDefault().Name == "B"
-//                                select method).FirstOrDefault();
+            var methodCall = cConstructor.ConstructorInitializers[0];
+            Assert.IsNotNull(methodCall);
+            Assert.That(methodCall.IsConstructor);
+            Assert.That(methodCall.IsConstructorInitializer);
+            Assert.AreEqual("base", methodCall.Name);
+            Assert.AreSame(bConstructor, methodCall.FindMatches().FirstOrDefault());
+        }
 
-//            var cConstructor = (from method in constructors
-//                                where method.GetParentScopes<ITypeDefinition>().FirstOrDefault().Name == "C"
-//                                select method).FirstOrDefault();
+        [Test]
+        public void TestConstructorWithThisKeyword() {
+            // B.cs
+            //namespace A {
+            //    class B {
+            //        public B() : this(0) { }
+            //        public B(int i) { }
+            //    }
+            //}
 
-//            var methodCall = (from scope in globalScope.GetDescendantScopes()
-//                              from call in scope.MethodCalls
-//                              select call).FirstOrDefault();
+            string bXml = @"<namespace>namespace <name>A</name> <block>{
+    <class>class <name>B</name> <block>{
+        <constructor><specifier>public</specifier> <name>B</name><parameter_list>()</parameter_list> <member_list>: <call><name>this</name><argument_list>(<argument><expr><lit:literal type=""number"">0</lit:literal></expr></argument>)</argument_list></call> </member_list><block>{ }</block></constructor>
+        <constructor><specifier>public</specifier> <name>B</name><parameter_list>(<param><decl><type><name>int</name></type> <name>i</name></decl></param>)</parameter_list> <block>{ }</block></constructor>
+    }</block></class>
+}</block></namespace>";
 
-//            Assert.IsNotNull(methodCall);
-//            Assert.That(methodCall.IsConstructor);
-//            Assert.AreSame(bConstructor, methodCall.FindMatches().FirstOrDefault());
-//        }
+            var bUnit = fileSetup.GetFileUnitForXmlSnippet(bXml, "B.cs");
 
-//        [Test]
-//        public void TestConstructorWithThisKeyword() {
-//            // B.cs
-//            //namespace A {
-//            //    class B {
-//            //        public B() : this(0) { }
-//            //        public B(int i) { }
-//            //    }
-//            //}
+            var globalScope = codeParser.ParseFileUnit(bUnit);
 
-//            string bXml = @"<namespace>namespace <name>A</name> <block>{
-//    <class>class <name>B</name> <block>{
-//        <constructor><specifier>public</specifier> <name>B</name><parameter_list>()</parameter_list> <member_list>: <call><name>this</name><argument_list>(<argument><expr><lit:literal type=""number"">0</lit:literal></expr></argument>)</argument_list></call> </member_list><block>{ }</block></constructor>
-//        <constructor><specifier>public</specifier> <name>B</name><parameter_list>(<param><decl><type><name>int</name></type> <name>i</name></decl></param>)</parameter_list> <block>{ }</block></constructor>
-//    }</block></class>
-//}</block></namespace>";
+            var oneArgumentConstructor = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == "B" && m.Parameters.Count == 1);
+            var defaultConstructor = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == "B" && m.Parameters.Count == 0);
+            Assert.AreEqual(1, defaultConstructor.ConstructorInitializers.Count);
 
-//            var bUnit = fileSetup.GetFileUnitForXmlSnippet(bXml, "B.cs");
-
-//            var globalScope = codeParser.ParseFileUnit(bUnit);
-
-//            var constructors = from methodDefinition in globalScope.GetDescendantScopes<IMethodDefinition>()
-//                               where methodDefinition.IsConstructor
-//                               select methodDefinition;
-
-//            var defaultConstructor = (from method in constructors
-//                                      where method.Parameters.Count == 0
-//                                      select method).FirstOrDefault();
-
-//            var oneArgumentConstructor = (from method in constructors
-//                                          where method.Parameters.Count == 1
-//                                          select method).FirstOrDefault();
-
-//            var methodCall = (from scope in globalScope.GetDescendantScopes()
-//                              from call in scope.MethodCalls
-//                              select call).FirstOrDefault();
-
-//            Assert.IsNotNull(methodCall);
-//            Assert.That(methodCall.IsConstructor);
-//            Assert.AreSame(oneArgumentConstructor, methodCall.FindMatches().FirstOrDefault());
-//        }
+            var methodCall = defaultConstructor.ConstructorInitializers[0];
+            Assert.IsNotNull(methodCall);
+            Assert.That(methodCall.IsConstructor);
+            Assert.That(methodCall.IsConstructorInitializer);
+            Assert.AreEqual("this", methodCall.Name);
+            Assert.AreSame(oneArgumentConstructor, methodCall.FindMatches().FirstOrDefault());
+        }
 
         [Test]
         public void TestCreateAliasesForFiles_UsingNamespace() {

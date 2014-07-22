@@ -265,6 +265,18 @@ namespace ABB.SrcML.Data {
                     methodDefinition.AddReturnType(ParseTypeUseElement(returnTypeElement, context));
                 }
             }
+
+            //add the constructor initializer list, if any
+            var memberListElement = methodElement.Element(SRC.MemberList);
+            if(memberListElement != null) {
+                foreach(var callElement in memberListElement.Elements(SRC.Call)) {
+                    var call = ParseCallElement(callElement, context) as MethodCall;
+                    if(call != null) {
+                        methodDefinition.AddInitializer(call);
+                    }
+                }
+            }
+
             //Add the method's parameters
             var parameters = from paramElement in GetParametersFromMethodElement(methodElement)
                              select ParseParameterElement(paramElement, context);

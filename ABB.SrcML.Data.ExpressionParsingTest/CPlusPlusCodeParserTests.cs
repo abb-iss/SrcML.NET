@@ -149,71 +149,140 @@ namespace ABB.SrcML.Data.Test {
             
         }
 
-//        [Test]
-//        public void TestConstructorWithCallToSelf() {
-//            // test.h 
-//            //class MyClass {
-//            //public:
-//            //   MyClass() : MyClass(0) { } 
-//            //   MyClass(int foo) { } 
-//            //};
-//            string xml = @"<class>class <name>MyClass</name> <block>{<private type=""default"">
-//</private><public>public:
-//   <constructor><name>MyClass</name><parameter_list>()</parameter_list> <member_list>: <call><name>MyClass</name><argument_list>(<argument><expr><lit:literal type=""number"">0</lit:literal></expr></argument>)</argument_list></call> </member_list><block>{ }</block></constructor> 
-//   <constructor><name>MyClass</name><parameter_list>(<param><decl><type><name>int</name></type> <name>foo</name></decl></param>)</parameter_list> <block>{ }</block></constructor> 
-//</public>}</block>;</class>";
-//            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.h");
-//            var globalScope = codeParser.ParseFileUnit(unit);
+        [Test]
+        public void TestConstructor_CallToSelf() {
+            // test.h 
+            //class MyClass {
+            //public:
+            //   MyClass() : MyClass(0) { } 
+            //   MyClass(int foo) { } 
+            //};
+            string xml = @"<class>class <name>MyClass</name> <block>{<private type=""default"">
+</private><public>public:
+   <constructor><name>MyClass</name><parameter_list>()</parameter_list> <member_list>: <call><name>MyClass</name><argument_list>(<argument><expr><lit:literal type=""number"">0</lit:literal></expr></argument>)</argument_list></call> </member_list><block>{ }</block></constructor> 
+   <constructor><name>MyClass</name><parameter_list>(<param><decl><type><name>int</name></type> <name>foo</name></decl></param>)</parameter_list> <block>{ }</block></constructor> 
+</public>}</block>;</class>";
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.h");
+            var globalScope = codeParser.ParseFileUnit(unit);
 
-//            var constructors = globalScope.GetDescendants<MethodDefinition>().ToList();
-//            var defaultConstructor = constructors.FirstOrDefault(method => method.Parameters.Count == 0);
-//            var calledConstructor = constructors.FirstOrDefault(method => method.Parameters.Count == 1);
+            var constructors = globalScope.GetDescendants<MethodDefinition>().ToList();
+            var defaultConstructor = constructors.FirstOrDefault(method => method.Parameters.Count == 0);
+            var calledConstructor = constructors.FirstOrDefault(method => method.Parameters.Count == 1);
 
-//            Assert.IsNotNull(defaultConstructor);
-//            Assert.IsNotNull(calledConstructor);
-//            Assert.AreEqual(1, defaultConstructor.MethodCalls.Count());
+            Assert.IsNotNull(defaultConstructor);
+            Assert.IsNotNull(calledConstructor);
+            Assert.AreEqual(1, defaultConstructor.ConstructorInitializers.Count);
 
-//            var constructorCall = defaultConstructor.MethodCalls.First();
+            var constructorCall = defaultConstructor.ConstructorInitializers[0];
+            Assert.IsNotNull(constructorCall);
+            Assert.That(constructorCall.IsConstructor);
+            Assert.That(constructorCall.IsConstructorInitializer);
+            Assert.AreSame(calledConstructor, constructorCall.FindMatches().FirstOrDefault());
+        }
 
-//            Assert.AreSame(calledConstructor, constructorCall.FindMatches().FirstOrDefault());
-//        }
+        [Test]
+        public void TestConstructor_CallToSuperClass() {
+            // test.h 
+            // class SuperClass {
+            // public:
+            // SuperClass(int foo) { } }; 
+            // class SubClass : public SuperClass {
+            // public:
+            // SubClass(int foo) : SuperClass(foo) { } };
+            string xml = @"<class>class <name>SuperClass</name> <block>{<private type=""default"">
+  </private><public>public:
+    <constructor><name>SuperClass</name><parameter_list>(<param><decl><type><name>int</name></type> <name>foo</name></decl></param>)</parameter_list> <block>{ }</block></constructor>
+</public>}</block>;</class>
+<class>class <name>SubClass</name> <super>: <specifier>public</specifier> <name>SuperClass</name></super> <block>{<private type=""default"">
+  </private><public>public:
+    <constructor><name>SubClass</name><parameter_list>(<param><decl><type><name>int</name></type> <name>foo</name></decl></param>)</parameter_list> <member_list>: <call><name>SuperClass</name><argument_list>(<argument><expr><name>foo</name></expr></argument>)</argument_list></call> </member_list><block>{ }</block></constructor>
+</public>}</block>;</class>";
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.h");
+            var globalScope = codeParser.ParseFileUnit(unit);
 
-//        [Test]
-//        public void TestConstructorWithSuperClass() {
-//            // test.h class SuperClass {
-//            // public:
-//            // SuperClass(int foo) { } }; class SubClass : public SuperClass {
-//            // public:
-//            // SubClass(int foo) : SuperClass(foo) { } };
-//            string xml = @"<class>class <name>SuperClass</name> <block>{<private type=""default"">
-//  </private><public>public:
-//    <constructor><name>SuperClass</name><parameter_list>(<param><decl><type><name>int</name></type> <name>foo</name></decl></param>)</parameter_list> <block>{ }</block></constructor>
-//</public>}</block>;</class>
-//<class>class <name>SubClass</name> <super>: <specifier>public</specifier> <name>SuperClass</name></super> <block>{<private type=""default"">
-//  </private><public>public:
-//    <constructor><name>SubClass</name><parameter_list>(<param><decl><type><name>int</name></type> <name>foo</name></decl></param>)</parameter_list> <member_list>: <call><name>SuperClass</name><argument_list>(<argument><expr><name>foo</name></expr></argument>)</argument_list></call> </member_list><block>{ }</block></constructor>
-//</public>}</block>;</class>";
-//            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.h");
-//            var globalScope = codeParser.ParseFileUnit(unit);
+            var calledConstructor = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == "SuperClass" && m.IsConstructor);
+            var subClassConstructor = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == "SubClass" && m.IsConstructor);
+            Assert.IsNotNull(subClassConstructor);
+            Assert.IsNotNull(calledConstructor);
+            Assert.AreEqual(1, subClassConstructor.ConstructorInitializers.Count);
 
-//            var constructors = globalScope.GetDescendants<MethodDefinition>();
-//            var subClassConstructor = (from method in constructors
-//                                       where method.GetAncestors<TypeDefinition>().First().Name == "SubClass"
-//                                       select method).FirstOrDefault();
+            var constructorCall = subClassConstructor.ConstructorInitializers[0];
+            Assert.IsNotNull(constructorCall);
+            Assert.That(constructorCall.IsConstructor);
+            Assert.That(constructorCall.IsConstructorInitializer);
+            Assert.AreSame(calledConstructor, constructorCall.FindMatches().FirstOrDefault());
+        }
 
-//            var calledConstructor = (from method in constructors
-//                                     where method.GetAncestors<TypeDefinition>().First().Name == "SuperClass"
-//                                     select method).FirstOrDefault();
+        [Test]
+        public void TestConstructor_InitializeBuiltinTypeField() {
+            //test.h
+            //class Quux
+            //{
+            //    int _my_int;
+            //public:
+            //    Quux() : _my_int(5) {  }
+            //};
+            string xml = @"<class>class <name>Quux</name>
+<block>{<private type=""default"">
+    <decl_stmt><decl><type><name>int</name></type> <name>_my_int</name></decl>;</decl_stmt>
+</private><public>public:
+    <constructor><name>Quux</name><parameter_list>()</parameter_list> <member_list>: <call><name>_my_int</name><argument_list>(<argument><expr><lit:literal type=""number"">5</lit:literal></expr></argument>)</argument_list></call> </member_list><block>{  }</block></constructor>
+</public>}</block>;</class>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "test.h");
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
 
-//            Assert.IsNotNull(subClassConstructor);
-//            Assert.IsNotNull(calledConstructor);
-//            //TODO: fix test oracles
-//            Assert.AreEqual(1, subClassConstructor.MethodCalls.Count());
+            var quux = globalScope.GetNamedChildren<TypeDefinition>("Quux").First();
+            var field = quux.GetNamedChildren<VariableDeclaration>("_my_int").First();
+            var fieldType = field.VariableType.ResolveType().FirstOrDefault();
+            Assert.IsNotNull(fieldType);
 
-//            var constructorCall = subClassConstructor.MethodCalls.First();
+            var constructor = quux.GetNamedChildren<MethodDefinition>("Quux").First();
+            Assert.AreEqual(1, constructor.ConstructorInitializers.Count);
+            var fieldCall = constructor.ConstructorInitializers[0];
+            Assert.IsNotNull(fieldCall);
+            Assert.That(fieldCall.IsConstructor);
+            Assert.That(fieldCall.IsConstructorInitializer);
+            Assert.IsEmpty(fieldCall.FindMatches());
+        }
 
-//            Assert.AreSame(calledConstructor, constructorCall.FindMatches().FirstOrDefault());
-//        }
+        [Test]
+        public void TestConstructor_InitializeField() {
+            //test.h
+            //class Foo
+            //{
+            //public:
+            //    Foo(int a) { }
+            //};
+            //class Bar
+            //{
+            //    Foo baz;
+            //public:
+            //    Bar() : baz(42) { }
+            //};
+            string xml = @"<class>class <name>Foo</name>
+<block>{<private type=""default"">
+</private><public>public:
+    <constructor><name>Foo</name><parameter_list>(<param><decl><type><name>int</name></type> <name>a</name></decl></param>)</parameter_list> <block>{ }</block></constructor>
+</public>}</block>;</class>
+<class>class <name>Bar</name>
+<block>{<private type=""default"">
+    <decl_stmt><decl><type><name>Foo</name></type> <name>baz</name></decl>;</decl_stmt>
+</private><public>public:
+    <constructor><name>Bar</name><parameter_list>()</parameter_list> <member_list>: <call><name>baz</name><argument_list>(<argument><expr><lit:literal type=""number"">42</lit:literal></expr></argument>)</argument_list></call> </member_list><block>{ }</block></constructor>
+</public>}</block>;</class>
+";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "test.h");
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+
+            var fooConstructor = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == "Foo" && m.IsConstructor);
+            var barConstructor = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == "Bar" && m.IsConstructor);
+            Assert.AreEqual(1, barConstructor.ConstructorInitializers.Count);
+            var fieldCall = barConstructor.ConstructorInitializers[0];
+            Assert.IsNotNull(fieldCall);
+            Assert.That(fieldCall.IsConstructor);
+            Assert.That(fieldCall.IsConstructorInitializer);
+            Assert.AreSame(fooConstructor, fieldCall.FindMatches().FirstOrDefault());
+        }
 
         [Test]
         public void TestCreateAliasesForFiles_ImportClass() {

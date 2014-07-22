@@ -67,6 +67,9 @@ namespace ABB.SrcML.Data {
         /// <summary> True if this is a call to a constructor </summary>
         public bool IsConstructor { get; set; }
 
+        /// <summary> True if this call appears in a constructor's initializer list. </summary>
+        public bool IsConstructorInitializer { get; set; }
+
         /// <summary> True if this is a call to a destructor </summary>
         public bool IsDestructor { get; set; }
 
@@ -157,24 +160,33 @@ namespace ABB.SrcML.Data {
             }            
 
             if(IsConstructor || IsDestructor) {
-                IEnumerable<TypeDefinition> typeDefinitions;
+                List<TypeDefinition> typeDefinitions;
                 if(this.Name == "this" ||
                    (this.Name == "base" && this.ProgrammingLanguage == Language.CSharp) ||
                    (this.Name == "super" && this.ProgrammingLanguage == Language.Java)) {
-                    typeDefinitions = TypeDefinition.GetTypeForKeyword(this);
+                    typeDefinitions = TypeDefinition.GetTypeForKeyword(this).ToList();
                 } else {
                     var tempTypeUse = new TypeUse() {
                         Name = this.Name,
                         ParentStatement = this.ParentStatement,
                         Location = this.Location
                     };
-                    //tempTypeUse.AddAliases(this.Aliases);
-                    typeDefinitions = tempTypeUse.ResolveType();
+                    typeDefinitions = tempTypeUse.ResolveType().ToList();
                 }
                 
-                //TODO: handle case of C++ constructor initialization lists. 
+                //Handle case of C++ constructor initialization lists. 
                 //These will be marked as constructor calls. They can be used to initialize fields, though, in which case the call name will be the field name,
                 //rather than a type name.
+                if(!typeDefinitions.Any() && IsConstructorInitializer && ProgrammingLanguage == Language.CPlusPlus) {
+                    var containingType = ParentStatement.GetAncestorsAndSelf<TypeDefinition>().FirstOrDefault();
+                    if(containingType != null) {
+                        //search this type and its parents for a field matching the name of the call
+                        var matchingField = containingType.GetParentTypesAndSelf(true).SelectMany(t => t.GetNamedChildren<VariableDeclaration>(this.Name)).FirstOrDefault();
+                        if(matchingField != null) {
+                            typeDefinitions = matchingField.VariableType.ResolveType().ToList();
+                        }
+                    }
+                }
 
                 var matchingMethods = from typeDefinition in typeDefinitions
                                       from method in typeDefinition.GetNamedChildren<MethodDefinition>(typeDefinition.Name)
