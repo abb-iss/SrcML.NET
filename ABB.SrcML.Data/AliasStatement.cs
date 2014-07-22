@@ -79,7 +79,7 @@ namespace ABB.SrcML.Data {
             if(!string.IsNullOrEmpty(AliasName)) {
                 writer.WriteElementString(XmlAliasNameName, AliasName);
             }
-            base.WriteXml(writer);
+            base.WriteXmlContents(writer);
         }
     }
 }
