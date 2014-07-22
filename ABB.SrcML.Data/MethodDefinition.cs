@@ -190,7 +190,7 @@ namespace ABB.SrcML.Data {
             char methodType = 'M';
             if(IsConstructor) {
                 methodType = 'C';
-            } else {
+            } else if(IsDestructor) {
                 methodType = 'D';
             }
 
