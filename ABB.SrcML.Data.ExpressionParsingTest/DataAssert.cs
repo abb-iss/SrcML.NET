@@ -101,15 +101,14 @@ namespace ABB.SrcML.Data.Test {
                     } catch(DataAssertionException) {
 
                     }
+                }
 
-                    if(successCount > 0) {
-                        matched[i] = true;
-                        break;
-                    } else {
-                        var e = new DataAssertionException();
-                        e.Add(String.Format("{0}[{1}]", propertyName, i));
-                        throw e;
-                    }
+                if(successCount > 0) {
+                    matched[i] = true;
+                } else {
+                    var e = new DataAssertionException();
+                    e.Add(String.Format("{0}[{1}]", propertyName, i));
+                    throw e;
                 }
             }
 
