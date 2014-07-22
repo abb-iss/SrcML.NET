@@ -930,7 +930,7 @@ namespace ABB.SrcML.Data.Test {
             string implementationXml = @"<using>using namespace <name>A</name>;</using>
 
 <function><type><name>void</name></type> <name><name>B</name><op:operator>::</op:operator><name>Foo</name></name><parameter_list>()</parameter_list> <block>{ }</block></function>";
-
+            
             var headerScope = codeParser.ParseFileUnit(fileSetup.GetFileUnitForXmlSnippet(headerXml, "A.h"));
             var implementationScope = codeParser.ParseFileUnit(fileSetup.GetFileUnitForXmlSnippet(implementationXml, "A.cpp"));
 
@@ -950,9 +950,23 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual(0, methodFoo.ChildStatements.Count);
             Assert.AreEqual(2, methodFoo.Locations.Count);
 
+            headerScope = codeParser.ParseFileUnit(fileSetup.GetFileUnitForXmlSnippet(headerXml, "A.h"));
+            implementationScope = codeParser.ParseFileUnit(fileSetup.GetFileUnitForXmlSnippet(implementationXml, "A.cpp"));
+
             var globalScope_implementationFirst = implementationScope.Merge(headerScope);
 
-            DataAssert.StatementsAreEqual(globalScope, globalScope_implementationFirst);
+            namespaceA = globalScope_implementationFirst.GetDescendants<NamespaceDefinition>().FirstOrDefault(n => n.Name == "A");
+            Assert.IsNotNull(namespaceA);
+            Assert.AreEqual(1, namespaceA.ChildStatements.Count);
+
+            typeB = namespaceA.GetDescendants<TypeDefinition>().FirstOrDefault(t => t.Name == "B");
+            Assert.IsNotNull(typeB);
+            Assert.AreEqual(1, typeB.ChildStatements.Count);
+
+            methodFoo = typeB.GetNamedChildren<MethodDefinition>("Foo").FirstOrDefault();
+            Assert.IsNotNull(methodFoo);
+            Assert.AreEqual(0, methodFoo.ChildStatements.Count);
+            Assert.AreEqual(2, methodFoo.Locations.Count);
         }
 
         [Test]

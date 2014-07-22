@@ -31,28 +31,6 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Returns an enumerable of possible NamedScopes that this prefix might be referring to.
         /// </summary>
-        /// <param name="root">The root NamedScope from which to begin searching for matches.</param>
-        public IEnumerable<NamedScope> FindMatches(NamedScope root) {
-            var prefixes = Names.ToList();
-            var prefixMap = new Dictionary<NameUse, List<NamedScope>>();
-            for(int i = 0; i < prefixes.Count; i++) {
-                if(0 == i) {
-                    prefixMap[prefixes[i]] = (from child in root.ChildStatements.OfType<NamedScope>()
-                                              where child.Name == prefixes[i].Name
-                                              select child).ToList();
-                } else {
-                    prefixMap[prefixes[i]] = (from candidate in prefixMap[prefixes[i - 1]]
-                                              from child in candidate.ChildStatements.OfType<NamedScope>()
-                                              where child.Name == prefixes[i].Name
-                                              select child).ToList();
-                }
-            }
-            return prefixMap[prefixes[prefixes.Count - 1]];
-        }
-
-        /// <summary>
-        /// Returns an enumerable of possible NamedScopes that this prefix might be referring to.
-        /// </summary>
         public IEnumerable<NamedScope> FindMatches() {
             var lastName = Names.LastOrDefault();
             if(lastName != null) {

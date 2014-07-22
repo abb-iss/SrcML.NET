@@ -197,24 +197,22 @@ namespace ABB.SrcML.Data {
         //    return null;
         //}
         protected override void RestructureChildren() {
-            var namedChildrenWithPrefixes = (from child in ChildStatements.OfType<NamedScope>()
+            var children = Statement.RestructureChildren(ChildStatements);
+            ClearChildren();
+            AddChildStatements(children);
+
+            var namedChildrenWithPrefixes = (from child in children.OfType<NamedScope>()
                                              where !child.PrefixIsResolved
                                              select child).ToList<NamedScope>();
-            
-            // 1. restructure all of the children that don't have prefixes
-            var restructuredChildren = Statement.RestructureChildren(ChildStatements.Except(namedChildrenWithPrefixes));
-            ClearChildren();
-            AddChildStatements(restructuredChildren);
 
             // 2. check to see if children with prefixes can be relocated
             foreach(var child in namedChildrenWithPrefixes) {
-                var firstPossibleParent = child.Prefix.FindMatches(this).FirstOrDefault();
+                var firstPossibleParent = child.Prefix.FindMatches().FirstOrDefault();
                 if(null != firstPossibleParent) {
+                    RemoveChild(child);
                     child.MapPrefix(firstPossibleParent);
                     firstPossibleParent.AddChildStatement(child);
                     firstPossibleParent.RestructureChildren();
-                } else {
-                    AddChildStatement(child);
                 }
             }
         }
