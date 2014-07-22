@@ -184,7 +184,7 @@ namespace ABB.SrcML.Data {
             base.RemoveFile(fileName);
         }
         protected override string ComputeMergeId() {
-            if(Language.Java == ProgrammingLanguage || Language.CSharp == ProgrammingLanguage && !IsPartial) {
+            if(!PrefixIsResolved || Language.Java == ProgrammingLanguage || Language.CSharp == ProgrammingLanguage && !IsPartial) {
                 return base.ComputeMergeId();
             }
             char methodType = 'M';
