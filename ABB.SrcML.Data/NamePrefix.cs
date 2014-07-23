@@ -34,7 +34,7 @@ namespace ABB.SrcML.Data {
         public IEnumerable<NamedScope> FindMatches() {
             var lastName = Names.LastOrDefault();
             if(lastName != null) {
-                return lastName.FindMatches().OfType<NamedScope>();
+                return lastName.FindMatches().OfType<NamedScope>().Where(m => m is TypeDefinition || m is NamespaceDefinition);
             } else {
                 return Enumerable.Empty<NamedScope>();
             }

@@ -71,6 +71,68 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
+        public void TestNestedConstructorMerge_Cpp() {
+            //Foo.h
+            //class Foo 
+            //{
+            //public:
+            //    Foo(int, int, char);
+            //    virtual ~Foo();
+            //    struct Bar
+            //    {
+            //        Bar(float, float);
+            //        virtual ~Bar();
+            //    }
+            //};
+            string headerXml = @"<class>class <name>Foo</name> 
+<block>{<private type=""default"">
+</private><public>public:
+    <constructor_decl><name>Foo</name><parameter_list>(<param><decl><type><name>int</name></type></decl></param>, <param><decl><type><name>int</name></type></decl></param>, <param><decl><type><name>char</name></type></decl></param>)</parameter_list>;</constructor_decl>
+    <destructor_decl><specifier>virtual</specifier> <name>~<name>Foo</name></name><parameter_list>()</parameter_list>;</destructor_decl>
+    <struct>struct <name>Bar</name>
+    <block>{<public type=""default"">
+        <constructor_decl><name>Bar</name><parameter_list>(<param><decl><type><name>float</name></type></decl></param>, <param><decl><type><name>float</name></type></decl></param>)</parameter_list>;</constructor_decl>
+        <destructor_decl><specifier>virtual</specifier> <name>~<name>Bar</name></name><parameter_list>()</parameter_list>;</destructor_decl>
+    </public>}</block>
+<decl/></struct></public>}</block>;</class>";
+            //Foo.cpp
+            //Foo::Bar::Bar(float a, float b) { }
+            //Foo::Bar::~Bar() { }
+            //
+            //Foo::Foo(int a, int b, char c) { }
+            //Foo::~Foo() { }
+            string implXml = @"<constructor><name><name>Foo</name><op:operator>::</op:operator><name>Bar</name><op:operator>::</op:operator><name>Bar</name></name><parameter_list>(<param><decl><type><name>float</name></type> <name>a</name></decl></param>, <param><decl><type><name>float</name></type> <name>b</name></decl></param>)</parameter_list> <block>{ }</block></constructor>
+<destructor><name><name>Foo</name><op:operator>::</op:operator><name>Bar</name><op:operator>::</op:operator>~<name>Bar</name></name><parameter_list>()</parameter_list> <block>{ }</block></destructor>
+
+<constructor><name><name>Foo</name><op:operator>::</op:operator><name>Foo</name></name><parameter_list>(<param><decl><type><name>int</name></type> <name>a</name></decl></param>, <param><decl><type><name>int</name></type> <name>b</name></decl></param>, <param><decl><type><name>char</name></type> <name>c</name></decl></param>)</parameter_list> <block>{ }</block></constructor>
+<destructor><name><name>Foo</name><op:operator>::</op:operator>~<name>Foo</name></name><parameter_list>()</parameter_list> <block>{ }</block></destructor>
+";
+            var header = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(headerXml, "Foo.h");
+            var implementation = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(implXml, "Foo.cpp");
+
+            var headerScope = CodeParser[Language.CPlusPlus].ParseFileUnit(header);
+            var implementationScope = CodeParser[Language.CPlusPlus].ParseFileUnit(implementation);
+
+            var globalScope = headerScope.Merge(implementationScope);
+            Assert.AreEqual(1, globalScope.ChildStatements.Count);
+
+            var foo = globalScope.GetDescendants<TypeDefinition>().First(t => t.Name == "Foo");
+            Assert.AreEqual(3, foo.ChildStatements.Count);
+            Assert.AreEqual(2, foo.ChildStatements.OfType<MethodDefinition>().Count());
+            Assert.AreEqual(1, foo.ChildStatements.OfType<TypeDefinition>().Count());
+            Assert.AreEqual("Foo.h", foo.PrimaryLocation.SourceFileName);
+
+            var bar = globalScope.GetDescendants<TypeDefinition>().First(t => t.Name == "Bar");
+            Assert.AreEqual(2, bar.ChildStatements.Count);
+            Assert.AreEqual(2, bar.ChildStatements.OfType<MethodDefinition>().Count());
+            Assert.AreEqual("Foo.h", bar.PrimaryLocation.SourceFileName);
+
+            var barConstructor = bar.GetNamedChildren<MethodDefinition>("Bar").First(m => m.IsConstructor);
+            Assert.AreEqual(2, barConstructor.Locations.Count);
+            Assert.AreEqual("Foo.cpp", barConstructor.PrimaryLocation.SourceFileName);
+        }
+
+        [Test]
         public void TestDestructorMerge_Cpp() {
             //A.h class A { ~A(); };
             string header_xml = @"<class>class <name>A</name> <block>{<private type=""default""> <destructor_decl><name>~<name>A</name></name><parameter_list>()</parameter_list>;</destructor_decl> </private>}</block>;</class>

@@ -170,15 +170,17 @@ namespace ABB.SrcML.Data {
                 return TypeDefinition.GetTypeForKeyword(this);
             }
 
+            //We don't want to match a NameUse to a MethodDefinition, so exclude them in all the queries
+
             //If there's a prefix, resolve that and search under results
             if(Prefix != null) {
-                return Prefix.FindMatches().SelectMany(ns => ns.GetNamedChildren<INamedEntity>(this.Name));
+                return Prefix.FindMatches().SelectMany(ns => ns.GetNamedChildren<INamedEntity>(this.Name)).Where(e => !(e is MethodDefinition));
             }
 
             //If there's a calling expression, match and search under results
             var callingScopes = GetCallingScope();
             if(callingScopes != null) {
-                return callingScopes.SelectMany(s => s.GetNamedChildren<INamedEntity>(this.Name));
+                return callingScopes.SelectMany(s => s.GetNamedChildren<INamedEntity>(this.Name)).Where(e => !(e is MethodDefinition));
             }
 
             //TODO: search for local variables
@@ -199,7 +201,7 @@ namespace ABB.SrcML.Data {
 
             //TODO: search better?
 
-            var lex = ParentStatement.GetAncestorsAndSelf<NamedScope>().SelectMany(ns => ns.GetNamedChildren<INamedEntity>(this.Name)).ToList();
+            var lex = ParentStatement.GetAncestorsAndSelf<NamedScope>().SelectMany(ns => ns.GetNamedChildren<INamedEntity>(this.Name)).Where(e => !(e is MethodDefinition)).ToList();
             if(lex.Any()) {
                 return lex;
             }
@@ -208,6 +210,7 @@ namespace ABB.SrcML.Data {
             return (from import in GetImports()
                     from match in import.ImportedNamespace.GetDescendantsAndSelf<NameUse>().Last().FindMatches()
                     from child in match.GetNamedChildren(this.Name)
+                    where !(child is MethodDefinition)
                     select child);
         }
 
@@ -266,8 +269,18 @@ namespace ABB.SrcML.Data {
             foreach(var match in matches) {
                 //TODO: update this to use GetEntityType method from INamedEntity
                 if(match is MethodDefinition) {
-                    //TODO: update this to not crash if match is a constructor/destructor
-                    scopes.AddRange(((MethodDefinition)match).ReturnType.ResolveType());
+                    var method = match as MethodDefinition;
+                    if(method.ReturnType != null) {
+                        scopes.AddRange(((MethodDefinition)match).ReturnType.ResolveType());
+                    } else if(method.IsConstructor) {
+                        //create the constructor return type
+                        var tempTypeUse = new TypeUse() {
+                            Name = method.Name,
+                            ParentStatement = method.ParentStatement,
+                            Location = method.PrimaryLocation
+                        };
+                        scopes.AddRange(tempTypeUse.ResolveType());
+                    } 
                 } else if(match is PropertyDefinition) {
                     scopes.AddRange(((PropertyDefinition)match).ReturnType.ResolveType());
                 } else if(match is VariableDeclaration) {
@@ -288,7 +301,6 @@ namespace ABB.SrcML.Data {
             aliases = new List<Statement>();
             var currentStmt = this.ParentStatement;
             while(currentStmt != null) {
-                //TODO: update to check that the alias is in the same file as the NameUse
                 foreach(var sibling in currentStmt.GetSiblingsBeforeSelf().Where(s => s is AliasStatement || s is ImportStatement)) {
                     if(sibling.Locations.Any(l => string.Equals(l.SourceFileName, this.Location.SourceFileName, StringComparison.CurrentCultureIgnoreCase))) {
                         aliases.Add(sibling);

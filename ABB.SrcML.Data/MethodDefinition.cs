@@ -155,6 +155,8 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        //TODO: create method ResolveReturnType that will match the return type, and handle determining the constructor return type
+
         /// <summary>
         /// Instance method for getting <see cref="MethodDefinition.XmlName"/>
         /// </summary>
