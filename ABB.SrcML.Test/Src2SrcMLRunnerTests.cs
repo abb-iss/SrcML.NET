@@ -226,6 +226,8 @@ printf(""hello world!"");
         {
             var exclusionList = new List<string>();
             exclusionList.Add("srcmltest\\bar.c");
+            exclusionList.Add("srcmltest\\BadPath™\\badPathTest.c");
+            exclusionList.Add("srcmltest\\fooBody.c");
 
             var srcmlObject = new Src2SrcMLRunner(Path.Combine(".", "SrcML"));
 

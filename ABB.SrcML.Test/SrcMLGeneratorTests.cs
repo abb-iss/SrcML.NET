@@ -184,6 +184,8 @@ printf(""hello world!"");
         public void ExclusionFilterTest() {
             var exclusionList = new List<string>();
             exclusionList.Add("srcmltest\\bar.c");
+            exclusionList.Add("srcmltest\\BadPath™\\badPathTest.c");
+            exclusionList.Add("srcmltest\\fooBody.c");
 
             var doc = generator.GenerateSrcMLFileFromDirectory("srcmltest", "srcml_xml\\exclusionfilter.xml", exclusionList, Language.C);
 
