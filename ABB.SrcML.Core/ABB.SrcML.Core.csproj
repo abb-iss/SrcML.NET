@@ -68,7 +68,6 @@
     <Compile Include="SrcMLException.cs" />
     <Compile Include="SrcMLRequiredNameException.cs" />
     <Compile Include="SrcMLNamespaces.cs" />
-    <Compile Include="XmlHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ABB.SrcML.Core.nuspec" />

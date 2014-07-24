@@ -128,7 +128,7 @@ namespace ABB.SrcML {
         /// <param name="xmlFileName">The srcml file name</param>
         /// <returns>An XElement</returns>
         public static XElement Load(string xmlFileName) {
-            using(var f = XmlHelper.GetCorrectlyEncodedStream(xmlFileName)) {
+            using(var f = File.Open(xmlFileName, FileMode.Open, FileAccess.Read, FileShare.Read)) {
                 return XElement.Load(f, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo);
             }
         }

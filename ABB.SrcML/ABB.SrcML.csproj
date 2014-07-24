@@ -102,6 +102,7 @@
     <Compile Include="Utilities\TaskManager.cs" />
     <Compile Include="Utilities\VisualStudioProjectReader.cs" />
     <Compile Include="XmlFileNameMapping.cs" />
+    <Compile Include="XmlHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ABB.SrcML.nuspec" />
