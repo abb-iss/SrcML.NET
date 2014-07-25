@@ -89,6 +89,15 @@ namespace ABB.SrcML.Test {
         }
 
         [Test]
+        public void TestEmptyMonitor() {
+            using(var monitor = new DirectoryScanningMonitor(monitorFolder, DirectoryScanningMonitor.DEFAULT_SCAN_INTERVAL)) {
+                monitor.AddDirectory(testFolder);
+                monitor.FileChanged += (o, e) => Assert.Fail(e.FilePath);
+                monitor.UpdateArchives();
+            }
+        }
+
+        [Test]
         public void TestExcludedDirectory() {
             var testExcludedDirectoryPath = Path.Combine(testFolder, "TestExcludedDirectory");
             var excludedFolders = new string[] {

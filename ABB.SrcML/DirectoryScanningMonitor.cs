@@ -57,6 +57,13 @@ namespace ABB.SrcML {
         public event EventHandler<DirectoryScanningMonitorEventArgs> DirectoryRemoved;
 
         /// <summary>
+        /// Creates a new directory scanning monitor
+        /// </summary>
+        /// <param name="baseDirectory">The base directory to use for the archives of this monitor</param>
+        /// <param name="scanInterval">The <see cref="ScanInterval"/> in seconds</param>
+        public DirectoryScanningMonitor(string baseDirectory, double scanInterval) : this(MONITOR_LIST_FILENAME, scanInterval, TaskScheduler.Default, baseDirectory, null) { }
+
+        /// <summary>
         /// Create a new directory scanning monitor
         /// </summary>
         /// <param name="monitorFileName">The file name to save the list of monitored directories
