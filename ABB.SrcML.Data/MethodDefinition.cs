@@ -163,6 +163,26 @@ namespace ABB.SrcML.Data {
         /// <returns>Returns the XML name for MethodDefinition</returns>
         public override string GetXmlName() { return MethodDefinition.XmlName; }
 
+        /// <summary>
+        /// Returns all the expressions within this statement.
+        /// </summary>
+        public override IEnumerable<Expression> GetExpressions()
+        {
+            if(ReturnType != null) {
+                yield return ReturnType;
+            }
+            if(Prefix != null) {
+                yield return Prefix;
+            }
+            //TODO: add type parameters, once they exist
+            foreach(var param in Parameters) {
+                yield return param;
+            }
+            foreach(var init in ConstructorInitializers) {
+                yield return init;
+            }
+        }
+
         public override Statement Merge(Statement otherStatement) {
             return this.Merge(otherStatement as MethodDefinition);
         }

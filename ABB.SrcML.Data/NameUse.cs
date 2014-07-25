@@ -183,7 +183,26 @@ namespace ABB.SrcML.Data {
                 return callingScopes.SelectMany(s => s.GetNamedChildren<INamedEntity>(this.Name)).Where(e => !(e is MethodDefinition));
             }
 
-            //TODO: search for local variables
+            //Search for local variables
+            var localVars = SearchForLocalVariable().ToList();
+            if(localVars.Any()) {
+                return localVars;
+            }
+
+            //search the surrounding type and its base types
+            var containingType = ParentStatement.GetAncestors<TypeDefinition>().FirstOrDefault();
+            if(containingType != null) {
+                var parentMatches = containingType.GetParentTypesAndSelf(true).SelectMany(t => t.GetNamedChildren(this.Name)).Where(e => !(e is MethodDefinition)).ToList();
+                if(parentMatches.Any()) {
+                    return parentMatches;
+                }
+            }
+
+            //search the surrounding scopes
+            var lex = ParentStatement.GetAncestorsAndSelf<NamedScope>().SelectMany(ns => ns.GetNamedChildren<INamedEntity>(this.Name)).Where(e => !(e is MethodDefinition)).ToList();
+            if(lex.Any()) {
+                return lex;
+            }
 
             //search if there is an alias for this name
             foreach(var alias in GetAliases()) {
@@ -197,13 +216,6 @@ namespace ABB.SrcML.Data {
                         return targetName.FindMatches();
                     }
                 }
-            }
-
-            //TODO: search better?
-
-            var lex = ParentStatement.GetAncestorsAndSelf<NamedScope>().SelectMany(ns => ns.GetNamedChildren<INamedEntity>(this.Name)).Where(e => !(e is MethodDefinition)).ToList();
-            if(lex.Any()) {
-                return lex;
             }
 
             //we didn't find it locally, search under imported namespaces
@@ -290,6 +302,38 @@ namespace ABB.SrcML.Data {
                 }
             }
             return scopes;
+        }
+
+        /// <summary>
+        /// Searches for a local (i.e. not a field or a global) variable declaration that matches this NameUse.
+        /// </summary>
+        /// <returns>The <see cref="VariableDeclaration"/>s that this NameUse might be a use of.</returns>
+        protected IEnumerable<VariableDeclaration> SearchForLocalVariable() {
+            var currentStmt = this.ParentStatement; //grab the statement that this expression is in
+
+            //search through the enclosing scopes where the order of the children matters. For example, within a method or if-statement or while-loop
+            while(currentStmt != null &&
+                  currentStmt.ParentStatement != null &&
+                  !(currentStmt.ParentStatement is NamespaceDefinition) &&
+                  !(currentStmt.ParentStatement is TypeDefinition)) {
+
+                var siblings = currentStmt.GetSiblingsBeforeSelf<DeclarationStatement>().ToList();
+                siblings.Reverse();
+                //search prior siblings
+                var match = siblings.SelectMany(s => s.GetDeclarations()).FirstOrDefault(v => v.Name == this.Name);
+                if(match != null) {
+                    return Enumerable.Repeat(match, 1);
+                }
+                //search expressions in the parent
+                match = currentStmt.ParentStatement.GetExpressions().SelectMany(e => e.GetDescendantsAndSelf<VariableDeclaration>()).FirstOrDefault(v => v.Name == this.Name);
+                if(match != null) {
+                    return Enumerable.Repeat(match, 1);
+                }
+
+                currentStmt = currentStmt.ParentStatement;
+            }
+
+            return Enumerable.Empty<VariableDeclaration>();
         }
 
         #region Private Methods

@@ -10,6 +10,7 @@
  *    Vinay Augustine (ABB Group) - initial API, implementation, & documentation
  *****************************************************************************/
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 
@@ -130,6 +131,18 @@ namespace ABB.SrcML.Data {
             }
             if(null != ReturnType) {
                 XmlSerialization.WriteElement(writer, ReturnType, XmlReturnTypeName);
+            }
+        }
+
+        /// <summary>
+        /// Returns all the expressions within this statement.
+        /// </summary>
+        public override IEnumerable<Expression> GetExpressions() {
+            if(ReturnType != null) {
+                yield return ReturnType;
+            }
+            if(Prefix != null) {
+                yield return Prefix;
             }
         }
 

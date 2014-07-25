@@ -33,12 +33,6 @@ namespace ABB.SrcML.Data
         /// <summary> XML Name for <see cref="Initializer" /> </summary>
         public const string XmlInitializerName = "Initializer";
 
-        /// <summary>
-        /// Instance method for getting <see cref="UsingBlockStatement.XmlName"/>
-        /// </summary>
-        /// <returns>Returns the XML name for UsingBlockStatement</returns>
-        public override string GetXmlName() { return UsingBlockStatement.XmlName; }
-
         /// <summary> The intialization expression for the using block. </summary>
         public Expression Initializer {
             get { return initExpression; }
@@ -49,6 +43,12 @@ namespace ABB.SrcML.Data
                 }
             }
         }
+
+        /// <summary>
+        /// Instance method for getting <see cref="UsingBlockStatement.XmlName"/>
+        /// </summary>
+        /// <returns>Returns the XML name for UsingBlockStatement</returns>
+        public override string GetXmlName() { return UsingBlockStatement.XmlName; }
 
         /// <summary>
         /// Processes the child of the current reader position into a child of this object.
@@ -71,6 +71,15 @@ namespace ABB.SrcML.Data
                 XmlSerialization.WriteElement(writer, Initializer, XmlInitializerName);
             }
             base.WriteXmlContents(writer);
+        }
+
+        /// <summary>
+        /// Returns all the expressions within this statement.
+        /// </summary>
+        public override IEnumerable<Expression> GetExpressions() {
+            if(Initializer != null) {
+                yield return Initializer;
+            }
         }
     }
 }

@@ -199,6 +199,19 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
+        /// Returns all the expressions within this statement.
+        /// </summary>
+        public override IEnumerable<Expression> GetExpressions() {
+            if(Prefix != null) {
+                yield return Prefix;
+            }
+            //TODO: return type parameters, once added
+            foreach(var parent in ParentTypeNames) {
+                yield return parent;
+            }
+        }
+
+        /// <summary>
         /// Read the XML attributes from the current <paramref name="reader"/> position
         /// </summary>
         /// <param name="reader">The XML reader</param>

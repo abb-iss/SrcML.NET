@@ -90,5 +90,20 @@ namespace ABB.SrcML.Data
             
             base.WriteXmlContents(writer);
         }
+
+        /// <summary>
+        /// Returns all the expressions within this statement.
+        /// </summary>
+        public override IEnumerable<Expression> GetExpressions() {
+            if(Initializer != null) {
+                yield return Initializer;
+            }
+            if(Condition != null) {
+                yield return Condition;
+            }
+            if(Incrementer != null) {
+                yield return Incrementer;
+            }
+        }
     }
 }

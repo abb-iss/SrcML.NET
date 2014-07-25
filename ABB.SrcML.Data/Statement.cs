@@ -193,6 +193,14 @@ namespace ABB.SrcML.Data {
             return base.GetSiblingsAfterSelf().Cast<Statement>();
         }
 
+        /// <summary>
+        /// Returns all the expressions within this statement.
+        /// </summary>
+        public virtual IEnumerable<Expression> GetExpressions() {
+            if(Content != null) {
+                yield return Content;
+            }
+        }
 
         ///// <summary>
         ///// Returns the variables declared within this statement.

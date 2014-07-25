@@ -277,7 +277,15 @@ namespace ABB.SrcML.Data {
                         select decl;
 
             return scopes.Concat(decls);
-            //TODO: update to search variable/field declarations as well
+        }
+
+        /// <summary>
+        /// Returns all the expressions within this statement.
+        /// </summary>
+        public override IEnumerable<Expression> GetExpressions() {
+            if(Prefix != null) {
+                yield return Prefix;
+            }
         }
     }
 

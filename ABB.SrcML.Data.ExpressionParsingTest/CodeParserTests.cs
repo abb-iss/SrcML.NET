@@ -313,5 +313,61 @@ namespace ABB.SrcML.Data.Test
             Assert.AreEqual(1, globalScope.ChildStatements.Count);
             Assert.AreEqual(3, globalScope.ChildStatements[0].Content.GetDescendantsAndSelf<MethodCall>().Count());
         }
+
+        [TestCase(Language.CPlusPlus)]
+        [TestCase(Language.Java)]
+        [TestCase(Language.CSharp)]
+        public void TestResolveLocalVariable(Language lang) {
+            //int Foo() {
+            //  if(MethodCall()) {
+            //    int bar = 17;
+            //    bar = 42;
+            //  }
+            //}
+            string xml = @"<function><type><name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{
+  <if>if<condition>(<expr><call><name>MethodCall</name><argument_list>()</argument_list></call></expr>)</condition><then> <block>{
+    <decl_stmt><decl><type><name>int</name></type> <name>bar</name> <init>= <expr><lit:literal type=""number"">17</lit:literal></expr></init></decl>;</decl_stmt>
+    <expr_stmt><expr><name>bar</name> <op:operator>=</op:operator> <lit:literal type=""number"">42</lit:literal></expr>;</expr_stmt>
+  }</block></then></if>
+}</block></function>";
+            var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(xml, "test.code");
+
+            var globalScope = codeParsers[lang].ParseFileUnit(xmlElement);
+            var ifStmt = globalScope.GetDescendants<IfStatement>().First();
+            Assert.AreEqual(2, ifStmt.ChildStatements.Count());
+
+            var barDecl = ifStmt.ChildStatements[0].Content.GetDescendantsAndSelf<VariableDeclaration>().FirstOrDefault(v => v.Name == "bar");
+            Assert.IsNotNull(barDecl);
+            var barUse = ifStmt.ChildStatements[1].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(n => n.Name == "bar");
+            Assert.IsNotNull(barUse);
+            Assert.AreSame(barDecl, barUse.FindMatches().FirstOrDefault());
+        }
+
+        [TestCase(Language.CPlusPlus)]
+        [TestCase(Language.Java)]
+        [TestCase(Language.CSharp)]
+        public void TestResolveLocalVariable_ParentExpression(Language lang) {
+            //int Foo() {
+            //  for(int i = 0; i < bar; i++) {
+            //    printf(i);
+            //  }
+            //}
+            string xml = @"<function><type><name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{
+  <for>for(<init><decl><type><name>int</name></type> <name>i</name> <init>= <expr><lit:literal type=""number"">0</lit:literal></expr></init></decl>;</init> <condition><expr><name>i</name> <op:operator>&lt;</op:operator> <name>bar</name></expr>;</condition> <incr><expr><name>i</name><op:operator>++</op:operator></expr></incr>) <block>{
+    <expr_stmt><expr><call><name>printf</name><argument_list>(<argument><expr><name>i</name></expr></argument>)</argument_list></call></expr>;</expr_stmt>
+  }</block></for>
+}</block></function>";
+            var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(xml, "test.code");
+
+            var globalScope = codeParsers[lang].ParseFileUnit(xmlElement);
+            var forStmt = globalScope.GetDescendants<ForStatement>().First();
+            Assert.AreEqual(1, forStmt.ChildStatements.Count());
+
+            var iDecl = forStmt.Initializer.GetDescendantsAndSelf<VariableDeclaration>().FirstOrDefault(v => v.Name == "i");
+            Assert.IsNotNull(iDecl);
+            var iUse = forStmt.ChildStatements[0].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(n => n.Name == "i");
+            Assert.IsNotNull(iUse);
+            Assert.AreSame(iDecl, iUse.FindMatches().FirstOrDefault());
+        }
     }
 }

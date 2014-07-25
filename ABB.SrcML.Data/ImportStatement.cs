@@ -74,5 +74,14 @@ namespace ABB.SrcML.Data {
             }
             base.WriteXmlContents(writer);
         }
+
+        /// <summary>
+        /// Returns all the expressions within this statement.
+        /// </summary>
+        public override IEnumerable<Expression> GetExpressions() {
+            if(ImportedNamespace != null) {
+                yield return ImportedNamespace;
+            }
+        }
     }
 }

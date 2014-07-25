@@ -108,33 +108,37 @@ namespace ABB.SrcML.Data.Test {
         [Category("Todo")]
         public void TestCallWithTypeParameters() {
             //namespace A {
-            //	public interface IQuery { }
-            //	public interface IOdb { IQuery Query<T>(); }
-            //	public class Test {
-            //		public IOdb Open() { }
-            //		void Test1() {
-            //			var odb = Open();
-            //			var query = odb.Query<Foo>();
-            //		}
-            //	}
+            //    public interface IOdb { 
+            //        int Query();
+            //        int Query<T>();
+            //    }
+            //    public class Test {
+            //        public IOdb Open() { }
+            //        void Test1() {
+            //            IOdb odb = Open();
+            //            var query = odb.Query<Foo>();
+            //        }
+            //    }
             //}
             var xml = @"<namespace>namespace <name>A</name> <block>{
-	<class type=""interface""><specifier>public</specifier> interface <name>IQuery</name> <block>{ }</block></class>
-	<class type=""interface""><specifier>public</specifier> interface <name>IOdb</name> <block>{ <function_decl><type><name>IQuery</name></type> <name><name>Query</name><argument_list>&lt;<argument><name>T</name></argument>&gt;</argument_list></name><parameter_list>()</parameter_list>;</function_decl> }</block></class>
-
-	<class><specifier>public</specifier> class <name>Test</name> <block>{
-		<function><type><specifier>public</specifier> <name>IOdb</name></type> <name>Open</name><parameter_list>()</parameter_list> <block>{ }</block></function>
-		<function><type><name>void</name></type> <name>Test1</name><parameter_list>()</parameter_list> <block>{
-			<decl_stmt><decl><type><name>var</name></type> <name>odb</name> =<init> <expr><call><name>Open</name><argument_list>()</argument_list></call></expr></init></decl>;</decl_stmt>
-			<decl_stmt><decl><type><name>var</name></type> <name>query</name> =<init> <expr><call><name><name>odb</name><op:operator>.</op:operator><name><name>Query</name><argument_list>&lt;<argument><name>Foo</name></argument>&gt;</argument_list></name></name><argument_list>()</argument_list></call></expr></init></decl>;</decl_stmt>
-		}</block></function>
-	}</block></class>
+    <class type=""interface""><specifier>public</specifier> interface <name>IOdb</name> <block>{ 
+        <function_decl><type><name>int</name></type> <name>Query</name><parameter_list>()</parameter_list>;</function_decl>
+        <function_decl><type><name>int</name></type> <name><name>Query</name><argument_list>&lt;<argument><name>T</name></argument>&gt;</argument_list></name><parameter_list>()</parameter_list>;</function_decl>
+    }</block></class>
+    <class><specifier>public</specifier> class <name>Test</name> <block>{
+        <function><type><specifier>public</specifier> <name>IOdb</name></type> <name>Open</name><parameter_list>()</parameter_list> <block>{ }</block></function>
+        <function><type><name>void</name></type> <name>Test1</name><parameter_list>()</parameter_list> <block>{
+            <decl_stmt><decl><type><name>IOdb</name></type> <name>odb</name> <init>= <expr><call><name>Open</name><argument_list>()</argument_list></call></expr></init></decl>;</decl_stmt>
+            <decl_stmt><decl><type><name>var</name></type> <name>query</name> <init>= <expr><call><name><name>odb</name><op:operator>.</op:operator><name><name>Query</name><argument_list>&lt;<argument><name>Foo</name></argument>&gt;</argument_list></name></name><argument_list>()</argument_list></call></expr></init></decl>;</decl_stmt>
+        }</block></function>
+    }</block></class>
 }</block></namespace>";
             var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
             var scope = codeParser.ParseFileUnit(unit);
 
-            var queryMethod = scope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "Query");
-            Assert.IsNotNull(queryMethod);
+            //TODO: update to search for method with type params, not just LastOrDefault
+            var queryTMethod = scope.GetDescendants<MethodDefinition>().LastOrDefault(m => m.Name == "Query");
+            Assert.IsNotNull(queryTMethod);
             var test1Method = scope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "Test1");
             Assert.IsNotNull(test1Method);
 
@@ -142,7 +146,9 @@ namespace ABB.SrcML.Data.Test {
             var callToQuery = test1Method.ChildStatements[1].Content.GetDescendantsAndSelf<MethodCall>().FirstOrDefault();
             Assert.IsNotNull(callToQuery);
 
-            Assert.AreSame(queryMethod, callToQuery.FindMatches().FirstOrDefault());
+            var matches = callToQuery.FindMatches().ToList();
+            Assert.AreEqual(1, matches.Count);
+            Assert.AreSame(queryTMethod, matches[0]);
         }
 
         [Test]
@@ -328,7 +334,6 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        [Category("Todo")]
         public void TestGetImports_SeparateFiles() {
             //A.cs
             //using x.y.z;
@@ -1595,5 +1600,62 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreSame(fooMethod, callToFoo.FindMatches().FirstOrDefault());
             Assert.AreSame(barMethod, callToBar.FindMatches().FirstOrDefault());
         }
+
+        [Test]
+        public void TestResolveVariable_Field() {
+            //class A {
+            //  public int Foo;
+            //  public A() {
+            //    Foo = 42;
+            //  }
+            //}
+            string xml = @"<class>class <name>A</name> <block>{
+  <decl_stmt><decl><type><specifier>public</specifier> <name>int</name></type> <name>Foo</name></decl>;</decl_stmt>
+  <constructor><specifier>public</specifier> <name>A</name><parameter_list>()</parameter_list> <block>{
+    <expr_stmt><expr><name>Foo</name> <op:operator>=</op:operator> <lit:literal type=""number"">42</lit:literal></expr>;</expr_stmt>
+  }</block></constructor>
+}</block></class>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
+
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            var fooDecl = globalScope.GetNamedChildren<TypeDefinition>("A").First().GetNamedChildren<VariableDeclaration>("Foo").First();
+            var aConstructor = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == "A");
+            Assert.AreEqual(1, aConstructor.ChildStatements.Count);
+            var fooUse = aConstructor.ChildStatements[0].Content.GetDescendants<NameUse>().FirstOrDefault(n => n.Name == "Foo");
+            Assert.IsNotNull(fooUse);
+            Assert.AreSame(fooDecl, fooUse.FindMatches().FirstOrDefault());
+        }
+
+        [Test]
+        public void TestResolveVariable_FieldInParent() {
+            //class B {
+            //  public int Foo;
+            //}
+            //class A : B {
+            //  public A() {
+            //    Foo = 42;
+            //  }
+            //}
+            var xml = @"<class>class <name>B</name> <block>{
+  <decl_stmt><decl><type><specifier>public</specifier> <name>int</name></type> <name>Foo</name></decl>;</decl_stmt>
+}</block></class>
+<class>class <name>A</name> <super>: <name>B</name></super> <block>{
+  <constructor><specifier>public</specifier> <name>A</name><parameter_list>()</parameter_list> <block>{
+    <expr_stmt><expr><name>Foo</name> <op:operator>=</op:operator> <lit:literal type=""number"">42</lit:literal></expr>;</expr_stmt>
+  }</block></constructor>
+}</block></class>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
+
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            var fooDecl = globalScope.GetNamedChildren<TypeDefinition>("B").First().GetNamedChildren<VariableDeclaration>("Foo").First();
+            var aConstructor = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == "A");
+            Assert.AreEqual(1, aConstructor.ChildStatements.Count);
+            var fooUse = aConstructor.ChildStatements[0].Content.GetDescendants<NameUse>().FirstOrDefault(n => n.Name == "Foo");
+            Assert.IsNotNull(fooUse);
+            Assert.AreSame(fooDecl, fooUse.FindMatches().FirstOrDefault());
+        }
+
+        [Test]
+        public void TestResolveVariable_Global() {}
     }
 }

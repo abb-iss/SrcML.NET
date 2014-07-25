@@ -919,7 +919,6 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        [Category("Todo")]
         public void TestMergeWithUsing() {
             // namespace A { class B { void Foo(); }; }
             string headerXml = @"<namespace>namespace <name>A</name> <block>{ <class>class <name>B</name> <block>{<private type=""default""> <function_decl><type><name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list>;</function_decl> </private>}</block>;</class> }</block></namespace>";
@@ -1412,6 +1411,104 @@ namespace ABB.SrcML.Data.Test {
             Assert.IsNotNull(index);
             Assert.AreEqual("17", index.Text);
             Assert.AreEqual(LiteralKind.Number, index.Kind);
+        }
+
+        [Test]
+        public void TestResolveVariable_Field() {
+            //class A {
+            //public:
+            //  int Foo;
+            //  A() { Foo = 42; }
+            //};
+            string xml = @"<class>class <name>A</name> <block>{<private type=""default"">
+</private><public>public:
+  <decl_stmt><decl><type><name>int</name></type> <name>Foo</name></decl>;</decl_stmt>
+  <constructor><name>A</name><parameter_list>()</parameter_list> <block>{ <expr_stmt><expr><name>Foo</name> <op:operator>=</op:operator> <lit:literal type=""number"">42</lit:literal></expr>;</expr_stmt> }</block></constructor>
+</public>}</block>;</class>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
+
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            var fooDecl = globalScope.GetNamedChildren<TypeDefinition>("A").First().GetNamedChildren<VariableDeclaration>("Foo").First();
+            var aConstructor = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == "A");
+            Assert.AreEqual(1, aConstructor.ChildStatements.Count);
+            var fooUse = aConstructor.ChildStatements[0].Content.GetDescendants<NameUse>().FirstOrDefault(n => n.Name == "Foo");
+            Assert.IsNotNull(fooUse);
+            Assert.AreSame(fooDecl, fooUse.FindMatches().FirstOrDefault());
+        }
+
+        [Test]
+        public void TestResolveVariable_FieldInParent() {
+            //class B {
+            //public:
+            //  int Foo;
+            //};
+            //class A : public B {
+            //public:
+            //  A() { Foo = 42; }
+            //};
+            var xml = @"<class>class <name>B</name> <block>{<private type=""default"">
+</private><public>public:
+  <decl_stmt><decl><type><name>int</name></type> <name>Foo</name></decl>;</decl_stmt>
+</public>}</block>;</class>
+<class>class <name>A</name> <super>: <specifier>public</specifier> <name>B</name></super> <block>{<private type=""default"">
+</private><public>public:
+  <constructor><name>A</name><parameter_list>()</parameter_list> <block>{ <expr_stmt><expr><name>Foo</name> <op:operator>=</op:operator> <lit:literal type=""number"">42</lit:literal></expr>;</expr_stmt> }</block></constructor>
+</public>}</block>;</class>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
+
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            var fooDecl = globalScope.GetNamedChildren<TypeDefinition>("B").First().GetNamedChildren<VariableDeclaration>("Foo").First();
+            var aConstructor = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == "A");
+            Assert.AreEqual(1, aConstructor.ChildStatements.Count);
+            var fooUse = aConstructor.ChildStatements[0].Content.GetDescendants<NameUse>().FirstOrDefault(n => n.Name == "Foo");
+            Assert.IsNotNull(fooUse);
+            Assert.AreSame(fooDecl, fooUse.FindMatches().FirstOrDefault());
+        }
+
+        [Test]
+        public void TestResolveVariable_Global() {
+            //int Foo;
+            //int Bar() {
+            //  Foo = 17;
+            //}
+            var xml = @"<decl_stmt><decl><type><name>int</name></type> <name>Foo</name></decl>;</decl_stmt>
+<function><type><name>int</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{
+  <expr_stmt><expr><name>Foo</name> <op:operator>=</op:operator> <lit:literal type=""number"">17</lit:literal></expr>;</expr_stmt>
+}</block></function>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
+
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            var fooDecl = globalScope.GetNamedChildren<VariableDeclaration>("Foo").First();
+            var bar = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == "Bar");
+            Assert.AreEqual(1, bar.ChildStatements.Count);
+            var fooUse = bar.ChildStatements[0].Content.GetDescendants<NameUse>().FirstOrDefault(n => n.Name == "Foo");
+            Assert.IsNotNull(fooUse);
+            Assert.AreSame(fooDecl, fooUse.FindMatches().FirstOrDefault());
+        }
+
+        [Test]
+        public void TestResolveVariable_VarInNamespace() {
+            //namespace A {
+            //  int Foo;
+            //  int Bar() {
+            //    Foo = 17;
+            //  }
+            //}
+            var xml = @"<namespace>namespace <name>A</name> <block>{
+  <decl_stmt><decl><type><name>int</name></type> <name>Foo</name></decl>;</decl_stmt>
+  <function><type><name>int</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{
+    <expr_stmt><expr><name>Foo</name> <op:operator>=</op:operator> <lit:literal type=""number"">17</lit:literal></expr>;</expr_stmt>
+  }</block></function>
+}</block></namespace>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
+
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            var fooDecl = globalScope.GetNamedChildren<NamespaceDefinition>("A").First().GetNamedChildren<VariableDeclaration>("Foo").First();
+            var bar = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == "Bar");
+            Assert.AreEqual(1, bar.ChildStatements.Count);
+            var fooUse = bar.ChildStatements[0].Content.GetDescendants<NameUse>().FirstOrDefault(n => n.Name == "Foo");
+            Assert.IsNotNull(fooUse);
+            Assert.AreSame(fooDecl, fooUse.FindMatches().FirstOrDefault());
         }
     }
 }
