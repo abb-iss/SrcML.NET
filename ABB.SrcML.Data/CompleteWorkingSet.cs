@@ -10,6 +10,7 @@
  *****************************************************************************/
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -77,22 +78,24 @@ namespace ABB.SrcML.Data {
             if(null == Archive) { throw new InvalidOperationException("Archive is null"); }
 
             return Factory.StartNew(() => {
-                var mergedScopeFromArchive = ReadArchive();
+                var readTask = ReadArchiveAsync();
+                readTask.Wait();
+                
+                bool globalScopeChanged = false;
 
-                if(null != mergedScopeFromArchive) {
+                if(null != readTask.Result) {
                     GlobalScopeManager scopeManager;
                     if(TryObtainWriteLock(Timeout.Infinite, out scopeManager)) {
                         try {
-                            scopeManager.GlobalScope = mergedScopeFromArchive;
-                            return true;
+                            scopeManager.GlobalScope = readTask.Result;
+                            globalScopeChanged = true;
                         } finally {
                             ReleaseWriteLock();
                         }
                     }
                 }
-                return false;
-            }).ContinueWith((t) => {
-                if(t.Result) {
+
+                if(globalScopeChanged) {
                     OnChanged(new EventArgs());
                 }
             });
@@ -111,6 +114,33 @@ namespace ABB.SrcML.Data {
             }
 
             return globalScope;
+        }
+
+        protected Task<NamespaceDefinition> ReadArchiveAsync() {
+            return Factory.StartNew(() => {
+                BlockingCollection<NamespaceDefinition> fileScopes = new BlockingCollection<NamespaceDefinition>();
+
+                var readTask = Factory.StartNew(() => {
+                    var options = new ParallelOptions() { TaskScheduler = Factory.Scheduler };
+                    Parallel.ForEach(Archive.GetFiles(), options, (fileName) => {
+                        var data = Archive.GetData(fileName);
+                        if(null != data) {
+                            fileScopes.Add(data);
+                        }
+                    });
+                    fileScopes.CompleteAdding();
+                });
+                var mergeTask = Factory.StartNew(() => {
+                    NamespaceDefinition globalScope = null;
+                    foreach(var fileScope in fileScopes.GetConsumingEnumerable()) {
+                        globalScope = (null == globalScope ? fileScope : globalScope.Merge(fileScope));
+                    }
+                    return globalScope;
+                });
+                Task.WaitAll(readTask, mergeTask);
+                return mergeTask.Result;
+            });
+            
         }
     }
 }
