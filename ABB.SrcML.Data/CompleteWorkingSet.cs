@@ -46,7 +46,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Initialize the working set by reading the entire archive into one merged scope
         /// </summary>
-        public void Initialize() {
+        public override void Initialize() {
             if(IsDisposed) { throw new ObjectDisposedException(null); }
             if(null == Archive) { throw new InvalidOperationException("Archive is null"); }
 
@@ -73,7 +73,7 @@ namespace ABB.SrcML.Data {
         /// Asynchronously initialize the working set by reading the entire archive into one merged scope
         /// </summary>
         /// <returns></returns>
-        public Task InitializeAsync() {
+        public override Task InitializeAsync() {
             if(IsDisposed) { throw new ObjectDisposedException(null); }
             if(null == Archive) { throw new InvalidOperationException("Archive is null"); }
 

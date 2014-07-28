@@ -105,6 +105,10 @@ namespace ABB.SrcML.Data {
             throw new TimeoutException();
         }
 
+        public abstract void Initialize();
+
+        public abstract Task InitializeAsync();
+
         /// <summary>
         /// Starts monitoring <see cref="Archive"/> by responding to
         /// <see cref="AbstractArchive.FileChanged"/> with <see cref="Archive_FileChanged"/>.
