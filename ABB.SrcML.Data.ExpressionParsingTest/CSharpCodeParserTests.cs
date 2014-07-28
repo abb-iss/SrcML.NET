@@ -1656,6 +1656,29 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestResolveVariable_Global() {}
+        public void TestResolveArrayVariable_Property() {
+            //class Foo {
+            //  Collection<int> Parameters { get; set; }
+            //  void DoWork() {
+            //    printf(Parameters[0]);
+            //  }
+            //}
+            string xml = @"<class>class <name>Foo</name> <block>{
+  <decl_stmt><decl><type><name><name>Collection</name><argument_list>&lt;<argument><name>int</name></argument>&gt;</argument_list></name></type> <name>Parameters</name> <block>{ <function_decl><name>get</name>;</function_decl> <function_decl><name>set</name>;</function_decl> }</block></decl></decl_stmt>
+  <function><type><name>void</name></type> <name>DoWork</name><parameter_list>()</parameter_list> <block>{
+    <expr_stmt><expr><call><name>printf</name><argument_list>(<argument><expr><name><name>Parameters</name><index>[<expr><lit:literal type=""number"">0</lit:literal></expr>]</index></name></expr></argument>)</argument_list></call></expr>;</expr_stmt>
+  }</block></function>
+}</block></class>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
+
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            var paramDecl = globalScope.GetDescendants<PropertyDefinition>().First(p => p.Name == "Parameters");
+            Assert.IsNotNull(paramDecl);
+            var doWork = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == "DoWork");
+            Assert.AreEqual(1, doWork.ChildStatements.Count);
+            var paramUse = doWork.ChildStatements[0].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(n => n.Name == "Parameters");
+            Assert.IsNotNull(paramUse);
+            Assert.AreSame(paramDecl, paramUse.FindMatches().FirstOrDefault());
+        }
     }
 }

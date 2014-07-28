@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using ABB.SrcML.Test.Utilities;
 using NUnit.Framework;
 
@@ -368,6 +369,41 @@ namespace ABB.SrcML.Data.Test
             var iUse = forStmt.ChildStatements[0].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(n => n.Name == "i");
             Assert.IsNotNull(iUse);
             Assert.AreSame(iDecl, iUse.FindMatches().FirstOrDefault());
+        }
+
+        [TestCase(Language.CPlusPlus)]
+        [TestCase(Language.Java)]
+        [TestCase(Language.CSharp)]
+        public void TestResolveLocalVariable_Parameter(Language lang) {
+            //int Foo(int num, bool option) {
+            //  if(option) {
+            //    printf(num);
+            //  }
+            //  return 0;
+            //}
+            string xml = @"<function><type><name>int</name></type> <name>Foo</name><parameter_list>(<param><decl><type><name>int</name></type> <name>num</name></decl></param>, <param><decl><type><name>bool</name></type> <name>option</name></decl></param>)</parameter_list> <block>{
+  <if>if<condition>(<expr><name>option</name></expr>)</condition><then> <block>{
+    <expr_stmt><expr><call><name>printf</name><argument_list>(<argument><expr><name>num</name></expr></argument>)</argument_list></call></expr>;</expr_stmt>
+  }</block></then></if>
+  <return>return <expr><lit:literal type=""number"">0</lit:literal></expr>;</return>
+}</block></function>";
+            XElement xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(xml, "A.cpp");
+
+            var globalScope = codeParsers[lang].ParseFileUnit(xmlElement);
+            var foo = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == "Foo");
+            Assert.AreEqual(2, foo.Parameters.Count);
+            var numDecl = foo.Parameters[0];
+            Assert.IsNotNull(numDecl);
+            var optionDecl = foo.Parameters[1];
+            Assert.IsNotNull(optionDecl);
+
+            var optionUse = foo.GetDescendants().SelectMany(s => s.GetExpressions()).SelectMany(e => e.GetDescendantsAndSelf<NameUse>()).FirstOrDefault(n => n.Name == "option");
+            Assert.IsNotNull(optionUse);
+            Assert.AreSame(optionDecl, optionUse.FindMatches().FirstOrDefault());
+
+            var numUse = foo.GetDescendants().SelectMany(s => s.GetExpressions()).SelectMany(e => e.GetDescendantsAndSelf<NameUse>()).FirstOrDefault(n => n.Name == "num");
+            Assert.IsNotNull(numUse);
+            Assert.AreSame(numDecl, numUse.FindMatches().FirstOrDefault());
         }
     }
 }

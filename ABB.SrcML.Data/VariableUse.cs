@@ -87,35 +87,69 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <returns>An enumerable of possible matches for this variable use.</returns>
         public override IEnumerable<INamedEntity> FindMatches() {
-            //TODO: review this method and update it for changes in TypeUse structure
-            throw new NotImplementedException();
-            //IEnumerable<VariableDeclaration> matchingVariables = Enumerable.Empty<VariableDeclaration>();
+            if(ParentStatement == null) {
+                throw new InvalidOperationException("ParentStatement is null");
+            }
 
-            //if(CallingObject != null) {
-            //    matchingVariables = from matchingType in CallingObject.FindMatchingTypes()
-            //                        from typeDefinition in matchingType.GetParentTypesAndSelf()
-            //                        from variable in typeDefinition.DeclaredVariables
-            //                        where Matches(variable)
-            //                        select variable;
-            //} else {
-            //    var matches = from scope in ParentScopes
-            //                  from variable in scope.DeclaredVariables
-            //                  where Matches(variable)
-            //                  select variable;
+            //TODO update to also match PropertyDeclarations
 
-            //    var parameterMatches = from method in ParentScope.GetParentScopesAndSelf<MethodDefinition>()
-            //                           from parameter in method.Parameters
-            //                           where Matches(parameter)
-            //                           select parameter;
+            if(Name == "this" && ProgrammingLanguage != Language.C) {
+                //return nothing, because we don't have a variable declaration to return
+                return Enumerable.Empty<INamedEntity>();
+            }
 
-            //    var matchingParentVariables = from containingType in ParentScope.GetParentScopesAndSelf<TypeDefinition>()
-            //                                  from typeDefinition in containingType.GetParentTypes()
-            //                                  from variable in typeDefinition.DeclaredVariables
-            //                                  where Matches(variable)
-            //                                  select variable;
-            //    matchingVariables = matches.Concat(matchingParentVariables).Concat(parameterMatches);
-            //}
-            //return matchingVariables;
+            //If there's a prefix, resolve that and search under results
+            if(Prefix != null) {
+                return Prefix.FindMatches().SelectMany(ns => ns.GetNamedChildren(this.Name)).Where(n => n is VariableDeclaration || n is PropertyDefinition);
+            }
+
+            //If there's a calling expression, match and search under results
+            var callingScopes = GetCallingScope();
+            if(callingScopes != null) {
+                return callingScopes.SelectMany(s => s.GetNamedChildren(this.Name)).Where(n => n is VariableDeclaration || n is PropertyDefinition);
+            }
+
+            //Search for local variables
+            var localVars = SearchForLocalVariable().ToList();
+            if(localVars.Any()) {
+                return localVars;
+            }
+
+            //search the surrounding type and its base types
+            var containingType = ParentStatement.GetAncestors<TypeDefinition>().FirstOrDefault();
+            if(containingType != null) {
+                var parentMatches = containingType.GetParentTypesAndSelf(true).SelectMany(t => t.GetNamedChildren(this.Name)).Where(n => n is VariableDeclaration || n is PropertyDefinition).ToList();
+                if(parentMatches.Any()) {
+                    return parentMatches;
+                }
+            }
+
+            //search the surrounding scopes
+            var lex = ParentStatement.GetAncestorsAndSelf<NamedScope>().SelectMany(ns => ns.GetNamedChildren(this.Name)).Where(n => n is VariableDeclaration || n is PropertyDefinition).ToList();
+            if(lex.Any()) {
+                return lex;
+            }
+
+            //search if there is an alias for this name
+            foreach(var alias in GetAliases()) {
+                if(alias.AliasName == this.Name) {
+                    var targetName = alias.Target as NameUse;
+                    if(targetName == null) {
+                        //Target is not a NameUse, probably an Expression
+                        targetName = alias.Target.GetDescendantsAndSelf<NameUse>().LastOrDefault();
+                    }
+                    if(targetName != null) {
+                        return targetName.FindMatches();
+                    }
+                }
+            }
+
+            //we didn't find it locally, search under imported namespaces
+            return (from import in GetImports()
+                    from match in import.ImportedNamespace.GetDescendantsAndSelf<NameUse>().Last().FindMatches()
+                    from child in match.GetNamedChildren(this.Name)
+                    where  child is VariableDeclaration || child is PropertyDefinition
+                    select child);
         }
 
         /// <summary>
@@ -124,56 +158,25 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <returns>An enumerable of matching type definitions</returns>
         public override IEnumerable<TypeDefinition> ResolveType() {
-            //TODO: implement ResolveType
-            return Enumerable.Empty<TypeDefinition>();
 
-            //IEnumerable<TypeDefinition> typeDefinitions;
-            //if(this.Name == "this" || (this.Name == "base" && this.ProgrammingLanguage == Language.CSharp)) {
-            //    typeDefinitions = TypeDefinition.GetTypeForKeyword(this);
-            //} else {
-            //    var matchingVariables = FindMatches();
-            //    if(matchingVariables.Any()) {
-            //        typeDefinitions = from declaration in matchingVariables
-            //                          where declaration.VariableType != null
-            //                          from definition in declaration.VariableType.FindMatches()
-            //                          select definition;
-            //    } else {
-            //        var tempTypeUse = new TypeUse() {
-            //            Name = this.Name,
-            //            ParentScope = this.ParentScope,
-            //            ProgrammingLanguage = this.ProgrammingLanguage,
-            //        };
-            //        if(CallingObject != null && CallingObject is VariableUse) {
-            //            var caller = CallingObject as VariableUse;
-            //            Stack<NamedScopeUse> callerStack = new Stack<NamedScopeUse>();
-            //            while(caller != null) {
-            //                var scopeUse = new NamedScopeUse() {
-            //                    Name = caller.Name,
-            //                    ProgrammingLanguage = this.ProgrammingLanguage,
-            //                };
-            //                callerStack.Push(scopeUse);
-            //                caller = caller.CallingObject as VariableUse;
-            //            }
+            IEnumerable<TypeDefinition> typeDefinitions;
+            if(this.Name == "this" || 
+                (this.Name == "base" && this.ProgrammingLanguage == Language.CSharp) ||
+                (this.Name == "super" && this.ProgrammingLanguage == Language.Java)) {
+                typeDefinitions = TypeDefinition.GetTypeForKeyword(this);
+            } else {
+                typeDefinitions = from declaration in FindMatches().OfType<VariableDeclaration>()
+                                  where declaration.VariableType != null
+                                  from definition in declaration.VariableType.ResolveType()
+                                  select definition;
+            }
 
-            //            NamedScopeUse prefix = null, last = null;
-
-            //            foreach(var current in callerStack) {
-            //                if(null == prefix) {
-            //                    prefix = current;
-            //                    last = prefix;
-            //                } else {
-            //                    last.ChildScopeUse = current;
-            //                    last = current;
-            //                }
-            //            }
-            //            prefix.ParentScope = this.ParentScope;
-            //            tempTypeUse.Prefix = prefix;
-            //        }
-            //        tempTypeUse.AddAliases(this.Aliases);
-            //        typeDefinitions = tempTypeUse.FindMatchingTypes();
-            //    }
+            //TODO: figure out what the type should be when we have an indexer
+            //if(Index != null) {
+                
             //}
-            //return typeDefinitions;
+
+            return typeDefinitions;
         }
 
         /// <summary>
