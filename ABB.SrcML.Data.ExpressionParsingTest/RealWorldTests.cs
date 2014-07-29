@@ -48,6 +48,7 @@ namespace ABB.SrcML.Data.Test {
                 Assert.That(project.WorkingSet.TryObtainReadLock(5000, out globalNamespace));
 
                 try {
+                    Console.WriteLine("{0,10:N0} files", project.Data.GetFiles().Count());
                     Console.WriteLine("{0,10:N0} namespaces", globalNamespace.GetDescendants<NamespaceDefinition>().Count());
                     Console.WriteLine("{0,10:N0} types", globalNamespace.GetDescendants<TypeDefinition>().Count());
                     Console.WriteLine("{0,10:N0} methods", globalNamespace.GetDescendants<MethodDefinition>().Count());
