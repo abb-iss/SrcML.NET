@@ -58,6 +58,9 @@ namespace ABB.SrcML.Data {
         /// </summary>
         protected bool IsDisposed { get; private set; }
 
+        /// <summary>
+        /// Creates a new working set object
+        /// </summary>
         protected AbstractWorkingSet() : this(null, Task.Factory) { }
 
         /// <summary>
