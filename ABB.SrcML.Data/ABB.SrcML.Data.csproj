@@ -94,6 +94,7 @@
     <Compile Include="OperatorUse.cs" />
     <Compile Include="ParseException.cs" />
     <Compile Include="ParserContext.cs" />
+    <Compile Include="DataProject.cs" />
     <Compile Include="PropertyDefinition.cs" />
     <Compile Include="Queries\FindMethodCallsAtLocationQuery.cs" />
     <Compile Include="Queries\ScopeForLocationQuery.cs" />
