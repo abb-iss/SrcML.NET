@@ -33,7 +33,7 @@ namespace ABB.SrcML.Data.Test {
             Console.WriteLine("{0} {1} Project Summary", testData.ProjectName, testData.Version);
             Console.WriteLine("============================");
             using(var project = new DataProject<CompleteWorkingSet>(testData.DataDirectory, testData.FullPath, "SrcML")) {
-                string unknownLogPath = Path.Combine(testData.DataDirectory, "unknown.log");
+                string unknownLogPath = Path.Combine(project.StoragePath, "unknown.log");
                 DateTime start = DateTime.Now, end;
 
                 using(var unknownLog = new StreamWriter(unknownLogPath)) {

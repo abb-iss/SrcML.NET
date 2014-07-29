@@ -43,8 +43,8 @@ namespace ABB.SrcML.Data {
         /// <param name="monitor">The file monitor</param>
         public DataProject(TaskScheduler scheduler, AbstractFileMonitor monitor) 
         : base(scheduler, monitor, new SrcMLGenerator()) {
-            var fileMapPath = Path.Combine(Monitor.MonitorStoragePath, DataArchive.DEFAULT_ARCHIVE_DIRECTORY);
-            Data = new DataArchive(Monitor.MonitorStoragePath, DataArchive.DEFAULT_ARCHIVE_DIRECTORY, true, SourceArchive, new DataGenerator(), new DataFileNameMapping(fileMapPath), scheduler);
+            var fileMapPath = Path.Combine(StoragePath, DataArchive.DEFAULT_ARCHIVE_DIRECTORY);
+            Data = new DataArchive(StoragePath, DataArchive.DEFAULT_ARCHIVE_DIRECTORY, true, SourceArchive, new DataGenerator(), new DataFileNameMapping(fileMapPath), scheduler);
 
             SetupWorkingSet();
 
@@ -57,6 +57,9 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public DataArchive Data { get; private set; }
 
+        /// <summary>
+        /// The error log to write srcML generation and parse errors to. If null, no errors are written.
+        /// </summary>
         public override TextWriter ErrorLog {
             get { return base.ErrorLog; }
             set {
@@ -65,6 +68,9 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        /// <summary>
+        /// If true, exceptions are caught and logged to <see cref="ErrorLog"/>. Otherwise, the exception is thrown.
+        /// </summary>
         public override bool IsLoggingErrors {
             get { return base.IsLoggingErrors; }
             set {
@@ -78,6 +84,9 @@ namespace ABB.SrcML.Data {
         /// </summary>
         protected ArchiveMonitor<SrcMLArchive> SourceArchiveMonitor { get; private set; }
 
+        /// <summary>
+        /// If null, unknown elements found by <see cref="DataGenerator"/> are ignored. Otherwise, they are logged.
+        /// </summary>
         public TextWriter UnknownLog {
             get { return Data.Generator.UnknownLog; }
             set { Data.Generator.UnknownLog = value; }
@@ -88,12 +97,16 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public TWorkingSet WorkingSet { get; private set; }
 
+        /// <summary>
+        /// Sets up the working set object
+        /// </summary>
         protected void SetupWorkingSet() {
             WorkingSet = new TWorkingSet();
             WorkingSet.Factory = new TaskFactory(Scheduler);
             WorkingSet.Archive = Data;
-            SourceArchiveMonitor = new ArchiveMonitor<SrcMLArchive>(Scheduler, Monitor.MonitorStoragePath, SourceArchive, Data);
+            SourceArchiveMonitor = new ArchiveMonitor<SrcMLArchive>(Scheduler, StoragePath, SourceArchive, Data);
         }
+
         /// <summary>
         /// Updates all of the components of this working set:
         /// <list type="number">
@@ -126,7 +139,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Starts monitoring
         /// </summary>
-        public void StartMonitoring() {
+        public override void StartMonitoring() {
             WorkingSet.StartMonitoring();
             SourceArchiveMonitor.StartMonitoring();
             base.StartMonitoring();
@@ -135,7 +148,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Stops monitoring
         /// </summary>
-        public void StopMonitoring() {
+        public override void StopMonitoring() {
             base.StopMonitoring();
             SourceArchiveMonitor.StopMonitoring();
             WorkingSet.StopMonitoring();
