@@ -15,6 +15,7 @@ using NUnit.Framework;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -27,28 +28,56 @@ namespace ABB.SrcML.Data.Test {
         static List<RealWorldTestProject> TestProjects = ReadProjectMap(MappingFile).ToList();
 
         [Test, TestCaseSource("TestProjects")]
-        public void TestCompleteWorkingSet(RealWorldTestProject project) {
-            CheckThatProjectExists(project);
+        public void TestCompleteWorkingSet(RealWorldTestProject testData) {
+            CheckThatProjectExists(testData);
+            Console.WriteLine("{0} {1} Project Summary", testData.ProjectName, testData.Version);
+            Console.WriteLine("============================");
+            using(var project = new DataProject<CompleteWorkingSet>(testData.DataDirectory, testData.FullPath, "SrcML")) {
+                string unknownLogPath = Path.Combine(testData.DataDirectory, "unknown.log");
+                DateTime start = DateTime.Now, end;
 
-            var archive = GenerateSrcML(project, false, true);
-            var data = GenerateData(project, archive, true, true);
-            var workingSet = new CompleteWorkingSet(data);
-            DateTime start = DateTime.Now, end;
-            workingSet.Initialize();
-            end = DateTime.Now;
-            Console.WriteLine("{0} to initialize complete working set", end - start);
+                using(var unknownLog = new StreamWriter(unknownLogPath)) {
+                    project.UnknownLog = unknownLog;
+                    project.UpdateAsync().Wait();
+                }
+                end = DateTime.Now;
 
-            NamespaceDefinition globalNamespace;
-            Assert.That(workingSet.TryObtainReadLock(5000, out globalNamespace));
+                Console.WriteLine("{0} to initialize complete working set", end - start);
 
-            try {
-                Console.WriteLine("Project Summary");
-                Console.WriteLine("============================");
-                Console.WriteLine("{0,10:N0} namespaces", globalNamespace.GetDescendants<NamespaceDefinition>().Count());
-                Console.WriteLine("{0,10:N0} types", globalNamespace.GetDescendants<TypeDefinition>().Count());
-                Console.WriteLine("{0,10:N0} methods", globalNamespace.GetDescendants<MethodDefinition>().Count());
-            } finally {
-                workingSet.ReleaseReadLock();
+                NamespaceDefinition globalNamespace;
+                Assert.That(project.WorkingSet.TryObtainReadLock(5000, out globalNamespace));
+
+                try {
+                    Console.WriteLine("{0,10:N0} namespaces", globalNamespace.GetDescendants<NamespaceDefinition>().Count());
+                    Console.WriteLine("{0,10:N0} types", globalNamespace.GetDescendants<TypeDefinition>().Count());
+                    Console.WriteLine("{0,10:N0} methods", globalNamespace.GetDescendants<MethodDefinition>().Count());
+
+                    var methodCalls = from statement in globalNamespace.GetDescendantsAndSelf()
+                                      from expression in statement.GetExpressions()
+                                      from call in expression.GetDescendantsAndSelf<MethodCall>()
+                                      select call;
+                    int numMethodCalls = 0, numMatchedMethodCalls = 0;
+                    Stopwatch sw = new Stopwatch();
+                    foreach(var call in methodCalls) {
+                        sw.Start();
+                        INamedEntity match = null;
+                        try {
+                            match = call.FindMatches().FirstOrDefault();
+                        } catch(Exception e) {
+                            project.ErrorLog.WriteLine("{0}:{1}:{2}: Call Exception {3}", call.Location.SourceFileName, call.Location.StartingLineNumber, call.Location.StartingColumnNumber, e);
+                        }
+                        sw.Stop();
+                        numMethodCalls++;
+                        if(null != match) {
+                            numMatchedMethodCalls++;
+                        }
+                    }
+                    Console.WriteLine("{0,10:N0} method calls", numMethodCalls);
+                    Console.WriteLine("{0,10:P2} of method calls matched", (float) numMatchedMethodCalls / numMethodCalls);
+                    Console.WriteLine("{0,10:N2} matches / millisecond ({1,7:N0} ms elapsed)", ((float) numMethodCalls) / sw.ElapsedMilliseconds, sw.ElapsedMilliseconds);
+                } finally {
+                    project.WorkingSet.ReleaseReadLock();
+                }
             }
         }
 
