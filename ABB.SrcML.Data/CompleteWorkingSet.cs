@@ -33,6 +33,10 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Creates a new complete working set object
         /// </summary>
+        public CompleteWorkingSet() : this(null, Task.Factory) { }
+        /// <summary>
+        /// Creates a new complete working set object
+        /// </summary>
         /// <param name="archive">The data archive to monitor</param>
         public CompleteWorkingSet(DataArchive archive) : this(archive, Task.Factory) { }
 
@@ -137,6 +141,7 @@ namespace ABB.SrcML.Data {
                     }
                     return globalScope;
                 });
+
                 Task.WaitAll(readTask, mergeTask);
                 return mergeTask.Result;
             });
