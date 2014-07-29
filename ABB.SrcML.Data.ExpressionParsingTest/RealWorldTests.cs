@@ -15,6 +15,7 @@ using NUnit.Framework;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -27,163 +28,118 @@ namespace ABB.SrcML.Data.Test {
         static List<RealWorldTestProject> TestProjects = ReadProjectMap(MappingFile).ToList();
 
         [Test, TestCaseSource("TestProjects")]
-        public void TestCompleteWorkingSet(RealWorldTestProject project) {
-            CheckThatProjectExists(project);
+        public void TestCompleteWorkingSet(RealWorldTestProject testData) {
+            CheckThatProjectExists(testData);
+            Console.WriteLine("{0} {1} Project Summary", testData.ProjectName, testData.Version);
+            Console.WriteLine("============================");
+            using(var project = new DataProject<CompleteWorkingSet>(testData.DataDirectory, testData.FullPath, "SrcML")) {
+                string unknownLogPath = Path.Combine(project.StoragePath, "unknown.log");
+                DateTime start = DateTime.Now, end;
 
-            var archive = GenerateSrcML(project, false, true);
-            var data = GenerateData(project, archive, true, true);
-            var workingSet = new CompleteWorkingSet(data);
-            DateTime start = DateTime.Now, end;
-            workingSet.Initialize();
-            end = DateTime.Now;
-            Console.WriteLine("{0} to initialize complete working set", end - start);
+                using(var unknownLog = new StreamWriter(unknownLogPath)) {
+                    project.UnknownLog = unknownLog;
+                    project.UpdateAsync().Wait();
+                }
+                end = DateTime.Now;
 
-            NamespaceDefinition globalNamespace;
-            Assert.That(workingSet.TryObtainReadLock(5000, out globalNamespace));
+                Console.WriteLine("{0} to initialize complete working set", end - start);
 
-            try {
-                Console.WriteLine("Project Summary");
-                Console.WriteLine("============================");
-                Console.WriteLine("{0,10:N0} namespaces", globalNamespace.GetDescendants<NamespaceDefinition>().Count());
-                Console.WriteLine("{0,10:N0} types", globalNamespace.GetDescendants<TypeDefinition>().Count());
-                Console.WriteLine("{0,10:N0} methods", globalNamespace.GetDescendants<MethodDefinition>().Count());
-            } finally {
-                workingSet.ReleaseReadLock();
+                NamespaceDefinition globalNamespace;
+                Assert.That(project.WorkingSet.TryObtainReadLock(5000, out globalNamespace));
+
+                try {
+                    Console.WriteLine("{0,10:N0} namespaces", globalNamespace.GetDescendants<NamespaceDefinition>().Count());
+                    Console.WriteLine("{0,10:N0} types", globalNamespace.GetDescendants<TypeDefinition>().Count());
+                    Console.WriteLine("{0,10:N0} methods", globalNamespace.GetDescendants<MethodDefinition>().Count());
+
+                    var methodCalls = from statement in globalNamespace.GetDescendantsAndSelf()
+                                      from expression in statement.GetExpressions()
+                                      from call in expression.GetDescendantsAndSelf<MethodCall>()
+                                      select call;
+                    int numMethodCalls = 0, numMatchedMethodCalls = 0;
+                    Stopwatch sw = new Stopwatch();
+                    foreach(var call in methodCalls) {
+                        sw.Start();
+                        INamedEntity match = null;
+                        try {
+                            match = call.FindMatches().FirstOrDefault();
+                        } catch(Exception e) {
+                            project.ErrorLog.WriteLine("{0}:{1}:{2}: Call Exception {3}", call.Location.SourceFileName, call.Location.StartingLineNumber, call.Location.StartingColumnNumber, e);
+                        }
+                        sw.Stop();
+                        numMethodCalls++;
+                        if(null != match) {
+                            numMatchedMethodCalls++;
+                        }
+                    }
+                    Console.WriteLine("{0,10:N0} method calls", numMethodCalls);
+                    Console.WriteLine("{0,10:P2} of method calls matched", (float) numMatchedMethodCalls / numMethodCalls);
+                    Console.WriteLine("{0,10:N2} matches / millisecond ({1,7:N0} ms elapsed)", ((float) numMethodCalls) / sw.ElapsedMilliseconds, sw.ElapsedMilliseconds);
+                } finally {
+                    project.WorkingSet.ReleaseReadLock();
+                }
             }
         }
 
         [Test, TestCaseSource("TestProjects")]
-        public void TestSerialization(RealWorldTestProject project) {
-            var archive = GenerateSrcML(project, false, true);
-            var dataArchive = GenerateData(project, archive, true, true);
+        public void TestSerialization(RealWorldTestProject testData) {
+            using(var project = new DataProject<NullWorkingSet>(testData.DataDirectory, testData.FullPath, "SrcML")) {
+                string unknownLogPath = Path.Combine(project.StoragePath, "unknown.log");
 
-            dataArchive.Generator.UnknownLog = null;
-            dataArchive.Generator.ErrorLog = Console.Error;
+                using(var unknownLog = new StreamWriter(unknownLogPath)) {
+                    project.UnknownLog = unknownLog;
+                    project.UpdateAsync().Wait();
 
-            long count = 0;
-            TimeSpan parseElapsed = new TimeSpan(0), deserializeElapsed = new TimeSpan(0), compareElapsed = new TimeSpan(0);
-            DateTime start, end;
-            Console.WriteLine("{0,-12} {1,-12} {2,-12} {3,-12}", "# Files", "Parse", "Deserialize", "Comparison");
-            foreach(var sourcePath in dataArchive.GetFiles().OrderBy(elem => Guid.NewGuid())) {
-                NamespaceDefinition data;
-                NamespaceDefinition serializedData;
-                try {
-                    start = DateTime.Now;
-                    var fileUnit = archive.GetXElementForSourceFile(sourcePath);
-                    data = dataArchive.Generator.Parse(fileUnit);
-                    end = DateTime.Now;
-                    parseElapsed += (end - start);
-                } catch(Exception ex) {
-                    Console.Error.WriteLine(ex);
-                    data = null;
+                    long count = 0;
+                    TimeSpan parseElapsed = new TimeSpan(0), deserializeElapsed = new TimeSpan(0), compareElapsed = new TimeSpan(0);
+                    DateTime start, end;
+                    Console.WriteLine("{0,-12} {1,-12} {2,-12} {3,-12}", "# Files", "Parse", "Deserialize", "Comparison");
+                    foreach(var sourcePath in project.Data.GetFiles().OrderBy(elem => Guid.NewGuid())) {
+                        NamespaceDefinition data;
+                        NamespaceDefinition serializedData;
+                        try {
+                            start = DateTime.Now;
+                            var fileUnit = project.SourceArchive.GetXElementForSourceFile(sourcePath);
+                            data = project.Data.Generator.Parse(fileUnit);
+                            end = DateTime.Now;
+                            parseElapsed += (end - start);
+                        } catch(Exception ex) {
+                            Console.Error.WriteLine(ex);
+                            data = null;
+                        }
+
+                        try {
+                            start = DateTime.Now;
+                            serializedData = project.Data.GetData(sourcePath);
+                            end = DateTime.Now;
+                            deserializeElapsed += (end - start);
+                        } catch(Exception ex) {
+                            Console.Error.WriteLine(ex);
+                            serializedData = null;
+                        }
+
+                        Assert.IsNotNull(data);
+                        Assert.IsNotNull(serializedData);
+                        start = DateTime.Now;
+                        DataAssert.StatementsAreEqual(data, serializedData);
+                        end = DateTime.Now;
+                        compareElapsed += (end - start);
+
+                        if(++count % 25 == 0) {
+                            Console.WriteLine("{0,12:N0} {1,12:ss\\.fff} {2,12:ss\\.fff} {3,12:ss\\.fff}", count,
+                                    parseElapsed,
+                                    deserializeElapsed,
+                                    compareElapsed);
+                        }
+                    }
+                    Console.WriteLine("Project: {0} {1}", testData.ProjectName, testData.Version);
+                    Console.WriteLine("{0,-15} {1,11:N0}", "# Files", count);
+                    Console.WriteLine("{0,-15} {1:g}", "Parsing", parseElapsed);
+                    Console.WriteLine("{0,-15} {1:g}", "Deserializing", deserializeElapsed);
+                    Console.WriteLine("{0,-15} {1:g}", "Comparing", compareElapsed);
+                    Console.WriteLine("{0,-15} {1:g}", "Total", parseElapsed + deserializeElapsed + compareElapsed);
                 }
-
-                try {
-                    start = DateTime.Now;
-                    serializedData = dataArchive.GetData(sourcePath);
-                    end = DateTime.Now;
-                    deserializeElapsed += (end - start);
-                } catch(Exception ex) {
-                    Console.Error.WriteLine(ex);
-                    serializedData = null;
-                }
-
-                Assert.IsNotNull(data);
-                Assert.IsNotNull(serializedData);
-                start = DateTime.Now;
-                DataAssert.StatementsAreEqual(data, serializedData);
-                end = DateTime.Now;
-                compareElapsed += (end - start);
-
-                if(++count % 25 == 0) {
-                    Console.WriteLine("{0,12:N0} {1,12:ss\\.fff} {2,12:ss\\.fff} {3,12:ss\\.fff}", count,
-                            parseElapsed ,
-                            deserializeElapsed ,
-                            compareElapsed);
-                }
             }
-
-            Console.WriteLine(@"Project: {0} {1}
-            ============================
-            {2,-15} {3,11:N0}
-            {4,-15} {5:g}
-            {6,-15} {7:g}
-            {8,-15} {9:g}
-            ============================
-            {10,-15} {11,9:g}
-            ", project.ProjectName, project.Version, "# Files", count,
-                    "Parsing", parseElapsed ,
-                    "Deserializing", deserializeElapsed,
-                    "Comparing", compareElapsed ,
-                    "Total", parseElapsed + deserializeElapsed + compareElapsed);
-        }
-
-        private static SrcMLArchive GenerateSrcML(RealWorldTestProject project, bool shouldRegenerateSrcML, bool useAsyncMethods = true) {
-            if(!Directory.Exists(project.DataDirectory)) {
-                Directory.CreateDirectory(project.DataDirectory);
-            }
-            bool regenerateSrcML = shouldRegenerateSrcML;
-
-            if(shouldRegenerateSrcML && Directory.Exists(project.DataDirectory)) {
-                Directory.Delete(project.DataDirectory);
-            }
-            var lastModified = new LastModifiedArchive(project.DataDirectory);
-            var archive = new SrcMLArchive(project.DataDirectory, "srcML", !shouldRegenerateSrcML, new SrcMLGenerator("SrcML"));
-
-            archive.Generator.ExtensionMapping[".cxx"] = Language.CPlusPlus;
-            archive.Generator.ExtensionMapping[".c"] = Language.CPlusPlus;
-            archive.Generator.ExtensionMapping[".cc"] = Language.CPlusPlus;
-
-            var monitor = new FileSystemFolderMonitor(project.FullPath, project.DataDirectory, lastModified, archive);
-
-            DateTime start = DateTime.Now, end;
-            if(useAsyncMethods) {
-                monitor.UpdateArchivesAsync().Wait();
-            } else {
-                monitor.UpdateArchives();
-            }
-            end = DateTime.Now;
-            lastModified.Save();
-            archive.Save();
-            Console.WriteLine("{0:g} to {1} srcML", end - start, (regenerateSrcML ? "generate" : "verify"));
-            return archive;
-        }
-
-        private static DataArchive GenerateData(RealWorldTestProject project, SrcMLArchive archive, bool shouldRegenerateData, bool useAsyncMethods = true) {
-            if(!Directory.Exists(project.DataDirectory)) {
-                Directory.CreateDirectory(project.DataDirectory);
-            }
-            var fileLogPath = Path.Combine(project.DataDirectory, "error.log");
-            if(File.Exists(fileLogPath)) {
-                File.Delete(fileLogPath);
-            }
-            
-            var unknownLogPath = Path.Combine(project.DataDirectory, "unknown.log");
-            if(File.Exists(unknownLogPath)) {
-                File.Delete(unknownLogPath);
-            }
-
-            var dataArchive = new DataArchive(project.DataDirectory, archive, false);
-            dataArchive.Generator.IsLoggingErrors = true;
-            using(StreamWriter errorLog = new StreamWriter(fileLogPath),
-                               unknownLog = new StreamWriter(unknownLogPath)) {
-                dataArchive.Generator.ErrorLog = errorLog;
-                dataArchive.Generator.UnknownLog = unknownLog;
-                var srcMLMonitor = new ArchiveMonitor<SrcMLArchive>(project.DataDirectory, archive, dataArchive);
-                DateTime start = DateTime.Now, end;
-                if(useAsyncMethods) {
-                    srcMLMonitor.UpdateArchivesAsync().Wait();
-                } else {
-                    srcMLMonitor.UpdateArchives();
-                }
-                end = DateTime.Now;
-                dataArchive.Save();
-                int numSrcMLFiles = archive.GetFiles().Count;
-                int numDataFiles = dataArchive.GetFiles().Count;
-                Console.WriteLine("{0:g} to generate data", end - start);
-                Console.WriteLine("Parsed {0:P0} ({1:N0} / {2:N0})", numDataFiles / (double) numSrcMLFiles, numDataFiles, numSrcMLFiles);
-            }
-            return dataArchive;
         }
 
         private static IEnumerable<RealWorldTestProject> ReadProjectMap(string fileName) {

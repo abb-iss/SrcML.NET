@@ -46,19 +46,22 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Data archive for this working set
         /// </summary>
-        public DataArchive Archive { get; private set; }
+        public DataArchive Archive { get; set; }
 
         /// <summary>
         /// The task factory to use for asynchronous methods
         /// </summary>
-        public TaskFactory Factory { get; private set; }
+        public TaskFactory Factory { get; set; }
 
         /// <summary>
         /// Returns true if <see cref="Dispose"/> has been called
         /// </summary>
         protected bool IsDisposed { get; private set; }
 
-        private AbstractWorkingSet() { }
+        /// <summary>
+        /// Creates a new working set object
+        /// </summary>
+        protected AbstractWorkingSet() : this(null, Task.Factory) { }
 
         /// <summary>
         /// Creates a new working set object
@@ -104,6 +107,17 @@ namespace ABB.SrcML.Data {
             }
             throw new TimeoutException();
         }
+
+        /// <summary>
+        /// Sets up the working set
+        /// </summary>
+        public abstract void Initialize();
+
+        /// <summary>
+        /// Sets up the working set asynchronously
+        /// </summary>
+        /// <returns>The initialization task</returns>
+        public abstract Task InitializeAsync();
 
         /// <summary>
         /// Starts monitoring <see cref="Archive"/> by responding to
@@ -281,7 +295,9 @@ namespace ABB.SrcML.Data {
             if(!IsDisposed) {
                 StopMonitoring();
                 Clear();
-                Archive.Dispose();
+                if(null != Archive) {
+                    Archive.Dispose();
+                }
                 IsDisposed = true;
                 Changed = null;
                 _globalScopeLock.Dispose();

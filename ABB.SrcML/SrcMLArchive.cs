@@ -48,6 +48,14 @@ namespace ABB.SrcML {
         }
 
         /// <summary>
+        /// Creates a new srcML archive
+        /// </summary>
+        /// <param name="baseDirectory">The base directory</param>
+        /// <param name="scheduler">The task scheduler to use for asynchronous tasks</param>
+        public SrcMLArchive(string baseDirectory, TaskScheduler scheduler)
+            : this(baseDirectory, DEFAULT_ARCHIVE_DIRECTORY, true, new SrcMLGenerator(), new SrcMLFileNameMapping(Path.Combine(baseDirectory, DEFAULT_ARCHIVE_DIRECTORY)), TaskScheduler.Default) { }
+
+        /// <summary>
         /// Creates a new SrcMLArchive. The archive is created in <c>"baseDirectory\srcML"</c>.
         /// </summary>
         /// <param name="baseDirectory">the base directory</param>
