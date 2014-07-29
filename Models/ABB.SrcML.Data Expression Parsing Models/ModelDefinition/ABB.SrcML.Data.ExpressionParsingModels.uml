@@ -1970,6 +1970,25 @@
         </generalsInternal>
       </class>
     </packageHasNamedElement>
+    <packageHasNamedElement>
+      <class
+        Id="0bc03701-5529-45a0-8f65-8008c7383fda"
+        name="TypeContainerUse"
+        isAbstract="false"
+        isLeaf="false"
+        isActiveClass="false">
+        <generalsInternal>
+          <generalization
+            Id="d5d9a3f5-4d66-428a-b6c2-2e821fbd184c"
+            isSubstitutable="false">
+            <classMoniker
+              Id="26ca4131-33c8-4c9a-afbf-4a9f5f697a8e"
+              LastKnownName="NameUse"
+              LastKnownLocation="ABB.SrcML.Data.ExpressionParsingModels.uml" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </packageHasNamedElement>
   </packagedElements>
   <primitiveType
     Id="220a3521-e091-4221-bae9-3ef9018e845c"

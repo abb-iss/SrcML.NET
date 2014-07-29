@@ -112,6 +112,7 @@
     <Compile Include="SwitchStatement.cs" />
     <Compile Include="ThrowStatement.cs" />
     <Compile Include="TryStatement.cs" />
+    <Compile Include="TypeContainerUse.cs" />
     <Compile Include="TypeDefinition.cs" />
     <Compile Include="TypeKind.cs" />
     <Compile Include="TypeUse.cs" />

@@ -337,6 +337,17 @@
         </generalsInternal>
       </class>
     </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="673522ae-4ade-491f-917d-730059d6336e" name="TypeContainerUse" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="0bc03701-5529-45a0-8f65-8008c7383fda" />
+        <generalsInternal>
+          <generalization Id="fe934239-dc7f-4dab-b3cd-7be8ab4568ee" isSubstitutable="false">
+            <classMoniker Id="5e3a42a2-b2c5-4d50-b8d3-36ce5adf6980" LastKnownName="NameUse" />
+            <elementDefinition Id="d5d9a3f5-4d66-428a-b6c2-2e821fbd184c" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
   </packagedElements>
   <package Id="0ae6a79f-8c43-424e-86ea-075f118cc557" name="ABB.SrcML.Data.ExpressionParsingModels">
     <elementDefinition Id="b7d58ad4-ad72-4d67-8187-3644da97b0b7" />

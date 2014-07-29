@@ -90,6 +90,7 @@ namespace ABB.SrcML.Data {
             { NamespaceUse.XmlName, CreateFromReader<NamespaceUse> },
             { OperatorUse.XmlName, CreateFromReader<OperatorUse> },
             { TypeUse.XmlName, CreateFromReader<TypeUse> },
+            { TypeContainerUse.XmlName, CreateFromReader<TypeContainerUse> },
             { VariableDeclaration.XmlName, CreateFromReader<VariableDeclaration> },
             { VariableUse.XmlName, CreateFromReader<VariableUse> },
         };

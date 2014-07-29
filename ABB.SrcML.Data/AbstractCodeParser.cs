@@ -1416,7 +1416,18 @@ namespace ABB.SrcML.Data {
 
             var prefix = new NamePrefix();
             foreach(var part in prefixParts) {
-                prefix.AddComponent(ParseExpression(part, context));
+                Expression component;
+                if(part.Name == SRC.Name) {
+                    //parse as a TypeContainerUse rather than a NameUse
+                    component = new TypeContainerUse() {
+                        Location = context.CreateLocation(nameElement, true),
+                        ProgrammingLanguage = ParserLanguage,
+                        Name = part.Value
+                    };
+                } else {
+                    component = ParseExpression(part, context);
+                }
+                prefix.AddComponent(component);
             }
             return prefix;
         }

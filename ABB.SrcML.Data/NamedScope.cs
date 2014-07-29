@@ -271,12 +271,16 @@ namespace ABB.SrcML.Data {
         /// <param name="name">The name to search for.</param>
         public IEnumerable<T> GetNamedChildren<T>(string name) where T : INamedEntity {
             var scopes = GetChildren().OfType<T>().Where(ns => ns.Name == name);
-            var decls = from declStmt in GetChildren().OfType<DeclarationStatement>()
-                        from decl in declStmt.GetDeclarations().OfType<T>()
-                        where decl.Name == name
-                        select decl;
+            //check if we should search for variables as well
+            if(typeof(T).IsInterface || typeof(T).IsSubclassOf(typeof(Expression)) ) {
+                var decls = from declStmt in GetChildren().OfType<DeclarationStatement>()
+                            from decl in declStmt.GetDeclarations().OfType<T>()
+                            where decl.Name == name
+                            select decl;
+                return scopes.Concat(decls);
+            }
 
-            return scopes.Concat(decls);
+            return scopes;
         }
 
         /// <summary>
