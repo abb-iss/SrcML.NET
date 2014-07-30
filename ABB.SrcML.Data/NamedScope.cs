@@ -260,7 +260,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="name">The name to search for.</param>
         public IEnumerable<INamedEntity> GetNamedChildren(string name) {
-            return GetNamedChildren<INamedEntity>(name);
+            return GetNamedChildren<INamedEntity>(name, true);
         }
 
         /// <summary>
@@ -270,17 +270,26 @@ namespace ABB.SrcML.Data {
         /// <typeparam name="T">The type of children to return.</typeparam>
         /// <param name="name">The name to search for.</param>
         public IEnumerable<T> GetNamedChildren<T>(string name) where T : INamedEntity {
-            var scopes = GetChildren().OfType<T>().Where(ns => ns.Name == name);
-            //check if we should search for variables as well
-            if(typeof(T).IsInterface || typeof(T).IsSubclassOf(typeof(Expression)) ) {
-                var decls = from declStmt in GetChildren().OfType<DeclarationStatement>()
-                            from decl in declStmt.GetDeclarations().OfType<T>()
-                            where decl.Name == name
-                            select decl;
-                return scopes.Concat(decls);
-            }
+            bool searchDeclarations = typeof(T).IsInterface || typeof(T).IsSubclassOf(typeof(Expression));
+            return GetNamedChildren<T>(name, searchDeclarations);
+        }
 
-            return scopes;
+        /// <summary>
+        /// Returns the children of this scope that have the given name, and the given type.
+        /// This method searches only the immediate children, and not further descendants.
+        /// </summary>
+        /// <typeparam name="T">The type of children to return.</typeparam>
+        /// <param name="name">The name to search for.</param>
+        /// <param name="searchDeclarations">Whether to search the child DeclarationStatements for named entities.</param>
+        public IEnumerable<T> GetNamedChildren<T>(string name, bool searchDeclarations) where T : INamedEntity {
+            var scopes = GetChildren().OfType<T>().Where(ns => ns.Name == name);
+            if(!searchDeclarations) { return scopes; }
+
+            var decls = from declStmt in GetChildren().OfType<DeclarationStatement>()
+                        from decl in declStmt.GetDeclarations().OfType<T>()
+                        where decl.Name == name
+                        select decl;
+            return scopes.Concat(decls);
         }
 
         /// <summary>

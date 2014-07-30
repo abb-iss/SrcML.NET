@@ -47,13 +47,13 @@ namespace ABB.SrcML.Data {
 
             //If there's a prefix, resolve that and search under results
             if(Prefix != null) {
-                return Prefix.FindMatches().SelectMany(ns => ns.GetNamedChildren(this.Name)).Where(e => e is TypeDefinition || e is NamespaceDefinition);
+                return Prefix.FindMatches().SelectMany(ns => ns.GetNamedChildren<NamedScope>(this.Name)).Where(e => e is TypeDefinition || e is NamespaceDefinition);
             }
 
             //If there's a calling expression, match and search under results
             var callingScopes = GetCallingScope();
             if(callingScopes != null) {
-                return callingScopes.SelectMany(s => s.GetNamedChildren(this.Name)).Where(e => e is TypeDefinition || e is NamespaceDefinition);
+                return callingScopes.SelectMany(s => s.GetNamedChildren<NamedScope>(this.Name)).Where(e => e is TypeDefinition || e is NamespaceDefinition);
             }
 
             ////Search for local variables
@@ -65,14 +65,14 @@ namespace ABB.SrcML.Data {
             //search the surrounding type and its base types
             var containingType = ParentStatement.GetAncestors<TypeDefinition>().FirstOrDefault();
             if(containingType != null) {
-                var parentMatches = containingType.GetParentTypesAndSelf(true).SelectMany(t => t.GetNamedChildren(this.Name)).Where(e => e is TypeDefinition || e is NamespaceDefinition).ToList();
+                var parentMatches = containingType.GetParentTypesAndSelf(true).SelectMany(t => t.GetNamedChildren<NamedScope>(this.Name)).Where(e => e is TypeDefinition || e is NamespaceDefinition).ToList();
                 if(parentMatches.Any()) {
                     return parentMatches;
                 }
             }
 
             //search the surrounding scopes
-            var lex = ParentStatement.GetAncestorsAndSelf<NamedScope>().SelectMany(ns => ns.GetNamedChildren(this.Name)).Where(e => e is TypeDefinition || e is NamespaceDefinition).ToList();
+            var lex = ParentStatement.GetAncestorsAndSelf<NamedScope>().SelectMany(ns => ns.GetNamedChildren<NamedScope>(this.Name)).Where(e => e is TypeDefinition || e is NamespaceDefinition).ToList();
             if(lex.Any()) {
                 return lex;
             }
@@ -94,7 +94,7 @@ namespace ABB.SrcML.Data {
             //we didn't find it locally, search under imported namespaces
             return (from import in GetImports()
                     from match in import.ImportedNamespace.GetDescendantsAndSelf<NameUse>().Last().FindMatches()
-                    from child in match.GetNamedChildren(this.Name)
+                    from child in match.GetNamedChildren<NamedScope>(this.Name)
                     where child is TypeDefinition || child is NamespaceDefinition
                     select child);
         }
