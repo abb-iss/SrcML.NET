@@ -32,7 +32,7 @@ namespace ABB.SrcML.Data {
         /// Finds TypeDefinitions or NamespaceDefinitions that match this name.
         /// </summary>
         public override IEnumerable<INamedEntity> FindMatches() {
-            return base.FindMatches();
+            //return base.FindMatches();
             
             if(ParentStatement == null) {
                 throw new InvalidOperationException("ParentStatement is null");
@@ -47,32 +47,32 @@ namespace ABB.SrcML.Data {
 
             //If there's a prefix, resolve that and search under results
             if(Prefix != null) {
-                return Prefix.FindMatches().SelectMany(ns => ns.GetNamedChildren<INamedEntity>(this.Name)).Where(e => !(e is MethodDefinition));
+                return Prefix.FindMatches().SelectMany(ns => ns.GetNamedChildren(this.Name)).Where(e => e is TypeDefinition || e is NamespaceDefinition);
             }
 
             //If there's a calling expression, match and search under results
             var callingScopes = GetCallingScope();
             if(callingScopes != null) {
-                return callingScopes.SelectMany(s => s.GetNamedChildren<INamedEntity>(this.Name)).Where(e => !(e is MethodDefinition));
+                return callingScopes.SelectMany(s => s.GetNamedChildren(this.Name)).Where(e => e is TypeDefinition || e is NamespaceDefinition);
             }
 
-            //Search for local variables
-            var localVars = SearchForLocalVariable().ToList();
-            if(localVars.Any()) {
-                return localVars;
-            }
+            ////Search for local variables
+            //var localVars = SearchForLocalVariable().ToList();
+            //if(localVars.Any()) {
+            //    return localVars;
+            //}
 
             //search the surrounding type and its base types
             var containingType = ParentStatement.GetAncestors<TypeDefinition>().FirstOrDefault();
             if(containingType != null) {
-                var parentMatches = containingType.GetParentTypesAndSelf(true).SelectMany(t => t.GetNamedChildren(this.Name)).Where(e => !(e is MethodDefinition)).ToList();
+                var parentMatches = containingType.GetParentTypesAndSelf(true).SelectMany(t => t.GetNamedChildren(this.Name)).Where(e => e is TypeDefinition || e is NamespaceDefinition).ToList();
                 if(parentMatches.Any()) {
                     return parentMatches;
                 }
             }
 
             //search the surrounding scopes
-            var lex = ParentStatement.GetAncestorsAndSelf<NamedScope>().SelectMany(ns => ns.GetNamedChildren<INamedEntity>(this.Name)).Where(e => !(e is MethodDefinition)).ToList();
+            var lex = ParentStatement.GetAncestorsAndSelf<NamedScope>().SelectMany(ns => ns.GetNamedChildren(this.Name)).Where(e => e is TypeDefinition || e is NamespaceDefinition).ToList();
             if(lex.Any()) {
                 return lex;
             }
@@ -95,7 +95,7 @@ namespace ABB.SrcML.Data {
             return (from import in GetImports()
                     from match in import.ImportedNamespace.GetDescendantsAndSelf<NameUse>().Last().FindMatches()
                     from child in match.GetNamedChildren(this.Name)
-                    where !(child is MethodDefinition)
+                    where child is TypeDefinition || child is NamespaceDefinition
                     select child);
         }
 
