@@ -32,8 +32,6 @@ namespace ABB.SrcML.Data {
         /// Finds TypeDefinitions or NamespaceDefinitions that match this name.
         /// </summary>
         public override IEnumerable<INamedEntity> FindMatches() {
-            //return base.FindMatches();
-            
             if(ParentStatement == null) {
                 throw new InvalidOperationException("ParentStatement is null");
             }
@@ -55,12 +53,6 @@ namespace ABB.SrcML.Data {
             if(callingScopes != null) {
                 return callingScopes.SelectMany(s => s.GetNamedChildren<NamedScope>(this.Name)).Where(e => e is TypeDefinition || e is NamespaceDefinition);
             }
-
-            ////Search for local variables
-            //var localVars = SearchForLocalVariable().ToList();
-            //if(localVars.Any()) {
-            //    return localVars;
-            //}
 
             //search the surrounding type and its base types
             var containingType = ParentStatement.GetAncestors<TypeDefinition>().FirstOrDefault();
