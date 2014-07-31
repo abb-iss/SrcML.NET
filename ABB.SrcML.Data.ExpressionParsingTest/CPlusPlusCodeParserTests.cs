@@ -1624,5 +1624,52 @@ namespace ABB.SrcML.Data.Test {
             Assert.IsNotNull(fooUse);
             Assert.AreSame(fooDecl, fooUse.FindMatches().FirstOrDefault());
         }
+
+        [Test]
+        public void TestResolveCallOnArrayVariable() {
+            //#include <iostream>
+            //const int SIZE = 5;
+            //class Foo {
+            //public:
+            //    int GetNum() { return 42; }
+            //};
+            //class Bar {
+            //public:
+            //    Foo FooArray[SIZE];
+            //};
+            //int main(int argc, char** argv) {
+            //    Bar myBar;
+            //    std::cout<< myBar.FooArray[0].GetNum() << std::endl;
+            //    return 0;
+            //}
+            string xml = @"<cpp:include>#<cpp:directive>include</cpp:directive> <cpp:file>&lt;iostream&gt;</cpp:file></cpp:include>
+<decl_stmt><decl><type><specifier>const</specifier> <name>int</name></type> <name>SIZE</name> <init>= <expr><lit:literal type=""number"">5</lit:literal></expr></init></decl>;</decl_stmt>
+<class>class <name>Foo</name> <block>{<private type=""default"">
+</private><public>public:
+    <function><type><name>int</name></type> <name>GetNum</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><lit:literal type=""number"">42</lit:literal></expr>;</return> }</block></function>
+</public>}</block>;</class>
+<class>class <name>Bar</name> <block>{<private type=""default"">
+</private><public>public:
+    <decl_stmt><decl><type><name>Foo</name></type> <name><name>FooArray</name><index>[<expr><name>SIZE</name></expr>]</index></name></decl>;</decl_stmt>
+</public>}</block>;</class>
+<function><type><name>int</name></type> <name>main</name><parameter_list>(<param><decl><type><name>int</name></type> <name>argc</name></decl></param>, <param><decl><type><name>char</name><type:modifier>*</type:modifier><type:modifier>*</type:modifier></type> <name>argv</name></decl></param>)</parameter_list> <block>{
+    <decl_stmt><decl><type><name>Bar</name></type> <name>myBar</name></decl>;</decl_stmt>
+    <expr_stmt><expr><name><name>std</name><op:operator>::</op:operator><name>cout</name></name><op:operator>&lt;&lt;</op:operator> <name><name>myBar</name><op:operator>.</op:operator><name>FooArray</name><index>[<expr><lit:literal type=""number"">0</lit:literal></expr>]</index></name><op:operator>.</op:operator><call><name>GetNum</name><argument_list>()</argument_list></call> <op:operator>&lt;&lt;</op:operator> <name><name>std</name><op:operator>::</op:operator><name>endl</name></name></expr>;</expr_stmt>
+    <return>return <expr><lit:literal type=""number"">0</lit:literal></expr>;</return>
+}</block></function>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
+
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            var getNum = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "GetNum");
+            Assert.IsNotNull(getNum);
+            var main = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "main");
+            Assert.IsNotNull(main);
+            Assert.AreEqual(3, main.ChildStatements.Count);
+
+            var getNumCall = main.ChildStatements[1].Content.GetDescendantsAndSelf<MethodCall>().First(mc => mc.Name == "GetNum");
+            var matches = getNumCall.FindMatches().ToList();
+            Assert.AreEqual(1, matches.Count);
+            Assert.AreSame(getNum, matches.First());
+        }
     }
 }

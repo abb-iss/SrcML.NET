@@ -105,17 +105,11 @@ namespace ABB.SrcML.Data {
                 return Prefix.FindMatches().SelectMany(ns => ns.GetNamedChildren<TypeDefinition>(this.Name));
             }
 
-            //TODO: update to handle calling expression using new helper methods
-            //If preceded by a name, match and search under results
-            var siblings = GetSiblingsBeforeSelf().ToList();
-            var priorOp = siblings.LastOrDefault() as OperatorUse;
-            if(priorOp != null && NameInclusionOperators.Contains(priorOp.Text)) {
-                var priorName = siblings[siblings.Count - 2] as NameUse; //second-to-last sibling
-                if(priorName != null) {
-                    var parents = priorName.FindMatches();
-                    return parents.SelectMany(p => p.GetNamedChildren<TypeDefinition>(this.Name));
-                }
-            } 
+            //If there's a calling expression, match and search under results
+            var callingScopes = GetCallingScope();
+            if(callingScopes != null) {
+                return callingScopes.SelectMany(s => s.GetNamedChildren<TypeDefinition>(this.Name));
+            }
 
             //search if there is an alias for this name
             foreach(var alias in GetAliases()) {

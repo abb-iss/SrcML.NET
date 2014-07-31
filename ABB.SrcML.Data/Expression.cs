@@ -178,7 +178,13 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <returns>An enumerable of the matching TypeDefinitions for this expression's possible types.</returns>
         public virtual IEnumerable<TypeDefinition> ResolveType() {
-            throw new NotImplementedException();
+            //TODO: implement more fully
+
+            if(componentsList.Count > 0) {
+                return componentsList.Last().ResolveType();
+            } else {
+                return Enumerable.Empty<TypeDefinition>();
+            }
         }
     }
 

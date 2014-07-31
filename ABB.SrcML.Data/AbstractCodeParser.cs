@@ -1199,7 +1199,7 @@ namespace ABB.SrcML.Data {
 
             var nameElement = declElement.Element(SRC.Name);
             if(nameElement != null) {
-                varDecl.Name = nameElement.Value;
+                varDecl.Name = NameHelper.GetLastName(nameElement);
             }
 
             var typeElement = declElement.Element(SRC.Type);
