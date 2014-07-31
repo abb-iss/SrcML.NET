@@ -293,6 +293,13 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
+        /// Returns the locations where this entity appears in the source.
+        /// </summary>
+        public IEnumerable<SrcMLLocation> GetLocations() {
+            return Locations;
+        }
+
+        /// <summary>
         /// Returns all the expressions within this statement.
         /// </summary>
         public override IEnumerable<Expression> GetExpressions() {

@@ -114,6 +114,13 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
+        /// Returns the locations where this entity appears in the source.
+        /// </summary>
+        public IEnumerable<SrcMLLocation> GetLocations() {
+            yield return Location;
+        }
+
+        /// <summary>
         /// Instance method for getting <see cref="VariableDeclaration.XmlName"/>
         /// </summary>
         /// <returns>Returns the XML name for VariableDeclaration</returns>

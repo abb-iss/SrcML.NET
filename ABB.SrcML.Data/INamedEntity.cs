@@ -32,6 +32,9 @@ namespace ABB.SrcML.Data {
         /// <param name="name">The name to search for.</param>
         IEnumerable<T> GetNamedChildren<T>(string name) where T : INamedEntity;
 
-        
+        /// <summary>
+        /// Returns the locations where this entity appears in the source.
+        /// </summary>
+        IEnumerable<SrcMLLocation> GetLocations();
     }
 }
