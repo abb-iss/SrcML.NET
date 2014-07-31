@@ -1089,6 +1089,64 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
+        public void TestMethodCallCreation_CallGlobalNamespace() {
+            //void Foo() {
+            //    std::cout<<"global::Foo"<<std::endl;
+            //}
+            //namespace A
+            //{
+            //    void Foo() {
+            //        std::cout<<"A::Foo"<<std::endl;
+            //    }
+            //    void print()
+            //    {
+            //         Foo();
+            //         ::Foo();
+            //    }
+            //}
+            string xml = @"<function><type><name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{
+    <expr_stmt><expr><name><name>std</name><op:operator>::</op:operator><name>cout</name></name><op:operator>&lt;&lt;</op:operator><lit:literal type=""string"">""global::Foo""</lit:literal><op:operator>&lt;&lt;</op:operator><name><name>std</name><op:operator>::</op:operator><name>endl</name></name></expr>;</expr_stmt>
+}</block></function>
+<namespace>namespace <name>A</name>
+<block>{
+    <function><type><name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{
+        <expr_stmt><expr><name><name>std</name><op:operator>::</op:operator><name>cout</name></name><op:operator>&lt;&lt;</op:operator><lit:literal type=""string"">""A::Foo""</lit:literal><op:operator>&lt;&lt;</op:operator><name><name>std</name><op:operator>::</op:operator><name>endl</name></name></expr>;</expr_stmt>
+    }</block></function>
+    <function><type><name>void</name></type> <name>print</name><parameter_list>()</parameter_list>
+    <block>{
+         <expr_stmt><expr><call><name>Foo</name><argument_list>()</argument_list></call></expr>;</expr_stmt>
+         <expr_stmt><expr><call><name><op:operator>::</op:operator><name>Foo</name></name><argument_list>()</argument_list></call></expr>;</expr_stmt>
+    }</block></function>
+}</block></namespace>";
+
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cpp");
+            var globalScope = codeParser.ParseFileUnit(unit);
+            Assert.AreEqual(2, globalScope.ChildStatements.Count);
+
+            var globalFoo = globalScope.GetNamedChildren<MethodDefinition>("Foo").FirstOrDefault();
+            var aFoo = globalScope.GetNamedChildren<NamespaceDefinition>("A").First().GetNamedChildren<MethodDefinition>("Foo").FirstOrDefault();
+            var print = globalScope.GetNamedChildren<NamespaceDefinition>("A").First().GetNamedChildren<MethodDefinition>("print").FirstOrDefault();
+
+            Assert.IsNotNull(globalFoo);
+            Assert.IsNotNull(aFoo);
+            Assert.IsNotNull(print);
+
+            Assert.AreEqual(2, print.ChildStatements.Count);
+
+            var aCall = print.ChildStatements[0].Content.GetDescendantsAndSelf<MethodCall>().FirstOrDefault();
+            Assert.IsNotNull(aCall);
+            var aCallMatches = aCall.FindMatches().ToList();
+            //Assert.AreEqual(1, matches.Count);
+            Assert.AreSame(aFoo, aCallMatches.FirstOrDefault());
+
+            var globalCall = print.ChildStatements[1].Content.GetDescendantsAndSelf<MethodCall>().FirstOrDefault();
+            Assert.IsNotNull(globalCall);
+            var globalCallMatches = globalCall.FindMatches().ToList();
+            Assert.AreEqual(1, globalCallMatches.Count);
+            Assert.AreSame(globalFoo, globalCallMatches.FirstOrDefault());
+        }
+
+        [Test]
         public void TestMethodDefinitionWithReturnType() {
             //int Foo() { }
             string xml = @"<function><type><name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></function>";

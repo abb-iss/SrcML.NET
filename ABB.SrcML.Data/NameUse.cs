@@ -261,12 +261,19 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <returns>An enumerable of the named entities that may contain the name being used in this NameUse.
         /// Returns null if there is no suitable calling expression.
-        /// Returns an empty enumerable if there is a calling expression, but not matches are found.</returns>
+        /// Returns an empty enumerable if there is a calling expression, but no matches are found.</returns>
         protected IEnumerable<INamedEntity> GetCallingScope() {
             var siblings = GetSiblingsBeforeSelf().ToList();
             var priorOp = siblings.LastOrDefault() as OperatorUse;
             if(priorOp == null || !NameInclusionOperators.Contains(priorOp.Text)) {
                 return null;
+            }
+
+            if(siblings.Count == 1) {
+                //This use is preceded by a name inclusion operator and nothing else
+                //this is probably only possible in C++: ::MyGlobalClass
+                //just return the global namespace
+                return ParentStatement.GetAncestorsAndSelf<NamespaceDefinition>().Where(n => n.IsGlobal);
             }
 
             var callingExp = siblings[siblings.Count - 2]; //second-to-last sibling
