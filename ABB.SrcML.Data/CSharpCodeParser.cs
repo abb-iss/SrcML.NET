@@ -220,7 +220,7 @@ namespace ABB.SrcML.Data {
                 }
 
                 var initElement = aliasElement.Element(SRC.Init);
-                alias.Target = ParseExpression(GetFirstChildExpression(initElement), context);
+                alias.Target = ParseExpression<TypeContainerUse>(GetFirstChildExpression(initElement), context);
                 
                 stmt = alias;
             } else {
@@ -230,7 +230,7 @@ namespace ABB.SrcML.Data {
 
                 var nameElement = aliasElement.Element(SRC.Name);
                 if(nameElement != null) {
-                    import.ImportedNamespace = ParseNamespaceUse(nameElement, context);
+                    import.ImportedNamespace = ParseNameUseElement<NamespaceUse>(nameElement, context);
                 }
 
                 stmt = import;

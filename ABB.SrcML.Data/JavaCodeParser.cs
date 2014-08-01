@@ -246,12 +246,12 @@ namespace ABB.SrcML.Data {
                 import.AddLocation(context.CreateLocation(aliasElement));
                 var nameElement = aliasElement.Element(SRC.Name);
                 if(nameElement != null) {
-                    import.ImportedNamespace = ParseNamespaceUse(nameElement, context);
+                    import.ImportedNamespace = ParseNameUseElement<NamespaceUse>(nameElement, context);
                     //TODO: fix to handle the trailing operator tag
                 }
                 stmt = import;
             } else {
-                //importing a single class, i.e. an alias
+                //importing a single member, i.e. an alias
                 var alias = new AliasStatement() {ProgrammingLanguage = ParserLanguage};
                 alias.AddLocation(context.CreateLocation(aliasElement));
                 var nameElement = aliasElement.Element(SRC.Name);

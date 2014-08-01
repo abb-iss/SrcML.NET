@@ -291,7 +291,7 @@ namespace ABB.SrcML.Data {
 
                 var nameElement = aliasElement.Element(SRC.Name);
                 if(nameElement != null) {
-                    import.ImportedNamespace = ParseNamespaceUse(nameElement, context);
+                    import.ImportedNamespace = ParseNameUseElement<NamespaceUse>(nameElement, context);
                 }
 
                 stmt = import;

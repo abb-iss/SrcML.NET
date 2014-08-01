@@ -1050,6 +1050,17 @@ namespace ABB.SrcML.Data {
         /// <param name="context">The parser context to use.</param>
         /// <returns>An Expression parsed from the element.</returns>
         protected virtual Expression ParseExpression(XElement element, ParserContext context) {
+            return ParseExpression<NameUse>(element, context);
+        }
+        
+        /// <summary>
+        /// Creates an Expression from the given element.
+        /// </summary>
+        /// <typeparam name="T">The type of use to use when parsing name elements.</typeparam>
+        /// <param name="element">The element to parse.</param>
+        /// <param name="context">The parser context to use.</param>
+        /// <returns>An Expression parsed from the element.</returns>
+        protected virtual Expression ParseExpression<T>(XElement element, ParserContext context) where T : NameUse, new() {
             if(element == null)
                 throw new ArgumentNullException("element");
             if(context == null)
@@ -1062,7 +1073,7 @@ namespace ABB.SrcML.Data {
                 } else if(element.Name == SRC.Declaration) {
                     exp = ParseDeclarationElement(element, context);
                 } else if(element.Name == SRC.Name) {
-                    exp = ParseNameUseElement(element, context);
+                    exp = ParseNameUseElement<T>(element, context);
                 } else if(element.Name == SRC.Type) {
                     exp = ParseTypeUseElement(element, context);
                 } else if(element.Name == OP.Operator) {
@@ -1099,6 +1110,19 @@ namespace ABB.SrcML.Data {
         /// <returns>An Expression with each of the parsed elements as its components. 
         /// If <paramref name="elements"/> contains only a single value, the result will be the same as if it were parsed directly..</returns>
         protected virtual Expression ParseExpression(IEnumerable<XElement> elements, ParserContext context) {
+            return ParseExpression<NameUse>(elements, context);
+        }
+
+        /// <summary>
+        /// Parses (possibly) multiple expression component elements, and combines them into an Expression. 
+        /// All the elements must have the same parent.
+        /// </summary>
+        /// <typeparam name="T">The use type to use when parsing name elements.</typeparam>
+        /// <param name="elements">The expression component elements to parse.</param>
+        /// <param name="context">The parser context to use.</param>
+        /// <returns>An Expression with each of the parsed elements as its components. 
+        /// If <paramref name="elements"/> contains only a single value, the result will be the same as if it were parsed directly..</returns>
+        protected virtual Expression ParseExpression<T>(IEnumerable<XElement> elements, ParserContext context) where T : NameUse, new() {
             if(elements == null)
                 throw new ArgumentNullException("elements");
             if(context == null)
@@ -1122,7 +1146,7 @@ namespace ABB.SrcML.Data {
             //parse each of the components in the expression
             var declList = new List<VariableDeclaration>();
             foreach(var element in expElements) {
-                var exp = ParseExpression(element, context);
+                var exp = ParseExpression<T>(element, context);
                 var varDecl = exp as VariableDeclaration;
                 if(varDecl != null) {
                     if(varDecl.VariableType == null && declList.Any()) {
@@ -1220,8 +1244,6 @@ namespace ABB.SrcML.Data {
             return varDecl;
         }
 
-        
-
         /// <summary>
         /// Creates a NameUse object from the given name element.
         /// </summary>
@@ -1229,6 +1251,17 @@ namespace ABB.SrcML.Data {
         /// <param name="context">The parser context to use.</param>
         /// <returns>A NameUse corresponding to <paramref name="nameElement"/>.</returns>
         protected virtual Expression ParseNameUseElement(XElement nameElement, ParserContext context) {
+            return ParseNameUseElement<NameUse>(nameElement, context);
+        }
+
+        /// <summary>
+        /// Creates a use object from the given name element.
+        /// </summary>
+        /// <typeparam name="T">The type of use to use for the name element. This must inherit from NameUse.</typeparam>
+        /// <param name="nameElement">The SRC.Name element to parse.</param>
+        /// <param name="context">The parser context to use.</param>
+        /// <returns>A use corresponding to <paramref name="nameElement"/>.</returns>
+        protected virtual Expression ParseNameUseElement<T>(XElement nameElement, ParserContext context) where T : NameUse, new() {
             if(nameElement == null)
                 throw new ArgumentNullException("nameElement");
             if(nameElement.Name != SRC.Name)
@@ -1242,58 +1275,17 @@ namespace ABB.SrcML.Data {
             }
 
             if(nameElement.HasElements) {
-                return ParseExpression(nameElement.Elements(), context);
+                return ParseExpression<T>(nameElement.Elements(), context);
             }
 
             //no children
-            var nu = new NameUse() {
+            var nu = new T() {
                 Location = context.CreateLocation(nameElement, true),
                 ProgrammingLanguage = ParserLanguage,
                 Name = NameHelper.GetLastName(nameElement),
-                //Prefix = ParseNamePrefix(nameElement,context)
             };
 
             return nu;
-        }
-
-        /// <summary>
-        /// Creates a NamespaceUse object from the given name element.
-        /// </summary>
-        /// <param name="nameElement">The SRC.Name element to parse.</param>
-        /// <param name="context">The parser context to use.</param>
-        /// <returns>A NamespaceUse corresponding to <paramref name="nameElement"/>.</returns>
-        protected virtual Expression ParseNamespaceUse(XElement nameElement, ParserContext context) {
-            if(nameElement == null)
-                throw new ArgumentNullException("nameElement");
-            if(nameElement.Name != SRC.Name)
-                throw new ArgumentException("should be a SRC.Name", "nameElement");
-            if(context == null)
-                throw new ArgumentNullException("context");
-
-            Expression result;
-
-            if(nameElement.HasElements) {
-                result = new Expression() {
-                    ProgrammingLanguage = ParserLanguage,
-                    Location = context.CreateLocation(nameElement)
-                };
-                foreach(var child in nameElement.Elements()) {
-                    if(child.Name == SRC.Name) {
-                        result.AddComponent(ParseNamespaceUse(child, context));
-                    } else {
-                        result.AddComponent(ParseExpression(child, context));
-                    }
-                }
-            } else {
-                result = new NamespaceUse() {
-                    Location = context.CreateLocation(nameElement, true),
-                    ProgrammingLanguage = ParserLanguage,
-                    Name = NameHelper.GetLastName(nameElement),
-                    //Prefix = ParseNamePrefix(nameElement,context)
-                };
-            }
-
-            return result;
         }
 
         /// <summary>
@@ -1416,18 +1408,7 @@ namespace ABB.SrcML.Data {
 
             var prefix = new NamePrefix();
             foreach(var part in prefixParts) {
-                Expression component;
-                if(part.Name == SRC.Name) {
-                    //parse as a TypeContainerUse rather than a NameUse
-                    component = new TypeContainerUse() {
-                        Location = context.CreateLocation(nameElement, true),
-                        ProgrammingLanguage = ParserLanguage,
-                        Name = part.Value
-                    };
-                } else {
-                    component = ParseExpression(part, context);
-                }
-                prefix.AddComponent(component);
+                prefix.AddComponent(ParseExpression<TypeContainerUse>(part, context));
             }
             return prefix;
         }
