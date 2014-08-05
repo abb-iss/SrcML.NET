@@ -31,6 +31,12 @@ namespace ABB.SrcML.Data {
         
         /// <summary> Internal list of this statements locations. </summary>
         protected List<SrcMLLocation> LocationList;
+
+        /// <summary>
+        /// A collection of the AliasStatement and ImportStatements in the children of this statement.
+        /// The dictionary key is the file name.
+        /// </summary>
+        protected Dictionary<string, SortedSet<Statement>> AliasMap;
         
         /// <summary>XML name for the <see cref="ChildStatements"/> property</summary>
         public const string XmlChildrenName = "ChildStatements";
@@ -50,6 +56,7 @@ namespace ABB.SrcML.Data {
             ChildStatements = new ReadOnlyCollection<Statement>(ChildStatementsList);
             LocationList = new List<SrcMLLocation>(1);
             Locations = new ReadOnlyCollection<SrcMLLocation>(LocationList);
+            AliasMap = new Dictionary<string, SortedSet<Statement>>(StringComparer.InvariantCultureIgnoreCase);
         }
         
         /// <summary>
@@ -97,9 +104,12 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="child">The Statement to add.</param>
         public virtual void AddChildStatement(Statement child) {
-            if(null != child) {
-                child.ParentStatement = this;
-                ChildStatementsList.Add(child);
+            if(null == child) { return; }
+
+            child.ParentStatement = this;
+            ChildStatementsList.Add(child);
+            if(child is AliasStatement || child is ImportStatement) {
+                AddAliasStatement(child);
             }
         }
 
@@ -334,6 +344,93 @@ namespace ABB.SrcML.Data {
 
             if(null != Content) {
                 XmlSerialization.WriteElement(writer, Content, XmlContentName);
+            }
+        }
+
+        /// <summary>
+        /// Returns the children of this statement that are ImportStatements and occur prior to the given location and in the same file.
+        /// </summary>
+        /// <param name="loc">The location to find the imports for.</param>
+        public IEnumerable<ImportStatement> GetImportsForLocation(SourceLocation loc) {
+            SortedSet<Statement> allList;
+            if(!AliasMap.TryGetValue(loc.SourceFileName, out allList)) { yield break; }
+            if(allList == null) { yield break; }
+            foreach(var stmt in allList) {
+                var import = stmt as ImportStatement;
+                if(import != null) {
+                    if(PositionComparer.CompareLocation(import.PrimaryLocation, loc) < 0) {
+                        yield return import;
+                    } else {
+                        //we've reached an import that occurs after loc, so stop looking
+                        break;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns the children of this statement that are AliasStatements and occur prior to the given location and in the same file.
+        /// </summary>
+        /// <param name="loc">The location to find the aliases for.</param>
+        public IEnumerable<AliasStatement> GetAliasesForLocation(SourceLocation loc) {
+            SortedSet<Statement> allList;
+            if(!AliasMap.TryGetValue(loc.SourceFileName, out allList)) { yield break; }
+            if(allList == null) { yield break; }
+            foreach(var stmt in allList) {
+                var alias = stmt as AliasStatement;
+                if(alias != null) {
+                    if(PositionComparer.CompareLocation(alias.PrimaryLocation, loc) < 0) {
+                        yield return alias;
+                    } else {
+                        //we've reached an import that occurs after loc, so stop looking
+                        break;
+                    }
+                }
+            }
+        }
+
+        #region Private Methods
+        private void AddAliasStatement(Statement child) {
+            var loc = child.PrimaryLocation;
+            SortedSet<Statement> aliasList;
+            AliasMap.TryGetValue(loc.SourceFileName, out aliasList);
+            if(aliasList == null) {
+                aliasList = new SortedSet<Statement>(new PositionComparer());
+                AliasMap[loc.SourceFileName] = aliasList;
+            }
+
+            aliasList.Add(child);
+        }
+
+        #endregion Private methods
+
+        /// <summary>
+        /// Sorts Statements based on their starting line/column, in document order.
+        /// The file names are ignored.
+        /// </summary>
+        private class PositionComparer : Comparer<Statement> {
+
+            public override int Compare(Statement x, Statement y) {
+                if(object.Equals(x, y)) { return 0; }
+                if(x == null) { return 1; }
+                if(y == null) { return -1; }
+
+                return CompareLocation(x.PrimaryLocation, y.PrimaryLocation);
+            }
+
+            public static int CompareLocation(SourceLocation x, SourceLocation y) {
+                if(object.Equals(x, y)) { return 0; }
+                if(x == null) { return 1; }
+                if(y == null) { return -1; }
+                if(x.StartingLineNumber < y.StartingLineNumber ||
+                   (x.StartingLineNumber == y.StartingLineNumber && x.StartingColumnNumber < y.StartingColumnNumber)) {
+                    return -1;
+                }
+                if(x.StartingLineNumber == y.StartingLineNumber &&
+                   x.StartingColumnNumber == y.StartingColumnNumber) {
+                    return 0;
+                }
+                return 1;
             }
         }
     }

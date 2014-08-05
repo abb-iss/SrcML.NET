@@ -599,21 +599,20 @@ namespace ABB.SrcML.Data.Test {
             //public class Robot {
             //  public Baz GetThingy() { return new Baz(); }
             //}
-            string xmlA = @"<import>import <name><name>Foo</name><op:operator>.</op:operator><name>Bar</name></name>.*;</import>
-<package>package <name>A</name>;</package>
-<class><specifier>public</specifier> class <name>Robot</name> <block>{
-  <function><type><specifier>public</specifier> <name>Baz</name></type> <name>GetThingy</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><op:operator>new</op:operator> <call><name>Baz</name><argument_list>()</argument_list></call></expr>;</return> }</block></function>
-}</block></class>
-";
+            string xmlA = @"<import pos:line=""1"" pos:column=""1"">import <name><name pos:line=""1"" pos:column=""8"">Foo</name><op:operator pos:line=""1"" pos:column=""11"">.</op:operator><name pos:line=""1"" pos:column=""12"">Bar</name></name>.*;</import>
+<package pos:line=""2"" pos:column=""1"">package <name pos:line=""2"" pos:column=""9"">A</name>;</package>
+<class><specifier pos:line=""3"" pos:column=""1"">public</specifier> class <name pos:line=""3"" pos:column=""14"">Robot</name> <block pos:line=""3"" pos:column=""20"">{
+  <function><type><specifier pos:line=""4"" pos:column=""3"">public</specifier> <name pos:line=""4"" pos:column=""10"">Baz</name></type> <name pos:line=""4"" pos:column=""14"">GetThingy</name><parameter_list pos:line=""4"" pos:column=""23"">()</parameter_list> <block pos:line=""4"" pos:column=""26"">{ <return pos:line=""4"" pos:column=""28"">return <expr><op:operator pos:line=""4"" pos:column=""35"">new</op:operator> <call><name pos:line=""4"" pos:column=""39"">Baz</name><argument_list pos:line=""4"" pos:column=""42"">()</argument_list></call></expr>;</return> }</block></function>
+}</block></class>";
             XElement xmlElementA = fileSetup.GetFileUnitForXmlSnippet(xmlA, "A.java");
             //B.java
             //package Foo.Bar;
             //public class Baz {
             //  public Baz() { }
             //}
-            string xmlB = @"<package>package <name><name>Foo</name><op:operator>.</op:operator><name>Bar</name></name>;</package>
-<class><specifier>public</specifier> class <name>Baz</name> <block>{
-  <constructor><specifier>public</specifier> <name>Baz</name><parameter_list>()</parameter_list> <block>{ }</block></constructor>
+            string xmlB = @"<package pos:line=""1"" pos:column=""1"">package <name><name pos:line=""1"" pos:column=""9"">Foo</name><op:operator pos:line=""1"" pos:column=""12"">.</op:operator><name pos:line=""1"" pos:column=""13"">Bar</name></name>;</package>
+<class><specifier pos:line=""2"" pos:column=""1"">public</specifier> class <name pos:line=""2"" pos:column=""14"">Baz</name> <block pos:line=""2"" pos:column=""18"">{
+  <constructor><specifier pos:line=""3"" pos:column=""3"">public</specifier> <name pos:line=""3"" pos:column=""10"">Baz</name><parameter_list pos:line=""3"" pos:column=""13"">()</parameter_list> <block pos:line=""3"" pos:column=""16"">{ }</block></constructor>
 }</block></class>";
             XElement xmlElementB = fileSetup.GetFileUnitForXmlSnippet(xmlB, "B.java");
             
@@ -644,9 +643,9 @@ namespace ABB.SrcML.Data.Test {
             //public class Baz {
             //  public static void DoTheThing() { };
             //}
-            string xmlA = @"<package>package <name><name>Foo</name><op:operator>.</op:operator><name>Bar</name></name>;</package>
-<class><specifier>public</specifier> class <name>Baz</name> <block>{
-  <function><type><specifier>public</specifier> <specifier>static</specifier> <name>void</name></type> <name>DoTheThing</name><parameter_list>()</parameter_list> <block>{ }</block></function><empty_stmt>;</empty_stmt>
+            string xmlA = @"<package pos:line=""1"" pos:column=""1"">package <name><name pos:line=""1"" pos:column=""9"">Foo</name><op:operator pos:line=""1"" pos:column=""12"">.</op:operator><name pos:line=""1"" pos:column=""13"">Bar</name></name>;</package>
+<class><specifier pos:line=""2"" pos:column=""1"">public</specifier> class <name pos:line=""2"" pos:column=""14"">Baz</name> <block pos:line=""2"" pos:column=""18"">{
+  <function><type><specifier pos:line=""3"" pos:column=""3"">public</specifier> <specifier pos:line=""3"" pos:column=""10"">static</specifier> <name pos:line=""3"" pos:column=""17"">void</name></type> <name pos:line=""3"" pos:column=""22"">DoTheThing</name><parameter_list pos:line=""3"" pos:column=""32"">()</parameter_list> <block pos:line=""3"" pos:column=""35"">{ }</block></function><empty_stmt pos:line=""3"" pos:column=""38"">;</empty_stmt>
 }</block></class>";
             XElement xmlElementA = fileSetup.GetFileUnitForXmlSnippet(xmlA, "A.java");
             //B.java
@@ -657,11 +656,11 @@ namespace ABB.SrcML.Data.Test {
             //    Baz.DoTheThing();
             //  }
             //}
-            string xmlB = @"<import>import <name><name>Foo</name><op:operator>.</op:operator><name>Bar</name><op:operator>.</op:operator><name>Baz</name></name>;</import>
-<package>package <name>A</name>;</package>
-<class><specifier>public</specifier> class <name>B</name> <block>{
-  <constructor><specifier>public</specifier> <name>B</name><parameter_list>()</parameter_list> <block>{
-    <expr_stmt><expr><call><name><name>Baz</name><op:operator>.</op:operator><name>DoTheThing</name></name><argument_list>()</argument_list></call></expr>;</expr_stmt>
+            string xmlB = @"<import pos:line=""1"" pos:column=""1"">import <name><name pos:line=""1"" pos:column=""8"">Foo</name><op:operator pos:line=""1"" pos:column=""11"">.</op:operator><name pos:line=""1"" pos:column=""12"">Bar</name><op:operator pos:line=""1"" pos:column=""15"">.</op:operator><name pos:line=""1"" pos:column=""16"">Baz</name></name>;</import>
+<package pos:line=""2"" pos:column=""1"">package <name pos:line=""2"" pos:column=""9"">A</name>;</package>
+<class><specifier pos:line=""3"" pos:column=""1"">public</specifier> class <name pos:line=""3"" pos:column=""14"">B</name> <block pos:line=""3"" pos:column=""16"">{
+  <constructor><specifier pos:line=""4"" pos:column=""3"">public</specifier> <name pos:line=""4"" pos:column=""10"">B</name><parameter_list pos:line=""4"" pos:column=""11"">()</parameter_list> <block pos:line=""4"" pos:column=""14"">{
+    <expr_stmt><expr><call><name><name pos:line=""5"" pos:column=""5"">Baz</name><op:operator pos:line=""5"" pos:column=""8"">.</op:operator><name pos:line=""5"" pos:column=""9"">DoTheThing</name></name><argument_list pos:line=""5"" pos:column=""19"">()</argument_list></call></expr>;</expr_stmt>
   }</block></constructor>
 }</block></class>";
             XElement xmlElementB = fileSetup.GetFileUnitForXmlSnippet(xmlB, "B.java");

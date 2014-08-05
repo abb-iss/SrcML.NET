@@ -23,7 +23,8 @@ namespace ABB.SrcML.Data {
     /// </summary>
     public class NameUse : Expression {
         private NamePrefix prefix;
-        private List<Statement> aliases;
+        private List<AliasStatement> aliases;
+        private List<ImportStatement> imports;
         
         /// <summary> The XML name for NameUse </summary>
         public new const string XmlName = "n";
@@ -70,10 +71,19 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <returns>The AliasStatements occuring prior to this NameUse.</returns>
         public IEnumerable<AliasStatement> GetAliases() {
-            if(aliases == null) {
-                aliases = DetermineAliases();
+            //TODO: do we also need to search base types?
+            SourceLocation parentLoc;
+            if(ParentStatement.Locations.Count == 1) {
+                parentLoc = ParentStatement.PrimaryLocation;
+            } else {
+                parentLoc = ParentStatement.Locations.First(l => l.Contains(this.Location));
             }
-            return aliases.OfType<AliasStatement>();
+            return ParentStatement.GetAncestors().SelectMany(s => s.GetAliasesForLocation(parentLoc));
+            
+            //if(aliases == null) {
+            //    aliases = DetermineAliases();
+            //}
+            //return aliases.OfType<AliasStatement>();
         }
 
         /// <summary>
@@ -81,10 +91,19 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <returns>The ImportStatements occuring prior to this NameUse.</returns>
         public IEnumerable<ImportStatement> GetImports() {
-            if(aliases == null) {
-                aliases = DetermineAliases();
+            //TODO: do we also need to search base types?
+            SourceLocation parentLoc;
+            if(ParentStatement.Locations.Count == 1) {
+                parentLoc = ParentStatement.PrimaryLocation;
+            } else {
+                parentLoc = ParentStatement.Locations.First(l => l.Contains(this.Location));
             }
-            return aliases.OfType<ImportStatement>();
+            return ParentStatement.GetAncestors().SelectMany(s => s.GetImportsForLocation(parentLoc));
+            
+            //if(aliases == null) {
+            //    aliases = DetermineAliases();
+            //}
+            //return aliases.OfType<ImportStatement>();
         }
         
 
@@ -344,23 +363,23 @@ namespace ABB.SrcML.Data {
         }
 
         #region Private Methods
-        /// <summary>
-        /// Searches for the ImportStatements/AliasStatements that occur prior to this NameUse.
-        /// </summary>
-        private List<Statement> DetermineAliases() {
-            //search through prior statements for imports/aliases
-            aliases = new List<Statement>();
-            var currentStmt = this.ParentStatement;
-            while(currentStmt != null) {
-                foreach(var sibling in currentStmt.GetSiblingsBeforeSelf().Where(s => s is AliasStatement || s is ImportStatement)) {
-                    if(sibling.Locations.Any(l => string.Equals(l.SourceFileName, this.Location.SourceFileName, StringComparison.CurrentCultureIgnoreCase))) {
-                        aliases.Add(sibling);
-                    }
-                }
-                currentStmt = currentStmt.ParentStatement;
-            }
-            return aliases;
-        }
+        ///// <summary>
+        ///// Searches for the ImportStatements/AliasStatements that occur prior to this NameUse.
+        ///// </summary>
+        //private List<Statement> DetermineAliases() {
+        //    //search through prior statements for imports/aliases
+        //    aliases = new List<Statement>();
+        //    var currentStmt = this.ParentStatement;
+        //    while(currentStmt != null) {
+        //        foreach(var sibling in currentStmt.GetSiblingsBeforeSelf().Where(s => s is AliasStatement || s is ImportStatement)) {
+        //            if(sibling.Locations.Any(l => string.Equals(l.SourceFileName, this.Location.SourceFileName, StringComparison.CurrentCultureIgnoreCase))) {
+        //                aliases.Add(sibling);
+        //            }
+        //        }
+        //        currentStmt = currentStmt.ParentStatement;
+        //    }
+        //    return aliases;
+        //}
         #endregion Private Methods
     }
 }
