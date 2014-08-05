@@ -61,5 +61,28 @@ namespace ABB.SrcML.Utilities {
 
             return GetCommonPath(shortest, filePaths);
         }
+
+
+        /// <summary>
+        /// Finds a list of common paths from the files in
+        /// <paramref name="filePaths"/></summary>
+        /// <param name="filePaths">The enumerable of file paths</param>
+        /// <returns>A list of common paths for all the files
+        /// <paramref name="filePaths"/>. If it cannot find any paths, an empty list is returned.</returns>
+        public static List<string> GetCommonPathList(IEnumerable<string> filePaths)
+        {
+            if (null == filePaths)
+                throw new ArgumentNullException("filePaths");
+
+            var filePathsList = filePaths.ToList();
+            var commonPathList = new List<string>();
+            while (filePathsList.Any())
+            {
+                var shortestPath = Path.GetDirectoryName(filePathsList.OrderBy(f => f.Length).First());
+                commonPathList.Add(shortestPath);
+                filePathsList.RemoveAll(f => f.StartsWith(shortestPath));
+            }
+            return commonPathList;
+        }
     }
 }
