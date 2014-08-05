@@ -34,6 +34,7 @@ namespace ABB.SrcML.Data {
 
         /// <summary>
         /// A collection of the AliasStatement and ImportStatements in the children of this statement.
+        /// These aliases/imports are stored in reverse document order.
         /// The dictionary key is the file name.
         /// </summary>
         protected Dictionary<string, SortedSet<Statement>> AliasMap;
@@ -348,45 +349,17 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Returns the children of this statement that are ImportStatements and occur prior to the given location and in the same file.
+        /// Returns the children of this statement that are file specific and occur prior to the given location (and in the same file).
+        /// File specific statements may include items such as ImportStatements or AliasStatements.
+        /// The returned statements are sorted in reverse document order.
         /// </summary>
-        /// <param name="loc">The location to find the imports for.</param>
-        public IEnumerable<ImportStatement> GetImportsForLocation(SourceLocation loc) {
+        /// <param name="loc">The location to find the file specific statements for.</param>
+        public IEnumerable<Statement> GetFileSpecificStatements(SourceLocation loc) {
             SortedSet<Statement> allList;
-            if(!AliasMap.TryGetValue(loc.SourceFileName, out allList)) { yield break; }
-            if(allList == null) { yield break; }
-            foreach(var stmt in allList) {
-                var import = stmt as ImportStatement;
-                if(import != null) {
-                    if(PositionComparer.CompareLocation(import.PrimaryLocation, loc) < 0) {
-                        yield return import;
-                    } else {
-                        //we've reached an import that occurs after loc, so stop looking
-                        break;
-                    }
-                }
-            }
-        }
+            if(!AliasMap.TryGetValue(loc.SourceFileName, out allList)) { return Enumerable.Empty<ImportStatement>(); }
+            if(allList == null) { return Enumerable.Empty<ImportStatement>(); }
 
-        /// <summary>
-        /// Returns the children of this statement that are AliasStatements and occur prior to the given location and in the same file.
-        /// </summary>
-        /// <param name="loc">The location to find the aliases for.</param>
-        public IEnumerable<AliasStatement> GetAliasesForLocation(SourceLocation loc) {
-            SortedSet<Statement> allList;
-            if(!AliasMap.TryGetValue(loc.SourceFileName, out allList)) { yield break; }
-            if(allList == null) { yield break; }
-            foreach(var stmt in allList) {
-                var alias = stmt as AliasStatement;
-                if(alias != null) {
-                    if(PositionComparer.CompareLocation(alias.PrimaryLocation, loc) < 0) {
-                        yield return alias;
-                    } else {
-                        //we've reached an import that occurs after loc, so stop looking
-                        break;
-                    }
-                }
-            }
+            return allList.SkipWhile(s => ReversePositionComparer.CompareLocation(s.PrimaryLocation, loc) <= 0);
         }
 
         #region Private Methods
@@ -395,7 +368,7 @@ namespace ABB.SrcML.Data {
             SortedSet<Statement> aliasList;
             AliasMap.TryGetValue(loc.SourceFileName, out aliasList);
             if(aliasList == null) {
-                aliasList = new SortedSet<Statement>(new PositionComparer());
+                aliasList = new SortedSet<Statement>(new ReversePositionComparer());
                 AliasMap[loc.SourceFileName] = aliasList;
             }
 
@@ -431,6 +404,36 @@ namespace ABB.SrcML.Data {
                     return 0;
                 }
                 return 1;
+            }
+        }
+
+        /// <summary>
+        /// Sorts Statements based on their starting line/column, in reverse document order.
+        /// The file names are ignored.
+        /// </summary>
+        private class ReversePositionComparer : Comparer<Statement> {
+
+            public override int Compare(Statement x, Statement y) {
+                if(object.Equals(x, y)) { return 0; }
+                if(x == null) { return 1; }
+                if(y == null) { return -1; }
+
+                return CompareLocation(x.PrimaryLocation, y.PrimaryLocation);
+            }
+
+            public static int CompareLocation(SourceLocation x, SourceLocation y) {
+                if(object.Equals(x, y)) { return 0; }
+                if(x == null) { return 1; }
+                if(y == null) { return -1; }
+                if(x.StartingLineNumber < y.StartingLineNumber ||
+                   (x.StartingLineNumber == y.StartingLineNumber && x.StartingColumnNumber < y.StartingColumnNumber)) {
+                    return 1;
+                }
+                if(x.StartingLineNumber == y.StartingLineNumber &&
+                   x.StartingColumnNumber == y.StartingColumnNumber) {
+                    return 0;
+                }
+                return -1;
             }
         }
     }

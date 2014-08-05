@@ -23,8 +23,8 @@ namespace ABB.SrcML.Data {
     /// </summary>
     public class NameUse : Expression {
         private NamePrefix prefix;
-        private List<AliasStatement> aliases;
-        private List<ImportStatement> imports;
+        /// <summary> The aliases and imports active at this use. </summary>
+        private List<Statement> aliases;
         
         /// <summary> The XML name for NameUse </summary>
         public new const string XmlName = "n";
@@ -67,43 +67,25 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Determines the set of aliases active at the site of this name use.
+        /// Determines the set of aliases active at the site of this name use, sorted in reverse document order.
         /// </summary>
         /// <returns>The AliasStatements occuring prior to this NameUse.</returns>
         public IEnumerable<AliasStatement> GetAliases() {
-            //TODO: do we also need to search base types?
-            SourceLocation parentLoc;
-            if(ParentStatement.Locations.Count == 1) {
-                parentLoc = ParentStatement.PrimaryLocation;
-            } else {
-                parentLoc = ParentStatement.Locations.First(l => l.Contains(this.Location));
+            if(aliases == null) {
+                aliases = DetermineAliases();
             }
-            return ParentStatement.GetAncestors().SelectMany(s => s.GetAliasesForLocation(parentLoc));
-            
-            //if(aliases == null) {
-            //    aliases = DetermineAliases();
-            //}
-            //return aliases.OfType<AliasStatement>();
+            return aliases.OfType<AliasStatement>();
         }
 
         /// <summary>
-        /// Determines the set of imports active at the site of this name use.
+        /// Determines the set of imports active at the site of this name use, sorted in reverse document order.
         /// </summary>
         /// <returns>The ImportStatements occuring prior to this NameUse.</returns>
         public IEnumerable<ImportStatement> GetImports() {
-            //TODO: do we also need to search base types?
-            SourceLocation parentLoc;
-            if(ParentStatement.Locations.Count == 1) {
-                parentLoc = ParentStatement.PrimaryLocation;
-            } else {
-                parentLoc = ParentStatement.Locations.First(l => l.Contains(this.Location));
+            if(aliases == null) {
+                aliases = DetermineAliases();
             }
-            return ParentStatement.GetAncestors().SelectMany(s => s.GetImportsForLocation(parentLoc));
-            
-            //if(aliases == null) {
-            //    aliases = DetermineAliases();
-            //}
-            //return aliases.OfType<ImportStatement>();
+            return aliases.OfType<ImportStatement>();
         }
         
 
@@ -363,23 +345,20 @@ namespace ABB.SrcML.Data {
         }
 
         #region Private Methods
-        ///// <summary>
-        ///// Searches for the ImportStatements/AliasStatements that occur prior to this NameUse.
-        ///// </summary>
-        //private List<Statement> DetermineAliases() {
-        //    //search through prior statements for imports/aliases
-        //    aliases = new List<Statement>();
-        //    var currentStmt = this.ParentStatement;
-        //    while(currentStmt != null) {
-        //        foreach(var sibling in currentStmt.GetSiblingsBeforeSelf().Where(s => s is AliasStatement || s is ImportStatement)) {
-        //            if(sibling.Locations.Any(l => string.Equals(l.SourceFileName, this.Location.SourceFileName, StringComparison.CurrentCultureIgnoreCase))) {
-        //                aliases.Add(sibling);
-        //            }
-        //        }
-        //        currentStmt = currentStmt.ParentStatement;
-        //    }
-        //    return aliases;
-        //}
+        /// <summary>
+        /// Searches for the ImportStatements/AliasStatements that occur prior to this NameUse.
+        /// </summary>
+        private List<Statement> DetermineAliases() {
+            //TODO: do we also need to search base types?
+            SourceLocation parentLoc;
+            if(ParentStatement.Locations.Count == 1) {
+                parentLoc = ParentStatement.PrimaryLocation;
+            } else {
+                parentLoc = ParentStatement.Locations.First(l => l.Contains(this.Location));
+            }
+            return ParentStatement.GetAncestors().SelectMany(s => s.GetFileSpecificStatements(parentLoc)).ToList();
+        }
+
         #endregion Private Methods
     }
 }
