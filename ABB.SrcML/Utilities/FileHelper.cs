@@ -73,14 +73,14 @@ namespace ABB.SrcML.Utilities {
         {
             if (null == filePaths)
                 throw new ArgumentNullException("filePaths");
-
-            var filePathsList = filePaths.OrderBy(f => f.Length).ToList();
+           
+            var filePathsList = filePaths.Select(f => Path.GetDirectoryName(f)).OrderBy(d => d.Length).ToList();
             var commonPathList = new List<string>();
             while (filePathsList.Any())
             {
-                var shortestPath = Path.GetDirectoryName(filePathsList.First());
+                var shortestPath = filePathsList.First();
                 commonPathList.Add(shortestPath);
-                filePathsList.RemoveAll(f => f.StartsWith(shortestPath));
+                filePathsList.RemoveAll(f => f.StartsWith(shortestPath, StringComparison.Ordinal));
             }
             return commonPathList;
         }
