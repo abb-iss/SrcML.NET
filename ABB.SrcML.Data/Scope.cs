@@ -68,7 +68,7 @@ namespace ABB.SrcML.Data {
             ChildScopeMap = new Dictionary<string, List<Scope>>(otherScope.ChildScopeMap.Count);
             DeclaredVariablesDictionary = new Dictionary<string, VariableDeclaration>(otherScope.DeclaredVariablesDictionary.Count);
             MethodCallCollection = new Collection<MethodCall>();
-            LocationDictionary = new Dictionary<string, Collection<SrcMLLocation>>(otherScope.LocationDictionary.Count, StringComparer.InvariantCultureIgnoreCase);
+            LocationDictionary = new Dictionary<string, Collection<SrcMLLocation>>(otherScope.LocationDictionary.Count, StringComparer.OrdinalIgnoreCase);
 
             CopyFromOtherScope(otherScope);
         }

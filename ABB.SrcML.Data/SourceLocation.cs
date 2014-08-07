@@ -108,7 +108,7 @@ namespace ABB.SrcML.Data {
             if(otherLoc == null)
                 throw new ArgumentNullException("otherLoc");
 
-            if(string.Compare(this.SourceFileName, otherLoc.SourceFileName, StringComparison.InvariantCultureIgnoreCase) != 0) {
+            if(string.Compare(this.SourceFileName, otherLoc.SourceFileName, StringComparison.OrdinalIgnoreCase) != 0) {
                 //files not equal
                 return false;
             }

@@ -51,7 +51,7 @@ namespace ABB.SrcML {
         /// <param name="scheduler">The task factory to use for asynchronous methods</param>
         public LastModifiedArchive(string baseDirectory, string fileName, TaskScheduler scheduler)
             : base(baseDirectory, fileName, scheduler) {
-            lastModifiedMap = new ConcurrentDictionary<string, DateTime>(StringComparer.InvariantCultureIgnoreCase);
+                lastModifiedMap = new ConcurrentDictionary<string, DateTime>(StringComparer.OrdinalIgnoreCase);
             ReadMap();
         }
 

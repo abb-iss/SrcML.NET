@@ -338,7 +338,7 @@ namespace ABB.SrcML.Data {
             if(IsDisposed) { throw new ObjectDisposedException(null); }
             if(null == sourceFileName) { throw new ArgumentNullException("sourceFileName"); }
 
-            return globalScope.Locations.Any(l => l.SourceFileName.Equals(sourceFileName, StringComparison.InvariantCultureIgnoreCase));
+            return globalScope.Locations.Any(l => l.SourceFileName.Equals(sourceFileName, StringComparison.OrdinalIgnoreCase));
         }
 
         /// <summary>

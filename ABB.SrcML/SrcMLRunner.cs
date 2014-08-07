@@ -26,7 +26,7 @@ namespace ABB.SrcML
     /// </summary>
     public class SrcMLRunner : ExecutableRunner
     {
-        private readonly DefaultsDictionary<string, Language> _extensionMapping = new DefaultsDictionary<string, Language>(new Dictionary<string, Language>(StringComparer.CurrentCultureIgnoreCase) {
+        private readonly DefaultsDictionary<string, Language> _extensionMapping = new DefaultsDictionary<string, Language>(new Dictionary<string, Language>(StringComparer.OrdinalIgnoreCase) {
                     { ".c" , Language.C },
                     { ".h", Language.C },
                     { ".cpp", Language.CPlusPlus },

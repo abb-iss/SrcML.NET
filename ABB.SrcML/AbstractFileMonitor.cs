@@ -63,7 +63,7 @@ namespace ABB.SrcML {
         protected AbstractFileMonitor(string baseDirectory, AbstractArchive defaultArchive, params AbstractArchive[] otherArchives) {
             this.MonitorStoragePath = baseDirectory;
             this.registeredArchives = new HashSet<AbstractArchive>();
-            this.archiveMap = new Dictionary<string, AbstractArchive>(StringComparer.InvariantCultureIgnoreCase);
+            this.archiveMap = new Dictionary<string, AbstractArchive>(StringComparer.OrdinalIgnoreCase);
             this.ReadyState = new ReadyNotifier(this);
             this.numberOfWorkingArchives = 0;
             Factory = Task.Factory;
@@ -88,7 +88,7 @@ namespace ABB.SrcML {
         protected AbstractFileMonitor(TaskScheduler scheduler, string baseDirectory, AbstractArchive defaultArchive, params AbstractArchive[] otherArchives) {
             this.MonitorStoragePath = baseDirectory;
             this.registeredArchives = new HashSet<AbstractArchive>();
-            this.archiveMap = new Dictionary<string, AbstractArchive>(StringComparer.InvariantCultureIgnoreCase);
+            this.archiveMap = new Dictionary<string, AbstractArchive>(StringComparer.OrdinalIgnoreCase);
             this.ReadyState = new ReadyNotifier(this);
             this.numberOfWorkingArchives = 0;
             Factory = new TaskFactory(scheduler);
@@ -312,7 +312,7 @@ namespace ABB.SrcML {
             SrcMLFileLogger.DefaultLogger.Info("AbstractFileMonitor.Startup()");
 
             // make a hashset of all the files to monitor
-            var monitoredFiles = new HashSet<string>(StringComparer.CurrentCultureIgnoreCase);
+            var monitoredFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach(var filePath in GetFilesFromSource()) {
                 monitoredFiles.Add(filePath);
             }
@@ -379,7 +379,7 @@ namespace ABB.SrcML {
             SrcMLFileLogger.DefaultLogger.Info("AbstractFileMonitor.Startup()");
 
             // make a hashset of all the files to monitor
-            var monitoredFiles = new HashSet<string>(StringComparer.CurrentCultureIgnoreCase);
+            var monitoredFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach(var filePath in GetFilesFromSource()) {
                 monitoredFiles.Add(filePath);
             }
@@ -448,7 +448,7 @@ namespace ABB.SrcML {
 
         public void UpdateArchives() {
             OnUpdateArchivesStarted(new EventArgs());
-            var monitoredFiles = new HashSet<string>(GetFilesFromSource(), StringComparer.InvariantCultureIgnoreCase);
+            var monitoredFiles = new HashSet<string>(GetFilesFromSource(), StringComparer.OrdinalIgnoreCase);
 
             var outdatedFiles = from filePath in monitoredFiles
                                 let archive = GetArchiveForFile(filePath)
@@ -473,7 +473,7 @@ namespace ABB.SrcML {
         public Task UpdateArchivesAsync() {
             var task = Factory.StartNew(() => {
                 OnUpdateArchivesStarted(new EventArgs());
-                var monitoredFiles = new HashSet<string>(GetFilesFromSource(), StringComparer.InvariantCultureIgnoreCase);
+                var monitoredFiles = new HashSet<string>(GetFilesFromSource(), StringComparer.OrdinalIgnoreCase);
 
                 var outdatedFileTasks = from filePath in monitoredFiles
                                         let archive = GetArchiveForFile(filePath)
