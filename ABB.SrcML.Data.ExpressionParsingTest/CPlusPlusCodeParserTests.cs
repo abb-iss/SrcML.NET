@@ -157,10 +157,10 @@ namespace ABB.SrcML.Data.Test {
             //   MyClass() : MyClass(0) { } 
             //   MyClass(int foo) { } 
             //};
-            string xml = @"<class>class <name>MyClass</name> <block>{<private type=""default"">
-</private><public>public:
-   <constructor><name>MyClass</name><parameter_list>()</parameter_list> <member_list>: <call><name>MyClass</name><argument_list>(<argument><expr><lit:literal type=""number"">0</lit:literal></expr></argument>)</argument_list></call> </member_list><block>{ }</block></constructor> 
-   <constructor><name>MyClass</name><parameter_list>(<param><decl><type><name>int</name></type> <name>foo</name></decl></param>)</parameter_list> <block>{ }</block></constructor> 
+            string xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">MyClass</name> <block pos:line=""1"" pos:column=""15"">{<private type=""default"" pos:line=""1"" pos:column=""16"">
+</private><public pos:line=""2"" pos:column=""1"">public:
+   <constructor><name pos:line=""3"" pos:column=""4"">MyClass</name><parameter_list pos:line=""3"" pos:column=""11"">()</parameter_list> <member_list pos:line=""3"" pos:column=""14"">: <call><name pos:line=""3"" pos:column=""16"">MyClass</name><argument_list pos:line=""3"" pos:column=""23"">(<argument><expr><lit:literal type=""number"" pos:line=""3"" pos:column=""24"">0</lit:literal></expr></argument>)</argument_list></call> </member_list><block pos:line=""3"" pos:column=""27"">{ }</block></constructor> 
+   <constructor><name pos:line=""4"" pos:column=""4"">MyClass</name><parameter_list pos:line=""4"" pos:column=""11"">(<param><decl><type><name pos:line=""4"" pos:column=""12"">int</name></type> <name pos:line=""4"" pos:column=""16"">foo</name></decl></param>)</parameter_list> <block pos:line=""4"" pos:column=""21"">{ }</block></constructor> 
 </public>}</block>;</class>";
             var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.h");
             var globalScope = codeParser.ParseFileUnit(unit);
@@ -189,14 +189,12 @@ namespace ABB.SrcML.Data.Test {
             // class SubClass : public SuperClass {
             // public:
             // SubClass(int foo) : SuperClass(foo) { } };
-            string xml = @"<class>class <name>SuperClass</name> <block>{<private type=""default"">
-  </private><public>public:
-    <constructor><name>SuperClass</name><parameter_list>(<param><decl><type><name>int</name></type> <name>foo</name></decl></param>)</parameter_list> <block>{ }</block></constructor>
-</public>}</block>;</class>
-<class>class <name>SubClass</name> <super>: <specifier>public</specifier> <name>SuperClass</name></super> <block>{<private type=""default"">
-  </private><public>public:
-    <constructor><name>SubClass</name><parameter_list>(<param><decl><type><name>int</name></type> <name>foo</name></decl></param>)</parameter_list> <member_list>: <call><name>SuperClass</name><argument_list>(<argument><expr><name>foo</name></expr></argument>)</argument_list></call> </member_list><block>{ }</block></constructor>
-</public>}</block>;</class>";
+            string xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">SuperClass</name> <block pos:line=""1"" pos:column=""18"">{<private type=""default"" pos:line=""1"" pos:column=""19"">
+</private><public pos:line=""2"" pos:column=""1"">public:
+<constructor><name pos:line=""3"" pos:column=""1"">SuperClass</name><parameter_list pos:line=""3"" pos:column=""11"">(<param><decl><type><name pos:line=""3"" pos:column=""12"">int</name></type> <name pos:line=""3"" pos:column=""16"">foo</name></decl></param>)</parameter_list> <block pos:line=""3"" pos:column=""21"">{ }</block></constructor> </public>}</block>;</class> 
+<class pos:line=""4"" pos:column=""1"">class <name pos:line=""4"" pos:column=""7"">SubClass</name> <super pos:line=""4"" pos:column=""16"">: <specifier pos:line=""4"" pos:column=""18"">public</specifier> <name pos:line=""4"" pos:column=""25"">SuperClass</name></super> <block pos:line=""4"" pos:column=""36"">{<private type=""default"" pos:line=""4"" pos:column=""37"">
+</private><public pos:line=""5"" pos:column=""1"">public:
+<constructor><name pos:line=""6"" pos:column=""1"">SubClass</name><parameter_list pos:line=""6"" pos:column=""9"">(<param><decl><type><name pos:line=""6"" pos:column=""10"">int</name></type> <name pos:line=""6"" pos:column=""14"">foo</name></decl></param>)</parameter_list> <member_list pos:line=""6"" pos:column=""19"">: <call><name pos:line=""6"" pos:column=""21"">SuperClass</name><argument_list pos:line=""6"" pos:column=""31"">(<argument><expr><name pos:line=""6"" pos:column=""32"">foo</name></expr></argument>)</argument_list></call> </member_list><block pos:line=""6"" pos:column=""37"">{ }</block></constructor> </public>}</block>;</class>";
             var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.h");
             var globalScope = codeParser.ParseFileUnit(unit);
 
@@ -222,11 +220,11 @@ namespace ABB.SrcML.Data.Test {
             //public:
             //    Quux() : _my_int(5) {  }
             //};
-            string xml = @"<class>class <name>Quux</name>
-<block>{<private type=""default"">
-    <decl_stmt><decl><type><name>int</name></type> <name>_my_int</name></decl>;</decl_stmt>
-</private><public>public:
-    <constructor><name>Quux</name><parameter_list>()</parameter_list> <member_list>: <call><name>_my_int</name><argument_list>(<argument><expr><lit:literal type=""number"">5</lit:literal></expr></argument>)</argument_list></call> </member_list><block>{  }</block></constructor>
+            string xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">Quux</name>
+<block pos:line=""2"" pos:column=""1"">{<private type=""default"" pos:line=""2"" pos:column=""2"">
+    <decl_stmt><decl><type><name pos:line=""3"" pos:column=""5"">int</name></type> <name pos:line=""3"" pos:column=""9"">_my_int</name></decl>;</decl_stmt>
+</private><public pos:line=""4"" pos:column=""1"">public:
+    <constructor><name pos:line=""5"" pos:column=""5"">Quux</name><parameter_list pos:line=""5"" pos:column=""9"">()</parameter_list> <member_list pos:line=""5"" pos:column=""12"">: <call><name pos:line=""5"" pos:column=""14"">_my_int</name><argument_list pos:line=""5"" pos:column=""21"">(<argument><expr><lit:literal type=""number"" pos:line=""5"" pos:column=""22"">5</lit:literal></expr></argument>)</argument_list></call> </member_list><block pos:line=""5"" pos:column=""25"">{  }</block></constructor>
 </public>}</block>;</class>";
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "test.h");
             var globalScope = codeParser.ParseFileUnit(xmlElement);
@@ -259,18 +257,17 @@ namespace ABB.SrcML.Data.Test {
             //public:
             //    Bar() : baz(42) { }
             //};
-            string xml = @"<class>class <name>Foo</name>
-<block>{<private type=""default"">
-</private><public>public:
-    <constructor><name>Foo</name><parameter_list>(<param><decl><type><name>int</name></type> <name>a</name></decl></param>)</parameter_list> <block>{ }</block></constructor>
+            string xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">Foo</name>
+<block pos:line=""2"" pos:column=""1"">{<private type=""default"" pos:line=""2"" pos:column=""2"">
+</private><public pos:line=""3"" pos:column=""1"">public:
+    <constructor><name pos:line=""4"" pos:column=""5"">Foo</name><parameter_list pos:line=""4"" pos:column=""8"">(<param><decl><type><name pos:line=""4"" pos:column=""9"">int</name></type> <name pos:line=""4"" pos:column=""13"">a</name></decl></param>)</parameter_list> <block pos:line=""4"" pos:column=""16"">{ }</block></constructor>
 </public>}</block>;</class>
-<class>class <name>Bar</name>
-<block>{<private type=""default"">
-    <decl_stmt><decl><type><name>Foo</name></type> <name>baz</name></decl>;</decl_stmt>
-</private><public>public:
-    <constructor><name>Bar</name><parameter_list>()</parameter_list> <member_list>: <call><name>baz</name><argument_list>(<argument><expr><lit:literal type=""number"">42</lit:literal></expr></argument>)</argument_list></call> </member_list><block>{ }</block></constructor>
-</public>}</block>;</class>
-";
+<class pos:line=""6"" pos:column=""1"">class <name pos:line=""6"" pos:column=""7"">Bar</name>
+<block pos:line=""7"" pos:column=""1"">{<private type=""default"" pos:line=""7"" pos:column=""2"">
+    <decl_stmt><decl><type><name pos:line=""8"" pos:column=""5"">Foo</name></type> <name pos:line=""8"" pos:column=""9"">baz</name></decl>;</decl_stmt>
+</private><public pos:line=""9"" pos:column=""1"">public:
+    <constructor><name pos:line=""10"" pos:column=""5"">Bar</name><parameter_list pos:line=""10"" pos:column=""8"">()</parameter_list> <member_list pos:line=""10"" pos:column=""11"">: <call><name pos:line=""10"" pos:column=""13"">baz</name><argument_list pos:line=""10"" pos:column=""16"">(<argument><expr><lit:literal type=""number"" pos:line=""10"" pos:column=""17"">42</lit:literal></expr></argument>)</argument_list></call> </member_list><block pos:line=""10"" pos:column=""21"">{ }</block></constructor>
+</public>}</block>;</class>";
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "test.h");
             var globalScope = codeParser.ParseFileUnit(xmlElement);
 

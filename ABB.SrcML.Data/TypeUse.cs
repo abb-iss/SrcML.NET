@@ -111,6 +111,21 @@ namespace ABB.SrcML.Data {
                 return callingScopes.SelectMany(s => s.GetNamedChildren<TypeDefinition>(this.Name));
             }
 
+            //search enclosing scopes and base types
+            foreach(var scope in ParentStatement.GetAncestors<NamedScope>()) {
+                var matches = scope.GetNamedChildren<TypeDefinition>(this).Where(Matches).ToList();
+                if(matches.Any()) {
+                    return matches;
+                }
+                var typeDef = scope as TypeDefinition;
+                if(typeDef != null) {
+                    var baseTypeMatches = typeDef.SearchParentTypes<TypeDefinition>(this.Name, Matches).ToList();
+                    if(baseTypeMatches.Any()) {
+                        return baseTypeMatches;
+                    }
+                }
+            }
+
             //search if there is an alias for this name
             foreach(var alias in GetAliases()) {
                 if(alias.AliasName == this.Name) {
@@ -123,32 +138,6 @@ namespace ABB.SrcML.Data {
                         return targetName.FindMatches().OfType<TypeDefinition>();
                     }
                 }
-            }
-
-
-
-            ////look in surrounding type definition and its parents for a matching type
-            //var mt = from containingType in ParentStatement.GetAncestorsAndSelf<TypeDefinition>()
-            //         from type in containingType.GetParentTypesAndSelf(true)
-            //         where Matches(type)
-            //         select type;
-
-            ////look in surrounding type definition and its parents for a sub-type that matches
-            //var matchingTypes = from containingType in ParentStatement.GetAncestorsAndSelf<TypeDefinition>()
-            //                    from typeDefinition in containingType.GetParentTypesAndSelf(true)
-            //                    from type in typeDefinition.GetNamedChildren<TypeDefinition>(this.Name)
-            //                    where Matches(type)
-            //                    select type;
-
-            //TODO: search in more places, such as base types
-
-            var lex = (from containingScope in ParentStatement.GetAncestorsAndSelf<NamedScope>()
-                       from type in containingScope.GetNamedChildren<TypeDefinition>(this.Name)
-                       where Matches(type)
-                       select type).ToList();
-
-            if(lex.Any()) {
-                return lex;
             }
 
             //we didn't find it locally, search under imported namespaces
