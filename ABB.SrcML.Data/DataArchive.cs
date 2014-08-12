@@ -88,7 +88,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="sourceFileName">The source file to get data for</param>
         /// <returns>the namespace definition for <paramref name="sourceFileName"/></returns>
-        public NamespaceDefinition GetData(string sourceFileName) {
+        public virtual NamespaceDefinition GetData(string sourceFileName) {
             if(!File.Exists(sourceFileName)) {
                 return null;
             } else {

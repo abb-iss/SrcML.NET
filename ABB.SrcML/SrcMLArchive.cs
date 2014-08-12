@@ -154,7 +154,7 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="sourceFilePath">The source file to get the root XElement for.</param>
         /// <returns>The root XElement of the source file.</returns>
-        public XElement GetXElementForSourceFile(string sourceFilePath) {
+        public virtual XElement GetXElementForSourceFile(string sourceFilePath) {
             if(!File.Exists(sourceFilePath)) {
                 return null;
             } else {

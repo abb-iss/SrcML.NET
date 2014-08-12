@@ -89,7 +89,7 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="sourcePath">The source path</param>
         /// <returns>The full path within the archive for <paramref name="sourcePath"/></returns>
-        public string GetArchivePath(string sourcePath) {
+        public virtual string GetArchivePath(string sourcePath) {
             return _fileMapping.GetTargetPath(sourcePath);
         }
 
@@ -98,7 +98,7 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="archivePath">A path within the archive</param>
         /// <returns>The path on disk that corresponds to <paramref name="archivePath"/></returns>
-        public string GetSourcePath(string archivePath) {
+        public virtual string GetSourcePath(string archivePath) {
             return _fileMapping.GetSourcePath(archivePath);
         }
 
@@ -106,7 +106,7 @@ namespace ABB.SrcML {
         /// Gets all of the archived files in this archive.
         /// </summary>
         /// <returns>An enumerable of the stored files</returns>
-        protected IEnumerable<string> GetArchivedFiles() {
+        protected virtual IEnumerable<string> GetArchivedFiles() {
             return _fileMapping.GetTargetFiles();
         }
 

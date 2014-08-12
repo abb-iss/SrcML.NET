@@ -102,7 +102,7 @@ namespace ABB.SrcML {
             return fileNames;
         }
 
-        public DateTime GetLastModifiedTime(string fileName) {
+        public virtual DateTime GetLastModifiedTime(string fileName) {
             if(ContainsFile(fileName)) {
                 return lastModifiedMap[GetFullPath(fileName)];
             }
