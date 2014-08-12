@@ -336,9 +336,9 @@ namespace ABB.SrcML.Data {
         /// <returns>True if <paramref name="globalScope"/> contains <paramref name="sourceFileName"/></returns>
         protected bool ContainsFile(NamespaceDefinition globalScope, string sourceFileName) {
             if(IsDisposed) { throw new ObjectDisposedException(null); }
-            if(null == sourceFileName) { throw new ArgumentNullException("sourceFileName"); }
+            if(String.IsNullOrWhiteSpace(sourceFileName)) { throw new ArgumentNullException("sourceFileName"); }
 
-            return globalScope.Locations.Any(l => l.SourceFileName.Equals(sourceFileName, StringComparison.OrdinalIgnoreCase));
+            return globalScope.Locations.Any(l => l.SourceFileName.Equals(Path.GetFullPath(sourceFileName), StringComparison.OrdinalIgnoreCase));
         }
 
         /// <summary>
