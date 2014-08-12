@@ -89,7 +89,6 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <returns>All of the type definitions that match this type use</returns>
         public override IEnumerable<TypeDefinition> ResolveType() {
-            //TODO: handle case of C# var type. Delete CSharpVarTypeUse if no longer necessary.
             if(ParentStatement == null) {
                 throw new InvalidOperationException("ParentStatement is null");
             }
@@ -109,6 +108,21 @@ namespace ABB.SrcML.Data {
             var callingScopes = GetCallingScope();
             if(callingScopes != null) {
                 return callingScopes.SelectMany(s => s.GetNamedChildren<TypeDefinition>(this.Name));
+            }
+
+            //handle C# var keyword
+            if(Name == "var" && ProgrammingLanguage == Language.CSharp) {
+                var varDecl = ParentExpression as VariableDeclaration;
+                if(varDecl != null) {
+                    if(varDecl.Initializer != null) {
+                        return varDecl.Initializer.ResolveType();
+                    }
+                    if(varDecl.Range != null) {
+                        //TODO: update to determine type of items within the collection and return that
+                        return varDecl.Range.ResolveType();
+                    }
+                    return Enumerable.Empty<TypeDefinition>();
+                }
             }
 
             //search enclosing scopes and base types

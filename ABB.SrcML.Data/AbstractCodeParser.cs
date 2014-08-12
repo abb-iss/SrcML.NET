@@ -429,22 +429,19 @@ namespace ABB.SrcML.Data {
                     if(expElement != null) {
                         forStmt.Initializer = ParseExpression(expElement, context);
                     }
-                }
-                else if(forChild.Name == SRC.Condition) {
+                } else if(forChild.Name == SRC.Condition) {
                     //fill in condition
                     var expElement = GetFirstChildExpression(forChild);
                     if(expElement != null) {
                         forStmt.Condition = ParseExpression(expElement, context);
                     }
-                }
-                else if(forChild.Name == SRC.Increment) {
+                } else if(forChild.Name == SRC.Increment) {
                     //fill in incrementer
                     var expElement = GetFirstChildExpression(forChild);
                     if(expElement != null) {
                         forStmt.Incrementer = ParseExpression(expElement, context);
                     }
-                }
-                else if(forChild.Name == SRC.Block) {
+                } else if(forChild.Name == SRC.Block) {
                     //add children from block
                     var blockStatements = forChild.Elements().Select(e => ParseStatement(e, context));
                     forStmt.AddChildStatements(blockStatements);
@@ -481,8 +478,7 @@ namespace ABB.SrcML.Data {
                     if(expElement != null) {
                         foreachStmt.Condition = ParseExpression(expElement, context);
                     }
-                }
-                else if(child.Name == SRC.Block) {
+                } else if(child.Name == SRC.Block) {
                     //add children from block
                     var blockStatements = child.Elements().Select(e => ParseStatement(e, context));
                     foreachStmt.AddChildStatements(blockStatements);
@@ -1239,6 +1235,15 @@ namespace ABB.SrcML.Data {
                     varDecl.Initializer = ParseExpression(expElement, context);
                 }
             }
+
+            var rangeElement = declElement.Element(SRC.Range);
+            if(rangeElement != null) {
+                var expElement = GetFirstChildExpression(rangeElement);
+                if(expElement != null) {
+                    varDecl.Range = ParseExpression(rangeElement, context);
+                }
+            }
+
             //TODO: need to also handle C++ case of calling constructor in the declaration, e.g. "Foo bar(27);"
 
             return varDecl;

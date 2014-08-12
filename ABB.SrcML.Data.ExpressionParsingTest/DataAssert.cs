@@ -355,6 +355,7 @@ namespace ABB.SrcML.Data.Test {
             try {
                 IsTrue(expected.Name == actual.Name, "Name");
                 ExpressionsAreEqual(expected.Initializer, actual.Initializer, "Initializer");
+                ExpressionsAreEqual(expected.Range, actual.Range, "Range");
                 ExpressionsAreEqual(expected.VariableType, actual.VariableType, "VariableType");
             } catch(DataAssertionException e) {
                 e.Add(propertyName);

@@ -230,6 +230,11 @@ namespace ABB.SrcML {
         public static readonly XName Condition = NS + "condition";
 
         /// <summary>
+        /// markup for the range tag (used in foreach loops)
+        /// </summary>
+        public static readonly XName Range = NS + "range";
+
+        /// <summary>
         /// markup for the switch tag
         /// </summary>
         public static readonly XName Switch = NS + "switch";

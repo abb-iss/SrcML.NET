@@ -867,7 +867,6 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        [Category("Todo")]
         public void TestDeclarationWithTypeVarFromConstructor() {
             // B.cs namespace A { class B { public B() { }; } }
             string bXml = @"<namespace>namespace <name>A</name> <block>{ <class>class <name>B</name> <block>{ <constructor><specifier>public</specifier> <name>B</name><parameter_list>()</parameter_list> <block>{ }</block></constructor><empty_stmt>;</empty_stmt> }</block></class> }</block></namespace>";
@@ -893,7 +892,6 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        [Category("Todo")]
         public void TestDeclarationWithTypeVarFromMethod() {
             //namespace A {
             //    class B {
@@ -920,6 +918,38 @@ namespace ABB.SrcML.Data.Test {
             Assert.IsNotNull(varDecl);
 
             Assert.AreSame(typeB, varDecl.VariableType.ResolveType().FirstOrDefault());
+        }
+
+        [Test]
+        public void TestDeclarationWithTypeVarInForeach() {
+            //class Foo {
+            //    int[] GetInts() {
+            //        return new[] {1, 2, 3, 4};
+            //    }
+            //    int main() {
+            //        foreach(var num in GetInts()) {
+            //            print(num);
+            //        }
+            //    }
+            //}
+            string xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">Foo</name> <block pos:line=""1"" pos:column=""11"">{
+    <function><type><name pos:line=""2"" pos:column=""5"">int</name><index pos:line=""2"" pos:column=""8"">[]</index></type> <name pos:line=""2"" pos:column=""11"">GetInts</name><parameter_list pos:line=""2"" pos:column=""18"">()</parameter_list> <block pos:line=""2"" pos:column=""21"">{
+        <return pos:line=""3"" pos:column=""9"">return <expr><op:operator pos:line=""3"" pos:column=""16"">new</op:operator><index pos:line=""3"" pos:column=""19"">[]</index> <block pos:line=""3"" pos:column=""22"">{<expr><lit:literal type=""number"" pos:line=""3"" pos:column=""23"">1</lit:literal></expr><op:operator pos:line=""3"" pos:column=""24"">,</op:operator> <expr><lit:literal type=""number"" pos:line=""3"" pos:column=""26"">2</lit:literal></expr><op:operator pos:line=""3"" pos:column=""27"">,</op:operator> <expr><lit:literal type=""number"" pos:line=""3"" pos:column=""29"">3</lit:literal></expr><op:operator pos:line=""3"" pos:column=""30"">,</op:operator> <expr><lit:literal type=""number"" pos:line=""3"" pos:column=""32"">4</lit:literal></expr>}</block></expr>;</return>
+    }</block></function>
+    <function><type><name pos:line=""5"" pos:column=""5"">int</name></type> <name pos:line=""5"" pos:column=""9"">main</name><parameter_list pos:line=""5"" pos:column=""13"">()</parameter_list> <block pos:line=""5"" pos:column=""16"">{
+        <foreach pos:line=""6"" pos:column=""9"">foreach(<init><decl><type><name pos:line=""6"" pos:column=""17"">var</name></type> <name pos:line=""6"" pos:column=""21"">num</name> <range pos:line=""6"" pos:column=""25"">in <expr><call><name pos:line=""6"" pos:column=""28"">GetInts</name><argument_list pos:line=""6"" pos:column=""35"">()</argument_list></call></expr></range></decl></init>) <block pos:line=""6"" pos:column=""39"">{
+            <expr_stmt><expr><call><name pos:line=""7"" pos:column=""13"">print</name><argument_list pos:line=""7"" pos:column=""18"">(<argument><expr><name pos:line=""7"" pos:column=""19"">num</name></expr></argument>)</argument_list></call></expr>;</expr_stmt>
+        }</block></foreach>
+    }</block></function>
+}</block></class>";
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "B.cs");
+            var globalScope = codeParser.ParseFileUnit(unit);
+
+            var loop = globalScope.GetDescendants<ForeachStatement>().First();
+            var varDecl = loop.Condition.GetDescendantsAndSelf<VariableDeclaration>().FirstOrDefault();
+            Assert.IsNotNull(varDecl);
+
+            Assert.AreSame(BuiltInTypeFactory.GetBuiltIn(new TypeUse() {Name = "int"}), varDecl.VariableType.ResolveType().FirstOrDefault());
         }
 
         [Test]

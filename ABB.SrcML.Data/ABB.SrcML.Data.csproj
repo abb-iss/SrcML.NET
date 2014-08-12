@@ -65,7 +65,6 @@
     <Compile Include="CompleteWorkingSet.cs" />
     <Compile Include="ConditionBlockStatement.cs" />
     <Compile Include="ContinueStatement.cs" />
-    <Compile Include="CSharpVarTypeUse.cs" />
     <Compile Include="DataArchive.cs" />
     <Compile Include="DataFileNameMapping.cs" />
     <Compile Include="DataGenerator.cs" />

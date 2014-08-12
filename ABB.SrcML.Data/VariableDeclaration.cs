@@ -23,6 +23,7 @@ namespace ABB.SrcML.Data {
     public class VariableDeclaration : Expression, INamedEntity {
         private TypeUse varType;
         private Expression initExpression;
+        private Expression rangeExpression;
         
         /// <summary> The XML name for VariableDeclaration </summary>
         public new const string XmlName = "var";
@@ -38,6 +39,9 @@ namespace ABB.SrcML.Data {
 
         /// <summary> XML Name for <see cref="Initializer" /> </summary>
         public const string XmlInitializerName = "Initializer";
+
+        /// <summary> XML Name for <see cref="Range"/> </summary>
+        public const string XmlRangeName = "Range";
 
         /// <summary> The access modifier assigned to this type </summary>
         public AccessModifier Accessibility { get; set; }
@@ -69,6 +73,18 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        /// <summary> The range expression provided for this variable in a foreach loop. </summary>
+        public Expression Range {
+            get { return rangeExpression; }
+            set {
+                rangeExpression = value;
+                if(rangeExpression != null) {
+                    rangeExpression.ParentExpression = this;
+                    rangeExpression.ParentStatement = this.ParentStatement;
+                }
+            }
+        }
+
         /// <summary> The statement containing this expression. </summary>
         public override Statement ParentStatement {
             get { return base.ParentStatement; }
@@ -80,7 +96,7 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Returns the child expressions, including the VariableType and Initializer.
+        /// Returns the child expressions, including the VariableType, Initializer, and Range;
         /// </summary>
         protected override IEnumerable<AbstractProgramElement> GetChildren() {
             if(VariableType != null) {
@@ -88,6 +104,9 @@ namespace ABB.SrcML.Data {
             }
             if(Initializer != null) {
                 yield return Initializer;
+            }
+            if(Range != null) {
+                yield return Range;
             }
             foreach(var child in base.GetChildren()) {
                 yield return child;
@@ -132,6 +151,8 @@ namespace ABB.SrcML.Data {
                 VariableType = XmlSerialization.ReadChildExpression(reader) as TypeUse;
             } else if(XmlInitializerName == reader.Name) {
                 Initializer = XmlSerialization.ReadChildExpression(reader);
+            } else if(XmlRangeName == reader.Name) {
+                Range = XmlSerialization.ReadChildExpression(reader);
             } else {
                 base.ReadXmlChild(reader);
             }
@@ -155,6 +176,11 @@ namespace ABB.SrcML.Data {
             if(null != Initializer) {
                 XmlSerialization.WriteElement(writer, Initializer, XmlInitializerName);
             }
+
+            if(null != Range) {
+                XmlSerialization.WriteElement(writer, Range, XmlRangeName);
+            }
+
             base.WriteXmlContents(writer);
         }
         
