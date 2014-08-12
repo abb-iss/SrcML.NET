@@ -32,6 +32,11 @@ namespace ABB.SrcML.Data {
         public SrcMLArchive MonitoredArchive { get; set; }
 
         /// <summary>
+        /// Creates a data archive in <see cref="DEFAULT_ARCHIVE_DIRECTORY"/> within <see cref="Environment.CurrentDirectory"/> with no <see cref="MonitoredArchive"/>.
+        /// </summary>
+        public DataArchive() : this(Environment.CurrentDirectory, null, true) { }
+
+        /// <summary>
         /// Creates a new data archive
         /// </summary>
         /// <param name="baseDirectory">The base directory</param>

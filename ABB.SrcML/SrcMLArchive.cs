@@ -28,7 +28,15 @@ namespace ABB.SrcML {
     /// the archive directory
     /// </summary>
     public class SrcMLArchive : GeneratorArchive<SrcMLGenerator> {
+        /// <summary>
+        /// The default diretory to store the srcML files in
+        /// </summary>
         public const string DEFAULT_ARCHIVE_DIRECTORY = "srcML";
+
+        /// <summary>
+        /// Creates a new srcML archive in <see cref="DEFAULT_ARCHIVE_DIRECTORY"/> within <see cref="Environment.CurrentDirectory"/>.
+        /// </summary>
+        public SrcMLArchive() : this(Environment.CurrentDirectory, true) { }
 
         /// <summary>
         /// Creates a new SrcMLArchive. The archive is created in <c>"baseDirectory\srcML"</c>.
