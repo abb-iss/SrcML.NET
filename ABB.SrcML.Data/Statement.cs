@@ -213,25 +213,96 @@ namespace ABB.SrcML.Data {
             }
         }
 
-        ///// <summary>
-        ///// Returns the variables declared within this statement.
-        ///// </summary>
-        ///// <param name="recursive">If true, the method returns the variables declared within the statement's children. If false, it does not.</param>
-        //public virtual IEnumerable<VariableDeclaration> GetDeclarations(bool recursive) {
-        //    if(Content != null) {
-        //        foreach(var decl in Content.GetDescendantsAndSelf<VariableDeclaration>()) {
-        //            yield return decl;
-        //        }
-        //    }
+        /// <summary>
+        /// Returns the children of this statement that have the given name.
+        /// This method searches only the immediate children, and not further descendants.
+        /// </summary>
+        /// <param name="name">The name to search for.</param>
+        public IEnumerable<INamedEntity> GetNamedChildren(string name) {
+            return GetNamedChildren<INamedEntity>(name, true);
+        }
 
-        //    //TODO: fix recursiveness to properly handle block statements, where the user would want to get the immediate children (i.e. the things in the block)
-        //    //but not any lower children.
-        //    if(recursive) {
-        //        foreach(var decl in GetChildren().OfType<Statement>().SelectMany(s => s.GetDeclarations(true))) {
-        //            yield return decl;
-        //        }
-        //    }
-        //}
+        /// <summary>
+        /// Returns the children of this statement that have the same name as the given <paramref name="use"/>.
+        /// This method searches only the immediate children, and not further descendants.
+        /// If the <paramref name="use"/> occurs within this statement, this method will return only the children
+        /// that occur prior to that use.
+        /// </summary>
+        /// <param name="use">The use containing the name to search for.</param>
+        public IEnumerable<INamedEntity> GetNamedChildren(NameUse use) {
+            return GetNamedChildren<INamedEntity>(use, true);
+        }
+
+        /// <summary>
+        /// Returns the children of this statement that have the given name, and the given type.
+        /// This method searches only the immediate children, and not further descendants.
+        /// </summary>
+        /// <typeparam name="T">The type of children to return.</typeparam>
+        /// <param name="name">The name to search for.</param>
+        public IEnumerable<T> GetNamedChildren<T>(string name) where T : INamedEntity {
+            bool searchDeclarations = typeof(T).IsInterface || typeof(T).IsSubclassOf(typeof(Expression));
+            return GetNamedChildren<T>(name, searchDeclarations);
+        }
+
+        /// <summary>
+        /// Returns the children of this statement that have the same name as the given <paramref name="use"/>, and the given type.
+        /// This method searches only the immediate children, and not further descendants.
+        /// If the <paramref name="use"/> occurs within this statement, this method will return only the children
+        /// that occur prior to that use.
+        /// </summary>
+        /// <typeparam name="T">The type of children to return.</typeparam>
+        /// <param name="use">The use containing the name to search for.</param>
+        public IEnumerable<T> GetNamedChildren<T>(NameUse use) where T : INamedEntity {
+            bool searchDeclarations = typeof(T).IsInterface || typeof(T).IsSubclassOf(typeof(Expression));
+            return GetNamedChildren<T>(use, searchDeclarations);
+        }
+
+        /// <summary>
+        /// Returns the children of this statement that have the given name, and the given type.
+        /// This method searches only the immediate children, and not further descendants.
+        /// </summary>
+        /// <typeparam name="T">The type of children to return.</typeparam>
+        /// <param name="name">The name to search for.</param>
+        /// <param name="searchDeclarations">Whether to search the child DeclarationStatements for named entities.</param>
+        public virtual IEnumerable<T> GetNamedChildren<T>(string name, bool searchDeclarations) where T : INamedEntity {
+            var scopes = GetChildren().OfType<T>().Where(ns => ns.Name == name);
+            if(!searchDeclarations) { return scopes; }
+
+            var decls = from declStmt in GetChildren().OfType<DeclarationStatement>()
+                        from decl in declStmt.GetDeclarations().OfType<T>()
+                        where decl.Name == name
+                        select decl;
+            return scopes.Concat(decls);
+        }
+
+        /// <summary>
+        /// Returns the children of this statement that have the same name as the given <paramref name="use"/>, and the given type.
+        /// This method searches only the immediate children, and not further descendants.
+        /// If the <paramref name="use"/> occurs within this statement, this method will return only the children
+        /// that occur prior to that use.
+        /// </summary>
+        /// <typeparam name="T">The type of children to return.</typeparam>
+        /// <param name="use">The use containing the name to search for.</param>
+        /// <param name="searchDeclarations">Whether to search the child DeclarationStatements for named entities.</param>
+        public virtual IEnumerable<T> GetNamedChildren<T>(NameUse use, bool searchDeclarations) where T : INamedEntity {
+            if(use == null) { throw new ArgumentNullException("use"); }
+            //location comparison is only valid if the use occurs within this statement (or its children)
+            bool filterLocation = PrimaryLocation.Contains(use.Location);
+            if(filterLocation) {
+                var scopes = GetChildren().OfType<T>().Where(ns => ns.Name == use.Name && PositionComparer.CompareLocation(PrimaryLocation, use.Location) < 0);
+                if(!searchDeclarations) { return scopes; }
+
+                //this will return the var decls in document order
+                var decls = from declStmt in GetChildren().OfType<DeclarationStatement>()
+                            where PositionComparer.CompareLocation(declStmt.PrimaryLocation, use.Location) < 0
+                            from decl in declStmt.GetDeclarations().OfType<T>()
+                            where decl.Name == use.Name
+                            select decl;
+                return scopes.Concat(decls);
+            } else {
+                return GetNamedChildren<T>(use.Name, searchDeclarations);
+            }
+        }
 
         public virtual bool CanBeMergedWith(Statement otherStatement) {
             return this.ComputeMergeId() == otherStatement.ComputeMergeId();
@@ -381,7 +452,7 @@ namespace ABB.SrcML.Data {
         /// Sorts Statements based on their starting line/column, in document order.
         /// The file names are ignored.
         /// </summary>
-        private class PositionComparer : Comparer<Statement> {
+        protected class PositionComparer : Comparer<Statement> {
 
             public override int Compare(Statement x, Statement y) {
                 if(object.Equals(x, y)) { return 0; }
@@ -411,7 +482,7 @@ namespace ABB.SrcML.Data {
         /// Sorts Statements based on their starting line/column, in reverse document order.
         /// The file names are ignored.
         /// </summary>
-        private class ReversePositionComparer : Comparer<Statement> {
+        protected class ReversePositionComparer : Comparer<Statement> {
 
             public override int Compare(Statement x, Statement y) {
                 if(object.Equals(x, y)) { return 0; }

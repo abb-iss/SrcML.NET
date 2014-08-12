@@ -93,5 +93,30 @@ namespace ABB.SrcML.Data {
             base.WriteXmlContents(writer);
             XmlSerialization.WriteCollection<Statement>(writer, XmlElseName, ElseStatements);
         }
+
+        /// <summary>
+        /// Returns the children of this statement that have the same name as the given <paramref name="use"/>, and the given type.
+        /// This method searches only the immediate children, and not further descendants.
+        /// If the <paramref name="use"/> occurs within this statement, this method will return only the children
+        /// that occur prior to that use.
+        /// </summary>
+        /// <typeparam name="T">The type of children to return.</typeparam>
+        /// <param name="use">The use containing the name to search for.</param>
+        /// <param name="searchDeclarations">Whether to search the child DeclarationStatements for named entities.</param>
+        public override IEnumerable<T> GetNamedChildren<T>(NameUse use, bool searchDeclarations) {
+            var matches = base.GetNamedChildren<T>(use, searchDeclarations);
+            //check if we should filter the results
+            if(ElseStatements.Count > 0) {
+                var firstElseLoc = ElseStatements.First().PrimaryLocation;
+                var lastElseLoc = ElseStatements.Last().PrimaryLocation;
+                var elseLocation = new SourceLocation(firstElseLoc.SourceFileName, firstElseLoc.StartingLineNumber, firstElseLoc.StartingColumnNumber, lastElseLoc.EndingLineNumber, lastElseLoc.EndingColumnNumber);
+                if(string.Compare(elseLocation.SourceFileName, use.Location.SourceFileName, StringComparison.OrdinalIgnoreCase) == 0
+                   && elseLocation.Contains(use.Location)) {
+                    //the use is in the else-block, don't return results from the then-block
+                    return matches.SkipWhile(m => PositionComparer.CompareLocation(m.GetLocations().First(), elseLocation) < 0);
+                }
+            }
+            return matches;
+        }
     }
 }

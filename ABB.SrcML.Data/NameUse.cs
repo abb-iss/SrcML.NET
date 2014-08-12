@@ -181,28 +181,28 @@ namespace ABB.SrcML.Data {
             //If there's a calling expression, match and search under results
             var callingScopes = GetCallingScope();
             if(callingScopes != null) {
-                return callingScopes.SelectMany(s => s.GetNamedChildren<INamedEntity>(this.Name)).Where(e => !(e is MethodDefinition));
+                return callingScopes.SelectMany(s => s.GetNamedChildren(this.Name)).Where(e => !(e is MethodDefinition));
             }
 
-            //Search for local variables
-            var localVars = SearchForLocalVariable().ToList();
-            if(localVars.Any()) {
-                return localVars;
-            }
-
-            //search the surrounding type and its base types
-            var containingType = ParentStatement.GetAncestors<TypeDefinition>().FirstOrDefault();
-            if(containingType != null) {
-                var parentMatches = containingType.GetParentTypesAndSelf(true).SelectMany(t => t.GetNamedChildren(this.Name)).Where(e => !(e is MethodDefinition)).ToList();
-                if(parentMatches.Any()) {
-                    return parentMatches;
+            //search enclosing scopes and base types
+            foreach(var scope in ParentStatement.GetAncestors()) {
+                var matches = scope.GetNamedChildren(this).Where(e => !(e is MethodDefinition)).ToList();
+                if(matches.Any()) {
+                    return matches;
                 }
-            }
-
-            //search the surrounding scopes
-            var lex = ParentStatement.GetAncestorsAndSelf<NamedScope>().SelectMany(ns => ns.GetNamedChildren<INamedEntity>(this.Name)).Where(e => !(e is MethodDefinition)).ToList();
-            if(lex.Any()) {
-                return lex;
+                var expMatches = (from decl in scope.GetExpressions().SelectMany(e => e.GetDescendantsAndSelf<VariableDeclaration>())
+                                  where decl.Name == this.Name
+                                  select decl).ToList();
+                if(expMatches.Any()) {
+                    return expMatches;
+                }
+                var typeDef = scope as TypeDefinition;
+                if(typeDef != null) {
+                    var baseTypeMatches = typeDef.SearchParentTypes<INamedEntity>(this.Name, e => !(e is MethodDefinition)).ToList();
+                    if(baseTypeMatches.Any()) {
+                        return baseTypeMatches;
+                    }
+                }
             }
 
             //search if there is an alias for this name
@@ -221,7 +221,7 @@ namespace ABB.SrcML.Data {
 
             //we didn't find it locally, search under imported namespaces
             return (from import in GetImports()
-                    from match in import.ImportedNamespace.GetDescendantsAndSelf<NameUse>().Last().FindMatches()
+                    from match in import.ImportedNamespace.GetDescendantsAndSelf<NameUse>().Last().FindMatches().OfType<NamedScope>()
                     from child in match.GetNamedChildren(this.Name)
                     where !(child is MethodDefinition)
                     select child);
@@ -263,7 +263,7 @@ namespace ABB.SrcML.Data {
         /// <returns>An enumerable of the named entities that may contain the name being used in this NameUse.
         /// Returns null if there is no suitable calling expression.
         /// Returns an empty enumerable if there is a calling expression, but no matches are found.</returns>
-        protected IEnumerable<INamedEntity> GetCallingScope() {
+        protected IEnumerable<NamedScope> GetCallingScope() {
             var siblings = GetSiblingsBeforeSelf().ToList();
             var priorOp = siblings.LastOrDefault() as OperatorUse;
             if(priorOp == null || !NameInclusionOperators.Contains(priorOp.Text)) {
@@ -285,9 +285,9 @@ namespace ABB.SrcML.Data {
             }
 
             var matches = callingName.FindMatches();
-            var scopes = new List<INamedEntity>();
+            var scopes = new List<NamedScope>();
             foreach(var match in matches) {
-                //TODO: update this to use GetEntityType method from INamedEntity
+                //TODO: update this to use polymorphism
                 if(match is MethodDefinition) {
                     var method = match as MethodDefinition;
                     if(method.ReturnType != null) {
@@ -306,43 +306,13 @@ namespace ABB.SrcML.Data {
                 } else if(match is VariableDeclaration) {
                     scopes.AddRange(((VariableDeclaration)match).VariableType.ResolveType());
                 } else {
-                    scopes.Add(match);
+                    //the only other possibilities are all NamedScopes
+                    scopes.Add((NamedScope)match);
                 }
             }
             return scopes;
         }
 
-        /// <summary>
-        /// Searches for a local (i.e. not a field or a global) variable declaration that matches this NameUse.
-        /// </summary>
-        /// <returns>The <see cref="VariableDeclaration"/>s that this NameUse might be a use of.</returns>
-        protected IEnumerable<VariableDeclaration> SearchForLocalVariable() {
-            var currentStmt = this.ParentStatement; //grab the statement that this expression is in
-
-            //search through the enclosing scopes where the order of the children matters. For example, within a method or if-statement or while-loop
-            while(currentStmt != null &&
-                  currentStmt.ParentStatement != null &&
-                  !(currentStmt.ParentStatement is NamespaceDefinition) &&
-                  !(currentStmt.ParentStatement is TypeDefinition)) {
-
-                var siblings = currentStmt.GetSiblingsBeforeSelf<DeclarationStatement>().ToList();
-                siblings.Reverse();
-                //search prior siblings
-                var match = siblings.SelectMany(s => s.GetDeclarations()).FirstOrDefault(v => v.Name == this.Name);
-                if(match != null) {
-                    return Enumerable.Repeat(match, 1);
-                }
-                //search expressions in the parent
-                match = currentStmt.ParentStatement.GetExpressions().SelectMany(e => e.GetDescendantsAndSelf<VariableDeclaration>()).FirstOrDefault(v => v.Name == this.Name);
-                if(match != null) {
-                    return Enumerable.Repeat(match, 1);
-                }
-
-                currentStmt = currentStmt.ParentStatement;
-            }
-
-            return Enumerable.Empty<VariableDeclaration>();
-        }
 
         #region Private Methods
         /// <summary>

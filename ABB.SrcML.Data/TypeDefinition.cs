@@ -192,8 +192,7 @@ namespace ABB.SrcML.Data {
         /// <see cref="GetParentTypes(bool)"/>
         /// </summary>
         /// <param name="recursive">Whether or not to recursively get the parents of this type's parents.</param>
-        /// <returns>An enumerable consisting of this object followed by the results of see
-        /// cref="GetParentTypes(bool)"/></returns>
+        /// <returns>An enumerable consisting of this object followed by the results of <see cref="GetParentTypes(bool)"/></returns>
         public IEnumerable<TypeDefinition> GetParentTypesAndSelf(bool recursive) {
             return Enumerable.Repeat(this, 1).Concat(GetParentTypes(recursive));
         }
@@ -209,6 +208,38 @@ namespace ABB.SrcML.Data {
             foreach(var parent in ParentTypeNames) {
                 yield return parent;
             }
+        }
+
+        /// <summary>
+        /// Searches the parent types of this type for an INamedEntity with the given name.
+        /// </summary>
+        /// <param name="name">The name of the entity to search for.</param>
+        /// <returns>The first matching entity found. In the case where a given parent type contains more than one matching entity, all of them are returned.</returns>
+        public IEnumerable<INamedEntity> SearchParentTypes(string name) {
+            foreach(var parent in GetParentTypes(true)) {
+                var matches = parent.GetNamedChildren(name).ToList();
+                if(matches.Any()) {
+                    return matches;
+                }
+            }
+            return Enumerable.Empty<INamedEntity>();
+        }
+
+        /// <summary>
+        /// Searches the parent types of this type for entities with the given name and type, and where the given predicate is true.
+        /// </summary>
+        /// <typeparam name="T">The type of entities to search for.</typeparam>
+        /// <param name="name">The name of the entity to search for.</param>
+        /// <param name="predicate">A function to determine whether to return a given entity.</param>
+        /// <returns>The first matching entity found. In the case where a given parent type contains more than one matching entity, all of them are returned.</returns>
+        public IEnumerable<T> SearchParentTypes<T>(string name, Func<T, bool> predicate) where T : INamedEntity {
+            foreach(var parent in GetParentTypes(true)) {
+                var matches = parent.GetNamedChildren<T>(name).Where(predicate).ToList();
+                if(matches.Any()) {
+                    return matches;
+                }
+            }
+            return Enumerable.Empty<T>();
         }
 
         /// <summary>

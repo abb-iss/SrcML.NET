@@ -1039,7 +1039,7 @@ namespace ABB.SrcML.Data.Test {
             var fileUnit = fileSetup.GetFileUnitForXmlSnippet(a_xml, "A.cpp");
             var globalScope = codeParser.ParseFileUnit(fileUnit);
 
-            var aDotBar = globalScope.GetNamedChildren("A").First().GetNamedChildren<MethodDefinition>("Bar").FirstOrDefault();
+            var aDotBar = globalScope.GetNamedChildren<TypeDefinition>("A").First().GetNamedChildren<MethodDefinition>("Bar").FirstOrDefault();
             Assert.IsNotNull(aDotBar);
             var classB = globalScope.GetDescendants<TypeDefinition>().FirstOrDefault(t => t.Name == "B");
             Assert.IsNotNull(classB);
@@ -1062,12 +1062,11 @@ namespace ABB.SrcML.Data.Test {
             //    foo(5);
             //    return 0;
             //}
-            string xml = @"<function><type><name>void</name></type> <name>foo</name><parameter_list>(<param><decl><type><name>int</name></type> <name>a</name></decl></param>)</parameter_list> <block>{ <expr_stmt><expr><call><name>printf</name><argument_list>(<argument><expr><name>a</name></expr></argument>)</argument_list></call></expr>;</expr_stmt> }</block></function>
-<function><type><name>int</name></type> <name>main</name><parameter_list>()</parameter_list> <block>{
-    <expr_stmt><expr><call><name>foo</name><argument_list>(<argument><expr><lit:literal type=""number"">5</lit:literal></expr></argument>)</argument_list></call></expr>;</expr_stmt>
-    <return>return <expr><lit:literal type=""number"">0</lit:literal></expr>;</return>
-}</block></function>
-";
+            string xml = @"<function><type><name pos:line=""1"" pos:column=""1"">void</name></type> <name pos:line=""1"" pos:column=""6"">foo</name><parameter_list pos:line=""1"" pos:column=""9"">(<param><decl><type><name pos:line=""1"" pos:column=""10"">int</name></type> <name pos:line=""1"" pos:column=""14"">a</name></decl></param>)</parameter_list> <block pos:line=""1"" pos:column=""17"">{ <expr_stmt><expr><call><name pos:line=""1"" pos:column=""19"">printf</name><argument_list pos:line=""1"" pos:column=""25"">(<argument><expr><name pos:line=""1"" pos:column=""26"">a</name></expr></argument>)</argument_list></call></expr>;</expr_stmt> }</block></function>
+<function><type><name pos:line=""2"" pos:column=""1"">int</name></type> <name pos:line=""2"" pos:column=""5"">main</name><parameter_list pos:line=""2"" pos:column=""9"">()</parameter_list> <block pos:line=""2"" pos:column=""12"">{
+    <expr_stmt><expr><call><name pos:line=""3"" pos:column=""5"">foo</name><argument_list pos:line=""3"" pos:column=""8"">(<argument><expr><lit:literal type=""number"" pos:line=""3"" pos:column=""9"">5</lit:literal></expr></argument>)</argument_list></call></expr>;</expr_stmt>
+    <return pos:line=""4"" pos:column=""5"">return <expr><lit:literal type=""number"" pos:line=""4"" pos:column=""12"">0</lit:literal></expr>;</return>
+}</block></function>";
 
             var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cpp");
             var globalScope = codeParser.ParseFileUnit(unit);
@@ -1478,10 +1477,10 @@ namespace ABB.SrcML.Data.Test {
             //  int Foo;
             //  A() { Foo = 42; }
             //};
-            string xml = @"<class>class <name>A</name> <block>{<private type=""default"">
-</private><public>public:
-  <decl_stmt><decl><type><name>int</name></type> <name>Foo</name></decl>;</decl_stmt>
-  <constructor><name>A</name><parameter_list>()</parameter_list> <block>{ <expr_stmt><expr><name>Foo</name> <op:operator>=</op:operator> <lit:literal type=""number"">42</lit:literal></expr>;</expr_stmt> }</block></constructor>
+            string xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">A</name> <block pos:line=""1"" pos:column=""9"">{<private type=""default"" pos:line=""1"" pos:column=""10"">
+</private><public pos:line=""2"" pos:column=""1"">public:
+  <decl_stmt><decl><type><name pos:line=""3"" pos:column=""3"">int</name></type> <name pos:line=""3"" pos:column=""7"">Foo</name></decl>;</decl_stmt>
+  <constructor><name pos:line=""4"" pos:column=""3"">A</name><parameter_list pos:line=""4"" pos:column=""4"">()</parameter_list> <block pos:line=""4"" pos:column=""7"">{ <expr_stmt><expr><name pos:line=""4"" pos:column=""9"">Foo</name> <op:operator pos:line=""4"" pos:column=""13"">=</op:operator> <lit:literal type=""number"" pos:line=""4"" pos:column=""15"">42</lit:literal></expr>;</expr_stmt> }</block></constructor>
 </public>}</block>;</class>";
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
 
@@ -1504,13 +1503,13 @@ namespace ABB.SrcML.Data.Test {
             //public:
             //  A() { Foo = 42; }
             //};
-            var xml = @"<class>class <name>B</name> <block>{<private type=""default"">
-</private><public>public:
-  <decl_stmt><decl><type><name>int</name></type> <name>Foo</name></decl>;</decl_stmt>
+            var xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">B</name> <block pos:line=""1"" pos:column=""9"">{<private type=""default"" pos:line=""1"" pos:column=""10"">
+</private><public pos:line=""2"" pos:column=""1"">public:
+  <decl_stmt><decl><type><name pos:line=""3"" pos:column=""3"">int</name></type> <name pos:line=""3"" pos:column=""7"">Foo</name></decl>;</decl_stmt>
 </public>}</block>;</class>
-<class>class <name>A</name> <super>: <specifier>public</specifier> <name>B</name></super> <block>{<private type=""default"">
-</private><public>public:
-  <constructor><name>A</name><parameter_list>()</parameter_list> <block>{ <expr_stmt><expr><name>Foo</name> <op:operator>=</op:operator> <lit:literal type=""number"">42</lit:literal></expr>;</expr_stmt> }</block></constructor>
+<class pos:line=""5"" pos:column=""1"">class <name pos:line=""5"" pos:column=""7"">A</name> <super pos:line=""5"" pos:column=""9"">: <specifier pos:line=""5"" pos:column=""11"">public</specifier> <name pos:line=""5"" pos:column=""18"">B</name></super> <block pos:line=""5"" pos:column=""20"">{<private type=""default"" pos:line=""5"" pos:column=""21"">
+</private><public pos:line=""6"" pos:column=""1"">public:
+  <constructor><name pos:line=""7"" pos:column=""3"">A</name><parameter_list pos:line=""7"" pos:column=""4"">()</parameter_list> <block pos:line=""7"" pos:column=""7"">{ <expr_stmt><expr><name pos:line=""7"" pos:column=""9"">Foo</name> <op:operator pos:line=""7"" pos:column=""13"">=</op:operator> <lit:literal type=""number"" pos:line=""7"" pos:column=""15"">42</lit:literal></expr>;</expr_stmt> }</block></constructor>
 </public>}</block>;</class>";
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
 
@@ -1529,9 +1528,9 @@ namespace ABB.SrcML.Data.Test {
             //int Bar() {
             //  Foo = 17;
             //}
-            var xml = @"<decl_stmt><decl><type><name>int</name></type> <name>Foo</name></decl>;</decl_stmt>
-<function><type><name>int</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{
-  <expr_stmt><expr><name>Foo</name> <op:operator>=</op:operator> <lit:literal type=""number"">17</lit:literal></expr>;</expr_stmt>
+            var xml = @"<decl_stmt><decl><type><name pos:line=""1"" pos:column=""1"">int</name></type> <name pos:line=""1"" pos:column=""5"">Foo</name></decl>;</decl_stmt>
+<function><type><name pos:line=""2"" pos:column=""1"">int</name></type> <name pos:line=""2"" pos:column=""5"">Bar</name><parameter_list pos:line=""2"" pos:column=""8"">()</parameter_list> <block pos:line=""2"" pos:column=""11"">{
+  <expr_stmt><expr><name pos:line=""3"" pos:column=""3"">Foo</name> <op:operator pos:line=""3"" pos:column=""7"">=</op:operator> <lit:literal type=""number"" pos:line=""3"" pos:column=""9"">17</lit:literal></expr>;</expr_stmt>
 }</block></function>";
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
 
@@ -1552,10 +1551,10 @@ namespace ABB.SrcML.Data.Test {
             //    Foo = 17;
             //  }
             //}
-            var xml = @"<namespace>namespace <name>A</name> <block>{
-  <decl_stmt><decl><type><name>int</name></type> <name>Foo</name></decl>;</decl_stmt>
-  <function><type><name>int</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{
-    <expr_stmt><expr><name>Foo</name> <op:operator>=</op:operator> <lit:literal type=""number"">17</lit:literal></expr>;</expr_stmt>
+            var xml = @"<namespace pos:line=""1"" pos:column=""1"">namespace <name pos:line=""1"" pos:column=""11"">A</name> <block pos:line=""1"" pos:column=""13"">{
+  <decl_stmt><decl><type><name pos:line=""2"" pos:column=""3"">int</name></type> <name pos:line=""2"" pos:column=""7"">Foo</name></decl>;</decl_stmt>
+  <function><type><name pos:line=""3"" pos:column=""3"">int</name></type> <name pos:line=""3"" pos:column=""7"">Bar</name><parameter_list pos:line=""3"" pos:column=""10"">()</parameter_list> <block pos:line=""3"" pos:column=""13"">{
+    <expr_stmt><expr><name pos:line=""4"" pos:column=""5"">Foo</name> <op:operator pos:line=""4"" pos:column=""9"">=</op:operator> <lit:literal type=""number"" pos:line=""4"" pos:column=""11"">17</lit:literal></expr>;</expr_stmt>
   }</block></function>
 }</block></namespace>";
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
@@ -1570,6 +1569,44 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
+        public void TestResolveVariable_Masking() {
+            //int foo = 17;
+            //int main(int argc, char** argv)
+            //{
+            //    std::cout<<foo<<std::endl;
+            //    float foo = 42.0;
+            //    std::cout<<foo<<std::endl;
+            //    return 0;
+            //}
+            var xml = @"<decl_stmt><decl><type><name pos:line=""1"" pos:column=""1"">int</name></type> <name pos:line=""1"" pos:column=""5"">foo</name> <init pos:line=""1"" pos:column=""9"">= <expr><lit:literal type=""number"" pos:line=""1"" pos:column=""11"">17</lit:literal></expr></init></decl>;</decl_stmt>
+<function><type><name pos:line=""2"" pos:column=""1"">int</name></type> <name pos:line=""2"" pos:column=""5"">main</name><parameter_list pos:line=""2"" pos:column=""9"">(<param><decl><type><name pos:line=""2"" pos:column=""10"">int</name></type> <name pos:line=""2"" pos:column=""14"">argc</name></decl></param>, <param><decl><type><name pos:line=""2"" pos:column=""20"">char</name><type:modifier pos:line=""2"" pos:column=""24"">*</type:modifier><type:modifier pos:line=""2"" pos:column=""25"">*</type:modifier></type> <name pos:line=""2"" pos:column=""27"">argv</name></decl></param>)</parameter_list>
+<block pos:line=""3"" pos:column=""1"">{
+    <expr_stmt><expr><name><name pos:line=""4"" pos:column=""5"">std</name><op:operator pos:line=""4"" pos:column=""8"">::</op:operator><name pos:line=""4"" pos:column=""10"">cout</name></name><op:operator pos:line=""4"" pos:column=""14"">&lt;&lt;</op:operator><name pos:line=""4"" pos:column=""16"">foo</name><op:operator pos:line=""4"" pos:column=""19"">&lt;&lt;</op:operator><name><name pos:line=""4"" pos:column=""21"">std</name><op:operator pos:line=""4"" pos:column=""24"">::</op:operator><name pos:line=""4"" pos:column=""26"">endl</name></name></expr>;</expr_stmt>
+    <decl_stmt><decl><type><name pos:line=""5"" pos:column=""5"">float</name></type> <name pos:line=""5"" pos:column=""11"">foo</name> <init pos:line=""5"" pos:column=""15"">= <expr><lit:literal type=""number"" pos:line=""5"" pos:column=""17"">42.0</lit:literal></expr></init></decl>;</decl_stmt>
+    <expr_stmt><expr><name><name pos:line=""6"" pos:column=""5"">std</name><op:operator pos:line=""6"" pos:column=""8"">::</op:operator><name pos:line=""6"" pos:column=""10"">cout</name></name><op:operator pos:line=""6"" pos:column=""14"">&lt;&lt;</op:operator><name pos:line=""6"" pos:column=""16"">foo</name><op:operator pos:line=""6"" pos:column=""19"">&lt;&lt;</op:operator><name><name pos:line=""6"" pos:column=""21"">std</name><op:operator pos:line=""6"" pos:column=""24"">::</op:operator><name pos:line=""6"" pos:column=""26"">endl</name></name></expr>;</expr_stmt>
+    <return pos:line=""7"" pos:column=""5"">return <expr><lit:literal type=""number"" pos:line=""7"" pos:column=""12"">0</lit:literal></expr>;</return>
+}</block></function>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
+
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            Assert.AreEqual(2, globalScope.ChildStatements.Count);
+            var globalFoo = globalScope.GetNamedChildren<VariableDeclaration>("foo").First();
+            var main = globalScope.GetNamedChildren<MethodDefinition>("main").First();
+            Assert.AreEqual(4, main.ChildStatements.Count);
+
+            var globalFooUse = main.ChildStatements[0].Content.GetDescendantsAndSelf<NameUse>().First(n => n.Name == "foo");
+            var globalFooUseMatches = globalFooUse.FindMatches().ToList();
+            Assert.AreEqual(1, globalFooUseMatches.Count);
+            Assert.AreSame(globalFoo, globalFooUseMatches[0]);
+
+            var localFoo = main.GetNamedChildren<VariableDeclaration>("foo").First();
+            var localFooUse = main.ChildStatements[2].Content.GetDescendantsAndSelf<NameUse>().First(n => n.Name == "foo");
+            var localFooUseMatches = localFooUse.FindMatches().ToList();
+            Assert.AreEqual(1, localFooUseMatches.Count);
+            Assert.AreSame(localFoo, localFooUseMatches[0]);
+        }
+
+        [Test]
         public void TestResolveArrayVariable_Local() {
             //int Foo() {
             //  if(MethodCall()) {
@@ -1577,10 +1614,10 @@ namespace ABB.SrcML.Data.Test {
             //    bar[0] = 42;
             //  }
             //}
-            string xml = @"<function><type><name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{
-  <if>if<condition>(<expr><call><name>MethodCall</name><argument_list>()</argument_list></call></expr>)</condition><then> <block>{
-    <decl_stmt><decl><type><name>int</name><type:modifier>*</type:modifier></type> <name>bar</name> <init>= <expr><call><name>malloc</name><argument_list>(<argument><expr><name>SIZE</name></expr></argument>)</argument_list></call></expr></init></decl>;</decl_stmt>
-    <expr_stmt><expr><name><name>bar</name><index>[<expr><lit:literal type=""number"">0</lit:literal></expr>]</index></name> <op:operator>=</op:operator> <lit:literal type=""number"">42</lit:literal></expr>;</expr_stmt>
+            string xml = @"<function><type><name pos:line=""1"" pos:column=""1"">int</name></type> <name pos:line=""1"" pos:column=""5"">Foo</name><parameter_list pos:line=""1"" pos:column=""8"">()</parameter_list> <block pos:line=""1"" pos:column=""11"">{
+  <if pos:line=""2"" pos:column=""3"">if<condition pos:line=""2"" pos:column=""5"">(<expr><call><name pos:line=""2"" pos:column=""6"">MethodCall</name><argument_list pos:line=""2"" pos:column=""16"">()</argument_list></call></expr>)</condition><then pos:line=""2"" pos:column=""19""> <block pos:line=""2"" pos:column=""20"">{
+    <decl_stmt><decl><type><name pos:line=""3"" pos:column=""5"">int</name><type:modifier pos:line=""3"" pos:column=""8"">*</type:modifier></type> <name pos:line=""3"" pos:column=""10"">bar</name> <init pos:line=""3"" pos:column=""14"">= <expr><call><name pos:line=""3"" pos:column=""16"">malloc</name><argument_list pos:line=""3"" pos:column=""22"">(<argument><expr><name pos:line=""3"" pos:column=""23"">SIZE</name></expr></argument>)</argument_list></call></expr></init></decl>;</decl_stmt>
+    <expr_stmt><expr><name><name pos:line=""4"" pos:column=""5"">bar</name><index pos:line=""4"" pos:column=""8"">[<expr><lit:literal type=""number"" pos:line=""4"" pos:column=""9"">0</lit:literal></expr>]</index></name> <op:operator pos:line=""4"" pos:column=""12"">=</op:operator> <lit:literal type=""number"" pos:line=""4"" pos:column=""14"">42</lit:literal></expr>;</expr_stmt>
   }</block></then></if>
 }</block></function>";
             var xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "a.cpp");
@@ -1606,12 +1643,12 @@ namespace ABB.SrcML.Data.Test {
             //    Foo[17] = 'x';
             //  }
             //}
-            string xml = @"<class>class <name>A</name> <block>{<private type=""default"">
-</private><public>public:
-  <decl_stmt><decl><type><name>char</name><type:modifier>*</type:modifier></type> <name>Foo</name></decl>;</decl_stmt>
-  <constructor><name>A</name><parameter_list>()</parameter_list> <block>{ 
-    <expr_stmt><expr><name>Foo</name> <op:operator>=</op:operator> <call><name>malloc</name><argument_list>(<argument><expr><name>SIZE</name></expr></argument>)</argument_list></call></expr>;</expr_stmt>
-    <expr_stmt><expr><name><name>Foo</name><index>[<expr><lit:literal type=""number"">17</lit:literal></expr>]</index></name> <op:operator>=</op:operator> <lit:literal type=""char"">'x'</lit:literal></expr>;</expr_stmt>
+            string xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">A</name> <block pos:line=""1"" pos:column=""9"">{<private type=""default"" pos:line=""1"" pos:column=""10"">
+</private><public pos:line=""2"" pos:column=""1"">public:
+  <decl_stmt><decl><type><name pos:line=""3"" pos:column=""3"">char</name><type:modifier pos:line=""3"" pos:column=""7"">*</type:modifier></type> <name pos:line=""3"" pos:column=""9"">Foo</name></decl>;</decl_stmt>
+  <constructor><name pos:line=""4"" pos:column=""3"">A</name><parameter_list pos:line=""4"" pos:column=""4"">()</parameter_list> <block pos:line=""4"" pos:column=""7"">{ 
+    <expr_stmt><expr><name pos:line=""5"" pos:column=""5"">Foo</name> <op:operator pos:line=""5"" pos:column=""9"">=</op:operator> <call><name pos:line=""5"" pos:column=""11"">malloc</name><argument_list pos:line=""5"" pos:column=""17"">(<argument><expr><name pos:line=""5"" pos:column=""18"">SIZE</name></expr></argument>)</argument_list></call></expr>;</expr_stmt>
+    <expr_stmt><expr><name><name pos:line=""6"" pos:column=""5"">Foo</name><index pos:line=""6"" pos:column=""8"">[<expr><lit:literal type=""number"" pos:line=""6"" pos:column=""9"">17</lit:literal></expr>]</index></name> <op:operator pos:line=""6"" pos:column=""13"">=</op:operator> <lit:literal type=""char"" pos:line=""6"" pos:column=""15"">'x'</lit:literal></expr>;</expr_stmt>
   }</block></constructor>
 </public>}</block><decl/></class>";
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
@@ -1642,20 +1679,20 @@ namespace ABB.SrcML.Data.Test {
             //    std::cout<< myBar.FooArray[0].GetNum() << std::endl;
             //    return 0;
             //}
-            string xml = @"<cpp:include>#<cpp:directive>include</cpp:directive> <cpp:file>&lt;iostream&gt;</cpp:file></cpp:include>
-<decl_stmt><decl><type><specifier>const</specifier> <name>int</name></type> <name>SIZE</name> <init>= <expr><lit:literal type=""number"">5</lit:literal></expr></init></decl>;</decl_stmt>
-<class>class <name>Foo</name> <block>{<private type=""default"">
-</private><public>public:
-    <function><type><name>int</name></type> <name>GetNum</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><lit:literal type=""number"">42</lit:literal></expr>;</return> }</block></function>
+            string xml = @"<cpp:include pos:line=""1"" pos:column=""1"">#<cpp:directive pos:line=""1"" pos:column=""2"">include</cpp:directive> <cpp:file pos:line=""1"" pos:column=""10"">&lt;iostream&gt;</cpp:file></cpp:include>
+<decl_stmt><decl><type><specifier pos:line=""2"" pos:column=""1"">const</specifier> <name pos:line=""2"" pos:column=""7"">int</name></type> <name pos:line=""2"" pos:column=""11"">SIZE</name> <init pos:line=""2"" pos:column=""16"">= <expr><lit:literal type=""number"" pos:line=""2"" pos:column=""18"">5</lit:literal></expr></init></decl>;</decl_stmt>
+<class pos:line=""3"" pos:column=""1"">class <name pos:line=""3"" pos:column=""7"">Foo</name> <block pos:line=""3"" pos:column=""11"">{<private type=""default"" pos:line=""3"" pos:column=""12"">
+</private><public pos:line=""4"" pos:column=""1"">public:
+    <function><type><name pos:line=""5"" pos:column=""5"">int</name></type> <name pos:line=""5"" pos:column=""9"">GetNum</name><parameter_list pos:line=""5"" pos:column=""15"">()</parameter_list> <block pos:line=""5"" pos:column=""18"">{ <return pos:line=""5"" pos:column=""20"">return <expr><lit:literal type=""number"" pos:line=""5"" pos:column=""27"">42</lit:literal></expr>;</return> }</block></function>
 </public>}</block>;</class>
-<class>class <name>Bar</name> <block>{<private type=""default"">
-</private><public>public:
-    <decl_stmt><decl><type><name>Foo</name></type> <name><name>FooArray</name><index>[<expr><name>SIZE</name></expr>]</index></name></decl>;</decl_stmt>
+<class pos:line=""7"" pos:column=""1"">class <name pos:line=""7"" pos:column=""7"">Bar</name> <block pos:line=""7"" pos:column=""11"">{<private type=""default"" pos:line=""7"" pos:column=""12"">
+</private><public pos:line=""8"" pos:column=""1"">public:
+    <decl_stmt><decl><type><name pos:line=""9"" pos:column=""5"">Foo</name></type> <name><name pos:line=""9"" pos:column=""9"">FooArray</name><index pos:line=""9"" pos:column=""17"">[<expr><name pos:line=""9"" pos:column=""18"">SIZE</name></expr>]</index></name></decl>;</decl_stmt>
 </public>}</block>;</class>
-<function><type><name>int</name></type> <name>main</name><parameter_list>(<param><decl><type><name>int</name></type> <name>argc</name></decl></param>, <param><decl><type><name>char</name><type:modifier>*</type:modifier><type:modifier>*</type:modifier></type> <name>argv</name></decl></param>)</parameter_list> <block>{
-    <decl_stmt><decl><type><name>Bar</name></type> <name>myBar</name></decl>;</decl_stmt>
-    <expr_stmt><expr><name><name>std</name><op:operator>::</op:operator><name>cout</name></name><op:operator>&lt;&lt;</op:operator> <name><name>myBar</name><op:operator>.</op:operator><name>FooArray</name><index>[<expr><lit:literal type=""number"">0</lit:literal></expr>]</index></name><op:operator>.</op:operator><call><name>GetNum</name><argument_list>()</argument_list></call> <op:operator>&lt;&lt;</op:operator> <name><name>std</name><op:operator>::</op:operator><name>endl</name></name></expr>;</expr_stmt>
-    <return>return <expr><lit:literal type=""number"">0</lit:literal></expr>;</return>
+<function><type><name pos:line=""11"" pos:column=""1"">int</name></type> <name pos:line=""11"" pos:column=""5"">main</name><parameter_list pos:line=""11"" pos:column=""9"">(<param><decl><type><name pos:line=""11"" pos:column=""10"">int</name></type> <name pos:line=""11"" pos:column=""14"">argc</name></decl></param>, <param><decl><type><name pos:line=""11"" pos:column=""20"">char</name><type:modifier pos:line=""11"" pos:column=""24"">*</type:modifier><type:modifier pos:line=""11"" pos:column=""25"">*</type:modifier></type> <name pos:line=""11"" pos:column=""27"">argv</name></decl></param>)</parameter_list> <block pos:line=""11"" pos:column=""33"">{
+    <decl_stmt><decl><type><name pos:line=""12"" pos:column=""5"">Bar</name></type> <name pos:line=""12"" pos:column=""9"">myBar</name></decl>;</decl_stmt>
+    <expr_stmt><expr><name><name pos:line=""13"" pos:column=""5"">std</name><op:operator pos:line=""13"" pos:column=""8"">::</op:operator><name pos:line=""13"" pos:column=""10"">cout</name></name><op:operator pos:line=""13"" pos:column=""14"">&lt;&lt;</op:operator> <name><name pos:line=""13"" pos:column=""17"">myBar</name><op:operator pos:line=""13"" pos:column=""22"">.</op:operator><name pos:line=""13"" pos:column=""23"">FooArray</name><index pos:line=""13"" pos:column=""31"">[<expr><lit:literal type=""number"" pos:line=""13"" pos:column=""32"">0</lit:literal></expr>]</index></name><op:operator pos:line=""13"" pos:column=""34"">.</op:operator><call><name pos:line=""13"" pos:column=""35"">GetNum</name><argument_list pos:line=""13"" pos:column=""41"">()</argument_list></call> <op:operator pos:line=""13"" pos:column=""44"">&lt;&lt;</op:operator> <name><name pos:line=""13"" pos:column=""47"">std</name><op:operator pos:line=""13"" pos:column=""50"">::</op:operator><name pos:line=""13"" pos:column=""52"">endl</name></name></expr>;</expr_stmt>
+    <return pos:line=""14"" pos:column=""5"">return <expr><lit:literal type=""number"" pos:line=""14"" pos:column=""12"">0</lit:literal></expr>;</return>
 }</block></function>";
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
 

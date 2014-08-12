@@ -316,6 +316,33 @@ namespace ABB.SrcML.Data {
             base.WriteXmlContents(writer);
         }
 
+        /// <summary>
+        /// Returns the children of this MethodDefinition that have the same name as the given <paramref name="use"/>, and the given type.
+        /// This method searches only the immediate children, and not further descendants.
+        /// If the <paramref name="use"/> occurs within this MethodDefinition, only the children that occur prior to that use will be returned.
+        /// </summary>
+        /// <typeparam name="T">The type of children to return.</typeparam>
+        /// <param name="use">The use containing the name to search for.</param>
+        /// <param name="searchDeclarations">Whether to search the child DeclarationStatements for named entities.</param>
+        public override IEnumerable<T> GetNamedChildren<T>(NameUse use, bool searchDeclarations) {
+            //location comparison is only valid if the use occurs within this method (or its children)
+            var filterLocation = PrimaryLocation.Contains(use.Location);
+            if(filterLocation) {
+                var scopes = GetChildren().OfType<T>().Where(ns => ns.Name == use.Name && PositionComparer.CompareLocation(PrimaryLocation, use.Location) < 0);
+                if(!searchDeclarations) { return scopes; }
+
+                //this will return the var decls in document order
+                var decls = from declStmt in GetChildren().OfType<DeclarationStatement>()
+                            where PositionComparer.CompareLocation(declStmt.PrimaryLocation, use.Location) < 0
+                            from decl in declStmt.GetDeclarations().OfType<T>()
+                            where decl.Name == use.Name
+                            select decl;
+                return scopes.Concat(decls);
+            } else {
+                return GetNamedChildren<T>(use.Name, searchDeclarations);
+            }
+        }
+
         private static string GetParameterFingerprint(ICollection<VariableDeclaration> parameters) {
             var parameterTypes = from p in parameters select p.VariableType.Name;
             return String.Join(",", parameterTypes);

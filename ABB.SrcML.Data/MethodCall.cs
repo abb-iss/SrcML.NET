@@ -201,23 +201,25 @@ namespace ABB.SrcML.Data {
                 return callingScopes.SelectMany(s => s.GetNamedChildren<MethodDefinition>(this.Name).Where(Matches));
             }
             
-            //Search enclosing scopes for the method
-            var matches = new List<MethodDefinition>();
-            foreach(var containingScope in ParentStatement.GetAncestorsAndSelf<NamedScope>()) {
-                matches.AddRange(containingScope.GetNamedChildren<MethodDefinition>(this.Name));
-                //If this is a TypeDefinition, also search the parent types
-                var containingType = containingScope as TypeDefinition;
-                if(containingType != null) {
-                    matches.AddRange(containingType.GetParentTypes(true).SelectMany(t => t.GetNamedChildren<MethodDefinition>(this.Name).Where(Matches)));
+            //search enclosing scopes and base types for the method
+            foreach(var scope in ParentStatement.GetAncestors()) {
+                var matches = scope.GetNamedChildren<MethodDefinition>(this).ToList();
+                if(matches.Any()) {
+                    return matches;
                 }
-            }
-            if(matches.Any()) {
-                return matches.Distinct();
+                var typeDef = scope as TypeDefinition;
+                if(typeDef != null) {
+                    //search the base types
+                    var baseTypeMatches = typeDef.SearchParentTypes<MethodDefinition>(this.Name, Matches).ToList();
+                    if(baseTypeMatches.Any()) {
+                        return baseTypeMatches;
+                    }
+                }
             }
 
             //we didn't find it locally, search under imported namespaces
             return (from import in GetImports()
-                    from match in import.ImportedNamespace.GetDescendantsAndSelf<NameUse>().Last().FindMatches()
+                    from match in import.ImportedNamespace.GetDescendantsAndSelf<NameUse>().Last().FindMatches().OfType<NamedScope>()
                     from child in match.GetNamedChildren<MethodDefinition>(this.Name)
                     where Matches(child)
                     select child);

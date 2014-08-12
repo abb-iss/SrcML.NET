@@ -153,7 +153,7 @@ namespace ABB.SrcML.Data {
 
             //we didn't find it locally, search under imported namespaces
             return (from import in GetImports()
-                    from match in import.ImportedNamespace.GetDescendantsAndSelf<NameUse>().Last().FindMatches()
+                    from match in import.ImportedNamespace.GetDescendantsAndSelf<NameUse>().Last().FindMatches().OfType<NamedScope>()
                     from child in match.GetNamedChildren<TypeDefinition>(this.Name)
                     select child);
         }

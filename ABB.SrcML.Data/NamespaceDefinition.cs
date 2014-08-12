@@ -78,6 +78,35 @@ namespace ABB.SrcML.Data {
                 return String.Format("{0}:N:{1}", KsuAdapter.GetLanguage(ProgrammingLanguage), this.Name);
             }
         }
+
+        /// <summary>
+        /// Returns the children of this namespace that have the same name as the given <paramref name="use"/>, and the given type.
+        /// This method searches only the immediate children, and not further descendants.
+        /// If this is a global namespace, and the lanugage is C or C++, then only children that occur in the same file as, and prior to, the use will be returned.
+        /// If there are no such children, then all matching children will be returned.
+        /// </summary>
+        /// <typeparam name="T">The type of children to return.</typeparam>
+        /// <param name="use">The use containing the name to search for.</param>
+        /// <param name="searchDeclarations">Whether to search the child DeclarationStatements for named entities.</param>
+        public override IEnumerable<T> GetNamedChildren<T>(NameUse use, bool searchDeclarations) {
+            if(use == null) { throw new ArgumentNullException("use"); }
+            var matches = base.GetNamedChildren<T>(use, searchDeclarations);
+            if(IsGlobal && (ProgrammingLanguage == Language.C || ProgrammingLanguage == Language.CPlusPlus)) {
+                Func<INamedEntity, bool> occursBeforeUse = delegate(INamedEntity match) {
+                                                               var matchLocs = match.GetLocations().ToList();
+                                                               if(matchLocs.Count == 1
+                                                                  && string.Compare(matchLocs[0].SourceFileName, use.Location.SourceFileName, StringComparison.OrdinalIgnoreCase) == 0
+                                                                  && PositionComparer.CompareLocation(matchLocs[0], use.Location) >= 0) {
+                                                                   //match occurs exclusively after the use, so don't include
+                                                                   return false;
+                                                               }
+                                                               return true;
+                                                           };
+                return matches.Where(m => occursBeforeUse(m));
+            } else {
+                return matches;
+            }
+        }
     }
 
     ///// <summary>

@@ -325,10 +325,10 @@ namespace ABB.SrcML.Data.Test
             //    bar = 42;
             //  }
             //}
-            string xml = @"<function><type><name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{
-  <if>if<condition>(<expr><call><name>MethodCall</name><argument_list>()</argument_list></call></expr>)</condition><then> <block>{
-    <decl_stmt><decl><type><name>int</name></type> <name>bar</name> <init>= <expr><lit:literal type=""number"">17</lit:literal></expr></init></decl>;</decl_stmt>
-    <expr_stmt><expr><name>bar</name> <op:operator>=</op:operator> <lit:literal type=""number"">42</lit:literal></expr>;</expr_stmt>
+            string xml = @"<function><type><name pos:line=""1"" pos:column=""1"">int</name></type> <name pos:line=""1"" pos:column=""5"">Foo</name><parameter_list pos:line=""1"" pos:column=""8"">()</parameter_list> <block pos:line=""1"" pos:column=""11"">{
+  <if pos:line=""2"" pos:column=""3"">if<condition pos:line=""2"" pos:column=""5"">(<expr><call><name pos:line=""2"" pos:column=""6"">MethodCall</name><argument_list pos:line=""2"" pos:column=""16"">()</argument_list></call></expr>)</condition><then pos:line=""2"" pos:column=""19""> <block pos:line=""2"" pos:column=""20"">{
+    <decl_stmt><decl><type><name pos:line=""3"" pos:column=""5"">int</name></type> <name pos:line=""3"" pos:column=""9"">bar</name> <init pos:line=""3"" pos:column=""13"">= <expr><lit:literal type=""number"" pos:line=""3"" pos:column=""15"">17</lit:literal></expr></init></decl>;</decl_stmt>
+    <expr_stmt><expr><name pos:line=""4"" pos:column=""5"">bar</name> <op:operator pos:line=""4"" pos:column=""9"">=</op:operator> <lit:literal type=""number"" pos:line=""4"" pos:column=""11"">42</lit:literal></expr>;</expr_stmt>
   }</block></then></if>
 }</block></function>";
             var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(xml, "test.code");
@@ -353,9 +353,9 @@ namespace ABB.SrcML.Data.Test
             //    printf(i);
             //  }
             //}
-            string xml = @"<function><type><name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{
-  <for>for(<init><decl><type><name>int</name></type> <name>i</name> <init>= <expr><lit:literal type=""number"">0</lit:literal></expr></init></decl>;</init> <condition><expr><name>i</name> <op:operator>&lt;</op:operator> <name>bar</name></expr>;</condition> <incr><expr><name>i</name><op:operator>++</op:operator></expr></incr>) <block>{
-    <expr_stmt><expr><call><name>printf</name><argument_list>(<argument><expr><name>i</name></expr></argument>)</argument_list></call></expr>;</expr_stmt>
+            string xml = @"<function><type><name pos:line=""1"" pos:column=""1"">int</name></type> <name pos:line=""1"" pos:column=""5"">Foo</name><parameter_list pos:line=""1"" pos:column=""8"">()</parameter_list> <block pos:line=""1"" pos:column=""11"">{
+  <for pos:line=""2"" pos:column=""3"">for(<init><decl><type><name pos:line=""2"" pos:column=""7"">int</name></type> <name pos:line=""2"" pos:column=""11"">i</name> <init pos:line=""2"" pos:column=""13"">= <expr><lit:literal type=""number"" pos:line=""2"" pos:column=""15"">0</lit:literal></expr></init></decl>;</init> <condition><expr><name pos:line=""2"" pos:column=""18"">i</name> <op:operator pos:line=""2"" pos:column=""20"">&lt;</op:operator> <name pos:line=""2"" pos:column=""22"">bar</name></expr>;</condition> <incr><expr><name pos:line=""2"" pos:column=""27"">i</name><op:operator pos:line=""2"" pos:column=""28"">++</op:operator></expr></incr>) <block pos:line=""2"" pos:column=""32"">{
+    <expr_stmt><expr><call><name pos:line=""3"" pos:column=""5"">printf</name><argument_list pos:line=""3"" pos:column=""11"">(<argument><expr><name pos:line=""3"" pos:column=""12"">i</name></expr></argument>)</argument_list></call></expr>;</expr_stmt>
   }</block></for>
 }</block></function>";
             var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(xml, "test.code");
@@ -381,11 +381,11 @@ namespace ABB.SrcML.Data.Test
             //  }
             //  return 0;
             //}
-            string xml = @"<function><type><name>int</name></type> <name>Foo</name><parameter_list>(<param><decl><type><name>int</name></type> <name>num</name></decl></param>, <param><decl><type><name>bool</name></type> <name>option</name></decl></param>)</parameter_list> <block>{
-  <if>if<condition>(<expr><name>option</name></expr>)</condition><then> <block>{
-    <expr_stmt><expr><call><name>printf</name><argument_list>(<argument><expr><name>num</name></expr></argument>)</argument_list></call></expr>;</expr_stmt>
+            string xml = @"<function><type><name pos:line=""1"" pos:column=""1"">int</name></type> <name pos:line=""1"" pos:column=""5"">Foo</name><parameter_list pos:line=""1"" pos:column=""8"">(<param><decl><type><name pos:line=""1"" pos:column=""9"">int</name></type> <name pos:line=""1"" pos:column=""13"">num</name></decl></param>, <param><decl><type><name pos:line=""1"" pos:column=""18"">bool</name></type> <name pos:line=""1"" pos:column=""23"">option</name></decl></param>)</parameter_list> <block pos:line=""1"" pos:column=""31"">{
+  <if pos:line=""2"" pos:column=""3"">if<condition pos:line=""2"" pos:column=""5"">(<expr><name pos:line=""2"" pos:column=""6"">option</name></expr>)</condition><then pos:line=""2"" pos:column=""13""> <block pos:line=""2"" pos:column=""14"">{
+    <expr_stmt><expr><call><name pos:line=""3"" pos:column=""5"">printf</name><argument_list pos:line=""3"" pos:column=""11"">(<argument><expr><name pos:line=""3"" pos:column=""12"">num</name></expr></argument>)</argument_list></call></expr>;</expr_stmt>
   }</block></then></if>
-  <return>return <expr><lit:literal type=""number"">0</lit:literal></expr>;</return>
+  <return pos:line=""5"" pos:column=""3"">return <expr><lit:literal type=""number"" pos:line=""5"" pos:column=""10"">0</lit:literal></expr>;</return>
 }</block></function>";
             XElement xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(xml, "A.cpp");
 

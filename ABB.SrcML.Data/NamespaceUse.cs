@@ -47,17 +47,11 @@ namespace ABB.SrcML.Data {
 
             //TODO: determine if we need to consider aliases in this method
 
-
-            //check if this namespace is the child of something else in the expression
-            var siblings = GetSiblingsBeforeSelf().ToList();
-            var priorOp = siblings.LastOrDefault() as OperatorUse;
-            if(priorOp != null && NameInclusionOperators.Contains(priorOp.Text)) {
-                var priorName = siblings[siblings.Count - 2] as NameUse; //second-to-last sibling
-                if(priorName != null) {
-                    var parents = priorName.FindMatches();
-                    return parents.SelectMany(p => p.GetNamedChildren<NamespaceDefinition>(this.Name));
-                }
-            } 
+            //If there's a calling expression, match and search under results
+            var callingScopes = GetCallingScope();
+            if(callingScopes != null) {
+                return callingScopes.SelectMany(s => s.GetNamedChildren<NamespaceDefinition>(this.Name));
+            }
 
             //search for namespace starting from the global root
             var globalNS = this.ParentStatement.GetAncestorsAndSelf<NamespaceDefinition>().FirstOrDefault(nd => nd.IsGlobal);

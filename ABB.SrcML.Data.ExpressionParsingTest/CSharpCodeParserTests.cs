@@ -1333,9 +1333,9 @@ namespace ABB.SrcML.Data.Test {
             //    C Foo { get; set; }
             //  }
             //}
-            string bXml = @"<namespace>namespace <name>A</name> <block>{
-  <class>class <name>B</name> <block>{
-    <decl_stmt><decl><type><name>C</name></type> <name>Foo</name> <block>{ <function_decl><name>get</name>;</function_decl> <function_decl><name>set</name>;</function_decl> }</block></decl></decl_stmt>
+            string bXml = @"<namespace pos:line=""1"" pos:column=""1"">namespace <name pos:line=""1"" pos:column=""11"">A</name> <block pos:line=""1"" pos:column=""13"">{
+  <class pos:line=""2"" pos:column=""3"">class <name pos:line=""2"" pos:column=""9"">B</name> <block pos:line=""2"" pos:column=""11"">{
+    <decl_stmt><decl><type><name pos:line=""3"" pos:column=""5"">C</name></type> <name pos:line=""3"" pos:column=""7"">Foo</name> <block pos:line=""3"" pos:column=""11"">{ <function_decl><name pos:line=""3"" pos:column=""13"">get</name>;</function_decl> <function_decl><name pos:line=""3"" pos:column=""18"">set</name>;</function_decl> }</block></decl></decl_stmt>
   }</block></class>
 }</block></namespace>";
             // C.cs
@@ -1348,15 +1348,14 @@ namespace ABB.SrcML.Data.Test {
             //		void Bar() { }
             //	}
             //}
-            string cXml = @"<namespace>namespace <name>A</name> <block>{
-	<class>class <name>C</name> <block>{
-		<function><type><specifier>static</specifier> <name>void</name></type> <name>main</name><parameter_list>()</parameter_list> <block>{
-			<decl_stmt><decl><type><name>B</name></type> <name>b</name> =<init> <expr><op:operator>new</op:operator> <call><name>B</name><argument_list>()</argument_list></call></expr></init></decl>;</decl_stmt>
-			<expr_stmt><expr><call><name><name>b</name><op:operator>.</op:operator><name>Foo</name><op:operator>.</op:operator><name>Bar</name></name><argument_list>()</argument_list></call></expr>;</expr_stmt>
-		}</block></function>
-
-		<function><type><name>void</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ }</block></function>
-	}</block></class>
+            string cXml = @"<namespace pos:line=""1"" pos:column=""1"">namespace <name pos:line=""1"" pos:column=""11"">A</name> <block pos:line=""1"" pos:column=""13"">{
+    <class pos:line=""2"" pos:column=""5"">class <name pos:line=""2"" pos:column=""11"">C</name> <block pos:line=""2"" pos:column=""13"">{
+        <function><type><specifier pos:line=""3"" pos:column=""9"">static</specifier> <name pos:line=""3"" pos:column=""16"">void</name></type> <name pos:line=""3"" pos:column=""21"">main</name><parameter_list pos:line=""3"" pos:column=""25"">()</parameter_list> <block pos:line=""3"" pos:column=""28"">{
+            <decl_stmt><decl><type><name pos:line=""4"" pos:column=""13"">B</name></type> <name pos:line=""4"" pos:column=""15"">b</name> <init pos:line=""4"" pos:column=""17"">= <expr><op:operator pos:line=""4"" pos:column=""19"">new</op:operator> <call><name pos:line=""4"" pos:column=""23"">B</name><argument_list pos:line=""4"" pos:column=""24"">()</argument_list></call></expr></init></decl>;</decl_stmt>
+            <expr_stmt><expr><call><name><name pos:line=""5"" pos:column=""13"">b</name><op:operator pos:line=""5"" pos:column=""14"">.</op:operator><name pos:line=""5"" pos:column=""15"">Foo</name><op:operator pos:line=""5"" pos:column=""18"">.</op:operator><name pos:line=""5"" pos:column=""19"">Bar</name></name><argument_list pos:line=""5"" pos:column=""22"">()</argument_list></call></expr>;</expr_stmt>
+        }</block></function>
+        <function><type><name pos:line=""7"" pos:column=""9"">void</name></type> <name pos:line=""7"" pos:column=""14"">Bar</name><parameter_list pos:line=""7"" pos:column=""17"">()</parameter_list> <block pos:line=""7"" pos:column=""20"">{ }</block></function>
+    }</block></class>
 }</block></namespace>";
 
             var bUnit = fileSetup.GetFileUnitForXmlSnippet(bXml, "B.cs");

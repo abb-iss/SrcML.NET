@@ -54,19 +54,19 @@ namespace ABB.SrcML.Data {
                 return callingScopes.SelectMany(s => s.GetNamedChildren<NamedScope>(this.Name)).Where(e => e is TypeDefinition || e is NamespaceDefinition);
             }
 
-            //search the surrounding type and its base types
-            var containingType = ParentStatement.GetAncestors<TypeDefinition>().FirstOrDefault();
-            if(containingType != null) {
-                var parentMatches = containingType.GetParentTypesAndSelf(true).SelectMany(t => t.GetNamedChildren<NamedScope>(this.Name)).Where(e => e is TypeDefinition || e is NamespaceDefinition).ToList();
-                if(parentMatches.Any()) {
-                    return parentMatches;
+            //search enclosing scopes and base types for the method
+            foreach(var scope in ParentStatement.GetAncestors()) {
+                var matches = scope.GetNamedChildren<NamedScope>(this).Where(e => e is TypeDefinition || e is NamespaceDefinition).ToList();
+                if(matches.Any()) {
+                    return matches;
                 }
-            }
-
-            //search the surrounding scopes
-            var lex = ParentStatement.GetAncestorsAndSelf<NamedScope>().SelectMany(ns => ns.GetNamedChildren<NamedScope>(this.Name)).Where(e => e is TypeDefinition || e is NamespaceDefinition).ToList();
-            if(lex.Any()) {
-                return lex;
+                var typeDef = scope as TypeDefinition;
+                if(typeDef != null) {
+                    var baseTypeMatches = typeDef.SearchParentTypes<NamedScope>(this.Name, e => e is TypeDefinition || e is NamespaceDefinition).ToList();
+                    if(baseTypeMatches.Any()) {
+                        return baseTypeMatches;
+                    }
+                }
             }
 
             //search if there is an alias for this name
@@ -85,7 +85,7 @@ namespace ABB.SrcML.Data {
 
             //we didn't find it locally, search under imported namespaces
             return (from import in GetImports()
-                    from match in import.ImportedNamespace.GetDescendantsAndSelf<NameUse>().Last().FindMatches()
+                    from match in import.ImportedNamespace.GetDescendantsAndSelf<NameUse>().Last().FindMatches().OfType<NamedScope>()
                     from child in match.GetNamedChildren<NamedScope>(this.Name)
                     where child is TypeDefinition || child is NamespaceDefinition
                     select child);

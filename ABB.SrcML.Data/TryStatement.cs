@@ -132,5 +132,29 @@ namespace ABB.SrcML.Data {
                 XmlSerialization.WriteCollection<Statement>(writer, XmlFinallyName, FinallyStatements);
             }
         }
+
+        /// <summary>
+        /// Returns the children of this statement that have the same name as the given <paramref name="use"/>, and the given type.
+        /// This method searches only the immediate children, and not further descendants.
+        /// If the <paramref name="use"/> occurs within this statement, this method will return only the children
+        /// that occur prior to that use.
+        /// </summary>
+        /// <typeparam name="T">The type of children to return.</typeparam>
+        /// <param name="use">The use containing the name to search for.</param>
+        /// <param name="searchDeclarations">Whether to search the child DeclarationStatements for named entities.</param>
+        public override IEnumerable<T> GetNamedChildren<T>(NameUse use, bool searchDeclarations) {
+            var matches = base.GetNamedChildren<T>(use, searchDeclarations);
+            //check if we should filter the results
+            if(ChildStatements.Count > 0) {
+                var firstTryLoc = ChildStatements.First().PrimaryLocation;
+                var lastTryLoc = ChildStatements.Last().PrimaryLocation;
+                var tryBlockLocation = new SourceLocation(firstTryLoc.SourceFileName, firstTryLoc.StartingLineNumber, firstTryLoc.StartingColumnNumber, lastTryLoc.EndingLineNumber, lastTryLoc.EndingColumnNumber);
+                if(this.PrimaryLocation.Contains(use.Location) && !tryBlockLocation.Contains(use.Location)) {
+                    //the use is within the overall TryStatement, but not in the try block. Don't return results from the try block
+                    return matches.SkipWhile(m => tryBlockLocation.Contains(m.GetLocations().First()));
+                }
+            }
+            return matches;
+        }
     }
 }
