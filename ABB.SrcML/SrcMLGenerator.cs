@@ -29,8 +29,8 @@ namespace ABB.SrcML {
         
         private Dictionary<Language, Src2SrcMLRunner2> nonDefaultExecutables;
         private Dictionary<Language, string[]> nonDefaultArguments;
-        
-        private readonly Dictionary<string, Language> extensionMapping = new Dictionary<string, Language>(StringComparer.InvariantCultureIgnoreCase)
+
+        private readonly Dictionary<string, Language> extensionMapping = new Dictionary<string, Language>(StringComparer.OrdinalIgnoreCase)
                                                                          {
                                                                              {".c", Language.C},
                                                                              {".h", Language.CPlusPlus},
@@ -363,7 +363,7 @@ namespace ABB.SrcML {
         }
 
         private Dictionary<string, Language> CreateExtensionMappingForRunner(Src2SrcMLRunner2 runner) {
-            Dictionary<string, Language> extensionMapForRunner = new Dictionary<string,Language>(StringComparer.InvariantCultureIgnoreCase);
+            Dictionary<string, Language> extensionMapForRunner = new Dictionary<string, Language>(StringComparer.OrdinalIgnoreCase);
             IEnumerable<KeyValuePair<string, Language>> kvps = Enumerable.Empty<KeyValuePair<string,Language>>();
             if(runner == defaultExecutable) {
                 kvps = from kvp in ExtensionMapping

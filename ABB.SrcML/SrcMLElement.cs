@@ -318,7 +318,7 @@ namespace ABB.SrcML {
             if(null == node)
                 throw new ArgumentNullException("node");
 
-            var ancestors = node.Ancestors().Where(a => a.Name.LocalName.EndsWith("_stmt", StringComparison.Ordinal));
+            var ancestors = node.Ancestors().Where(a => a.Name.LocalName.EndsWith("_stmt", StringComparison.OrdinalIgnoreCase));
 
             if(ancestors.Any())
                 return ancestors.First();

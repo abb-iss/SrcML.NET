@@ -57,25 +57,42 @@ namespace ABB.SrcML.Data.Test {
                                       from expression in statement.GetExpressions()
                                       from call in expression.GetDescendantsAndSelf<MethodCall>()
                                       select call;
-                    int numMethodCalls = 0, numMatchedMethodCalls = 0;
+                    
+                    int numMethodCalls = 0, numMatchedMethodCalls = 0, numMissedMethodCalls = 0;
                     Stopwatch sw = new Stopwatch();
-                    foreach(var call in methodCalls) {
-                        sw.Start();
-                        INamedEntity match = null;
-                        try {
-                            match = call.FindMatches().FirstOrDefault();
-                        } catch(Exception e) {
-                            project.ErrorLog.WriteLine("{0}:{1}:{2}: Call Exception {3}", call.Location.SourceFileName, call.Location.StartingLineNumber, call.Location.StartingColumnNumber, e);
-                        }
-                        sw.Stop();
-                        numMethodCalls++;
-                        if(null != match) {
-                            numMatchedMethodCalls++;
+                    TimeSpan elapsed = new TimeSpan(0),
+                             matchedElapsed = new TimeSpan(0),
+                             missedElapsed = new TimeSpan(0);
+
+                    using(var callLog = new StreamWriter(Path.Combine(testData.DataDirectory, "call_log.csv"), false)) {
+
+                        callLog.WriteLine("Location,Call Name,Successful,Time");
+                        foreach(var call in methodCalls) {
+                            INamedEntity match = null;
+                            sw.Restart();
+                            try {
+                                match = call.FindMatches().FirstOrDefault();
+                            } catch(Exception e) {
+                                project.ErrorLog.WriteLine("{0}:{1}:{2}: Call Exception {3}", call.Location.SourceFileName, call.Location.StartingLineNumber, call.Location.StartingColumnNumber, e);
+                            }
+                            sw.Stop();
+                            numMethodCalls++;
+                            if(null != match) {
+                                numMatchedMethodCalls++;
+                                matchedElapsed += sw.Elapsed;
+                            } else {
+                                numMissedMethodCalls++;
+                                missedElapsed += sw.Elapsed;
+                            }
+                            callLog.WriteLine(String.Join(",", String.Join(":", call.Location.SourceFileName, call.Location.StartingLineNumber, call.Location.StartingColumnNumber), call.Name, (match == null ? "0" : "1"), sw.ElapsedMilliseconds));
+                            elapsed += sw.Elapsed;
                         }
                     }
                     Console.WriteLine("{0,10:N0} method calls", numMethodCalls);
                     Console.WriteLine("{0,10:P2} of method calls matched", (float) numMatchedMethodCalls / numMethodCalls);
-                    Console.WriteLine("{0,10:N2} matches / millisecond ({1,7:N0} ms elapsed)", ((float) numMethodCalls) / sw.ElapsedMilliseconds, sw.ElapsedMilliseconds);
+                    Console.WriteLine("{0,10:N2} matches / millisecond ({1,7:N0} ms elapsed)", ((float) numMethodCalls) / elapsed.TotalMilliseconds, elapsed.TotalMilliseconds);
+                    Console.WriteLine("{0,7:N3} ms / match", (float) matchedElapsed.TotalMilliseconds / numMatchedMethodCalls);
+                    Console.WriteLine("{0,7:N3} ms / miss", (float) missedElapsed.TotalMilliseconds / numMissedMethodCalls);
                 } finally {
                     project.WorkingSet.ReleaseReadLock();
                 }

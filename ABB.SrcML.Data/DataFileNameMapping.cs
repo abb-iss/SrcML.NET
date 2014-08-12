@@ -58,7 +58,7 @@ namespace ABB.SrcML.Data {
             var targetExtension = Path.GetExtension(targetPath);
             bool targetNeedsDecompression = String.IsNullOrWhiteSpace(targetExtension) ||
                                             targetExtension.Equals(XmlSerialization.DEFAULT_COMPRESSED_EXTENSION,
-                                                                   StringComparison.InvariantCultureIgnoreCase);
+                                                                   StringComparison.OrdinalIgnoreCase);
 
             using(var fileStream = File.OpenRead(targetPath)) {
                 if(targetNeedsDecompression) {

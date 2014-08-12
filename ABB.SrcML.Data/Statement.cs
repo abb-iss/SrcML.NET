@@ -57,7 +57,7 @@ namespace ABB.SrcML.Data {
             ChildStatements = new ReadOnlyCollection<Statement>(ChildStatementsList);
             LocationList = new List<SrcMLLocation>(1);
             Locations = new ReadOnlyCollection<SrcMLLocation>(LocationList);
-            AliasMap = new Dictionary<string, SortedSet<Statement>>(StringComparer.InvariantCultureIgnoreCase);
+            AliasMap = new Dictionary<string, SortedSet<Statement>>(StringComparer.OrdinalIgnoreCase);
         }
         
         /// <summary>
@@ -353,7 +353,7 @@ namespace ABB.SrcML.Data {
 
         protected void RemoveLocations(string fileName) {
             for(int i = LocationList.Count - 1; i >= 0; i--) {
-                if(fileName.Equals(LocationList[i].SourceFileName, StringComparison.InvariantCultureIgnoreCase)) {
+                if(fileName.Equals(LocationList[i].SourceFileName, StringComparison.OrdinalIgnoreCase)) {
                     LocationList.RemoveAt(i);
                 }
             }
@@ -374,7 +374,7 @@ namespace ABB.SrcML.Data {
         }
 
         protected static List<Statement> RestructureChildren(IEnumerable<Statement> childStatements) {
-            OrderedDictionary childStatementMap = new OrderedDictionary();
+            OrderedDictionary childStatementMap = new OrderedDictionary(StringComparer.Ordinal);
             foreach(var child in childStatements) {
                 string mergeId = child.ComputeMergeId();
                 Statement mergedChild;

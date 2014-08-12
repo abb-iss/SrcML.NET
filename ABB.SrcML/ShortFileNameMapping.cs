@@ -42,8 +42,8 @@ namespace ABB.SrcML {
         protected ShortFileNameMapping(string targetDirectory, string targetExtension) 
         : base(targetDirectory, targetExtension) {
             bool directoryIsCaseInsensitive = CheckIfDirectoryIsCaseInsensitive(targetDirectory);
-            mapping = new Dictionary<string, string>(directoryIsCaseInsensitive ? StringComparer.InvariantCultureIgnoreCase : StringComparer.InvariantCulture);
-            nameCount = new Dictionary<string, int>(directoryIsCaseInsensitive ? StringComparer.InvariantCultureIgnoreCase : StringComparer.InvariantCulture);
+            mapping = new Dictionary<string, string>(directoryIsCaseInsensitive ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
+            nameCount = new Dictionary<string, int>(directoryIsCaseInsensitive ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
 
             ReadMapping();
         }
@@ -87,7 +87,7 @@ namespace ABB.SrcML {
             string result = null;
             lock(mappingLock) {
                 result = (from kvp in mapping
-                          where targetPath.Equals(kvp.Value, StringComparison.CurrentCultureIgnoreCase)
+                          where targetPath.Equals(kvp.Value, StringComparison.OrdinalIgnoreCase)
                           select kvp.Key).FirstOrDefault();
             }
             return result;

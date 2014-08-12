@@ -33,7 +33,7 @@ namespace ABB.SrcML
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1724:TypeNamesShouldNotMatchNamespaces")]
     public class SrcML
     {
-        private readonly DefaultsDictionary<string, Language> _extensionMapping = new DefaultsDictionary<string, Language>(new Dictionary<string, Language>(StringComparer.CurrentCultureIgnoreCase) {
+        private readonly DefaultsDictionary<string, Language> _extensionMapping = new DefaultsDictionary<string, Language>(new Dictionary<string, Language>(StringComparer.OrdinalIgnoreCase) {
                     { ".c" , Language.C },
                     { ".h", Language.C },
                     { ".cpp", Language.CPlusPlus },

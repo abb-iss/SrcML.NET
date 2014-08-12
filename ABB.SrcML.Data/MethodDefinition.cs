@@ -52,8 +52,8 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public MethodDefinition()
             : base() {
-            _returnTypeMap = new Dictionary<string, TypeUse>(StringComparer.InvariantCultureIgnoreCase);
-            _parameterMap = new Dictionary<string, List<VariableDeclaration>>(StringComparer.InvariantCultureIgnoreCase);
+            _returnTypeMap = new Dictionary<string, TypeUse>(StringComparer.OrdinalIgnoreCase);
+            _parameterMap = new Dictionary<string, List<VariableDeclaration>>(StringComparer.OrdinalIgnoreCase);
 
             parameterList = new List<VariableDeclaration>();
             Parameters = new ReadOnlyCollection<VariableDeclaration>(parameterList);
@@ -210,14 +210,14 @@ namespace ABB.SrcML.Data {
 
         public override void RemoveFile(string fileName) {
             var returnTypeLocations = (from key in _returnTypeMap.Keys
-                                       where key.StartsWith(fileName, StringComparison.InvariantCultureIgnoreCase)
+                                       where key.StartsWith(fileName, StringComparison.OrdinalIgnoreCase)
                                        select key).ToList();
             foreach(var key in returnTypeLocations) {
                 _returnTypeMap.Remove(key);
             }
 
             var parameterListLocations = (from key in _parameterMap.Keys
-                                          where key.StartsWith(fileName, StringComparison.InvariantCultureIgnoreCase)
+                                          where key.StartsWith(fileName, StringComparison.OrdinalIgnoreCase)
                                           select key).ToList();
 
             foreach(var key in parameterListLocations) {

@@ -104,7 +104,7 @@ namespace ABB.SrcML.Data {
         /// <returns>The object stored in <paramref name="fileName"/></returns>
         public static IXmlElement Load(string fileName) {
             var extension = Path.GetExtension(fileName);
-            bool fileIsCompressed = extension.Equals(DEFAULT_COMPRESSED_EXTENSION, StringComparison.InvariantCultureIgnoreCase);
+            bool fileIsCompressed = extension.Equals(DEFAULT_COMPRESSED_EXTENSION, StringComparison.OrdinalIgnoreCase);
             return Load(fileName, fileIsCompressed);
         }
 
@@ -145,7 +145,7 @@ namespace ABB.SrcML.Data {
         /// <param name="fileName">The file name to write <paramref name="element"/> to</param>
         public static void WriteElement(IXmlElement element, string fileName) {
             var extension = Path.GetExtension(fileName);
-            var compressionEnabled = extension.Equals(DEFAULT_COMPRESSED_EXTENSION, StringComparison.InvariantCultureIgnoreCase);
+            var compressionEnabled = extension.Equals(DEFAULT_COMPRESSED_EXTENSION, StringComparison.OrdinalIgnoreCase);
             WriteElement(element, fileName, compressionEnabled);
         }
 

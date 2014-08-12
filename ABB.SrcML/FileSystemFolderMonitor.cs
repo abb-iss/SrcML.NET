@@ -146,7 +146,7 @@ namespace ABB.SrcML {
         /// <returns>True if the path is in the see
         /// cref="AbstractFileMonitor.MonitorStoragePath"/></returns>
         private bool IsNotInMonitoringStorage(string filePath) {
-            return !Path.GetFullPath(filePath).StartsWith(_monitorStorageInfo.FullName, StringComparison.InvariantCultureIgnoreCase);
+            return !Path.GetFullPath(filePath).StartsWith(_monitorStorageInfo.FullName, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>

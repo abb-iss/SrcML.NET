@@ -195,7 +195,7 @@ C:\Foo\Bar\xyzzy\Example.cs|{0}\mappingTest\Example.cs.2.xml";
             var xmlPath2 = map.GetTargetPath("bar\\example.CPP");
             //If the file system is case insensitive, the paths should be Example.cpp.1.xml and example.CPP.2.xml
             //If the file system is case sensitive, the paths should be Example.cpp.1.xml and example.CPP.1.xml
-            Assert.IsTrue(string.Compare(xmlPath1, xmlPath2, StringComparison.CurrentCultureIgnoreCase) != 0);
+            Assert.IsTrue(string.Compare(xmlPath1, xmlPath2, StringComparison.OrdinalIgnoreCase) != 0);
         }
 
         [Test]

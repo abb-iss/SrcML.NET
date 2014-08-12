@@ -40,11 +40,11 @@ namespace ABB.SrcML {
 
         private static HashSet<string> Exclusions = new HashSet<string>(new List<string>() {
             "bin", "obj", "TestResults"
-        }, StringComparer.InvariantCultureIgnoreCase);
+        }, StringComparer.OrdinalIgnoreCase);
 
         private static HashSet<string> FileExclusionPrefixes = new HashSet<string>(new List<string>() {
             "#", "~", "."
-        }, StringComparer.InvariantCultureIgnoreCase);
+        }, StringComparer.OrdinalIgnoreCase);
 
         private static HashSet<string> ForbiddenDirectories = GetForbiddenDirectories();
         private static Regex BackupDirectoryRegex = new Regex(@"^backup\d*$", RegexOptions.IgnoreCase);
@@ -210,7 +210,7 @@ namespace ABB.SrcML {
             }
 
             foreach(var directory in MonitoredDirectories) {
-                if(fullPath.StartsWith(directory, StringComparison.InvariantCultureIgnoreCase)) {
+                if(fullPath.StartsWith(directory, StringComparison.OrdinalIgnoreCase)) {
                     alreadyMonitoringDirectory = (fullPath.Length == directory.Length);
                     if(alreadyMonitoringDirectory) {
                         break;
@@ -300,7 +300,7 @@ namespace ABB.SrcML {
         /// directory</see>, false otherwise</returns>
         public bool IsMonitoringFile(string fileName) {
             var fullPath = Path.GetFullPath(fileName);
-            return MonitoredDirectories.Any(d => fullPath.StartsWith(d, StringComparison.InvariantCultureIgnoreCase));
+            return MonitoredDirectories.Any(d => fullPath.StartsWith(d, StringComparison.OrdinalIgnoreCase));
         }
 
         /// <summary>
@@ -320,7 +320,7 @@ namespace ABB.SrcML {
 
             var folderAsCollection = folders as ICollection;
             lock(folderAsCollection.SyncRoot) {
-                directoryIsMonitored = folders.Contains(directoryFullPath, StringComparer.InvariantCultureIgnoreCase);
+                directoryIsMonitored = folders.Contains(directoryFullPath, StringComparer.OrdinalIgnoreCase);
                 if(directoryIsMonitored) {
                     folders.Remove(directoryFullPath);
                 }
@@ -331,7 +331,7 @@ namespace ABB.SrcML {
                 ScanTimer.ExecuteWhenIdle(() => {
                     OnUpdateArchivesStarted(new EventArgs());
                     foreach(var fileName in GetArchivedFiles()) {
-                        if(fileName.StartsWith(directoryFullPath, StringComparison.InvariantCultureIgnoreCase)) {
+                        if(fileName.StartsWith(directoryFullPath, StringComparison.OrdinalIgnoreCase)) {
                             DeleteFile(fileName);
                         }
                     }
@@ -399,7 +399,7 @@ namespace ABB.SrcML {
         }
 
         private static HashSet<string> GetForbiddenDirectories() {
-            var forbiddenDirectories = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
+            var forbiddenDirectories = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var userProfile = Environment.GetEnvironmentVariable("USERPROFILE");
             if(null != userProfile) {
                 forbiddenDirectories.Add(GetFullPathForDirectory(userProfile));
