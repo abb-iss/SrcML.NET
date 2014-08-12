@@ -25,10 +25,15 @@ namespace ABB.SrcML {
         private ConcurrentDictionary<string, DateTime> lastModifiedMap;
 
         /// <summary>
+        /// Creates a last modified archive that will be stored in <see cref="DEFAULT_FILENAME"/> within <see cref="Environment.CurrentDirectory"/>
+        /// </summary>
+        public LastModifiedArchive() : this(Environment.CurrentDirectory) { }
+
+        /// <summary>
         /// Creates a new archive in the
         /// <paramref name="baseDirectory">specified directory</paramref> with a default file name.
         /// </summary>
-        /// <param name="baseDirectory"></param>
+        /// <param name="baseDirectory">The directory to save the map to</param>
         public LastModifiedArchive(string baseDirectory)
             : this(baseDirectory, DEFAULT_FILENAME) {
         }
