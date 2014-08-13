@@ -1080,6 +1080,9 @@ namespace ABB.SrcML.Data {
                     exp = ParseLiteralElement(element, context);
                 } else if(element.Name == SRC.Comment) {
                     //skip
+                } else if(element.Name == SRC.Class && ParserLanguage == Language.Java) {
+                    //anonymous class, skip
+                    //TODO: add parsing for anonymous classes in Java
                 } else {
                     LogUnknown(element, context, "ParseExpression");
                 }
