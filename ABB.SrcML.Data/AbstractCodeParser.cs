@@ -804,9 +804,12 @@ namespace ABB.SrcML.Data {
             catchStmt.AddLocation(context.CreateLocation(catchElement));
 
             foreach(var catchChild in catchElement.Elements()) {
-                if(catchChild.Name == SRC.Parameter) {
+                if(catchChild.Name == SRC.ParameterList) {
                     //add the catch parameter
-                    catchStmt.Parameter = ParseParameterElement(catchChild, context);
+                    var paramElement = catchChild.Element(SRC.Parameter);
+                    if(paramElement != null) {
+                        catchStmt.Parameter = ParseParameterElement(paramElement, context);
+                    }
                 } else if(catchChild.Name == SRC.Block) {
                     //add children of the block
                     var blockStatements = catchChild.Elements().Select(e => ParseStatement(e, context));
