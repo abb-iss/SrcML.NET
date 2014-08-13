@@ -53,14 +53,18 @@ namespace ABB.SrcML.Data {
                 throw new ArgumentException("should contain a \"type\" attribute", "literalElement");
 
             var kind = typeAttribute.Value;
-            if(kind == "boolean")
-                return LiteralKind.Boolean;
-            else if(kind == "char")
-                return LiteralKind.Character;
-            else if(kind == "number")
-                return LiteralKind.Number;
-            else if(kind == "string")
-                return LiteralKind.String;
+            switch(kind) {
+                case "boolean":
+                    return LiteralKind.Boolean;
+                case "char":
+                    return LiteralKind.Character;
+                case "number":
+                    return LiteralKind.Number;
+                case "string":
+                    return LiteralKind.String;
+                case "null":
+                    return LiteralKind.Null;
+            }
             throw new SrcMLException(String.Format("\"{0}\" is not a valid literal kind", kind));
         }
 

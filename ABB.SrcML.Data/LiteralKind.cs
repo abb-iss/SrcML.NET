@@ -37,6 +37,11 @@ namespace ABB.SrcML.Data {
         /// Number literal
         /// </summary>
         Number,
+
+        /// <summary>
+        /// Null literal
+        /// </summary>
+        Null
     }
 
     /// <summary>
@@ -54,6 +59,8 @@ namespace ABB.SrcML.Data {
                     return "Character";
                 case LiteralKind.Number:
                     return "Number";
+                case LiteralKind.Null:
+                    return "Null";
                 default:
                     return string.Empty;
             }
@@ -66,6 +73,7 @@ namespace ABB.SrcML.Data {
                 {"Boolean", LiteralKind.Boolean},
                 {"Character", LiteralKind.Character},
                 {"Number", LiteralKind.Number},
+                {"Null", LiteralKind.Null}
             };
 
             LiteralKind output;
