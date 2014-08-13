@@ -183,6 +183,13 @@ namespace ABB.SrcML.Data {
 
             base.WriteXmlContents(writer);
         }
-        
+
+        /// <summary>
+        /// Determines the type of this variable.
+        /// </summary>
+        /// <returns>An enumerable of the matching TypeDefinitions for this variable's type.</returns>
+        public override IEnumerable<TypeDefinition> ResolveType() {
+            return VariableType != null ? VariableType.ResolveType() : Enumerable.Empty<TypeDefinition>();
+        }
     }
 }

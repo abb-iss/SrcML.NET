@@ -888,7 +888,7 @@ namespace ABB.SrcML.Data.Test {
             var varDecl = main.ChildStatements[0].Content.GetDescendantsAndSelf<VariableDeclaration>().FirstOrDefault();
             Assert.IsNotNull(varDecl);
 
-            Assert.AreSame(typeB, varDecl.VariableType.ResolveType().FirstOrDefault());
+            Assert.AreSame(typeB, varDecl.ResolveType().FirstOrDefault());
         }
 
         [Test]
@@ -917,7 +917,7 @@ namespace ABB.SrcML.Data.Test {
             var varDecl = mainMethod.ChildStatements[0].Content.GetDescendantsAndSelf<VariableDeclaration>().FirstOrDefault();
             Assert.IsNotNull(varDecl);
 
-            Assert.AreSame(typeB, varDecl.VariableType.ResolveType().FirstOrDefault());
+            Assert.AreSame(typeB, varDecl.ResolveType().FirstOrDefault());
         }
 
         [Test]
@@ -949,7 +949,7 @@ namespace ABB.SrcML.Data.Test {
             var varDecl = loop.Condition.GetDescendantsAndSelf<VariableDeclaration>().FirstOrDefault();
             Assert.IsNotNull(varDecl);
 
-            Assert.AreSame(BuiltInTypeFactory.GetBuiltIn(new TypeUse() {Name = "int"}), varDecl.VariableType.ResolveType().FirstOrDefault());
+            Assert.AreSame(BuiltInTypeFactory.GetBuiltIn(new TypeUse() {Name = "int"}), varDecl.ResolveType().FirstOrDefault());
         }
 
         [Test]
