@@ -110,6 +110,7 @@
     <Compile Include="SrcMLLocation.cs" />
     <Compile Include="Statement.cs" />
     <Compile Include="StatementDebugView.cs" />
+    <Compile Include="StatementExtensions.cs" />
     <Compile Include="SwitchStatement.cs" />
     <Compile Include="ThrowStatement.cs" />
     <Compile Include="TryStatement.cs" />
