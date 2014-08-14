@@ -59,7 +59,7 @@ namespace ABB.SrcML
         /// <summary>
         /// This event should be raised whenever the archive updates its internal representation for a file
         /// </summary>
-        public event EventHandler<FileEventRaisedArgs> FileChanged;
+        public virtual event EventHandler<FileEventRaisedArgs> FileChanged;
 
         /// <summary>
         /// Sub-classes of AbstractArchive should implement the "add or update file" functionality here in order to enable <see cref="AddOrUpdateFile"/> and <see cref="AddOrUpdateFileAsync"/>
