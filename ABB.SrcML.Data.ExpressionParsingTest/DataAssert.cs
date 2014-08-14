@@ -58,6 +58,9 @@ namespace ABB.SrcML.Data.Test {
                     IsTrue(expected.IsReference == actual.IsReference, "IsReference");
                     IsTrue(expected.SourceFileName == actual.SourceFileName, "SourceFileName");
                     IsTrue(expected.StartingLineNumber == actual.StartingLineNumber, "StartingLineNumber");
+                    IsTrue(expected.StartingColumnNumber == actual.StartingColumnNumber, "StartingColumnNumber");
+                    IsTrue(expected.EndingLineNumber == actual.EndingLineNumber, "EndingLineNumber");
+                    IsTrue(expected.EndingColumnNumber == actual.EndingColumnNumber, "EndingColumnNumber");
                     IsTrue(expected.XPath == actual.XPath, "XPath");
                 } catch(DataAssertionException e) {
                     e.Add(propertyName);
@@ -255,6 +258,7 @@ namespace ABB.SrcML.Data.Test {
                 IsTrue(expected.IsPartial == actual.IsPartial, "IsPartial");
                 ExpressionsAreEqual(expected.ReturnType, actual.ReturnType, "ReturnType");
                 OrderedCollectionsAreEqual<VariableDeclaration>(expected.Parameters, actual.Parameters, ExpressionsAreEqual, "Parameters");
+                OrderedCollectionsAreEqual<MethodCall>(expected.ConstructorInitializers, actual.ConstructorInitializers, ExpressionsAreEqual, "ConstructorInitializers");
             } catch(DataAssertionException e) {
                 e.Add(propertyName);
                 throw e;
@@ -401,6 +405,7 @@ namespace ABB.SrcML.Data.Test {
             try {
                 IsTrue(expected.IsConstructor == actual.IsConstructor, "IsConstructor");
                 IsTrue(expected.IsDestructor == actual.IsDestructor, "IsDestructor");
+                IsTrue(expected.IsConstructorInitializer == actual.IsConstructorInitializer, "IsConstructorInitializer");
                 OrderedCollectionsAreEqual<Expression>(expected.Arguments, actual.Arguments, ExpressionsAreEqual, "Arguments");
                 OrderedCollectionsAreEqual<TypeUse>(expected.TypeArguments, actual.TypeArguments, ExpressionsAreEqual, "TypeArguments");
             } catch(DataAssertionException e) {

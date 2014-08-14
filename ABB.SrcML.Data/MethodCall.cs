@@ -38,6 +38,9 @@ namespace ABB.SrcML.Data {
         /// <summary> XML Name for <see cref="IsConstructor" /> </summary>
         public const string XmlIsConstructorName = "IsConstructor";
         
+        /// <summary> XML Name for <see cref="IsConstructorInitializer"/></summary>
+        public const string XmlIsConstructorInitializerName = "IsConstructorInitializer";
+
         /// <summary> XML Name for <see cref="IsDestructor" /> </summary>
         public const string XmlIsDestructorName = "IsDestructor";
 
@@ -302,6 +305,10 @@ namespace ABB.SrcML.Data {
             if(!String.IsNullOrEmpty(attribute)) {
                 IsDestructor = XmlConvert.ToBoolean(attribute);
             }
+            attribute = reader.GetAttribute(XmlIsConstructorInitializerName);
+            if(!String.IsNullOrEmpty(attribute)) {
+                IsConstructorInitializer = XmlConvert.ToBoolean(attribute);
+            }
             base.ReadXmlAttributes(reader);
         }
 
@@ -330,6 +337,9 @@ namespace ABB.SrcML.Data {
 
             if(IsDestructor) {
                 writer.WriteAttributeString(XmlIsDestructorName, XmlConvert.ToString(IsDestructor));
+            }
+            if(IsConstructorInitializer) {
+                writer.WriteAttributeString(XmlIsConstructorInitializerName, XmlConvert.ToString(IsConstructorInitializer));
             }
 
             base.WriteXmlAttributes(writer);

@@ -32,6 +32,9 @@ namespace ABB.SrcML.Data {
         /// <summary> The XML name for MethodDefinition </summary>
         public new const string XmlName = "Method";
 
+        /// <summary> XML Name for <see cref="ConstructorInitializers"/></summary>
+        public const string XmlConstructorInitializersName = "ConstructorInitializers";
+
         /// <summary> XML Name for <see cref="IsConstructor" /> </summary>
         public const string XmlIsConstructorName = "IsConstructor";
 
@@ -280,6 +283,8 @@ namespace ABB.SrcML.Data {
                 AddMethodParameters(XmlSerialization.ReadChildExpressions(reader).Cast<VariableDeclaration>().ToList());
             } else if(XmlReturnTypeName == reader.Name) {
                 AddReturnType(XmlSerialization.ReadChildExpression(reader) as TypeUse);
+            } else if(XmlConstructorInitializersName == reader.Name) {
+                AddInitializers(XmlSerialization.ReadChildExpressions(reader).Cast<MethodCall>().ToList());
             } else {
                 base.ReadXmlChild(reader);
             }
@@ -309,6 +314,9 @@ namespace ABB.SrcML.Data {
         protected override void WriteXmlContents(XmlWriter writer) {
             if(null != Parameters) {
                 XmlSerialization.WriteCollection<VariableDeclaration>(writer, XmlParametersName, Parameters);
+            }
+            if(null != ConstructorInitializers) {
+                XmlSerialization.WriteCollection<MethodCall>(writer, XmlConstructorInitializersName, ConstructorInitializers);
             }
             if(null != ReturnType) {
                 XmlSerialization.WriteElement(writer, ReturnType, XmlReturnTypeName);
