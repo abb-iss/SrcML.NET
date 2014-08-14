@@ -60,6 +60,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RealWorldTests.cs" />
     <Compile Include="SerializationTests.cs" />
+    <Compile Include="SrcMLLocationTests.cs" />
+    <Compile Include="TypeInventoryTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
