@@ -45,6 +45,7 @@
     <Compile Include="..\SolutionInfo.cs">
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
+    <Compile Include="BuiltInTypeFactoryTests.cs" />
     <Compile Include="DataAssert.cs" />
     <Compile Include="CodeParserTests.cs" />
     <Compile Include="CPlusPlusCodeParserTests.cs" />
