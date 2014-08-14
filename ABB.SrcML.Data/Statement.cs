@@ -141,6 +141,38 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
+        /// Finds all of the expressions in this statement of type <typeparamref name="TExpression"/>. This method searches all of the child
+        /// expressions and their descendants.
+        /// </summary>
+        /// <typeparam name="TExpression">The expression type to search for</typeparam>
+        /// <returns>All expressions in this statement of type <typeparamref name="TExpression"/></returns>
+        public IEnumerable<TExpression> FindExpressions<TExpression>() where TExpression : Expression {
+            return FindExpressions<TExpression>(false);
+        }
+
+        /// <summary>
+        /// Finds all of the expressions in this statement of type <typeparamref name="TExpression"/>. This method searches all of the child
+        /// expressions and their descendants.
+        /// </summary>
+        /// <typeparam name="TExpression">The expression type to search for</typeparam>
+        /// <param name="searchDescendantStatements">If true, this will also return expressions from all of the descendant statements</param>
+        /// <returns>All expressions rooted at this statement of type <typeparamref name="TExpression"/></returns>
+        public IEnumerable<TExpression> FindExpressions<TExpression>(bool searchDescendantStatements) where TExpression : Expression {
+            IEnumerable<TExpression> results;
+            if(searchDescendantStatements) {
+                results = from statement in GetDescendantsAndSelf()
+                          from expr in statement.FindExpressions<TExpression>(false)
+                          select expr;
+            } else {
+                results = from content in GetExpressions()
+                          from expr in content.GetDescendantsAndSelf<TExpression>()
+                          select expr;
+            }
+            
+            return results;
+        }
+
+        /// <summary>
         /// Returns the parent statement.
         /// </summary>
         protected override AbstractProgramElement GetParent() {
