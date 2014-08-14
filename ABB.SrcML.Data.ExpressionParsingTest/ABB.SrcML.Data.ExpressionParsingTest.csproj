@@ -61,7 +61,7 @@
     <Compile Include="RealWorldTests.cs" />
     <Compile Include="SerializationTests.cs" />
     <Compile Include="SrcMLLocationTests.cs" />
-    <Compile Include="TypeInventoryTests.cs" />
+    <Compile Include="StatementExtensionTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

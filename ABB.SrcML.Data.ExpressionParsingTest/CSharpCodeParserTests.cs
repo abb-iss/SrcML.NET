@@ -105,6 +105,60 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
+        public void TestMethodCallToParentOfCallingObject() {
+            //class A { void Foo() { } }
+            string a_xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">A</name> <block pos:line=""1"" pos:column=""9"">{ <function><type><name pos:line=""1"" pos:column=""11"">void</name></type> <name pos:line=""1"" pos:column=""16"">Foo</name><parameter_list pos:line=""1"" pos:column=""19"">()</parameter_list> <block pos:line=""1"" pos:column=""22"">{ }</block></function> }</block></class>";
+
+            //class B : A { void Bar() { } }
+            string b_xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">B</name> <super pos:line=""1"" pos:column=""9"">: <name pos:line=""1"" pos:column=""11"">A</name></super> <block pos:line=""1"" pos:column=""13"">{ <function><type><name pos:line=""1"" pos:column=""15"">void</name></type> <name pos:line=""1"" pos:column=""20"">Bar</name><parameter_list pos:line=""1"" pos:column=""23"">()</parameter_list> <block pos:line=""1"" pos:column=""26"">{ }</block></function> }</block></class>";
+
+            //class C {
+            //	private B b;
+            //	void main() {
+            //		b.Foo();
+            //	}
+            //}
+            string c_xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">C</name> <block pos:line=""1"" pos:column=""9"">{
+    <decl_stmt><decl><type><specifier pos:line=""2"" pos:column=""5"">private</specifier> <name pos:line=""2"" pos:column=""13"">B</name></type> <name pos:line=""2"" pos:column=""15"">b</name></decl>;</decl_stmt>
+    <function><type><name pos:line=""3"" pos:column=""5"">void</name></type> <name pos:line=""3"" pos:column=""10"">main</name><parameter_list pos:line=""3"" pos:column=""14"">()</parameter_list> <block pos:line=""3"" pos:column=""17"">{
+        <expr_stmt><expr><call><name><name pos:line=""4"" pos:column=""9"">b</name><op:operator pos:line=""4"" pos:column=""10"">.</op:operator><name pos:line=""4"" pos:column=""11"">Foo</name></name><argument_list pos:line=""4"" pos:column=""14"">()</argument_list></call></expr>;</expr_stmt>
+    }</block></function>
+}</block></class>";
+
+            var aUnit = fileSetup.GetFileUnitForXmlSnippet(a_xml, "A.cs");
+            var bUnit = fileSetup.GetFileUnitForXmlSnippet(b_xml, "B.cs");
+            var cUnit = fileSetup.GetFileUnitForXmlSnippet(c_xml, "C.cs");
+
+            NamespaceDefinition globalScope = codeParser.ParseFileUnit(aUnit);
+            globalScope = globalScope.Merge(codeParser.ParseFileUnit(bUnit));
+            globalScope = globalScope.Merge(codeParser.ParseFileUnit(cUnit));
+
+            var typeA = globalScope.GetNamedChildren<TypeDefinition>("A").FirstOrDefault();
+            var typeB = globalScope.GetNamedChildren<TypeDefinition>("B").FirstOrDefault();
+            var typeC = globalScope.GetNamedChildren<TypeDefinition>("C").FirstOrDefault();
+
+            Assert.IsNotNull(typeA, "could not find class A");
+            Assert.IsNotNull(typeB, "could not find class B");
+            Assert.IsNotNull(typeC, "could not find class C");
+
+            var aDotFoo = typeA.GetNamedChildren<MethodDefinition>("Foo").FirstOrDefault();
+            var cDotMain = typeC.GetNamedChildren<MethodDefinition>("main").FirstOrDefault();
+
+            Assert.IsNotNull(aDotFoo, "could not find method A.Foo()");
+            Assert.IsNotNull(cDotMain, "could not find method C.main()");
+
+            var callToFooFromC = cDotMain.FindExpressions<MethodCall>(true).FirstOrDefault();
+
+            Assert.IsNotNull(callToFooFromC, "could not find any calls in C.main()");
+            Assert.AreEqual("Foo", callToFooFromC.Name);
+            var callingObject = callToFooFromC.GetSiblingsBeforeSelf<NameUse>().Last();
+            Assert.AreEqual("b", callingObject.Name);
+
+            Assert.AreEqual(typeB, callingObject.ResolveType().FirstOrDefault());
+            Assert.AreEqual(aDotFoo, callToFooFromC.FindMatches().FirstOrDefault());
+        }
+
+        [Test]
         [Category("Todo")]
         public void TestCallWithTypeParameters() {
             //namespace A {
@@ -1685,6 +1739,102 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
+        public void TestCallingVariableDeclaredInParentClass() {
+            //class A { void Foo() { } }
+            string a_xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">A</name> <block pos:line=""1"" pos:column=""9"">{ <function><type><name pos:line=""1"" pos:column=""11"">void</name></type> <name pos:line=""1"" pos:column=""16"">Foo</name><parameter_list pos:line=""1"" pos:column=""19"">()</parameter_list> <block pos:line=""1"" pos:column=""22"">{ }</block></function> }</block></class>";
+
+            //class B { protected A a; }
+            string b_xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">B</name> <block pos:line=""1"" pos:column=""9"">{ <decl_stmt><decl><type><specifier pos:line=""1"" pos:column=""11"">protected</specifier> <name pos:line=""1"" pos:column=""21"">A</name></type> <name pos:line=""1"" pos:column=""23"">a</name></decl>;</decl_stmt> }</block></class>";
+
+            //class C : B { void Bar() { a.Foo(); } }
+            string c_xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">C</name> <super pos:line=""1"" pos:column=""9"">: <name pos:line=""1"" pos:column=""11"">B</name></super> <block pos:line=""1"" pos:column=""13"">{ <function><type><name pos:line=""1"" pos:column=""15"">void</name></type> <name pos:line=""1"" pos:column=""20"">Bar</name><parameter_list pos:line=""1"" pos:column=""23"">()</parameter_list> <block pos:line=""1"" pos:column=""26"">{ <expr_stmt><expr><call><name><name pos:line=""1"" pos:column=""28"">a</name><op:operator pos:line=""1"" pos:column=""29"">.</op:operator><name pos:line=""1"" pos:column=""30"">Foo</name></name><argument_list pos:line=""1"" pos:column=""33"">()</argument_list></call></expr>;</expr_stmt> }</block></function> }</block></class>";
+
+            var aUnit = fileSetup.GetFileUnitForXmlSnippet(a_xml, "A.cs");
+            var bUnit = fileSetup.GetFileUnitForXmlSnippet(b_xml, "B.cs");
+            var cUnit = fileSetup.GetFileUnitForXmlSnippet(c_xml, "C.cs");
+
+            var globalScope = codeParser.ParseFileUnit(aUnit);
+            globalScope = globalScope.Merge(codeParser.ParseFileUnit(bUnit));
+            globalScope = globalScope.Merge(codeParser.ParseFileUnit(cUnit));
+
+            var typeA = globalScope.GetNamedChildren<TypeDefinition>("A").FirstOrDefault();
+            var typeB = globalScope.GetNamedChildren<TypeDefinition>("B").FirstOrDefault();
+            var typeC = globalScope.GetNamedChildren<TypeDefinition>("C").FirstOrDefault();
+
+            Assert.IsNotNull(typeA, "could not find class A");
+            Assert.IsNotNull(typeB, "could not find class B");
+            Assert.IsNotNull(typeC, "could not find class C");
+
+            var aDotFoo = typeA.GetNamedChildren<MethodDefinition>("Foo").FirstOrDefault();
+            Assert.IsNotNull(aDotFoo, "could not find method A.Foo()");
+
+            var cDotBar = typeC.GetNamedChildren<MethodDefinition>("Bar").FirstOrDefault();
+            Assert.IsNotNull(cDotBar, "could not find method C.Bar()");
+
+            var callToFoo = cDotBar.FindExpressions<MethodCall>(true).FirstOrDefault();
+            Assert.IsNotNull(callToFoo, "could not find any method calls in C.Bar()");
+            Assert.AreEqual("Foo", callToFoo.Name);
+
+            Assert.AreEqual(aDotFoo, callToFoo.FindMatches().FirstOrDefault());
+        }
+
+        [Test]
+        public void TestVariableDeclaredInCallingObjectWithParentClass() {
+            //class A { B b; }
+            string a_xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">A</name> <block pos:line=""1"" pos:column=""9"">{ <decl_stmt><decl><type><name pos:line=""1"" pos:column=""11"">B</name></type> <name pos:line=""1"" pos:column=""13"">b</name></decl>;</decl_stmt> }</block></class>";
+
+            //class B { void Foo() { } }
+            string b_xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">B</name> <block pos:line=""1"" pos:column=""9"">{ <function><type><name pos:line=""1"" pos:column=""11"">void</name></type> <name pos:line=""1"" pos:column=""16"">Foo</name><parameter_list pos:line=""1"" pos:column=""19"">()</parameter_list> <block pos:line=""1"" pos:column=""22"">{ }</block></function> }</block></class>";
+
+            //class C : A { }
+            string c_xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">C</name> <super pos:line=""1"" pos:column=""9"">: <name pos:line=""1"" pos:column=""11"">A</name></super> <block pos:line=""1"" pos:column=""13"">{ }</block></class>";
+
+            //class D {
+            //	C c;
+            //	void Bar() { c.b.Foo(); }
+            //}
+            string d_xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">D</name> <block pos:line=""1"" pos:column=""9"">{
+    <decl_stmt><decl><type><name pos:line=""2"" pos:column=""5"">C</name></type> <name pos:line=""2"" pos:column=""7"">c</name></decl>;</decl_stmt>
+    <function><type><name pos:line=""3"" pos:column=""5"">void</name></type> <name pos:line=""3"" pos:column=""10"">Bar</name><parameter_list pos:line=""3"" pos:column=""13"">()</parameter_list> <block pos:line=""3"" pos:column=""16"">{ <expr_stmt><expr><call><name><name pos:line=""3"" pos:column=""18"">c</name><op:operator pos:line=""3"" pos:column=""19"">.</op:operator><name pos:line=""3"" pos:column=""20"">b</name><op:operator pos:line=""3"" pos:column=""21"">.</op:operator><name pos:line=""3"" pos:column=""22"">Foo</name></name><argument_list pos:line=""3"" pos:column=""25"">()</argument_list></call></expr>;</expr_stmt> }</block></function>
+}</block></class>";
+
+            var aUnit = fileSetup.GetFileUnitForXmlSnippet(a_xml, "A.cs");
+            var bUnit = fileSetup.GetFileUnitForXmlSnippet(b_xml, "B.cs");
+            var cUnit = fileSetup.GetFileUnitForXmlSnippet(c_xml, "C.cs");
+            var dUnit = fileSetup.GetFileUnitForXmlSnippet(d_xml, "D.cs");
+
+            var globalScope = codeParser.ParseFileUnit(aUnit);
+            globalScope = globalScope.Merge(codeParser.ParseFileUnit(bUnit));
+            globalScope = globalScope.Merge(codeParser.ParseFileUnit(cUnit));
+            globalScope = globalScope.Merge(codeParser.ParseFileUnit(dUnit));
+
+            var typeA = globalScope.GetNamedChildren<TypeDefinition>("A").FirstOrDefault();
+            var typeB = globalScope.GetNamedChildren<TypeDefinition>("B").FirstOrDefault();
+            var typeC = globalScope.GetNamedChildren<TypeDefinition>("C").FirstOrDefault();
+            var typeD = globalScope.GetNamedChildren<TypeDefinition>("D").FirstOrDefault();
+
+            Assert.IsNotNull(typeA, "could not find class A");
+            Assert.IsNotNull(typeB, "could not find class B");
+            Assert.IsNotNull(typeC, "could not find class C");
+            Assert.IsNotNull(typeD, "could not find class D");
+
+            var adotB = typeA.GetNamedChildren<VariableDeclaration>("b").FirstOrDefault();
+            Assert.IsNotNull(adotB, "could not find variable A.b");
+            Assert.AreEqual("b", adotB.Name);
+
+            var bDotFoo = typeB.GetNamedChildren<MethodDefinition>("Foo").FirstOrDefault();
+            Assert.IsNotNull(bDotFoo, "could not method B.Foo()");
+
+            var dDotBar = typeD.GetNamedChildren<MethodDefinition>("Bar").FirstOrDefault();
+            Assert.IsNotNull(dDotBar, "could not find method D.Bar()");
+
+            var callToFoo = dDotBar.FindExpressions<MethodCall>(true).FirstOrDefault();
+            Assert.IsNotNull(callToFoo, "could not find any method calls in D.Bar()");
+
+            Assert.AreEqual(bDotFoo, callToFoo.FindMatches().FirstOrDefault());
+        }
+
+        [Test]
         public void TestResolveArrayVariable_Property() {
             //class Foo {
             //  Collection<int> Parameters { get; set; }
@@ -1708,6 +1858,70 @@ namespace ABB.SrcML.Data.Test {
             var paramUse = doWork.ChildStatements[0].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(n => n.Name == "Parameters");
             Assert.IsNotNull(paramUse);
             Assert.AreSame(paramDecl, paramUse.FindMatches().FirstOrDefault());
+        }
+
+        [Test]
+        public void TestTypeUseForOtherNamespace() {
+            //namespace A.B {
+            //    class C {
+            //        int Foo() { }
+            //    }
+            //}
+            string c_xml = @"<namespace pos:line=""1"" pos:column=""1"">namespace <name><name pos:line=""1"" pos:column=""11"">A</name><op:operator pos:line=""1"" pos:column=""12"">.</op:operator><name pos:line=""1"" pos:column=""13"">B</name></name> <block pos:line=""1"" pos:column=""15"">{
+    <class pos:line=""2"" pos:column=""5"">class <name pos:line=""2"" pos:column=""11"">C</name> <block pos:line=""2"" pos:column=""13"">{
+        <function><type><name pos:line=""3"" pos:column=""9"">int</name></type> <name pos:line=""3"" pos:column=""13"">Foo</name><parameter_list pos:line=""3"" pos:column=""16"">()</parameter_list> <block pos:line=""3"" pos:column=""19"">{ }</block></function>
+    }</block></class>
+}</block></namespace>";
+
+            //using A.B;
+            //namespace D {
+            //    class E {
+            //        void main() {
+            //            C c = new C();
+            //            c.Foo();
+            //        }
+            //    }
+            //}
+            string e_xml = @"<using pos:line=""1"" pos:column=""1"">using <name><name pos:line=""1"" pos:column=""7"">A</name><op:operator pos:line=""1"" pos:column=""8"">.</op:operator><name pos:line=""1"" pos:column=""9"">B</name></name>;</using>
+<namespace pos:line=""2"" pos:column=""1"">namespace <name pos:line=""2"" pos:column=""11"">D</name> <block pos:line=""2"" pos:column=""13"">{
+    <class pos:line=""3"" pos:column=""5"">class <name pos:line=""3"" pos:column=""11"">E</name> <block pos:line=""3"" pos:column=""13"">{
+        <function><type><name pos:line=""4"" pos:column=""9"">void</name></type> <name pos:line=""4"" pos:column=""14"">main</name><parameter_list pos:line=""4"" pos:column=""18"">()</parameter_list> <block pos:line=""4"" pos:column=""21"">{
+            <decl_stmt><decl><type><name pos:line=""5"" pos:column=""13"">C</name></type> <name pos:line=""5"" pos:column=""15"">c</name> <init pos:line=""5"" pos:column=""17"">= <expr><op:operator pos:line=""5"" pos:column=""19"">new</op:operator> <call><name pos:line=""5"" pos:column=""23"">C</name><argument_list pos:line=""5"" pos:column=""24"">()</argument_list></call></expr></init></decl>;</decl_stmt>
+            <expr_stmt><expr><call><name><name pos:line=""6"" pos:column=""13"">c</name><op:operator pos:line=""6"" pos:column=""14"">.</op:operator><name pos:line=""6"" pos:column=""15"">Foo</name></name><argument_list pos:line=""6"" pos:column=""18"">()</argument_list></call></expr>;</expr_stmt>
+        }</block></function>
+    }</block></class>
+}</block></namespace>";
+
+            var cUnit = fileSetup.GetFileUnitForXmlSnippet(c_xml, "C.cpp");
+            var eUnit = fileSetup.GetFileUnitForXmlSnippet(e_xml, "E.cpp");
+
+            NamespaceDefinition globalScope = codeParser.ParseFileUnit(cUnit);
+            globalScope = globalScope.Merge(codeParser.ParseFileUnit(eUnit)) as NamespaceDefinition;
+
+            var typeC = globalScope.GetDescendants<TypeDefinition>().Where(t => t.Name == "C").FirstOrDefault();
+            var typeE = globalScope.GetDescendants<TypeDefinition>().Where(t => t.Name == "E").FirstOrDefault();
+
+            var mainMethod = typeE.ChildStatements.First() as MethodDefinition;
+            Assert.IsNotNull(mainMethod, "is not a method definition");
+            Assert.AreEqual("main", mainMethod.Name);
+
+            var fooMethod = typeC.GetNamedChildren<MethodDefinition>("Foo").FirstOrDefault();
+            Assert.IsNotNull(fooMethod, "no method foo found");
+            Assert.AreEqual("Foo", fooMethod.Name);
+
+            var cDeclaration = mainMethod.FindExpressions<VariableDeclaration>(true).FirstOrDefault();
+            Assert.IsNotNull(cDeclaration, "No declaration found");
+            Assert.AreSame(typeC, cDeclaration.VariableType.ResolveType().FirstOrDefault());
+
+            var callToCConstructor = mainMethod.FindExpressions<MethodCall>(true).First();
+            var callToFoo = mainMethod.FindExpressions<MethodCall>(true).Last();
+
+            Assert.AreEqual("C", callToCConstructor.Name);
+            Assert.That(callToCConstructor.IsConstructor);
+            Assert.IsNull(callToCConstructor.FindMatches().FirstOrDefault());
+
+            Assert.AreEqual("Foo", callToFoo.Name);
+            Assert.AreSame(fooMethod, callToFoo.FindMatches().FirstOrDefault());
         }
     }
 }

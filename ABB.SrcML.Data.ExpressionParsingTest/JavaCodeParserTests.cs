@@ -558,6 +558,73 @@ namespace ABB.SrcML.Data.Test {
             Assert.IsTrue(superCall.IsConstructor);
             Assert.AreSame(bConstructor, superCall.FindMatches().FirstOrDefault());
         }
+
+        [Test]
+        public void TestMethodCallCreation_ConstructorFromOtherNamespace() {
+            //package A.B;
+            //class C {
+            //	public C() { }
+            //}
+            string c_xml = @"<package>package <name>A</name>.<name>B</name>;</package>
+<class>class <name>C</name> <block>{
+	<constructor><specifier>public</specifier> <name>C</name><parameter_list>()</parameter_list> <block>{ }</block></constructor>
+}</block></class>";
+
+            //package A.D;
+            //import A.B.*;
+            //class E {
+            //	public void main() {
+            //		C c = new C();
+            //	}
+            //}
+            string e_xml = @"<package>package <name>A</name>.<name>D</name>;</package>
+<import>import <name>A</name>.<name>B</name>.*;</import>
+<class>class <name>E</name> <block>{
+	<function><type><specifier>public</specifier> <name>void</name></type> <name>main</name><parameter_list>()</parameter_list> <block>{
+		<decl_stmt><decl><type><name>C</name></type> <name>c</name> =<init> <expr><op:operator>new</op:operator> <call><name>C</name><argument_list>()</argument_list></call></expr></init></decl>;</decl_stmt>
+	}</block></function>
+}</block></class>";
+
+            var cUnit = fileSetup.GetFileUnitForXmlSnippet(c_xml, "C.java");
+            var eUnit = fileSetup.GetFileUnitForXmlSnippet(e_xml, "E.java");
+
+            var cScope = codeParser.ParseFileUnit(cUnit);
+            var eScope = codeParser.ParseFileUnit(eUnit);
+
+            var globalScope = cScope.Merge(eScope);
+
+            var typeC = (from typeDefinition in globalScope.GetDescendantsAndSelf<TypeDefinition>()
+                         where typeDefinition.Name == "C"
+                         select typeDefinition).First();
+
+            var typeE = (from typeDefinition in globalScope.GetDescendantsAndSelf<TypeDefinition>()
+                         where typeDefinition.Name == "E"
+                         select typeDefinition).First();
+
+            Assert.IsNotNull(typeC, "Could not find class C");
+            Assert.IsNotNull(typeE, "Could not find class E");
+
+            var constructorForC = typeC.ChildStatements.OfType<MethodDefinition>().FirstOrDefault();
+
+            Assert.IsNotNull(constructorForC, "C has no methods");
+            Assert.AreEqual("C", constructorForC.Name);
+            Assert.That(constructorForC.IsConstructor);
+
+            var eDotMain = typeE.GetNamedChildren<MethodDefinition>("main").FirstOrDefault();
+
+            Assert.IsNotNull(eDotMain, "could not find main method in E");
+            Assert.AreEqual("main", eDotMain.Name);
+
+            var callToC = (from stmt in eDotMain.GetDescendants()
+                           from expr in stmt.GetExpressions()
+                           from call in expr.GetDescendantsAndSelf<MethodCall>()
+                           select call).FirstOrDefault();
+            Assert.IsNotNull(callToC, "main contains no calls");
+            Assert.AreEqual("C", callToC.Name);
+            Assert.That(callToC.IsConstructor);
+
+            Assert.AreEqual(constructorForC, callToC.FindMatches().FirstOrDefault());
+        }
         
         [Test]
         public void TestVariablesWithSpecifiers() {
@@ -680,6 +747,105 @@ namespace ABB.SrcML.Data.Test {
             var thingCall = bDef.ChildStatements[0].Content.GetDescendantsAndSelf<MethodCall>().FirstOrDefault();
             Assert.IsNotNull(thingCall);
             Assert.AreSame(thingDef, thingCall.FindMatches().First());
+        }
+
+        [Test]
+        public void BasicParentTest_Java() {
+            // # A.java class A implements B { }
+            string a_xml = @"<class>class <name>A</name> <super><implements>implements <name>B</name></implements></super> <block>{
+}</block></class>";
+            // # B.java class B { }
+            string b_xml = @"<class>class <name>B</name> <block>{
+}</block></class>";
+
+            // # C.java class C { A a; }
+            string c_xml = @"<class>class <name>C</name> <block>{
+	<decl_stmt><decl><type><name>A</name></type> <name>a</name></decl>;</decl_stmt>
+}</block></class>";
+
+            var fileUnitA = fileSetup.GetFileUnitForXmlSnippet(a_xml, "A.java");
+            var fileUnitB = fileSetup.GetFileUnitForXmlSnippet(b_xml, "B.java");
+            var fileUnitC = fileSetup.GetFileUnitForXmlSnippet(c_xml, "C.java");
+
+            var globalScope = codeParser.ParseFileUnit(fileUnitA);
+            globalScope = globalScope.Merge(codeParser.ParseFileUnit(fileUnitB));
+            globalScope = globalScope.Merge(codeParser.ParseFileUnit(fileUnitC));
+
+            Assert.AreEqual(3, globalScope.ChildStatements.Count());
+
+            var typeDefinitions = globalScope.GetDescendants<TypeDefinition>().OrderBy(t => t.Name).ToList();
+
+            var typeA = typeDefinitions[0];
+            var typeB = typeDefinitions[1];
+            var typeC = typeDefinitions[2];
+
+            Assert.AreEqual("B", typeB.Name);
+
+            var cDotA = (from stmt in typeC.GetDescendants()
+                         from decl in stmt.GetExpressions().OfType<VariableDeclaration>()
+                         select decl).FirstOrDefault();
+            var parentOfA = typeA.ParentTypeNames.FirstOrDefault();
+            Assert.That(cDotA.VariableType.FindMatches().FirstOrDefault(), Is.SameAs(typeA));
+            Assert.That(parentOfA.FindMatches().FirstOrDefault(), Is.SameAs(typeB));
+        }
+
+        [Test]
+        public void TestTypeUseForOtherNamespace() {
+            //package A.B;
+            //class C {
+            //    int Foo();
+            //}
+            string c_xml = @"<package pos:line=""1"" pos:column=""1"">package <name><name pos:line=""1"" pos:column=""9"">A</name><op:operator pos:line=""1"" pos:column=""10"">.</op:operator><name pos:line=""1"" pos:column=""11"">B</name></name>;</package>
+<class pos:line=""2"" pos:column=""1"">class <name pos:line=""2"" pos:column=""7"">C</name> <block pos:line=""2"" pos:column=""9"">{
+    <function_decl><type><name pos:line=""3"" pos:column=""5"">int</name></type> <name pos:line=""3"" pos:column=""9"">Foo</name><parameter_list pos:line=""3"" pos:column=""12"">()</parameter_list>;</function_decl>
+}</block></class>";
+
+            //package D;
+            //import A.B.*;
+            //class E {
+            //    public static void main() {
+            //        C c = new C();
+            //        c.Foo();
+            //    }
+            //}
+            string e_xml = @"<package pos:line=""1"" pos:column=""1"">package <name pos:line=""1"" pos:column=""9"">D</name>;</package>
+<import pos:line=""2"" pos:column=""1"">import <name><name pos:line=""2"" pos:column=""8"">A</name><op:operator pos:line=""2"" pos:column=""9"">.</op:operator><name pos:line=""2"" pos:column=""10"">B</name></name>.*;</import>
+<class pos:line=""3"" pos:column=""1"">class <name pos:line=""3"" pos:column=""7"">E</name> <block pos:line=""3"" pos:column=""9"">{
+    <function><type><specifier pos:line=""4"" pos:column=""5"">public</specifier> <specifier pos:line=""4"" pos:column=""12"">static</specifier> <name pos:line=""4"" pos:column=""19"">void</name></type> <name pos:line=""4"" pos:column=""24"">main</name><parameter_list pos:line=""4"" pos:column=""28"">()</parameter_list> <block pos:line=""4"" pos:column=""31"">{
+        <decl_stmt><decl><type><name pos:line=""5"" pos:column=""9"">C</name></type> <name pos:line=""5"" pos:column=""11"">c</name> <init pos:line=""5"" pos:column=""13"">= <expr><op:operator pos:line=""5"" pos:column=""15"">new</op:operator> <call><name pos:line=""5"" pos:column=""19"">C</name><argument_list pos:line=""5"" pos:column=""20"">()</argument_list></call></expr></init></decl>;</decl_stmt>
+        <expr_stmt><expr><call><name><name pos:line=""6"" pos:column=""9"">c</name><op:operator pos:line=""6"" pos:column=""10"">.</op:operator><name pos:line=""6"" pos:column=""11"">Foo</name></name><argument_list pos:line=""6"" pos:column=""14"">()</argument_list></call></expr>;</expr_stmt>
+    }</block></function>
+}</block></class>";
+
+            var cUnit = fileSetup.GetFileUnitForXmlSnippet(c_xml, "C.java");
+            var eUnit = fileSetup.GetFileUnitForXmlSnippet(e_xml, "E.java");
+
+            var globalScope = codeParser.ParseFileUnit(cUnit);
+            globalScope = globalScope.Merge(codeParser.ParseFileUnit(eUnit));
+
+            var typeC = globalScope.GetDescendants<TypeDefinition>().Where(t => t.Name == "C").FirstOrDefault();
+            var typeE = globalScope.GetDescendants<TypeDefinition>().Where(t => t.Name == "E").FirstOrDefault();
+
+            var mainMethod = typeE.GetNamedChildren<MethodDefinition>("main").FirstOrDefault();
+            Assert.AreEqual("main", mainMethod.Name);
+
+            var fooMethod = typeC.ChildStatements.OfType<MethodDefinition>().FirstOrDefault();
+            Assert.IsNotNull(fooMethod, "no method foo found");
+            Assert.AreEqual("Foo", fooMethod.Name);
+
+            var cDeclaration = mainMethod.FindExpressions<VariableDeclaration>(true).FirstOrDefault();
+            Assert.IsNotNull(cDeclaration, "No declaration found");
+            Assert.AreSame(typeC, cDeclaration.VariableType.ResolveType().FirstOrDefault());
+
+            var callToCConstructor = mainMethod.FindExpressions<MethodCall>(true).First();
+            var callToFoo = mainMethod.FindExpressions<MethodCall>(true).Last();
+
+            Assert.AreEqual("C", callToCConstructor.Name);
+            Assert.That(callToCConstructor.IsConstructor);
+            Assert.IsNull(callToCConstructor.FindMatches().FirstOrDefault());
+
+            Assert.AreEqual("Foo", callToFoo.Name);
+            Assert.AreSame(fooMethod, callToFoo.FindMatches().FirstOrDefault());
         }
     }
 }

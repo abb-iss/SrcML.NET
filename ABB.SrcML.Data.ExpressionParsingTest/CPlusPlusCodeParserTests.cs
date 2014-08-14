@@ -1143,6 +1143,149 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
+        public void TestMethodCallFindMatches() {
+            // # A.h class A { int context;
+            // public:
+            // A(); };
+            string headerXml = @"<class>class <name>A</name> <block>{<private type=""default"">
+    <decl_stmt><decl><type><name>int</name></type> <name>context</name></decl>;</decl_stmt>
+    </private><public>public:
+        <constructor_decl><name>A</name><parameter_list>()</parameter_list>;</constructor_decl>
+</public>}</block>;</class>";
+
+            // # A.cpp #include "A.h"
+            // A: :A() {
+            // }
+            string implementationXml = @"<cpp:include>#<cpp:directive>include</cpp:directive> <cpp:file><lit:literal type=""string"">""A.h""</lit:literal></cpp:file></cpp:include>
+<constructor><name><name>A</name><op:operator>::</op:operator><name>A</name></name><parameter_list>(<param><decl><type><name>int</name></type> <name>val</name></decl></param>)</parameter_list> <block>{
+}</block></constructor>";
+
+            // # main.cpp #include "A.h" int main() { A a = A(); return 0; }
+            string mainXml = @"<cpp:include>#<cpp:directive>include</cpp:directive> <cpp:file><lit:literal type=""string"">""A.h""</lit:literal></cpp:file></cpp:include>
+<function><type><name>int</name></type> <name>main</name><parameter_list>()</parameter_list> <block>{
+    <decl_stmt><decl><type><name>A</name></type> <name>a</name> =<init> <expr><op:operator>new</op:operator> <call><name>A</name><argument_list>()</argument_list></call></expr></init></decl>;</decl_stmt>
+    <return>return <expr><lit:literal type=""number"">0</lit:literal></expr>;</return>
+}</block></function>";
+
+            var headerElement = fileSetup.GetFileUnitForXmlSnippet(headerXml, "A.h");
+            var implementationElement = fileSetup.GetFileUnitForXmlSnippet(implementationXml, "A.cpp");
+            var mainElement = fileSetup.GetFileUnitForXmlSnippet(mainXml, "main.cpp");
+
+            var header = codeParser.ParseFileUnit(headerElement);
+            var implementation = codeParser.ParseFileUnit(implementationElement);
+            var main = codeParser.ParseFileUnit(mainElement);
+
+            var unmergedMainMethod = main.ChildStatements.First() as MethodDefinition;
+            Assert.That(unmergedMainMethod.FindExpressions<MethodCall>(true).First().FindMatches(), Is.Empty);
+
+            var globalScope = main.Merge(implementation);
+            globalScope = globalScope.Merge(header);
+
+            var namedChildren = from namedChild in globalScope.ChildStatements.OfType<INamedEntity>()
+                                orderby namedChild.Name
+                                select namedChild;
+
+            Assert.AreEqual(2, namedChildren.Count());
+
+            var typeA = namedChildren.First() as TypeDefinition;
+            var mainMethod = namedChildren.Last() as MethodDefinition;
+
+            Assert.AreEqual("A", typeA.Name);
+            Assert.AreEqual("main", mainMethod.Name);
+
+            var callInMain = mainMethod.FindExpressions<MethodCall>(true).First();
+            var constructor = typeA.ChildStatements.OfType<MethodDefinition>().FirstOrDefault() as MethodDefinition;
+
+            Assert.IsTrue(callInMain.IsConstructor);
+            Assert.IsTrue(constructor.IsConstructor);
+            Assert.AreSame(constructor, callInMain.FindMatches().First());
+        }
+
+        [Test]
+        public void TestMethodCallFindMatches_WithArguments() {
+            // # A.h class A { int context;
+            // public:
+            // A(int value); };
+            string headerXml = @"<class>class <name>A</name> <block>{<private type=""default"">
+    <decl_stmt><decl><type><name>int</name></type> <name>context</name></decl>;</decl_stmt>
+</private><public>public:
+    <constructor_decl><name>A</name><parameter_list>(<param><decl><type><name>int</name></type> <name>value</name></decl></param>)</parameter_list>;</constructor_decl>
+</public>}</block>;</class>";
+
+            // # A.cpp #include "A.h"
+            // A: :A(int value) { context = value;
+            // }
+            string implementationXml = @"<cpp:include>#<cpp:directive>include</cpp:directive> <cpp:file><lit:literal type=""string"">""A.h""</lit:literal></cpp:file></cpp:include>
+<constructor><name><name>A</name><op:operator>::</op:operator><name>A</name></name><parameter_list>(<param><decl><type><name>int</name></type> <name>value</name></decl></param>)</parameter_list> <block>{
+    <expr_stmt><expr><name>context</name> <op:operator>=</op:operator> <name>value</name></expr>;</expr_stmt>
+}</block></constructor>";
+
+            // # main.cpp #include "A.h" int main() { int startingState = 0; A *a = new
+            // A(startingState); return startingState; }
+            string mainXml = @"<cpp:include>#<cpp:directive>include</cpp:directive> <cpp:file><lit:literal type=""string"">""A.h""</lit:literal></cpp:file></cpp:include>
+<function><type><name>int</name></type> <name>main</name><parameter_list>()</parameter_list> <block>{
+    <decl_stmt><decl><type><name>int</name></type> <name>startingState</name> =<init> <expr><lit:literal type=""number"">0</lit:literal></expr></init></decl>;</decl_stmt>
+    <decl_stmt><decl><type><name>A</name> <type:modifier>*</type:modifier></type><name>a</name> =<init> <expr><op:operator>new</op:operator> <call><name>A</name><argument_list>(<argument><expr><name>startingState</name></expr></argument>)</argument_list></call></expr></init></decl>;</decl_stmt>
+    <return>return <expr><name>startingState</name></expr>;</return></block></function>";
+
+            var headerElement = fileSetup.GetFileUnitForXmlSnippet(headerXml, "A.h");
+            var implementationElement = fileSetup.GetFileUnitForXmlSnippet(implementationXml, "A.cpp");
+            var mainElement = fileSetup.GetFileUnitForXmlSnippet(mainXml, "main.cpp");
+
+            var header = codeParser.ParseFileUnit(headerElement);
+            var implementation = codeParser.ParseFileUnit(implementationElement);
+            var main = codeParser.ParseFileUnit(mainElement);
+
+            var globalScope = main.Merge(implementation);
+            globalScope = globalScope.Merge(header);
+
+            var namedChildren = from namedChild in globalScope.ChildStatements.OfType<INamedEntity>()
+                                orderby namedChild.Name
+                                select namedChild;
+
+            Assert.AreEqual(2, namedChildren.Count());
+
+            var typeA = namedChildren.First() as TypeDefinition;
+            var mainMethod = namedChildren.Last() as MethodDefinition;
+
+            Assert.AreEqual("A", typeA.Name);
+            Assert.AreEqual("main", mainMethod.Name);
+
+            var callInMain = mainMethod.FindExpressions<MethodCall>(true).First();
+            var constructor = typeA.ChildStatements.OfType<MethodDefinition>().FirstOrDefault() as MethodDefinition;
+
+            Assert.IsTrue(callInMain.IsConstructor);
+            Assert.IsTrue(constructor.IsConstructor);
+            Assert.AreSame(constructor, callInMain.FindMatches().First());
+        }
+
+        [Test]
+        public void TestMethodCallMatchToParameter() {
+            //void CallFoo(B b) { b.Foo(); }
+            //class B { void Foo() { } }
+            string xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">B</name> <block pos:line=""1"" pos:column=""9"">{<private type=""default"" pos:line=""1"" pos:column=""10""> <function><type><name pos:line=""1"" pos:column=""11"">void</name></type> <name pos:line=""1"" pos:column=""16"">Foo</name><parameter_list pos:line=""1"" pos:column=""19"">()</parameter_list> <block pos:line=""1"" pos:column=""22"">{ }</block></function> </private>}</block>;</class>
+<function><type><name pos:line=""2"" pos:column=""1"">void</name></type> <name pos:line=""2"" pos:column=""6"">CallFoo</name><parameter_list pos:line=""2"" pos:column=""13"">(<param><decl><type><name pos:line=""2"" pos:column=""14"">B</name></type> <name pos:line=""2"" pos:column=""16"">b</name></decl></param>)</parameter_list> <block pos:line=""2"" pos:column=""19"">{ <expr_stmt><expr><call><name><name pos:line=""2"" pos:column=""21"">b</name><op:operator pos:line=""2"" pos:column=""22"">.</op:operator><name pos:line=""2"" pos:column=""23"">Foo</name></name><argument_list pos:line=""2"" pos:column=""26"">()</argument_list></call></expr>;</expr_stmt> }</block></function>";
+
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cpp");
+
+            var testScope = codeParser.ParseFileUnit(testUnit);
+
+            var methodCallFoo = testScope.GetNamedChildren<MethodDefinition>("CallFoo").FirstOrDefault();
+            var classB = testScope.GetNamedChildren<TypeDefinition>("B").FirstOrDefault();
+
+            Assert.IsNotNull(methodCallFoo, "can't find CallFoo");
+            Assert.IsNotNull(classB, "can't find class B");
+
+            var bDotFoo = classB.GetNamedChildren<MethodDefinition>("Foo").FirstOrDefault();
+            Assert.IsNotNull(bDotFoo, "can't find B.Foo()");
+
+            var callToFoo = methodCallFoo.FindExpressions<MethodCall>(true).FirstOrDefault();
+            Assert.IsNotNull(callToFoo, "could not find a call to Foo()");
+
+            Assert.AreEqual(bDotFoo, callToFoo.FindMatches().FirstOrDefault());
+        }
+
+        [Test]
         public void TestMethodDefinitionWithReturnType() {
             //int Foo() { }
             string xml = @"<function><type><name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></function>";
@@ -1604,6 +1747,62 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
+        public void TestVariableDeclaredInCallingObjectWithParentClass() {
+            //class A { B b; };
+            string a_xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">A</name> <block pos:line=""1"" pos:column=""9"">{<private type=""default"" pos:line=""1"" pos:column=""10""> <decl_stmt><decl><type><name pos:line=""1"" pos:column=""11"">B</name></type> <name pos:line=""1"" pos:column=""13"">b</name></decl>;</decl_stmt> </private>}</block>;</class>";
+
+            //class B { void Foo() { } };
+            string b_xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">B</name> <block pos:line=""1"" pos:column=""9"">{<private type=""default"" pos:line=""1"" pos:column=""10""> <function><type><name pos:line=""1"" pos:column=""11"">void</name></type> <name pos:line=""1"" pos:column=""16"">Foo</name><parameter_list pos:line=""1"" pos:column=""19"">()</parameter_list> <block pos:line=""1"" pos:column=""22"">{ }</block></function> </private>}</block>;</class>";
+
+            //class C : A { };
+            string c_xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">C</name> <super pos:line=""1"" pos:column=""9"">: <name pos:line=""1"" pos:column=""11"">A</name></super> <block pos:line=""1"" pos:column=""13"">{<private type=""default"" pos:line=""1"" pos:column=""14""> </private>}</block>;</class>";
+
+            //class D {
+            //	C c;
+            //	void Bar() { c.b.Foo(); }
+            //};
+            string d_xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">D</name> <block pos:line=""1"" pos:column=""9"">{<private type=""default"" pos:line=""1"" pos:column=""10"">
+    <decl_stmt><decl><type><name pos:line=""2"" pos:column=""5"">C</name></type> <name pos:line=""2"" pos:column=""7"">c</name></decl>;</decl_stmt>
+    <function><type><name pos:line=""3"" pos:column=""5"">void</name></type> <name pos:line=""3"" pos:column=""10"">Bar</name><parameter_list pos:line=""3"" pos:column=""13"">()</parameter_list> <block pos:line=""3"" pos:column=""16"">{ <expr_stmt><expr><call><name><name pos:line=""3"" pos:column=""18"">c</name><op:operator pos:line=""3"" pos:column=""19"">.</op:operator><name pos:line=""3"" pos:column=""20"">b</name><op:operator pos:line=""3"" pos:column=""21"">.</op:operator><name pos:line=""3"" pos:column=""22"">Foo</name></name><argument_list pos:line=""3"" pos:column=""25"">()</argument_list></call></expr>;</expr_stmt> }</block></function>
+</private>}</block>;</class>";
+
+            var aUnit = fileSetup.GetFileUnitForXmlSnippet(a_xml, "A.h");
+            var bUnit = fileSetup.GetFileUnitForXmlSnippet(b_xml, "B.h");
+            var cUnit = fileSetup.GetFileUnitForXmlSnippet(c_xml, "C.h");
+            var dUnit = fileSetup.GetFileUnitForXmlSnippet(d_xml, "D.h");
+
+            var globalScope = codeParser.ParseFileUnit(aUnit);
+            globalScope = globalScope.Merge(codeParser.ParseFileUnit(bUnit));
+            globalScope = globalScope.Merge(codeParser.ParseFileUnit(cUnit));
+            globalScope = globalScope.Merge(codeParser.ParseFileUnit(dUnit));
+
+            var typeA = globalScope.GetNamedChildren<TypeDefinition>("A").FirstOrDefault();
+            var typeB = globalScope.GetNamedChildren<TypeDefinition>("B").FirstOrDefault();
+            var typeC = globalScope.GetNamedChildren<TypeDefinition>("C").FirstOrDefault();
+            var typeD = globalScope.GetNamedChildren<TypeDefinition>("D").FirstOrDefault();
+
+            Assert.IsNotNull(typeA, "could not find class A");
+            Assert.IsNotNull(typeB, "could not find class B");
+            Assert.IsNotNull(typeC, "could not find class C");
+            Assert.IsNotNull(typeD, "could not find class D");
+
+            var adotB = typeA.GetNamedChildren<VariableDeclaration>("b").FirstOrDefault();
+            Assert.IsNotNull(adotB, "could not find variable A.b");
+            Assert.AreEqual("b", adotB.Name);
+
+            var bDotFoo = typeB.GetNamedChildren<MethodDefinition>("Foo").FirstOrDefault();
+            Assert.IsNotNull(bDotFoo, "could not method B.Foo()");
+
+            var dDotBar = typeD.GetNamedChildren<MethodDefinition>("Bar").FirstOrDefault();
+            Assert.IsNotNull(dDotBar, "could not find method D.Bar()");
+
+            var callToFoo = dDotBar.FindExpressions<MethodCall>(true).FirstOrDefault();
+            Assert.IsNotNull(callToFoo, "could not find any method calls in D.Bar()");
+
+            Assert.AreEqual(bDotFoo, callToFoo.FindMatches().FirstOrDefault());
+        }
+
+        [Test]
         public void TestResolveArrayVariable_Local() {
             //int Foo() {
             //  if(MethodCall()) {
@@ -1704,6 +1903,74 @@ namespace ABB.SrcML.Data.Test {
             var matches = getNumCall.FindMatches().ToList();
             Assert.AreEqual(1, matches.Count);
             Assert.AreSame(getNum, matches.First());
+        }
+
+        [Test]
+        public void TestTypeUseForOtherNamespace() {
+            //namespace A {
+            //    namespace B {
+            //        class C {
+            //            int Foo() { }
+            //        };
+            //    }
+            //}
+            string c_xml = @"<namespace pos:line=""1"" pos:column=""1"">namespace <name pos:line=""1"" pos:column=""11"">A</name> <block pos:line=""1"" pos:column=""13"">{
+    <namespace pos:line=""2"" pos:column=""5"">namespace <name pos:line=""2"" pos:column=""15"">B</name> <block pos:line=""2"" pos:column=""17"">{
+        <class pos:line=""3"" pos:column=""9"">class <name pos:line=""3"" pos:column=""15"">C</name> <block pos:line=""3"" pos:column=""17"">{<private type=""default"" pos:line=""3"" pos:column=""18"">
+            <function><type><name pos:line=""4"" pos:column=""13"">int</name></type> <name pos:line=""4"" pos:column=""17"">Foo</name><parameter_list pos:line=""4"" pos:column=""20"">()</parameter_list> <block pos:line=""4"" pos:column=""23"">{ }</block></function>
+        </private>}</block>;</class>
+    }</block></namespace>
+}</block></namespace>";
+
+            //using namespace A::B;
+            //namespace D {
+            //    class E {
+            //        void main() {
+            //            C c = new C();
+            //            c.Foo();
+            //        }
+            //    };
+            //}
+            string e_xml = @"<using pos:line=""1"" pos:column=""1"">using namespace <name><name pos:line=""1"" pos:column=""17"">A</name><op:operator pos:line=""1"" pos:column=""18"">::</op:operator><name pos:line=""1"" pos:column=""20"">B</name></name>;</using>
+<namespace pos:line=""2"" pos:column=""1"">namespace <name pos:line=""2"" pos:column=""11"">D</name> <block pos:line=""2"" pos:column=""13"">{
+    <class pos:line=""3"" pos:column=""5"">class <name pos:line=""3"" pos:column=""11"">E</name> <block pos:line=""3"" pos:column=""13"">{<private type=""default"" pos:line=""3"" pos:column=""14"">
+        <function><type><name pos:line=""4"" pos:column=""9"">void</name></type> <name pos:line=""4"" pos:column=""14"">main</name><parameter_list pos:line=""4"" pos:column=""18"">()</parameter_list> <block pos:line=""4"" pos:column=""21"">{
+            <decl_stmt><decl><type><name pos:line=""5"" pos:column=""13"">C</name></type> <name pos:line=""5"" pos:column=""15"">c</name> <init pos:line=""5"" pos:column=""17"">= <expr><op:operator pos:line=""5"" pos:column=""19"">new</op:operator> <call><name pos:line=""5"" pos:column=""23"">C</name><argument_list pos:line=""5"" pos:column=""24"">()</argument_list></call></expr></init></decl>;</decl_stmt>
+            <expr_stmt><expr><call><name><name pos:line=""6"" pos:column=""13"">c</name><op:operator pos:line=""6"" pos:column=""14"">.</op:operator><name pos:line=""6"" pos:column=""15"">Foo</name></name><argument_list pos:line=""6"" pos:column=""18"">()</argument_list></call></expr>;</expr_stmt>
+        }</block></function>
+    </private>}</block>;</class>
+}</block></namespace>";
+
+            var cUnit = fileSetup.GetFileUnitForXmlSnippet(c_xml, "C.cpp");
+            var eUnit = fileSetup.GetFileUnitForXmlSnippet(e_xml, "E.cpp");
+
+            NamespaceDefinition globalScope = codeParser.ParseFileUnit(cUnit);
+            globalScope = globalScope.Merge(codeParser.ParseFileUnit(eUnit));
+
+            var typeC = globalScope.GetDescendants<TypeDefinition>().Where(t => t.Name == "C").FirstOrDefault();
+            var typeE = globalScope.GetDescendants<TypeDefinition>().Where(t => t.Name == "E").FirstOrDefault();
+
+            var mainMethod = typeE.ChildStatements.OfType<MethodDefinition>().FirstOrDefault();
+            Assert.IsNotNull(mainMethod, "is not a method definition");
+            Assert.AreEqual("main", mainMethod.Name);
+
+            var fooMethod = typeC.GetNamedChildren<MethodDefinition>("Foo").FirstOrDefault();
+            Assert.IsNotNull(fooMethod, "no method foo found");
+            Assert.AreEqual("Foo", fooMethod.Name);
+
+            var cDeclaration = mainMethod.FindExpressions<VariableDeclaration>(true).FirstOrDefault();
+            Assert.IsNotNull(cDeclaration, "No declaration found");
+            Assert.AreSame(typeC, cDeclaration.VariableType.ResolveType().FirstOrDefault());
+
+            var callToCConstructor = mainMethod.FindExpressions<MethodCall>(true).FirstOrDefault();
+            var callToFoo = mainMethod.FindExpressions<MethodCall>(true).LastOrDefault();
+
+            Assert.AreEqual("C", callToCConstructor.Name);
+            Assert.That(callToCConstructor.IsConstructor);
+            Assert.IsNull(callToCConstructor.FindMatches().FirstOrDefault());
+
+            Assert.AreEqual("Foo", callToFoo.Name);
+            Assert.AreSame(fooMethod, callToFoo.FindMatches().FirstOrDefault());
         }
     }
 }
