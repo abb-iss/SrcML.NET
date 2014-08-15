@@ -27,6 +27,7 @@ namespace ABB.SrcML {
     public class ShortFileNameMapping : AbstractFileNameMapping {
         private readonly object mappingLock = new object();
         private Dictionary<string, string> mapping;
+        private Dictionary<string, string> reverseMapping;
         private Dictionary<string, int> nameCount;
 
         /// <summary>
@@ -43,6 +44,7 @@ namespace ABB.SrcML {
         : base(targetDirectory, targetExtension) {
             bool directoryIsCaseInsensitive = CheckIfDirectoryIsCaseInsensitive(targetDirectory);
             mapping = new Dictionary<string, string>(directoryIsCaseInsensitive ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
+            reverseMapping = new Dictionary<string, string>(directoryIsCaseInsensitive ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
             nameCount = new Dictionary<string, int>(directoryIsCaseInsensitive ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
 
             ReadMapping();
@@ -70,6 +72,7 @@ namespace ABB.SrcML {
 
                     targetPath = Path.Combine(TargetDirectory, string.Format("{0}.{1}{2}", sourceName, newNameNum, TargetExtension));
                     mapping[sourcePath] = targetPath;
+                    reverseMapping[targetPath] = sourcePath;
                 }
             }
             return targetPath;
@@ -84,13 +87,11 @@ namespace ABB.SrcML {
             if(!Path.IsPathRooted(targetPath)) {
                 targetPath = Path.Combine(TargetDirectory, targetPath);
             }
-            string result = null;
+
             lock(mappingLock) {
-                result = (from kvp in mapping
-                          where targetPath.Equals(kvp.Value, StringComparison.OrdinalIgnoreCase)
-                          select kvp.Key).FirstOrDefault();
+                string result;
+                return (reverseMapping.TryGetValue(targetPath, out result) ? result : null);
             }
-            return result;
         }
 
         /// <summary>
@@ -101,8 +102,9 @@ namespace ABB.SrcML {
         protected void ProcessMapFileEntry(string sourcePath, string targetPath) {
             lock(mappingLock) {
                 mapping[sourcePath] = targetPath;
+                reverseMapping[targetPath] = sourcePath;
                 //determine duplicate number
-                var m = Regex.Match(targetPath, @"\.(\d+)\.xml$");
+                var m = Regex.Match(targetPath, String.Format(@"\.(\d+)\{0}$", TargetExtension));
                 if(m.Success) {
                     var sourceName = Path.GetFileName(sourcePath);
                     var nameNum = int.Parse(m.Groups[1].Value);
