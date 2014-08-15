@@ -91,7 +91,7 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestGetXElement() {
-            var archive = new SrcMLArchive("SrcMLLocationTest");
+            var archive = new SrcMLArchive("SrcMLLocationTest", false, new SrcMLGenerator("SrcML"));
             var sourcePath = Path.GetFullPath(@"..\..\TestInputs\class_test.h");
             archive.AddOrUpdateFile(sourcePath);
 
@@ -102,10 +102,10 @@ namespace ABB.SrcML.Data.Test {
             
             var parser = new CPlusPlusCodeParser();
             var globalScope = parser.ParseFileUnit(unit);
-            var typeScope = globalScope.GetChildScopes<TypeDefinition>().FirstOrDefault();
-            Assert.IsNotNull(typeScope);
+            var typeDefinition = globalScope.ChildStatements.OfType<TypeDefinition>().FirstOrDefault();
+            Assert.IsNotNull(typeDefinition);
 
-            var element = typeScope.PrimaryLocation.GetXElement(archive);
+            var element = typeDefinition.PrimaryLocation.GetXElement(archive);
             Assert.IsNotNull(element);
             Assert.AreEqual(classElement.GetSrcLineNumber(), element.GetSrcLineNumber());
             Assert.AreEqual(classElement.GetSrcLinePosition(), element.GetSrcLinePosition());

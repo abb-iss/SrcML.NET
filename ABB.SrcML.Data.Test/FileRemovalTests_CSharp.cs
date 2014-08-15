@@ -1,16 +1,18 @@
 ﻿using ABB.SrcML.Test.Utilities;
 using NUnit.Framework;
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace ABB.SrcML.Data.Test {
-
-    [TestFixture]
-    [Category("Build")]
+    [TestFixture, Category("Build")]
     public class FileRemovalTests_CSharp {
         private CSharpCodeParser CodeParser;
         private SrcMLFileUnitSetup FileUnitSetup;
 
-        [TestFixtureSetUp]
+        [TestFixtureSetUp, Category("Build")]
         public void ClassSetup() {
             FileUnitSetup = new SrcMLFileUnitSetup(Language.CPlusPlus);
             CodeParser = new CSharpCodeParser();
@@ -33,20 +35,20 @@ namespace ABB.SrcML.Data.Test {
             var beforeScope = CodeParser.ParseFileUnit(fooFileUnit);
             ////Baz.cs
             //class Baz {
-            //    public static int DoWork(string arg) { return 0; }
+            //    public static int DoWork() { return 0; }
             //}
             string bazXml = @"<class>class <name>Baz</name> <block>{
-    <function><type><specifier>public</specifier> <specifier>static</specifier> <name>int</name></type> <name>DoWork</name><parameter_list>(<param><decl><type><name>string</name></type> <name>arg</name></decl></param>)</parameter_list> <block>{ <return>return <expr><lit:literal type=""number"">0</lit:literal></expr>;</return> }</block></function>
+    <function><type><specifier>public</specifier> <specifier>static</specifier> <name>int</name></type> <name>DoWork</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><lit:literal type=""number"">0</lit:literal></expr>;</return> }</block></function>
 }</block></class>";
             var bazFileUnit = FileUnitSetup.GetFileUnitForXmlSnippet(bazXml, "Baz.cs");
             var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(bazFileUnit));
 
-            Assert.AreEqual(0, afterScope.ChildScopes.OfType<INamespaceDefinition>().Count());
-            Assert.AreEqual(2, afterScope.ChildScopes.OfType<ITypeDefinition>().Count());
+            Assert.AreEqual(0, afterScope.ChildStatements.OfType<NamespaceDefinition>().Count());
+            Assert.AreEqual(2, afterScope.ChildStatements.OfType<TypeDefinition>().Count());
 
             afterScope.RemoveFile("Baz.cs");
 
-            Assert.IsTrue(TestHelper.ScopesAreEqual(beforeScope, afterScope));
+            DataAssert.StatementsAreEqual(beforeScope, afterScope);
         }
 
         [Test]
@@ -70,11 +72,11 @@ namespace ABB.SrcML.Data.Test {
             var bFileunit = FileUnitSetup.GetFileUnitForXmlSnippet(bXml, "B.cs");
             var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(bFileunit));
 
-            Assert.AreEqual(2, afterScope.ChildScopes.OfType<INamespaceDefinition>().Count());
+            Assert.AreEqual(2, afterScope.ChildStatements.OfType<NamespaceDefinition>().Count());
 
             afterScope.RemoveFile("B.cs");
 
-            Assert.IsTrue(TestHelper.ScopesAreEqual(beforeScope, afterScope));
+            DataAssert.StatementsAreEqual(beforeScope, afterScope);
         }
 
         [Test]
@@ -106,16 +108,16 @@ namespace ABB.SrcML.Data.Test {
             var a2FileUnit = FileUnitSetup.GetFileUnitForXmlSnippet(a2Xml, "A2.cs");
             var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(a2FileUnit));
 
-            Assert.AreEqual(1, afterScope.ChildScopes.Count());
-            var typeA = afterScope.ChildScopes.First() as ITypeDefinition;
+            Assert.AreEqual(1, afterScope.ChildStatements.Count());
+            var typeA = afterScope.ChildStatements.First() as TypeDefinition;
             Assert.IsNotNull(typeA);
-            Assert.AreEqual(2, typeA.ChildScopes.OfType<IMethodDefinition>().Count());
-            Assert.IsTrue(typeA.ChildScopes.OfType<IMethodDefinition>().Any(m => m.Name == "Execute"));
-            Assert.IsTrue(typeA.ChildScopes.OfType<IMethodDefinition>().Any(m => m.Name == "Foo"));
+            Assert.AreEqual(2, typeA.ChildStatements.OfType<MethodDefinition>().Count());
+            Assert.IsTrue(typeA.ChildStatements.OfType<MethodDefinition>().Any(m => m.Name == "Execute"));
+            Assert.IsTrue(typeA.ChildStatements.OfType<MethodDefinition>().Any(m => m.Name == "Foo"));
 
             afterScope.RemoveFile("A2.cs");
 
-            Assert.IsTrue(TestHelper.ScopesAreEqual(beforeScope, afterScope));
+            DataAssert.StatementsAreEqual(beforeScope, afterScope);
         }
 
         [Test]
@@ -139,17 +141,19 @@ namespace ABB.SrcML.Data.Test {
             var a1FileUnit = FileUnitSetup.GetFileUnitForXmlSnippet(a1Xml, "A1.cs");
             var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(a1FileUnit));
 
-            Assert.AreEqual(1, afterScope.ChildScopes.Count());
-            var typeA = afterScope.ChildScopes.First() as ITypeDefinition;
+            Assert.AreEqual(1, afterScope.ChildStatements.Count());
+            var typeA = afterScope.ChildStatements.First() as TypeDefinition;
             Assert.IsNotNull(typeA);
-            Assert.AreEqual(1, typeA.ChildScopes.OfType<IMethodDefinition>().Count());
-            var foo = typeA.ChildScopes.First() as IMethodDefinition;
+            Assert.AreEqual(1, typeA.ChildStatements.OfType<MethodDefinition>().Count());
+            var foo = typeA.ChildStatements.First() as MethodDefinition;
+            Assert.That(foo.IsPartial);
+
             Assert.IsNotNull(foo);
             Assert.AreEqual("Foo", foo.Name);
 
             afterScope.RemoveFile("A1.cs");
 
-            Assert.IsTrue(TestHelper.ScopesAreEqual(beforeScope, afterScope));
+            DataAssert.StatementsAreEqual(beforeScope, afterScope);
         }
 
         [Test]
@@ -173,17 +177,17 @@ namespace ABB.SrcML.Data.Test {
             var a2FileUnit = FileUnitSetup.GetFileUnitForXmlSnippet(a2Xml, "A2.cs");
             var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(a2FileUnit));
 
-            Assert.AreEqual(1, afterScope.ChildScopes.Count());
-            var typeA = afterScope.ChildScopes.First() as ITypeDefinition;
+            Assert.AreEqual(1, afterScope.ChildStatements.Count());
+            var typeA = afterScope.ChildStatements.First() as TypeDefinition;
             Assert.IsNotNull(typeA);
-            Assert.AreEqual(1, typeA.ChildScopes.OfType<IMethodDefinition>().Count());
-            var foo = typeA.ChildScopes.First() as IMethodDefinition;
+            Assert.AreEqual(1, typeA.ChildStatements.OfType<MethodDefinition>().Count());
+            var foo = typeA.ChildStatements.First() as MethodDefinition;
             Assert.IsNotNull(foo);
             Assert.AreEqual("Foo", foo.Name);
 
             afterScope.RemoveFile("A2.cs");
 
-            Assert.IsTrue(TestHelper.ScopesAreEqual(beforeScope, afterScope));
+           DataAssert.StatementsAreEqual(beforeScope, afterScope);
         }
 
         [Test]
@@ -207,12 +211,12 @@ namespace ABB.SrcML.Data.Test {
             var a2FileUnit = FileUnitSetup.GetFileUnitForXmlSnippet(a2Xml, "A2.cs");
             var afterScope = beforeScope.Merge(CodeParser.ParseFileUnit(a2FileUnit));
 
-            Assert.AreEqual(1, afterScope.ChildScopes.OfType<INamespaceDefinition>().Count());
-            Assert.AreEqual(2, afterScope.ChildScopes.First().ChildScopes.OfType<ITypeDefinition>().Count());
+            Assert.AreEqual(1, afterScope.ChildStatements.OfType<NamespaceDefinition>().Count());
+            Assert.AreEqual(2, afterScope.ChildStatements.First().ChildStatements.OfType<TypeDefinition>().Count());
 
             afterScope.RemoveFile("A2.cs");
 
-            Assert.IsTrue(TestHelper.ScopesAreEqual(beforeScope, afterScope));
+            DataAssert.StatementsAreEqual(beforeScope, afterScope);
         }
 
         [Test]
@@ -231,7 +235,7 @@ namespace ABB.SrcML.Data.Test {
             var globalScope = bScope.Merge(dScope);
 
             globalScope.RemoveFile("b.cs");
-            Assert.AreEqual(1, globalScope.ChildScopes.Count());
+            Assert.AreEqual(1, globalScope.ChildStatements.Count());
         }
     }
 }

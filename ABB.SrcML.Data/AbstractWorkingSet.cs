@@ -59,6 +59,11 @@ namespace ABB.SrcML.Data {
         protected bool IsDisposed { get; private set; }
 
         /// <summary>
+        /// If true, this working set will use asynchronous methods in <see cref="Archive_FileChanged"/>. By default, this is false.
+        /// </summary>
+        public bool UseAsynchronousMethods { get; set; }
+
+        /// <summary>
         /// Creates a new working set object
         /// </summary>
         protected AbstractWorkingSet() : this(null, Task.Factory) { }
@@ -72,6 +77,7 @@ namespace ABB.SrcML.Data {
             Archive = archive;
             Factory = factory;
             IsDisposed = false;
+            UseAsynchronousMethods = false;
             _globalScopeManager = new GlobalScopeManager();
             _globalScopeLock = new ReaderWriterLockSlim();
         }
@@ -141,7 +147,7 @@ namespace ABB.SrcML.Data {
         /// Adds the specified file from the data set. If the file is not present in the archive, then nothing happens
         /// </summary>
         /// <param name="sourceFileName">the source file to add</param>
-        public void AddOrUpdateFile(string sourceFileName) {
+        public virtual void AddOrUpdateFile(string sourceFileName) {
             if(IsDisposed) { throw new ObjectDisposedException(null); }
 
             bool workingSetChanged = false;
@@ -158,6 +164,15 @@ namespace ABB.SrcML.Data {
             if(workingSetChanged) {
                 OnChanged(new EventArgs());
             }
+        }
+
+        /// <summary>
+        /// Adds the specified file from the data set. If the file is not present in the archive, then nothing happens
+        /// </summary>
+        /// <param name="sourceFileName">the source file to add</param>
+        /// <returns>A task for this file update</returns>
+        public Task AddOrUpdateFileAsync(string sourceFileName) {
+            return Factory.StartNew(() => AddOrUpdateFile(sourceFileName));
         }
 
         /// <summary>
@@ -209,6 +224,16 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
+        /// Removes <paramref name="sourceFileName"/> from the working set.
+        /// If the file does not exist, nothing is done.
+        /// </summary>
+        /// <param name="sourceFileName">The source file to remove</param>
+        /// <returns>A task for this file deletion</returns>
+        public virtual Task RemoveFileAsync(string sourceFileName) {
+            return Factory.StartNew(() => RemoveFile(sourceFileName));
+        }
+
+        /// <summary>
         /// Renames <paramref name="oldSourceFileName"/> to <paramref name="newSourceFileName"/>
         /// </summary>
         /// <param name="oldSourceFileName">the old file name to be removed</param>
@@ -230,6 +255,16 @@ namespace ABB.SrcML.Data {
             if(workingSetChanged) {
                 OnChanged(new EventArgs());
             }
+        }
+
+        /// <summary>
+        /// Renames <paramref name="oldSourceFileName"/> to <paramref name="newSourceFileName"/>
+        /// </summary>
+        /// <param name="oldSourceFileName">the old file name to be removed</param>
+        /// <param name="newSourceFileName">the new file name to be added</param>
+        /// <returns>A task for this file rename</returns>
+        public virtual Task RenameFileAsync(string oldSourceFileName, string newSourceFileName) {
+            return Factory.StartNew(() => RenameFile(oldSourceFileName, newSourceFileName));
         }
         #endregion global scope modification
 
@@ -315,13 +350,25 @@ namespace ABB.SrcML.Data {
                 case FileEventType.FileAdded:
                     goto case FileEventType.FileChanged;
                 case FileEventType.FileChanged:
-                    AddOrUpdateFile(e.FilePath);
+                    if(UseAsynchronousMethods) {
+                        AddOrUpdateFileAsync(e.FilePath);
+                    } else {
+                        AddOrUpdateFile(e.FilePath);
+                    }
                     break;
                 case FileEventType.FileDeleted:
-                    RemoveFile(e.FilePath);
+                    if(UseAsynchronousMethods) {
+                        RemoveFileAsync(e.FilePath);
+                    } else {
+                        RemoveFile(e.FilePath);
+                    }
                     break;
                 case FileEventType.FileRenamed:
-                    RenameFile(e.OldFilePath, e.FilePath);
+                    if(UseAsynchronousMethods) {
+                        RenameFileAsync(e.OldFilePath, e.FilePath);
+                    } else {
+                        RenameFile(e.OldFilePath, e.FilePath);
+                    }
                     break;
                 default:
                     throw new InvalidOperationException("Invalid FileEventType");

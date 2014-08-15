@@ -18,7 +18,7 @@ using System;
 // associated with an assembly.
 [assembly: AssemblyTitle("ABB.SrcML.Data.Test")]
 [assembly: AssemblyProduct("ABB.SrcML.Data.Test")]
-[assembly: AssemblyDescription("Tests for SrcML Data with incremental update")]
+[assembly: AssemblyDescription("SrcML Data Tests")]
 [assembly: AssemblyCopyright("Copyright © ABB 2013")]
 
 [assembly: CLSCompliant(true)]
@@ -29,4 +29,6 @@ using System;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("7CABD7D6-6BA4-4191-9EE5-797BB0AB0A7A")]
+[assembly: Guid("3a233628-81e4-459d-8d4e-de4cefbe36c3")]
+
+
