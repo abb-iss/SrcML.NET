@@ -33,7 +33,7 @@
   </Target>
   
   <Target Name="Test" DependsOnTargets="Build" Condition="Exists('@(TestRunner)')">
-    <Exec Command="@(TestRunner) @(TestProject) /exclude=Todo,LongRunning" />
+    <Exec Command="@(TestRunner) @(TestProject) /exclude=Todo,LongRunning,SrcMLUpdate" />
   </Target>
   
   <Target Name="TestData" DependsOnTargets="Build" Condition="Exists('@(TestRunner)')">
