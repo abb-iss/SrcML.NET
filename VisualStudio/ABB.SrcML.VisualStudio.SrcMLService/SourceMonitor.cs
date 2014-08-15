@@ -90,32 +90,33 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         }
 
         /// <summary>
-        /// Gets the full directory path that contains the
+        /// Gets the set of full directory paths that contains the
         /// <paramref name="solution"/></summary>
         /// <param name="solution">The solution</param>
-        /// <returns>The absolute path to the directory that contains the solution</returns>
-        public static string GetSolutionPath(Solution solution) {
+        /// <returns>The set of absolute paths to the directory that contains the solution's files</returns>
+        public static List<string> GetSolutionPaths(Solution solution) {
             if(null == solution) {
                 throw new ArgumentNullException("solution");
             }
 
-            string solutionFilePath = Path.GetFullPath(Path.GetDirectoryName(solution.FullName));
             var solutionFiles = GetSolutionFiles(solution);
-            string commonPath = Utilities.FileHelper.GetCommonPath(solutionFilePath, solutionFiles);
-            if(DirectoryIsForbidden(commonPath)) {
-                commonPath = solutionFilePath;
-            }
-            return commonPath;
+            solutionFiles.Add(solution.FullName);
+            var commonPaths = Utilities.FileHelper.GetCommonPathList(solutionFiles);
+            return commonPaths;
         }
 
         /// <summary>
-        /// Adds the root directory for the <see cref="MonitoredSolution">monitored solution</see>
+        /// Adds the directories for the <see cref="MonitoredSolution">monitored solution</see>
         /// to <see cref="DirectoryScanningMonitor.MonitoredDirectories"/>.
         /// </summary>
-        public void AddSolutionDirectory() {
-            var solutionPath = GetSolutionPath(MonitoredSolution);
-            if(!DirectoryHasTooManyFiles(solutionPath)) {
-                AddDirectory(GetSolutionPath(MonitoredSolution));
+        public void AddSolutionDirectories() {
+            var solutionPaths = GetSolutionPaths(MonitoredSolution);
+            foreach (var solutionPath in solutionPaths)
+            {
+                if (!DirectoryHasTooManyFiles(solutionPath))
+                {
+                    AddDirectory(solutionPath);
+                }                
             }
         }
 
