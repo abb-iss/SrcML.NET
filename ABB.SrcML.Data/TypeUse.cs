@@ -107,7 +107,18 @@ namespace ABB.SrcML.Data {
             //If there's a calling expression, match and search under results
             var callingScopes = GetCallingScope();
             if(callingScopes != null) {
-                return callingScopes.SelectMany(s => s.GetNamedChildren<TypeDefinition>(this.Name));
+                IEnumerable<TypeDefinition> matches = Enumerable.Empty<TypeDefinition>();
+                foreach(var scope in callingScopes) {
+                    var localMatches = scope.GetNamedChildren<TypeDefinition>(this.Name).ToList();
+                    var callingType = scope as TypeDefinition;
+                    if(!localMatches.Any() && callingType != null) {
+                        //also search under the base types of the calling scope
+                        matches = matches.Concat(callingType.SearchParentTypes<TypeDefinition>(this.Name, e => true));
+                    } else {
+                        matches = matches.Concat(localMatches);
+                    }
+                }
+                return matches;
             }
 
             //handle C# var keyword
