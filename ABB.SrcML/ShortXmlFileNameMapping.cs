@@ -21,6 +21,7 @@ namespace ABB.SrcML {
         //maps source path to xml path
         //TODO should support case insensitive paths, add option in constructor
         private Dictionary<string, string> mapping;
+        private Dictionary<string, string> reverseMapping;
 
         //maps source files names (without path) to a count of how many times that name has been seen
         private Dictionary<string, int> nameCount;
@@ -33,9 +34,11 @@ namespace ABB.SrcML {
             : base(xmlDirectory) {
             if(CheckIfDirectoryIsCaseInsensitive(xmlDirectory)) {
                 mapping = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase);
+                reverseMapping = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase);
                 nameCount = new Dictionary<string, int>(StringComparer.CurrentCultureIgnoreCase);
             } else {
                 mapping = new Dictionary<string, string>();
+                reverseMapping = new Dictionary<string, string>();
                 nameCount = new Dictionary<string, int>();
             }
             ReadMapping();
@@ -59,13 +62,11 @@ namespace ABB.SrcML {
             if(!Path.IsPathRooted(xmlPath)) {
                 xmlPath = Path.Combine(XmlDirectory, xmlPath);
             }
-            string result = null;
+            
             lock(mappingLock) {
-                result = (from kvp in mapping
-                          where xmlPath.Equals(kvp.Value, StringComparison.CurrentCultureIgnoreCase)
-                          select kvp.Key).FirstOrDefault();
+                string result = null;
+                return (reverseMapping.TryGetValue(xmlPath, out result) ? result : null);
             }
-            return result;
         }
 
         /// <summary>
@@ -92,6 +93,7 @@ namespace ABB.SrcML {
 
                     xmlPath = Path.Combine(XmlDirectory, string.Format("{0}.{1}.xml", sourceName, newNameNum));
                     mapping[sourcePath] = xmlPath;
+                    reverseMapping[xmlPath] = sourcePath;
                 }
             }
             return xmlPath;
@@ -118,6 +120,7 @@ namespace ABB.SrcML {
         protected void ProcessMapFileEntry(string sourcePath, string xmlPath) {
             lock(mappingLock) {
                 mapping[sourcePath] = xmlPath;
+                reverseMapping[xmlPath] = sourcePath;
                 //determine duplicate number
                 var m = Regex.Match(xmlPath, @"\.(\d+)\.xml$");
                 if(m.Success) {
