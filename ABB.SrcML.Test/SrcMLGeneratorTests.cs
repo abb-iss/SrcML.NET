@@ -63,6 +63,11 @@ namespace LoggingTransformation
 }
 ");
             File.WriteAllText("srcmltest\\File with spaces.cpp", String.Format(@"int foo() {{{0}    printf(""hello world!"");{0}}}", Environment.NewLine));
+
+            Directory.CreateDirectory("badPathTest");
+            Directory.CreateDirectory("badPathTest\\BadPath™");
+            File.WriteAllText("badPathTest\\BadPath™\\badPathTest.c", String.Format(@"int foo() {{{0}printf(""hello world!"");{0}}}", Environment.NewLine));
+            File.WriteAllText("badPathTest\\fooBody.c", String.Format(@"int foo() {{{0}printf(""hello world!™"");{0}}}", Environment.NewLine));
         }
 
         [TestFixtureTearDown]
@@ -90,6 +95,14 @@ namespace LoggingTransformation
         public void DifferentLanguageTest() {
             generator.GenerateSrcMLFromFile("srcmltest\\CSHARP.cs", "srcml_xml\\differentlanguage_java.xml", Language.Java);
             var doc = new SrcMLFile("srcml_xml\\differentlanguage_java.xml");
+            Assert.IsNotNull(doc);
+        }
+
+        [Test, Category("SrcMLUpdate")]
+        public void TestStrangeEncodings([Values(@"badPathTest\BadPath™\badPathTest.c", @"srcmltest\fooBody.c")] string sourceFileName) {
+            var xmlFileName = Path.Combine("srcml_xml", Path.GetFileName(Path.ChangeExtension(sourceFileName, ".xml")));
+            generator.GenerateSrcMLFromFile(sourceFileName, xmlFileName, Language.C);
+            var doc = new SrcMLFile(xmlFileName);
             Assert.IsNotNull(doc);
         }
 
@@ -172,6 +185,8 @@ printf(""hello world!"");
         public void ExclusionFilterTest() {
             var exclusionList = new List<string>();
             exclusionList.Add("srcmltest\\bar.c");
+            exclusionList.Add("srcmltest\\BadPath™\\badPathTest.c");
+            exclusionList.Add("srcmltest\\fooBody.c");
 
             var doc = generator.GenerateSrcMLFileFromDirectory("srcmltest", "srcml_xml\\exclusionfilter.xml", exclusionList, Language.C);
 

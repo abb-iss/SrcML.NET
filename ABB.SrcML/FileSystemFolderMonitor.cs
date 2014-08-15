@@ -21,9 +21,16 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="pathToSourceFolder">The folder to watch</param>
         /// <param name="monitoringStorage">The base directory for the archive data</param>
+        public FileSystemFolderMonitor(string pathToSourceFolder, string monitoringStorage) : this(pathToSourceFolder, monitoringStorage, null) { }
+
+        /// <summary>
+        /// Creates a new file system monitor
+        /// </summary>
+        /// <param name="pathToSourceFolder">The folder to watch</param>
+        /// <param name="monitoringStorage">The base directory for the archive data</param>
         /// <param name="defaultArchive">The default archive</param>
         /// <param name="otherArchives">Other archives to register</param>
-        public FileSystemFolderMonitor(string pathToSourceFolder, string monitoringStorage, IArchive defaultArchive, params IArchive[] otherArchives)
+        public FileSystemFolderMonitor(string pathToSourceFolder, string monitoringStorage, AbstractArchive defaultArchive, params AbstractArchive[] otherArchives)
             : base(monitoringStorage, defaultArchive, otherArchives) {
             this.FullFolderPath = pathToSourceFolder;
             this._monitorStorageInfo = new DirectoryInfo(monitoringStorage);
@@ -139,7 +146,7 @@ namespace ABB.SrcML {
         /// <returns>True if the path is in the see
         /// cref="AbstractFileMonitor.MonitorStoragePath"/></returns>
         private bool IsNotInMonitoringStorage(string filePath) {
-            return !Path.GetFullPath(filePath).StartsWith(_monitorStorageInfo.FullName, StringComparison.InvariantCultureIgnoreCase);
+            return !Path.GetFullPath(filePath).StartsWith(_monitorStorageInfo.FullName, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>

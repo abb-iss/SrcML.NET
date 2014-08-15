@@ -21,7 +21,7 @@ namespace ABB.SrcML.VisualStudio.PreviewAddIn
     {
         public override bool Equals(DirectoryInfo x, DirectoryInfo y)
         {
-            return (x.FullName.Equals(y.FullName, StringComparison.InvariantCultureIgnoreCase));
+            return (x.FullName.Equals(y.FullName, StringComparison.OrdinalIgnoreCase));
         }
 
         public override int GetHashCode(DirectoryInfo obj)

@@ -1,0 +1,651 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<logicalClassDesignerModel xmlns:dm0="http://schemas.microsoft.com/VisualStudio/2008/DslTools/Core" xmlns:dm1="http://schemas.microsoft.com/dsltools/Kernel" xmlns:dm2="http://schemas.microsoft.com/dsltools/Component" xmlns:dm3="http://schemas.microsoft.com/dsltools/UseCase" xmlns:dm4="http://schemas.microsoft.com/dsltools/Activity" xmlns:dm5="http://schemas.microsoft.com/dsltools/Interaction" xmlns:dm6="http://schemas.microsoft.com/dsltools/UmlModelLibrary" xmlns:dm7="http://schemas.microsoft.com/dsltools/UmlDiagrams" xmlns:dm8="http://schemas.microsoft.com/dsltools/ModelStore" dslVersion="1.0.0.0" Id="6bec1f99-6a2f-4087-bde7-f13bc8a2bd69" name="Data Classes" linkedPackageId="c02869ee-47c8-48ad-8d27-a1ad32da6c58" xmlns="http://schemas.microsoft.com/dsltools/LogicalClassDesigner">
+  <packagedElements>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="bba6f67c-b6ff-476b-8cdb-162ca35391c0" name="Statement" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="3c930dc3-adce-4432-b0c6-c7f3341a7529" />
+        <ownedAttributesInternal>
+          <property Id="64ae753b-8958-44bd-98f2-ed88214f94f6" name="ChildStatements" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="cf44b83e-956f-49a1-b61c-e283b8ffe462" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="2caa7348-b7fa-44fd-91cd-3dd3174882c9" LastKnownName="List&lt;Statement&gt;" />
+            </type_NamedElement>
+          </property>
+          <property Id="f952e8b7-7728-4564-bc8e-6eb192401a0c" name="Content" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="88d7826b-cb86-428a-8b18-11e53571df67" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="a92c54d7-86fe-4d2f-a6cb-a03441cc7214" LastKnownName="Expression" />
+            </type_NamedElement>
+          </property>
+          <property Id="e6db11db-bc77-40f0-adc8-ca4bff238b57" name="ParentStatement" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="4b7137d1-9b19-483e-8eaa-b218d12299fb" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="b6d4f277-0ff7-4ac0-a5b1-69c65c731ff7" LastKnownName="Statement" />
+            </type_NamedElement>
+          </property>
+          <property Id="7b7adbbd-453a-4f5e-9827-746ced4a44fd" name="Location" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="7ce41e5e-004c-498c-848c-5e7bfcfeaedb" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="513d5402-ce48-4f5b-8765-07d2d927359f" LastKnownName="SrcMLLocation" />
+            </type_NamedElement>
+          </property>
+          <property Id="0d9b2330-cb4e-42d4-87c1-4cd76543a216" name="ProgrammingLanuage" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="9fd648ce-280e-4ab2-96dc-0f783f185da1" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="82bdff9c-ae81-4029-8289-b4c642ea591e" LastKnownName="Language" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="2b9726cd-56c5-4487-83c0-34a8bcd35eef" name="ConditionBlockStatement" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="f65cbc43-775f-4cdc-bcc5-c80f16b3d1a2" />
+        <generalsInternal>
+          <generalization Id="89538b99-6be0-4ca5-92ce-3590759e0917" isSubstitutable="false">
+            <classMoniker Id="206039a4-2f20-481d-916c-8cbbc82b271a" LastKnownName="BlockStatement" />
+            <elementDefinition Id="b24bf599-e5e4-4f5b-a900-d64ed30a17db" />
+          </generalization>
+        </generalsInternal>
+        <ownedAttributesInternal>
+          <property Id="2c2dcf5c-6d19-4f6a-a583-fec29f0cfc72" name="Condition" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="85a8e560-a85e-4462-82c8-0d0fac44e5bf" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="211d32f2-01d6-49b5-a838-03031095d474" LastKnownName="Expression" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="706b729e-88df-46c8-90c6-c4343d494b6c" name="NamedScope" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="1607c58d-ba82-4dcf-87f4-f268ec7bd572" />
+        <generalsInternal>
+          <generalization Id="9863820d-4fc9-404d-b055-6d093a23e6a4" isSubstitutable="false">
+            <classMoniker Id="206039a4-2f20-481d-916c-8cbbc82b271a" LastKnownName="BlockStatement" />
+            <elementDefinition Id="6883356e-d8d9-4c56-b897-7d49ccebcad6" />
+          </generalization>
+        </generalsInternal>
+        <ownedAttributesInternal>
+          <property Id="87d26c2f-4543-41bf-bec8-6fd6c6ffe7f3" name="Name" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="a3e30a16-a709-4599-9ade-9ff241827a61" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="0a9527c3-6ad3-4c5c-a6e2-ae7be648daf6" LastKnownName="string" />
+            </type_NamedElement>
+          </property>
+          <property Id="2b114d3a-7029-4c25-aa4f-508b958f8e41" name="Accessibility" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="bfebd20f-0db9-4fa5-b035-36215d45d277" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="7e908d86-d516-44ad-9b74-89a8d0222fc9" LastKnownName="AccessModifier" />
+            </type_NamedElement>
+          </property>
+          <property Id="a4183c17-f946-460c-92ff-8b0a96e7a089" name="Prefix" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="89e11905-645f-40d6-b0ab-26b3fe48aa9b" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="839b41ff-45d8-4ff8-bb57-7706faef5215" LastKnownName="NamePrefix" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="78d2e495-e908-4e9c-9c26-f44ce98ac150" name="IfStatement" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="c31db2db-6f69-43b2-a77b-d15fbcef6804" />
+        <generalsInternal>
+          <generalization Id="319a30ef-b986-4841-bd1b-80f049d061af" isSubstitutable="false">
+            <classMoniker Id="2b9726cd-56c5-4487-83c0-34a8bcd35eef" LastKnownName="ConditionBlockStatement" />
+            <elementDefinition Id="0541f70d-f162-4c36-bda0-b3529044c0c8" />
+          </generalization>
+        </generalsInternal>
+        <ownedAttributesInternal>
+          <property Id="208cf6e0-3671-4760-9726-6d1e48f84e4d" name="ElseStatements" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="52e122ab-3d25-4159-9b45-847c7232ecc5" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="e5835200-712b-4e2f-9b16-2f45631e3ce7" LastKnownName="List&lt;Statement&gt;" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="5a3dfe8e-b31a-43eb-b509-ed65159b637e" name="WhileStatement" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="a5e1b7a1-974d-4e5e-8eaf-35f7fcb4aafc" />
+        <generalsInternal>
+          <generalization Id="97fd24a7-c3d2-4da4-9c5c-1a46eb52faf6" isSubstitutable="false">
+            <classMoniker Id="2b9726cd-56c5-4487-83c0-34a8bcd35eef" LastKnownName="ConditionBlockStatement" />
+            <elementDefinition Id="c6eea19d-feea-4caa-ad72-a4b0bca2ea36" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="4484a71c-dc48-447b-98b7-fea033df120f" name="DoWhileStatement" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="63221300-6569-4bbc-8785-a59c64f5f040" />
+        <generalsInternal>
+          <generalization Id="5aebcbdc-3c75-4177-8f5f-4300b280998a" isSubstitutable="false">
+            <classMoniker Id="2b9726cd-56c5-4487-83c0-34a8bcd35eef" LastKnownName="ConditionBlockStatement" />
+            <elementDefinition Id="a38ded9d-6a8b-434a-a46c-90f9cb9860f5" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="45859046-625b-41c0-b701-77d462f6f637" name="ForStatement" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="cc4cd101-008a-410d-a028-2e22a1bb717e" />
+        <generalsInternal>
+          <generalization Id="f2a2037b-a3da-4d86-8517-57685c7f979f" isSubstitutable="false">
+            <classMoniker Id="2b9726cd-56c5-4487-83c0-34a8bcd35eef" LastKnownName="ConditionBlockStatement" />
+            <elementDefinition Id="8c2d4ba4-7c69-424f-8592-b9a02c28f0fe" />
+          </generalization>
+        </generalsInternal>
+        <ownedAttributesInternal>
+          <property Id="33bcc58a-753c-4142-8c46-c37a8decbafb" name="Initializer" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="996f41ac-28c2-4616-9287-189491d4c611" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="211d32f2-01d6-49b5-a838-03031095d474" LastKnownName="Expression" />
+            </type_NamedElement>
+          </property>
+          <property Id="f465f90d-8126-4927-ac0b-5c3adac1471a" name="Incrementer" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="a05f5d8b-20a4-49e9-89d5-e9134d88e4d2" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="211d32f2-01d6-49b5-a838-03031095d474" LastKnownName="Expression" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="206039a4-2f20-481d-916c-8cbbc82b271a" name="BlockStatement" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="7a7410c0-4ae3-4d66-9648-d73cab92af7c" />
+        <generalsInternal>
+          <generalization Id="95921b4f-f5b5-4760-872f-87ea68da8750" isSubstitutable="false">
+            <classMoniker Id="bba6f67c-b6ff-476b-8cdb-162ca35391c0" LastKnownName="Statement" />
+            <elementDefinition Id="59de86e8-651b-459e-80c7-881c1d42af80" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="dc2e393c-a684-45c2-8513-09fa8258cc02" name="MethodDefinition" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="ea703639-bf4a-4f37-bfbe-5e8f5320e541" />
+        <generalsInternal>
+          <generalization Id="c13f9c6b-82e7-4831-b094-f602d3082f51" isSubstitutable="false">
+            <classMoniker Id="706b729e-88df-46c8-90c6-c4343d494b6c" LastKnownName="NamedScope" />
+            <elementDefinition Id="8603d49b-ed47-4da4-b445-4a97886ea291" />
+          </generalization>
+        </generalsInternal>
+        <ownedAttributesInternal>
+          <property Id="cfa193bb-7f70-4053-801b-32c20569f5be" name="IsConstructor" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="4b1d12e0-e6d1-4483-b6ee-b02f835d6c1a" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="faa9f22d-98d5-4726-8409-6f1e44681455" LastKnownName="bool" />
+            </type_NamedElement>
+          </property>
+          <property Id="c7b5f9c3-4116-455c-9822-409c54294072" name="IsDestructor" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="b7adf0d1-23f1-4d3e-bc4c-c1f9d5b9acfc" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="faa9f22d-98d5-4726-8409-6f1e44681455" LastKnownName="bool" />
+            </type_NamedElement>
+          </property>
+          <property Id="351f1aec-93a9-44fe-8de7-26d1d4508b05" name="Parameters" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="08fb75eb-4554-4ff7-a39d-b19c5033d9c8" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="f9dc93cb-99bc-4676-9dbc-ec07782eb681" LastKnownName="ReadOnlyCollection&lt;VariableDeclaration&gt;" />
+            </type_NamedElement>
+          </property>
+          <property Id="320fa800-9d9c-49c5-b284-e89bbef7435e" name="ReturnType" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="bb1c02fd-717f-413c-a2a9-4e40f6532ebe" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="87179d1c-9aba-4158-87a2-58749d0b6898" LastKnownName="TypeUse" />
+            </type_NamedElement>
+          </property>
+          <property Id="0d8d8b26-bb66-4f4b-a6ba-b1b1a85c542b" name="IsPartial" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="e22c420e-05d4-482e-9708-cb5609d0ab9e" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="faa9f22d-98d5-4726-8409-6f1e44681455" LastKnownName="bool" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="62b3fa11-5a37-4a6b-902e-83c93ea17c65" name="TypeDefinition" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="e02cc525-99c0-4688-a058-418d2cdc0343" />
+        <generalsInternal>
+          <generalization Id="4202e129-b09c-4366-a5d3-9e08061005e2" isSubstitutable="false">
+            <classMoniker Id="706b729e-88df-46c8-90c6-c4343d494b6c" LastKnownName="NamedScope" />
+            <elementDefinition Id="c08cdb74-98ab-4fcd-b391-f0f612b00576" />
+          </generalization>
+        </generalsInternal>
+        <ownedAttributesInternal>
+          <property Id="01ac3fe8-a922-40a9-a07a-ab730bf6a0ec" name="IsPartial" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="5be9439e-30dd-4acf-a248-e7a42c1fe316" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="faa9f22d-98d5-4726-8409-6f1e44681455" LastKnownName="bool" />
+            </type_NamedElement>
+          </property>
+          <property Id="d42f2e7d-493f-44bf-824e-a67f6b69a016" name="ParentTypes" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="cf745a50-8924-46f0-ae53-8eb9cdc7b8ea" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="4ce0a8cd-2489-48e6-8a0d-4650e434af7f" LastKnownName="ReadOnlyCollection&lt;TypeUse&gt;" />
+            </type_NamedElement>
+          </property>
+          <property Id="8168bb02-523e-4153-ab57-90e464913dc8" name="Kind" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="071dc01f-1a5a-416c-b772-60574f3d4fd3" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="8cf7c8ee-4972-4638-b5ed-290c1b303600" LastKnownName="TypeKind" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="ee4f557e-2a0e-4c85-a4f9-634a157a13e1" name="NamespaceDefinition" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="6a6abe7e-6097-42b6-b710-76741ea6a458" />
+        <generalsInternal>
+          <generalization Id="90859541-4953-49dc-a0f3-f26963065248" isSubstitutable="false">
+            <classMoniker Id="706b729e-88df-46c8-90c6-c4343d494b6c" LastKnownName="NamedScope" />
+            <elementDefinition Id="d43fa8b0-9796-4254-8edd-50a968f3e3fb" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <packageHasNamedElement>
+      <referencedType Id="211d32f2-01d6-49b5-a838-03031095d474" name="Expression" isAbstract="false" isLeaf="false" cachedFullName="ABB.SrcML.Data.ExpressionParsingModels::Expression">
+        <elementDefinition Id="ff2b925f-ec79-4d11-9dba-63fbc8f033f0" />
+      </referencedType>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <referencedType Id="b6d4f277-0ff7-4ac0-a5b1-69c65c731ff7" name="Statement" isAbstract="false" isLeaf="false" cachedFullName="ABB.SrcML.Data.ExpressionParsingModels::Statement">
+        <elementDefinition Id="3c930dc3-adce-4432-b0c6-c7f3341a7529" />
+      </referencedType>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <referencedType Id="2caa7348-b7fa-44fd-91cd-3dd3174882c9" name="List&lt;Statement&gt;" isAbstract="false" isLeaf="false" cachedFullName="List&lt;Statement&gt;">
+        <elementDefinition Id="a6babaf8-f2b0-4a1f-b697-ad22badcfd8a" />
+      </referencedType>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <referencedType Id="513d5402-ce48-4f5b-8765-07d2d927359f" name="SrcMLLocation" isAbstract="false" isLeaf="false" cachedFullName="SrcMLLocation">
+        <elementDefinition Id="1cb32fe6-31d3-4531-a27e-9c9b96dfa006" />
+      </referencedType>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <referencedType Id="82bdff9c-ae81-4029-8289-b4c642ea591e" name="Language" isAbstract="false" isLeaf="false" cachedFullName="Language">
+        <elementDefinition Id="d74ec8bb-fbf2-4c20-9d88-e4fd7a3d0e33" />
+      </referencedType>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <referencedType Id="0a9527c3-6ad3-4c5c-a6e2-ae7be648daf6" name="string" isAbstract="false" isLeaf="false" cachedFullName="string">
+        <elementDefinition Id="4ceef1e5-e238-408b-bfe9-61c4e8684453" />
+      </referencedType>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <referencedType Id="7e908d86-d516-44ad-9b74-89a8d0222fc9" name="AccessModifier" isAbstract="false" isLeaf="false" cachedFullName="AccessModifier">
+        <elementDefinition Id="7ac1df72-c4ab-4ee5-8de0-bfbea8ed55a9" />
+      </referencedType>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <referencedType Id="faa9f22d-98d5-4726-8409-6f1e44681455" name="bool" isAbstract="false" isLeaf="false" cachedFullName="bool">
+        <elementDefinition Id="d39bfaba-eefe-42e2-8831-1a3e1d49b5e2" />
+      </referencedType>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <referencedType Id="87179d1c-9aba-4158-87a2-58749d0b6898" name="TypeUse" isAbstract="false" isLeaf="false" cachedFullName="TypeUse">
+        <elementDefinition Id="0d124821-8099-4b40-a1be-d29db7839dc2" />
+      </referencedType>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <referencedType Id="4ce0a8cd-2489-48e6-8a0d-4650e434af7f" name="ReadOnlyCollection&lt;TypeUse&gt;" isAbstract="false" isLeaf="false" cachedFullName="ReadOnlyCollection&lt;TypeUse&gt;">
+        <elementDefinition Id="5f799c93-a95e-4c83-8adb-80a5bea50a80" />
+      </referencedType>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <referencedType Id="8cf7c8ee-4972-4638-b5ed-290c1b303600" name="TypeKind" isAbstract="false" isLeaf="false" cachedFullName="TypeKind">
+        <elementDefinition Id="7bd41874-7849-4316-a618-5ba0498226cc" />
+      </referencedType>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <referencedType Id="e5835200-712b-4e2f-9b16-2f45631e3ce7" name="List&lt;Statement&gt;" isAbstract="false" isLeaf="false" cachedFullName="List&lt;Statement&gt;">
+        <elementDefinition Id="a6babaf8-f2b0-4a1f-b697-ad22badcfd8a" />
+      </referencedType>
+    </packageHasNamedElement>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="55770fdb-948f-4134-bd8f-df57cfefc66f" name="ForeachStatement" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="43ffb922-37db-42d7-b86b-57f441b4f57a" />
+        <generalsInternal>
+          <generalization Id="b3a5d711-220c-465e-98b2-b4e5ba97c2c2" isSubstitutable="false">
+            <classMoniker Id="2b9726cd-56c5-4487-83c0-34a8bcd35eef" LastKnownName="ConditionBlockStatement" />
+            <elementDefinition Id="e35b4602-82d8-403f-aa2c-a2953e8e304a" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="c6b08351-fef9-402c-a81f-87a908e8f540" name="SwitchStatement" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="bda8d524-f4ff-4222-ba70-a0fa073c6df3" />
+        <generalsInternal>
+          <generalization Id="0436ba13-e7e3-4ae0-b671-97cf520e7167" isSubstitutable="false">
+            <classMoniker Id="2b9726cd-56c5-4487-83c0-34a8bcd35eef" LastKnownName="ConditionBlockStatement" />
+            <elementDefinition Id="29588245-7e99-4021-b7f3-0f43fe75a7f7" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="2018dd30-b170-4396-b8ee-08951c809e0f" name="CaseStatement" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="e113fefc-4fce-412e-afee-e98d20a34a40" />
+        <generalsInternal>
+          <generalization Id="8d95deb8-bf07-419f-b326-6a25903073b3" isSubstitutable="false">
+            <classMoniker Id="2b9726cd-56c5-4487-83c0-34a8bcd35eef" LastKnownName="ConditionBlockStatement" />
+            <elementDefinition Id="70794eed-031b-4357-b672-f5a7d8907580" />
+          </generalization>
+        </generalsInternal>
+        <ownedAttributesInternal>
+          <property Id="3a68298f-ff78-495e-a8b6-80865b8cf5b1" name="IsDefault" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="303f42af-f7b1-4dac-8bdb-29c59d253cd3" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="faa9f22d-98d5-4726-8409-6f1e44681455" LastKnownName="bool" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="45034ae6-5319-4e21-a628-29377e158641" name="BreakStatement" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="9ea240d3-2b32-4bf3-b407-ec1bb197c6d8" />
+        <generalsInternal>
+          <generalization Id="ae18d212-96cc-4996-adfd-8d74f8d7afd0" isSubstitutable="false">
+            <classMoniker Id="bba6f67c-b6ff-476b-8cdb-162ca35391c0" LastKnownName="Statement" />
+            <elementDefinition Id="8fa9a0d0-10ed-435a-a74e-cd3904fff8c7" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="ac6d0bb7-e676-4177-9f3f-786c8901cb33" name="ContinueStatement" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="798bef1e-d721-40bb-947a-67590b539863" />
+        <generalsInternal>
+          <generalization Id="da75aaad-d98b-42e3-bb62-72b23268c49c" isSubstitutable="false">
+            <classMoniker Id="bba6f67c-b6ff-476b-8cdb-162ca35391c0" LastKnownName="Statement" />
+            <elementDefinition Id="ed530c7f-d0c5-4398-a1a9-d7c56fc22ae4" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="85b77326-4408-4cca-bb4f-54f41059dfcf" name="GotoStatement" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="b7c5621d-950e-4485-b7c4-660c93905f85" />
+        <generalsInternal>
+          <generalization Id="2f4e8eb6-74cb-4e53-a7e7-aa950fd58778" isSubstitutable="false">
+            <classMoniker Id="bba6f67c-b6ff-476b-8cdb-162ca35391c0" LastKnownName="Statement" />
+            <elementDefinition Id="01035dbd-bf45-460a-81df-805529ac6085" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="bd1f7629-46eb-482a-a21c-76b037629b35" name="ReturnStatement" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="bf7e7619-4e40-4764-96e2-519118a5e741" />
+        <generalsInternal>
+          <generalization Id="110d4d67-4e5d-42a6-a29d-252c1a67fbdf" isSubstitutable="false">
+            <classMoniker Id="bba6f67c-b6ff-476b-8cdb-162ca35391c0" LastKnownName="Statement" />
+            <elementDefinition Id="2bc65d07-a815-4dcd-8b2d-4924e1d134f4" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <packageHasNamedElement>
+      <referencedType Id="a92c54d7-86fe-4d2f-a6cb-a03441cc7214" name="Expression" isAbstract="false" isLeaf="false" cachedFullName="ABB.SrcML.Data.ExpressionParsingModels::Expression">
+        <elementDefinition Id="ff2b925f-ec79-4d11-9dba-63fbc8f033f0" />
+      </referencedType>
+    </packageHasNamedElement>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="78546146-35c2-442c-b91e-5b31fe3cde3f" name="ImportStatement" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="7a3f9daf-8845-4da0-b3b1-c751078949ca" />
+        <generalsInternal>
+          <generalization Id="83c99a73-ad88-4c64-8344-45b1b6e313bd" isSubstitutable="false">
+            <classMoniker Id="bba6f67c-b6ff-476b-8cdb-162ca35391c0" LastKnownName="Statement" />
+            <elementDefinition Id="847ea873-57a3-4e30-9711-29546317106f" />
+          </generalization>
+        </generalsInternal>
+        <ownedAttributesInternal>
+          <property Id="155a66fe-3832-41be-9137-dd3d965872d3" name="ImportedNamespace" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="1a719b0f-13ff-4c7e-a2dd-8033b6285028" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="c97ae5e6-1a47-45d2-913b-c91d9cf924b9" LastKnownName="NamespaceUse" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="f349b1ab-3c39-45ce-8766-dd1bc20c6844" name="UsingBlockStatement" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="f2283a8f-a469-4567-a602-6e8de25a8691" />
+        <generalsInternal>
+          <generalization Id="17033f87-4ead-42f4-b84a-55b68df31b33" isSubstitutable="false">
+            <classMoniker Id="206039a4-2f20-481d-916c-8cbbc82b271a" LastKnownName="BlockStatement" />
+            <elementDefinition Id="9302354f-5fea-4383-aff6-6d823a5c0171" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="0a5992d0-b6ac-42f8-881d-d28a92cee10a" name="LabelStatement" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="4ed8d9df-9846-4cae-8ac9-38c5eca147b8" />
+        <generalsInternal>
+          <generalization Id="349b44f8-b7d9-4d9f-872e-b2aed67db971" isSubstitutable="false">
+            <classMoniker Id="bba6f67c-b6ff-476b-8cdb-162ca35391c0" LastKnownName="Statement" />
+            <elementDefinition Id="6dfe7f97-8503-4282-a6aa-278c757676c4" />
+          </generalization>
+        </generalsInternal>
+        <ownedAttributesInternal>
+          <property Id="9ee7fc14-da1d-4e37-a98a-08dee98e4fda" name="Name" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="597b785f-445a-49a8-85b7-22cd52ab68be" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="0a9527c3-6ad3-4c5c-a6e2-ae7be648daf6" LastKnownName="string" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="c3fe522b-b27a-44ba-854e-b0035faa7771" name="ThrowStatement" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="9ecc51d0-bdd5-4c1c-bf96-50cab6d70185" />
+        <generalsInternal>
+          <generalization Id="8f3f16b7-72a7-4d1e-8bbc-833d73fd7edd" isSubstitutable="false">
+            <classMoniker Id="bba6f67c-b6ff-476b-8cdb-162ca35391c0" LastKnownName="Statement" />
+            <elementDefinition Id="4b55d1a8-9eff-4e52-ad61-fb41dc175704" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="501c09dc-ed8b-47e4-9d91-da97abb9d5fc" name="TryStatement" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="ae2bf850-0a13-4188-94b4-b07a1d05d4dd" />
+        <generalsInternal>
+          <generalization Id="f356af2d-31b9-4389-9fb9-5c4c5e27e13a" isSubstitutable="false">
+            <classMoniker Id="206039a4-2f20-481d-916c-8cbbc82b271a" LastKnownName="BlockStatement" />
+            <elementDefinition Id="a83ce80e-4fcb-4833-80b9-60a08b55b72d" />
+          </generalization>
+        </generalsInternal>
+        <ownedAttributesInternal>
+          <property Id="e1f50207-c8ad-48f6-aee1-81e2ede12ee1" name="FinallyStatements" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="881620df-44bf-4b26-9c3a-01b7df44fa34" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="0ed0c8d8-2e25-4bdb-9631-bd2afa79bd7f" LastKnownName="Collection&lt;Statements&gt;" />
+            </type_NamedElement>
+          </property>
+          <property Id="665d1f80-da08-43d2-9162-e182871de4c9" name="CatchStatements" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="083bf5c5-ea9c-40b8-9d1d-abef60564030" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="d0cbbc07-3d02-4376-bf5b-4b3b2c18f264" LastKnownName="Collection&lt;CatchStatement&gt;" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <packageHasNamedElement>
+      <referencedType Id="0ed0c8d8-2e25-4bdb-9631-bd2afa79bd7f" name="Collection&lt;Statements&gt;" isAbstract="false" isLeaf="false" cachedFullName="Collection&lt;Statements&gt;">
+        <elementDefinition Id="60fca5fd-df3a-44e7-97c3-c8f5da2766c8" />
+      </referencedType>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <referencedType Id="d0cbbc07-3d02-4376-bf5b-4b3b2c18f264" name="Collection&lt;CatchStatement&gt;" isAbstract="false" isLeaf="false" cachedFullName="Collection&lt;CatchStatement&gt;">
+        <elementDefinition Id="cbe3c1c6-dfd1-44c7-9be1-5e1b2a39e824" />
+      </referencedType>
+    </packageHasNamedElement>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="e6fe40bd-4aa3-4978-b5f6-52451af59f1b" name="CatchStatement" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="b2538637-3891-4b54-8637-9bbfab151b54" />
+        <generalsInternal>
+          <generalization Id="ba4d4a99-4eb5-4824-b2f2-35fdc2a9020a" isSubstitutable="false">
+            <classMoniker Id="206039a4-2f20-481d-916c-8cbbc82b271a" LastKnownName="BlockStatement" />
+            <elementDefinition Id="c5d831ef-07f1-46fa-867e-1044a269516a" />
+          </generalization>
+        </generalsInternal>
+        <ownedAttributesInternal>
+          <property Id="0eb742d0-1031-450e-aab1-981accc96f8e" name="Parameter" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="b080de8c-23d0-4e1e-b37a-ac894dd238b2" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="215d3dfe-7e46-4031-b7bd-3358107c02da" LastKnownName="VariableDeclaration" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <packageHasNamedElement>
+      <referencedType Id="215d3dfe-7e46-4031-b7bd-3358107c02da" name="VariableDeclaration" isAbstract="false" isLeaf="false" cachedFullName="ABB.SrcML.Data.ExpressionParsingModels::VariableDeclaration">
+        <elementDefinition Id="31c93bf3-bbfa-403b-b958-9cbb2b49c540" />
+      </referencedType>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <referencedType Id="f9dc93cb-99bc-4676-9dbc-ec07782eb681" name="ReadOnlyCollection&lt;VariableDeclaration&gt;" isAbstract="false" isLeaf="false" cachedFullName="ReadOnlyCollection&lt;VariableDeclaration&gt;">
+        <elementDefinition Id="9c100280-b35a-454f-89f5-3b181bc31fa7" />
+      </referencedType>
+    </packageHasNamedElement>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="628aedb8-2561-41eb-8edb-614511243463" name="PropertyDefinition" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="b1eed8a6-28f3-4ffe-a106-fb40dfffa84a" />
+        <generalsInternal>
+          <generalization Id="6eec18d3-6851-4245-b57c-9a89cc556772" isSubstitutable="false">
+            <classMoniker Id="706b729e-88df-46c8-90c6-c4343d494b6c" LastKnownName="NamedScope" />
+            <elementDefinition Id="71997ea5-b4ac-406c-a363-e75ff1b81eab" />
+          </generalization>
+        </generalsInternal>
+        <ownedAttributesInternal>
+          <property Id="07a2b94d-bf7c-4c6e-a962-d58ed1764244" name="Getter" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="cc05afed-5915-4d01-aeee-37378f62caa8" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="9c23b9a8-7a2c-4613-870f-4bc2de58f632" LastKnownName="MethodDefinition" />
+            </type_NamedElement>
+          </property>
+          <property Id="3e2b0d19-906a-43d7-a5d6-802edef509ea" name="Setter" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="7d4e3c5c-7cf3-4fd1-9e66-d04992c9be0e" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="9c23b9a8-7a2c-4613-870f-4bc2de58f632" LastKnownName="MethodDefinition" />
+            </type_NamedElement>
+          </property>
+          <property Id="46fa792e-4b90-4f3f-a8a6-ddbf518bfc3a" name="ReturnType" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="6b5551ae-9cee-4928-8301-79c90264c92d" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="d11c31b3-0b23-4199-9e21-1bd6c0e29173" LastKnownName="TypeUse" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <packageHasNamedElement>
+      <referencedType Id="9c23b9a8-7a2c-4613-870f-4bc2de58f632" name="MethodDefinition" isAbstract="false" isLeaf="false" cachedFullName="ABB.SrcML.Data.ExpressionParsingModels::MethodDefinition">
+        <elementDefinition Id="ea703639-bf4a-4f37-bfbe-5e8f5320e541" />
+      </referencedType>
+    </packageHasNamedElement>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="0720bafe-7182-45c0-9c9e-6d84abe59dae" name="ExternStatement" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="73fb7a2b-2041-479c-b2df-f07c4df8d4a8" />
+        <generalsInternal>
+          <generalization Id="710c94cc-aa7a-4bf9-aaf2-5ee309971193" isSubstitutable="false">
+            <classMoniker Id="bba6f67c-b6ff-476b-8cdb-162ca35391c0" LastKnownName="Statement" />
+            <elementDefinition Id="aca3046a-021b-410b-ae02-b128db1e5b64" />
+          </generalization>
+        </generalsInternal>
+        <ownedAttributesInternal>
+          <property Id="1ac21eb4-e6d0-4e55-98d8-59185b84d7f4" name="LinkageType" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="5c1a3eb2-d259-4cdd-afb7-91ad330fa99c" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="0a9527c3-6ad3-4c5c-a6e2-ae7be648daf6" LastKnownName="string" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="63fadb5d-98cd-4b7c-a6e4-f523f7dcd027" name="AliasStatement" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="bafdfbf5-5e84-42ba-985b-073f6c3ef89b" />
+        <generalsInternal>
+          <generalization Id="443a9af2-e316-46f4-b2e2-0cd354271ed0" isSubstitutable="false">
+            <classMoniker Id="bba6f67c-b6ff-476b-8cdb-162ca35391c0" LastKnownName="Statement" />
+            <elementDefinition Id="85efb7eb-dcba-4d4d-876b-756dfaf8e8f6" />
+          </generalization>
+        </generalsInternal>
+        <ownedAttributesInternal>
+          <property Id="eabe5f2c-73c6-406c-98b9-2140a6392b89" name="AliasName" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="284a3178-db18-4743-adb7-1d0c5610d86e" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="0a9527c3-6ad3-4c5c-a6e2-ae7be648daf6" LastKnownName="string" />
+            </type_NamedElement>
+          </property>
+          <property Id="19f404d7-5229-4470-b3c3-92e17f124469" name="Target" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="372cbb5b-a35f-4c75-9c3e-d71948bbb739" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="211d32f2-01d6-49b5-a838-03031095d474" LastKnownName="Expression" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <packageHasNamedElement>
+      <referencedType Id="c97ae5e6-1a47-45d2-913b-c91d9cf924b9" name="NamespaceUse" isAbstract="false" isLeaf="false" cachedFullName="ABB.SrcML.Data.ExpressionParsingModels::NamespaceUse">
+        <elementDefinition Id="da6ad556-3753-4fd9-be4e-868f9ca1435f" />
+      </referencedType>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <referencedType Id="839b41ff-45d8-4ff8-bb57-7706faef5215" name="NamePrefix" isAbstract="false" isLeaf="false" cachedFullName="ABB.SrcML.Data.ExpressionParsingModels::NamePrefix">
+        <elementDefinition Id="0195b0c6-5715-4d4a-b71c-919929a97dbf" />
+      </referencedType>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <referencedType Id="d11c31b3-0b23-4199-9e21-1bd6c0e29173" name="TypeUse" isAbstract="false" isLeaf="false" cachedFullName="ABB.SrcML.Data.ExpressionParsingModels::TypeUse">
+        <elementDefinition Id="e4d26a97-5f1a-4dc8-bef4-52a2e28a2aac" />
+      </referencedType>
+    </packageHasNamedElement>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="00f14b49-d400-4a91-8f3a-f42e36d9fbfb" name="DeclarationStatement" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="d501f85c-f971-4046-934f-20e181dbbd33" />
+        <generalsInternal>
+          <generalization Id="2c75fb3d-7154-4a7d-b5e3-47c455d6de26" isSubstitutable="false">
+            <classMoniker Id="bba6f67c-b6ff-476b-8cdb-162ca35391c0" LastKnownName="Statement" />
+            <elementDefinition Id="1d73cd11-18aa-4713-9279-e53533c6b59b" />
+          </generalization>
+        </generalsInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+  </packagedElements>
+  <package Id="c02869ee-47c8-48ad-8d27-a1ad32da6c58" name="ABB.SrcML.Data.ExpressionParsingModels">
+    <elementDefinition Id="b7d58ad4-ad72-4d67-8187-3644da97b0b7" />
+    <profileInstances>
+      <packageHasProfileInstances Id="8378e576-9fe6-4032-830d-1be3ac6181fd">
+        <profileInstance Id="a6294a11-089f-40d2-a711-44abb9571a4b" name="StandardProfileL2">
+          <elementDefinition Id="e34d544e-0fea-4ed6-ac5e-1b74119ac791" />
+        </profileInstance>
+        <elementDefinition Id="0caec977-1f8c-4ba3-a7db-8cc9ad9cc73b" />
+      </packageHasProfileInstances>
+      <packageHasProfileInstances Id="8f74dcf1-1298-471e-bf6f-22559bd49798">
+        <profileInstance Id="c477d80b-a140-4d1a-a85b-f0c09fad72f3" name="StandardProfileL3">
+          <elementDefinition Id="532ea607-fb19-44b8-8502-3351b05452be" />
+        </profileInstance>
+        <elementDefinition Id="29349502-908c-4fda-9054-c48619c59ed0" />
+      </packageHasProfileInstances>
+    </profileInstances>
+  </package>
+</logicalClassDesignerModel>

@@ -26,7 +26,7 @@ namespace ABB.SrcML {
     /// <summary>
     /// The directory scanning monitor scans a collection of directories every
     /// <see cref="ScanInterval" /> seconds for source changes and updates the appropriate
-    /// <see cref="IArchive">archives</see>. <para>The directory scanning monitor lets you
+    /// <see cref="AbstractArchive">archives</see>. <para>The directory scanning monitor lets you
     /// periodically scan a set of folders and </para>
     /// </summary>
     /// <remarks>
@@ -40,11 +40,11 @@ namespace ABB.SrcML {
 
         private static HashSet<string> Exclusions = new HashSet<string>(new List<string>() {
             "bin", "obj", "TestResults"
-        }, StringComparer.InvariantCultureIgnoreCase);
+        }, StringComparer.OrdinalIgnoreCase);
 
         private static HashSet<string> FileExclusionPrefixes = new HashSet<string>(new List<string>() {
             "#", "~", "."
-        }, StringComparer.InvariantCultureIgnoreCase);
+        }, StringComparer.OrdinalIgnoreCase);
 
         private static HashSet<string> ForbiddenDirectories = GetForbiddenDirectories();
         private static Regex BackupDirectoryRegex = new Regex(@"^backup\d*$", RegexOptions.IgnoreCase);
@@ -57,6 +57,13 @@ namespace ABB.SrcML {
         public event EventHandler<DirectoryScanningMonitorEventArgs> DirectoryRemoved;
 
         /// <summary>
+        /// Creates a new directory scanning monitor
+        /// </summary>
+        /// <param name="baseDirectory">The base directory to use for the archives of this monitor</param>
+        /// <param name="scanInterval">The <see cref="ScanInterval"/> in seconds</param>
+        public DirectoryScanningMonitor(string baseDirectory, double scanInterval) : this(MONITOR_LIST_FILENAME, scanInterval, TaskScheduler.Default, baseDirectory, null) { }
+
+        /// <summary>
         /// Create a new directory scanning monitor
         /// </summary>
         /// <param name="monitorFileName">The file name to save the list of monitored directories
@@ -66,7 +73,7 @@ namespace ABB.SrcML {
         /// monitor</param>
         /// <param name="defaultArchive">The default archive to use</param>
         /// <param name="otherArchives">Other archives for specific extensions</param>
-        public DirectoryScanningMonitor(string monitorFileName, double scanInterval, string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
+        public DirectoryScanningMonitor(string monitorFileName, double scanInterval, string baseDirectory, AbstractArchive defaultArchive, params AbstractArchive[] otherArchives)
             : base(baseDirectory, defaultArchive, otherArchives) {
             MonitoredDirectoriesFilePath = Path.Combine(baseDirectory, monitorFileName);
             folders = new List<string>();
@@ -86,7 +93,7 @@ namespace ABB.SrcML {
         /// monitor</param>
         /// <param name="defaultArchive">The default archive to use</param>
         /// <param name="otherArchives">Other archives for specific extensions</param>
-        public DirectoryScanningMonitor(string monitorFileName, double scanInterval, TaskScheduler scheduler, string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
+        public DirectoryScanningMonitor(string monitorFileName, double scanInterval, TaskScheduler scheduler, string baseDirectory, AbstractArchive defaultArchive, params AbstractArchive[] otherArchives)
             : base(scheduler, baseDirectory, defaultArchive, otherArchives) {
             MonitoredDirectoriesFilePath = Path.Combine(baseDirectory, monitorFileName);
             folders = new List<string>();
@@ -106,7 +113,7 @@ namespace ABB.SrcML {
         /// monitor</param>
         /// <param name="defaultArchive">The default archive to use</param>
         /// <param name="otherArchives">Other archives for specific extensions</param>
-        public DirectoryScanningMonitor(double scanInterval, string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
+        public DirectoryScanningMonitor(double scanInterval, string baseDirectory, AbstractArchive defaultArchive, params AbstractArchive[] otherArchives)
             : this(MONITOR_LIST_FILENAME, scanInterval, baseDirectory, defaultArchive, otherArchives) { }
 
         /// <summary>
@@ -118,7 +125,7 @@ namespace ABB.SrcML {
         /// monitor</param>
         /// <param name="defaultArchive">The default archive to use</param>
         /// <param name="otherArchives">Other archives for specific extensions</param>
-        public DirectoryScanningMonitor(string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives)
+        public DirectoryScanningMonitor(string baseDirectory, AbstractArchive defaultArchive, params AbstractArchive[] otherArchives)
             : this(MONITOR_LIST_FILENAME, DEFAULT_SCAN_INTERVAL, baseDirectory, defaultArchive, otherArchives) { }
 
         /// <summary>
@@ -203,7 +210,7 @@ namespace ABB.SrcML {
             }
 
             foreach(var directory in MonitoredDirectories) {
-                if(fullPath.StartsWith(directory, StringComparison.InvariantCultureIgnoreCase)) {
+                if(fullPath.StartsWith(directory, StringComparison.OrdinalIgnoreCase)) {
                     alreadyMonitoringDirectory = (fullPath.Length == directory.Length);
                     if(alreadyMonitoringDirectory) {
                         break;
@@ -293,7 +300,7 @@ namespace ABB.SrcML {
         /// directory</see>, false otherwise</returns>
         public bool IsMonitoringFile(string fileName) {
             var fullPath = Path.GetFullPath(fileName);
-            return MonitoredDirectories.Any(d => fullPath.StartsWith(d, StringComparison.InvariantCultureIgnoreCase));
+            return MonitoredDirectories.Any(d => fullPath.StartsWith(d, StringComparison.OrdinalIgnoreCase));
         }
 
         /// <summary>
@@ -313,7 +320,7 @@ namespace ABB.SrcML {
 
             var folderAsCollection = folders as ICollection;
             lock(folderAsCollection.SyncRoot) {
-                directoryIsMonitored = folders.Contains(directoryFullPath, StringComparer.InvariantCultureIgnoreCase);
+                directoryIsMonitored = folders.Contains(directoryFullPath, StringComparer.OrdinalIgnoreCase);
                 if(directoryIsMonitored) {
                     folders.Remove(directoryFullPath);
                 }
@@ -324,7 +331,7 @@ namespace ABB.SrcML {
                 ScanTimer.ExecuteWhenIdle(() => {
                     OnUpdateArchivesStarted(new EventArgs());
                     foreach(var fileName in GetArchivedFiles()) {
-                        if(fileName.StartsWith(directoryFullPath, StringComparison.InvariantCultureIgnoreCase)) {
+                        if(fileName.StartsWith(directoryFullPath, StringComparison.OrdinalIgnoreCase)) {
                             DeleteFile(fileName);
                         }
                     }
@@ -392,7 +399,7 @@ namespace ABB.SrcML {
         }
 
         private static HashSet<string> GetForbiddenDirectories() {
-            var forbiddenDirectories = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
+            var forbiddenDirectories = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var userProfile = Environment.GetEnvironmentVariable("USERPROFILE");
             if(null != userProfile) {
                 forbiddenDirectories.Add(GetFullPathForDirectory(userProfile));

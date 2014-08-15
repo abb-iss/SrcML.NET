@@ -16,5 +16,14 @@ using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML.Data {
-    public class DoWhileStatement : ControlStatement {}
+    /// <summary>
+    /// Represents a do-while loop in a program.
+    /// </summary>
+    public class DoWhileStatement : ConditionBlockStatement {
+        /// <summary> The XML name for DoWhileStatement. </summary>
+        public new const string XmlName = "DoWhile";
+
+        /// <summary> Returns the XML name for this program element. </summary>
+        public override string GetXmlName() { return DoWhileStatement.XmlName; }
+    }
 }

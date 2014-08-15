@@ -13,7 +13,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         private ITaskManagerService _taskManager;
         private ISrcMLGlobalService _srcMLService;
 
-        private IDataRepository CurrentDataRepository;
+        private AbstractWorkingSet CurrentDataRepository;
 
         private TaskScheduler Scheduler {
             get {
@@ -46,8 +46,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 SubscribeToEvents();
             }
         }
-
-        public IDataRepository GetDataRepository() {
+        public AbstractWorkingSet GetDataRepository() {
             return CurrentDataRepository;
         }
 
@@ -58,21 +57,23 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
         void RespondToMonitoringStopped(object sender, EventArgs e) {
             if(null != CurrentDataRepository) {
-                CurrentDataRepository.FileProcessed -= RespondToFileProcessed;
+                // TODO update for working sets
+                //CurrentDataRepository.FileProcessed -= RespondToFileProcessed;
                 CurrentDataRepository.Dispose();
             }
             OnMonitoringStopped(e);
         }
 
         void RespondToMonitoringStarted(object sender, EventArgs e) {
-            CurrentDataRepository = new DataRepository(_srcMLService.GetSrcMLArchive(), Scheduler);
-            CurrentDataRepository.FileProcessed += RespondToFileProcessed;
-            if(_srcMLService.IsUpdating) {
-                _srcMLService.UpdateArchivesCompleted += GenerateDataAfterUpdate;
-            } else {
-                GenerateDataAfterUpdate(this, e);
-            }
-            OnMonitoringStarted(e);
+            //CurrentDataRepository = new DataRepository(_srcMLService.GetSrcMLArchive(), Scheduler);
+            //CurrentDataRepository.FileProcessed += RespondToFileProcessed;
+            //if(_srcMLService.IsUpdating) {
+            //    _srcMLService.UpdateArchivesCompleted += GenerateDataAfterUpdate;
+            //} else {
+            //    GenerateDataAfterUpdate(this, e);
+            //}
+            //OnMonitoringStarted(e);
+            throw new NotImplementedException();
         }
 
         void RespondToFileProcessed(object sender, FileEventRaisedArgs e) {
@@ -80,9 +81,10 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         }
 
         void GenerateDataAfterUpdate(object sender, EventArgs e) {
-            _srcMLService.UpdateArchivesCompleted -= GenerateDataAfterUpdate;
-            OnUpdateStarted(new EventArgs());
-            CurrentDataRepository.InitializeDataAsync().ContinueWith((t) => OnUpdateCompleted(new EventArgs()), Scheduler);
+            //_srcMLService.UpdateArchivesCompleted -= GenerateDataAfterUpdate;
+            //OnUpdateStarted(new EventArgs());
+            //CurrentDataRepository.InitializeDataAsync().ContinueWith((t) => OnUpdateCompleted(new EventArgs()), Scheduler);
+            throw new NotImplementedException();
         }
 
         protected virtual void OnFileProcessed(FileEventRaisedArgs e) {

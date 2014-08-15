@@ -4,22 +4,22 @@ using System.Linq;
 namespace ABB.SrcML.Data {
 
     internal class ScopeDebugView {
-        private IScope scope;
+        private Scope scope;
 
-        public ScopeDebugView(IScope scope) {
+        public ScopeDebugView(Scope scope) {
             this.scope = scope;
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-        public IScope[] ChildScopes {
+        public Scope[] ChildScopes {
             get { return this.scope.ChildScopes.ToArray(); }
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public IMethodCall[] MethodCalls { get { return this.scope.MethodCalls.ToArray(); } }
+        public MethodCall[] MethodCalls { get { return this.scope.MethodCalls.ToArray(); } }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
-        public IVariableDeclaration[] Variables { get { return this.scope.DeclaredVariables.ToArray(); } }
+        public VariableDeclaration[] Variables { get { return this.scope.DeclaredVariables.ToArray(); } }
 
         public override string ToString() {
             return scope.ToString();

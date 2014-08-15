@@ -40,7 +40,7 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Gets the last name from
         /// <paramref name="nameElement"/>. If
-        /// <paramref name="nameElement"/>has no children of type <see cref="ABB.SrcML.SRC.Name"/>,
+        /// <paramref name="nameElement"/> has no children of type <see cref="ABB.SrcML.SRC.Name"/>,
         /// it just returns
         /// <paramref name="nameElement"/>.
         /// </summary>
@@ -55,15 +55,14 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Gets all of the name elements from
-        /// <paramref name="nameElement"/>. If
+        /// Gets all of the name elements from <paramref name="nameElement"/> except for the last one. If
         /// <paramref name="nameElement"/>has no children of type <see cref="ABB.SrcML.SRC.Name"/>,
         /// returns an empty enumerable.
         /// </summary>
         /// <param name="nameElement">The name element</param>
         /// <returns>An enumerable of <see cref="ABB.SrcML.SRC.Name">name elements</see> in
         /// <paramref name="nameElement"/>except for the <see cref="GetLastNameElement">last
-        /// /see></returns>
+        /// </see></returns>
         public static IEnumerable<XElement> GetNameElementsExceptLast(XElement nameElement) {
             var last = GetLastNameElement(nameElement);
             return GetNameElementsFromName(nameElement).TakeWhile(e => e != last);

@@ -10,7 +10,7 @@ namespace ABB.SrcML.Tools.MethodCallSurvey {
 
     internal class DataHelpers {
 
-        public static XElement GetElement(ISrcMLArchive archive, SrcMLLocation location) {
+        public static XElement GetElement(SrcMLArchive archive, SrcMLLocation location) {
             string fileName = location.SourceFileName;
             string query = location.XPath;
 

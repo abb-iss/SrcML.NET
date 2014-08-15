@@ -38,12 +38,19 @@ namespace ABB.SrcML {
     /// <para>When the archive is done processing the file, it raises its own
     /// <see cref="AbstractArchive.FileChanged">event</see></para>
     /// </summary>
-    public abstract class AbstractFileMonitor : IFileMonitor {
-        private Dictionary<string, IArchive> archiveMap;
-        private IArchive defaultArchive;
+    public abstract class AbstractFileMonitor : IDisposable {
+        private Dictionary<string, AbstractArchive> archiveMap;
+        private AbstractArchive defaultArchive;
         private int numberOfWorkingArchives;
         private ReadyNotifier ReadyState;
-        private HashSet<IArchive> registeredArchives;
+        private HashSet<AbstractArchive> registeredArchives;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="baseDirectory"></param>
+        protected AbstractFileMonitor(TaskScheduler scheduler, string baseDirectory) :
+            this(scheduler, baseDirectory, null) { }
 
         /// <summary>
         /// Creates a new AbstractFileMonitor with the default archive and a collection of
@@ -53,15 +60,18 @@ namespace ABB.SrcML {
         /// <param name="defaultArchive">The default archive</param>
         /// <param name="otherArchives">A list of other archives that should be registered via see
         /// cref="RegisterArchive(IArchive)"/></param>
-        protected AbstractFileMonitor(string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives) {
+        protected AbstractFileMonitor(string baseDirectory, AbstractArchive defaultArchive, params AbstractArchive[] otherArchives) {
             this.MonitorStoragePath = baseDirectory;
-            this.registeredArchives = new HashSet<IArchive>();
-            this.archiveMap = new Dictionary<string, IArchive>(StringComparer.InvariantCultureIgnoreCase);
+            this.registeredArchives = new HashSet<AbstractArchive>();
+            this.archiveMap = new Dictionary<string, AbstractArchive>(StringComparer.OrdinalIgnoreCase);
             this.ReadyState = new ReadyNotifier(this);
             this.numberOfWorkingArchives = 0;
             Factory = Task.Factory;
 
-            RegisterArchive(defaultArchive, true);
+            if(null != defaultArchive) {
+                RegisterArchive(defaultArchive, true);
+            }
+            
             foreach(var archive in otherArchives) {
                 this.RegisterArchive(archive, false);
             }
@@ -75,15 +85,18 @@ namespace ABB.SrcML {
         /// <param name="defaultArchive">The default archive</param>
         /// <param name="otherArchives">A list of other archives that should be registered via see
         /// cref="RegisterArchive(IArchive)"/></param>
-        protected AbstractFileMonitor(TaskScheduler scheduler, string baseDirectory, IArchive defaultArchive, params IArchive[] otherArchives) {
+        protected AbstractFileMonitor(TaskScheduler scheduler, string baseDirectory, AbstractArchive defaultArchive, params AbstractArchive[] otherArchives) {
             this.MonitorStoragePath = baseDirectory;
-            this.registeredArchives = new HashSet<IArchive>();
-            this.archiveMap = new Dictionary<string, IArchive>(StringComparer.InvariantCultureIgnoreCase);
+            this.registeredArchives = new HashSet<AbstractArchive>();
+            this.archiveMap = new Dictionary<string, AbstractArchive>(StringComparer.OrdinalIgnoreCase);
             this.ReadyState = new ReadyNotifier(this);
             this.numberOfWorkingArchives = 0;
             Factory = new TaskFactory(scheduler);
 
-            RegisterArchive(defaultArchive, true);
+            if(null != defaultArchive) {
+                RegisterArchive(defaultArchive, true);
+            }
+            
             foreach(var archive in otherArchives) {
                 this.RegisterArchive(archive, false);
             }
@@ -132,7 +145,10 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="filePath">the file to add</param>
         public void AddFile(string filePath) {
-            this.GetArchiveForFile(filePath).AddOrUpdateFile(filePath);
+            var archive = this.GetArchiveForFile(filePath);
+            if(null != archive) {
+                archive.AddOrUpdateFile(filePath);
+            }
         }
 
         /// <summary>
@@ -140,7 +156,11 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="filePath">the file to add</param>
         public Task AddFileAsync(string filePath) {
-            return this.GetArchiveForFile(filePath).AddOrUpdateFileAsync(filePath);
+            var archive = this.GetArchiveForFile(filePath);
+            if(null != archive) {
+                return archive.AddOrUpdateFileAsync(filePath);
+            }
+            return null;
         }
 
         /// <summary>
@@ -148,7 +168,10 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="filePath">The file to delete</param>
         public void DeleteFile(string filePath) {
-            this.GetArchiveForFile(filePath).DeleteFile(filePath);
+            var archive = this.GetArchiveForFile(filePath);
+            if(null != archive) {
+                archive.DeleteFile(filePath);
+            }
         }
 
         /// <summary>
@@ -156,7 +179,11 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="filePath">The file to delete</param>
         public Task DeleteFileAsync(string filePath) {
-            return this.GetArchiveForFile(filePath).DeleteFileAsync(filePath);
+            var archive = this.GetArchiveForFile(filePath);
+            if(null != archive) {
+                return archive.DeleteFileAsync(filePath);
+            }
+            return null;
         }
         /// <summary>
         /// disposes of all of the archives and stops the events
@@ -200,7 +227,7 @@ namespace ABB.SrcML {
         /// <param name="archive">the archive to add.</param>
         /// <param name="isDefault">whether or not to use this archive as the default
         /// archive</param>
-        public void RegisterArchive(IArchive archive, bool isDefault) {
+        public void RegisterArchive(AbstractArchive archive, bool isDefault) {
             this.registeredArchives.Add(archive);
             archive.FileChanged += RespondToArchiveFileEvent;
             if(isDefault) {
@@ -229,11 +256,13 @@ namespace ABB.SrcML {
             var oldArchive = GetArchiveForFile(oldFilePath);
             var newArchive = GetArchiveForFile(newFilePath);
 
-            if(!oldArchive.Equals(newArchive)) {
-                oldArchive.DeleteFile(oldFilePath);
-                newArchive.AddOrUpdateFile(newFilePath);
-            } else {
+            if(null != oldArchive && oldArchive.Equals(newArchive)) {
                 oldArchive.RenameFile(oldFilePath, newFilePath);
+            } else if(null != oldArchive){
+                oldArchive.DeleteFile(oldFilePath);
+                if(null != newArchive) {
+                    newArchive.AddOrUpdateFile(newFilePath);
+                }
             }
         }
 
@@ -251,11 +280,16 @@ namespace ABB.SrcML {
             var oldArchive = GetArchiveForFile(oldFilePath);
             var newArchive = GetArchiveForFile(newFilePath);
 
-            if(!oldArchive.Equals(newArchive)) {
-                return oldArchive.DeleteFileAsync(oldFilePath).ContinueWith((t) => newArchive.AddOrUpdateFile(newFilePath), TaskContinuationOptions.OnlyOnRanToCompletion);
-            } else {
+            if(null != oldArchive && oldArchive.Equals(newArchive)) {
                 return oldArchive.RenameFileAsync(oldFilePath, newFilePath);
+            } else if(null != oldArchive) {
+                return oldArchive.DeleteFileAsync(oldFilePath).ContinueWith((t) => {
+                    if(null != newArchive) {
+                        newArchive.AddOrUpdateFile(newFilePath);
+                    }
+                }, TaskContinuationOptions.OnlyOnRanToCompletion);
             }
+            return null;
         }
 
         public virtual void Save() {
@@ -278,7 +312,7 @@ namespace ABB.SrcML {
             SrcMLFileLogger.DefaultLogger.Info("AbstractFileMonitor.Startup()");
 
             // make a hashset of all the files to monitor
-            var monitoredFiles = new HashSet<string>(StringComparer.CurrentCultureIgnoreCase);
+            var monitoredFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach(var filePath in GetFilesFromSource()) {
                 monitoredFiles.Add(filePath);
             }
@@ -345,7 +379,7 @@ namespace ABB.SrcML {
             SrcMLFileLogger.DefaultLogger.Info("AbstractFileMonitor.Startup()");
 
             // make a hashset of all the files to monitor
-            var monitoredFiles = new HashSet<string>(StringComparer.CurrentCultureIgnoreCase);
+            var monitoredFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach(var filePath in GetFilesFromSource()) {
                 monitoredFiles.Add(filePath);
             }
@@ -414,14 +448,16 @@ namespace ABB.SrcML {
 
         public void UpdateArchives() {
             OnUpdateArchivesStarted(new EventArgs());
-            var monitoredFiles = new HashSet<string>(GetFilesFromSource(), StringComparer.InvariantCultureIgnoreCase);
+            var monitoredFiles = new HashSet<string>(GetFilesFromSource(), StringComparer.OrdinalIgnoreCase);
 
             var outdatedFiles = from filePath in monitoredFiles
-                                where GetArchiveForFile(filePath).IsOutdated(filePath)
+                                let archive = GetArchiveForFile(filePath)
+                                where null != archive && archive.IsOutdated(filePath)
                                 select filePath;
 
             var deletedFiles = from filePath in GetArchivedFiles()
-                               where filePath != null && !monitoredFiles.Contains(filePath)
+                               let archive = GetArchiveForFile(filePath)
+                               where null != archive && null != filePath && !monitoredFiles.Contains(filePath)
                                select filePath;
 
             foreach(var filePath in outdatedFiles) {
@@ -437,16 +473,19 @@ namespace ABB.SrcML {
         public Task UpdateArchivesAsync() {
             var task = Factory.StartNew(() => {
                 OnUpdateArchivesStarted(new EventArgs());
-                var monitoredFiles = new HashSet<string>(GetFilesFromSource(), StringComparer.InvariantCultureIgnoreCase);
+                var monitoredFiles = new HashSet<string>(GetFilesFromSource(), StringComparer.OrdinalIgnoreCase);
 
                 var outdatedFileTasks = from filePath in monitoredFiles
-                                        where GetArchiveForFile(filePath).IsOutdated(filePath)
+                                        let archive = GetArchiveForFile(filePath)
+                                        where null != archive && archive.IsOutdated(filePath)
                                         select UpdateFileAsync(filePath);
                 Task.WaitAll(outdatedFileTasks.ToArray());
 
                 var deletedFileTasks = from filePath in GetArchivedFiles()
-                                       where filePath != null && !monitoredFiles.Contains(filePath)
+                                       let archive = GetArchiveForFile(filePath)
+                                       where null != archive && null != filePath && !monitoredFiles.Contains(filePath)
                                        select DeleteFileAsync(filePath);
+
                 Task.WaitAll(deletedFileTasks.ToArray());
                 OnUpdateArchivesCompleted(new EventArgs());
             });
@@ -458,7 +497,10 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="filePath">the file to update</param>
         public void UpdateFile(string filePath) {
-            this.GetArchiveForFile(filePath).AddOrUpdateFile(filePath);
+            var archive = this.GetArchiveForFile(filePath);
+            if(null != archive) {
+                archive.AddOrUpdateFile(filePath);
+            }
         }
 
         /// <summary>
@@ -466,7 +508,11 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="filePath">the file to update</param>
         public Task UpdateFileAsync(string filePath) {
-            return this.GetArchiveForFile(filePath).AddOrUpdateFileAsync(filePath);
+            var archive = this.GetArchiveForFile(filePath);
+            if(null != archive) {
+                return archive.AddOrUpdateFileAsync(filePath);
+            }
+            return null;
         }
         /// <summary>
         /// Sets the published events to null and calls Dispose on the registered archives if
@@ -488,11 +534,11 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="fileName">The file name</param>
         /// <returns>The archive that should contain this file name</returns>
-        protected IArchive GetArchiveForFile(string fileName) {
+        protected AbstractArchive GetArchiveForFile(string fileName) {
             if(null == fileName)
                 throw new ArgumentNullException("fileName");
 
-            IArchive selectedArchive;
+            AbstractArchive selectedArchive;
             var extension = Path.GetExtension(fileName);
 
             if(!this.archiveMap.TryGetValue(extension, out selectedArchive)) {

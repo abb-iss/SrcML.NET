@@ -61,15 +61,39 @@
     <Compile Include="AbstractArchive.cs" />
     <Compile Include="AbstractDocument.cs" />
     <Compile Include="AbstractFileMonitor.cs" />
+    <Compile Include="AbstractGenerator.cs" />
+    <Compile Include="SrcMLProject.cs" />
+    <Compile Include="ShortFileNameMapping.cs" />
+    <Compile Include="DirectoryScanningMonitorEventArgs.cs" />
+    <Compile Include="Exceptions\DirectoryScanningMonitorSubDirectoryException.cs" />
+    <Compile Include="Exceptions\ForbiddenDirectoryException.cs" />
     <Compile Include="Extensions.cs" />
+    <Compile Include="FileEventRaisedArgs.cs" />
     <Compile Include="FileInfoComparer.cs" />
     <Compile Include="FileSystemFolderMonitor.cs" />
+    <Compile Include="GeneratorArchive.cs" />
     <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="IsReadyChangedEventArgs.cs" />
+    <Compile Include="Language.cs" />
     <Compile Include="LastModifiedArchive.cs" />
+    <Compile Include="LineInfo.cs" />
+    <Compile Include="Namespaces\CPP.cs" />
+    <Compile Include="Namespaces\DIFF.cs" />
+    <Compile Include="Namespaces\LIT.cs" />
+    <Compile Include="Namespaces\OP.cs" />
+    <Compile Include="Namespaces\POS.cs" />
+    <Compile Include="Namespaces\SRC.cs" />
+    <Compile Include="Namespaces\TYPE.cs" />
+    <Compile Include="ArchiveMonitor.cs" />
+    <Compile Include="SrcMLElement.cs" />
+    <Compile Include="Exceptions\SrcMLException.cs" />
+    <Compile Include="SrcMLNamespaces.cs" />
+    <Compile Include="Exceptions\SrcMLRequiredNameException.cs" />
     <Compile Include="Utilities\ConservativeAbbCoreStrategy.cs" />
+    <Compile Include="Utilities\IConcurrencyStrategy.cs" />
     <Compile Include="Utilities\LimitedConcurrencyLevelTaskScheduler.cs" />
     <Compile Include="Utilities\ReadyNotifier.cs" />
-    <Compile Include="ShortXmlFileNameMapping.cs" />
+    <Compile Include="SrcMLFileNameMapping.cs" />
     <Compile Include="DirectoryScanningMonitor.cs" />
     <Compile Include="Src2SrcMLRunner2.cs" />
     <Compile Include="SrcMLGenerator.cs" />
@@ -101,18 +125,12 @@
     <Compile Include="Utilities\SrcMLRuntimeException.cs" />
     <Compile Include="Utilities\TaskManager.cs" />
     <Compile Include="Utilities\VisualStudioProjectReader.cs" />
-    <Compile Include="XmlFileNameMapping.cs" />
+    <Compile Include="AbstractFileNameMapping.cs" />
     <Compile Include="XmlHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ABB.SrcML.nuspec" />
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ABB.SrcML.Core\ABB.SrcML.Core.csproj">
-      <Project>{db649b35-b045-47c3-9903-f3404fa9c1be}</Project>
-      <Name>ABB.SrcML.Core</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

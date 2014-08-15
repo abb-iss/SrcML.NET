@@ -26,7 +26,10 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public CPlusPlusCodeParser() {
             this.SpecifierContainerNames = new HashSet<XName>(new XName[] { SRC.Private, SRC.Protected, SRC.Public });
-            this.TypeElementNames = new HashSet<XName>(new XName[] { SRC.Class, SRC.Enum, SRC.Struct, SRC.Union });
+            this.TypeElementNames = new HashSet<XName>(new XName[] {
+                SRC.Class, SRC.Enum, SRC.Struct, SRC.Union,
+                SRC.ClassDeclaration, SRC.StructDeclaration, SRC.UnionDeclaration
+            });
             this.VariableDeclarationElementNames = new HashSet<XName>(new XName[] { SRC.Declaration, SRC.DeclarationStatement, SRC.FunctionDeclaration });
             this.AliasElementName = SRC.Using;
         }
@@ -44,24 +47,6 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public HashSet<XName> SpecifierContainerNames { get; set; }
 
-        /// <summary>
-        /// Checks if this alias statement represents a namespace import or something more specific
-        /// (such as a method or class alias). In C++, namespace aliases contain the "namespace"
-        /// keyword (for instance, <c>using namespace std;</c>).
-        /// </summary>
-        /// <param name="aliasStatement">The statement to parse. Should be of type see
-        /// cref="AbstractCodeParser.AliasElementName"/></param>
-        /// <returns>True if this is a namespace import; false otherwise</returns>
-        public override bool AliasIsNamespaceImport(XElement aliasStatement) {
-            if(null == aliasStatement)
-                throw new ArgumentNullException("aliasStatement");
-            if(aliasStatement.Name != AliasElementName)
-                throw new ArgumentException(String.Format("should be an {0} statement", AliasElementName), "aliasStatement");
-            var containsNamespaceKeyword = (from textNode in GetTextNodes(aliasStatement)
-                                            where textNode.Value.Contains("namespace")
-                                            select textNode).Any();
-            return containsNamespaceKeyword;
-        }
 
         /// <summary>
         /// Gets the access modifiers for this method. In C++, methods are contained within
@@ -70,7 +55,7 @@ namespace ABB.SrcML.Data {
         /// <param name="methodElement">The method typeUseElement</param>
         /// <returns>The access modifier for this method; if none, it returns see
         /// cref="AccessModifier.None"/></returns>
-        public override AccessModifier GetAccessModifierForMethod(XElement methodElement) {
+        protected override AccessModifier GetAccessModifierForMethod(XElement methodElement) {
             Dictionary<XName, AccessModifier> accessModifierMap = new Dictionary<XName, AccessModifier>() {
                 { SRC.Public, AccessModifier.Public },
                 { SRC.Private, AccessModifier.Private },
@@ -90,54 +75,8 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="typeElement">The type</param>
         /// <returns>the access modifier for this type.</returns>
-        public override AccessModifier GetAccessModifierForType(XElement typeElement) {
+        protected override AccessModifier GetAccessModifierForType(XElement typeElement) {
             return AccessModifier.None;
-        }
-
-        /// <summary>
-        /// Gets the child containers for a C++ type typeUseElement. This iterates over the public,
-        /// private, and protected blocks that appear in C++ classes in srcML.
-        /// </summary>
-        /// <param name="container">the type typeUseElement</param>
-        /// <returns>the child elements of this C++ type</returns>
-        public override IEnumerable<XElement> GetChildContainersFromType(XElement container) {
-            foreach(var child in base.GetChildContainersFromType(container)) {
-                yield return child;
-            }
-
-            var block = container.Element(SRC.Block);
-            var specifierBlocks = from child in block.Elements()
-                                  where SpecifierContainerNames.Contains(child.Name)
-                                  select child;
-
-            foreach(var specifierBlock in specifierBlocks) {
-                foreach(var child in GetChildContainers(specifierBlock)) {
-                    yield return child;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets the variables declared in this C++ type typeUseElement. This iterates over the
-        /// public, private, and protected blocks that appear in C++ classes in srcML.
-        /// </summary>
-        /// <param name="container">the type typeUseElement</param>
-        /// <returns>The decl elements for this type typeUseElement</returns>
-        public override IEnumerable<XElement> GetDeclarationsFromTypeElement(XElement container) {
-            foreach(var decl in base.GetDeclarationsFromTypeElement(container)) {
-                yield return decl;
-            }
-
-            var block = container.Element(SRC.Block);
-            var specifierElements = from child in block.Elements()
-                                    where SpecifierContainerNames.Contains(child.Name)
-                                    select child;
-
-            foreach(var specifierElement in specifierElements) {
-                foreach(var declElement in GetDeclarationsFromBlockElement(specifierElement)) {
-                    yield return declElement;
-                }
-            }
         }
 
         /// <summary>
@@ -146,7 +85,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="methodElement">The method typeUseElement</param>
         /// <returns>a string with the method name</returns>
-        public override string GetNameForMethod(XElement methodElement) {
+        protected override string GetNameForMethod(XElement methodElement) {
             var nameElement = methodElement.Element(SRC.Name);
 
             if(null == nameElement)
@@ -159,18 +98,16 @@ namespace ABB.SrcML.Data {
         /// parameters in C/C++). If not, it just calls
         /// <see cref="AbstractCodeParser.GetParametersFromMethodElement(XElement)"/>
         /// </summary>
-        /// <param name="method">The method to get parameter elements for</param>
-        /// <returns>An enumerable of method parameter elements</returns>
-        public override IEnumerable<XElement> GetParametersFromMethodElement(XElement method) {
-            bool singleVoidParameter = false;
-            if(method.Element(SRC.ParameterList).Elements(SRC.Parameter).Count() == 1) {
-                singleVoidParameter = method.Element(SRC.ParameterList).Element(SRC.Parameter).Value == "void";
-            }
-
-            if(singleVoidParameter) {
+        /// <param name="methodElement">The method to get parameter elements for</param>
+        /// <returns>An enumerable of parameter elements</returns>
+        protected override IEnumerable<XElement> GetParametersFromMethodElement(XElement methodElement) {
+            var paramElements = methodElement.Element(SRC.ParameterList).Elements(SRC.Parameter).ToList();
+            if(paramElements.Count() == 1 && paramElements.First().Value == "void") {
+                //there's only a single "void" parameter, which actually means there are no parameters
                 return Enumerable.Empty<XElement>();
+            } else {
+                return base.GetParametersFromMethodElement(methodElement);
             }
-            return base.GetParametersFromMethodElement(method);
         }
 
         /// <summary>
@@ -179,7 +116,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="typeElement">The type typeUseElement</param>
         /// <returns>A collection of type use elements that represent the parent classes</returns>
-        public override IEnumerable<XElement> GetParentTypeUseElements(XElement typeElement) {
+        protected override IEnumerable<XElement> GetParentTypeUseElements(XElement typeElement) {
             var superTag = typeElement.Element(SRC.Super);
 
             if(null != superTag) {
@@ -193,7 +130,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="literalValue">The literal value</param>
         /// <returns>Returns "bool"</returns>
-        public override string GetTypeForBooleanLiteral(string literalValue) {
+        protected override string GetTypeForBooleanLiteral(string literalValue) {
             return "bool";
         }
 
@@ -202,7 +139,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="literalValue">The literal value</param>
         /// <returns>Returns "char"</returns>
-        public override string GetTypeForCharacterLiteral(string literalValue) {
+        protected override string GetTypeForCharacterLiteral(string literalValue) {
             return "char";
         }
 
@@ -212,7 +149,7 @@ namespace ABB.SrcML.Data {
         /// <param name="literalValue">The literal value</param>
         /// <returns>Uses <see href="http://www.cplusplus.com/doc/tutorial/constants/">C++ number
         /// rules</see> to determine the proper type</returns>
-        public override string GetTypeForNumberLiteral(string literalValue) {
+        protected override string GetTypeForNumberLiteral(string literalValue) {
             // rules taken from: http://www.cplusplus.com/doc/tutorial/constants/ double rules:
             // contains '.', 'e', 'E' long double also ends in 'L'
             // float: ends in 'f' or 'F'
@@ -229,28 +166,25 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="literalValue">The literal value</param>
         /// <returns>Returns "char*"</returns>
-        public override string GetTypeForStringLiteral(string literalValue) {
+        protected override string GetTypeForStringLiteral(string literalValue) {
             return "char*";
         }
 
         /// <summary>
         /// Creates a method definition object from
-        /// <paramref name="methodElement"/>. For C++, it looks for <code>int A::B::Foo(){ }</code>
-        /// and adds "A->B" to <see cref="INamedScope.ParentScopeCandidates"/>
+        /// <paramref name="methodElement"/>. For C++, it looks for something like <code>int A::B::Foo(){ }</code>
+        /// and adds "A::B" as the NamePrefix.
         /// </summary>
-        /// <param name="methodElement">The method typeUseElement</param>
+        /// <param name="methodElement">The method element to parse. This must be one of the elements contained in MethodElementNames.</param>
         /// <param name="context">The parser context</param>
-        /// <returns>the method definition object for
-        /// <paramref name="methodElement"/></returns>
-        public override void ParseMethodElement(XElement methodElement, ParserContext context) {
+        /// <returns>The method definition object for <paramref name="methodElement"/></returns>
+        protected override MethodDefinition ParseMethodElement(XElement methodElement, ParserContext context) {
+            var md = base.ParseMethodElement(methodElement, context);
             var nameElement = methodElement.Element(SRC.Name);
-
-            base.ParseMethodElement(methodElement, context);
-
-            var prefix = ParseNamedScopeUsePrefix(nameElement, context);
-            if(null != prefix) {
-                (context.CurrentScope as INamedScope).ParentScopeCandidates.Add(prefix);
+            if(nameElement != null) {
+                md.Prefix = ParseNamePrefix(nameElement, context);
             }
+            return md;
         }
 
         /// <summary>
@@ -260,17 +194,155 @@ namespace ABB.SrcML.Data {
         /// <param name="namespaceElement">the namespace element</param>
         /// <param name="context">The parser context</param>
         /// <returns>a new NamespaceDefinition object</returns>
-        public override void ParseNamespaceElement(XElement namespaceElement, ParserContext context) {
+        protected override NamespaceDefinition ParseNamespaceElement(XElement namespaceElement, ParserContext context) {
             if(namespaceElement == null)
                 throw new ArgumentNullException("namespaceElement");
             if(!NamespaceElementNames.Contains(namespaceElement.Name))
-                throw new ArgumentException(string.Format("Not a valid namespace typeUseElement: {0}", namespaceElement.Name), "namespaceElement");
+                throw new ArgumentException(string.Format("Not a valid namespace element: {0}", namespaceElement.Name), "namespaceElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
 
             var nameElement = namespaceElement.Element(SRC.Name);
             var namespaceName = nameElement != null ? nameElement.Value : string.Empty;
 
-            var namespaceDefinition = new NamespaceDefinition { Name = namespaceName };
-            context.Push(namespaceDefinition);
+            var nd = new NamespaceDefinition {
+                Name = namespaceName,
+                ProgrammingLanguage = ParserLanguage,
+            };
+            nd.AddLocation(context.CreateLocation(namespaceElement));
+
+            //add children
+            var blockElement = namespaceElement.Element(SRC.Block);
+            if(blockElement != null) {
+                foreach(var child in blockElement.Elements()) {
+                    nd.AddChildStatement(ParseStatement(child, context));
+                }
+            }
+
+            return nd;
         }
+
+        /// <summary>
+        /// Parses an element corresponding to a type definition and creates a TypeDefinition object 
+        /// </summary>
+        /// <param name="typeElement">The type element to parse. This must be one of the elements contained in TypeElementNames.</param>
+        /// <param name="context">The parser context</param>
+        /// <returns>A TypeDefinition parsed from the element</returns>
+        protected override TypeDefinition ParseTypeElement(XElement typeElement, ParserContext context) {
+            if(null == typeElement)
+                throw new ArgumentNullException("typeElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            var typeDefinition = new TypeDefinition() {
+                Accessibility = GetAccessModifierForType(typeElement),
+                Kind = XNameMaps.GetKindForXElement(typeElement),
+                Name = GetNameForType(typeElement),
+                ProgrammingLanguage = ParserLanguage
+            };
+            typeDefinition.AddLocation(context.CreateLocation(typeElement, ContainerIsReference(typeElement)));
+
+            foreach(var parentTypeElement in GetParentTypeUseElements(typeElement)) {
+                var parentTypeUse = ParseTypeUseElement(parentTypeElement, context);
+                typeDefinition.AddParentType(parentTypeUse);
+            }
+
+            var typeBlock = typeElement.Element(SRC.Block);
+            if(typeBlock != null) {
+                foreach(var child in typeBlock.Elements()) {
+                    if(child.Name == SRC.Private) {
+                        typeDefinition.AddChildStatements(ParseClassChildren(child, context, AccessModifier.Private));
+                    } else if(child.Name == SRC.Protected) {
+                        typeDefinition.AddChildStatements(ParseClassChildren(child, context, AccessModifier.Protected));
+                    } else if(child.Name == SRC.Public) {
+                        typeDefinition.AddChildStatements(ParseClassChildren(child, context, AccessModifier.Public));
+                    } else {
+                        typeDefinition.AddChildStatement(ParseStatement(child, context));
+                    }
+                }
+            }
+
+
+            return typeDefinition;
+        }
+
+        /// <summary>
+        /// Parses the given <paramref name="aliasElement"/> and creates an ImportStatement or AliasStatement from it.
+        /// </summary>
+        /// <param name="aliasElement">The alias element to parse.</param>
+        /// <param name="context">The parser context to use.</param>
+        /// <returns>An ImportStatement if the element is an import, or an AliasStatement if it is an alias.</returns>
+        protected override Statement ParseAliasElement(XElement aliasElement, ParserContext context) {
+            if(null == aliasElement)
+                throw new ArgumentNullException("aliasElement");
+            if(aliasElement.Name != AliasElementName)
+                throw new ArgumentException(string.Format("Must be a SRC.{0} element", AliasElementName.LocalName), "aliasElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            Statement stmt = null;
+            bool containsNamespaceKeyword = (from textNode in GetTextNodes(aliasElement)
+                                             where textNode.Value.Contains("namespace")
+                                             select textNode).Any();
+            if(containsNamespaceKeyword) {
+                //import statement
+                var import = new ImportStatement() {ProgrammingLanguage = ParserLanguage};
+                import.AddLocation(context.CreateLocation(aliasElement));
+
+                var nameElement = aliasElement.Element(SRC.Name);
+                if(nameElement != null) {
+                    import.ImportedNamespace = ParseNameUseElement<NamespaceUse>(nameElement, context);
+                }
+
+                stmt = import;
+            } else {
+                //alias statement
+                var alias = new AliasStatement() {ProgrammingLanguage = ParserLanguage};
+                alias.AddLocation(context.CreateLocation(aliasElement));
+
+                var nameElement = aliasElement.Element(SRC.Name);
+                var initElement = aliasElement.Element(SRC.Init);
+                if(initElement != null) {
+                    //example: using foo = std::bar;
+                    if(nameElement != null) {
+                        alias.AliasName = nameElement.Value;
+                    }
+                    //TODO check this once srcml is updated to see if it's accurate
+                    alias.Target = ParseExpression(GetFirstChildExpression(initElement), context);
+                } else {
+                    //example: using std::cout;
+                    if(nameElement != null) {
+                        alias.Target = ParseTypeUseElement(nameElement, context);
+                        alias.AliasName = NameHelper.GetLastName(nameElement);
+                    }
+                }
+
+                stmt = alias;
+            }
+
+            return stmt;
+        }
+
+        #region Private methods
+        /// <summary>
+        /// This method parses and returns the children within the public/protected/private block under a C++ class, 
+        /// and sets the specified access modifier on the children that support it.
+        /// </summary>
+        private IEnumerable<Statement> ParseClassChildren(XElement accessBlockElement, ParserContext context, AccessModifier accessModifier) {
+            if(accessBlockElement == null)
+                throw new ArgumentNullException("accessBlockElement");
+            if(!(new[] {SRC.Public, SRC.Protected, SRC.Private}.Contains(accessBlockElement.Name)))
+                throw new ArgumentException("Not a valid accessibility block element", "accessBlockElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            var children = accessBlockElement.Elements().Select(e => ParseStatement(e, context)).ToList();
+            foreach(var ne in children.OfType<INamedEntity>()) {
+                ne.Accessibility = accessModifier;
+            }
+            return children;
+        }
+
+        #endregion Private methods
     }
 }

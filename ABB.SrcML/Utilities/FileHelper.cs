@@ -28,7 +28,7 @@ namespace ABB.SrcML.Utilities {
             bool commonPathFound = false;
             string commonPath = startingPoint;
             while(!commonPathFound) {
-                commonPathFound = filePaths.All(f => f.StartsWith(commonPath, StringComparison.Ordinal));
+                commonPathFound = filePaths.All(f => f.StartsWith(commonPath, StringComparison.OrdinalIgnoreCase));
                 if(commonPathFound) {
                     break;
                 }

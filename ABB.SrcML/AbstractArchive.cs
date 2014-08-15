@@ -15,7 +15,7 @@ namespace ABB.SrcML
     /// <summary>
     /// The abstract archive class is the base class for archives. Archives are responsible for recording changes to files and then raising an <see cref="FileChanged">event</see> when they are done.
     /// </summary>
-    public abstract class AbstractArchive : IArchive
+    public abstract class AbstractArchive : IDisposable
     {
         private string _archivePath;
 
@@ -59,7 +59,7 @@ namespace ABB.SrcML
         /// <summary>
         /// This event should be raised whenever the archive updates its internal representation for a file
         /// </summary>
-        public event EventHandler<FileEventRaisedArgs> FileChanged;
+        public virtual event EventHandler<FileEventRaisedArgs> FileChanged;
 
         /// <summary>
         /// Sub-classes of AbstractArchive should implement the "add or update file" functionality here in order to enable <see cref="AddOrUpdateFile"/> and <see cref="AddOrUpdateFileAsync"/>

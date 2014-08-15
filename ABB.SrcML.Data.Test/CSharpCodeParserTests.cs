@@ -9,6 +9,7 @@
  *    Patrick Francis (ABB Group) - initial API, implementation, & documentation
  *****************************************************************************/
 
+using ABB.SrcML.Test.Utilities;
 using NUnit.Framework;
 using System.Linq;
 using System.Xml.Linq;
@@ -28,6 +29,25 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
+        public void TestNamespace() {
+            //namespace A { 
+            //	public class foo { }
+            //}
+            var xml = @"<namespace>namespace <name>A</name> <block>{ 
+	<class><specifier>public</specifier> class <name>foo</name> <block>{ }</block></class>
+}</block></namespace>";
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
+
+            var globalScope = codeParser.ParseFileUnit(unit);
+            Assert.IsTrue(globalScope.IsGlobal);
+
+            var actual = globalScope.ChildStatements.First() as NamespaceDefinition;
+            Assert.IsNotNull(actual);
+            Assert.AreEqual("A", actual.Name);
+            Assert.AreEqual(1, actual.ChildStatements.Count);
+        }
+
+        [Test]
         public void TestCallToGenericMethod() {
             //namespace A {
             //    public class B {
@@ -42,17 +62,15 @@ namespace ABB.SrcML.Data.Test {
     }</block></class>
 }</block></namespace>";
             var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
+            var globalScope = codeParser.ParseFileUnit(unit);
 
-            var scope = codeParser.ParseFileUnit(unit);
-
-            var foo = scope.GetDescendantScopes<IMethodDefinition>().Where(m => m.Name == "Foo").FirstOrDefault();
-            var bar = scope.GetDescendantScopes<IMethodDefinition>().Where(m => m.Name == "Bar").FirstOrDefault();
-
+            var foo = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(md => md.Name == "Foo");
+            var bar = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(md => md.Name == "Bar");
             Assert.IsNotNull(foo);
             Assert.IsNotNull(bar);
 
-            var callToFoo = bar.MethodCalls.FirstOrDefault();
-
+            Assert.AreEqual(1, bar.ChildStatements.Count);
+            var callToFoo = bar.ChildStatements[0].Content.GetDescendantsAndSelf<MethodCall>().FirstOrDefault();
             Assert.IsNotNull(callToFoo);
 
             Assert.AreSame(foo, callToFoo.FindMatches().FirstOrDefault());
@@ -72,56 +90,145 @@ namespace ABB.SrcML.Data.Test {
 }</block></namespace>";
 
             var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
-
             var scope = codeParser.ParseFileUnit(unit);
 
-            var bDotFoo = scope.GetDescendantScopes<IMethodDefinition>().Where(m => m.Name == "Foo").FirstOrDefault();
-            var dDotBar = scope.GetDescendantScopes<IMethodDefinition>().Where(m => m.Name == "Bar").FirstOrDefault();
-
+            var bDotFoo = scope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "Foo");
+            var dDotBar = scope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "Bar");
             Assert.IsNotNull(bDotFoo);
             Assert.IsNotNull(dDotBar);
 
-            var callToFoo = dDotBar.MethodCalls.FirstOrDefault();
-
+            Assert.AreEqual(1, dDotBar.ChildStatements.Count);
+            var callToFoo = dDotBar.ChildStatements[0].Content.GetDescendantsAndSelf<MethodCall>().FirstOrDefault();
             Assert.IsNotNull(callToFoo);
 
             Assert.AreSame(bDotFoo, callToFoo.FindMatches().FirstOrDefault());
         }
 
         [Test]
-        public void TestCallWithTypeParameters() {
-            //namespace A {
-            //	public interface IQuery { }
-            //	public interface IOdb { IQuery Query<T>(); }
-            //	public class Test {
-            //		public IOdb Open() { }
-            //		void Test1() {
-            //			var odb = Open();
-            //			var query = odb.Query<Foo>();
-            //		}
+        public void TestMethodCallToParentOfCallingObject() {
+            //class A { void Foo() { } }
+            string a_xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">A</name> <block pos:line=""1"" pos:column=""9"">{ <function><type><name pos:line=""1"" pos:column=""11"">void</name></type> <name pos:line=""1"" pos:column=""16"">Foo</name><parameter_list pos:line=""1"" pos:column=""19"">()</parameter_list> <block pos:line=""1"" pos:column=""22"">{ }</block></function> }</block></class>";
+
+            //class B : A { void Bar() { } }
+            string b_xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">B</name> <super pos:line=""1"" pos:column=""9"">: <name pos:line=""1"" pos:column=""11"">A</name></super> <block pos:line=""1"" pos:column=""13"">{ <function><type><name pos:line=""1"" pos:column=""15"">void</name></type> <name pos:line=""1"" pos:column=""20"">Bar</name><parameter_list pos:line=""1"" pos:column=""23"">()</parameter_list> <block pos:line=""1"" pos:column=""26"">{ }</block></function> }</block></class>";
+
+            //class C {
+            //	private B b;
+            //	void main() {
+            //		b.Foo();
             //	}
             //}
+            string c_xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">C</name> <block pos:line=""1"" pos:column=""9"">{
+    <decl_stmt><decl><type><specifier pos:line=""2"" pos:column=""5"">private</specifier> <name pos:line=""2"" pos:column=""13"">B</name></type> <name pos:line=""2"" pos:column=""15"">b</name></decl>;</decl_stmt>
+    <function><type><name pos:line=""3"" pos:column=""5"">void</name></type> <name pos:line=""3"" pos:column=""10"">main</name><parameter_list pos:line=""3"" pos:column=""14"">()</parameter_list> <block pos:line=""3"" pos:column=""17"">{
+        <expr_stmt><expr><call><name><name pos:line=""4"" pos:column=""9"">b</name><op:operator pos:line=""4"" pos:column=""10"">.</op:operator><name pos:line=""4"" pos:column=""11"">Foo</name></name><argument_list pos:line=""4"" pos:column=""14"">()</argument_list></call></expr>;</expr_stmt>
+    }</block></function>
+}</block></class>";
+
+            var aUnit = fileSetup.GetFileUnitForXmlSnippet(a_xml, "A.cs");
+            var bUnit = fileSetup.GetFileUnitForXmlSnippet(b_xml, "B.cs");
+            var cUnit = fileSetup.GetFileUnitForXmlSnippet(c_xml, "C.cs");
+
+            NamespaceDefinition globalScope = codeParser.ParseFileUnit(aUnit);
+            globalScope = globalScope.Merge(codeParser.ParseFileUnit(bUnit));
+            globalScope = globalScope.Merge(codeParser.ParseFileUnit(cUnit));
+
+            var typeA = globalScope.GetNamedChildren<TypeDefinition>("A").FirstOrDefault();
+            var typeB = globalScope.GetNamedChildren<TypeDefinition>("B").FirstOrDefault();
+            var typeC = globalScope.GetNamedChildren<TypeDefinition>("C").FirstOrDefault();
+
+            Assert.IsNotNull(typeA, "could not find class A");
+            Assert.IsNotNull(typeB, "could not find class B");
+            Assert.IsNotNull(typeC, "could not find class C");
+
+            var aDotFoo = typeA.GetNamedChildren<MethodDefinition>("Foo").FirstOrDefault();
+            var cDotMain = typeC.GetNamedChildren<MethodDefinition>("main").FirstOrDefault();
+
+            Assert.IsNotNull(aDotFoo, "could not find method A.Foo()");
+            Assert.IsNotNull(cDotMain, "could not find method C.main()");
+
+            var callToFooFromC = cDotMain.FindExpressions<MethodCall>(true).FirstOrDefault();
+
+            Assert.IsNotNull(callToFooFromC, "could not find any calls in C.main()");
+            Assert.AreEqual("Foo", callToFooFromC.Name);
+            var callingObject = callToFooFromC.GetSiblingsBeforeSelf<NameUse>().Last();
+            Assert.AreEqual("b", callingObject.Name);
+
+            Assert.AreEqual(typeB, callingObject.ResolveType().FirstOrDefault());
+            Assert.AreEqual(aDotFoo, callToFooFromC.FindMatches().FirstOrDefault());
+        }
+
+        [Test]
+        [Category("Todo")]
+        public void TestCallWithTypeParameters() {
+            //namespace A {
+            //    public interface IOdb { 
+            //        int Query();
+            //        int Query<T>();
+            //    }
+            //    public class Test {
+            //        public IOdb Open() { }
+            //        void Test1() {
+            //            IOdb odb = Open();
+            //            var query = odb.Query<Foo>();
+            //        }
+            //    }
+            //}
             var xml = @"<namespace>namespace <name>A</name> <block>{
-	<class type=""interface""><specifier>public</specifier> interface <name>IQuery</name> <block>{ }</block></class>
-	<class type=""interface""><specifier>public</specifier> interface <name>IOdb</name> <block>{ <function_decl><type><name>IQuery</name></type> <name><name>Query</name><argument_list>&lt;<argument><name>T</name></argument>&gt;</argument_list></name><parameter_list>()</parameter_list>;</function_decl> }</block></class>
-
-	<class><specifier>public</specifier> class <name>Test</name> <block>{
-		<function><type><specifier>public</specifier> <name>IOdb</name></type> <name>Open</name><parameter_list>()</parameter_list> <block>{ }</block></function>
-		<function><type><name>void</name></type> <name>Test1</name><parameter_list>()</parameter_list> <block>{
-			<decl_stmt><decl><type><name>var</name></type> <name>odb</name> =<init> <expr><call><name>Open</name><argument_list>()</argument_list></call></expr></init></decl>;</decl_stmt>
-			<decl_stmt><decl><type><name>var</name></type> <name>query</name> =<init> <expr><call><name><name>odb</name><op:operator>.</op:operator><name><name>Query</name><argument_list>&lt;<argument><name>Foo</name></argument>&gt;</argument_list></name></name><argument_list>()</argument_list></call></expr></init></decl>;</decl_stmt>
-		}</block></function>
-	}</block></class>
+    <class type=""interface""><specifier>public</specifier> interface <name>IOdb</name> <block>{ 
+        <function_decl><type><name>int</name></type> <name>Query</name><parameter_list>()</parameter_list>;</function_decl>
+        <function_decl><type><name>int</name></type> <name><name>Query</name><argument_list>&lt;<argument><name>T</name></argument>&gt;</argument_list></name><parameter_list>()</parameter_list>;</function_decl>
+    }</block></class>
+    <class><specifier>public</specifier> class <name>Test</name> <block>{
+        <function><type><specifier>public</specifier> <name>IOdb</name></type> <name>Open</name><parameter_list>()</parameter_list> <block>{ }</block></function>
+        <function><type><name>void</name></type> <name>Test1</name><parameter_list>()</parameter_list> <block>{
+            <decl_stmt><decl><type><name>IOdb</name></type> <name>odb</name> <init>= <expr><call><name>Open</name><argument_list>()</argument_list></call></expr></init></decl>;</decl_stmt>
+            <decl_stmt><decl><type><name>var</name></type> <name>query</name> <init>= <expr><call><name><name>odb</name><op:operator>.</op:operator><name><name>Query</name><argument_list>&lt;<argument><name>Foo</name></argument>&gt;</argument_list></name></name><argument_list>()</argument_list></call></expr></init></decl>;</decl_stmt>
+        }</block></function>
+    }</block></class>
 }</block></namespace>";
-
             var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
             var scope = codeParser.ParseFileUnit(unit);
 
-            var queryMethod = scope.GetDescendantScopes<IMethodDefinition>().Where(m => m.Name == "Query").FirstOrDefault();
-            var test1Method = scope.GetDescendantScopes<IMethodDefinition>().Where(m => m.Name == "Test1").FirstOrDefault();
-            var callToQuery = test1Method.MethodCalls.LastOrDefault();
+            //TODO: update to search for method with type params, not just LastOrDefault
+            var queryTMethod = scope.GetDescendants<MethodDefinition>().LastOrDefault(m => m.Name == "Query");
+            Assert.IsNotNull(queryTMethod);
+            var test1Method = scope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "Test1");
+            Assert.IsNotNull(test1Method);
 
-            Assert.AreSame(queryMethod, callToQuery.FindMatches().FirstOrDefault());
+            Assert.AreEqual(2, test1Method.ChildStatements.Count);
+            var callToQuery = test1Method.ChildStatements[1].Content.GetDescendantsAndSelf<MethodCall>().FirstOrDefault();
+            Assert.IsNotNull(callToQuery);
+
+            var matches = callToQuery.FindMatches().ToList();
+            Assert.AreEqual(1, matches.Count);
+            Assert.AreSame(queryTMethod, matches[0]);
+        }
+
+        [Test]
+        public void TestCallConstructor() {
+            //class Foo {
+            //  public Foo() { }
+            //}
+            //class Bar {
+            //  Foo myFoo = new Foo();
+            //}
+            string xml = @"<class>class <name>Foo</name> <block>{
+  <constructor><specifier>public</specifier> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></constructor>
+}</block></class>
+<class>class <name>Bar</name> <block>{
+  <decl_stmt><decl><type><name>Foo</name></type> <name>myFoo</name> <init>= <expr><op:operator>new</op:operator> <call><name>Foo</name><argument_list>()</argument_list></call></expr></init></decl>;</decl_stmt>
+}</block></class>";
+            var xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
+
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            Assert.AreEqual(2, globalScope.ChildStatements.Count);
+
+            var fooConstructor = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "Foo");
+            Assert.IsNotNull(fooConstructor);
+            var fooCall = globalScope.ChildStatements[1].ChildStatements[0].Content.GetDescendantsAndSelf<MethodCall>().FirstOrDefault(mc => mc.Name == "Foo");
+            Assert.IsNotNull(fooCall);
+            Assert.AreSame(fooConstructor, fooCall.FindMatches().First());
         }
 
         [Test]
@@ -138,24 +245,15 @@ namespace ABB.SrcML.Data.Test {
             var cScope = codeParser.ParseFileUnit(cUnit);
             var globalScope = bScope.Merge(cScope);
 
-            var constructors = from methodDefinition in globalScope.GetDescendantScopes<IMethodDefinition>()
-                               where methodDefinition.IsConstructor
-                               select methodDefinition;
+            var bConstructor = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == "B" && m.IsConstructor);
+            var cConstructor = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == "C" && m.IsConstructor);
+            Assert.AreEqual(1, cConstructor.ConstructorInitializers.Count);
 
-            var bConstructor = (from method in constructors
-                                where method.GetParentScopes<ITypeDefinition>().FirstOrDefault().Name == "B"
-                                select method).FirstOrDefault();
-
-            var cConstructor = (from method in constructors
-                                where method.GetParentScopes<ITypeDefinition>().FirstOrDefault().Name == "C"
-                                select method).FirstOrDefault();
-
-            var methodCall = (from scope in globalScope.GetDescendantScopes()
-                              from call in scope.MethodCalls
-                              select call).FirstOrDefault();
-
+            var methodCall = cConstructor.ConstructorInitializers[0];
             Assert.IsNotNull(methodCall);
             Assert.That(methodCall.IsConstructor);
+            Assert.That(methodCall.IsConstructorInitializer);
+            Assert.AreEqual("base", methodCall.Name);
             Assert.AreSame(bConstructor, methodCall.FindMatches().FirstOrDefault());
         }
 
@@ -180,24 +278,15 @@ namespace ABB.SrcML.Data.Test {
 
             var globalScope = codeParser.ParseFileUnit(bUnit);
 
-            var constructors = from methodDefinition in globalScope.GetDescendantScopes<IMethodDefinition>()
-                               where methodDefinition.IsConstructor
-                               select methodDefinition;
+            var oneArgumentConstructor = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == "B" && m.Parameters.Count == 1);
+            var defaultConstructor = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == "B" && m.Parameters.Count == 0);
+            Assert.AreEqual(1, defaultConstructor.ConstructorInitializers.Count);
 
-            var defaultConstructor = (from method in constructors
-                                      where method.Parameters.Count == 0
-                                      select method).FirstOrDefault();
-
-            var oneArgumentConstructor = (from method in constructors
-                                          where method.Parameters.Count == 1
-                                          select method).FirstOrDefault();
-
-            var methodCall = (from scope in globalScope.GetDescendantScopes()
-                              from call in scope.MethodCalls
-                              select call).FirstOrDefault();
-
+            var methodCall = defaultConstructor.ConstructorInitializers[0];
             Assert.IsNotNull(methodCall);
             Assert.That(methodCall.IsConstructor);
+            Assert.That(methodCall.IsConstructorInitializer);
+            Assert.AreEqual("this", methodCall.Name);
             Assert.AreSame(oneArgumentConstructor, methodCall.FindMatches().FirstOrDefault());
         }
 
@@ -205,15 +294,354 @@ namespace ABB.SrcML.Data.Test {
         public void TestCreateAliasesForFiles_UsingNamespace() {
             // using x.y.z;
             string xml = @"<using>using <name><name>x</name><op:operator>.</op:operator><name>y</name><op:operator>.</op:operator><name>z</name></name>;</using>";
-            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cpp");
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
 
-            var actual = codeParser.ParseAliasElement(xmlElement.Element(SRC.Using), new ParserContext(xmlElement));
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            Assert.AreEqual(1, globalScope.ChildStatements.Count);
 
-            Assert.IsNull(actual.ImportedNamedScope);
-            Assert.That(actual.IsNamespaceImport);
-            Assert.AreEqual("x", actual.ImportedNamespace.Name);
-            Assert.AreEqual("y", actual.ImportedNamespace.ChildScopeUse.Name);
-            Assert.AreEqual("z", actual.ImportedNamespace.ChildScopeUse.ChildScopeUse.Name);
+            var actual = globalScope.ChildStatements[0] as ImportStatement;
+            Assert.IsNotNull(actual);
+            Assert.AreEqual("x . y . z", actual.ImportedNamespace.ToString());
+        }
+
+        [Test]
+        public void TestCreateAliasesForFiles_UsingAlias() {
+            // using x = Foo.Bar.Baz;
+            string xml = @"<using>using <name>x</name> <init>= <expr><name><name>Foo</name><op:operator>.</op:operator><name>Bar</name><op:operator>.</op:operator><name>Baz</name></name></expr></init>;</using>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
+
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            Assert.AreEqual(1, globalScope.ChildStatements.Count);
+
+            var actual = globalScope.ChildStatements[0] as AliasStatement;
+            Assert.IsNotNull(actual);
+            Assert.AreEqual("x", actual.AliasName);
+            Assert.AreEqual("Foo . Bar . Baz", actual.Target.ToString());
+        }
+
+        [Test]
+        public void TestGetImports() {
+            //B.cs
+            //namespace x.y.z {}
+            string xmlB = @"<namespace pos:line=""1"" pos:column=""1"">namespace <name><name pos:line=""1"" pos:column=""11"">x</name><op:operator pos:line=""1"" pos:column=""12"">.</op:operator><name pos:line=""1"" pos:column=""13"">y</name><op:operator pos:line=""1"" pos:column=""14"">.</op:operator><name pos:line=""1"" pos:column=""15"">z</name></name> <block pos:line=""1"" pos:column=""17"">{}</block></namespace>";
+            XElement xmlElementB = fileSetup.GetFileUnitForXmlSnippet(xmlB, "B.cs");
+            //A.cs
+            //using x.y.z;
+            //foo = 17;
+            string xmlA = @"<using pos:line=""1"" pos:column=""1"">using <name><name pos:line=""1"" pos:column=""7"">x</name><op:operator pos:line=""1"" pos:column=""8"">.</op:operator><name pos:line=""1"" pos:column=""9"">y</name><op:operator pos:line=""1"" pos:column=""10"">.</op:operator><name pos:line=""1"" pos:column=""11"">z</name></name>;</using>
+<expr_stmt><expr><name pos:line=""2"" pos:column=""1"">foo</name> <op:operator pos:line=""2"" pos:column=""5"">=</op:operator> <lit:literal type=""number"" pos:line=""2"" pos:column=""7"">17</lit:literal></expr>;</expr_stmt>";
+            XElement xmlElementA = fileSetup.GetFileUnitForXmlSnippet(xmlA, "A.cs");
+            
+            var scopeA = codeParser.ParseFileUnit(xmlElementA);
+            var scopeB = codeParser.ParseFileUnit(xmlElementB);
+            var globalScope = scopeA.Merge(scopeB);
+            Assert.AreEqual(3, globalScope.ChildStatements.Count);
+            var foo = globalScope.ChildStatements[1].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(n => n.Name == "foo");
+            Assert.IsNotNull(foo);
+            var imports = foo.GetImports().ToList();
+            Assert.AreEqual(1, imports.Count);
+            Assert.AreEqual("x . y . z", imports[0].ImportedNamespace.ToString());
+
+            var nsd = globalScope.GetDescendants<NamespaceDefinition>().FirstOrDefault(ns => ns.Name == "z");
+            Assert.IsNotNull(nsd);
+            var zUse = imports[0].ImportedNamespace.GetDescendantsAndSelf<NameUse>().LastOrDefault();
+            Assert.IsNotNull(zUse);
+            Assert.AreEqual("z", zUse.Name);
+            Assert.AreSame(nsd, zUse.FindMatches().First());
+        }
+
+        [Test]
+        public void TestGetImports_NestedImportNamespace() {
+            //A.cs
+            //namespace bar.baz {}
+            string xmlA = @"<namespace pos:line=""1"" pos:column=""1"">namespace <name><name pos:line=""1"" pos:column=""11"">bar</name><op:operator pos:line=""1"" pos:column=""14"">.</op:operator><name pos:line=""1"" pos:column=""15"">baz</name></name> <block pos:line=""1"" pos:column=""19"">{}</block></namespace>";
+            XElement xmlElementA = fileSetup.GetFileUnitForXmlSnippet(xmlA, "A.cs");
+            //B.cs
+            //using x.y.z;
+            //if(bar) {
+            //  using bar.baz;
+            //  foo = 17;
+            //}
+            string xmlB = @"<using pos:line=""1"" pos:column=""1"">using <name><name pos:line=""1"" pos:column=""7"">x</name><op:operator pos:line=""1"" pos:column=""8"">.</op:operator><name pos:line=""1"" pos:column=""9"">y</name><op:operator pos:line=""1"" pos:column=""10"">.</op:operator><name pos:line=""1"" pos:column=""11"">z</name></name>;</using>
+<if pos:line=""2"" pos:column=""1"">if<condition pos:line=""2"" pos:column=""3"">(<expr><name pos:line=""2"" pos:column=""4"">bar</name></expr>)</condition><then pos:line=""2"" pos:column=""8""> <block pos:line=""2"" pos:column=""9"">{
+  <using pos:line=""3"" pos:column=""3"">using <name><name pos:line=""3"" pos:column=""9"">bar</name><op:operator pos:line=""3"" pos:column=""12"">.</op:operator><name pos:line=""3"" pos:column=""13"">baz</name></name>;</using>
+  <expr_stmt><expr><name pos:line=""4"" pos:column=""3"">foo</name> <op:operator pos:line=""4"" pos:column=""7"">=</op:operator> <lit:literal type=""number"" pos:line=""4"" pos:column=""9"">17</lit:literal></expr>;</expr_stmt>
+}</block></then></if>";
+            XElement xmlElementB = fileSetup.GetFileUnitForXmlSnippet(xmlB, "B.cs");
+
+            var scopeA = codeParser.ParseFileUnit(xmlElementA);
+            var scopeB = codeParser.ParseFileUnit(xmlElementB);
+            var globalScope = scopeA.Merge(scopeB);
+            var foo = globalScope.ChildStatements[2].ChildStatements[1].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(n => n.Name == "foo");
+            Assert.IsNotNull(foo);
+            var imports = foo.GetImports().ToList();
+            Assert.AreEqual(2, imports.Count);
+            Assert.AreEqual("bar . baz", imports[0].ImportedNamespace.ToString());
+            Assert.AreEqual("x . y . z", imports[1].ImportedNamespace.ToString());
+
+            var baz = globalScope.GetDescendants<NamespaceDefinition>().FirstOrDefault(ns => ns.Name == "baz");
+            Assert.IsNotNull(baz);
+            var bazUse = imports[0].ImportedNamespace.GetDescendantsAndSelf<NameUse>().LastOrDefault();
+            Assert.IsNotNull(bazUse);
+            Assert.AreEqual("baz", bazUse.Name);
+            Assert.AreSame(baz, bazUse.FindMatches().First());
+        }
+
+        [Test]
+        public void TestGetImports_SeparateFiles() {
+            //A.cs
+            //using x.y.z;
+            //Foo = 17;
+            string xmlA = @"<using pos:line=""1"" pos:column=""1"">using <name><name pos:line=""1"" pos:column=""7"">x</name><op:operator pos:line=""1"" pos:column=""8"">.</op:operator><name pos:line=""1"" pos:column=""9"">y</name><op:operator pos:line=""1"" pos:column=""10"">.</op:operator><name pos:line=""1"" pos:column=""11"">z</name></name>;</using>
+<expr_stmt><expr><name pos:line=""2"" pos:column=""1"">Foo</name> <op:operator pos:line=""2"" pos:column=""5"">=</op:operator> <lit:literal type=""number"" pos:line=""2"" pos:column=""7"">17</lit:literal></expr>;</expr_stmt>";
+            XElement xmlElementA = fileSetup.GetFileUnitForXmlSnippet(xmlA, "A.cs");
+            //B.cs
+            //using a.b.howdy;
+            //Bar();
+            string xmlB = @"<using pos:line=""1"" pos:column=""1"">using <name><name pos:line=""1"" pos:column=""7"">a</name><op:operator pos:line=""1"" pos:column=""8"">.</op:operator><name pos:line=""1"" pos:column=""9"">b</name><op:operator pos:line=""1"" pos:column=""10"">.</op:operator><name pos:line=""1"" pos:column=""11"">howdy</name></name>;</using>
+<expr_stmt><expr><call><name pos:line=""2"" pos:column=""1"">Bar</name><argument_list pos:line=""2"" pos:column=""4"">()</argument_list></call></expr>;</expr_stmt>";
+            XElement xmlElementB = fileSetup.GetFileUnitForXmlSnippet(xmlB, "B.cs");
+
+            var scopeA = codeParser.ParseFileUnit(xmlElementA);
+            var scopeB = codeParser.ParseFileUnit(xmlElementB);
+            var globalScope = scopeA.Merge(scopeB);
+            Assert.AreEqual(4, globalScope.ChildStatements.Count);
+
+            var foo = globalScope.ChildStatements[1].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(nu => nu.Name == "Foo");
+            Assert.IsNotNull(foo);
+            var fooImports = foo.GetImports().ToList();
+            Assert.AreEqual(1, fooImports.Count);
+            Assert.AreEqual("x . y . z", fooImports[0].ImportedNamespace.ToString());
+
+            var bar = globalScope.ChildStatements[3].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(nu => nu.Name == "Bar");
+            Assert.IsNotNull(bar);
+            var barImports = bar.GetImports().ToList();
+            Assert.AreEqual(1, barImports.Count);
+            Assert.AreEqual("a . b . howdy", barImports[0].ImportedNamespace.ToString());
+        }
+
+        [Test]
+        public void TestGetAliases_NestedUsingAlias() {
+            //A.cs
+            //namespace bar {
+            //  class baz {}
+            //}
+            string xmlA = @"<namespace pos:line=""1"" pos:column=""1"">namespace <name pos:line=""1"" pos:column=""11"">bar</name> <block pos:line=""1"" pos:column=""15"">{
+  <class pos:line=""2"" pos:column=""3"">class <name pos:line=""2"" pos:column=""9"">baz</name> <block pos:line=""2"" pos:column=""13"">{}</block></class>
+}</block></namespace>";
+            XElement xmlElementA = fileSetup.GetFileUnitForXmlSnippet(xmlA, "A.cs");
+            //B.cs
+            //using x.y.z;
+            //if(bar) {
+            //  using x = bar.baz;
+            //  foo = 17;
+            //}
+            string xmlB = @"<using pos:line=""1"" pos:column=""1"">using <name><name pos:line=""1"" pos:column=""7"">x</name><op:operator pos:line=""1"" pos:column=""8"">.</op:operator><name pos:line=""1"" pos:column=""9"">y</name><op:operator pos:line=""1"" pos:column=""10"">.</op:operator><name pos:line=""1"" pos:column=""11"">z</name></name>;</using>
+<if pos:line=""2"" pos:column=""1"">if<condition pos:line=""2"" pos:column=""3"">(<expr><name pos:line=""2"" pos:column=""4"">bar</name></expr>)</condition><then pos:line=""2"" pos:column=""8""> <block pos:line=""2"" pos:column=""9"">{
+  <using pos:line=""3"" pos:column=""3"">using <name pos:line=""3"" pos:column=""9"">x</name> <init pos:line=""3"" pos:column=""11"">= <expr><name><name pos:line=""3"" pos:column=""13"">bar</name><op:operator pos:line=""3"" pos:column=""16"">.</op:operator><name pos:line=""3"" pos:column=""17"">baz</name></name></expr></init>;</using>
+  <expr_stmt><expr><name pos:line=""4"" pos:column=""3"">foo</name> <op:operator pos:line=""4"" pos:column=""7"">=</op:operator> <lit:literal type=""number"" pos:line=""4"" pos:column=""9"">17</lit:literal></expr>;</expr_stmt>
+}</block></then></if>";
+            XElement xmlElementB = fileSetup.GetFileUnitForXmlSnippet(xmlB, "A.cs");
+            
+            var scopeA = codeParser.ParseFileUnit(xmlElementA);
+            var scopeB = codeParser.ParseFileUnit(xmlElementB);
+            var globalScope = scopeA.Merge(scopeB);
+            var foo = globalScope.ChildStatements[2].ChildStatements[1].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(n => n.Name == "foo");
+            Assert.IsNotNull(foo);
+            var aliases = foo.GetAliases().ToList();
+            Assert.AreEqual(1, aliases.Count);
+            Assert.AreEqual("bar . baz", aliases[0].Target.ToString());
+            Assert.AreEqual("x", aliases[0].AliasName);
+            var imports = foo.GetImports().ToList();
+            Assert.AreEqual(1, imports.Count);
+            Assert.AreEqual("x . y . z", imports[0].ImportedNamespace.ToString());
+
+            var baz = globalScope.GetDescendants<TypeDefinition>().FirstOrDefault(ns => ns.Name == "baz");
+            Assert.IsNotNull(baz);
+            var bazUse = aliases[0].Target.GetDescendantsAndSelf<NameUse>().LastOrDefault(nu => nu.Name == "baz");
+            Assert.IsNotNull(bazUse);
+            Assert.AreSame(baz, bazUse.FindMatches().First());
+        }
+
+        [Test]
+        public void TestImport_NameResolution() {
+            //A.cs
+            //using Foo.Bar;
+            //
+            //namespace A {
+            //  public class Robot {
+            //    public Baz GetThingy() { return new Baz(); }
+            //  }
+            //}
+            string xmlA = @"<using pos:line=""1"" pos:column=""1"">using <name><name pos:line=""1"" pos:column=""7"">Foo</name><op:operator pos:line=""1"" pos:column=""10"">.</op:operator><name pos:line=""1"" pos:column=""11"">Bar</name></name>;</using>
+
+<namespace pos:line=""3"" pos:column=""1"">namespace <name pos:line=""3"" pos:column=""11"">A</name> <block pos:line=""3"" pos:column=""13"">{
+  <class><specifier pos:line=""4"" pos:column=""3"">public</specifier> class <name pos:line=""4"" pos:column=""16"">Robot</name> <block pos:line=""4"" pos:column=""22"">{
+    <function><type><specifier pos:line=""5"" pos:column=""5"">public</specifier> <name pos:line=""5"" pos:column=""12"">Baz</name></type> <name pos:line=""5"" pos:column=""16"">GetThingy</name><parameter_list pos:line=""5"" pos:column=""25"">()</parameter_list> <block pos:line=""5"" pos:column=""28"">{ <return pos:line=""5"" pos:column=""30"">return <expr><op:operator pos:line=""5"" pos:column=""37"">new</op:operator> <call><name pos:line=""5"" pos:column=""41"">Baz</name><argument_list pos:line=""5"" pos:column=""44"">()</argument_list></call></expr>;</return> }</block></function>
+  }</block></class>
+}</block></namespace>";
+            XElement xmlElementA = fileSetup.GetFileUnitForXmlSnippet(xmlA, "A.cs");
+            //B.cs
+            //namespace Foo.Bar {
+            //  public class Baz {
+            //    public Baz() { }
+            //  }
+            //}
+            string xmlB = @"<namespace pos:line=""1"" pos:column=""1"">namespace <name><name pos:line=""1"" pos:column=""11"">Foo</name><op:operator pos:line=""1"" pos:column=""14"">.</op:operator><name pos:line=""1"" pos:column=""15"">Bar</name></name> <block pos:line=""1"" pos:column=""19"">{
+  <class><specifier pos:line=""2"" pos:column=""3"">public</specifier> class <name pos:line=""2"" pos:column=""16"">Baz</name> <block pos:line=""2"" pos:column=""20"">{
+    <constructor><specifier pos:line=""3"" pos:column=""5"">public</specifier> <name pos:line=""3"" pos:column=""12"">Baz</name><parameter_list pos:line=""3"" pos:column=""15"">()</parameter_list> <block pos:line=""3"" pos:column=""18"">{ }</block></constructor>
+  }</block></class>
+}</block></namespace>";
+            XElement xmlElementB = fileSetup.GetFileUnitForXmlSnippet(xmlB, "B.cs");
+            
+            var scopeA = codeParser.ParseFileUnit(xmlElementA);
+            var scopeB = codeParser.ParseFileUnit(xmlElementB);
+            var globalScope = scopeA.Merge(scopeB);
+            Assert.AreEqual(3, globalScope.ChildStatements.Count);
+
+            var baz = globalScope.GetDescendants<TypeDefinition>().FirstOrDefault(t => t.Name == "Baz");
+            Assert.IsNotNull(baz);
+
+            var thingy = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "GetThingy");
+            Assert.IsNotNull(thingy);
+            var thingyTypes = thingy.ReturnType.FindMatches().ToList();
+            Assert.AreEqual(1, thingyTypes.Count);
+            Assert.AreSame(baz, thingyTypes[0]);
+
+            var bazDef = baz.GetNamedChildren<MethodDefinition>("Baz").First();
+            var bazCall = thingy.ChildStatements[0].Content.GetDescendantsAndSelf<MethodCall>().FirstOrDefault(mc => mc.Name == "Baz");
+            Assert.IsNotNull(bazCall);
+            Assert.AreSame(bazDef, bazCall.FindMatches().FirstOrDefault());
+        }
+
+        [Test]
+        public void TestAlias_NameResolution() {
+            //A.cs
+            //namespace Foo.Bar {
+            //  public class Baz {
+            //    public static void DoTheThing() { };
+            //  }
+            //}
+            string xmlA = @"<namespace pos:line=""1"" pos:column=""1"">namespace <name><name pos:line=""1"" pos:column=""11"">Foo</name><op:operator pos:line=""1"" pos:column=""14"">.</op:operator><name pos:line=""1"" pos:column=""15"">Bar</name></name> <block pos:line=""1"" pos:column=""19"">{
+  <class><specifier pos:line=""2"" pos:column=""3"">public</specifier> class <name pos:line=""2"" pos:column=""16"">Baz</name> <block pos:line=""2"" pos:column=""20"">{
+    <function><type><specifier pos:line=""3"" pos:column=""5"">public</specifier> <specifier pos:line=""3"" pos:column=""12"">static</specifier> <name pos:line=""3"" pos:column=""19"">void</name></type> <name pos:line=""3"" pos:column=""24"">DoTheThing</name><parameter_list pos:line=""3"" pos:column=""34"">()</parameter_list> <block pos:line=""3"" pos:column=""37"">{ }</block></function><empty_stmt pos:line=""3"" pos:column=""40"">;</empty_stmt>
+  }</block></class>
+}</block></namespace>";
+            XElement xmlElementA = fileSetup.GetFileUnitForXmlSnippet(xmlA, "A.cs");
+            //B.cs
+            //using Baz = Foo.Bar.Baz;
+            //namespace A {
+            //  public class B {
+            //    public B() {
+            //      Baz.DoTheThing();
+            //    }
+            //  }
+            //}
+            string xmlB = @"<using pos:line=""1"" pos:column=""1"">using <name pos:line=""1"" pos:column=""7"">Baz</name> <init pos:line=""1"" pos:column=""11"">= <expr><name><name pos:line=""1"" pos:column=""13"">Foo</name><op:operator pos:line=""1"" pos:column=""16"">.</op:operator><name pos:line=""1"" pos:column=""17"">Bar</name><op:operator pos:line=""1"" pos:column=""20"">.</op:operator><name pos:line=""1"" pos:column=""21"">Baz</name></name></expr></init>;</using>
+<namespace pos:line=""2"" pos:column=""1"">namespace <name pos:line=""2"" pos:column=""11"">A</name> <block pos:line=""2"" pos:column=""13"">{
+  <class><specifier pos:line=""3"" pos:column=""3"">public</specifier> class <name pos:line=""3"" pos:column=""16"">B</name> <block pos:line=""3"" pos:column=""18"">{
+    <constructor><specifier pos:line=""4"" pos:column=""5"">public</specifier> <name pos:line=""4"" pos:column=""12"">B</name><parameter_list pos:line=""4"" pos:column=""13"">()</parameter_list> <block pos:line=""4"" pos:column=""16"">{
+      <expr_stmt><expr><call><name><name pos:line=""5"" pos:column=""7"">Baz</name><op:operator pos:line=""5"" pos:column=""10"">.</op:operator><name pos:line=""5"" pos:column=""11"">DoTheThing</name></name><argument_list pos:line=""5"" pos:column=""21"">()</argument_list></call></expr>;</expr_stmt>
+    }</block></constructor>
+  }</block></class>
+}</block></namespace>";
+            XElement xmlElementB = fileSetup.GetFileUnitForXmlSnippet(xmlB, "B.cs");
+            
+            var scopeA = codeParser.ParseFileUnit(xmlElementA);
+            var scopeB = codeParser.ParseFileUnit(xmlElementB);
+            var globalScope = scopeA.Merge(scopeB);
+            Assert.AreEqual(3, globalScope.ChildStatements.Count);
+
+            var thingDef = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(md => md.Name == "DoTheThing");
+            Assert.IsNotNull(thingDef);
+            Assert.AreEqual("Baz", ((TypeDefinition)thingDef.ParentStatement).Name);
+
+            var bDef = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(md => md.Name == "B");
+            Assert.IsNotNull(bDef);
+            Assert.AreEqual(1, bDef.ChildStatements.Count);
+            var thingCall = bDef.ChildStatements[0].Content.GetDescendantsAndSelf<MethodCall>().FirstOrDefault();
+            Assert.IsNotNull(thingCall);
+            Assert.AreSame(thingDef, thingCall.FindMatches().First());
+        }
+
+        [Test]
+        [Category("SrcMLUpdate")]
+        public void TestUsingBlock_SingleDecl() {
+            //using(var f = File.Open("out.txt")) {
+            //  ;
+            //}
+            string xml = @"<using>using(<decl><type><name>var</name></type> <name>f</name> <init>= <expr><call><name><name>File</name><op:operator>.</op:operator><name>Open</name></name><argument_list>(<argument><expr><lit:literal type=""string"">""out.txt""</lit:literal></expr></argument>)</argument_list></call></expr></init></decl>) <block>{
+  <empty_stmt>;</empty_stmt>
+}</block></using>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
+
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            Assert.AreEqual(1, globalScope.ChildStatements.Count);
+
+            var actual = globalScope.ChildStatements[0] as UsingBlockStatement;
+            Assert.IsNotNull(actual);
+            Assert.AreEqual(1, actual.ChildStatements.Count);
+            Assert.IsNotNull(actual.Initializer);
+            var decls = actual.Initializer.GetDescendantsAndSelf<VariableDeclaration>().ToList();
+            Assert.AreEqual(1, decls.Count);
+            Assert.AreEqual("f", decls[0].Name);
+            Assert.AreEqual("var", decls[0].VariableType.Name);
+            Assert.IsNotNull(decls[0].Initializer);
+        }
+
+        [Test]
+        [Category("SrcMLUpdate")]
+        public void TestUsingBlock_MultipleDecl() {
+            // using(Foo a = new Foo(1), b = new Foo(2)) { ; }
+            string xml = @"<using>using(<decl><type><name>Foo</name></type> <name>a</name> <init>= <expr><op:operator>new</op:operator> <call><name>Foo</name><argument_list>(<argument><expr><lit:literal type=""number"">1</lit:literal></expr></argument>)</argument_list></call></expr></init><op:operator>,</op:operator> <name>b</name> <init>= <expr><op:operator>new</op:operator> <call><name>Foo</name><argument_list>(<argument><expr><lit:literal type=""number"">2</lit:literal></expr></argument>)</argument_list></call></expr></init></decl>) <block>{ <empty_stmt>;</empty_stmt> }</block></using>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
+
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            Assert.AreEqual(1, globalScope.ChildStatements.Count);
+
+            var actual = globalScope.ChildStatements[0] as UsingBlockStatement;
+            Assert.IsNotNull(actual);
+            Assert.AreEqual(1, actual.ChildStatements.Count);
+            Assert.IsNotNull(actual.Initializer);
+            var decls = actual.Initializer.GetDescendantsAndSelf<VariableDeclaration>().ToList();
+            Assert.AreEqual(2, decls.Count);
+            Assert.AreEqual("a", decls[0].Name);
+            Assert.AreEqual("Foo", decls[0].VariableType.Name);
+            Assert.IsNotNull(decls[0].Initializer);
+            Assert.AreEqual("b", decls[1].Name);
+            Assert.AreEqual("Foo", decls[1].VariableType.Name);
+            Assert.IsNotNull(decls[1].Initializer);
+        }
+
+        [Test]
+        [Category("SrcMLUpdate")]
+        public void TestUsingBlock_Expression() {
+            //using(bar = new Foo()) { ; }
+            string xml = @"<using>using(<expr><name>bar</name> <op:operator>=</op:operator> <op:operator>new</op:operator> <call><name>Foo</name><argument_list>()</argument_list></call></expr>) <block>{ <empty_stmt>;</empty_stmt> }</block></using>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
+
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            Assert.AreEqual(1, globalScope.ChildStatements.Count);
+
+            var actual = globalScope.ChildStatements[0] as UsingBlockStatement;
+            Assert.IsNotNull(actual);
+            Assert.AreEqual(1, actual.ChildStatements.Count);
+            var init = actual.Initializer;
+            Assert.IsNotNull(actual.Initializer);
+            Assert.AreEqual(4, init.Components.Count);
+            var bar = init.Components[0] as NameUse;
+            Assert.IsNotNull(bar);
+            Assert.AreEqual("bar", bar.Name);
+            var equals = init.Components[1] as OperatorUse;
+            Assert.IsNotNull(equals);
+            Assert.AreEqual("=", equals.Text);
+            var newOp = init.Components[2] as OperatorUse;
+            Assert.IsNotNull(newOp);
+            Assert.AreEqual("new", newOp.Text);
+            var foo = init.Components[3] as MethodCall;
+            Assert.IsNotNull(foo);
+            Assert.AreEqual("Foo", foo.Name);
+            Assert.AreEqual(0, foo.Arguments.Count);
         }
 
         [Test]
@@ -228,13 +656,18 @@ namespace ABB.SrcML.Data.Test {
             var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(fooXml, "Foo.cs");
             var globalScope = codeParser.ParseFileUnit(fooFileUnit);
 
-            Assert.AreEqual(1, globalScope.ChildScopes.Count());
-            var foo = globalScope.ChildScopes.First() as ITypeDefinition;
+            Assert.AreEqual(1, globalScope.ChildStatements.Count());
+            var foo = globalScope.ChildStatements.First() as TypeDefinition;
             Assert.IsNotNull(foo);
             Assert.AreEqual("Foo", foo.Name);
             Assert.AreEqual(TypeKind.Class, foo.Kind);
-            Assert.AreEqual(0, foo.ChildScopes.Count());
-            Assert.AreEqual(1, foo.DeclaredVariables.Count());
+            Assert.AreEqual(1, foo.ChildStatements.Count());
+
+            var bar = foo.ChildStatements[0].Content as VariableDeclaration;
+            Assert.IsNotNull(bar);
+            Assert.AreEqual("bar", bar.Name);
+            Assert.AreEqual("int", bar.VariableType.Name);
+            Assert.AreEqual(AccessModifier.Public, bar.Accessibility);
         }
 
         [Test]
@@ -249,15 +682,14 @@ namespace ABB.SrcML.Data.Test {
             var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(fooXml, "Foo.cs");
             var globalScope = codeParser.ParseFileUnit(fooFileUnit);
 
-            Assert.AreEqual(1, globalScope.ChildScopes.Count());
-            var foo = globalScope.ChildScopes.First() as ITypeDefinition;
+            Assert.AreEqual(1, globalScope.ChildStatements.Count());
+            var foo = globalScope.ChildStatements.First() as TypeDefinition;
             Assert.IsNotNull(foo);
             Assert.AreEqual("Foo", foo.Name);
             Assert.AreEqual(TypeKind.Class, foo.Kind);
-            Assert.AreEqual(0, foo.ChildScopes.Count());
-            Assert.AreEqual(1, foo.DeclaredVariables.Count());
-            Assert.AreEqual(1, foo.ParentTypes.Count);
-            Assert.AreEqual("Baz", foo.ParentTypes.First().Name);
+            Assert.AreEqual(1, foo.ChildStatements.Count());
+            Assert.AreEqual(1, foo.ParentTypeNames.Count);
+            Assert.AreEqual("Baz", foo.ParentTypeNames.First().Name);
         }
 
         [Test]
@@ -272,17 +704,16 @@ namespace ABB.SrcML.Data.Test {
             var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(fooXml, "Foo.cs");
             var globalScope = codeParser.ParseFileUnit(fooFileUnit);
 
-            Assert.AreEqual(1, globalScope.ChildScopes.Count());
-            var foo = globalScope.ChildScopes.First() as ITypeDefinition;
+            Assert.AreEqual(1, globalScope.ChildStatements.Count());
+            var foo = globalScope.ChildStatements.First() as TypeDefinition;
             Assert.IsNotNull(foo);
             Assert.AreEqual("Foo", foo.Name);
             Assert.AreEqual(TypeKind.Class, foo.Kind);
-            Assert.AreEqual(0, foo.ChildScopes.Count());
-            Assert.AreEqual(1, foo.DeclaredVariables.Count());
-            Assert.AreEqual(2, foo.ParentTypes.Count);
-            Assert.AreEqual("Baz", foo.ParentTypes[0].Name);
-            Assert.AreEqual("IDisposable", foo.ParentTypes[1].Name);
-            Assert.AreEqual("System", foo.ParentTypes[1].Prefix.Name);
+            Assert.AreEqual(1, foo.ChildStatements.Count());
+            Assert.AreEqual(2, foo.ParentTypeNames.Count);
+            Assert.AreEqual("Baz", foo.ParentTypeNames[0].Name);
+            Assert.AreEqual("IDisposable", foo.ParentTypeNames[1].Name);
+            Assert.AreEqual("System", foo.ParentTypeNames[1].Prefix.Names.First().Name);
         }
 
         [Test]
@@ -301,24 +732,23 @@ namespace ABB.SrcML.Data.Test {
             var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(fooXml, "Foo.cs");
             var globalScope = codeParser.ParseFileUnit(fooFileUnit);
 
-            Assert.AreEqual(1, globalScope.ChildScopes.Count());
-            var example = globalScope.ChildScopes.First() as INamespaceDefinition;
+            Assert.AreEqual(1, globalScope.ChildStatements.Count());
+            var example = globalScope.ChildStatements.First() as NamespaceDefinition;
             Assert.IsNotNull(example);
             Assert.AreEqual("Example", example.Name);
-            Assert.AreEqual(1, example.ChildScopes.Count());
-            var level2 = example.ChildScopes.First() as INamespaceDefinition;
+            Assert.AreEqual(1, example.ChildStatements.Count());
+            var level2 = example.ChildStatements.First() as NamespaceDefinition;
             Assert.IsNotNull(level2);
             Assert.AreEqual("Level2", level2.Name);
-            Assert.AreEqual(1, level2.ChildScopes.Count());
-            var level3 = level2.ChildScopes.First() as INamespaceDefinition;
+            Assert.AreEqual(1, level2.ChildStatements.Count());
+            var level3 = level2.ChildStatements.First() as NamespaceDefinition;
             Assert.IsNotNull(level3);
             Assert.AreEqual("Level3", level3.Name);
-            Assert.AreEqual(1, level3.ChildScopes.Count());
-            var foo = level3.ChildScopes.First() as ITypeDefinition;
+            Assert.AreEqual(1, level3.ChildStatements.Count());
+            var foo = level3.ChildStatements.First() as TypeDefinition;
             Assert.IsNotNull(foo);
             Assert.AreEqual("Foo", foo.Name);
-            Assert.AreEqual(0, foo.ChildScopes.Count());
-            Assert.AreEqual(1, foo.DeclaredVariables.Count());
+            Assert.AreEqual(1, foo.ChildStatements.Count());
         }
 
         [Test]
@@ -333,13 +763,12 @@ namespace ABB.SrcML.Data.Test {
             var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(fooXml, "Foo.cs");
             var globalScope = codeParser.ParseFileUnit(fooFileUnit);
 
-            Assert.AreEqual(1, globalScope.ChildScopes.Count());
-            var foo = globalScope.ChildScopes.First() as ITypeDefinition;
+            Assert.AreEqual(1, globalScope.ChildStatements.Count());
+            var foo = globalScope.ChildStatements.First() as TypeDefinition;
             Assert.IsNotNull(foo);
             Assert.AreEqual("Foo", foo.Name);
             Assert.AreEqual(TypeKind.Interface, foo.Kind);
-            Assert.AreEqual(1, foo.ChildScopes.Count());
-            Assert.AreEqual(0, foo.DeclaredVariables.Count());
+            Assert.AreEqual(1, foo.ChildStatements.Count());
         }
 
         [Test]
@@ -358,16 +787,15 @@ namespace ABB.SrcML.Data.Test {
             var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(fooXml, "Foo.cs");
             var globalScope = codeParser.ParseFileUnit(fooFileUnit);
 
-            Assert.AreEqual(1, globalScope.ChildScopes.Count());
-            var example = globalScope.ChildScopes.First() as INamespaceDefinition;
+            Assert.AreEqual(1, globalScope.ChildStatements.Count());
+            var example = globalScope.ChildStatements.First() as NamespaceDefinition;
             Assert.IsNotNull(example);
             Assert.AreEqual("Example", example.Name);
-            Assert.AreEqual(1, example.ChildScopes.Count());
-            var foo = example.ChildScopes.First() as ITypeDefinition;
+            Assert.AreEqual(1, example.ChildStatements.Count());
+            var foo = example.ChildStatements.First() as TypeDefinition;
             Assert.IsNotNull(foo);
             Assert.AreEqual("Foo", foo.Name);
-            Assert.AreEqual(0, foo.ChildScopes.Count());
-            Assert.AreEqual(1, foo.DeclaredVariables.Count());
+            Assert.AreEqual(1, foo.ChildStatements.Count());
         }
 
         [Test]
@@ -390,28 +818,27 @@ namespace ABB.SrcML.Data.Test {
             var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(fooXml, "Foo.cs");
             var globalScope = codeParser.ParseFileUnit(fooFileUnit);
 
-            Assert.AreEqual(1, globalScope.ChildScopes.Count());
-            var watermelon = globalScope.ChildScopes.First() as INamespaceDefinition;
+            Assert.AreEqual(1, globalScope.ChildStatements.Count());
+            var watermelon = globalScope.ChildStatements.First() as NamespaceDefinition;
             Assert.IsNotNull(watermelon);
             Assert.AreEqual("Watermelon", watermelon.Name);
-            Assert.AreEqual(1, watermelon.ChildScopes.Count());
-            var example = watermelon.ChildScopes.First() as INamespaceDefinition;
+            Assert.AreEqual(1, watermelon.ChildStatements.Count());
+            var example = watermelon.ChildStatements.First() as NamespaceDefinition;
             Assert.IsNotNull(example);
             Assert.AreEqual("Example", example.Name);
-            Assert.AreEqual(1, example.ChildScopes.Count());
-            var level2 = example.ChildScopes.First() as INamespaceDefinition;
+            Assert.AreEqual(1, example.ChildStatements.Count());
+            var level2 = example.ChildStatements.First() as NamespaceDefinition;
             Assert.IsNotNull(level2);
             Assert.AreEqual("Level2", level2.Name);
-            Assert.AreEqual(1, level2.ChildScopes.Count());
-            var level3 = level2.ChildScopes.First() as INamespaceDefinition;
+            Assert.AreEqual(1, level2.ChildStatements.Count());
+            var level3 = level2.ChildStatements.First() as NamespaceDefinition;
             Assert.IsNotNull(level3);
             Assert.AreEqual("Level3", level3.Name);
-            Assert.AreEqual(1, level3.ChildScopes.Count());
-            var foo = level3.ChildScopes.First() as ITypeDefinition;
+            Assert.AreEqual(1, level3.ChildStatements.Count());
+            var foo = level3.ChildStatements.First() as TypeDefinition;
             Assert.IsNotNull(foo);
             Assert.AreEqual("Foo", foo.Name);
-            Assert.AreEqual(0, foo.ChildScopes.Count());
-            Assert.AreEqual(1, foo.DeclaredVariables.Count());
+            Assert.AreEqual(1, foo.ChildStatements.Count());
         }
 
         [Test]
@@ -426,13 +853,12 @@ namespace ABB.SrcML.Data.Test {
             var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(fooXml, "Foo.cs");
             var globalScope = codeParser.ParseFileUnit(fooFileUnit);
 
-            Assert.AreEqual(1, globalScope.ChildScopes.Count());
-            var foo = globalScope.ChildScopes.First() as ITypeDefinition;
+            Assert.AreEqual(1, globalScope.ChildStatements.Count());
+            var foo = globalScope.ChildStatements.First() as TypeDefinition;
             Assert.IsNotNull(foo);
             Assert.AreEqual("Foo", foo.Name);
             Assert.AreEqual(TypeKind.Struct, foo.Kind);
-            Assert.AreEqual(0, foo.ChildScopes.Count());
-            Assert.AreEqual(1, foo.DeclaredVariables.Count());
+            Assert.AreEqual(1, foo.ChildStatements.Count());
         }
 
         [Test]
@@ -447,14 +873,14 @@ namespace ABB.SrcML.Data.Test {
             var xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
             var globalScope = codeParser.ParseFileUnit(xmlElement);
 
-            Assert.AreEqual(1, globalScope.ChildScopes.Count());
-            var typeA = globalScope.ChildScopes.First() as ITypeDefinition;
+            Assert.AreEqual(1, globalScope.ChildStatements.Count());
+            var typeA = globalScope.ChildStatements.First() as TypeDefinition;
             Assert.IsNotNull(typeA);
-            Assert.AreEqual(1, typeA.ChildScopes.Count());
-            var typeB = typeA.ChildScopes.First() as ITypeDefinition;
+            Assert.AreEqual(1, typeA.ChildStatements.Count());
+            var typeB = typeA.ChildStatements.First() as TypeDefinition;
             Assert.IsNotNull(typeB);
 
-            Assert.AreSame(typeA, typeB.ParentScope);
+            Assert.AreSame(typeA, typeB.ParentStatement);
             Assert.AreEqual("A", typeA.GetFullName());
             Assert.AreEqual("A.B", typeB.GetFullName());
         }
@@ -475,22 +901,22 @@ namespace ABB.SrcML.Data.Test {
             var xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
             var globalScope = codeParser.ParseFileUnit(xmlElement);
 
-            Assert.AreEqual(1, globalScope.ChildScopes.Count());
-            var foo = globalScope.ChildScopes.First() as INamespaceDefinition;
+            Assert.AreEqual(1, globalScope.ChildStatements.Count());
+            var foo = globalScope.ChildStatements.First() as NamespaceDefinition;
             Assert.IsNotNull(foo);
-            Assert.AreEqual(1, foo.ChildScopes.Count());
-            var typeA = foo.ChildScopes.First() as ITypeDefinition;
+            Assert.AreEqual(1, foo.ChildStatements.Count());
+            var typeA = foo.ChildStatements.First() as TypeDefinition;
             Assert.IsNotNull(typeA);
-            Assert.AreEqual(1, typeA.ChildScopes.Count());
-            var typeB = typeA.ChildScopes.First() as ITypeDefinition;
+            Assert.AreEqual(1, typeA.ChildStatements.Count());
+            var typeB = typeA.ChildStatements.First() as TypeDefinition;
             Assert.IsNotNull(typeB);
 
             Assert.AreEqual("A", typeA.Name);
-            Assert.AreEqual("Foo", typeA.GetFirstParent<INamespaceDefinition>().GetFullName());
+            Assert.AreEqual("Foo", typeA.GetAncestors<NamespaceDefinition>().First().GetFullName());
             Assert.AreEqual("Foo.A", typeA.GetFullName());
 
             Assert.AreEqual("B", typeB.Name);
-            Assert.AreEqual("Foo", typeB.GetFirstParent<INamespaceDefinition>().GetFullName());
+            Assert.AreEqual("Foo", typeB.GetAncestors<NamespaceDefinition>().First().GetFullName());
             Assert.AreEqual("Foo.A.B", typeB.GetFullName());
         }
 
@@ -507,17 +933,16 @@ namespace ABB.SrcML.Data.Test {
             var cScope = codeParser.ParseFileUnit(cUnit);
             var globalScope = bScope.Merge(cScope);
 
-            var typeB = (from type in globalScope.GetDescendantScopes<ITypeDefinition>()
-                         where type.Name == "B"
-                         select type).FirstOrDefault();
-
-            var declaration = (from scope in globalScope.GetDescendantScopesAndSelf()
-                               from decl in scope.DeclaredVariables
-                               select decl).FirstOrDefault();
-
+            var typeB = globalScope.GetDescendants<TypeDefinition>().FirstOrDefault(t => t.Name == "B");
             Assert.IsNotNull(typeB);
-            Assert.IsNotNull(declaration);
-            Assert.AreSame(typeB, declaration.VariableType.FindFirstMatchingType());
+            var main = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "main");
+            Assert.IsNotNull(main);
+
+            Assert.AreEqual(1, main.ChildStatements.Count);
+            var varDecl = main.ChildStatements[0].Content.GetDescendantsAndSelf<VariableDeclaration>().FirstOrDefault();
+            Assert.IsNotNull(varDecl);
+
+            Assert.AreSame(typeB, varDecl.ResolveType().FirstOrDefault());
         }
 
         [Test]
@@ -534,22 +959,51 @@ namespace ABB.SrcML.Data.Test {
         <function><type><specifier>public</specifier> <specifier>static</specifier> <name>B</name></type> <name>getB</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><op:operator>new</op:operator> <call><name>B</name><argument_list>()</argument_list></call></expr>;</return> }</block></function>
     }</block></class>
 }</block></namespace>";
-
             var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "B.cs");
-            var scope = codeParser.ParseFileUnit(unit);
+            var globalScope = codeParser.ParseFileUnit(unit);
 
-            var typeB = (from type in scope.GetDescendantScopes<ITypeDefinition>()
-                         where type.Name == "B"
-                         select type).FirstOrDefault();
+            var typeB = globalScope.GetDescendants<TypeDefinition>().FirstOrDefault(t => t.Name == "B");
+            Assert.IsNotNull(typeB);
+            var mainMethod = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "main");
+            Assert.IsNotNull(mainMethod);
 
-            var mainMethod = (from method in scope.GetDescendantScopes<IMethodDefinition>()
-                              where method.Name == "main"
-                              select method).FirstOrDefault();
+            Assert.AreEqual(1, mainMethod.ChildStatements.Count);
+            var varDecl = mainMethod.ChildStatements[0].Content.GetDescendantsAndSelf<VariableDeclaration>().FirstOrDefault();
+            Assert.IsNotNull(varDecl);
 
-            var declaration = mainMethod.DeclaredVariables.FirstOrDefault();
+            Assert.AreSame(typeB, varDecl.ResolveType().FirstOrDefault());
+        }
 
-            Assert.IsNotNull(declaration);
-            Assert.AreSame(typeB, declaration.VariableType.FindFirstMatchingType());
+        [Test]
+        public void TestDeclarationWithTypeVarInForeach() {
+            //class Foo {
+            //    int[] GetInts() {
+            //        return new[] {1, 2, 3, 4};
+            //    }
+            //    int main() {
+            //        foreach(var num in GetInts()) {
+            //            print(num);
+            //        }
+            //    }
+            //}
+            string xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">Foo</name> <block pos:line=""1"" pos:column=""11"">{
+    <function><type><name pos:line=""2"" pos:column=""5"">int</name><index pos:line=""2"" pos:column=""8"">[]</index></type> <name pos:line=""2"" pos:column=""11"">GetInts</name><parameter_list pos:line=""2"" pos:column=""18"">()</parameter_list> <block pos:line=""2"" pos:column=""21"">{
+        <return pos:line=""3"" pos:column=""9"">return <expr><op:operator pos:line=""3"" pos:column=""16"">new</op:operator><index pos:line=""3"" pos:column=""19"">[]</index> <block pos:line=""3"" pos:column=""22"">{<expr><lit:literal type=""number"" pos:line=""3"" pos:column=""23"">1</lit:literal></expr><op:operator pos:line=""3"" pos:column=""24"">,</op:operator> <expr><lit:literal type=""number"" pos:line=""3"" pos:column=""26"">2</lit:literal></expr><op:operator pos:line=""3"" pos:column=""27"">,</op:operator> <expr><lit:literal type=""number"" pos:line=""3"" pos:column=""29"">3</lit:literal></expr><op:operator pos:line=""3"" pos:column=""30"">,</op:operator> <expr><lit:literal type=""number"" pos:line=""3"" pos:column=""32"">4</lit:literal></expr>}</block></expr>;</return>
+    }</block></function>
+    <function><type><name pos:line=""5"" pos:column=""5"">int</name></type> <name pos:line=""5"" pos:column=""9"">main</name><parameter_list pos:line=""5"" pos:column=""13"">()</parameter_list> <block pos:line=""5"" pos:column=""16"">{
+        <foreach pos:line=""6"" pos:column=""9"">foreach(<init><decl><type><name pos:line=""6"" pos:column=""17"">var</name></type> <name pos:line=""6"" pos:column=""21"">num</name> <range pos:line=""6"" pos:column=""25"">in <expr><call><name pos:line=""6"" pos:column=""28"">GetInts</name><argument_list pos:line=""6"" pos:column=""35"">()</argument_list></call></expr></range></decl></init>) <block pos:line=""6"" pos:column=""39"">{
+            <expr_stmt><expr><call><name pos:line=""7"" pos:column=""13"">print</name><argument_list pos:line=""7"" pos:column=""18"">(<argument><expr><name pos:line=""7"" pos:column=""19"">num</name></expr></argument>)</argument_list></call></expr>;</expr_stmt>
+        }</block></foreach>
+    }</block></function>
+}</block></class>";
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "B.cs");
+            var globalScope = codeParser.ParseFileUnit(unit);
+
+            var loop = globalScope.GetDescendants<ForeachStatement>().First();
+            var varDecl = loop.Condition.GetDescendantsAndSelf<VariableDeclaration>().FirstOrDefault();
+            Assert.IsNotNull(varDecl);
+
+            Assert.AreSame(BuiltInTypeFactory.GetBuiltIn(new TypeUse() {Name = "int"}), varDecl.ResolveType().FirstOrDefault());
         }
 
         [Test]
@@ -564,13 +1018,15 @@ namespace ABB.SrcML.Data.Test {
             var xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
             var globalScope = codeParser.ParseFileUnit(xmlElement);
 
-            Assert.AreEqual(1, globalScope.ChildScopes.Count());
-            var typeA = globalScope.ChildScopes.First();
+            Assert.AreEqual(1, globalScope.ChildStatements.Count());
+            var typeA = globalScope.ChildStatements.First() as TypeDefinition;
             Assert.IsNotNull(typeA);
-            Assert.AreEqual(1, typeA.DeclaredVariables.Count());
-            var foo = typeA.DeclaredVariables.First();
+            Assert.AreEqual(1, typeA.ChildStatements.Count());
+            var foo = typeA.ChildStatements.First().Content as VariableDeclaration;
+            Assert.IsNotNull(foo);
             Assert.AreEqual("Foo", foo.Name);
             Assert.AreEqual("int", foo.VariableType.Name);
+            Assert.AreEqual(AccessModifier.Public, foo.Accessibility);
         }
 
         [Test]
@@ -589,19 +1045,13 @@ namespace ABB.SrcML.Data.Test {
 
             var globalScope = bScope.Merge(cScope);
 
-            var typeB = (from type in globalScope.GetDescendantScopes<ITypeDefinition>()
-                         where type.Name == "B"
-                         select type).FirstOrDefault();
-
-            var typeC = (from type in globalScope.GetDescendantScopes<ITypeDefinition>()
-                         where type.Name == "C"
-                         select type).FirstOrDefault();
-
+            var typeB = globalScope.GetDescendants<TypeDefinition>().FirstOrDefault(t => t.Name == "B");
             Assert.IsNotNull(typeB);
+            var typeC = globalScope.GetDescendants<TypeDefinition>().FirstOrDefault(t => t.Name == "C");
             Assert.IsNotNull(typeC);
 
-            Assert.AreEqual(1, typeB.ParentTypes.Count);
-            Assert.AreSame(typeC, typeB.ParentTypes[0].FindFirstMatchingType());
+            Assert.AreEqual(1, typeB.ParentTypeNames.Count);
+            Assert.AreSame(typeC, typeB.ParentTypeNames[0].ResolveType().FirstOrDefault());
         }
 
         [Test]
@@ -620,19 +1070,13 @@ namespace ABB.SrcML.Data.Test {
 
             var globalScope = bScope.Merge(dScope);
 
-            var typeB = (from type in globalScope.GetDescendantScopes<ITypeDefinition>()
-                         where type.Name == "B"
-                         select type).FirstOrDefault();
-
-            var typeD = (from type in globalScope.GetDescendantScopes<ITypeDefinition>()
-                         where type.Name == "D"
-                         select type).FirstOrDefault();
-
+            var typeB = globalScope.GetDescendants<TypeDefinition>().FirstOrDefault(t => t.Name == "B");
             Assert.IsNotNull(typeB);
+            var typeD = globalScope.GetDescendants<TypeDefinition>().FirstOrDefault(t => t.Name == "D");
             Assert.IsNotNull(typeD);
 
-            Assert.AreEqual(1, typeB.ParentTypes.Count);
-            Assert.AreSame(typeD, typeB.ParentTypes[0].FindFirstMatchingType());
+            Assert.AreEqual(1, typeB.ParentTypeNames.Count);
+            Assert.AreSame(typeD, typeB.ParentTypeNames[0].ResolveType().FirstOrDefault());
         }
 
         [Test]
@@ -643,7 +1087,7 @@ namespace ABB.SrcML.Data.Test {
             var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "B.cs");
             var scope = codeParser.ParseFileUnit(unit);
 
-            var typeB = scope.GetChildScopes<ITypeDefinition>().FirstOrDefault();
+            var typeB = scope.GetDescendants<TypeDefinition>().FirstOrDefault();
             Assert.IsNotNull(typeB);
             Assert.AreEqual("B", typeB.Name);
         }
@@ -657,7 +1101,7 @@ namespace ABB.SrcML.Data.Test {
 
             var testScope = codeParser.ParseFileUnit(testUnit);
 
-            var testDeclaration = testScope.DeclaredVariables.First();
+            var testDeclaration = testScope.ChildStatements.First().Content as VariableDeclaration;
             Assert.IsNotNull(testDeclaration, "could not find the test declaration");
             Assert.AreEqual("map", testDeclaration.Name);
             Assert.AreEqual("Dictionary", testDeclaration.VariableType.Name);
@@ -676,11 +1120,14 @@ namespace ABB.SrcML.Data.Test {
 
             var testScope = codeParser.ParseFileUnit(testUnit);
 
-            var testDeclaration = testScope.DeclaredVariables.First();
+            var testDeclaration = testScope.ChildStatements.First().Content as VariableDeclaration;
             Assert.IsNotNull(testDeclaration, "could not find the test declaration");
             Assert.AreEqual("map", testDeclaration.Name);
             Assert.AreEqual("Dictionary", testDeclaration.VariableType.Name);
-            Assert.AreEqual("System.Collection", testDeclaration.VariableType.Prefix.ToString());
+            var prefixNames = testDeclaration.VariableType.Prefix.Names.ToList();
+            Assert.AreEqual(2, prefixNames.Count);
+            Assert.AreEqual("System", prefixNames[0].Name);
+            Assert.AreEqual("Collection", prefixNames[1].Name);
             Assert.That(testDeclaration.VariableType.IsGeneric);
             Assert.AreEqual(2, testDeclaration.VariableType.TypeParameters.Count);
             Assert.AreEqual("string", testDeclaration.VariableType.TypeParameters.First().Name);
@@ -699,8 +1146,12 @@ namespace ABB.SrcML.Data.Test {
         <function><type><specifier>internal</specifier> <specifier>protected</specifier> <name>bool</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><lit:literal type=""boolean"">true</lit:literal></expr>;</return> }</block></function>
     }</block></class>
 }</block></namespace>";
-            var element = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.cs").Descendants(SRC.Function).FirstOrDefault();
-            Assert.AreEqual(AccessModifier.ProtectedInternal, codeParser.GetAccessModifierForMethod(element));
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.cs");
+            
+            var globalScope = codeParser.ParseFileUnit(unit);
+            var method = globalScope.GetDescendants<MethodDefinition>().First();
+
+            Assert.AreEqual(AccessModifier.ProtectedInternal, method.Accessibility);
         }
 
         [Test]
@@ -715,8 +1166,12 @@ namespace ABB.SrcML.Data.Test {
         <function><type><name>bool</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><lit:literal type=""boolean"">true</lit:literal></expr>;</return> }</block></function>
     }</block></class>
 }</block></namespace>";
-            var element = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.cs").Descendants(SRC.Function).FirstOrDefault();
-            Assert.AreEqual(AccessModifier.None, codeParser.GetAccessModifierForMethod(element));
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.cs");
+
+            var globalScope = codeParser.ParseFileUnit(unit);
+            var method = globalScope.GetDescendants<MethodDefinition>().First();
+
+            Assert.AreEqual(AccessModifier.None, method.Accessibility);
         }
 
         [Test]
@@ -731,8 +1186,12 @@ namespace ABB.SrcML.Data.Test {
         <function><type><specifier>public</specifier> <name>bool</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><lit:literal type=""boolean"">true</lit:literal></expr>;</return> }</block></function>
     }</block></class>
 }</block></namespace>";
-            var element = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.cs").Descendants(SRC.Function).FirstOrDefault();
-            Assert.AreEqual(AccessModifier.Public, codeParser.GetAccessModifierForMethod(element));
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.cs");
+
+            var globalScope = codeParser.ParseFileUnit(unit);
+            var method = globalScope.GetDescendants<MethodDefinition>().First();
+
+            Assert.AreEqual(AccessModifier.Public, method.Accessibility);
         }
 
         [Test]
@@ -747,8 +1206,12 @@ namespace ABB.SrcML.Data.Test {
         <function><type><specifier>protected</specifier> <specifier>internal</specifier> <name>bool</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><lit:literal type=""boolean"">true</lit:literal></expr>;</return> }</block></function>
     }</block></class>
 }</block></namespace>";
-            var element = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.cs").Descendants(SRC.Function).FirstOrDefault();
-            Assert.AreEqual(AccessModifier.ProtectedInternal, codeParser.GetAccessModifierForMethod(element));
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.cs");
+
+            var globalScope = codeParser.ParseFileUnit(unit);
+            var method = globalScope.GetDescendants<MethodDefinition>().First();
+
+            Assert.AreEqual(AccessModifier.ProtectedInternal, method.Accessibility);
         }
 
         [Test]
@@ -763,8 +1226,12 @@ namespace ABB.SrcML.Data.Test {
         <function><type><specifier>protected</specifier> <specifier>static</specifier> <specifier>internal</specifier> <name>bool</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><lit:literal type=""boolean"">true</lit:literal></expr>;</return> }</block></function>
     }</block></class>
 }</block></namespace>";
-            var element = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.cs").Descendants(SRC.Function).FirstOrDefault();
-            Assert.AreEqual(AccessModifier.ProtectedInternal, codeParser.GetAccessModifierForMethod(element));
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.cs");
+
+            var globalScope = codeParser.ParseFileUnit(unit);
+            var method = globalScope.GetDescendants<MethodDefinition>().First();
+
+            Assert.AreEqual(AccessModifier.ProtectedInternal, method.Accessibility);
         }
 
         [Test]
@@ -775,8 +1242,12 @@ namespace ABB.SrcML.Data.Test {
             string xml = @"<namespace>namespace <name>Example</name> <block>{
     <class><specifier>internal</specifier> <specifier>protected</specifier> class <name>Foo</name> <block>{}</block></class>
 }</block></namespace>";
-            var element = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.cs").Descendants(SRC.Class).FirstOrDefault();
-            Assert.AreEqual(AccessModifier.ProtectedInternal, codeParser.GetAccessModifierForType(element));
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.cs");
+
+            var globalScope = codeParser.ParseFileUnit(unit);
+            var type = globalScope.GetDescendants<TypeDefinition>().First();
+
+            Assert.AreEqual(AccessModifier.ProtectedInternal, type.Accessibility);
         }
 
         [Test]
@@ -787,8 +1258,12 @@ namespace ABB.SrcML.Data.Test {
             string xml = @"<namespace>namespace <name>Example</name> <block>{
     <class>class <name>Foo</name> <block>{}</block></class>
 }</block></namespace>";
-            var element = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.cs").Descendants(SRC.Class).FirstOrDefault();
-            Assert.AreEqual(AccessModifier.None, codeParser.GetAccessModifierForType(element));
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.cs");
+
+            var globalScope = codeParser.ParseFileUnit(unit);
+            var type = globalScope.GetDescendants<TypeDefinition>().First();
+
+            Assert.AreEqual(AccessModifier.None, type.Accessibility);
         }
 
         [Test]
@@ -799,8 +1274,12 @@ namespace ABB.SrcML.Data.Test {
             string xml = @"<namespace>namespace <name>Example</name> <block>{
     <class><specifier>public</specifier> class <name>Foo</name> <block>{}</block></class>
 }</block></namespace>";
-            var element = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.cs").Descendants(SRC.Class).FirstOrDefault();
-            Assert.AreEqual(AccessModifier.Public, codeParser.GetAccessModifierForType(element));
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.cs");
+
+            var globalScope = codeParser.ParseFileUnit(unit);
+            var type = globalScope.GetDescendants<TypeDefinition>().First();
+
+            Assert.AreEqual(AccessModifier.Public, type.Accessibility);
         }
 
         [Test]
@@ -811,8 +1290,12 @@ namespace ABB.SrcML.Data.Test {
             string xml = @"<namespace>namespace <name>Example</name> <block>{
     <class><specifier>protected</specifier> <specifier>internal</specifier> class <name>Foo</name> <block>{}</block></class>
 }</block></namespace>";
-            var element = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.cs").Descendants(SRC.Class).FirstOrDefault();
-            Assert.AreEqual(AccessModifier.ProtectedInternal, codeParser.GetAccessModifierForType(element));
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.cs");
+
+            var globalScope = codeParser.ParseFileUnit(unit);
+            var type = globalScope.GetDescendants<TypeDefinition>().First();
+
+            Assert.AreEqual(AccessModifier.ProtectedInternal, type.Accessibility);
         }
 
         [Test]
@@ -823,84 +1306,12 @@ namespace ABB.SrcML.Data.Test {
             string xml = @"<namespace>namespace <name>Example</name> <block>{
     <class><specifier>protected</specifier> <specifier>static</specifier> <specifier>internal</specifier> class <name>Foo</name> <block>{}</block></class>
 }</block></namespace>";
-            var element = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.cs").Descendants(SRC.Class).FirstOrDefault();
-            Assert.AreEqual(AccessModifier.ProtectedInternal, codeParser.GetAccessModifierForType(element));
-        }
+            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.cs");
 
-        [Test]
-        public void TestMethodCallCreation() {
-            //// A.cs
-            //class A {
-            //    public int Execute() {
-            //        B b = new B();
-            //        for(int i = 0; i < b.max(); i++) {
-            //            try {
-            //                PrintOutput(b.analyze(i));
-            //            } catch(Exception e) {
-            //                PrintError(e.ToString());
-            //            }
-            //        }
-            //    }
-            //}
-            string xml = @"<class>class <name>A</name> <block>{
-    <function><type><specifier>public</specifier> <name>int</name></type> <name>Execute</name><parameter_list>()</parameter_list> <block>{
-        <decl_stmt><decl><type><name>B</name></type> <name>b</name> =<init> <expr><op:operator>new</op:operator> <call><name>B</name><argument_list>()</argument_list></call></expr></init></decl>;</decl_stmt>
-        <for>for(<init><decl><type><name>int</name></type> <name>i</name> =<init> <expr><lit:literal type=""number"">0</lit:literal></expr></init></decl>;</init> <condition><expr><name>i</name> <op:operator>&lt;</op:operator> <call><name><name>b</name><op:operator>.</op:operator><name>max</name></name><argument_list>()</argument_list></call></expr>;</condition> <incr><expr><name>i</name><op:operator>++</op:operator></expr></incr>) <block>{
-            <try>try <block>{
-                <expr_stmt><expr><call><name>PrintOutput</name><argument_list>(<argument><expr><call><name><name>b</name><op:operator>.</op:operator><name>analyze</name></name><argument_list>(<argument><expr><name>i</name></expr></argument>)</argument_list></call></expr></argument>)</argument_list></call></expr>;</expr_stmt>
-            }</block> <catch>catch(<param><decl><type><name>Exception</name></type> <name>e</name></decl></param>) <block>{
-                <expr_stmt><expr><call><name>PrintError</name><argument_list>(<argument><expr><call><name><name>e</name><op:operator>.</op:operator><name>ToString</name></name><argument_list>()</argument_list></call></expr></argument>)</argument_list></call></expr>;</expr_stmt>
-            }</block></catch></try>
-        }</block></for>
-    }</block></function>
-}</block></class>";
-            var fileUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
-            var globalScope = codeParser.ParseFileUnit(fileUnit);
+            var globalScope = codeParser.ParseFileUnit(unit);
+            var type = globalScope.GetDescendants<TypeDefinition>().First();
 
-            var executeMethod = globalScope.ChildScopes.First().ChildScopes.First() as IMethodDefinition;
-            Assert.IsNotNull(executeMethod);
-
-            Assert.AreEqual(1, executeMethod.MethodCalls.Count());
-            var callToNewB = executeMethod.MethodCalls.First();
-            Assert.AreEqual("B", callToNewB.Name);
-            Assert.IsTrue(callToNewB.IsConstructor);
-            Assert.IsFalse(callToNewB.IsDestructor);
-
-            var forStatement = executeMethod.ChildScopes.First();
-            Assert.AreEqual(1, forStatement.MethodCalls.Count());
-            var callToMax = forStatement.MethodCalls.First();
-            Assert.AreEqual("max", callToMax.Name);
-            Assert.IsFalse(callToMax.IsDestructor);
-            Assert.IsFalse(callToMax.IsConstructor);
-
-            var forBlock = forStatement.ChildScopes.First();
-            var tryStatement = forBlock.ChildScopes.First();
-            var tryBlock = tryStatement.ChildScopes.First();
-
-            Assert.AreEqual(2, tryBlock.MethodCalls.Count());
-            var callToPrintOutput = tryBlock.MethodCalls.First();
-            Assert.AreEqual("PrintOutput", callToPrintOutput.Name);
-            Assert.IsFalse(callToPrintOutput.IsDestructor);
-            Assert.IsFalse(callToPrintOutput.IsConstructor);
-
-            var callToAnalyze = tryBlock.MethodCalls.Last();
-            Assert.AreEqual("analyze", callToAnalyze.Name);
-            Assert.IsFalse(callToAnalyze.IsDestructor);
-            Assert.IsFalse(callToAnalyze.IsConstructor);
-
-            var catchStatement = tryStatement.ChildScopes.Last();
-            var catchBlock = catchStatement.ChildScopes.First();
-
-            Assert.AreEqual(2, catchBlock.MethodCalls.Count());
-            var callToPrintError = catchBlock.MethodCalls.First();
-            Assert.AreEqual("PrintError", callToPrintError.Name);
-            Assert.IsFalse(callToPrintError.IsDestructor);
-            Assert.IsFalse(callToPrintError.IsConstructor);
-
-            var callToToString = catchBlock.MethodCalls.Last();
-            Assert.AreEqual("ToString", callToToString.Name);
-            Assert.IsFalse(callToToString.IsDestructor);
-            Assert.IsFalse(callToToString.IsConstructor);
+            Assert.AreEqual(AccessModifier.ProtectedInternal, type.Accessibility);
         }
 
         [Test]
@@ -917,22 +1328,15 @@ namespace ABB.SrcML.Data.Test {
             var cScope = codeParser.ParseFileUnit(cUnit);
             var globalScope = bScope.Merge(cScope);
 
-            var fooMethods = from methodDefinition in globalScope.GetDescendantScopes<IMethodDefinition>()
-                             select methodDefinition;
+            var fooMethods = globalScope.GetDescendants<MethodDefinition>().ToList();
 
-            var bDotFoo = (from method in fooMethods
-                           where method.GetParentScopes<ITypeDefinition>().FirstOrDefault().Name == "B"
-                           select method).FirstOrDefault();
-            var cDotFoo = (from method in fooMethods
-                           where method.GetParentScopes<ITypeDefinition>().FirstOrDefault().Name == "C"
-                           select method).FirstOrDefault();
-
+            var bDotFoo = fooMethods.FirstOrDefault(m => m.GetAncestors<TypeDefinition>().FirstOrDefault().Name == "B");
             Assert.IsNotNull(bDotFoo);
+            var cDotFoo = fooMethods.FirstOrDefault(m => m.GetAncestors<TypeDefinition>().FirstOrDefault().Name == "C");
             Assert.IsNotNull(cDotFoo);
 
-            var methodCall = (from scope in globalScope.GetDescendantScopes()
-                              from call in scope.MethodCalls
-                              select call).FirstOrDefault();
+            Assert.AreEqual(1, cDotFoo.ChildStatements.Count);
+            var methodCall = cDotFoo.ChildStatements[0].Content.GetDescendantsAndSelf<MethodCall>().FirstOrDefault();
             Assert.IsNotNull(methodCall);
             Assert.AreSame(bDotFoo, methodCall.FindMatches().FirstOrDefault());
         }
@@ -946,7 +1350,7 @@ namespace ABB.SrcML.Data.Test {
 
             var testScope = codeParser.ParseFileUnit(testUnit);
 
-            var method = testScope.GetChildScopesWithId<IMethodDefinition>("Foo").FirstOrDefault();
+            var method = testScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "Foo");
             Assert.IsNotNull(method, "could not find the test method");
 
             Assert.AreEqual("int", method.ReturnType.Name);
@@ -961,7 +1365,7 @@ namespace ABB.SrcML.Data.Test {
 
             var testScope = codeParser.ParseFileUnit(testUnit);
 
-            var method = testScope.GetChildScopesWithId<IMethodDefinition>("Foo").FirstOrDefault();
+            var method = testScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "Foo");
             Assert.IsNotNull(method, "could not find the test method");
 
             Assert.AreEqual("int", method.ReturnType.Name);
@@ -976,28 +1380,12 @@ namespace ABB.SrcML.Data.Test {
 
             var testScope = codeParser.ParseFileUnit(testUnit);
 
-            var method = testScope.GetChildScopesWithId<IMethodDefinition>("Foo").FirstOrDefault();
+            var method = testScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "Foo");
             Assert.IsNotNull(method, "could not find the test method");
 
             Assert.IsNull(method.ReturnType, "return type should be null");
         }
 
-        [Test]
-        public void TestMultiVariableDeclarations() {
-            //int a,b,c;
-            string testXml = @"<decl_stmt><decl><type><name>int</name></type> <name>a</name><op:operator>,</op:operator><name>b</name><op:operator>,</op:operator><name>c</name></decl>;</decl_stmt>";
-
-            var testUnit = fileSetup.GetFileUnitForXmlSnippet(testXml, "test.cs");
-
-            var globalScope = codeParser.ParseFileUnit(testUnit);
-
-            Assert.AreEqual(3, globalScope.DeclaredVariables.Count());
-
-            var declaredVariableNames = from variable in globalScope.DeclaredVariables select variable.Name;
-            var expectedVariableNames = new string[] { "a", "b", "c" };
-
-            CollectionAssert.AreEquivalent(expectedVariableNames, declaredVariableNames);
-        }
 
         [Test]
         public void TestProperty() {
@@ -1007,21 +1395,33 @@ namespace ABB.SrcML.Data.Test {
             var testUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "B.cs");
             var testScope = codeParser.ParseFileUnit(testUnit);
 
-            var classB = testScope.GetDescendantScopes<ITypeDefinition>().FirstOrDefault();
+            var classB = testScope.GetDescendants<TypeDefinition>().FirstOrDefault();
 
             Assert.IsNotNull(classB);
-            Assert.AreEqual(1, classB.DeclaredVariables.Count());
+            Assert.AreEqual(1, classB.ChildStatements.Count());
 
-            var fooProperty = classB.DeclaredVariables.First();
+            var fooProperty = classB.ChildStatements.First() as PropertyDefinition;
+            Assert.IsNotNull(fooProperty);
             Assert.AreEqual("Foo", fooProperty.Name);
-            Assert.AreEqual("int", fooProperty.VariableType.Name);
+            Assert.AreEqual("int", fooProperty.ReturnType.Name);
+            Assert.AreEqual(AccessModifier.None, fooProperty.Accessibility);
+            Assert.IsNotNull(fooProperty.Getter);
+            Assert.IsNotNull(fooProperty.Setter);
         }
 
         [Test]
         public void TestPropertyAsCallingObject() {
             // B.cs
-            string bXml = @"<namespace>namespace <name>A</name> <block>{ <class>class <name>B</name> <block>{ <decl_stmt><decl><type><name>C</name></type> <name>Foo</name> <block>{ <function_decl><name>get</name>;</function_decl> <function_decl><name>set</name>;</function_decl> }</block></decl></decl_stmt> }</block></class> }</block></namespace>";
-
+            //namespace A {
+            //  class B {
+            //    C Foo { get; set; }
+            //  }
+            //}
+            string bXml = @"<namespace pos:line=""1"" pos:column=""1"">namespace <name pos:line=""1"" pos:column=""11"">A</name> <block pos:line=""1"" pos:column=""13"">{
+  <class pos:line=""2"" pos:column=""3"">class <name pos:line=""2"" pos:column=""9"">B</name> <block pos:line=""2"" pos:column=""11"">{
+    <decl_stmt><decl><type><name pos:line=""3"" pos:column=""5"">C</name></type> <name pos:line=""3"" pos:column=""7"">Foo</name> <block pos:line=""3"" pos:column=""11"">{ <function_decl><name pos:line=""3"" pos:column=""13"">get</name>;</function_decl> <function_decl><name pos:line=""3"" pos:column=""18"">set</name>;</function_decl> }</block></decl></decl_stmt>
+  }</block></class>
+}</block></namespace>";
             // C.cs
             //namespace A {
             //	class C {
@@ -1032,15 +1432,14 @@ namespace ABB.SrcML.Data.Test {
             //		void Bar() { }
             //	}
             //}
-            string cXml = @"<namespace>namespace <name>A</name> <block>{
-	<class>class <name>C</name> <block>{
-		<function><type><specifier>static</specifier> <name>void</name></type> <name>main</name><parameter_list>()</parameter_list> <block>{
-			<decl_stmt><decl><type><name>B</name></type> <name>b</name> =<init> <expr><op:operator>new</op:operator> <call><name>B</name><argument_list>()</argument_list></call></expr></init></decl>;</decl_stmt>
-			<expr_stmt><expr><call><name><name>b</name><op:operator>.</op:operator><name>Foo</name><op:operator>.</op:operator><name>Bar</name></name><argument_list>()</argument_list></call></expr>;</expr_stmt>
-		}</block></function>
-
-		<function><type><name>void</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ }</block></function>
-	}</block></class>
+            string cXml = @"<namespace pos:line=""1"" pos:column=""1"">namespace <name pos:line=""1"" pos:column=""11"">A</name> <block pos:line=""1"" pos:column=""13"">{
+    <class pos:line=""2"" pos:column=""5"">class <name pos:line=""2"" pos:column=""11"">C</name> <block pos:line=""2"" pos:column=""13"">{
+        <function><type><specifier pos:line=""3"" pos:column=""9"">static</specifier> <name pos:line=""3"" pos:column=""16"">void</name></type> <name pos:line=""3"" pos:column=""21"">main</name><parameter_list pos:line=""3"" pos:column=""25"">()</parameter_list> <block pos:line=""3"" pos:column=""28"">{
+            <decl_stmt><decl><type><name pos:line=""4"" pos:column=""13"">B</name></type> <name pos:line=""4"" pos:column=""15"">b</name> <init pos:line=""4"" pos:column=""17"">= <expr><op:operator pos:line=""4"" pos:column=""19"">new</op:operator> <call><name pos:line=""4"" pos:column=""23"">B</name><argument_list pos:line=""4"" pos:column=""24"">()</argument_list></call></expr></init></decl>;</decl_stmt>
+            <expr_stmt><expr><call><name><name pos:line=""5"" pos:column=""13"">b</name><op:operator pos:line=""5"" pos:column=""14"">.</op:operator><name pos:line=""5"" pos:column=""15"">Foo</name><op:operator pos:line=""5"" pos:column=""18"">.</op:operator><name pos:line=""5"" pos:column=""19"">Bar</name></name><argument_list pos:line=""5"" pos:column=""22"">()</argument_list></call></expr>;</expr_stmt>
+        }</block></function>
+        <function><type><name pos:line=""7"" pos:column=""9"">void</name></type> <name pos:line=""7"" pos:column=""14"">Bar</name><parameter_list pos:line=""7"" pos:column=""17"">()</parameter_list> <block pos:line=""7"" pos:column=""20"">{ }</block></function>
+    }</block></class>
 }</block></namespace>";
 
             var bUnit = fileSetup.GetFileUnitForXmlSnippet(bXml, "B.cs");
@@ -1050,27 +1449,18 @@ namespace ABB.SrcML.Data.Test {
 
             var globalScope = bScope.Merge(cScope);
 
-            var classB = (from t in globalScope.GetDescendantScopes<ITypeDefinition>()
-                          where t.Name == "B"
-                          select t).FirstOrDefault();
-
-            var classC = (from t in globalScope.GetDescendantScopes<ITypeDefinition>()
-                          where t.Name == "C"
-                          select t).FirstOrDefault();
-
+            var classB = globalScope.GetDescendants<TypeDefinition>().FirstOrDefault(t => t.Name == "B");
             Assert.IsNotNull(classB);
+            var classC = globalScope.GetDescendants<TypeDefinition>().FirstOrDefault(t => t.Name == "C");
             Assert.IsNotNull(classC);
 
-            var mainMethod = classC.GetChildScopesWithId<IMethodDefinition>("main").FirstOrDefault();
-            var barMethod = classC.GetChildScopesWithId<IMethodDefinition>("Bar").FirstOrDefault();
-
+            var mainMethod = classC.GetNamedChildren<MethodDefinition>("main").FirstOrDefault();
+            var barMethod = classC.GetNamedChildren<MethodDefinition>("Bar").FirstOrDefault();
             Assert.IsNotNull(mainMethod);
             Assert.IsNotNull(barMethod);
 
-            var callToBar = (from m in mainMethod.MethodCalls
-                             where m.Name == "Bar"
-                             select m).FirstOrDefault();
-
+            Assert.AreEqual(2, mainMethod.ChildStatements.Count);
+            var callToBar = mainMethod.ChildStatements[1].Content.GetDescendantsAndSelf<MethodCall>().FirstOrDefault();
             Assert.IsNotNull(callToBar);
             Assert.AreSame(barMethod, callToBar.FindMatches().FirstOrDefault());
         }
@@ -1090,19 +1480,14 @@ namespace ABB.SrcML.Data.Test {
 
             var globalScope = bScope.Merge(cScope);
 
-            var fooMethod = (from method in globalScope.GetDescendantScopes<IMethodDefinition>()
-                             where method.Name == "Foo"
-                             select method).FirstOrDefault();
-            var barMethod = (from method in globalScope.GetDescendantScopes<IMethodDefinition>()
-                             where method.Name == "Bar"
-                             select method).FirstOrDefault();
-
+            var fooMethod = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "Foo");
+            var barMethod = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "Bar");
             Assert.IsNotNull(fooMethod);
             Assert.IsNotNull(barMethod);
 
-            var callToBar = fooMethod.MethodCalls.FirstOrDefault();
+            Assert.AreEqual(1, fooMethod.ChildStatements.Count);
+            var callToBar = fooMethod.ChildStatements[0].Content.GetDescendantsAndSelf<MethodCall>().FirstOrDefault();
             Assert.IsNotNull(callToBar);
-
             Assert.AreSame(barMethod, callToBar.FindMatches().FirstOrDefault());
         }
 
@@ -1121,19 +1506,14 @@ namespace ABB.SrcML.Data.Test {
 
             var globalScope = bScope.Merge(dScope);
 
-            var fooMethod = (from method in globalScope.GetDescendantScopes<IMethodDefinition>()
-                             where method.Name == "Foo"
-                             select method).FirstOrDefault();
-            var barMethod = (from method in globalScope.GetDescendantScopes<IMethodDefinition>()
-                             where method.Name == "Bar"
-                             select method).FirstOrDefault();
-
+            var fooMethod = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "Foo");
+            var barMethod = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "Bar");
             Assert.IsNotNull(fooMethod);
             Assert.IsNotNull(barMethod);
 
-            var callToBar = fooMethod.MethodCalls.FirstOrDefault();
+            Assert.AreEqual(1, fooMethod.ChildStatements.Count);
+            var callToBar = fooMethod.ChildStatements[0].Content.GetDescendantsAndSelf<MethodCall>().FirstOrDefault();
             Assert.IsNotNull(callToBar);
-
             Assert.AreSame(barMethod, callToBar.FindMatches().FirstOrDefault());
         }
 
@@ -1144,24 +1524,37 @@ namespace ABB.SrcML.Data.Test {
             //public static readonly Foo C;
             //volatile  int D;
             string testXml = @"<decl_stmt><decl><type><specifier>static</specifier> <name>int</name></type> <name>A</name></decl>;</decl_stmt>
-<decl_stmt><decl><type><specifier>public</specifier> <name>const</name> <name>int</name></type> <name>B</name></decl>;</decl_stmt>
+<decl_stmt><decl><type><specifier>public</specifier> <specifier>const</specifier> <name>int</name></type> <name>B</name></decl>;</decl_stmt>
 <decl_stmt><decl><type><specifier>public</specifier> <specifier>static</specifier> <specifier>readonly</specifier> <name>Foo</name></type> <name>C</name></decl>;</decl_stmt>
 <decl_stmt><decl><type><specifier>volatile</specifier>  <name>int</name></type> <name>D</name></decl>;</decl_stmt>";
-
             var testUnit = fileSetup.GetFileUnitForXmlSnippet(testXml, "test.cs");
 
             var globalScope = codeParser.ParseFileUnit(testUnit);
+            Assert.AreEqual(4, globalScope.ChildStatements.Count);
 
-            var declaredVariableNames = from variable in globalScope.DeclaredVariables select variable.Name;
-            var declaredVariableTypes = from variable in globalScope.DeclaredVariables select variable.VariableType.Name;
+            var declA = globalScope.ChildStatements[0].Content as VariableDeclaration;
+            Assert.IsNotNull(declA);
+            Assert.AreEqual("A", declA.Name);
+            Assert.AreEqual("int", declA.VariableType.Name);
+            Assert.AreEqual(AccessModifier.None, declA.Accessibility);
 
-            var expectedVariableNames = new string[] { "A", "B", "C", "D" };
-            var expectedVariableTypes = new string[] { "int", "Foo" };
+            var declB = globalScope.ChildStatements[1].Content as VariableDeclaration;
+            Assert.IsNotNull(declB);
+            Assert.AreEqual("B", declB.Name);
+            Assert.AreEqual("int", declB.VariableType.Name);
+            Assert.AreEqual(AccessModifier.Public, declB.Accessibility);
 
-            CollectionAssert.AreEquivalent(expectedVariableNames, declaredVariableNames);
-            foreach(var declaration in globalScope.DeclaredVariables) {
-                CollectionAssert.Contains(expectedVariableTypes, declaration.VariableType.Name);
-            }
+            var declC = globalScope.ChildStatements[2].Content as VariableDeclaration;
+            Assert.IsNotNull(declC);
+            Assert.AreEqual("C", declC.Name);
+            Assert.AreEqual("Foo", declC.VariableType.Name);
+            Assert.AreEqual(AccessModifier.Public, declC.Accessibility);
+
+            var declD = globalScope.ChildStatements[3].Content as VariableDeclaration;
+            Assert.IsNotNull(declD);
+            Assert.AreEqual("D", declD.Name);
+            Assert.AreEqual("int", declD.VariableType.Name);
+            Assert.AreEqual(AccessModifier.None, declD.Accessibility);
         }
 
         [Test]
@@ -1186,15 +1579,13 @@ namespace ABB.SrcML.Data.Test {
 
             var globalScope = codeParser.ParseFileUnit(unit);
 
-            var methodBar = (from method in globalScope.GetDescendantScopesAndSelf<IMethodDefinition>()
-                             where method.Name == "Bar"
-                             select method).FirstOrDefault();
-            var callToBar = (from scope in globalScope.GetDescendantScopesAndSelf()
-                             from call in scope.MethodCalls
-                             where call.Name == "Bar"
-                             select call).FirstOrDefault();
-
+            var methodBar = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "Bar");
             Assert.IsNotNull(methodBar);
+            var methodFoo = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "Foo");
+            Assert.IsNotNull(methodFoo);
+
+            Assert.AreEqual(1, methodFoo.ChildStatements.Count);
+            var callToBar = methodFoo.ChildStatements[0].Content.GetDescendantsAndSelf<MethodCall>().FirstOrDefault();
             Assert.IsNotNull(callToBar);
             Assert.AreSame(methodBar, callToBar.FindMatches().FirstOrDefault());
         }
@@ -1206,16 +1597,13 @@ namespace ABB.SrcML.Data.Test {
             //		public static B Instance { get; set; }
             //		public void Bar() { }
             //	}
-            //	
-            //	class C { public void Foo() { B.Instance.Bar(); } }
             //}
-            var aXml = @"<namespace>namespace <name>A</name> <block>{
-	<class>class <name>B</name> <block>{
-		<decl_stmt><decl><type><specifier>public</specifier> <specifier>static</specifier> <name>B</name></type> <name>Instance</name> <block>{ <function_decl><name>get</name>;</function_decl> <function_decl><name>set</name>;</function_decl> }</block></decl></decl_stmt>
-		<function><type><specifier>public</specifier> <name>void</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ }</block></function>
+            var aXml = @"<namespace pos:line=""1"" pos:column=""1"">namespace <name pos:line=""1"" pos:column=""11"">A</name> <block pos:line=""1"" pos:column=""13"">{
+	<class pos:line=""2"" pos:column=""9"">class <name pos:line=""2"" pos:column=""15"">B</name> <block pos:line=""2"" pos:column=""17"">{
+		<decl_stmt><decl><type><specifier pos:line=""3"" pos:column=""17"">public</specifier> <specifier pos:line=""3"" pos:column=""24"">static</specifier> <name pos:line=""3"" pos:column=""31"">B</name></type> <name pos:line=""3"" pos:column=""33"">Instance</name> <block pos:line=""3"" pos:column=""42"">{ <function_decl><name pos:line=""3"" pos:column=""44"">get</name>;</function_decl> <function_decl><name pos:line=""3"" pos:column=""49"">set</name>;</function_decl> }</block></decl></decl_stmt>
+		<function><type><specifier pos:line=""4"" pos:column=""17"">public</specifier> <name pos:line=""4"" pos:column=""24"">void</name></type> <name pos:line=""4"" pos:column=""29"">Bar</name><parameter_list pos:line=""4"" pos:column=""32"">()</parameter_list> <block pos:line=""4"" pos:column=""35"">{ }</block></function>
 	}</block></class>
 }</block></namespace>";
-
             //using A;
             //
             //namespace C {
@@ -1223,12 +1611,12 @@ namespace ABB.SrcML.Data.Test {
             //		public void Foo() { B.Instance.Bar(); }
             //	}
             //}
-            var cXml = @"<using>using <name>A</name>;</using>
+            var cXml = @"<using pos:line=""1"" pos:column=""1"">using <name pos:line=""1"" pos:column=""7"">A</name>;</using>
 
-<namespace>namespace <name>C</name> <block>{
-	<class>class <name>D</name> <block>{
-		<function><type><specifier>public</specifier> <name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ <expr_stmt><expr><call><name><name>B</name><op:operator>.</op:operator><name>Instance</name><op:operator>.</op:operator><name>Bar</name></name><argument_list>()</argument_list></call></expr>;</expr_stmt> }</block></function>
-	}</block></class>
+<namespace pos:line=""3"" pos:column=""1"">namespace <name pos:line=""3"" pos:column=""11"">C</name> <block pos:line=""3"" pos:column=""13"">{
+    <class pos:line=""4"" pos:column=""5"">class <name pos:line=""4"" pos:column=""11"">D</name> <block pos:line=""4"" pos:column=""13"">{
+        <function><type><specifier pos:line=""5"" pos:column=""9"">public</specifier> <name pos:line=""5"" pos:column=""16"">void</name></type> <name pos:line=""5"" pos:column=""21"">Foo</name><parameter_list pos:line=""5"" pos:column=""24"">()</parameter_list> <block pos:line=""5"" pos:column=""27"">{ <expr_stmt><expr><call><name><name pos:line=""5"" pos:column=""29"">B</name><op:operator pos:line=""5"" pos:column=""30"">.</op:operator><name pos:line=""5"" pos:column=""31"">Instance</name><op:operator pos:line=""5"" pos:column=""39"">.</op:operator><name pos:line=""5"" pos:column=""40"">Bar</name></name><argument_list pos:line=""5"" pos:column=""43"">()</argument_list></call></expr>;</expr_stmt> }</block></function>
+    }</block></class>
 }</block></namespace>";
             var aUnit = fileSetup.GetFileUnitForXmlSnippet(aXml, "A.cs");
             var cUnit = fileSetup.GetFileUnitForXmlSnippet(cXml, "C.cs");
@@ -1236,15 +1624,13 @@ namespace ABB.SrcML.Data.Test {
             var cScope = codeParser.ParseFileUnit(cUnit);
             var globalScope = aScope.Merge(cScope);
 
-            var methodBar = (from method in globalScope.GetDescendantScopesAndSelf<IMethodDefinition>()
-                             where method.Name == "Bar"
-                             select method).FirstOrDefault();
-            var callToBar = (from scope in globalScope.GetDescendantScopesAndSelf()
-                             from call in scope.MethodCalls
-                             where call.Name == "Bar"
-                             select call).FirstOrDefault();
-
+            var methodBar = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "Bar");
             Assert.IsNotNull(methodBar);
+            var methodFoo = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "Foo");
+            Assert.IsNotNull(methodFoo);
+
+            Assert.AreEqual(1, methodFoo.ChildStatements.Count);
+            var callToBar = methodFoo.ChildStatements[0].Content.GetDescendantsAndSelf<MethodCall>().FirstOrDefault();
             Assert.IsNotNull(callToBar);
             Assert.AreSame(methodBar, callToBar.FindMatches().FirstOrDefault());
         }
@@ -1261,7 +1647,6 @@ namespace ABB.SrcML.Data.Test {
             //	}
             //
             //	public class C {
-            //		C Foo() { return new C(); }
             //		void Bar() { }
             //	}
             //}
@@ -1275,7 +1660,6 @@ namespace ABB.SrcML.Data.Test {
 	}</block></class>
 
 	<class><specifier>public</specifier> class <name>C</name> <block>{
-		<function><type><name>C</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><op:operator>new</op:operator> <call><name>C</name><argument_list>()</argument_list></call></expr>;</return> }</block></function>
 		<function><type><name>void</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ }</block></function>
 	}</block></class>
 }</block></namespace>";
@@ -1283,32 +1667,261 @@ namespace ABB.SrcML.Data.Test {
             var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "B.cs");
             var globalScope = codeParser.ParseFileUnit(unit);
 
-            var mainMethod = (from method in globalScope.GetDescendantScopesAndSelf<IMethodDefinition>()
-                              where method.Name == "main"
-                              select method).FirstOrDefault();
-            var fooMethod = (from method in globalScope.GetDescendantScopesAndSelf<IMethodDefinition>()
-                             where method.Name == "Foo"
-                             select method).FirstOrDefault();
-            var barMethod = (from method in globalScope.GetDescendantScopesAndSelf<IMethodDefinition>()
-                             where method.Name == "Bar"
-                             select method).FirstOrDefault();
-
+            var mainMethod = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "main");
+            var fooMethod = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "Foo");
+            var barMethod = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "Bar");
             Assert.IsNotNull(mainMethod);
             Assert.IsNotNull(fooMethod);
             Assert.IsNotNull(barMethod);
 
-            var callToFoo = (from call in mainMethod.MethodCalls
-                             where call.Name == "Foo"
-                             select call).FirstOrDefault();
-            var callToBar = (from call in mainMethod.MethodCalls
-                             where call.Name == "Bar"
-                             select call).FirstOrDefault();
-
+            Assert.AreEqual(1, mainMethod.ChildStatements.Count);
+            var callToFoo = mainMethod.ChildStatements[0].Content.GetDescendantsAndSelf<MethodCall>().FirstOrDefault(mc => mc.Name == "Foo");
+            var callToBar = mainMethod.ChildStatements[0].Content.GetDescendantsAndSelf<MethodCall>().FirstOrDefault(mc => mc.Name == "Bar");
             Assert.IsNotNull(callToFoo);
             Assert.IsNotNull(callToBar);
 
             Assert.AreSame(fooMethod, callToFoo.FindMatches().FirstOrDefault());
             Assert.AreSame(barMethod, callToBar.FindMatches().FirstOrDefault());
+        }
+
+        [Test]
+        public void TestResolveVariable_Field() {
+            //class A {
+            //  public int Foo;
+            //  public A() {
+            //    Foo = 42;
+            //  }
+            //}
+            string xml = @"<class>class <name>A</name> <block>{
+  <decl_stmt><decl><type><specifier>public</specifier> <name>int</name></type> <name>Foo</name></decl>;</decl_stmt>
+  <constructor><specifier>public</specifier> <name>A</name><parameter_list>()</parameter_list> <block>{
+    <expr_stmt><expr><name>Foo</name> <op:operator>=</op:operator> <lit:literal type=""number"">42</lit:literal></expr>;</expr_stmt>
+  }</block></constructor>
+}</block></class>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
+
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            var fooDecl = globalScope.GetNamedChildren<TypeDefinition>("A").First().GetNamedChildren<VariableDeclaration>("Foo").First();
+            var aConstructor = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == "A");
+            Assert.AreEqual(1, aConstructor.ChildStatements.Count);
+            var fooUse = aConstructor.ChildStatements[0].Content.GetDescendants<NameUse>().FirstOrDefault(n => n.Name == "Foo");
+            Assert.IsNotNull(fooUse);
+            Assert.AreSame(fooDecl, fooUse.FindMatches().FirstOrDefault());
+        }
+
+        [Test]
+        public void TestResolveVariable_FieldInParent() {
+            //class B {
+            //  public int Foo;
+            //}
+            //class A : B {
+            //  public A() {
+            //    Foo = 42;
+            //  }
+            //}
+            var xml = @"<class>class <name>B</name> <block>{
+  <decl_stmt><decl><type><specifier>public</specifier> <name>int</name></type> <name>Foo</name></decl>;</decl_stmt>
+}</block></class>
+<class>class <name>A</name> <super>: <name>B</name></super> <block>{
+  <constructor><specifier>public</specifier> <name>A</name><parameter_list>()</parameter_list> <block>{
+    <expr_stmt><expr><name>Foo</name> <op:operator>=</op:operator> <lit:literal type=""number"">42</lit:literal></expr>;</expr_stmt>
+  }</block></constructor>
+}</block></class>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
+
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            var fooDecl = globalScope.GetNamedChildren<TypeDefinition>("B").First().GetNamedChildren<VariableDeclaration>("Foo").First();
+            var aConstructor = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == "A");
+            Assert.AreEqual(1, aConstructor.ChildStatements.Count);
+            var fooUse = aConstructor.ChildStatements[0].Content.GetDescendants<NameUse>().FirstOrDefault(n => n.Name == "Foo");
+            Assert.IsNotNull(fooUse);
+            Assert.AreSame(fooDecl, fooUse.FindMatches().FirstOrDefault());
+        }
+
+        [Test]
+        public void TestCallingVariableDeclaredInParentClass() {
+            //class A { void Foo() { } }
+            string a_xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">A</name> <block pos:line=""1"" pos:column=""9"">{ <function><type><name pos:line=""1"" pos:column=""11"">void</name></type> <name pos:line=""1"" pos:column=""16"">Foo</name><parameter_list pos:line=""1"" pos:column=""19"">()</parameter_list> <block pos:line=""1"" pos:column=""22"">{ }</block></function> }</block></class>";
+
+            //class B { protected A a; }
+            string b_xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">B</name> <block pos:line=""1"" pos:column=""9"">{ <decl_stmt><decl><type><specifier pos:line=""1"" pos:column=""11"">protected</specifier> <name pos:line=""1"" pos:column=""21"">A</name></type> <name pos:line=""1"" pos:column=""23"">a</name></decl>;</decl_stmt> }</block></class>";
+
+            //class C : B { void Bar() { a.Foo(); } }
+            string c_xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">C</name> <super pos:line=""1"" pos:column=""9"">: <name pos:line=""1"" pos:column=""11"">B</name></super> <block pos:line=""1"" pos:column=""13"">{ <function><type><name pos:line=""1"" pos:column=""15"">void</name></type> <name pos:line=""1"" pos:column=""20"">Bar</name><parameter_list pos:line=""1"" pos:column=""23"">()</parameter_list> <block pos:line=""1"" pos:column=""26"">{ <expr_stmt><expr><call><name><name pos:line=""1"" pos:column=""28"">a</name><op:operator pos:line=""1"" pos:column=""29"">.</op:operator><name pos:line=""1"" pos:column=""30"">Foo</name></name><argument_list pos:line=""1"" pos:column=""33"">()</argument_list></call></expr>;</expr_stmt> }</block></function> }</block></class>";
+
+            var aUnit = fileSetup.GetFileUnitForXmlSnippet(a_xml, "A.cs");
+            var bUnit = fileSetup.GetFileUnitForXmlSnippet(b_xml, "B.cs");
+            var cUnit = fileSetup.GetFileUnitForXmlSnippet(c_xml, "C.cs");
+
+            var globalScope = codeParser.ParseFileUnit(aUnit);
+            globalScope = globalScope.Merge(codeParser.ParseFileUnit(bUnit));
+            globalScope = globalScope.Merge(codeParser.ParseFileUnit(cUnit));
+
+            var typeA = globalScope.GetNamedChildren<TypeDefinition>("A").FirstOrDefault();
+            var typeB = globalScope.GetNamedChildren<TypeDefinition>("B").FirstOrDefault();
+            var typeC = globalScope.GetNamedChildren<TypeDefinition>("C").FirstOrDefault();
+
+            Assert.IsNotNull(typeA, "could not find class A");
+            Assert.IsNotNull(typeB, "could not find class B");
+            Assert.IsNotNull(typeC, "could not find class C");
+
+            var aDotFoo = typeA.GetNamedChildren<MethodDefinition>("Foo").FirstOrDefault();
+            Assert.IsNotNull(aDotFoo, "could not find method A.Foo()");
+
+            var cDotBar = typeC.GetNamedChildren<MethodDefinition>("Bar").FirstOrDefault();
+            Assert.IsNotNull(cDotBar, "could not find method C.Bar()");
+
+            var callToFoo = cDotBar.FindExpressions<MethodCall>(true).FirstOrDefault();
+            Assert.IsNotNull(callToFoo, "could not find any method calls in C.Bar()");
+            Assert.AreEqual("Foo", callToFoo.Name);
+
+            Assert.AreEqual(aDotFoo, callToFoo.FindMatches().FirstOrDefault());
+        }
+
+        [Test]
+        public void TestVariableDeclaredInCallingObjectWithParentClass() {
+            //class A { B b; }
+            string a_xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">A</name> <block pos:line=""1"" pos:column=""9"">{ <decl_stmt><decl><type><name pos:line=""1"" pos:column=""11"">B</name></type> <name pos:line=""1"" pos:column=""13"">b</name></decl>;</decl_stmt> }</block></class>";
+
+            //class B { void Foo() { } }
+            string b_xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">B</name> <block pos:line=""1"" pos:column=""9"">{ <function><type><name pos:line=""1"" pos:column=""11"">void</name></type> <name pos:line=""1"" pos:column=""16"">Foo</name><parameter_list pos:line=""1"" pos:column=""19"">()</parameter_list> <block pos:line=""1"" pos:column=""22"">{ }</block></function> }</block></class>";
+
+            //class C : A { }
+            string c_xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">C</name> <super pos:line=""1"" pos:column=""9"">: <name pos:line=""1"" pos:column=""11"">A</name></super> <block pos:line=""1"" pos:column=""13"">{ }</block></class>";
+
+            //class D {
+            //	C c;
+            //	void Bar() { c.b.Foo(); }
+            //}
+            string d_xml = @"<class pos:line=""1"" pos:column=""1"">class <name pos:line=""1"" pos:column=""7"">D</name> <block pos:line=""1"" pos:column=""9"">{
+    <decl_stmt><decl><type><name pos:line=""2"" pos:column=""5"">C</name></type> <name pos:line=""2"" pos:column=""7"">c</name></decl>;</decl_stmt>
+    <function><type><name pos:line=""3"" pos:column=""5"">void</name></type> <name pos:line=""3"" pos:column=""10"">Bar</name><parameter_list pos:line=""3"" pos:column=""13"">()</parameter_list> <block pos:line=""3"" pos:column=""16"">{ <expr_stmt><expr><call><name><name pos:line=""3"" pos:column=""18"">c</name><op:operator pos:line=""3"" pos:column=""19"">.</op:operator><name pos:line=""3"" pos:column=""20"">b</name><op:operator pos:line=""3"" pos:column=""21"">.</op:operator><name pos:line=""3"" pos:column=""22"">Foo</name></name><argument_list pos:line=""3"" pos:column=""25"">()</argument_list></call></expr>;</expr_stmt> }</block></function>
+}</block></class>";
+
+            var aUnit = fileSetup.GetFileUnitForXmlSnippet(a_xml, "A.cs");
+            var bUnit = fileSetup.GetFileUnitForXmlSnippet(b_xml, "B.cs");
+            var cUnit = fileSetup.GetFileUnitForXmlSnippet(c_xml, "C.cs");
+            var dUnit = fileSetup.GetFileUnitForXmlSnippet(d_xml, "D.cs");
+
+            var globalScope = codeParser.ParseFileUnit(aUnit);
+            globalScope = globalScope.Merge(codeParser.ParseFileUnit(bUnit));
+            globalScope = globalScope.Merge(codeParser.ParseFileUnit(cUnit));
+            globalScope = globalScope.Merge(codeParser.ParseFileUnit(dUnit));
+
+            var typeA = globalScope.GetNamedChildren<TypeDefinition>("A").FirstOrDefault();
+            var typeB = globalScope.GetNamedChildren<TypeDefinition>("B").FirstOrDefault();
+            var typeC = globalScope.GetNamedChildren<TypeDefinition>("C").FirstOrDefault();
+            var typeD = globalScope.GetNamedChildren<TypeDefinition>("D").FirstOrDefault();
+
+            Assert.IsNotNull(typeA, "could not find class A");
+            Assert.IsNotNull(typeB, "could not find class B");
+            Assert.IsNotNull(typeC, "could not find class C");
+            Assert.IsNotNull(typeD, "could not find class D");
+
+            var adotB = typeA.GetNamedChildren<VariableDeclaration>("b").FirstOrDefault();
+            Assert.IsNotNull(adotB, "could not find variable A.b");
+            Assert.AreEqual("b", adotB.Name);
+
+            var bDotFoo = typeB.GetNamedChildren<MethodDefinition>("Foo").FirstOrDefault();
+            Assert.IsNotNull(bDotFoo, "could not method B.Foo()");
+
+            var dDotBar = typeD.GetNamedChildren<MethodDefinition>("Bar").FirstOrDefault();
+            Assert.IsNotNull(dDotBar, "could not find method D.Bar()");
+
+            var callToFoo = dDotBar.FindExpressions<MethodCall>(true).FirstOrDefault();
+            Assert.IsNotNull(callToFoo, "could not find any method calls in D.Bar()");
+
+            Assert.AreEqual(bDotFoo, callToFoo.FindMatches().FirstOrDefault());
+        }
+
+        [Test]
+        public void TestResolveArrayVariable_Property() {
+            //class Foo {
+            //  Collection<int> Parameters { get; set; }
+            //  void DoWork() {
+            //    printf(Parameters[0]);
+            //  }
+            //}
+            string xml = @"<class>class <name>Foo</name> <block>{
+  <decl_stmt><decl><type><name><name>Collection</name><argument_list>&lt;<argument><name>int</name></argument>&gt;</argument_list></name></type> <name>Parameters</name> <block>{ <function_decl><name>get</name>;</function_decl> <function_decl><name>set</name>;</function_decl> }</block></decl></decl_stmt>
+  <function><type><name>void</name></type> <name>DoWork</name><parameter_list>()</parameter_list> <block>{
+    <expr_stmt><expr><call><name>printf</name><argument_list>(<argument><expr><name><name>Parameters</name><index>[<expr><lit:literal type=""number"">0</lit:literal></expr>]</index></name></expr></argument>)</argument_list></call></expr>;</expr_stmt>
+  }</block></function>
+}</block></class>";
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
+
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+            var paramDecl = globalScope.GetDescendants<PropertyDefinition>().First(p => p.Name == "Parameters");
+            Assert.IsNotNull(paramDecl);
+            var doWork = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == "DoWork");
+            Assert.AreEqual(1, doWork.ChildStatements.Count);
+            var paramUse = doWork.ChildStatements[0].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(n => n.Name == "Parameters");
+            Assert.IsNotNull(paramUse);
+            Assert.AreSame(paramDecl, paramUse.FindMatches().FirstOrDefault());
+        }
+
+        [Test]
+        public void TestTypeUseForOtherNamespace() {
+            //namespace A.B {
+            //    class C {
+            //        int Foo() { }
+            //    }
+            //}
+            string c_xml = @"<namespace pos:line=""1"" pos:column=""1"">namespace <name><name pos:line=""1"" pos:column=""11"">A</name><op:operator pos:line=""1"" pos:column=""12"">.</op:operator><name pos:line=""1"" pos:column=""13"">B</name></name> <block pos:line=""1"" pos:column=""15"">{
+    <class pos:line=""2"" pos:column=""5"">class <name pos:line=""2"" pos:column=""11"">C</name> <block pos:line=""2"" pos:column=""13"">{
+        <function><type><name pos:line=""3"" pos:column=""9"">int</name></type> <name pos:line=""3"" pos:column=""13"">Foo</name><parameter_list pos:line=""3"" pos:column=""16"">()</parameter_list> <block pos:line=""3"" pos:column=""19"">{ }</block></function>
+    }</block></class>
+}</block></namespace>";
+
+            //using A.B;
+            //namespace D {
+            //    class E {
+            //        void main() {
+            //            C c = new C();
+            //            c.Foo();
+            //        }
+            //    }
+            //}
+            string e_xml = @"<using pos:line=""1"" pos:column=""1"">using <name><name pos:line=""1"" pos:column=""7"">A</name><op:operator pos:line=""1"" pos:column=""8"">.</op:operator><name pos:line=""1"" pos:column=""9"">B</name></name>;</using>
+<namespace pos:line=""2"" pos:column=""1"">namespace <name pos:line=""2"" pos:column=""11"">D</name> <block pos:line=""2"" pos:column=""13"">{
+    <class pos:line=""3"" pos:column=""5"">class <name pos:line=""3"" pos:column=""11"">E</name> <block pos:line=""3"" pos:column=""13"">{
+        <function><type><name pos:line=""4"" pos:column=""9"">void</name></type> <name pos:line=""4"" pos:column=""14"">main</name><parameter_list pos:line=""4"" pos:column=""18"">()</parameter_list> <block pos:line=""4"" pos:column=""21"">{
+            <decl_stmt><decl><type><name pos:line=""5"" pos:column=""13"">C</name></type> <name pos:line=""5"" pos:column=""15"">c</name> <init pos:line=""5"" pos:column=""17"">= <expr><op:operator pos:line=""5"" pos:column=""19"">new</op:operator> <call><name pos:line=""5"" pos:column=""23"">C</name><argument_list pos:line=""5"" pos:column=""24"">()</argument_list></call></expr></init></decl>;</decl_stmt>
+            <expr_stmt><expr><call><name><name pos:line=""6"" pos:column=""13"">c</name><op:operator pos:line=""6"" pos:column=""14"">.</op:operator><name pos:line=""6"" pos:column=""15"">Foo</name></name><argument_list pos:line=""6"" pos:column=""18"">()</argument_list></call></expr>;</expr_stmt>
+        }</block></function>
+    }</block></class>
+}</block></namespace>";
+
+            var cUnit = fileSetup.GetFileUnitForXmlSnippet(c_xml, "C.cpp");
+            var eUnit = fileSetup.GetFileUnitForXmlSnippet(e_xml, "E.cpp");
+
+            NamespaceDefinition globalScope = codeParser.ParseFileUnit(cUnit);
+            globalScope = globalScope.Merge(codeParser.ParseFileUnit(eUnit)) as NamespaceDefinition;
+
+            var typeC = globalScope.GetDescendants<TypeDefinition>().Where(t => t.Name == "C").FirstOrDefault();
+            var typeE = globalScope.GetDescendants<TypeDefinition>().Where(t => t.Name == "E").FirstOrDefault();
+
+            var mainMethod = typeE.ChildStatements.First() as MethodDefinition;
+            Assert.IsNotNull(mainMethod, "is not a method definition");
+            Assert.AreEqual("main", mainMethod.Name);
+
+            var fooMethod = typeC.GetNamedChildren<MethodDefinition>("Foo").FirstOrDefault();
+            Assert.IsNotNull(fooMethod, "no method foo found");
+            Assert.AreEqual("Foo", fooMethod.Name);
+
+            var cDeclaration = mainMethod.FindExpressions<VariableDeclaration>(true).FirstOrDefault();
+            Assert.IsNotNull(cDeclaration, "No declaration found");
+            Assert.AreSame(typeC, cDeclaration.VariableType.ResolveType().FirstOrDefault());
+
+            var callToCConstructor = mainMethod.FindExpressions<MethodCall>(true).First();
+            var callToFoo = mainMethod.FindExpressions<MethodCall>(true).Last();
+
+            Assert.AreEqual("C", callToCConstructor.Name);
+            Assert.That(callToCConstructor.IsConstructor);
+            Assert.IsNull(callToCConstructor.FindMatches().FirstOrDefault());
+
+            Assert.AreEqual("Foo", callToFoo.Name);
+            Assert.AreSame(fooMethod, callToFoo.FindMatches().FirstOrDefault());
         }
     }
 }

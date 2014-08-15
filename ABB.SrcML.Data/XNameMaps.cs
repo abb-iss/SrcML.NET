@@ -23,23 +23,25 @@ namespace ABB.SrcML.Data {
 
         /// <summary>
         /// gets the TypeKind for the given typeElement. The element must be of node type
-        /// <see cref="ABB.SrcML.SRC.Struct"/>, <see cref="ABB.SrcML.SRC.Class"/>,
-        /// <see cref="ABB.SrcML.SRC.Struct"/>, <see cref="ABB.SrcML.SRC.Union"/>, or
+        /// <see cref="ABB.SrcML.SRC.Struct"/>, <see cref="ABB.SrcML.SRC.StructDeclaration"/>, 
+        /// <see cref="ABB.SrcML.SRC.Class"/>, <see cref="ABB.SrcML.SRC.ClassDeclaration"/>
+        /// <see cref="ABB.SrcML.SRC.Union"/>, <see cref="ABB.SrcML.SRC.UnionDeclaration"/>, or
         /// <see cref="ABB.SrcML.SRC.Enum"/>
         /// </summary>
         /// <param name="typeElement">The type element</param>
         /// <returns>The kind of the type element</returns>
         public static TypeKind GetKindForXElement(XElement typeElement) {
-            Dictionary<XName, TypeKind> map = new Dictionary<XName, TypeKind>() {
+            if(null == typeElement) { throw new ArgumentNullException("typeElement"); }
+            
+            var map = new Dictionary<XName, TypeKind>() {
                 { SRC.Struct, TypeKind.Struct },
+                { SRC.StructDeclaration, TypeKind.Struct },
                 { SRC.Class, TypeKind.Class },
+                { SRC.ClassDeclaration, TypeKind.Class },
                 { SRC.Union, TypeKind.Union },
+                { SRC.UnionDeclaration, TypeKind.Union },
                 { SRC.Enum, TypeKind.Enumeration },
             };
-
-            if(null == typeElement) {
-                throw new ArgumentNullException("typeElement");
-            }
 
             TypeKind answer;
             if(map.TryGetValue(typeElement.Name, out answer)) {
@@ -51,7 +53,7 @@ namespace ABB.SrcML.Data {
                 }
                 return answer;
             }
-            throw new ArgumentException("element must be of type struct, class, union, or enum", "typeElement");
+            throw new ArgumentException("element must be of type struct, struct_decl, class, class_decl, union, union_decl, or enum", "typeElement");
         }
     }
 }

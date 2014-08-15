@@ -107,7 +107,10 @@
     </Compile>
     <Compile Include="Guids.cs" />
     <Compile Include="HelperFunctions.cs" />
+    <Compile Include="ISrcMLDataService.cs" />
+    <Compile Include="ISrcMLGlobalService.cs" />
     <Compile Include="ISrcMLLocalService.cs" />
+    <Compile Include="ITaskManagerService.cs" />
     <Compile Include="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -285,25 +288,13 @@
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\ABB.SrcML.Data.Core\ABB.SrcML.Data.Core.csproj">
-      <Project>{2fcc803a-0727-4829-8ed9-54a13008eab8}</Project>
-      <Name>ABB.SrcML.Data.Core</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\ABB.SrcML.Data\ABB.SrcML.Data.csproj">
       <Project>{73c24e33-465b-424d-b35a-39f1750f705e}</Project>
       <Name>ABB.SrcML.Data</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\ABB.SrcML.Core\ABB.SrcML.Core.csproj">
-      <Project>{db649b35-b045-47c3-9903-f3404fa9c1be}</Project>
-      <Name>ABB.SrcML.Core</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\ABB.SrcML\ABB.SrcML.csproj">
       <Project>{d52626e7-a4ca-471a-8a6a-fe0110430fe6}</Project>
       <Name>ABB.SrcML</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ABB.SrcML.VisualStudio.Interfaces\ABB.SrcML.VisualStudio.Interfaces.csproj">
-      <Project>{a4099f0f-52e6-4754-8e14-0777afaa7f07}</Project>
-      <Name>ABB.SrcML.VisualStudio.Interfaces</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>

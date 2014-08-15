@@ -22,15 +22,15 @@ namespace ABB.SrcML {
     /// <summary>
     /// The SrcML Generator class provides a convenient wrapper for multiple <see cref="Src2SrcMLRunner2">src2srcml runners</see>, each targetted at a different language.
     /// </summary>
-    public class SrcMLGenerator : ISrcMLGenerator {
+    public class SrcMLGenerator : AbstractGenerator {
         private readonly Src2SrcMLRunner2 defaultExecutable;
         private readonly Language[] defaultLanguages = new[] { Language.C, Language.CPlusPlus, Language.Java, Language.AspectJ, Language.CSharp };
         private string[] defaultArguments;
         
         private Dictionary<Language, Src2SrcMLRunner2> nonDefaultExecutables;
         private Dictionary<Language, string[]> nonDefaultArguments;
-        
-        private readonly Dictionary<string, Language> extensionMapping = new Dictionary<string, Language>(StringComparer.InvariantCultureIgnoreCase)
+
+        private readonly Dictionary<string, Language> extensionMapping = new Dictionary<string, Language>(StringComparer.OrdinalIgnoreCase)
                                                                          {
                                                                              {".c", Language.C},
                                                                              {".h", Language.CPlusPlus},
@@ -64,7 +64,7 @@ namespace ABB.SrcML {
         /// <summary>
         /// Creates a new SrcMLGenerator.
         /// </summary>
-        public SrcMLGenerator() {
+        public SrcMLGenerator() : base() {
             defaultExecutable = new Src2SrcMLRunner2();
             defaultArguments = new[] { LIT.ArgumentLabel, OP.ArgumentLabel, POS.ArgumentLabel, TYPE.ArgumentLabel };
             nonDefaultExecutables = new Dictionary<Language, Src2SrcMLRunner2>();
@@ -83,7 +83,7 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="defaultExecutableDirectory">The directory containing the default srcml executables to use.</param>
         /// <param name="namespaceArguments">The namespace arguments to use when converting to SrcML.</param>
-        public SrcMLGenerator(string defaultExecutableDirectory, IEnumerable<string> namespaceArguments) {
+        public SrcMLGenerator(string defaultExecutableDirectory, IEnumerable<string> namespaceArguments) : base() {
             defaultExecutable = new Src2SrcMLRunner2(defaultExecutableDirectory);
             defaultArguments = namespaceArguments.ToArray();
             nonDefaultExecutables = new Dictionary<Language, Src2SrcMLRunner2>();
@@ -363,7 +363,7 @@ namespace ABB.SrcML {
         }
 
         private Dictionary<string, Language> CreateExtensionMappingForRunner(Src2SrcMLRunner2 runner) {
-            Dictionary<string, Language> extensionMapForRunner = new Dictionary<string,Language>(StringComparer.InvariantCultureIgnoreCase);
+            Dictionary<string, Language> extensionMapForRunner = new Dictionary<string, Language>(StringComparer.OrdinalIgnoreCase);
             IEnumerable<KeyValuePair<string, Language>> kvps = Enumerable.Empty<KeyValuePair<string,Language>>();
             if(runner == defaultExecutable) {
                 kvps = from kvp in ExtensionMapping
@@ -382,6 +382,15 @@ namespace ABB.SrcML {
             }
             
             return extensionMapForRunner;
+        }
+
+        public override ICollection<string> SupportedExtensions {
+            get { return ExtensionMapping.Keys; }
+        }
+
+        protected override bool GenerateImpl(string inputFileName, string outputFileName) {
+            GenerateSrcMLFromFile(inputFileName, outputFileName);
+            return true;
         }
     }
 }

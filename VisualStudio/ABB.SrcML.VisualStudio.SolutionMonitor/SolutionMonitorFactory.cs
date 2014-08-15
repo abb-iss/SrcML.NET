@@ -28,7 +28,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// <param name="lastModifiedArchive"></param>
         /// <param name="CurrentSrcMLArchive"></param>
         /// <returns></returns>
-        public static SolutionMonitor CreateMonitor(string SrcMLServiceDirectory, IArchive lastModifiedArchive, params IArchive[] CurrentSrcMLArchive) {
+        public static SolutionMonitor CreateMonitor(string SrcMLServiceDirectory, AbstractArchive lastModifiedArchive, params AbstractArchive[] CurrentSrcMLArchive) {
             var openSolution = GetOpenSolution();
             return CreateMonitor(openSolution, SrcMLServiceDirectory, lastModifiedArchive, CurrentSrcMLArchive);
         }
@@ -41,7 +41,7 @@ namespace ABB.SrcML.VisualStudio.SolutionMonitor {
         /// <param name="lastModifiedArchive"></param>
         /// <param name="CurrentSrcMLArchive"></param>
         /// <returns></returns>
-        private static SolutionMonitor CreateMonitor(Solution openSolution, string SrcMLServiceDirectory, IArchive lastModifiedArchive, params IArchive[] CurrentSrcMLArchive) {
+        private static SolutionMonitor CreateMonitor(Solution openSolution, string SrcMLServiceDirectory, AbstractArchive lastModifiedArchive, params AbstractArchive[] CurrentSrcMLArchive) {
             Contract.Requires(openSolution != null, "A solution must be open");
 
             var currentMonitor = new SolutionMonitor(SolutionWrapper.Create(openSolution), SrcMLServiceDirectory, lastModifiedArchive, CurrentSrcMLArchive);

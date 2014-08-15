@@ -16,5 +16,22 @@ using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML.Data {
-    public class BlockStatement : Statement {}
+    /// <summary>
+    /// Represents a statement that contains a block of nested child statements.
+    /// This class primarily exists just as a conceptual parent for child types.
+    /// </summary>
+    public class BlockStatement : Statement {
+
+        /// <summary>
+        /// The XML name for BlockStatement
+        /// </summary>
+        public new const string XmlName = "Block";
+
+        /// <summary>
+        /// Instance method for getting <see cref="BlockStatement.XmlName"/>
+        /// </summary>
+        /// <returns>Returns the XML name for BlockStatement</returns>
+        public override string GetXmlName() { return BlockStatement.XmlName; }
+
+    }
 }

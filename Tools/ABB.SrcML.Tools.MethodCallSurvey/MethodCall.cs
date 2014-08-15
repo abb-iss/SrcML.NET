@@ -6,13 +6,13 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Xml.XPath;
-using CallData = ABB.SrcML.Data.IMethodCall;
-using MethodData = ABB.SrcML.Data.IMethodDefinition;
+using CallData = ABB.SrcML.Data.MethodCall;
+using MethodData = ABB.SrcML.Data.MethodDefinition;
 
 namespace ABB.SrcML.Tools.MethodCallSurvey {
 
     public class MethodCall : INotifyPropertyChanged, ILocatable {
-        private ISrcMLArchive Archive;
+        private SrcMLArchive Archive;
         private CallData Data;
         private bool firstMatchIsValid;
         private bool hasMatches;
@@ -20,7 +20,7 @@ namespace ABB.SrcML.Tools.MethodCallSurvey {
         private bool isExternal;
         private int numberOfValidMatches;
 
-        public MethodCall(ISrcMLArchive archive, CallData data) {
+        public MethodCall(SrcMLArchive archive, CallData data) {
             this.Archive = archive;
             this.Data = data;
 
@@ -30,7 +30,8 @@ namespace ABB.SrcML.Tools.MethodCallSurvey {
             this.isExternal = false;
 
             this.Location = data.Location;
-            this.FullName = data.ParentScope.GetParentScopesAndSelf<INamedScope>().First().GetFullName();
+            //TODO fix this once new type hierarchy is in place
+            //this.FullName = data.ParentScope.GetParentScopesAndSelf<NamedScope>().First().GetFullName();
             this.Id = DataHelpers.GetLocation(data.Location);
             this.Path = this.Location.SourceFileName;
 
@@ -134,9 +135,10 @@ namespace ABB.SrcML.Tools.MethodCallSurvey {
         }
 
         private IEnumerable<MethodDefinition> GetMatches() {
-            var matches = (from method in Data.FindMatches()
-                           select new MethodDefinition(Archive, method, this)).Distinct(new MethodDefinitionComparer());
-            return matches;
+            throw new NotImplementedException();
+            //var matches = (from method in Data.FindMatches()
+            //               select new MethodDefinition(Archive, method, this)).Distinct(new MethodDefinitionComparer());
+            //return matches;
         }
 
         private string GetSourceCode() {
