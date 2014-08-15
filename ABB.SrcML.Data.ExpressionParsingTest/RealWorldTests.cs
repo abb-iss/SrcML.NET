@@ -19,6 +19,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ABB.SrcML.Data.Test {
@@ -109,10 +110,13 @@ namespace ABB.SrcML.Data.Test {
                     project.UpdateAsync().Wait();
 
                     long count = 0;
-                    TimeSpan parseElapsed = new TimeSpan(0), deserializeElapsed = new TimeSpan(0), compareElapsed = new TimeSpan(0);
-                    DateTime start, end;
-                    Console.WriteLine("{0,-12} {1,-12} {2,-12} {3,-12}", "# Files", "Parse", "Deserialize", "Comparison");
-                    foreach(var sourcePath in project.Data.GetFiles().OrderBy(elem => Guid.NewGuid())) {
+                    TextWriter output = StreamWriter.Synchronized(Console.Out),
+                                 error = StreamWriter.Synchronized(Console.Error);
+
+                    long parseElapsed = 0, deserializedElapsed = 0, compareElapsed = 0;
+                    output.WriteLine("{0,-12} {1,-12} {2,-12} {3,-12}", "# Files", "Parse", "Deserialize", "Comparison");
+                    Parallel.ForEach(project.Data.GetFiles(), (sourcePath) => {
+                        DateTime start, end;
                         NamespaceDefinition data;
                         NamespaceDefinition serializedData;
                         try {
@@ -120,7 +124,7 @@ namespace ABB.SrcML.Data.Test {
                             var fileUnit = project.SourceArchive.GetXElementForSourceFile(sourcePath);
                             data = project.Data.Generator.Parse(fileUnit);
                             end = DateTime.Now;
-                            parseElapsed += (end - start);
+                            Interlocked.Add(ref parseElapsed, (end - start).Ticks);
                         } catch(Exception ex) {
                             Console.Error.WriteLine(ex);
                             data = null;
@@ -130,9 +134,9 @@ namespace ABB.SrcML.Data.Test {
                             start = DateTime.Now;
                             serializedData = project.Data.GetData(sourcePath);
                             end = DateTime.Now;
-                            deserializeElapsed += (end - start);
+                            Interlocked.Add(ref deserializedElapsed, (end - start).Ticks);
                         } catch(Exception ex) {
-                            Console.Error.WriteLine(ex);
+                            error.WriteLine(ex);
                             serializedData = null;
                         }
 
@@ -141,21 +145,22 @@ namespace ABB.SrcML.Data.Test {
                         start = DateTime.Now;
                         DataAssert.StatementsAreEqual(data, serializedData);
                         end = DateTime.Now;
-                        compareElapsed += (end - start);
+                        Interlocked.Add(ref compareElapsed, (end - start).Ticks);
 
-                        if(++count % 25 == 0) {
-                            Console.WriteLine("{0,12:N0} {1,12:ss\\.fff} {2,12:ss\\.fff} {3,12:ss\\.fff}", count,
-                                    parseElapsed,
-                                    deserializeElapsed,
-                                    compareElapsed);
+                        if(Interlocked.Increment(ref count) % 25 == 0) {
+                            output.WriteLine("{0,12:N0} {1,12:ss\\.fff} {2,12:ss\\.fff} {3,12:ss\\.fff}", count,
+                                    new TimeSpan(parseElapsed),
+                                    new TimeSpan(deserializedElapsed),
+                                    new TimeSpan(compareElapsed));
                         }
-                    }
+                    });
+                    
                     Console.WriteLine("Project: {0} {1}", testData.ProjectName, testData.Version);
                     Console.WriteLine("{0,-15} {1,11:N0}", "# Files", count);
-                    Console.WriteLine("{0,-15} {1:g}", "Parsing", parseElapsed);
-                    Console.WriteLine("{0,-15} {1:g}", "Deserializing", deserializeElapsed);
-                    Console.WriteLine("{0,-15} {1:g}", "Comparing", compareElapsed);
-                    Console.WriteLine("{0,-15} {1:g}", "Total", parseElapsed + deserializeElapsed + compareElapsed);
+                    Console.WriteLine("{0,-15} {1:g}", "Parsing", new TimeSpan(parseElapsed));
+                    Console.WriteLine("{0,-15} {1:g}", "Deserializing", new TimeSpan(deserializedElapsed));
+                    Console.WriteLine("{0,-15} {1:g}", "Comparing", new TimeSpan(compareElapsed));
+                    Console.WriteLine("{0,-15} {1:g}", "Total", new TimeSpan(parseElapsed + deserializedElapsed + compareElapsed));
                 }
             }
         }
