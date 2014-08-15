@@ -90,7 +90,7 @@ namespace ABB.SrcML.Data.Test {
             }
         }
 
-        [Test]
+        [Test, Category("Todo")]
         public void TestJavaBuiltIns() {
             // #a.java TYPE a; TYPE b;
             string xmlFormat = @"<decl_stmt><decl><type><name>{0}</name></type> <name>a</name></decl>;</decl_stmt>
