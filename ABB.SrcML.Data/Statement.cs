@@ -297,12 +297,12 @@ namespace ABB.SrcML.Data {
         /// <param name="name">The name to search for.</param>
         /// <param name="searchDeclarations">Whether to search the child DeclarationStatements for named entities.</param>
         public virtual IEnumerable<T> GetNamedChildren<T>(string name, bool searchDeclarations) where T : INamedEntity {
-            var scopes = GetChildren().OfType<T>().Where(ns => ns.Name == name);
+            var scopes = GetChildren().OfType<T>().Where(ns => string.Equals(ns.Name, name, StringComparison.Ordinal));
             if(!searchDeclarations) { return scopes; }
 
             var decls = from declStmt in GetChildren().OfType<DeclarationStatement>()
                         from decl in declStmt.GetDeclarations().OfType<T>()
-                        where decl.Name == name
+                        where string.Equals(decl.Name, name, StringComparison.Ordinal)
                         select decl;
             return scopes.Concat(decls);
         }
@@ -321,14 +321,15 @@ namespace ABB.SrcML.Data {
             //location comparison is only valid if the use occurs within this statement (or its children)
             bool filterLocation = PrimaryLocation.Contains(use.Location);
             if(filterLocation) {
-                var scopes = GetChildren().OfType<T>().Where(ns => ns.Name == use.Name && PositionComparer.CompareLocation(PrimaryLocation, use.Location) < 0);
+                var scopes = GetChildren().OfType<T>().Where(ns => string.Equals(ns.Name, use.Name, StringComparison.Ordinal)
+                                                                   && PositionComparer.CompareLocation(PrimaryLocation, use.Location) < 0);
                 if(!searchDeclarations) { return scopes; }
 
                 //this will return the var decls in document order
                 var decls = from declStmt in GetChildren().OfType<DeclarationStatement>()
                             where PositionComparer.CompareLocation(declStmt.PrimaryLocation, use.Location) < 0
                             from decl in declStmt.GetDeclarations().OfType<T>()
-                            where decl.Name == use.Name
+                            where string.Equals(decl.Name, use.Name, StringComparison.Ordinal)
                             select decl;
                 return scopes.Concat(decls);
             } else {
