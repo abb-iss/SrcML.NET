@@ -105,8 +105,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         public event EventHandler UpdateArchivesStarted;
         public event EventHandler UpdateArchivesCompleted;
 
-        public bool IsMonitoring { get; private set; }
-
         public bool IsUpdating { get; private set; }
 
         public ReadOnlyCollection<string> MonitoredDirectories { get { return (CurrentMonitor == null ? null : this.CurrentMonitor.MonitoredDirectories); } }
@@ -235,10 +233,12 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         }
 
         void CurrentMonitor_UpdateArchivesCompleted(object sender, EventArgs e) {
+            IsUpdating = false;
             OnUpdateArchivesCompleted(e);
         }
 
         void CurrentMonitor_UpdateArchivesStarted(object sender, EventArgs e) {
+            IsUpdating = true;
             OnUpdateArchivesStarted(e);
         }
 
@@ -306,7 +306,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         }
 
         protected virtual void OnMonitoringStarted(EventArgs e) {
-            IsMonitoring = true;
             EventHandler handler = MonitoringStarted;
             if(handler != null) {
                 handler(this, e);
@@ -314,7 +313,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         }
 
         protected virtual void OnMonitoringStopped(EventArgs e) {
-            IsMonitoring = false;
             EventHandler handler = MonitoringStopped;
             if(handler != null) {
                 handler(this, e);
@@ -322,7 +320,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         }
 
         protected virtual void OnUpdateArchivesStarted(EventArgs e) {
-            IsUpdating = true;
             EventHandler handler = UpdateArchivesStarted;
             if(handler != null) {
                 handler(this, e);
@@ -330,7 +327,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         }
 
         protected virtual void OnUpdateArchivesCompleted(EventArgs e) {
-            IsUpdating = false;
             EventHandler handler = UpdateArchivesCompleted;
             if(handler != null) {
                 handler(this, e);

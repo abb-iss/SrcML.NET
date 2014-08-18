@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using ABB.SrcML.Data;
+﻿using ABB.SrcML.Data;
 using ABB.SrcML.VisualStudio.Interfaces;
 using ABB.VisualStudio.Interfaces;
 using System;
@@ -14,39 +13,20 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         private ISrcMLGlobalService _srcMLService;
 
         private IDataRepository CurrentDataRepository;
-
-        private TaskScheduler Scheduler {
-            get {
-                return (null == _taskManager ? TaskScheduler.Default : _taskManager.GlobalScheduler);
-            }
-        }
-        
+        public event EventHandler InitializationComplete;
         public event EventHandler MonitoringStarted;
         public event EventHandler MonitoringStopped;
-
-        public event EventHandler UpdateStarted;
-        public event EventHandler UpdateCompleted;
-
         public event EventHandler<FileEventRaisedArgs> FileProcessed;
-
-        public bool IsMonitoring { get; private set; }
-
-        public bool IsUpdating { get; private set; }
 
         public SrcMLDataService(IServiceProvider serviceProvider) {
             _serviceProvider = serviceProvider;
 
             _taskManager = _serviceProvider.GetService(typeof(STaskManagerService)) as ITaskManagerService;
             _srcMLService = _serviceProvider.GetService(typeof(SSrcMLGlobalService)) as ISrcMLGlobalService;
-
             if(_srcMLService != null) {
-                if(_srcMLService.IsMonitoring) {
-                    RespondToMonitoringStarted(this, new EventArgs());
-                }
                 SubscribeToEvents();
             }
         }
-
         public IDataRepository GetDataRepository() {
             return CurrentDataRepository;
         }
@@ -65,7 +45,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         }
 
         void RespondToMonitoringStarted(object sender, EventArgs e) {
-            CurrentDataRepository = new DataRepository(_srcMLService.GetSrcMLArchive(), Scheduler);
+            CurrentDataRepository = new DataRepository(_srcMLService.GetSrcMLArchive());
             CurrentDataRepository.FileProcessed += RespondToFileProcessed;
             if(_srcMLService.IsUpdating) {
                 _srcMLService.UpdateArchivesCompleted += GenerateDataAfterUpdate;
@@ -81,8 +61,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
         void GenerateDataAfterUpdate(object sender, EventArgs e) {
             _srcMLService.UpdateArchivesCompleted -= GenerateDataAfterUpdate;
-            OnUpdateStarted(new EventArgs());
-            CurrentDataRepository.InitializeDataAsync().ContinueWith((t) => OnUpdateCompleted(new EventArgs()), Scheduler);
+            CurrentDataRepository.InitializeDataConcurrent(_taskManager.GlobalScheduler);
+            OnInitializationComplete(new EventArgs());
         }
 
         protected virtual void OnFileProcessed(FileEventRaisedArgs e) {
@@ -92,23 +72,14 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             }
         }
 
-        protected virtual void OnUpdateStarted(EventArgs e) {
-            IsUpdating = true;
-            EventHandler handler = UpdateStarted;
+        protected virtual void OnInitializationComplete(EventArgs e) {
+            EventHandler handler = InitializationComplete;
             if(null != handler) {
                 handler(this, e);
             }
         }
 
-        protected virtual void OnUpdateCompleted(EventArgs e) {
-            IsUpdating = false;
-            EventHandler handler = UpdateCompleted;
-            if(null != handler) {
-                handler(this, e);
-            }
-        }
         protected virtual void OnMonitoringStarted(EventArgs e) {
-            IsMonitoring = true;
             EventHandler handler = MonitoringStarted;
             if(handler != null) {
                 handler(this, e);
@@ -116,7 +87,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         }
 
         protected virtual void OnMonitoringStopped(EventArgs e) {
-            IsMonitoring = false;
             EventHandler handler = MonitoringStopped;
             if(handler != null) {
                 handler(this, e);

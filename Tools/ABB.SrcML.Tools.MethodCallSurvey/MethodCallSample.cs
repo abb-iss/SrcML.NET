@@ -6,7 +6,6 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
 
 namespace ABB.SrcML.Tools.MethodCallSurvey {
 
@@ -115,34 +114,26 @@ namespace ABB.SrcML.Tools.MethodCallSurvey {
         }
 
         public ObservableCollection<MethodCall> GetSampleOfMethodCalls(BackgroundWorker worker) {
-            try {
-                IScope globalScope;
-                if(Data.TryLockGlobalScope(Timeout.Infinite, out globalScope)) {
-                    var allCalls = from scope in globalScope.GetDescendantScopes()
-                                   from call in scope.MethodCalls
-                                   select call;
-                    int numberOfCalls = allCalls.Count();
+            var allCalls = from scope in Data.GetGlobalScope().GetDescendantScopes()
+                           from call in scope.MethodCalls
+                           select call;
+            int numberOfCalls = allCalls.Count();
 
-                    if(null != worker) {
-                        worker.ReportProgress(0, String.Format("Found {0} calls", numberOfCalls));
-                    }
-
-                    var rng = new Random();
-                    var randomCallSample = allCalls.OrderBy(x => rng.Next()).Take(SampleSize);
-
-                    var calls = from call in randomCallSample
-                                select new MethodCall(Archive, call);
-
-                    var callCollection = new ObservableCollection<MethodCall>(calls.Take(SampleSize));
-                    if(null != worker) {
-                        worker.ReportProgress(100, String.Format("Showing {0} / {1} calls", SampleSize, numberOfCalls));
-                    }
-                    return callCollection;
-                }
-            } finally {
-                Data.ReleaseGlobalScopeLock();
+            if(null != worker) {
+                worker.ReportProgress(0, String.Format("Found {0} calls", numberOfCalls));
             }
-            return null;
+
+            var rng = new Random();
+            var randomCallSample = allCalls.OrderBy(x => rng.Next()).Take(SampleSize);
+
+            var calls = from call in randomCallSample
+                        select new MethodCall(Archive, call);
+
+            var callCollection = new ObservableCollection<MethodCall>(calls.Take(SampleSize));
+            if(null != worker) {
+                worker.ReportProgress(100, String.Format("Showing {0} / {1} calls", SampleSize, numberOfCalls));
+            }
+            return callCollection;
         }
 
         public void StartMonitoringCalls() {

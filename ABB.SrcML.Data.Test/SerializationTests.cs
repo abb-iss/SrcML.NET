@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
 
 namespace ABB.SrcML.Data.Test {
 
@@ -38,16 +37,7 @@ namespace ABB.SrcML.Data.Test {
 
             var newData = new DataRepository(@"DataRepositoryTests\saved.dar");
             newData.InitializeData();
-            IScope globalScope, newGlobalScope;
-            Assert.That(data.TryLockGlobalScope(Timeout.Infinite, out globalScope));
-            Assert.That(newData.TryLockGlobalScope(Timeout.Infinite, out newGlobalScope));
-
-            try {
-                Assert.IsTrue(TestHelper.ScopesAreEqual(globalScope, newGlobalScope));
-            } finally {
-                data.ReleaseGlobalScopeLock();
-                newData.ReleaseGlobalScopeLock();
-            }
+            Assert.IsTrue(TestHelper.ScopesAreEqual(data.GetGlobalScope(), newData.GetGlobalScope()));
         }
 
         [Test]
@@ -64,16 +54,7 @@ namespace ABB.SrcML.Data.Test {
             var newData = new DataRepository(archive, @"DataRepositoryTests\saved.dar");
             newData.InitializeData();
 
-            IScope globalScope, newGlobalScope;
-            Assert.That(data.TryLockGlobalScope(Timeout.Infinite, out globalScope));
-            Assert.That(newData.TryLockGlobalScope(Timeout.Infinite, out newGlobalScope));
-
-            try {
-                Assert.IsTrue(TestHelper.ScopesAreEqual(globalScope, newGlobalScope));
-            } finally {
-                data.ReleaseGlobalScopeLock();
-                newData.ReleaseGlobalScopeLock();
-            }
+            Assert.IsTrue(TestHelper.ScopesAreEqual(data.GetGlobalScope(), newData.GetGlobalScope()));
         }
     }
 }

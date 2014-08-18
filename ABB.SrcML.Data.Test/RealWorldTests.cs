@@ -329,7 +329,7 @@ namespace ABB.SrcML.Data.Test {
                         };
 
                         if(useAsyncMethods) {
-                            data.InitializeDataAsync().Wait();
+                            data.InitializeDataConcurrent();
                         } else {
                             data.InitializeData();
                         }
@@ -345,15 +345,10 @@ namespace ABB.SrcML.Data.Test {
                         Console.WriteLine("{0,10:N0} successes ({1,8:P2})", numberOfSuccesses, ((float) numberOfSuccesses) / numberOfFiles);
                         Console.WriteLine("{0} to generate data", end - start);
                         Console.WriteLine(fileLogPath);
-                        IScope globalScope;
-                        Assert.That(data.TryLockGlobalScope(Timeout.Infinite, out globalScope));
-                        try {
-                            PrintScopeReport(globalScope);
-                            PrintMethodCallReport(globalScope, callLogPath);
-                            PrintErrorReport(errors);
-                        } finally {
-                            data.ReleaseGlobalScopeLock();
-                        }
+
+                        PrintScopeReport(data.GetGlobalScope());
+                        PrintMethodCallReport(data.GetGlobalScope(), callLogPath);
+                        PrintErrorReport(errors);
                     }
                 }
             }
