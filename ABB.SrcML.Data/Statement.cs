@@ -17,6 +17,7 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 using System.Xml;
+using System.Xml.Linq;
 using System.Xml.Serialization;
 
 namespace ABB.SrcML.Data {
@@ -464,6 +465,66 @@ namespace ABB.SrcML.Data {
             if(allList == null) { return Enumerable.Empty<ImportStatement>(); }
 
             return allList.SkipWhile(s => ReversePositionComparer.CompareLocation(s.PrimaryLocation, loc) <= 0);
+        }
+
+        /// <summary>
+        /// Returns the innermost statement that surrounds the given source location.
+        /// </summary>
+        /// <param name="loc">The source location to search for.</param>
+        /// <returns>The lowest child of this statement that surrounds the given location, or null if it cannot be found.</returns>
+        public Statement GetStatementForLocation(SourceLocation loc) {
+            //first search in children
+            var foundStmt = GetChildren().Cast<Statement>().Select(s => s.GetStatementForLocation(loc)).FirstOrDefault(s => s != null);
+            //if loc not found, check ourselves
+            if(foundStmt == null && this.ContainsLocation(loc)) {
+                foundStmt = this;
+            }
+            return foundStmt;
+        }
+
+        /// <summary>
+        /// Returns the innermost statement that surrounds the given source location.
+        /// </summary>
+        /// <param name="xpath">The xpath to search for.</param>
+        /// <returns>The lowest child of this statement that contains the given xpath, or null if it cannot be found.</returns>
+        public Statement GetStatementForLocation(string xpath) {
+            //first search in children
+            var foundStmt = GetChildren().Cast<Statement>().Select(s => s.GetStatementForLocation(xpath)).FirstOrDefault(s => s != null);
+            //if loc not found, check ourselves
+            if(foundStmt == null && this.ContainsLocation(xpath)) {
+                foundStmt = this;
+            }
+            return foundStmt;
+        }
+
+        /// <summary>
+        /// Returns true if this statement surrounds the given source location.
+        /// </summary>
+        /// <param name="loc">The source location to look for.</param>
+        /// <returns>True if this is a container for the given location, False otherwise.</returns>
+        public virtual bool ContainsLocation(SourceLocation loc) {
+            return Locations.Any(l => l.Contains(loc));
+        }
+
+        /// <summary>
+        /// Returns true if this statement contains the given XElement. A statement
+        /// contains an element if <see cref="SrcMLLocation.XPath"/> is a prefix for the XPath for
+        /// <paramref name="element"/>.
+        /// </summary>
+        /// <param name="element">The element to look for</param>
+        /// <returns>true if this statement contains <paramref name="element"/>. False otherwise.</returns>
+        public bool ContainsLocation(XElement element) {
+            return ContainsLocation(element.GetXPath());
+        }
+
+        /// <summary>
+        /// Returns true if this statement contains the given XPath. A statement contains
+        /// an xpath if <see cref="SrcMLLocation.XPath"/> is a prefix for <paramref name="xpath"/>
+        /// </summary>
+        /// <param name="xpath">The xpath to look for.</param>
+        /// <returns>True if this statement contains the given xpath. False, otherwise.</returns>
+        public virtual bool ContainsLocation(string xpath) {
+            return Locations.Any(l => xpath.StartsWith(l.XPath));
         }
 
         #region Private Methods
