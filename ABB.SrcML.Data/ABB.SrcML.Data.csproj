@@ -55,8 +55,14 @@
     <Compile Include="AbstractScopeUse.cs" />
     <Compile Include="AbstractUse.cs" />
     <Compile Include="Alias.cs" />
+    <Compile Include="BlockStatement.cs" />
     <Compile Include="BuiltInTypeFactory.cs" />
+    <Compile Include="ControlStatement.cs" />
     <Compile Include="CSharpVarTypeUse.cs" />
+    <Compile Include="DoWhileStatement.cs" />
+    <Compile Include="Expression.cs" />
+    <Compile Include="ForStatement.cs" />
+    <Compile Include="IfStatement.cs" />
     <Compile Include="LiteralKind.cs" />
     <Compile Include="LiteralUse.cs" />
     <Compile Include="CSharpCodeParser.cs" />
@@ -76,12 +82,14 @@
     <Compile Include="NamespaceDefinition.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CPlusPlusCodeParser.cs" />
+    <Compile Include="Statement.cs" />
     <Compile Include="TypeDefinition.cs" />
     <Compile Include="TypeUse.cs" />
     <Compile Include="VariableDeclaration.cs" />
     <Compile Include="Scope.cs" />
     <Compile Include="VariableScopeIterator.cs" />
     <Compile Include="VariableUse.cs" />
+    <Compile Include="WhileStatement.cs" />
     <Compile Include="XNameMaps.cs" />
   </ItemGroup>
   <ItemGroup>
