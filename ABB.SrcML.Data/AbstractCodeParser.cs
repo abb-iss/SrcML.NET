@@ -308,10 +308,8 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            var declElement = paramElement.Elements().First(e => e.Name == SRC.Declaration || e.Name == SRC.FunctionDeclaration);
-
-            var varDeclaration = ParseDeclarationElement(declElement, context);
-            return varDeclaration;
+            var declElement = paramElement.Elements().FirstOrDefault(e => e.Name == SRC.Declaration || e.Name == SRC.FunctionDeclaration);
+            return declElement != null ? ParseDeclarationElement(declElement, context) : null;
         }
 
         /// <summary>
