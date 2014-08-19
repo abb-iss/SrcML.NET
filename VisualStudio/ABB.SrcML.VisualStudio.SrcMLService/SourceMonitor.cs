@@ -15,8 +15,10 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace ABB.SrcML.VisualStudio.SrcMLService {
@@ -71,9 +73,11 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
             List<string> solutionFiles = new List<string>();
             var projectEnumerator = solution.Projects.GetEnumerator();
-            while(projectEnumerator.MoveNext()) {
+            while (projectEnumerator.MoveNext())
+            {
                 SearchProjectForFiles(solutionFiles, projectEnumerator.Current as Project);
             }
+
             return solutionFiles;
         }
 
@@ -89,6 +93,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
             var solutionFiles = GetSolutionFiles(solution);
             solutionFiles.Add(solution.FullName);
+            solutionFiles.RemoveAll(s => string.IsNullOrWhiteSpace(s));
             var commonPaths = Utilities.FileHelper.GetCommonPathList(solutionFiles);
             return commonPaths;
         }
@@ -101,10 +106,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             var solutionPaths = GetSolutionPaths(MonitoredSolution);
             foreach (var solutionPath in solutionPaths)
             {
-                if (!DirectoryHasTooManyFiles(solutionPath))
-                {
-                    AddDirectory(solutionPath);
-                }                
+                AddDirectory(solutionPath);
             }
         }
 
@@ -213,32 +215,34 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         }
 
         private static void SearchProjectForFiles(List<string> solutionFiles, Project project) {
-            if(project != null)
-                if(project.ProjectItems != null) {
-                    var itemEnumerator = project.ProjectItems.GetEnumerator();
-                    while(itemEnumerator.MoveNext()) {
-                        var item = itemEnumerator.Current as ProjectItem;
-                        if(item != null && item.Name != null && item.FileCount > 0) {
-                            try {
-                                var myPath = Path.GetFullPath(item.FileNames[0]);
-                                if(!String.IsNullOrEmpty(Path.GetExtension(myPath)))
-                                    solutionFiles.Add(myPath);
-                            } catch(ArgumentException) { }
-                            var proj = item.SubProject as Project;
-                            if(proj != null) {
-                                SearchProjectForFiles(solutionFiles, proj);
+            try
+            {
+                if (project != null)
+                {
+                    solutionFiles.Add(project.FullName);
+                    if (project.ProjectItems != null)
+                    {
+                        var itemEnumerator = project.ProjectItems.GetEnumerator();
+                        while (itemEnumerator.MoveNext())
+                        {
+                            var item = itemEnumerator.Current as ProjectItem;
+                            if (item != null && item.Name != null && item.FileCount > 0)
+                            {
+                                var proj = item.SubProject as Project;
+                                if (proj != null)
+                                {
+                                    SearchProjectForFiles(solutionFiles, proj);
+                                }
                             }
                         }
                     }
                 }
+            }catch(NotImplementedException e){
+                //ignore - this happens when a project is not loaded
+                Debug.WriteLine(e.Message);
+            }
         }
 
-        private bool DirectoryHasTooManyFiles(string directoryPath) {
-            int numberOfFiles = (from filePath in EnumerateDirectory(directoryPath)
-                                 where sourceArchive.IsValidFileExtension(filePath)
-                                 select filePath).Take(MaxNumberOfFilesInSolutionDirectory).Count();
-            return numberOfFiles >= MaxNumberOfFilesInSolutionDirectory;
-        }
 
         /// <summary>
         /// Subscribe to the running document table events
