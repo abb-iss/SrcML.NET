@@ -277,9 +277,11 @@ namespace ABB.SrcML.Data.Test {
 
                     start = DateTime.Now;
                     if(useAsyncMethods) {
-                        monitor.UpdateArchivesAsync().Wait();
-                        end = DateTime.Now;
-                        startupCompleted = true;
+                        var task = monitor.UpdateArchivesAsync().ContinueWith((t) => {
+                            end = DateTime.Now;
+                            startupCompleted = true;
+                        });
+                        task.Wait();
                     } else {
                         monitor.UpdateArchives();
                         end = DateTime.Now;
@@ -329,7 +331,7 @@ namespace ABB.SrcML.Data.Test {
                         };
 
                         if(useAsyncMethods) {
-                            data.InitializeDataConcurrent();
+                            data.InitializeDataAsync().Wait();
                         } else {
                             data.InitializeData();
                         }

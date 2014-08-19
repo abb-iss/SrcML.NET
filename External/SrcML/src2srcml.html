@@ -1,3 +1,5 @@
+<HTML>
+<BODY>
 <PRE>
 <!-- Manpage converted by man2html 3.0.1 -->
 
@@ -29,13 +31,9 @@
        ties  for  working  with  srcML files, including efficient querying and
        transformation of source code.
 
-       Standard input may be specified by using the character - in  the  place
-       of  an  input  source-code file or providing no input source-code file.
-       Similarly, standard output may be specified with the  -  character  for
-       the output srcML file or by not providing an output srcML file.
-
-       A source-code language was be specified when input is from standard in-
-       put.
+       Using the character - in the place of an input source-code  file  file-
+       name  uses  standard  input,  and in place of an output srcML file uses
+       standard output.
 
 
 </PRE>
@@ -58,10 +56,10 @@
               Treats the input file as a list of source files.  Each  file  is
               separately  translated and collectively stored into a single sr-
               cML archive. The list has a single filename on each line  start-
-              the command <B>iconv</B> <B>-l</B>.
-
-       <B>--no-xml-declaration</B>
-              No output of the default XML declaration. Useful when the output
+              ing  at  the  beginning of the line.  Blank lines and lines that
+              begin with the character '#' are ignored.   As  with  input  and
+              output  files,  using  the  character  - in place of a file name
+              takes the input list from standard input.
               is to be placed inside another XML document.
 
        <B>--no-namespace-decl</B>
@@ -90,38 +88,32 @@
        <B>-v,</B> <B>--verbose</B>
               Conversion and status information to stderr, including encodings
               used. Especially useful with for monitoring progress of the  the
-              <B>--files-from</B>  option,  a directory, or source-code archive (e.g.
-              tar.gz).  The signal SIGUSR1 can be used to toggle this  option.
+              <B>--files-from</B>  option.   The signal SIGUSR1 can be used to toggle
+              this option.
 
 
 </PRE>
 <H2>METADATA OPTIONS</H2><PRE>
-       This  set of options allows control over various metadata stored in the
+       This set of options allows control over various metadata stored in  the
        srcML document.
 
        <B>-l,</B> <B>--language=</B><I>language</I>
               The programming language of the source-code file. Allowable val-
-              ues are C, C++, C#, Java, or AspectJ. The language affects pars-
-              ing, the allowed markup, and what is considered a  keyword.  The
-              value  is  also stored individually as an attribute in each unit
-              element.
+              ues are C, C++, Java, or AspectJ. The language affects  parsing,
+              the  allowed markup, and what is considered a keyword. The value
+              is also stored as an attribute of the root element unit.
 
               If not specified, the programming language is based on the  file
               extension.  If the file extension is not available or not in the
-              standard list, then the program will terminate.
+              standard list, the default is C++.
 
        <B>--register-ext=</B><I>extention=language</I>
               Sets the extensions to associate with a given  language.   Note:
+              the extensions to not contain the '.'.
 
-       <B>-d,</B> <B>--directory=</B><I>directory</I>
-              The  value of the directory attribute is typically obtained from
-              the path of the input filename. This option allows you to speci-
-              fy  a different directory for standard input or where the direc-
-              tory is not contained in the input path.
-
-       <B>-f,</B> <B>--filename=</B><I>filename</I>
-              The value of the filename attribute is typically  obtained  from
-              the  input filename. This option allows you to specify a differ-
+              The programming language of the source-code file. Allowable val-
+              ues are C, C++, Java, or AspectJ. The language affects  parsing,
+              the  allowed markup, and what is considered a keyword. The value
               ent filename for standard input or where  the  filename  is  not
               contained in the input path.
 
@@ -168,15 +160,16 @@
 </PRE>
 <H2>LINE/COLUMN POSITION</H2><PRE>
        Optional  line  and column attributes are used to indicate the position
-       There is a set of standard URIs for the elements in srcML, each with  a
-       predefined  prefix.  The  predefined URIs and prefixes for them include
-       (given in xmlns notation):
+       of an element in the original source code document.  Both the line  and
+       column  start  at  1.  The column position is based on the tab settings
+       with a default tab size of 8. Other tab sizes  can  be  set  using  the
+       --tabs.
 
-       PREFIX   URI
-       (nil)    http://www.sdml.info/sr-
-                cML/src
-       cpp      http://www.sdml.info/sr-
-                cML/cpp
+       <B>--position</B>
+              Insert  line  and  column  attributes  into  each start element.
+              These attributes have a default prefix of "pos" in the namespace
+              "http://www.sdml.info/srcML/position".
+
        err      http://www.sdml.info/sr-
                 cML/srcerr
        lit      http://www.sdml.info/sr-
@@ -222,17 +215,17 @@
 
        <B>--cpp-text-if0</B>
               Only place text in #if 0 regions leaving out markup.  Default.
-              files in srcML archives.
 
 
 </PRE>
-<H2>USAGE</H2><PRE>
-       To translate the C++ source-code file  main.cpp  into  the  srcML  file
-       main.cpp.xml:
+<H2>SIGNAL PROCESSING</H2><PRE>
+       The following signals may be used to control src2srcml:
 
-       <B>src2srcml</B> main.cpp -o main.cpp.xml
+       SIGUSR1
+              Toggles  verbose  option. Useful with multiple input files as in
+              the <B>--files-from</B> option.
 
-       To   translate  a  C  source-code  file  main.c  into  the  srcML  file
+       SIGINT Completes current file translation (and  output)  with  multiple
        main.c.xml:
 
        <B>src2srcml</B> --language=C main.c -o main.c.xml
@@ -269,16 +262,31 @@
 
        6: Invalid language
 
-       7: Invalid combination of options
+       7: Language option specified, but value missing
 
-       8: Incomplete output due to termination
+       8: Filename option specified, but value missing
+
+       9: Directory option specified, but value missing
+
+       10: Version option specified, but value missing
+
+       11: Text encoding option specified, but value missing
+
+       12: XML encoding option specified, but value missing
+
+       15: Invalid combination of options
+
+       16: Incomplete output due to termination
 
 
 </PRE>
 <H2>CAVEATS</H2><PRE>
        Translation  is performed based on local information with no symbol ta-
-       ble. For non-CFG languages, i.e., C/C++, and with macros this may  lead
-       to incorrect markup.
+
+
+</PRE>
+<H2>SEE ALSO</H2><PRE>
+       <B>srcml2src(1)</B>
 
 
 </PRE>
@@ -287,7 +295,7 @@
 
 
 
-src2srcml 1.0            Wed May 21 10:36:09 EDT 2014             <B>src2srcml(1)</B>
+src2srcml 1.0            Sun Jul 21 23:22:56 EDT 2013             <B>src2srcml(1)</B>
 </PRE>
 <HR>
 <ADDRESS>
