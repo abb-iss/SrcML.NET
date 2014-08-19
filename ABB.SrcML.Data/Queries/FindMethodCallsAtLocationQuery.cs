@@ -26,12 +26,20 @@ namespace ABB.SrcML.Data.Queries {
         /// </summary>
         /// <param name="workingSet">The working set to query</param>
         /// <param name="lockTimeout">The time in milliseconds to wait for the read lock</param>
+        public FindMethodCallsAtLocationQuery(AbstractWorkingSet workingSet, int lockTimeout) 
+            : base(workingSet, lockTimeout) {}
+
+        /// <summary>
+        /// Creates a new query object
+        /// </summary>
+        /// <param name="workingSet">The working set to query</param>
+        /// <param name="lockTimeout">The time in milliseconds to wait for the read lock</param>
         /// <param name="factory">The task factory to use for asynchronous methods</param>
         public FindMethodCallsAtLocationQuery(AbstractWorkingSet workingSet, int lockTimeout, TaskFactory factory)
             : base(workingSet, lockTimeout, factory) { }
 
         /// <summary>
-        /// Finds the <see cref="ScopeForLocationQuery">furthest descendant</see> of <paramref name="root"/> that contains <paramref name="parameter"/>
+        /// Finds the <see cref="StatementForLocationQuery">furthest descendant</see> of <paramref name="root"/> that contains <paramref name="parameter"/>
         /// and then identifies all of the methods descended from that statement.
         /// Calls <see cref="Query"/>.
         /// </summary>
@@ -43,7 +51,7 @@ namespace ABB.SrcML.Data.Queries {
         }
 
         /// <summary>
-        /// Finds the <see cref="ScopeForLocationQuery">furthest descendant</see> of <paramref name="root"/> that contains <paramref name="parameter"/>
+        /// Finds the <see cref="StatementForLocationQuery">furthest descendant</see> of <paramref name="root"/> that contains <paramref name="parameter"/>
         /// and then identifies all of the methods descended from that statement.
         /// </summary>
         /// <param name="root">The root to query</param>
@@ -51,13 +59,13 @@ namespace ABB.SrcML.Data.Queries {
         /// <returns>A collection of method calls found at this location</returns>
         public static Collection<MethodCall> Query(Statement root, SourceLocation parameter) {
             if(null != root) {
-                var scope = ScopeForLocationQuery.Query(root, parameter);
-                if(null != scope) {
-                    //var calls = scope.MethodCalls.Where(mc => mc.Location.Contains(parameter));
-                    //return new Collection<MethodCall>(calls.OrderByDescending(mc => mc.Location, new SourceLocationComparer()).ToList());
+                var statement = StatementForLocationQuery.Query(root, parameter);
+                if(null != statement) {
+                    var calls = statement.FindExpressions<MethodCall>().Where(mc => mc.Location.Contains(parameter));
+                    return new Collection<MethodCall>(calls.OrderByDescending(mc => mc.Location, new SourceLocationComparer()).ToList());
                 }
             }
-            throw new NotImplementedException();
+            return new Collection<MethodCall>();
         }
 
         private class SourceLocationComparer : Comparer<SourceLocation> {

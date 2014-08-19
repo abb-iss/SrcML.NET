@@ -97,7 +97,7 @@
     <Compile Include="DataProject.cs" />
     <Compile Include="PropertyDefinition.cs" />
     <Compile Include="Queries\FindMethodCallsAtLocationQuery.cs" />
-    <Compile Include="Queries\ScopeForLocationQuery.cs" />
+    <Compile Include="Queries\StatementForLocationQuery.cs" />
     <Compile Include="ReturnStatement.cs" />
     <Compile Include="ScopeDebugView.cs" />
     <Compile Include="JavaCodeParser.cs" />

@@ -19,14 +19,22 @@ namespace ABB.SrcML.Data.Queries {
     /// <summary>
     /// This query object finds the deepest descendant of a statement that contains a given location
     /// </summary>
-    public class ScopeForLocationQuery : AbstractQuery<SourceLocation, Statement> {
+    public class StatementForLocationQuery : AbstractQuery<SourceLocation, Statement> {
         /// <summary>
         /// Create a new query object
         /// </summary>
         /// <param name="workingSet">The working set to query</param>
         /// <param name="lockTimeout">The time in milliseconds to wait for the read lock</param>
-        /// <param name="factory">The task factory for asynchronous quries</param>
-        public ScopeForLocationQuery(AbstractWorkingSet workingSet, int lockTimeout, TaskFactory factory)
+        public StatementForLocationQuery(AbstractWorkingSet workingSet, int lockTimeout) 
+            : base(workingSet, lockTimeout) {}
+
+        /// <summary>
+        /// Create a new query object
+        /// </summary>
+        /// <param name="workingSet">The working set to query</param>
+        /// <param name="lockTimeout">The time in milliseconds to wait for the read lock</param>
+        /// <param name="factory">The task factory for asynchronous queries</param>
+        public StatementForLocationQuery(AbstractWorkingSet workingSet, int lockTimeout, TaskFactory factory)
             : base(workingSet, lockTimeout, factory) { }
 
         /// <summary>
@@ -46,9 +54,7 @@ namespace ABB.SrcML.Data.Queries {
         /// <param name="parameter">The location to find</param>
         /// <returns>The furthest descendant of <paramref name="root"/> that contains <paramref name="parameter"/></returns>
         public static Statement Query(Statement root, SourceLocation parameter) {
-            //TODO reimplement once getscopeforlocation has been added
-            //return root.GetScopeForLocation(parameter);
-            throw new NotImplementedException();
+            return root.GetStatementForLocation(parameter);
         }
     }
 
@@ -86,7 +92,7 @@ namespace ABB.SrcML.Data.Queries {
         /// <returns>The furthest descendant of <paramref name="root"/> that contains <paramref name="parameter"/> of type <typeparamref name="TStatement"/></returns>
         public static TStatement Query(Statement root, SourceLocation parameter) {
             if(null != root) {
-                var scope = ScopeForLocationQuery.Query(root, parameter);
+                var scope = StatementForLocationQuery.Query(root, parameter);
                 return (null != scope ? scope.GetAncestorsAndSelf<TStatement>().FirstOrDefault() : default(TStatement));
             }
             return default(TStatement);
