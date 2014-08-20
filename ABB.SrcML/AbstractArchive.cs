@@ -125,7 +125,11 @@ namespace ABB.SrcML
         public virtual Task DeleteFileAsync(string fileName) {
             //LogExceptions(task);
             var task = Factory.StartNew(() => DeleteFileImpl(fileName));
-            task.ContinueWith((t) => new FileEventRaisedArgs(FileEventType.FileDeleted, fileName));
+            task.ContinueWith((t) => {
+                if(t.Result) {
+                    OnFileChanged(new FileEventRaisedArgs(FileEventType.FileDeleted, fileName));
+                }
+            });
             return task;
         }
 
