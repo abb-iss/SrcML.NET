@@ -351,6 +351,23 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        public IEnumerable<MethodCall> GetCallsToSelf() {
+            var globalScope = GetAncestors<NamespaceDefinition>().FirstOrDefault(n => n.IsGlobal);
+            if(null == globalScope) {
+                throw new StatementDetachedException(this);
+            }
+
+            return GetCallsToSelf(globalScope);
+        }
+
+        public IEnumerable<MethodCall> GetCallsToSelf(Statement rootScope) {
+            if(null == rootScope) { throw new ArgumentNullException("rootScope"); }
+            
+            return rootScope.GetCallsTo(this, true);
+        }
+
+
+        #region Private Methods
         private static string GetParameterFingerprint(ICollection<VariableDeclaration> parameters) {
             var parameterTypes = from p in parameters select p.VariableType.Name;
             return String.Join(",", parameterTypes);
@@ -367,6 +384,7 @@ namespace ABB.SrcML.Data {
 
             return score;
         }
+        #endregion Private Methods
     }
 
     ///// <summary>

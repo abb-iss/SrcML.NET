@@ -41,7 +41,16 @@ namespace ABB.SrcML.Data {
         public static IEnumerable<MethodCall> GetCallsTo(this Statement root, MethodDefinition otherMethod, bool searchDescendantStatements) {
             if(null == otherMethod) { throw new ArgumentNullException("otherMethod"); }
 
-            return root.FindExpressions<MethodCall>(searchDescendantStatements).Where(c => c.Matches(otherMethod));
+            //first filter calls for ones with the same name, number of parameters, etc.
+            var initialMatches = root.FindExpressions<MethodCall>(searchDescendantStatements).Where(c => c.Matches(otherMethod)).ToList();
+            if(initialMatches.Any()) {
+                //check whether the call actually resolves to the other method
+                foreach(var call in initialMatches) {
+                    if(call.FindMatches().Any(m => m == otherMethod)) {
+                        yield return call;
+                    }
+                }
+            }
         }
     }
 }
