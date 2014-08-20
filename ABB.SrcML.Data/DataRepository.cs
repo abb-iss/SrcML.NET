@@ -563,7 +563,7 @@ namespace ABB.SrcML.Data {
                 return _taskFactory.StartNew(() => {
                     BlockingCollection<IScope> mergeQueue = new BlockingCollection<IScope>();
 
-                    _taskFactory.StartNew(() => {
+                    var readTask = _taskFactory.StartNew(() => {
                         Parallel.ForEach(Archive.FileUnits, unit => {
                             var scope = ParseFileUnit(unit);
                             if(null != scope) {
@@ -573,7 +573,7 @@ namespace ABB.SrcML.Data {
                         mergeQueue.CompleteAdding();
                     });
 
-                    return _taskFactory.StartNew(() => {
+                    var mergeTask = _taskFactory.StartNew(() => {
                         scopeLock.EnterWriteLock();
                         try {
                             foreach(var scope in mergeQueue.GetConsumingEnumerable()) {
@@ -585,6 +585,7 @@ namespace ABB.SrcML.Data {
                             scopeLock.ExitWriteLock();
                         }
                     });
+                    Task.WaitAll(readTask, mergeTask);
                 });
             }
             return null;
