@@ -67,12 +67,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML.Test.Utilities", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML.Tools.MethodCallSurvey", "Tools\ABB.SrcML.Tools.MethodCallSurvey\ABB.SrcML.Tools.MethodCallSurvey.csproj", "{4D1DE8A4-0C55-49E2-AF37-3B47A8A447B2}"
 EndProject
-Project("{7CF6DF6D-3B04-46F8-A40B-537D21BCA0B4}") = "Documentation", "Documentation\Documentation.shfbproj", "{563D5B69-A2E5-44D3-9EA0-F99396E02101}"
-	ProjectSection(ProjectDependencies) = postProject
-		{73C24E33-465B-424D-B35A-39F1750F705E} = {73C24E33-465B-424D-B35A-39F1750F705E}
-		{D52626E7-A4CA-471A-8A6A-FE0110430FE6} = {D52626E7-A4CA-471A-8A6A-FE0110430FE6}
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML.Data.Test", "ABB.SrcML.Data.Test\ABB.SrcML.Data.Test.csproj", "{2D910B34-7FEE-44DC-B79F-00DA2A914295}"
 EndProject
 Global
@@ -266,14 +260,6 @@ Global
 		{4D1DE8A4-0C55-49E2-AF37-3B47A8A447B2}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{4D1DE8A4-0C55-49E2-AF37-3B47A8A447B2}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{4D1DE8A4-0C55-49E2-AF37-3B47A8A447B2}.Release|x86.ActiveCfg = Release|Any CPU
-		{563D5B69-A2E5-44D3-9EA0-F99396E02101}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{563D5B69-A2E5-44D3-9EA0-F99396E02101}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{563D5B69-A2E5-44D3-9EA0-F99396E02101}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{563D5B69-A2E5-44D3-9EA0-F99396E02101}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{563D5B69-A2E5-44D3-9EA0-F99396E02101}.Release|Any CPU.Build.0 = Release|Any CPU
-		{563D5B69-A2E5-44D3-9EA0-F99396E02101}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{563D5B69-A2E5-44D3-9EA0-F99396E02101}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{563D5B69-A2E5-44D3-9EA0-F99396E02101}.Release|x86.ActiveCfg = Release|Any CPU
 		{2D910B34-7FEE-44DC-B79F-00DA2A914295}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2D910B34-7FEE-44DC-B79F-00DA2A914295}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2D910B34-7FEE-44DC-B79F-00DA2A914295}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
