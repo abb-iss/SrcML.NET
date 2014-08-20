@@ -211,7 +211,9 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                     CurrentMonitor.UpdateArchivesStarted += CurrentMonitor_UpdateArchivesStarted;
                     CurrentMonitor.UpdateArchivesCompleted += CurrentMonitor_UpdateArchivesCompleted;
                     CurrentMonitor.AddDirectoriesFromSaveFile();
-                    CurrentMonitor.AddSolutionDirectories();
+                    if(0 == CurrentMonitor.MonitoredDirectories.Count) {
+                        CurrentMonitor.AddSolutionDirectories();
+                    }
                 }
 
                 // Subscribe events from Solution Monitor
