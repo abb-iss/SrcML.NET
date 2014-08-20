@@ -261,9 +261,7 @@ namespace ABB.SrcML.Data {
                     foreach(var retType in ((VariableDeclaration)match).VariableType.ResolveType()) {
                         yield return retType;
                     }
-                } else {
-                    yield return null;
-                }
+                } 
             }
         }
 
