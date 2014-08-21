@@ -426,19 +426,28 @@ namespace ABB.SrcML {
         /// </summary>
         public static readonly XName Using = NS + "using";
 
-        /// <summary>
-        /// markup for the extern tag
-        /// </summary>
+        /// <summary> markup for the extern tag </summary>
         public static readonly XName Extern = NS + "extern"; // extern
 
-        /// <summary>
-        /// markup for the macro tag
-        /// </summary>
+        /// <summary> markup for the macro tag </summary>
         public static readonly XName Macro = NS + "macro"; // macro
 
-        /// <summary>
-        /// markup for the empty_stmt tag
-        /// </summary>
+        /// <summary> markup for the empty_stmt tag </summary>
         public static readonly XName EmptyStatement = NS + "empty_stmt";
+
+        /// <summary> markup for the sizeof tag </summary>
+        public static readonly XName SizeOf = NS + "sizeof";
+
+        /// <summary> markup for the escape tag </summary>
+        public static readonly XName Escape = NS + "escape";
+
+        /// <summary> markup for the synchronized tag in Java </summary>
+        public static readonly XName Synchronized = NS + "synchronized";
+
+        /// <summary> markup for the attribute tag </summary>
+        public static readonly XName Attribute = NS + "attribute";
+
+        /// <summary> markup for the unchecked tag in C# </summary>
+        public static readonly XName Unchecked = NS + "unchecked";
     }
 }

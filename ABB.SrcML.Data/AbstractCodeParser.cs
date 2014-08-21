@@ -31,6 +31,12 @@ namespace ABB.SrcML.Data {
     public abstract class AbstractCodeParser {
         private TextWriter _synchronizedErrorLog;
 
+        private static readonly HashSet<XName> NotImplementedStatements = new HashSet<XName>() {
+            SRC.Typedef, SRC.Macro, SRC.Escape, SRC.Template,
+            SRC.Synchronized, SRC.Attribute, SRC.Unchecked
+        };
+        private static readonly HashSet<XName> NotImplementedExpressions = new HashSet<XName>() {SRC.SizeOf, SRC.Macro, SRC.Escape};
+
         /// <summary>
         /// Creates a new abstract code parser object. Should only be called by child classes.
         /// </summary>
@@ -203,6 +209,8 @@ namespace ABB.SrcML.Data {
                     //do nothing. This is already handled in JavaCodeParser.ParseUnitElement()
                 } else if(element.Name.Namespace == CPP.NS) {
                     //do nothing. skip any cpp preprocessor macros
+                } else if(NotImplementedStatements.Contains(element.Name)) {
+                    //do nothing. These are known and we're skipping them for now.
                 } else {
                     LogUnknown(element, context, "ParseStatement");
                 }
@@ -1084,6 +1092,10 @@ namespace ABB.SrcML.Data {
                 } else if(element.Name == SRC.Class && ParserLanguage == Language.Java) {
                     //anonymous class, skip
                     //TODO: add parsing for anonymous classes in Java
+                } else if(element.Name.Namespace == CPP.NS) {
+                    //do nothing. skip any cpp preprocessor macros
+                } else if(NotImplementedExpressions.Contains(element.Name)) {
+                    //skip. These are known and we're skipping them for now.
                 } else {
                     LogUnknown(element, context, "ParseExpression");
                 }
