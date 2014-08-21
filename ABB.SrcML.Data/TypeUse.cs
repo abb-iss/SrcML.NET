@@ -138,13 +138,13 @@ namespace ABB.SrcML.Data {
 
             //search enclosing scopes and base types
             foreach(var scope in ParentStatement.GetAncestors<NamedScope>()) {
-                var matches = scope.GetNamedChildren<TypeDefinition>(this).Where(Matches).ToList();
+                var matches = scope.GetNamedChildren<TypeDefinition>(this).Where(SignatureMatches).ToList();
                 if(matches.Any()) {
                     return matches;
                 }
                 var typeDef = scope as TypeDefinition;
                 if(typeDef != null) {
-                    var baseTypeMatches = typeDef.SearchParentTypes<TypeDefinition>(this.Name, Matches).ToList();
+                    var baseTypeMatches = typeDef.SearchParentTypes<TypeDefinition>(this.Name, SignatureMatches).ToList();
                     if(baseTypeMatches.Any()) {
                         return baseTypeMatches;
                     }
@@ -180,11 +180,11 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Tests if this type use is a match for the given
-        /// <paramref name="definition"/></summary>
+        /// Tests if this type use matches the signature for the given <paramref name="definition"/>.
+        /// </summary>
         /// <param name="definition">the definition to compare to</param>
-        /// <returns>true if the definitions match; false otherwise</returns>
-        public bool Matches(TypeDefinition definition) {
+        /// <returns>true if the signatures match; false otherwise</returns>
+        public bool SignatureMatches(TypeDefinition definition) {
             //TODO: add checking for type arguments
             return definition != null && definition.Name == this.Name;
         }

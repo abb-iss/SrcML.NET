@@ -25,7 +25,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="root">The statement to start searching from</param>
         /// <param name="otherMethod">The other method</param>
-        /// <returns>True if any of the calls in this method are a <see cref="MethodCall.Matches(MethodDefinition)">match</see> for <paramref name="otherMethod"/></returns>
+        /// <returns>True if any of the calls in this method are a <see cref="MethodCall.SignatureMatches">match</see> for <paramref name="otherMethod"/></returns>
         public static bool ContainsCallTo(this Statement root, MethodDefinition otherMethod) {
             if(null == otherMethod) { throw new ArgumentNullException("otherMethod"); }
 
@@ -42,7 +42,7 @@ namespace ABB.SrcML.Data {
             if(null == otherMethod) { throw new ArgumentNullException("otherMethod"); }
 
             //first filter calls for ones with the same name, number of parameters, etc.
-            var initialMatches = root.FindExpressions<MethodCall>(searchDescendantStatements).Where(c => c.Matches(otherMethod)).ToList();
+            var initialMatches = root.FindExpressions<MethodCall>(searchDescendantStatements).Where(c => c.SignatureMatches(otherMethod)).ToList();
             if(initialMatches.Any()) {
                 //check whether the call actually resolves to the other method
                 foreach(var call in initialMatches) {
