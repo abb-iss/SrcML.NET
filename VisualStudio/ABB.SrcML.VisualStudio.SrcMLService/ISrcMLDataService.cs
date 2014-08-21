@@ -26,11 +26,11 @@ namespace ABB.SrcML.VisualStudio.Interfaces {
         event EventHandler MonitoringStarted;
         event EventHandler MonitoringStopped;
 
+        AbstractWorkingSet CurrentWorkingSet { get; }
+
         bool IsMonitoring { get; }
 
         bool IsUpdating { get; }
-
-        AbstractWorkingSet GetDataRepository();
     }
     [Guid("4F09B16E-9048-40BA-89FA-31F692C5D8E0")]
     public interface SSrcMLDataService { }
