@@ -113,10 +113,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             var solutionPaths = GetSolutionPaths(MonitoredSolution);
             foreach (var solutionPath in solutionPaths)
             {
-                if (!DirectoryHasTooManyFiles(solutionPath))
-                {
-                    AddDirectory(solutionPath);
-                }                
+                AddDirectory(solutionPath);
             }
         }
 
@@ -243,13 +240,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                         }
                     }
                 }
-        }
-
-        private bool DirectoryHasTooManyFiles(string directoryPath) {
-            int numberOfFiles = (from filePath in EnumerateDirectory(directoryPath)
-                                 where sourceArchive.IsValidFileExtension(filePath)
-                                 select filePath).Take(MaxNumberOfFilesInSolutionDirectory).Count();
-            return numberOfFiles >= MaxNumberOfFilesInSolutionDirectory;
         }
 
         /// <summary>
