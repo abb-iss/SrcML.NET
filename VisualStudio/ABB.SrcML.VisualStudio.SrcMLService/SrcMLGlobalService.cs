@@ -43,15 +43,21 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
         private uint cookie = 0;
 
+        public SrcMLProject CurrentProject { get; private set; }
+
         /// <summary>
         /// SrcML.NET's Solution Monitor.
         /// </summary>
-        private SourceMonitor CurrentMonitor;
+        public SourceMonitor CurrentMonitor { get; private set; }
 
         /// <summary>
         /// SrcML.NET's SrcMLArchive.
         /// </summary>
-        private SrcMLArchive CurrentSrcMLArchive;
+        public SrcMLArchive CurrentSrcMLArchive {
+            get {
+                return (null != CurrentProject ? CurrentProject.SourceArchive : null);
+            }
+        }
 
         private int frozen;
         private ReentrantTimer SaveTimer;
@@ -135,14 +141,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 throw new ArgumentNullException("pathToDirectory");
             }
             CurrentMonitor.AddDirectory(pathToDirectory);
-        }
-
-        /// <summary>
-        /// Get current SrcMLArchive instance.
-        /// </summary>
-        /// <returns></returns>
-        public SrcMLArchive GetSrcMLArchive() {
-            return CurrentSrcMLArchive;
         }
 
         /// <summary>
