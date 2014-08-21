@@ -193,7 +193,7 @@ namespace ABB.SrcML.Data {
 
                 var matchingMethods = from typeDefinition in typeDefinitions
                                       from method in typeDefinition.GetNamedChildren<MethodDefinition>(typeDefinition.Name)
-                                      where Matches(typeDefinition.Name, method)
+                                      where SignatureMatches(typeDefinition.Name, method)
                                       select method;
                 return matchingMethods;
             }
@@ -203,11 +203,11 @@ namespace ABB.SrcML.Data {
             if(callingScopes != null) {
                 IEnumerable<INamedEntity> matches = Enumerable.Empty<INamedEntity>();
                 foreach(var scope in callingScopes) {
-                    var localMatches = scope.GetNamedChildren<MethodDefinition>(this.Name).Where(Matches).ToList();
+                    var localMatches = scope.GetNamedChildren<MethodDefinition>(this.Name).Where(SignatureMatches).ToList();
                     var callingType = scope as TypeDefinition;
                     if(!localMatches.Any() && callingType != null) {
                         //also search under the base types of the calling scope
-                        matches = matches.Concat(callingType.SearchParentTypes<MethodDefinition>(this.Name, Matches));
+                        matches = matches.Concat(callingType.SearchParentTypes<MethodDefinition>(this.Name, SignatureMatches));
                     } else {
                         matches = matches.Concat(localMatches);
                     }
@@ -224,7 +224,7 @@ namespace ABB.SrcML.Data {
                 var typeDef = scope as TypeDefinition;
                 if(typeDef != null) {
                     //search the base types
-                    var baseTypeMatches = typeDef.SearchParentTypes<MethodDefinition>(this.Name, Matches).ToList();
+                    var baseTypeMatches = typeDef.SearchParentTypes<MethodDefinition>(this.Name, SignatureMatches).ToList();
                     if(baseTypeMatches.Any()) {
                         return baseTypeMatches;
                     }
@@ -235,7 +235,7 @@ namespace ABB.SrcML.Data {
             return (from import in GetImports()
                     from match in import.ImportedNamespace.GetDescendantsAndSelf<NameUse>().Last().FindMatches().OfType<NamedScope>()
                     from child in match.GetNamedChildren<MethodDefinition>(this.Name)
-                    where Matches(child)
+                    where SignatureMatches(child)
                     select child);
 
         }
@@ -262,24 +262,24 @@ namespace ABB.SrcML.Data {
 
 
         /// <summary>
-        /// Tests if the provided method definition matches this method call
+        /// Tests if the signature of the provided method definition matches this method call
         /// </summary>
         /// <param name="definition">The method definition to test</param>
-        /// <returns>True if this method call matches the provided method definition</returns>
-        public bool Matches(MethodDefinition definition) {
-            return Matches(this.Name, definition);
+        /// <returns>True if this method call matches the signature of the provided method definition, False otherwise.</returns>
+        public bool SignatureMatches(MethodDefinition definition) {
+            return SignatureMatches(this.Name, definition);
         }
 
         /// <summary>
-        /// Tests if the provided method definition matches this method call. The parameter <paramref name="callName"/>
+        /// Tests if the signature of the provided method definition matches this method call. The parameter <paramref name="callName"/>
         /// specifies the name to use for this method call. This is useful for cases where the call is a
         /// keyword, like "base", "this" or "super". The caller can first translate the keyword to the
         /// actual method name to match against.
         /// </summary>
         /// <param name="definition">The method definition to test</param>
         /// <param name="callName">The name to use for the method call.</param>
-        /// <returns>True if this method call matches the provided method definition</returns>
-        public bool Matches(string callName, MethodDefinition definition) {
+        /// <returns>True if this method call matches the signature of the provided method definition, False otherwise.</returns>
+        public bool SignatureMatches(string callName, MethodDefinition definition) {
             if(null == definition) {
                 return false;
             }

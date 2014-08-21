@@ -72,18 +72,9 @@ namespace LoggingTransformation
 
         [TestFixtureTearDown]
         public static void FixtureCleanup() {
-            /*
-            foreach (var file in Directory.GetFiles("srcmltest"))
-            {
-                File.Delete(file);
-            }
-            foreach (var file in Directory.GetFiles("srcml_xml"))
-            {
-                File.Delete(file);
-            }
-            Directory.Delete("srcmltest");
-            Directory.Delete("srcml_xml");
-            */
+            Directory.Delete("srcmltest", true);
+            Directory.Delete("srcml_xml", true);
+            Directory.Delete("badPathTest", true);
         }
 
         [SetUp]
