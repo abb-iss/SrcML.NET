@@ -43,15 +43,21 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
         private uint cookie = 0;
 
+        public SrcMLProject CurrentProject { get; private set; }
+
         /// <summary>
         /// SrcML.NET's Solution Monitor.
         /// </summary>
-        private SourceMonitor CurrentMonitor;
+        public SourceMonitor CurrentMonitor { get; private set; }
 
         /// <summary>
         /// SrcML.NET's SrcMLArchive.
         /// </summary>
-        private SrcMLArchive CurrentSrcMLArchive;
+        public SrcMLArchive CurrentSrcMLArchive {
+            get {
+                return (null != CurrentProject ? CurrentProject.SourceArchive : null);
+            }
+        }
 
         private int frozen;
         private ReentrantTimer SaveTimer;
@@ -138,14 +144,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         }
 
         /// <summary>
-        /// Get current SrcMLArchive instance.
-        /// </summary>
-        /// <returns></returns>
-        public SrcMLArchive GetSrcMLArchive() {
-            return CurrentSrcMLArchive;
-        }
-
-        /// <summary>
         /// Gets the XElement for the specified source file.
         /// </summary>
         /// <param name="sourceFilePath"></param>
@@ -191,21 +189,11 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                     Directory.Delete(baseDirectory, true);
                 }
 
-                // Create a new instance of SrcML.NET's LastModifiedArchive
-                LastModifiedArchive lastModifiedArchive = new LastModifiedArchive(baseDirectory, LastModifiedArchive.DEFAULT_FILENAME,
-                                                                                  _taskManager.GlobalScheduler);
-
-                // Create a new instance of SrcML.NET's SrcMLArchive
-                SrcMLArchive sourceArchive = new SrcMLArchive(baseDirectory, SrcMLArchive.DEFAULT_ARCHIVE_DIRECTORY, true,
-                                                              new SrcMLGenerator(srcMLBinaryDirectory),
-                                                              new SrcMLFileNameMapping(Path.Combine(baseDirectory, SrcMLArchive.DEFAULT_ARCHIVE_DIRECTORY)),
-                                                              _taskManager.GlobalScheduler);
-                CurrentSrcMLArchive = sourceArchive;
+                CurrentMonitor = new SourceMonitor(openSolution, DirectoryScanningMonitor.DEFAULT_SCAN_INTERVAL, _taskManager.GlobalScheduler, baseDirectory);
+                CurrentProject = new SrcMLProject(_taskManager.GlobalScheduler, CurrentMonitor, new SrcMLGenerator(srcMLBinaryDirectory));
 
                 // Create a new instance of SrcML.NET's solution monitor
                 if(openSolution != null) {
-                    CurrentMonitor = new SourceMonitor(openSolution, DirectoryScanningMonitor.DEFAULT_SCAN_INTERVAL,
-                                                       _taskManager.GlobalScheduler, baseDirectory, lastModifiedArchive, sourceArchive);
                     CurrentMonitor.DirectoryAdded += RespondToDirectoryAddedEvent;
                     CurrentMonitor.DirectoryRemoved += RespondToDirectoryRemovedEvent;
                     CurrentMonitor.UpdateArchivesStarted += CurrentMonitor_UpdateArchivesStarted;
@@ -259,13 +247,12 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 if(CurrentMonitor != null && CurrentSrcMLArchive != null) {
                     OnMonitoringStopped(new EventArgs());
                     SaveTimer.Stop();
-                    CurrentMonitor.StopMonitoring();
+                    CurrentProject.StopMonitoring();
                     CurrentMonitor.FileChanged -= RespondToFileChangedEvent;
                     CurrentMonitor.DirectoryAdded -= RespondToDirectoryAddedEvent;
                     CurrentMonitor.DirectoryRemoved -= RespondToDirectoryRemovedEvent;
-                    CurrentMonitor.Dispose();
-
-                    CurrentSrcMLArchive = null;
+                    CurrentProject.Dispose();
+                    CurrentProject = null;
                     CurrentMonitor = null;
                 }
             } catch(Exception e) {
@@ -395,23 +382,15 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="sender"></param>
         /// <param name="eventArgs"></param>
         private void RespondToFileChangedEvent(object sender, FileEventRaisedArgs eventArgs) {
-            //SrcMLFileLogger.DefaultLogger.Info("SrcMLService: RespondToFileChangedEvent(), File = " + eventArgs.FilePath + ", EventType = " + eventArgs.EventType + ", HasSrcML = " + eventArgs.HasSrcML);
-            // Show progress on the status bar.
-            //if(duringStartup) {
-            //amountCompleted++;
-            //ShowProgressOnStatusBar("SrcML Service is processing " + eventArgs.FilePath);
-            //}
             OnFileChanged(eventArgs);
         }
 
         private void RespondToDirectoryAddedEvent(object sender, DirectoryScanningMonitorEventArgs eventArgs) {
             OnDirectoryAdded(eventArgs);
-            //DisplayTextOnStatusBar(String.Format("Now monitoring {0}", eventArgs.Directory));
         }
 
         private void RespondToDirectoryRemovedEvent(object sender, DirectoryScanningMonitorEventArgs eventArgs) {
             OnDirectoryRemoved(eventArgs);
-            //DisplayTextOnStatusBar(String.Format("No longer monitoring {0}", eventArgs.Directory));
         }
 
         private bool ShouldReset() {
@@ -426,14 +405,5 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             CurrentMonitor.Save();
         }
 
-        /// <summary>
-        /// Display incremental progress on the Visual Studio status bar.
-        /// </summary>
-        /// <param name="label"></param>
-        private void ShowProgressOnStatusBar(string label) {
-            if(statusBar != null) {
-                statusBar.Progress(ref cookie, 1, label, amountCompleted, (uint) CurrentMonitor.NumberOfAllMonitoredFiles);
-            }
-        }
     }
 }

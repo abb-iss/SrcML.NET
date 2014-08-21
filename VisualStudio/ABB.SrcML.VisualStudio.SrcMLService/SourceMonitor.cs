@@ -25,7 +25,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         private const int MaxNumberOfFilesInSolutionDirectory = 1000;
         private IVsRunningDocumentTable DocumentTable;
         private uint DocumentTableItemId;
-        private SrcMLArchive sourceArchive;
 
         /// <summary>
         /// Creates a new source monitor
@@ -51,8 +50,9 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="otherArchives">Other archives to route files to</param>
         public SourceMonitor(Solution solution, double scanInterval, TaskScheduler scheduler, string baseDirectory, AbstractArchive defaultArchive, SrcMLArchive sourceArchive, params AbstractArchive[] otherArchives)
             : base(DirectoryScanningMonitor.MONITOR_LIST_FILENAME, scanInterval, scheduler, baseDirectory, defaultArchive, otherArchives) {
-            RegisterArchive(sourceArchive, false);
-            this.sourceArchive = sourceArchive;
+            if(null != sourceArchive) {
+                RegisterArchive(sourceArchive, false);
+            }
             this.MonitoredSolution = solution;
         }
 
@@ -113,10 +113,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             var solutionPaths = GetSolutionPaths(MonitoredSolution);
             foreach (var solutionPath in solutionPaths)
             {
-                if (!DirectoryHasTooManyFiles(solutionPath))
-                {
-                    AddDirectory(solutionPath);
-                }                
+                AddDirectory(solutionPath);
             }
         }
 
@@ -243,13 +240,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                         }
                     }
                 }
-        }
-
-        private bool DirectoryHasTooManyFiles(string directoryPath) {
-            int numberOfFiles = (from filePath in EnumerateDirectory(directoryPath)
-                                 where sourceArchive.IsValidFileExtension(filePath)
-                                 select filePath).Take(MaxNumberOfFilesInSolutionDirectory).Count();
-            return numberOfFiles >= MaxNumberOfFilesInSolutionDirectory;
         }
 
         /// <summary>

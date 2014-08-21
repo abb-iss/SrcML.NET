@@ -12,8 +12,11 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         private IServiceProvider _serviceProvider;
         private ITaskManagerService _taskManager;
         private ISrcMLGlobalService _srcMLService;
+        private ArchiveMonitor<SrcMLArchive> _srcMonitor;
 
-        private AbstractWorkingSet CurrentDataRepository;
+        private DataArchive CurrentDataArchive;
+
+        public AbstractWorkingSet CurrentWorkingSet { get; private set; }
 
         private TaskScheduler Scheduler {
             get {
@@ -46,9 +49,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
                 SubscribeToEvents();
             }
         }
-        public AbstractWorkingSet GetDataRepository() {
-            return CurrentDataRepository;
-        }
 
         private void SubscribeToEvents() {
             _srcMLService.MonitoringStarted += RespondToMonitoringStarted;
@@ -56,24 +56,25 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         }
 
         void RespondToMonitoringStopped(object sender, EventArgs e) {
-            if(null != CurrentDataRepository) {
-                // TODO update for working sets
-                //CurrentDataRepository.FileProcessed -= RespondToFileProcessed;
-                CurrentDataRepository.Dispose();
+            if(null != CurrentWorkingSet) {
+                _srcMonitor.StopMonitoring();
+                CurrentWorkingSet.StopMonitoring();
             }
             OnMonitoringStopped(e);
         }
 
         void RespondToMonitoringStarted(object sender, EventArgs e) {
-            //CurrentDataRepository = new DataRepository(_srcMLService.GetSrcMLArchive(), Scheduler);
-            //CurrentDataRepository.FileProcessed += RespondToFileProcessed;
-            //if(_srcMLService.IsUpdating) {
-            //    _srcMLService.UpdateArchivesCompleted += GenerateDataAfterUpdate;
-            //} else {
-            //    GenerateDataAfterUpdate(this, e);
-            //}
-            //OnMonitoringStarted(e);
-            throw new NotImplementedException();
+            CurrentDataArchive = new DataArchive(_srcMLService.CurrentMonitor.MonitorStoragePath, _srcMLService.CurrentSrcMLArchive, Scheduler);
+            _srcMonitor = new ArchiveMonitor<SrcMLArchive>(Scheduler, _srcMLService.CurrentMonitor.MonitorStoragePath, _srcMLService.CurrentSrcMLArchive, CurrentDataArchive);
+            CurrentWorkingSet = new CompleteWorkingSet();
+            CurrentWorkingSet.Factory = new TaskFactory(Scheduler);
+            CurrentWorkingSet.Archive = CurrentDataArchive;
+            if(_srcMLService.IsUpdating) {
+                _srcMLService.UpdateArchivesCompleted += GenerateDataAfterUpdate;
+            } else {
+                GenerateDataAfterUpdate(this, e);
+            }
+            OnMonitoringStarted(e);
         }
 
         void RespondToFileProcessed(object sender, FileEventRaisedArgs e) {
@@ -81,10 +82,17 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         }
 
         void GenerateDataAfterUpdate(object sender, EventArgs e) {
-            //_srcMLService.UpdateArchivesCompleted -= GenerateDataAfterUpdate;
-            //OnUpdateStarted(new EventArgs());
-            //CurrentDataRepository.InitializeDataAsync().ContinueWith((t) => OnUpdateCompleted(new EventArgs()), Scheduler);
-            throw new NotImplementedException();
+            OnUpdateStarted(e);
+            _srcMLService.UpdateArchivesCompleted -= GenerateDataAfterUpdate;
+            OnUpdateStarted(new EventArgs());
+            _srcMonitor.UpdateArchivesAsync()
+                       .ContinueWith((t) => CurrentWorkingSet.InitializeAsync().Wait(),
+                                     TaskContinuationOptions.OnlyOnRanToCompletion)
+                       .ContinueWith((t) => {
+                           OnUpdateCompleted(e);
+                           _srcMonitor.StartMonitoring();
+                           CurrentWorkingSet.StartMonitoring();
+                       }, TaskContinuationOptions.OnlyOnRanToCompletion);
         }
 
         protected virtual void OnFileProcessed(FileEventRaisedArgs e) {

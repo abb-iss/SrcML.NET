@@ -53,6 +53,10 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         
         event EventHandler UpdateArchivesCompleted;
 
+        SourceMonitor CurrentMonitor { get; }
+
+        SrcMLArchive CurrentSrcMLArchive { get; }
+
         bool IsMonitoring { get; }
 
         bool IsUpdating { get; }
@@ -80,12 +84,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// </summary>
         /// <param name="pathToDirectory">The directory path to start monitoring</param>
         void AddDirectoryToMonitor(string pathToDirectory);
-
-        /// <summary>
-        /// Gets the current SrcML Archive
-        /// </summary>
-        /// <returns></returns>
-        SrcMLArchive GetSrcMLArchive();
 
         /// <summary>
         /// Gets the unit XElement for the given

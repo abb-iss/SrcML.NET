@@ -39,7 +39,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             // setup
             Project project = TestHelpers.GetProjects(TestSolution).FirstOrDefault();
             Assert.IsNotNull(project, "Couldn't get the project");
-            var archive = TestHelpers.TestScaffold.Service.GetSrcMLArchive();
+            var archive = TestHelpers.TestScaffold.Service.CurrentSrcMLArchive;
             var service = TestHelpers.TestScaffold.Service;
             int scanInterval = 5;
             int scanIntervalMs = scanInterval * 1000;
@@ -100,7 +100,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
         [TestMethod]
         [HostType("VS IDE")]
         public void TestCsProjectOperations() {
-            var archive = TestHelpers.TestScaffold.Service.GetSrcMLArchive();
+            var archive = TestHelpers.TestScaffold.Service.CurrentSrcMLArchive;
             var service = TestHelpers.TestScaffold.Service;
             int scanInterval = 5;
             int scanIntervalMs = scanInterval * 1000;
@@ -155,7 +155,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
         [TestMethod]
         [HostType("VS IDE")]
         public void TestCsServiceStartup() {
-            var archive = TestHelpers.TestScaffold.Service.GetSrcMLArchive();
+            var archive = TestHelpers.TestScaffold.Service.CurrentSrcMLArchive;
             Assert.IsNotNull(archive, "Could not get the SrcML Archive");
             Assert.AreEqual(2, archive.FileUnits.Count(), "There should only be two files in the srcML archive");
         }
