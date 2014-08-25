@@ -84,11 +84,17 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="inputFileName">The path to a srcML file</param>
         /// <param name="outputFileName">the path to store the resulting namespace definition in.</param>
-        /// <returns></returns>
+        /// <returns>true if <paramref name="outputFileName"/> was created; false otherwise.</returns>
         protected override bool GenerateImpl(string inputFileName, string outputFileName) {
-            var data = Parse(inputFileName);
-            XmlSerialization.WriteElement(data, outputFileName);
-            return true;
+            try {
+                var data = Parse(inputFileName);
+                XmlSerialization.WriteElement(data, outputFileName);
+                return true;
+            } catch(XmlException) {
+                return false;
+            } catch(FileNotFoundException) {
+                return false;
+            }
         }
     }
 }
