@@ -76,6 +76,9 @@ namespace ABB.SrcML.VisualStudio {
 
         void RespondToMonitoringStarted(object sender, EventArgs e) {
             CurrentDataArchive = new DataArchive(_srcMLService.CurrentMonitor.MonitorStoragePath, _srcMLService.CurrentSrcMLArchive, Scheduler);
+            CurrentDataArchive.Generator.ErrorLog = _srcMLService.CurrentSrcMLArchive.Generator.ErrorLog;
+            CurrentDataArchive.Generator.IsLoggingErrors = true;
+
             _srcMonitor = new ArchiveMonitor<SrcMLArchive>(Scheduler, _srcMLService.CurrentMonitor.MonitorStoragePath, _srcMLService.CurrentSrcMLArchive, CurrentDataArchive);
             CurrentWorkingSet = new CompleteWorkingSet();
             CurrentWorkingSet.Factory = new TaskFactory(Scheduler);
