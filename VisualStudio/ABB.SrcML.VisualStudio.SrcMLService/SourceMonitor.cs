@@ -19,7 +19,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ABB.SrcML.VisualStudio.SrcMLService {
+namespace ABB.SrcML.VisualStudio {
 
     public class SourceMonitor : DirectoryScanningMonitor, IVsRunningDocTableEvents {
         private const int MaxNumberOfFilesInSolutionDirectory = 1000;

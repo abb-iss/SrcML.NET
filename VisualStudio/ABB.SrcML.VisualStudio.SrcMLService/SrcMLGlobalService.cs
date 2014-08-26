@@ -11,7 +11,7 @@
 
 using ABB.SrcML.Data;
 using ABB.SrcML.Utilities;
-using ABB.VisualStudio.Interfaces;
+using ABB.VisualStudio;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -22,7 +22,7 @@ using System.Threading;
 using System.Timers;
 using System.Xml.Linq;
 
-namespace ABB.SrcML.VisualStudio.SrcMLService {
+namespace ABB.SrcML.VisualStudio {
 
     /// <summary>
     /// Step 4: Implement the global service class. This is the class that implements the global

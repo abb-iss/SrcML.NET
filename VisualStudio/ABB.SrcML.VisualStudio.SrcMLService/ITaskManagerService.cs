@@ -17,7 +17,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ABB.VisualStudio.Interfaces {
+namespace ABB.VisualStudio {
     /// <summary>
     /// This is the interface that will be implemented by the global service exposed by the package
     /// defined in ABB.VisualStudio.SrcMLService. Notice that we have to define this interface

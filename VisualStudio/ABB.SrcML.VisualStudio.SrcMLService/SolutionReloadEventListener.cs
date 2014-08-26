@@ -18,7 +18,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using ABB.SrcML.Utilities;
 using log4net;
 
-namespace ABB.SrcML.VisualStudio.SrcMLService {
+namespace ABB.SrcML.VisualStudio {
     /// <summary>
     /// Adapted from https://github.com/shanselman/RestoreAfterReloadVSIX
     /// IVsSolutionEvents: Listening interface that monitors any notifications of changes to the solution.

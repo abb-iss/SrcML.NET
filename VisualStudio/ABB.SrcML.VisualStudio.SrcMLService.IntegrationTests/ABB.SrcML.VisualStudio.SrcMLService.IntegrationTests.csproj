@@ -118,9 +118,9 @@
       <Project>{d52626e7-a4ca-471a-8a6a-fe0110430fe6}</Project>
       <Name>ABB.SrcML</Name>
     </ProjectReference>
-    <ProjectReference Include="..\ABB.SrcML.VisualStudio.SrcMLService\ABB.SrcML.VisualStudio.SrcMLService.csproj">
+    <ProjectReference Include="..\ABB.SrcML.VisualStudio.SrcMLService\ABB.SrcML.VisualStudio.csproj">
       <Project>{c3fc3845-b74f-498e-a8e5-80f5ae013da0}</Project>
-      <Name>ABB.SrcML.VisualStudio.SrcMLService</Name>
+      <Name>ABB.SrcML.VisualStudio</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

@@ -12,7 +12,7 @@ using System;
 using System.Diagnostics;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace ABB.SrcML.VisualStudio.SrcMLService {
+namespace ABB.SrcML.VisualStudio {
     /// <summary>
     /// This class is used to expose some utility functions used in this project.
     /// </summary>

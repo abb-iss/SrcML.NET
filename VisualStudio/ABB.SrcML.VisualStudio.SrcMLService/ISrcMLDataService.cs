@@ -17,7 +17,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml.Linq;
 
-namespace ABB.SrcML.VisualStudio.Interfaces {
+namespace ABB.SrcML.VisualStudio {
     [Guid("3331EA7E-2877-45F5-9E14-31FF0F5B761A"), ComVisible(true)]
     public interface ISrcMLDataService {
         event EventHandler<FileEventRaisedArgs> FileProcessed;

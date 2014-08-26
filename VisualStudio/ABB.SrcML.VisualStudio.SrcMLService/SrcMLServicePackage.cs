@@ -25,11 +25,10 @@ using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using log4net;
 using ABB.SrcML.Utilities;
-using ABB.VisualStudio.Interfaces;
 using ABB.VisualStudio;
-using ABB.SrcML.VisualStudio.Interfaces;
+using ABB.SrcML.Data;
 
-namespace ABB.SrcML.VisualStudio.SrcMLService {
+namespace ABB.SrcML.VisualStudio {
     /// <summary>
     /// This is the class that implements the package exposed by this assembly.
     ///

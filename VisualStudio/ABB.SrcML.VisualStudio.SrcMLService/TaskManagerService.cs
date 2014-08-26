@@ -1,6 +1,6 @@
 ﻿using ABB.SrcML;
 using ABB.SrcML.Utilities;
-using ABB.VisualStudio.Interfaces;
+using ABB.VisualStudio;
 using System;
 using System.Collections.Generic;
 using System.Linq;

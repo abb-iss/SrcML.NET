@@ -15,7 +15,7 @@ using System.Collections.ObjectModel;
 using System.Runtime.InteropServices;
 using System.Xml.Linq;
 
-namespace ABB.SrcML.VisualStudio.SrcMLService {
+namespace ABB.SrcML.VisualStudio {
 
     /// <summary>
     /// This is the interface that will be implemented by the global service exposed by the package
