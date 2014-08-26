@@ -7,9 +7,9 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("ABB.SrcML.VisualStudio.SrcMLService")]
-[assembly: AssemblyProduct("ABB.SrcML.VisualStudio.SrcMLService")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("ABB.SrcML.VisualStudio")]
+[assembly: AssemblyProduct("ABB.SrcML.VisualStudio")]
+[assembly: AssemblyDescription("SrcML Services for Visual Studio")]
 [assembly: AssemblyCopyright("Copyright © ABB 2013")]
 
 [assembly: ComVisible(false)]
