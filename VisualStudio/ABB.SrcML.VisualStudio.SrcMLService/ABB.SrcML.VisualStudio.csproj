@@ -112,6 +112,7 @@
     <Compile Include="ISrcMLDataService.cs" />
     <Compile Include="ISrcMLGlobalService.cs" />
     <Compile Include="ITaskManagerService.cs" />
+    <Compile Include="IWorkingSetRegistrarService.cs" />
     <Compile Include="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -126,6 +127,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PkgCmdID.cs" />
     <Compile Include="TaskManagerService.cs" />
+    <Compile Include="WorkingSetFactoryAddedEventArgs.cs" />
+    <Compile Include="WorkingSetRegistrarService.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources.resx">

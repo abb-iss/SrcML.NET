@@ -23,6 +23,7 @@ namespace ABB.SrcML.VisualStudio {
         private IServiceProvider _serviceProvider;
         private ITaskManagerService _taskManager;
         private ISrcMLGlobalService _srcMLService;
+        private IWorkingSetRegistrarService _workingSetFactories;
         private ArchiveMonitor<SrcMLArchive> _srcMonitor;
 
         private DataArchive CurrentDataArchive;
@@ -34,7 +35,13 @@ namespace ABB.SrcML.VisualStudio {
                 return (null == _taskManager ? TaskScheduler.Default : _taskManager.GlobalScheduler);
             }
         }
-        
+
+        private TaskFactory TaskFactory {
+            get {
+                return (null == _taskManager ? Task.Factory : _taskManager.GlobalFactory);
+            }
+        }
+
         public event EventHandler MonitoringStarted;
         public event EventHandler MonitoringStopped;
 
@@ -50,9 +57,10 @@ namespace ABB.SrcML.VisualStudio {
         public SrcMLDataService(IServiceProvider serviceProvider) {
             _serviceProvider = serviceProvider;
 
+            _workingSetFactories = serviceProvider.GetService(typeof(SWorkingSetRegistrarService)) as IWorkingSetRegistrarService;
             _taskManager = _serviceProvider.GetService(typeof(STaskManagerService)) as ITaskManagerService;
             _srcMLService = _serviceProvider.GetService(typeof(SSrcMLGlobalService)) as ISrcMLGlobalService;
-
+            
             if(_srcMLService != null) {
                 if(_srcMLService.IsMonitoring) {
                     RespondToMonitoringStarted(this, new EventArgs());
@@ -80,9 +88,8 @@ namespace ABB.SrcML.VisualStudio {
             CurrentDataArchive.Generator.IsLoggingErrors = true;
 
             _srcMonitor = new ArchiveMonitor<SrcMLArchive>(Scheduler, _srcMLService.CurrentMonitor.MonitorStoragePath, _srcMLService.CurrentSrcMLArchive, CurrentDataArchive);
-            CurrentWorkingSet = new CompleteWorkingSet();
-            CurrentWorkingSet.Factory = new TaskFactory(Scheduler);
-            CurrentWorkingSet.Archive = CurrentDataArchive;
+            CurrentWorkingSet = _workingSetFactories.Default.CreateWorkingSet(_srcMLService.CurrentMonitor.MonitorStoragePath, CurrentDataArchive, TaskFactory);
+            
             if(_srcMLService.IsUpdating) {
                 _srcMLService.UpdateArchivesCompleted += GenerateDataAfterUpdate;
             } else {
