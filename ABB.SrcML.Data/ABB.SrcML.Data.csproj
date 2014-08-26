@@ -55,6 +55,7 @@
     <Compile Include="AbstractProgramElement.cs" />
     <Compile Include="AbstractQuery.cs" />
     <Compile Include="AbstractWorkingSet.cs" />
+    <Compile Include="AbstractWorkingSetFactory.cs" />
     <Compile Include="AccessModifier.cs" />
     <Compile Include="AliasStatement.cs" />
     <Compile Include="BlockStatement.cs" />
