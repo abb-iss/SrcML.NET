@@ -19,41 +19,67 @@ using System.IO;
 using ABB.VisualStudio;
 
 namespace ABB.SrcML.VisualStudio {
+    /// <summary>
+    /// The default implementation for <see cref="ISrcMLDataService"/>
+    /// </summary>
     public class SrcMLDataService : ISrcMLDataService, SSrcMLDataService {
         private IServiceProvider _serviceProvider;
         private ITaskManagerService _taskManager;
         private ISrcMLGlobalService _srcMLService;
         private IWorkingSetRegistrarService _workingSetFactories;
         private ArchiveMonitor<SrcMLArchive> _srcMonitor;
-
         private DataArchive CurrentDataArchive;
 
+        private TaskScheduler Scheduler { get { return (null == _taskManager ? TaskScheduler.Default : _taskManager.GlobalScheduler); } }
+
+        private TaskFactory TaskFactory { get { return (null == _taskManager ? Task.Factory : _taskManager.GlobalFactory); } }
+
+        /// <summary>
+        /// The current working set object
+        /// </summary>
         public AbstractWorkingSet CurrentWorkingSet { get; private set; }
 
-        private TaskScheduler Scheduler {
-            get {
-                return (null == _taskManager ? TaskScheduler.Default : _taskManager.GlobalScheduler);
-            }
-        }
-
-        private TaskFactory TaskFactory {
-            get {
-                return (null == _taskManager ? Task.Factory : _taskManager.GlobalFactory);
-            }
-        }
-
+        /// <summary>
+        /// Raised when monitoring is started
+        /// </summary>
         public event EventHandler MonitoringStarted;
+
+        /// <summary>
+        /// Raised when monitoring is stopped
+        /// </summary>
         public event EventHandler MonitoringStopped;
 
+        /// <summary>
+        /// Raised when an update is started
+        /// </summary>
         public event EventHandler UpdateStarted;
+
+        /// <summary>
+        /// Raised when an update is complete
+        /// </summary>
         public event EventHandler UpdateCompleted;
 
+        /// <summary>
+        /// Raised when a file change is processed
+        /// </summary>
         public event EventHandler<FileEventRaisedArgs> FileProcessed;
 
+        /// <summary>
+        /// If true, then <see cref="MonitoringStarted"/> has been raised and the service is currently monitoring the solution.
+        /// If false, then the service is not currently monitoring.
+        /// </summary>
         public bool IsMonitoring { get; private set; }
 
+        /// <summary>
+        /// If true, then <see cref="UpdateStarted"/> has been raised and the service is currently updating.
+        /// If false, then the service is not currently updating.
+        /// </summary>
         public bool IsUpdating { get; private set; }
 
+        /// <summary>
+        /// Creates a new data service object
+        /// </summary>
+        /// <param name="serviceProvider">The service provider where this service is sited</param>
         public SrcMLDataService(IServiceProvider serviceProvider) {
             _serviceProvider = serviceProvider;
 
@@ -69,12 +95,71 @@ namespace ABB.SrcML.VisualStudio {
             }
         }
 
+        /// <summary>
+        /// Raises the file processed event
+        /// </summary>
+        /// <param name="e">The event arguments</param>
+        protected virtual void OnFileProcessed(FileEventRaisedArgs e) {
+            EventHandler<FileEventRaisedArgs> handler = FileProcessed;
+            if(handler != null) {
+                handler(this, e);
+            }
+        }
+
+        /// <summary>
+        /// Raises the update started event
+        /// </summary>
+        /// <param name="e">The event arguments</param>
+        protected virtual void OnUpdateStarted(EventArgs e) {
+            IsUpdating = true;
+            EventHandler handler = UpdateStarted;
+            if(null != handler) {
+                handler(this, e);
+            }
+        }
+
+        /// <summary>
+        /// Raises the update completed event
+        /// </summary>
+        /// <param name="e">The event arguments</param>
+        protected virtual void OnUpdateCompleted(EventArgs e) {
+            IsUpdating = false;
+            EventHandler handler = UpdateCompleted;
+            if(null != handler) {
+                handler(this, e);
+            }
+        }
+
+        /// <summary>
+        /// Raises the monitoring started event
+        /// </summary>
+        /// <param name="e">The event arguments</param>
+        protected virtual void OnMonitoringStarted(EventArgs e) {
+            IsMonitoring = true;
+            EventHandler handler = MonitoringStarted;
+            if(handler != null) {
+                handler(this, e);
+            }
+        }
+
+        /// <summary>
+        /// Raises the monitoring stopped event
+        /// </summary>
+        /// <param name="e">The event arguments</param>
+        protected virtual void OnMonitoringStopped(EventArgs e) {
+            IsMonitoring = false;
+            EventHandler handler = MonitoringStopped;
+            if(handler != null) {
+                handler(this, e);
+            }
+        }
+
         private void SubscribeToEvents() {
             _srcMLService.MonitoringStarted += RespondToMonitoringStarted;
             _srcMLService.MonitoringStopped += RespondToMonitoringStopped;
         }
 
-        void RespondToMonitoringStopped(object sender, EventArgs e) {
+        private void RespondToMonitoringStopped(object sender, EventArgs e) {
             if(null != CurrentWorkingSet) {
                 _srcMonitor.StopMonitoring();
                 CurrentWorkingSet.StopMonitoring();
@@ -82,7 +167,7 @@ namespace ABB.SrcML.VisualStudio {
             OnMonitoringStopped(e);
         }
 
-        void RespondToMonitoringStarted(object sender, EventArgs e) {
+        private void RespondToMonitoringStarted(object sender, EventArgs e) {
             CurrentDataArchive = new DataArchive(_srcMLService.CurrentMonitor.MonitorStoragePath, _srcMLService.CurrentSrcMLArchive, Scheduler);
             CurrentDataArchive.Generator.ErrorLog = _srcMLService.CurrentSrcMLArchive.Generator.ErrorLog;
             CurrentDataArchive.Generator.IsLoggingErrors = true;
@@ -98,11 +183,11 @@ namespace ABB.SrcML.VisualStudio {
             OnMonitoringStarted(e);
         }
 
-        void RespondToFileProcessed(object sender, FileEventRaisedArgs e) {
+        private void RespondToFileProcessed(object sender, FileEventRaisedArgs e) {
             OnFileProcessed(e);
         }
 
-        void GenerateDataAfterUpdate(object sender, EventArgs e) {
+        private void GenerateDataAfterUpdate(object sender, EventArgs e) {
             OnUpdateStarted(e);
             _srcMLService.UpdateArchivesCompleted -= GenerateDataAfterUpdate;
             OnUpdateStarted(new EventArgs());
@@ -114,44 +199,6 @@ namespace ABB.SrcML.VisualStudio {
                            _srcMonitor.StartMonitoring();
                            CurrentWorkingSet.StartMonitoring();
                        }, TaskContinuationOptions.OnlyOnRanToCompletion);
-        }
-
-        protected virtual void OnFileProcessed(FileEventRaisedArgs e) {
-            EventHandler<FileEventRaisedArgs> handler = FileProcessed;
-            if(handler != null) {
-                handler(this, e);
-            }
-        }
-
-        protected virtual void OnUpdateStarted(EventArgs e) {
-            IsUpdating = true;
-            EventHandler handler = UpdateStarted;
-            if(null != handler) {
-                handler(this, e);
-            }
-        }
-
-        protected virtual void OnUpdateCompleted(EventArgs e) {
-            IsUpdating = false;
-            EventHandler handler = UpdateCompleted;
-            if(null != handler) {
-                handler(this, e);
-            }
-        }
-        protected virtual void OnMonitoringStarted(EventArgs e) {
-            IsMonitoring = true;
-            EventHandler handler = MonitoringStarted;
-            if(handler != null) {
-                handler(this, e);
-            }
-        }
-
-        protected virtual void OnMonitoringStopped(EventArgs e) {
-            IsMonitoring = false;
-            EventHandler handler = MonitoringStopped;
-            if(handler != null) {
-                handler(this, e);
-            }
         }
     }
 }
