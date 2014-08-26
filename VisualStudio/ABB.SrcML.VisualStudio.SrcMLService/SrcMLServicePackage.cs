@@ -150,7 +150,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             serviceContainer.AddService(typeof(SSrcMLGlobalService), callback, true);
             serviceContainer.AddService(typeof(SSrcMLDataService), callback, true);
             serviceContainer.AddService(typeof(STaskManagerService), callback, true);
-            serviceContainer.AddService(typeof(SSrcMLLocalService), callback);
         }
 
         /// <summary>
@@ -180,11 +179,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
             if(typeof(SSrcMLDataService) == serviceType) {
                 return new SrcMLDataService(this);
-            }
-
-            if(typeof(SSrcMLLocalService) == serviceType) {
-                // Build the local service using this package as its service provider.
-                return new SrcMLLocalService(this);
             }
 
             if(typeof(STaskManagerService) == serviceType) {
