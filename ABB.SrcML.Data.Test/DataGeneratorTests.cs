@@ -20,6 +20,7 @@ using System.IO;
 
 namespace ABB.SrcML.Data.Test {
     [TestFixture]
+    [Category("Build")]
     class DataGeneratorTests {
         public const string SOURCE_DIRECTORY = "datageneratortests";
         public const string OUTPUT_DIRECTORY = "datagenerator_output";

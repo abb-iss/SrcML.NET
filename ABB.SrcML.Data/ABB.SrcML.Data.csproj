@@ -100,7 +100,6 @@
     <Compile Include="Queries\FindMethodCallsAtLocationQuery.cs" />
     <Compile Include="Queries\StatementForLocationQuery.cs" />
     <Compile Include="ReturnStatement.cs" />
-    <Compile Include="ScopeDebugView.cs" />
     <Compile Include="JavaCodeParser.cs" />
     <Compile Include="MethodDefinition.cs" />
     <Compile Include="NamespaceDefinition.cs" />
@@ -121,8 +120,6 @@
     <Compile Include="TypeUse.cs" />
     <Compile Include="UsingBlockStatement.cs" />
     <Compile Include="VariableDeclaration.cs" />
-    <Compile Include="Scope.cs" />
-    <Compile Include="VariableScopeIterator.cs" />
     <Compile Include="VariableUse.cs" />
     <Compile Include="WhileStatement.cs" />
     <Compile Include="XmlSerialization.cs" />

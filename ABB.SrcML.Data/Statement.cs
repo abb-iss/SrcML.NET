@@ -548,6 +548,9 @@ namespace ABB.SrcML.Data {
         /// </summary>
         protected class PositionComparer : Comparer<Statement> {
 
+            /// <summary>
+            /// Returns a negative number if x comes before y, 0 if they are equal, or a positive number if x comes after y.
+            /// </summary>
             public override int Compare(Statement x, Statement y) {
                 if(object.Equals(x, y)) { return 0; }
                 if(x == null) { return 1; }
@@ -556,6 +559,9 @@ namespace ABB.SrcML.Data {
                 return CompareLocation(x.PrimaryLocation, y.PrimaryLocation);
             }
 
+            /// <summary>
+            /// Returns a negative number if x comes before y, 0 if they are equal, or a positive number if x comes after y.
+            /// </summary>
             public static int CompareLocation(SourceLocation x, SourceLocation y) {
                 if(object.Equals(x, y)) { return 0; }
                 if(x == null) { return 1; }
@@ -578,6 +584,9 @@ namespace ABB.SrcML.Data {
         /// </summary>
         protected class ReversePositionComparer : Comparer<Statement> {
 
+            /// <summary>
+            /// Returns a negative number if x comes before y, 0 if they are equal, or a positive number if x comes after y.
+            /// </summary>
             public override int Compare(Statement x, Statement y) {
                 if(object.Equals(x, y)) { return 0; }
                 if(x == null) { return 1; }
@@ -586,6 +595,9 @@ namespace ABB.SrcML.Data {
                 return CompareLocation(x.PrimaryLocation, y.PrimaryLocation);
             }
 
+            /// <summary>
+            /// Returns a negative number if x comes before y, 0 if they are equal, or a positive number if x comes after y.
+            /// </summary>
             public static int CompareLocation(SourceLocation x, SourceLocation y) {
                 if(object.Equals(x, y)) { return 0; }
                 if(x == null) { return 1; }

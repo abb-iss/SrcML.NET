@@ -16,6 +16,9 @@ using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML.Data {
+    /// <summary>
+    /// Represents a use of a program element that may contain types, e.g. namespaces or type definitions.
+    /// </summary>
     public class TypeContainerUse : NameUse {
         /// <summary> The XML name for TypeContainerUse </summary>
         public new const string XmlName = "TypeContainerUse";

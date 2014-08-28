@@ -25,7 +25,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="root">The statement to start searching from</param>
         /// <param name="otherMethod">The other method</param>
-        /// <returns>True if any of the calls in this method are a <see cref="MethodCall.SignatureMatches">match</see> for <paramref name="otherMethod"/></returns>
+        /// <returns>True if any of the calls in this method are a match for <paramref name="otherMethod"/></returns>
         public static bool ContainsCallTo(this Statement root, MethodDefinition otherMethod) {
             if(null == otherMethod) { throw new ArgumentNullException("otherMethod"); }
 
