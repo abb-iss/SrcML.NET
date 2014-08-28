@@ -1286,7 +1286,7 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestMethodDefinitionWithReturnType() {
+        public void TestMethodDefinition_ReturnType() {
             //int Foo() { }
             string xml = @"<function><type><name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></function>";
 
@@ -1305,7 +1305,7 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestMethodDefinitionWithReturnTypeAndWithSpecifier() {
+        public void TestMethodDefinition_ReturnTypeAndSpecifier() {
             //static int Foo() { }
             string xml = @"<function><type><name>static</name> <name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></function>";
 
@@ -1321,7 +1321,23 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestMethodDefinitionWithVoidParameter() {
+        public void TestMethodDefinition_Parameters() {
+            //int Foo(int bar, char baz) { }
+            var xml = @"<function><type><name pos:line=""1"" pos:column=""1"">int</name></type> <name pos:line=""1"" pos:column=""5"">Foo</name><parameter_list pos:line=""1"" pos:column=""8"">(<param><decl><type><name pos:line=""1"" pos:column=""9"">int</name></type> <name pos:line=""1"" pos:column=""13"">bar</name></decl></param>, <param><decl><type><name pos:line=""1"" pos:column=""18"">char</name></type> <name pos:line=""1"" pos:column=""23"">baz</name></decl></param>)</parameter_list> <block pos:line=""1"" pos:column=""28"">{ }</block></function>";
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cpp");
+            var testScope = codeParser.ParseFileUnit(testUnit);
+
+            var foo = testScope.GetNamedChildren<MethodDefinition>("Foo").First();
+            Assert.AreEqual("int", foo.ReturnType.Name);
+            Assert.AreEqual(2, foo.Parameters.Count);
+            Assert.AreEqual("int", foo.Parameters[0].VariableType.Name);
+            Assert.AreEqual("bar", foo.Parameters[0].Name);
+            Assert.AreEqual("char", foo.Parameters[1].VariableType.Name);
+            Assert.AreEqual("baz", foo.Parameters[1].Name);
+        }
+
+        [Test]
+        public void TestMethodDefinition_VoidParameter() {
             //void Foo(void) { }
             string xml = @"<function><type><name>void</name></type> <name>Foo</name><parameter_list>(<param><decl><type><name>void</name></type></decl></param>)</parameter_list> <block>{ }</block></function>";
 
@@ -1336,7 +1352,23 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestMethodDefinitionWithVoidReturn() {
+        public void TestMethodDefinition_FunctionPointerParameter() {
+            //int Foo(char bar, int (*pInit)(Quux *theQuux)) {}
+            var xml = @"<function><type><name pos:line=""1"" pos:column=""1"">int</name></type> <name pos:line=""1"" pos:column=""5"">Foo</name><parameter_list pos:line=""1"" pos:column=""8"">(<param><decl><type><name pos:line=""1"" pos:column=""9"">char</name></type> <name pos:line=""1"" pos:column=""14"">bar</name></decl></param>, <param><function_decl><type><name pos:line=""1"" pos:column=""19"">int</name></type> (<type:modifier pos:line=""1"" pos:column=""24"">*</type:modifier><name pos:line=""1"" pos:column=""25"">pInit</name>)<parameter_list pos:line=""1"" pos:column=""31"">(<param><decl><type><name pos:line=""1"" pos:column=""32"">Quux</name> <type:modifier pos:line=""1"" pos:column=""37"">*</type:modifier></type><name pos:line=""1"" pos:column=""38"">theQuux</name></decl></param>)</parameter_list></function_decl></param>)</parameter_list> <block pos:line=""1"" pos:column=""48"">{}</block></function>";
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(xml, "test.cpp");
+            var testScope = codeParser.ParseFileUnit(testUnit);
+
+            var foo = testScope.GetNamedChildren<MethodDefinition>("Foo").First();
+            Assert.AreEqual("int", foo.ReturnType.Name);
+            Assert.AreEqual(2, foo.Parameters.Count);
+            Assert.AreEqual("char", foo.Parameters[0].VariableType.Name);
+            Assert.AreEqual("bar", foo.Parameters[0].Name);
+            Assert.AreEqual("int", foo.Parameters[1].VariableType.Name);
+            Assert.AreEqual("pInit", foo.Parameters[1].Name);
+        }
+
+        [Test]
+        public void TestMethodDefinition_VoidReturn() {
             //void Foo() { }
             string xml = @"<function><type><name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></function>";
 
@@ -1351,7 +1383,7 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestMethodWithDefaultArguments() {
+        public void TestMethodDefinition_DefaultArguments() {
             //void foo(int a = 0);
             //
             //int main() {

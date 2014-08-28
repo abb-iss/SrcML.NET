@@ -1223,8 +1223,8 @@ namespace ABB.SrcML.Data {
 
             if(declElement == null)
                 throw new ArgumentNullException("declElement");
-            if(declElement.Name != SRC.Declaration)
-                throw new ArgumentException("Must be a SRC.Declaration element", "declElement");
+            if(!(declElement.Name == SRC.Declaration || declElement.Name == SRC.FunctionDeclaration))
+                throw new ArgumentException("Must be a SRC.Declaration or SRC.FunctionDeclaration element", "declElement");
             if(context == null)
                 throw new ArgumentNullException("context");
 
@@ -1233,7 +1233,7 @@ namespace ABB.SrcML.Data {
                 ProgrammingLanguage = ParserLanguage
             };
 
-            var nameElement = declElement.Element(SRC.Name);
+            var nameElement = declElement.Elements(SRC.Name).LastOrDefault();
             if(nameElement != null) {
                 varDecl.Name = NameHelper.GetLastName(nameElement);
             }
@@ -1398,9 +1398,6 @@ namespace ABB.SrcML.Data {
             };
             typeUse.AddTypeParameters(typeArguments);
             
-            //TODO: handle aliases
-            //typeUse.AddAliases(context.Aliases);
-
             return typeUse;
         }
 
