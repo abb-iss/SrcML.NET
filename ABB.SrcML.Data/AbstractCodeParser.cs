@@ -317,7 +317,11 @@ namespace ABB.SrcML.Data {
 
             var declElement = paramElement.Elements().FirstOrDefault(e => e.Name == SRC.Declaration || e.Name == SRC.FunctionDeclaration);
             if(declElement == null) {
-                return new VariableDeclaration() {Name = string.Empty};
+                return new VariableDeclaration() {
+                    Name = string.Empty, 
+                    Location = context.CreateLocation(paramElement),
+                    ProgrammingLanguage = ParserLanguage
+                };
             } else {
                 return ParseDeclarationElement(declElement, context);
             }
