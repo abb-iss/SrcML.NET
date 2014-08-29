@@ -10,6 +10,7 @@
  *****************************************************************************/
 
 using ABB.SrcML.Data;
+using ABB.VisualStudio;
 using System;
 using System.Collections.ObjectModel;
 using System.Runtime.InteropServices;
@@ -23,8 +24,7 @@ namespace ABB.SrcML.VisualStudio {
     /// as COM visible so that it will be possible to query for it from the native version of
     /// IServiceProvider.
     /// </summary>
-    [Guid("ba9fe7a3-e216-424e-87f9-dee001228d04")]
-    [ComVisible(true)]
+    [Guid(GuidList.ISrcMLGlobalServiceId), ComVisible(true)]
     public interface ISrcMLGlobalService {
 
         /// <summary>
@@ -123,7 +123,7 @@ namespace ABB.SrcML.VisualStudio {
     ///
     /// It is registered at: HKEY_USERS\S-1-5-21-1472859983-109138142-169162935-138973\Software\Microsoft\VisualStudio\11.0Exp_Config\Services\{fafafdfb-60f3-47e4-b38c-1bae05b44241}
     /// </summary>
-    [Guid("fafafdfb-60f3-47e4-b38c-1bae05b44241")]
+    [Guid(GuidList.SSrcMLGlobalServiceId)]
     public interface SSrcMLGlobalService {
     }
 }

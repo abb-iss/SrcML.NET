@@ -86,7 +86,7 @@ namespace ABB.SrcML.VisualStudio {
     /// <summary>
     /// Get the Guid.
     /// </summary>
-    [Guid(GuidList.guidSrcMLServicePkgString)]
+    [Guid(GuidList.SrcMLServicePackageId)]
 
     /// <summary>
     /// This attribute starts up this extension early so that it can listen to solution events.

@@ -10,6 +10,7 @@
  *****************************************************************************/
 
 using ABB.SrcML.Data;
+using ABB.VisualStudio;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -23,7 +24,7 @@ namespace ABB.SrcML.VisualStudio {
     /// for the <see cref="SrcMLDataService"/>. You register a working set implementation by writing an <see cref="AbstractWorkingSetFactory"/>
     /// and then calling <see cref="RegisterWorkingSetFactory(AbstractWorkingSetFactory)"/> in <see cref="Microsoft.VisualStudio.Shell.Package.Initialize"/>
     /// </summary>
-    [Guid("6550A558-65FF-45A9-AD44-00F49FC6F2A3"), ComVisible(true)]
+    [Guid(GuidList.IWorkingSetRegistrarServiceId), ComVisible(true)]
     public interface IWorkingSetRegistrarService {
         /// <summary>
         /// The default working set factory
@@ -50,6 +51,6 @@ namespace ABB.SrcML.VisualStudio {
     /// <summary>
     /// Service interface for <see cref="IWorkingSetRegistrarService"/>
     /// </summary>
-    [Guid("07C20FC2-3AF4-4194-89E4-6B2226C4497B")]
+    [Guid(GuidList.SWorkingSetRegistrarServiceId)]
     public interface SWorkingSetRegistrarService { }
 }

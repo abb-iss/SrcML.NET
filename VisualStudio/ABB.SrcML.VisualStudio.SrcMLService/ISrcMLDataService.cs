@@ -10,6 +10,7 @@
  *****************************************************************************/
 
 using ABB.SrcML.Data;
+using ABB.VisualStudio;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +22,7 @@ namespace ABB.SrcML.VisualStudio {
     /// <summary>
     /// Provides data services based on ABB.SrcML.Data to Visual Studio client
     /// </summary>
-    [Guid("3331EA7E-2877-45F5-9E14-31FF0F5B761A"), ComVisible(true)]
+    [Guid(GuidList.ISrcMLDataServiceId), ComVisible(true)]
     public interface ISrcMLDataService {
         /// <summary>
         /// Raised when a file changed is processed
@@ -69,6 +70,6 @@ namespace ABB.SrcML.VisualStudio {
     /// <summary>
     /// Service interface for <see cref="ISrcMLDataService"/>
     /// </summary>
-    [Guid("4F09B16E-9048-40BA-89FA-31F692C5D8E0")]
+    [Guid(GuidList.SSrcMLDataServiceId)]
     public interface SSrcMLDataService { }
 }

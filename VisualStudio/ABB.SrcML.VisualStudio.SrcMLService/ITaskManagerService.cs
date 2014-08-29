@@ -10,6 +10,7 @@
  *****************************************************************************/
 
 using ABB.SrcML;
+using ABB.SrcML.VisualStudio;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,7 +25,7 @@ namespace ABB.VisualStudio {
     /// as COM visible so that it will be possible to query for it from the native version of
     /// IServiceProvider.
     /// </summary>
-    [Guid("11875F19-54B4-4C88-BA8D-E2B4A702D115")]
+    [Guid(GuidList.ITaskManagerServiceId)]
     [ComVisible(true)]
     public interface ITaskManagerService {
         TaskScheduler GlobalScheduler { get; }
@@ -46,7 +47,7 @@ namespace ABB.VisualStudio {
     ///
     /// It is registered at: HKEY_USERS\S-1-5-21-1472859983-109138142-169162935-138973\Software\Microsoft\VisualStudio\11.0Exp_Config\Services\{4B917BC0-C42E-447C-B732-6A675EDF4EB9}
     /// </summary>
-    [Guid("4B917BC0-C42E-447C-B732-6A675EDF4EB9")]
+    [Guid(GuidList.STaskManagerServiceId)]
     public interface STaskManagerService {
 
     }
