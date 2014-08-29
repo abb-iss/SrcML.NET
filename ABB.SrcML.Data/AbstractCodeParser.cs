@@ -33,7 +33,7 @@ namespace ABB.SrcML.Data {
 
         private static readonly HashSet<XName> NotImplementedStatements = new HashSet<XName>() {
             SRC.Typedef, SRC.Macro, SRC.Escape, SRC.Template,
-            SRC.Synchronized, SRC.Attribute, SRC.Unchecked
+            SRC.Synchronized, SRC.Attribute, SRC.Unchecked, SRC.Asm
         };
         private static readonly HashSet<XName> NotImplementedExpressions = new HashSet<XName>() {SRC.SizeOf, SRC.Macro, SRC.Escape};
 
@@ -289,7 +289,6 @@ namespace ABB.SrcML.Data {
             var parameters = from paramElement in GetParametersFromMethodElement(methodElement)
                              select ParseParameterElement(paramElement, context);
             methodDefinition.AddMethodParameters(parameters.ToList());
-            //methodDefinition.AddMethodParameters(parameters);
             
             //Add the method body statements as children
             var methodBlock = methodElement.Element(SRC.Block);
@@ -317,7 +316,11 @@ namespace ABB.SrcML.Data {
                 throw new ArgumentNullException("context");
 
             var declElement = paramElement.Elements().FirstOrDefault(e => e.Name == SRC.Declaration || e.Name == SRC.FunctionDeclaration);
-            return declElement != null ? ParseDeclarationElement(declElement, context) : null;
+            if(declElement == null) {
+                return new VariableDeclaration() {Name = string.Empty};
+            } else {
+                return ParseDeclarationElement(declElement, context);
+            }
         }
 
         /// <summary>
