@@ -17,12 +17,15 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using ABB.VisualStudio;
+using ABB.SrcML.Utilities;
 
 namespace ABB.SrcML.VisualStudio {
     /// <summary>
     /// The default implementation for <see cref="ISrcMLDataService"/>
     /// </summary>
     public class SrcMLDataService : ISrcMLDataService, SSrcMLDataService {
+        private bool _isMonitoring;
+        private bool _isUpdating;
         private IServiceProvider _serviceProvider;
         private ITaskManagerService _taskManager;
         private ISrcMLGlobalService _srcMLService;
@@ -68,19 +71,46 @@ namespace ABB.SrcML.VisualStudio {
         /// If true, then <see cref="MonitoringStarted"/> has been raised and the service is currently monitoring the solution.
         /// If false, then the service is not currently monitoring.
         /// </summary>
-        public bool IsMonitoring { get; private set; }
+        public bool IsMonitoring {
+            get { return _isMonitoring; }
+            private set {
+                if(_isMonitoring != value) {
+                    _isMonitoring = value;
+                    if(_isMonitoring) {
+                        OnMonitoringStarted(new EventArgs());
+                    } else {
+                        OnMonitoringStopped(new EventArgs());
+                    }
+                }
+            }
+        }
 
         /// <summary>
         /// If true, then <see cref="UpdateStarted"/> has been raised and the service is currently updating.
         /// If false, then the service is not currently updating.
         /// </summary>
-        public bool IsUpdating { get; private set; }
+        public bool IsUpdating {
+            get { return _isUpdating; }
+            private set {
+                if(_isUpdating != value) {
+                    _isUpdating = value;
+                    if(_isUpdating) {
+                        OnUpdateStarted(new EventArgs());
+                    } else {
+                        OnUpdateCompleted(new EventArgs());
+                    }
+                }
+            }
+        }
+
 
         /// <summary>
         /// Creates a new data service object
         /// </summary>
         /// <param name="serviceProvider">The service provider where this service is sited</param>
         public SrcMLDataService(IServiceProvider serviceProvider) {
+            _isMonitoring = false;
+            _isUpdating = false;
             _serviceProvider = serviceProvider;
 
             _workingSetFactories = serviceProvider.GetService(typeof(SWorkingSetRegistrarService)) as IWorkingSetRegistrarService;
@@ -111,7 +141,6 @@ namespace ABB.SrcML.VisualStudio {
         /// </summary>
         /// <param name="e">The event arguments</param>
         protected virtual void OnUpdateStarted(EventArgs e) {
-            IsUpdating = true;
             EventHandler handler = UpdateStarted;
             if(null != handler) {
                 handler(this, e);
@@ -123,7 +152,6 @@ namespace ABB.SrcML.VisualStudio {
         /// </summary>
         /// <param name="e">The event arguments</param>
         protected virtual void OnUpdateCompleted(EventArgs e) {
-            IsUpdating = false;
             EventHandler handler = UpdateCompleted;
             if(null != handler) {
                 handler(this, e);
@@ -135,7 +163,6 @@ namespace ABB.SrcML.VisualStudio {
         /// </summary>
         /// <param name="e">The event arguments</param>
         protected virtual void OnMonitoringStarted(EventArgs e) {
-            IsMonitoring = true;
             EventHandler handler = MonitoringStarted;
             if(handler != null) {
                 handler(this, e);
@@ -147,7 +174,6 @@ namespace ABB.SrcML.VisualStudio {
         /// </summary>
         /// <param name="e">The event arguments</param>
         protected virtual void OnMonitoringStopped(EventArgs e) {
-            IsMonitoring = false;
             EventHandler handler = MonitoringStopped;
             if(handler != null) {
                 handler(this, e);
@@ -160,11 +186,22 @@ namespace ABB.SrcML.VisualStudio {
         }
 
         private void RespondToMonitoringStopped(object sender, EventArgs e) {
-            if(null != CurrentWorkingSet) {
-                _srcMonitor.StopMonitoring();
-                CurrentWorkingSet.StopMonitoring();
+
+            try {
+                if(null != CurrentWorkingSet) {
+                    IsMonitoring = false;
+                    CurrentWorkingSet.StopMonitoring();
+                    _srcMonitor.StopMonitoring();
+                    CurrentWorkingSet.Dispose();
+                    _srcMonitor.Dispose();
+                    CurrentWorkingSet = null;
+                    CurrentDataArchive = null;
+                    _srcMonitor = null;
+                }
+            } catch(Exception ex) {
+                SrcMLFileLogger.DefaultLogger.Error(SrcMLExceptionFormatter.CreateMessage(ex, "Exception in SrcMLDataService.RespondToMonitoringStopped"));
             }
-            OnMonitoringStopped(e);
+            
         }
 
         private void RespondToMonitoringStarted(object sender, EventArgs e) {
@@ -180,7 +217,7 @@ namespace ABB.SrcML.VisualStudio {
             } else {
                 GenerateDataAfterUpdate(this, e);
             }
-            OnMonitoringStarted(e);
+            IsMonitoring = true;
         }
 
         private void RespondToFileProcessed(object sender, FileEventRaisedArgs e) {
@@ -188,14 +225,15 @@ namespace ABB.SrcML.VisualStudio {
         }
 
         private void GenerateDataAfterUpdate(object sender, EventArgs e) {
-            OnUpdateStarted(e);
             _srcMLService.UpdateArchivesCompleted -= GenerateDataAfterUpdate;
-            OnUpdateStarted(new EventArgs());
+            IsUpdating = true;
             _srcMonitor.UpdateArchivesAsync()
-                       .ContinueWith((t) => CurrentWorkingSet.InitializeAsync().Wait(),
-                                     TaskContinuationOptions.OnlyOnRanToCompletion)
                        .ContinueWith((t) => {
-                           OnUpdateCompleted(e);
+                           _srcMonitor.Save();
+                           CurrentWorkingSet.InitializeAsync().Wait();
+                       }, TaskContinuationOptions.OnlyOnRanToCompletion)
+                       .ContinueWith((t) => {
+                           IsUpdating = false;
                            _srcMonitor.StartMonitoring();
                            CurrentWorkingSet.StartMonitoring();
                        }, TaskContinuationOptions.OnlyOnRanToCompletion);
