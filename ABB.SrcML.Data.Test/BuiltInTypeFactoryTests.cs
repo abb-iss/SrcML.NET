@@ -44,7 +44,7 @@ namespace ABB.SrcML.Data.Test {
 
             foreach(var builtInModifier in new string[] { "unsigned", "signed", "long" }) {
                 foreach(var builtIn in new string[] { "int", "double" }) {
-                    var aXml = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(String.Format(xmlFormat, builtInModifier, builtIn), "a.cpp");
+                    var aXml = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(String.Format(xmlFormat, builtInModifier, builtIn), "a.cpp");
 
                     var globalScope = CodeParser[Language.CPlusPlus].ParseFileUnit(aXml);
                     var variables = from stmt in globalScope.GetDescendants()
@@ -71,7 +71,7 @@ namespace ABB.SrcML.Data.Test {
 <decl_stmt><decl><type><name>{0}</name></type> <name>b</name></decl>;</decl_stmt>";
 
             foreach(var builtIn in new string[] { "char", "short", "int", "long", "bool", "float", "double", "wchar_t" }) {
-                var aXml = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(String.Format(xmlFormat, builtIn), "a.cpp");
+                var aXml = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(String.Format(xmlFormat, builtIn), "a.cpp");
 
                 var globalScope = CodeParser[Language.CPlusPlus].ParseFileUnit(aXml);
                 var variables = from stmt in globalScope.GetDescendants()
@@ -90,7 +90,7 @@ namespace ABB.SrcML.Data.Test {
             }
         }
 
-        [Test, Category("Todo")]
+        [Test]
         public void TestJavaBuiltIns() {
             // #a.java TYPE a; TYPE b;
             string xmlFormat = @"<decl_stmt><decl><type><name>{0}</name></type> <name>a</name></decl>;</decl_stmt>
@@ -99,7 +99,7 @@ namespace ABB.SrcML.Data.Test {
             foreach(var builtIn in new string[] { "byte", "short", "int", "long", "float", "double", "boolean", "char" }) {
                 var aXml = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(String.Format(xmlFormat, builtIn), "a.java");
 
-                var globalScope = CodeParser[Language.CPlusPlus].ParseFileUnit(aXml);
+                var globalScope = CodeParser[Language.Java].ParseFileUnit(aXml);
                 var variables = from stmt in globalScope.GetDescendants()
                                 from declaration in stmt.GetExpressions().OfType<VariableDeclaration>()
                                 select declaration;
