@@ -78,23 +78,5 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.UnitTests {
         }
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-        [TestMethod()]
-        public void GetLocalServiceSimple() {
-            SrcMLServicePackage packageObject = new SrcMLServicePackage();
-            IVsPackage package = (IVsPackage)packageObject;
-            using(OleServiceProvider provider = OleServiceProvider.CreateOleServiceProviderWithBasicServices()) {
-                int result = package.SetSite(provider);
-                Assert.IsTrue(Microsoft.VisualStudio.ErrorHandler.Succeeded(result), "SetSite failed.");
-                IServiceProvider serviceProvider = package as IServiceProvider;
-                object o = serviceProvider.GetService(typeof(SSrcMLLocalService));
-                Assert.IsNotNull(o, "GetService returned null for the local service.");
-                ISrcMLLocalService service = o as ISrcMLLocalService;
-                Assert.IsNotNull(service, "The service SMyLocalService does not implements IMyLocalService.");
-                service.LocalServiceFunction();
-            }
-            package.SetSite(null);
-            package.Close();
-        }
     }
 }

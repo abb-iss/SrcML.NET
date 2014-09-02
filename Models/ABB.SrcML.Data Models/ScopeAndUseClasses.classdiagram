@@ -363,6 +363,42 @@
             </type_NamedElement>
           </property>
         </ownedAttributesInternal>
+        <ownedOperationsInternal>
+          <operation Id="66de03c9-c371-4970-b229-4e28e31b12c4" name="FindMatches" isLeaf="false" isStatic="false" isAbstract="true" concurrency="Sequential" isQuery="false">
+            <elementDefinition Id="1a0c3db2-95c7-4dc3-9f99-05207a941eac" />
+            <ownedParameters>
+              <operationHasOwnedParameters>
+                <parameter Id="cdd8dc52-d979-4a6b-872e-29567399273b" direction="Return">
+                  <elementDefinition Id="abb0d349-83eb-4816-a2fa-28cb849c0c8c" />
+                  <type_NamedElement>
+                    <referencedTypeMoniker Id="8c483979-1367-469d-82f0-8c9b9f84d088" LastKnownName="IEnumerable&lt;DEFINITION&gt;" />
+                  </type_NamedElement>
+                </parameter>
+              </operationHasOwnedParameters>
+            </ownedParameters>
+          </operation>
+          <operation Id="12357ca4-945d-4447-b481-a39172991c17" name="Matches" isLeaf="false" isStatic="false" isAbstract="true" concurrency="Sequential" isQuery="false">
+            <elementDefinition Id="3657890b-d3aa-44a0-835c-895f37f9bee0" />
+            <ownedParameters>
+              <operationHasOwnedParameters>
+                <parameter Id="3570fe4c-9e4f-40c5-9c2e-7e6dbcaa57b7" direction="In" isUnique="false">
+                  <elementDefinition Id="ad20655c-353e-4973-9d55-13c57437009d" />
+                  <type_NamedElement>
+                    <referencedTypeMoniker Id="9c4beab6-0e91-4e1d-aaee-0fd8a3f3b5b7" LastKnownName="DEFINITION" />
+                  </type_NamedElement>
+                </parameter>
+              </operationHasOwnedParameters>
+              <operationHasOwnedParameters>
+                <parameter Id="36c28a5c-b7e5-44c1-979d-d98d0250e55a" direction="Return" isUnique="false">
+                  <elementDefinition Id="2cec1822-f92c-49e4-967a-06dabae263a4" />
+                  <type_NamedElement>
+                    <referencedTypeMoniker Id="cc621dc0-575b-4380-ba04-41e33dcfde94" LastKnownName="bool" />
+                  </type_NamedElement>
+                </parameter>
+              </operationHasOwnedParameters>
+            </ownedParameters>
+          </operation>
+        </ownedOperationsInternal>
       </class>
     </logicalClassDesignerModelHasTypes>
     <packageHasNamedElement>
@@ -444,12 +480,6 @@
           </generalization>
         </generalsInternal>
         <ownedAttributesInternal>
-          <property Id="312a1dcb-389b-49ea-94c3-40d1694750a5" name="internalTypeParameters" visibility="Private" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
-            <elementDefinition Id="77854587-bcd0-4c54-9e92-f92a7524dbe5" />
-            <type_NamedElement>
-              <referencedTypeMoniker Id="2dcc6488-248e-4e81-a0ae-4920a170b7be" LastKnownName="List&lt;ITypeUse&gt;" />
-            </type_NamedElement>
-          </property>
           <property Id="cae18bd1-9a22-4f5e-8dd3-a43bdd85c080" name="CallingObject" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
             <elementDefinition Id="df3a5884-50ff-469b-8a7f-32fa2b7d99e7" />
             <type_NamedElement>
@@ -475,13 +505,23 @@
             </type_NamedElement>
           </property>
         </ownedAttributesInternal>
+        <ownedOperationsInternal>
+          <operation Id="ae2288d4-0adb-463b-9860-b83a8a94a368" name="FindMatchingTypes" isLeaf="false" isStatic="false" isAbstract="false" concurrency="Sequential" isQuery="false">
+            <elementDefinition Id="7ae87f88-88ee-4047-abd8-3ca912473005" />
+            <ownedParameters>
+              <operationHasOwnedParameters>
+                <parameter Id="247503af-b7ec-4b62-b375-915aad802e4b" direction="Return" isUnique="false">
+                  <elementDefinition Id="959000f5-6807-4b93-8c70-8bb84f68f21e" />
+                  <type_NamedElement>
+                    <referencedTypeMoniker Id="c10b779a-c888-4982-8cc9-1d3c8fe8f2b3" LastKnownName="IEnumberable&lt;ITypeDefinition&gt;" />
+                  </type_NamedElement>
+                </parameter>
+              </operationHasOwnedParameters>
+            </ownedParameters>
+          </operation>
+        </ownedOperationsInternal>
       </class>
     </logicalClassDesignerModelHasTypes>
-    <packageHasNamedElement>
-      <referencedType Id="2dcc6488-248e-4e81-a0ae-4920a170b7be" name="List&lt;ITypeUse&gt;" isAbstract="false" isLeaf="false" cachedFullName="List&lt;ITypeUse&gt;">
-        <elementDefinition Id="887605ed-84df-4762-9599-16226a394202" />
-      </referencedType>
-    </packageHasNamedElement>
     <logicalClassDesignerModelHasTypes>
       <class Id="665ff04b-2341-454f-9c4a-a84cb8ea5fda" name="NamedScopeUse" isAbstract="false" isLeaf="false" isActiveClass="false">
         <elementDefinition Id="166ea480-0983-4c92-b6cd-be204e7607c6" />
@@ -499,6 +539,21 @@
             </type_NamedElement>
           </property>
         </ownedAttributesInternal>
+        <ownedOperationsInternal>
+          <operation Id="24ec163a-c723-4f89-b658-ebb3c9d35f89" name="CreateScope" isLeaf="false" isStatic="false" isAbstract="false" concurrency="Sequential" isQuery="false">
+            <elementDefinition Id="5ffc4b23-a096-46b2-9b9f-9351aa59798f" />
+            <ownedParameters>
+              <operationHasOwnedParameters>
+                <parameter Id="c24c8022-da7a-40fd-9a50-a2cb860b0f62" direction="Return" isUnique="false">
+                  <elementDefinition Id="b508eb91-bebf-4dc0-af48-28b0100d1ab0" />
+                  <type_NamedElement>
+                    <referencedTypeMoniker Id="40ec99dd-6423-4a82-8f94-ec466c10aeaf" LastKnownName="INamedScope" />
+                  </type_NamedElement>
+                </parameter>
+              </operationHasOwnedParameters>
+            </ownedParameters>
+          </operation>
+        </ownedOperationsInternal>
       </class>
     </logicalClassDesignerModelHasTypes>
     <logicalClassDesignerModelHasTypes>
@@ -510,6 +565,11 @@
             <elementDefinition Id="181e2ded-00c4-42b9-8df7-b8357a1a5962" />
           </generalization>
         </generalsInternal>
+        <ownedOperationsInternal>
+          <operation Id="5a079834-16e3-4b6b-bf4e-ee04af813263" name="CreateScope : INamedScope" isLeaf="false" isStatic="false" isAbstract="false" concurrency="Sequential" isQuery="false">
+            <elementDefinition Id="6e8c72d5-8829-4866-99da-6ebaf822e2fb" />
+          </operation>
+        </ownedOperationsInternal>
       </class>
     </logicalClassDesignerModelHasTypes>
     <logicalClassDesignerModelHasTypes>
@@ -531,6 +591,106 @@
         </ownedAttributesInternal>
       </class>
     </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="dcc694a1-3f27-40c9-bf68-48db5e3d25e6" name="MethodCall" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="ba80c463-e1b8-4028-a30e-857409d3b292" />
+        <generalsInternal>
+          <generalization Id="e9ac7ebf-4d7d-4fc2-88f4-e331147e38e4" isSubstitutable="false">
+            <classMoniker Id="c82cbea3-60d7-4400-b43a-df8640e60f73" LastKnownName="AbstractScopeUse" />
+            <elementDefinition Id="7ab9826d-fef5-4763-b09c-7b79e38ee515" />
+          </generalization>
+        </generalsInternal>
+        <ownedAttributesInternal>
+          <property Id="2e0e579a-f0d3-418a-96ca-89644bbfad55" name="Arguments" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="3fb85bea-8c14-4e90-b07f-f8af4d3f40e3" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="12084a50-cbf5-48f3-94da-39297565c797" LastKnownName="Collection&lt;IResolvesToType&gt;" />
+            </type_NamedElement>
+          </property>
+          <property Id="b301a718-214b-4621-a0b4-38b2c89e434a" name="CallingObject" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="7318d137-7ee5-40fc-9750-b4e6eb3c6567" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="cea3438c-7391-4049-a7e6-2bd7ee7020c9" LastKnownName="IResolvesToType" />
+            </type_NamedElement>
+          </property>
+          <property Id="d77a448d-e085-4bfa-8365-c49e8804ad32" name="IsConstructor" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="cdcf8d45-85e9-4ebc-890e-411a259ffed4" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="cc621dc0-575b-4380-ba04-41e33dcfde94" LastKnownName="bool" />
+            </type_NamedElement>
+          </property>
+          <property Id="e5118adc-4a8b-4334-b4d5-627d1026472b" name="IsDestructor" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="29633afa-6f3f-4fb6-81d3-2ab897f695cc" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="cc621dc0-575b-4380-ba04-41e33dcfde94" LastKnownName="bool" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
+        <ownedOperationsInternal>
+          <operation Id="a2c15913-2c64-49a3-9c95-e81e1dab916e" name="FindMatchingTypes" isLeaf="false" isStatic="false" isAbstract="false" concurrency="Sequential" isQuery="false">
+            <elementDefinition Id="cdfc42ec-bd7c-4438-b098-57506a26e9f3" />
+            <ownedParameters>
+              <operationHasOwnedParameters>
+                <parameter Id="8fa51595-15f6-43f2-9379-8bc8a251f00e" direction="Return" isUnique="false">
+                  <elementDefinition Id="2954f3ff-b3d3-429b-9f95-f4eadb3fed36" />
+                  <type_NamedElement>
+                    <referencedTypeMoniker Id="5d4ce0c7-9def-4e36-b7c3-7f83d5b959ad" LastKnownName="IEnumerable&lt;ITypeDefinition&gt;" />
+                  </type_NamedElement>
+                </parameter>
+              </operationHasOwnedParameters>
+            </ownedParameters>
+          </operation>
+          <operation Id="7ddc1cb9-c3e9-4c3d-afd0-f5887c28f3be" name="GetPossibleNames" isLeaf="false" isStatic="false" isAbstract="false" concurrency="Sequential" isQuery="false">
+            <elementDefinition Id="953b7c1d-1602-4d01-9e5e-1831f1bcda50" />
+            <ownedParameters>
+              <operationHasOwnedParameters>
+                <parameter Id="b3c0bcb4-088b-4527-a711-c219899b27cf" direction="Return" isUnique="false">
+                  <elementDefinition Id="9b76266e-4f1a-45c0-b633-301cb4995324" />
+                  <type_NamedElement>
+                    <referencedTypeMoniker Id="35751650-9e60-4656-ad85-45c622dd7b7d" LastKnownName="IEnumerable&lt;string&gt;" />
+                  </type_NamedElement>
+                </parameter>
+              </operationHasOwnedParameters>
+            </ownedParameters>
+          </operation>
+        </ownedOperationsInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <packageHasNamedElement>
+      <referencedType Id="12084a50-cbf5-48f3-94da-39297565c797" name="Collection&lt;IResolvesToType&gt;" isAbstract="false" isLeaf="false" cachedFullName="Collection&lt;IResolvesToType&gt;">
+        <elementDefinition Id="d6485edf-0577-449a-94d4-202292f8a315" />
+      </referencedType>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <referencedType Id="8c483979-1367-469d-82f0-8c9b9f84d088" name="IEnumerable&lt;DEFINITION&gt;" isAbstract="false" isLeaf="false" cachedFullName="IEnumerable&lt;DEFINITION&gt;">
+        <elementDefinition Id="82d56c37-e7b6-4bfc-8295-a56c611f7c24" />
+      </referencedType>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <referencedType Id="9c4beab6-0e91-4e1d-aaee-0fd8a3f3b5b7" name="DEFINITION" isAbstract="false" isLeaf="false" cachedFullName="DEFINITION">
+        <elementDefinition Id="0d65624a-5b75-4cec-814c-46ca5c9c7533" />
+      </referencedType>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <referencedType Id="c10b779a-c888-4982-8cc9-1d3c8fe8f2b3" name="IEnumberable&lt;ITypeDefinition&gt;" isAbstract="false" isLeaf="false" cachedFullName="IEnumberable&lt;ITypeDefinition&gt;">
+        <elementDefinition Id="dd11e214-e8f4-41b1-9b13-a279ec289ac6" />
+      </referencedType>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <referencedType Id="40ec99dd-6423-4a82-8f94-ec466c10aeaf" name="INamedScope" isAbstract="false" isLeaf="false" cachedFullName="INamedScope">
+        <elementDefinition Id="ea84afb2-cd54-4a2b-b694-0199d79b8e69" />
+      </referencedType>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <referencedType Id="5d4ce0c7-9def-4e36-b7c3-7f83d5b959ad" name="IEnumerable&lt;ITypeDefinition&gt;" isAbstract="false" isLeaf="false" cachedFullName="IEnumerable&lt;ITypeDefinition&gt;">
+        <elementDefinition Id="e3a21c1e-5478-43c2-a7dc-93529b1bd7eb" />
+      </referencedType>
+    </packageHasNamedElement>
+    <packageHasNamedElement>
+      <referencedType Id="35751650-9e60-4656-ad85-45c622dd7b7d" name="IEnumerable&lt;string&gt;" isAbstract="false" isLeaf="false" cachedFullName="IEnumerable&lt;string&gt;">
+        <elementDefinition Id="3eb73962-b1a9-4838-a806-170a1487945f" />
+      </referencedType>
+    </packageHasNamedElement>
   </packagedElements>
   <package Id="78e8adaf-7dfb-494f-aa3b-212c963e4a6c" name="ABB.SrcML.Data Models">
     <elementDefinition Id="af0c5153-d936-46c9-bedd-61efba43371a" />

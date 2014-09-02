@@ -33,8 +33,8 @@ namespace ABB.SrcML.Test {
             XmlNamespaceManager xnm = SrcML.NamespaceManager;
             StringBuilder namespaceDecls = new StringBuilder();
             foreach(string prefix in xnm) {
-                if(prefix != string.Empty && !prefix.StartsWith("xml", StringComparison.InvariantCultureIgnoreCase)) {
-                    if(prefix.Equals("src", StringComparison.InvariantCultureIgnoreCase)) {
+                if(prefix != string.Empty && !prefix.StartsWith("xml", StringComparison.OrdinalIgnoreCase)) {
+                    if(prefix.Equals("src", StringComparison.OrdinalIgnoreCase)) {
                         namespaceDecls.AppendFormat("xmlns=\"{0}\" ", xnm.LookupNamespace(prefix));
                     } else {
                         namespaceDecls.AppendFormat("xmlns:{0}=\"{1}\" ", prefix, xnm.LookupNamespace(prefix));

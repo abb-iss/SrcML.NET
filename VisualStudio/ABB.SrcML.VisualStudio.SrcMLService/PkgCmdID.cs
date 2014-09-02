@@ -10,7 +10,7 @@
  *****************************************************************************/
 using System;
 
-namespace ABB.SrcML.VisualStudio.SrcMLService {
+namespace ABB.SrcML.VisualStudio {
     static class PkgCmdIDList {
         public const uint SrcML = 0x100;
 

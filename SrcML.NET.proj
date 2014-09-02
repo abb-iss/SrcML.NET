@@ -33,7 +33,7 @@
   </Target>
   
   <Target Name="Test" DependsOnTargets="Build" Condition="Exists('@(TestRunner)')">
-    <Exec Command="@(TestRunner) @(TestProject) /exclude=Todo,LongRunning" />
+    <Exec Command="@(TestRunner) @(TestProject) /exclude=Todo,LongRunning,SrcMLUpdate" />
   </Target>
   
   <Target Name="TestData" DependsOnTargets="Build" Condition="Exists('@(TestRunner)')">
@@ -52,7 +52,7 @@
 	<Exec Command="@(NugetExe) push $(OutDir)\$(Configuration)\%(NuspecFiles.Filename).nupkg" />
   </Target>
   <Target Name="Clean">
-    <RemoveDir Directories="$(OutDir)\Release;$(OutDir)\Debug;$(OutDir)\External;$(OutDir)\Documentation;$(OutDir)" />
+    <RemoveDir Directories="$(OutDir)\Release;$(OutDir)\Debug;$(OutDir)\External;$(OutDir)" />
   </Target>
   
   <Target Name="RestorePackages" BeforeTargets="Build;Test;TestData;TestAll">

@@ -7,83 +7,158 @@
  *
  * Contributors:
  *    Vinay Augustine (ABB Group) - initial API, implementation, & documentation
+ *    Patrick Francis (ABB Group) - API, implementation, & documentation
  *****************************************************************************/
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml;
 
 namespace ABB.SrcML.Data {
 
     /// <summary>
     /// The variable use class represents a use of a variable.
     /// </summary>
-    [Serializable]
-    public class VariableUse : AbstractUse<IVariableDeclaration>, IVariableUse {
+    public class VariableUse : NameUse {
+        private Expression indexExpression;
+        
+        /// <summary> The XML name for VariableUse </summary>
+        public new const string XmlName = "vu";
+
+        /// <summary> XML Name for <see cref="Index" /> </summary>
+        public const string XmlIndexName = "idx";
 
         /// <summary>
-        /// The calling object for a use is used when you have <c>a.b</c> -- this variable use would
-        /// refer to <c>b</c> and the calling object would be <c>a</c>.
+        /// The expression supplied as an index to the variable, if any.
+        /// For example, in myVar[17] the index is 17.
         /// </summary>
-        public IResolvesToType CallingObject { get; set; }
-
-        /// <summary>
-        /// The scope that contains this variable use. If the parent scope is updated, then the
-        /// parent scope of the calling object is also updated.
-        /// </summary>
-        public override IScope ParentScope {
-            get {
-                return base.ParentScope;
-            }
+        public Expression Index {
+            get { return indexExpression; }
             set {
-                base.ParentScope = value;
-                if(this.CallingObject != null) {
-                    this.CallingObject.ParentScope = this.ParentScope;
+                indexExpression = value;
+                if(indexExpression != null) {
+                    indexExpression.ParentExpression = this;
+                    indexExpression.ParentStatement = this.ParentStatement;
                 }
             }
         }
 
-        /// <summary>
-        /// Gets the first result from <see cref="FindMatchingTypes()"/>
-        /// </summary>
-        /// <returns>The first matching variable type definition</returns>
-        public ITypeDefinition FindFirstMatchingType() {
-            return FindMatchingTypes().FirstOrDefault();
+        /// <summary> The statement containing this expression. </summary>
+        public override Statement ParentStatement {
+            get { return base.ParentStatement; }
+            set {
+                base.ParentStatement = value;
+                if(Index != null) { Index.ParentStatement = value; }
+            }
         }
 
         /// <summary>
-        /// Searches through the <see cref="IScope.DeclaredVariables"/> to see if any of them
-        /// <see cref="Matches(IVariableDeclaration)">matches</see>
+        /// Returns the child expressions, including the Index.
         /// </summary>
-        /// <returns>An enumerable of matching variable declarations.</returns>
-        public override IEnumerable<IVariableDeclaration> FindMatches() {
-            IEnumerable<IVariableDeclaration> matchingVariables = Enumerable.Empty<IVariableDeclaration>();
-
-            if(CallingObject != null) {
-                matchingVariables = from matchingType in CallingObject.FindMatchingTypes()
-                                    from typeDefinition in matchingType.GetParentTypesAndSelf()
-                                    from variable in typeDefinition.DeclaredVariables
-                                    where Matches(variable)
-                                    select variable;
+        protected override IEnumerable<AbstractProgramElement> GetChildren() {
+            if(Index != null) {
+                return base.GetChildren().Concat(Enumerable.Repeat(Index, 1));
             } else {
-                var matches = from scope in ParentScopes
-                              from variable in scope.DeclaredVariables
-                              where Matches(variable)
-                              select variable;
-
-                var parameterMatches = from method in ParentScope.GetParentScopesAndSelf<IMethodDefinition>()
-                                       from parameter in method.Parameters
-                                       where Matches(parameter)
-                                       select parameter;
-
-                var matchingParentVariables = from containingType in ParentScope.GetParentScopesAndSelf<ITypeDefinition>()
-                                              from typeDefinition in containingType.GetParentTypes()
-                                              from variable in typeDefinition.DeclaredVariables
-                                              where Matches(variable)
-                                              select variable;
-                matchingVariables = matches.Concat(matchingParentVariables).Concat(parameterMatches);
+                return base.GetChildren();
             }
-            return matchingVariables;
+        }
+
+        /// <summary> Returns a string representation of this object. </summary>
+        public override string ToString() {
+            if(Index != null) {
+                return string.Format("{0}[{1}]", base.ToString(), Index);
+            } else {
+                return base.ToString();
+            }
+        }
+        
+
+        /// <summary>
+        /// Gets the first result from <see cref="ResolveType"/>
+        /// </summary>
+        /// <returns>The first matching variable type definition</returns>
+        public TypeDefinition FindFirstMatchingType() {
+            return ResolveType().FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Finds variable declarations that match this name.
+        /// </summary>
+        /// <returns>An enumerable of possible matches for this variable use.</returns>
+        public override IEnumerable<INamedEntity> FindMatches() {
+            if(ParentStatement == null) {
+                throw new InvalidOperationException("ParentStatement is null");
+            }
+
+            if(Name == "this" && ProgrammingLanguage != Language.C) {
+                //return nothing, because we don't have a variable declaration to return
+                return Enumerable.Empty<INamedEntity>();
+            }
+
+            //If there's a prefix, resolve that and search under results
+            if(Prefix != null) {
+                return Prefix.FindMatches().SelectMany(ns => ns.GetNamedChildren(this.Name)).Where(n => n is VariableDeclaration || n is PropertyDefinition);
+            }
+
+            //If there's a calling expression, match and search under results
+            var callingScopes = GetCallingScope();
+            if(callingScopes != null) {
+                IEnumerable<INamedEntity> matches = Enumerable.Empty<INamedEntity>();
+                foreach(var scope in callingScopes) {
+                    var localMatches = scope.GetNamedChildren(this.Name).Where(n => n is VariableDeclaration || n is PropertyDefinition).ToList();
+                    var callingType = scope as TypeDefinition;
+                    if(!localMatches.Any() && callingType != null) {
+                        //also search under the base types of the calling scope
+                        matches = matches.Concat(callingType.SearchParentTypes<INamedEntity>(this.Name, n => n is VariableDeclaration || n is PropertyDefinition));
+                    } else {
+                        matches = matches.Concat(localMatches);
+                    }
+                }
+                return matches;
+            }
+
+            //search enclosing scopes and base types
+            foreach(var scope in ParentStatement.GetAncestors()) {
+                var matches = scope.GetNamedChildren(this).Where(e => e is VariableDeclaration || e is PropertyDefinition).ToList();
+                if(matches.Any()) {
+                    return matches;
+                }
+                var expMatches = (from decl in scope.GetExpressions().SelectMany(e => e.GetDescendantsAndSelf<VariableDeclaration>())
+                                  where decl.Name == this.Name
+                                  select decl).ToList();
+                if(expMatches.Any()) {
+                    return expMatches;
+                }
+                var typeDef = scope as TypeDefinition;
+                if(typeDef != null) {
+                    var baseTypeMatches = typeDef.SearchParentTypes<INamedEntity>(this.Name, e => e is VariableDeclaration || e is PropertyDefinition).ToList();
+                    if(baseTypeMatches.Any()) {
+                        return baseTypeMatches;
+                    }
+                }
+            }
+
+            //search if there is an alias for this name
+            foreach(var alias in GetAliases()) {
+                if(alias.AliasName == this.Name) {
+                    var targetName = alias.Target as NameUse;
+                    if(targetName == null) {
+                        //Target is not a NameUse, probably an Expression
+                        targetName = alias.Target.GetDescendantsAndSelf<NameUse>().LastOrDefault();
+                    }
+                    if(targetName != null) {
+                        return targetName.FindMatches();
+                    }
+                }
+            }
+
+            //we didn't find it locally, search under imported namespaces
+            return (from import in GetImports()
+                    from match in import.ImportedNamespace.GetDescendantsAndSelf<NameUse>().Last().FindMatches().OfType<NamedScope>()
+                    from child in match.GetNamedChildren(this.Name)
+                    where  child is VariableDeclaration || child is PropertyDefinition
+                    select child);
         }
 
         /// <summary>
@@ -91,63 +166,63 @@ namespace ABB.SrcML.Data {
         /// match this variable use
         /// </summary>
         /// <returns>An enumerable of matching type definitions</returns>
-        public IEnumerable<ITypeDefinition> FindMatchingTypes() {
-            IEnumerable<ITypeDefinition> typeDefinitions;
-            if(this.Name == "this" || (this.Name == "base" && this.ProgrammingLanguage == Language.CSharp)) {
+        public override IEnumerable<TypeDefinition> ResolveType() {
+
+            IEnumerable<TypeDefinition> typeDefinitions;
+            if(this.Name == "this" || 
+                (this.Name == "base" && this.ProgrammingLanguage == Language.CSharp) ||
+                (this.Name == "super" && this.ProgrammingLanguage == Language.Java)) {
                 typeDefinitions = TypeDefinition.GetTypeForKeyword(this);
             } else {
-                var matchingVariables = FindMatches();
-                if(matchingVariables.Any()) {
-                    typeDefinitions = from declaration in matchingVariables
-                                      where declaration.VariableType != null
-                                      from definition in declaration.VariableType.FindMatches()
-                                      select definition;
-                } else {
-                    var tempTypeUse = new TypeUse() {
-                        Name = this.Name,
-                        ParentScope = this.ParentScope,
-                        ProgrammingLanguage = this.ProgrammingLanguage,
-                    };
-                    if(CallingObject != null && CallingObject is IVariableUse) {
-                        var caller = CallingObject as IVariableUse;
-                        Stack<INamedScopeUse> callerStack = new Stack<INamedScopeUse>();
-                        while(caller != null) {
-                            var scopeUse = new NamedScopeUse() {
-                                Name = caller.Name,
-                                ProgrammingLanguage = this.ProgrammingLanguage,
-                            };
-                            callerStack.Push(scopeUse);
-                            caller = caller.CallingObject as IVariableUse;
-                        }
-
-                        INamedScopeUse prefix = null, last = null;
-
-                        foreach(var current in callerStack) {
-                            if(null == prefix) {
-                                prefix = current;
-                                last = prefix;
-                            } else {
-                                last.ChildScopeUse = current;
-                                last = current;
-                            }
-                        }
-                        prefix.ParentScope = this.ParentScope;
-                        tempTypeUse.Prefix = prefix;
-                    }
-                    tempTypeUse.AddAliases(this.Aliases);
-                    typeDefinitions = tempTypeUse.FindMatchingTypes();
-                }
+                typeDefinitions = from declaration in FindMatches().OfType<VariableDeclaration>()
+                                  where declaration.VariableType != null
+                                  from definition in declaration.VariableType.ResolveType()
+                                  select definition;
             }
+
+            //TODO: figure out what the type should be when we have an indexer
+            //if(Index != null) {
+                
+            //}
+
             return typeDefinitions;
         }
 
         /// <summary>
-        /// Tests if this variable usage is a match for
-        /// <paramref name="definition"/></summary>
-        /// <param name="definition">The variable declaration to test</param>
-        /// <returns>true if this matches the variable declaration; false otherwise</returns>
-        public override bool Matches(IVariableDeclaration definition) {
-            return definition != null && definition.Name == this.Name;
+        /// Instance method for getting <see cref="VariableUse.XmlName"/>
+        /// </summary>
+        /// <returns>Returns the XML name for VariableUse</returns>
+        public override string GetXmlName() { return VariableUse.XmlName; }
+
+        /// <summary>
+        /// Processes the child of the current reader position into a child of this object.
+        /// </summary>
+        /// <param name="reader">The XML reader</param>
+        protected override void ReadXmlChild(XmlReader reader) {
+            if(XmlIndexName == reader.Name) {
+                Index = XmlSerialization.ReadChildExpression(reader);
+            } else {
+                base.ReadXmlChild(reader);
+            }
         }
+
+        /// <summary>
+        /// Writes the contents of this object to <paramref name="writer"/>.
+        /// </summary>
+        /// <param name="writer">The XML writer to write to</param>
+        protected override void WriteXmlContents(XmlWriter writer) {
+            if(null != Index) {
+                XmlSerialization.WriteElement(writer, Index, XmlIndexName);
+            }
+            base.WriteXmlContents(writer);
+        }
+        ///// <summary>
+        ///// Tests if this variable usage is a match for
+        ///// <paramref name="definition"/></summary>
+        ///// <param name="definition">The variable declaration to test</param>
+        ///// <returns>true if this matches the variable declaration; false otherwise</returns>
+        //public bool Matches(VariableDeclaration definition) {
+        //    return definition != null && definition.Name == this.Name;
+        //}
     }
 }

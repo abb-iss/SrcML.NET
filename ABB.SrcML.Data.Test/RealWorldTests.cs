@@ -1,5 +1,5 @@
 ﻿/******************************************************************************
- * Copyright (c) 2013 ABB Group
+ * Copyright (c) 2014 ABB Group
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,352 +7,208 @@
  *
  * Contributors:
  *    Vinay Augustine (ABB Group) - initial API, implementation, & documentation
+ *    Patrick Francis (ABB Group) - initial API, implementation, & documentation
  *****************************************************************************/
 
+using ABB.SrcML.Utilities;
 using NUnit.Framework;
 using System;
-using System.Collections.Concurrent;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace ABB.SrcML.Data.Test {
+    [TestFixture, Category("LongRunning")]
+    public class RealWorldTests {
+        public const string MappingFile = @"..\..\TestInputs\project_mapping.txt";
+        static List<RealWorldTestProject> TestProjects = ReadProjectMap(MappingFile).ToList();
 
-    [TestFixture]
-    [Category("LongRunning")]
-    internal class RealWorldTests {
-        private Dictionary<Language, ICodeParser> CodeParser;
-        private bool shouldRegenerateSrcML = true;
+        [Test, TestCaseSource("TestProjects")]
+        public void TestCompleteWorkingSet(RealWorldTestProject testData) {
+            CheckThatProjectExists(testData);
+            Console.WriteLine("{0} {1} Project Summary", testData.ProjectName, testData.Version);
+            Console.WriteLine("============================");
+            using(var project = new DataProject<CompleteWorkingSet>(testData.DataDirectory, testData.FullPath, "SrcML")) {
+                string unknownLogPath = Path.Combine(project.StoragePath, "unknown.log");
+                DateTime start = DateTime.Now, end;
 
-        [TestFixtureSetUp]
-        public void ClassSetup() {
-            CodeParser = new Dictionary<Language, ICodeParser>() {
-                { Language.CPlusPlus, new CPlusPlusCodeParser() },
-                { Language.Java, new JavaCodeParser() },
-                { Language.CSharp, new CSharpCodeParser() }
-            };
-        }
-
-        [Test]
-        public void TestFileUnitParsing_Bullet() {
-            string bullet281SourcePath = @"C:\Workspace\Source\bullet\2.81";
-            string bullet281DataPath = @"C:\Workspace\SrcMLData\bullet-2.81";
-
-            Console.WriteLine("\nReal World Test: Bullet 2.81 (C++)");
-            Console.WriteLine("=======================================");
-            TestDataGeneration(bullet281SourcePath, bullet281DataPath);
-        }
-
-        [Test]
-        public void TestFileUnitParsing_Bullet_Concurrent() {
-            string bullet281SourcePath = @"C:\Workspace\Source\bullet\2.81";
-            string bullet281DataPath = @"C:\Workspace\SrcMLData\concurrent\bullet-2.81";
-
-            Console.WriteLine("\nReal World Test: Bullet 2.81 (C++, concurrent)");
-            Console.WriteLine("=======================================");
-            TestDataGeneration(bullet281SourcePath, bullet281DataPath, true);
-        }
-
-        [Test]
-        public void TestFileUnitParsing_Eclipse() {
-            string eclipse422SourcePath = @"C:\Workspace\Source\eclipse\platform422";
-            string eclipse422Datapath = @"C:\Workspace\SrcMLData\eclipse-4.2.2";
-
-            Console.WriteLine("\nReal World Test: Eclipse Platform 4.2.2 (Java)");
-            Console.WriteLine("=======================================");
-            TestDataGeneration(eclipse422SourcePath, eclipse422Datapath);
-        }
-
-        [Test]
-        public void TestFileUnitParsing_Eclipse_Concurrent() {
-            string eclipse422SourcePath = @"C:\Workspace\Source\eclipse\platform422";
-            string eclipse422Datapath = @"C:\Workspace\SrcMLData\concurrent\eclipse-4.2.2";
-
-            Console.WriteLine("\nReal World Test: Eclipse Platform 4.2.2 (Java, concurrent)");
-            Console.WriteLine("=======================================");
-            TestDataGeneration(eclipse422SourcePath, eclipse422Datapath, true);
-        }
-
-        [Test]
-        public void TestFileUnitParsing_FamilyShow() {
-            string familyShow3SourcePath = @"C:\Workspace\Source\FamilyShow\3.0";
-            string familyShow3Datapath = @"C:\Workspace\SrcMLData\FamilyShow-3.0";
-
-            Console.WriteLine("\nReal World Test: Family Show 3.0 (C#)");
-            Console.WriteLine("=======================================");
-            TestDataGeneration(familyShow3SourcePath, familyShow3Datapath);
-        }
-
-        [Test]
-        public void TestFileUnitParsing_NDatabase() {
-            string ndatabase45SourcePath = @"C:\Workspace\Source\NDatabase\master45";
-            string ndatabase45DataPath = @"C:\Workspace\SrcMLData\ndatabase-4.5";
-
-            Console.WriteLine("\nReal World Test: NDatabase 4.5 (C#)");
-            Console.WriteLine("=======================================");
-            TestDataGeneration(ndatabase45SourcePath, ndatabase45DataPath);
-        }
-
-        [Test]
-        public void TestFileUnitParsing_NDatabase_Concurrent() {
-            string ndatabase45SourcePath = @"C:\Workspace\Source\NDatabase\master45";
-            string ndatabase45DataPath = @"C:\Workspace\SrcMLData\concurrent\ndatabase-4.5";
-
-            Console.WriteLine("\nReal World Test: NDatabase 4.5 (C#, concurrent)");
-            Console.WriteLine("=======================================");
-            TestDataGeneration(ndatabase45SourcePath, ndatabase45DataPath, true);
-        }
-
-        [Test]
-        public void TestFileUnitParsing_NotepadPlusPlus() {
-            string npp62SourcePath = @"C:\Workspace\Source\Notepad++\6.2";
-            string npp62DataPath = @"C:\Workspace\SrcMLData\NPP-6.2";
-
-            Console.WriteLine("\nReal world test: Notepad++ 6.2 (C++)");
-            Console.WriteLine("=======================================");
-            TestDataGeneration(npp62SourcePath, npp62DataPath);
-        }
-
-        [Test]
-        public void TestFileUnitParsing_NotepadPlusPlus_Concurrent() {
-            string npp62SourcePath = @"C:\Workspace\Source\Notepad++\6.2";
-            string npp62DataPath = @"C:\Workspace\SrcMLData\concurrent\NPP-6.2";
-
-            Console.WriteLine("\nReal world test: Notepad++ 6.2 (C++, concurrent)");
-            Console.WriteLine("=======================================");
-            TestDataGeneration(npp62SourcePath, npp62DataPath, true);
-        }
-
-        [Test]
-        public void TestFileUnitParsing_QuickGraph3() {
-            string quickgraph3SourcePath = @"C:\Workspace\Source\QuickGraph\69709-3.0\sources";
-            string quickgraph3DataPath = @"c:\Workspace\SrcMLData\QuickGraph-69709-3.0";
-
-            Console.WriteLine("\nReal world test: QuickGraph 3.0 (C#)");
-            Console.WriteLine("=======================================");
-            TestDataGeneration(quickgraph3SourcePath, quickgraph3DataPath, true);
-        }
-
-        [Test]
-        public void TestFileUnitParsing_Subversion() {
-            string svn178SourcePath = @"C:\Workspace\Source\Subversion\1.7.8";
-            string svn178DataPath = @"C:\Workspace\SrcMLData\subversion-1.7.8";
-
-            Console.WriteLine("\nReal World Test: Subversion 1.7.8 (C)");
-            Console.WriteLine("=======================================");
-            TestDataGeneration(svn178SourcePath, svn178DataPath);
-        }
-
-        [Test]
-        public void TestFileUnitParsing_Subversion_Concurrent() {
-            string svn178SourcePath = @"C:\Workspace\Source\Subversion\1.7.8";
-            string svn178DataPath = @"C:\Workspace\SrcMLData\concurrent\subversion-1.7.8";
-
-            Console.WriteLine("\nReal World Test: Subversion 1.7.8 (C, concurrent)");
-            Console.WriteLine("=======================================");
-            TestDataGeneration(svn178SourcePath, svn178DataPath, true);
-        }
-
-        private void PrintErrorReport(Dictionary<string, List<string>> errors) {
-            Console.WriteLine("\nError Report");
-            Console.WriteLine("===============");
-            var sortedErrors = from kvp in errors
-                               orderby kvp.Value.Count descending
-                               select kvp;
-
-            if(sortedErrors.Any()) {
-                foreach(var kvp in sortedErrors) {
-                    var indexOfIn = kvp.Key.IndexOf(" in ");
-                    var indexOfColon = kvp.Key.LastIndexOf(":");
-                    var fileName = kvp.Key.Substring(indexOfIn + 4, indexOfColon - indexOfIn - 4);
-                    var lineNumber = kvp.Key.Substring(indexOfColon + 6);
-                    string method = kvp.Key.Substring(0, indexOfIn);
-
-                    Console.WriteLine("{0}({1}) : {2} exception{3} {4}", fileName, lineNumber, kvp.Value.Count, (kvp.Value.Count > 1 ? "s" : String.Empty), method);
-                    foreach(var sourceFile in kvp.Value) {
-                        Console.WriteLine("\t{0}", sourceFile);
-                    }
+                using(var unknownLog = new StreamWriter(unknownLogPath)) {
+                    project.UnknownLog = unknownLog;
+                    project.UpdateAsync().Wait();
                 }
-            } else {
-                Console.WriteLine("No parsing errors!");
-            }
-        }
+                end = DateTime.Now;
 
-        private void PrintMethodCallReport(IScope globalScope, string callLogPath) {
-            Console.WriteLine("\nMethod Call Report");
-            Console.WriteLine("===============");
-            var methodCalls = from scope in VariableScopeIterator.Visit(globalScope)
-                              from call in scope.MethodCalls
-                              select call;
+                Console.WriteLine("{0} to initialize complete working set", end - start);
 
-            int numMethodCalls = 0;
-            int numMatchedMethodCalls = 0;
-            Stopwatch sw = new Stopwatch();
+                NamespaceDefinition globalNamespace;
+                Assert.That(project.WorkingSet.TryObtainReadLock(5000, out globalNamespace));
 
-            using(var callLog = new StreamWriter(callLogPath)) {
-                foreach(var call in methodCalls) {
-                    sw.Start();
-                    IMethodDefinition match = null;
-                    try {
-                        match = call.FindMatches().FirstOrDefault();
-                    } catch(Exception e) {
-                        Console.WriteLine("{0}:{1}:{2}): {3}", call.Location.SourceFileName, call.Location.StartingLineNumber, call.Location.StartingColumnNumber, e.Message);
+                try {
+                    Console.WriteLine("{0,10:N0} files", project.Data.GetFiles().Count());
+                    Console.WriteLine("{0,10:N0} namespaces", globalNamespace.GetDescendants<NamespaceDefinition>().Count());
+                    Console.WriteLine("{0,10:N0} types", globalNamespace.GetDescendants<TypeDefinition>().Count());
+                    Console.WriteLine("{0,10:N0} methods", globalNamespace.GetDescendants<MethodDefinition>().Count());
+
+                    var methodCalls = from statement in globalNamespace.GetDescendantsAndSelf()
+                                      from expression in statement.GetExpressions()
+                                      from call in expression.GetDescendantsAndSelf<MethodCall>()
+                                      select call;
+                    
+                    int numMethodCalls = 0, numMatchedMethodCalls = 0, numMissedMethodCalls = 0;
+                    Stopwatch sw = new Stopwatch();
+                    TimeSpan elapsed = new TimeSpan(0),
+                             matchedElapsed = new TimeSpan(0),
+                             missedElapsed = new TimeSpan(0);
+
+                    using(var callLog = new StreamWriter(Path.Combine(testData.DataDirectory, "call_log.csv"), false)) {
+
+                        callLog.WriteLine("Location,Call Name,Successful,Time");
+                        foreach(var call in methodCalls) {
+                            INamedEntity match = null;
+                            sw.Restart();
+                            try {
+                                match = call.FindMatches().FirstOrDefault();
+                            } catch(Exception e) {
+                                project.ErrorLog.WriteLine("{0}:{1}:{2}: Call Exception {3}", call.Location.SourceFileName, call.Location.StartingLineNumber, call.Location.StartingColumnNumber, e);
+                            }
+                            sw.Stop();
+                            numMethodCalls++;
+                            if(null != match) {
+                                numMatchedMethodCalls++;
+                                matchedElapsed += sw.Elapsed;
+                            } else {
+                                numMissedMethodCalls++;
+                                missedElapsed += sw.Elapsed;
+                            }
+                            callLog.WriteLine(String.Join(",", String.Join(":", call.Location.SourceFileName, call.Location.StartingLineNumber, call.Location.StartingColumnNumber), call.Name, (match == null ? "0" : "1"), sw.ElapsedMilliseconds));
+                            elapsed += sw.Elapsed;
+                        }
                     }
-
-                    sw.Stop();
-                    numMethodCalls++;
-                    if(null != match) {
-                        numMatchedMethodCalls++;
-                        callLog.WriteLine("{0} ({1}:{2}) -> {3} ({4}:{5})", call.Name, call.Location.SourceFileName, call.Location.StartingLineNumber, match.Name, match.PrimaryLocation.SourceFileName, match.PrimaryLocation.StartingLineNumber);
-                    }
+                    Console.WriteLine("{0,10:N0} method calls", numMethodCalls);
+                    Console.WriteLine("{0,10:P2} of method calls matched", (float) numMatchedMethodCalls / numMethodCalls);
+                    Console.WriteLine("{0,10:N2} matches / millisecond ({1,7:N0} ms elapsed)", ((float) numMethodCalls) / elapsed.TotalMilliseconds, elapsed.TotalMilliseconds);
+                    Console.WriteLine("{0,7:N3} ms / match", (float) matchedElapsed.TotalMilliseconds / numMatchedMethodCalls);
+                    Console.WriteLine("{0,7:N3} ms / miss", (float) missedElapsed.TotalMilliseconds / numMissedMethodCalls);
+                } finally {
+                    project.WorkingSet.ReleaseReadLock();
                 }
             }
-
-            Console.WriteLine("{0,10:N0} method calls", numMethodCalls);
-            Console.WriteLine("{0,10:N0} matched method calls ({1,8:P2})", numMatchedMethodCalls, ((float) numMatchedMethodCalls) / numMethodCalls);
-            Console.WriteLine("{0,10:N0} matches / millisecond ({1,7:N0} ms elapsed)", ((float) numMethodCalls) / sw.ElapsedMilliseconds, sw.ElapsedMilliseconds);
-            Console.WriteLine(callLogPath);
         }
 
-        private void PrintScopeReport(IScope globalScope) {
-            Console.WriteLine("\nScope Report");
-            Console.WriteLine("===============");
+        [Test, TestCaseSource("TestProjects")]
+        public void TestSerialization(RealWorldTestProject testData) {
+            using(var project = new DataProject<NullWorkingSet>(testData.DataDirectory, testData.FullPath, "SrcML")) {
+                string unknownLogPath = Path.Combine(project.StoragePath, "unknown.log");
 
-            Console.WriteLine("{0,10:N0} scopes", VariableScopeIterator.Visit(globalScope).Count());
-            var namedScopes = from scope in VariableScopeIterator.Visit(globalScope)
-                              where (scope as INamedScope) != null
-                              select scope;
-            Console.WriteLine("{0,10:N0} named scopes", namedScopes.Count());
-            var namespaceScopes = from scope in namedScopes
-                                  where (scope as INamespaceDefinition) != null
-                                  select scope;
-            var typeScopes = from scope in namedScopes
-                             where (scope as ITypeDefinition) != null
-                             select scope;
-            var methodScopes = from scope in namedScopes
-                               where (scope as IMethodDefinition) != null
-                               select scope;
-            Console.WriteLine("{0,10:N0} namespaces", namespaceScopes.Count());
-            Console.WriteLine("{0,10:N0} types", typeScopes.Count());
-            Console.WriteLine("{0,10:N0} methods", methodScopes.Count());
-        }
+                using(var unknownLog = new StreamWriter(unknownLogPath)) {
+                    project.UnknownLog = unknownLog;
+                    project.UpdateAsync().Wait();
 
-        private void TestDataGeneration(string sourcePath, string dataPath, bool useAsyncMethods = false) {
-            string fileLogPath = Path.Combine(dataPath, "parse.log");
-            string callLogPath = Path.Combine(dataPath, "methodcalls.log");
-            bool regenerateSrcML = shouldRegenerateSrcML;
+                    long count = 0;
+                    TextWriter output = StreamWriter.Synchronized(Console.Out),
+                                 error = StreamWriter.Synchronized(Console.Error);
 
-            if(!Directory.Exists(sourcePath)) {
-                Assert.Ignore("Source code for is missing");
-            }
-            if(File.Exists(callLogPath)) {
-                File.Delete(callLogPath);
-            }
-            if(File.Exists(fileLogPath)) {
-                File.Delete(fileLogPath);
-            }
-            if(!Directory.Exists(dataPath)) {
-                regenerateSrcML = true;
-            } else if(shouldRegenerateSrcML) {
-                Directory.Delete(dataPath, true);
-            }
-
-            var archive = new SrcMLArchive(dataPath, regenerateSrcML);
-            archive.XmlGenerator.ExtensionMapping[".cxx"] = Language.CPlusPlus;
-            archive.XmlGenerator.ExtensionMapping[".c"] = Language.CPlusPlus;
-            archive.XmlGenerator.ExtensionMapping[".cc"] = Language.CPlusPlus;
-
-            int numberOfFailures = 0;
-            int numberOfSuccesses = 0;
-            int numberOfFiles = 0;
-            Dictionary<string, List<string>> errors = new Dictionary<string, List<string>>();
-
-            using(var fileLog = new StreamWriter(fileLogPath)) {
-                using(var monitor = new FileSystemFolderMonitor(sourcePath, dataPath, new LastModifiedArchive(dataPath), archive)) {
-                    DateTime start, end = DateTime.MinValue;
-                    bool startupCompleted = false;
-
-                    start = DateTime.Now;
-                    if(useAsyncMethods) {
-                        var task = monitor.UpdateArchivesAsync().ContinueWith((t) => {
+                    long parseElapsed = 0, deserializedElapsed = 0, compareElapsed = 0;
+                    output.WriteLine("{0,-12} {1,-12} {2,-12} {3,-12}", "# Files", "Parse", "Deserialize", "Comparison");
+                    Parallel.ForEach(project.Data.GetFiles(), (sourcePath) => {
+                        DateTime start, end;
+                        NamespaceDefinition data;
+                        NamespaceDefinition serializedData;
+                        try {
+                            start = DateTime.Now;
+                            var fileUnit = project.SourceArchive.GetXElementForSourceFile(sourcePath);
+                            data = project.Data.Generator.Parse(fileUnit);
                             end = DateTime.Now;
-                            startupCompleted = true;
-                        });
-                        task.Wait();
-                    } else {
-                        monitor.UpdateArchives();
-                        end = DateTime.Now;
-                        startupCompleted = true;
-                    }
-
-                    if(!startupCompleted) {
-                        end = DateTime.Now;
-                    }
-
-                    Console.WriteLine("{0} to {1} srcML", end - start, (regenerateSrcML ? "generate" : "verify"));
-                    Assert.That(startupCompleted);
-
-                    using(var data = new DataRepository(archive)) {
-                        start = DateTime.Now;
-
-                        data.FileProcessed += (o, e) => {
-                            if(e.EventType == FileEventType.FileAdded) {
-                                numberOfFiles++;
-                                numberOfSuccesses++;
-                                if(numberOfFiles % 100 == 0) {
-                                    Console.WriteLine("{0,5:N0} files completed in {1} with {2,5:N0} failures", numberOfFiles, DateTime.Now - start, numberOfFailures);
-                                }
-                                fileLog.WriteLine("OK {0}", e.FilePath);
-                            }
-                        };
-
-                        data.ErrorRaised += (o, e) => {
-                            numberOfFiles++;
-                            numberOfFailures++;
-                            if(numberOfFiles % 100 == 0) {
-                                Console.WriteLine("{0,5:N0} files completed in {1} with {2,5:N0} failures", numberOfFiles, DateTime.Now - start, numberOfFailures);
-                            }
-                            ParseException pe = e.Exception as ParseException;
-                            if(pe != null) {
-                                fileLog.WriteLine("ERROR {0}", pe.FileName);
-                                fileLog.WriteLine(e.Exception.InnerException.StackTrace);
-                                var key = e.Exception.InnerException.StackTrace.Split('\n')[0].Trim();
-                                if(!errors.ContainsKey(key)) {
-                                    errors[key] = new List<string>();
-                                }
-                                int errorLineNumber = (pe.LineNumber < 1 ? 1 : pe.LineNumber);
-                                int errorColumnNumber = (pe.ColumnNumber < 1 ? 1 : pe.ColumnNumber);
-                                var errorLocation = String.Format("{0}({1},{2})", pe.FileName, errorLineNumber, errorColumnNumber);
-                                errors[key].Add(errorLocation);
-                            }
-                        };
-
-                        if(useAsyncMethods) {
-                            data.InitializeDataAsync().Wait();
-                        } else {
-                            data.InitializeData();
+                            Interlocked.Add(ref parseElapsed, (end - start).Ticks);
+                        } catch(Exception ex) {
+                            Console.Error.WriteLine(ex);
+                            data = null;
                         }
 
+                        try {
+                            start = DateTime.Now;
+                            serializedData = project.Data.GetData(sourcePath);
+                            end = DateTime.Now;
+                            Interlocked.Add(ref deserializedElapsed, (end - start).Ticks);
+                        } catch(Exception ex) {
+                            error.WriteLine(ex);
+                            serializedData = null;
+                        }
+
+                        Assert.IsNotNull(data);
+                        Assert.IsNotNull(serializedData);
+                        start = DateTime.Now;
+                        DataAssert.StatementsAreEqual(data, serializedData);
                         end = DateTime.Now;
+                        Interlocked.Add(ref compareElapsed, (end - start).Ticks);
 
-                        Console.WriteLine("{0,5:N0} files completed in {1} with {2,5:N0} failures", numberOfFiles, end - start, numberOfFailures);
-                        Console.WriteLine("{0} to generate data", end - start);
-
-                        Console.WriteLine("\nSummary");
-                        Console.WriteLine("===================");
-                        Console.WriteLine("{0,10:N0} failures  ({1,8:P2})", numberOfFailures, ((float) numberOfFailures) / numberOfFiles);
-                        Console.WriteLine("{0,10:N0} successes ({1,8:P2})", numberOfSuccesses, ((float) numberOfSuccesses) / numberOfFiles);
-                        Console.WriteLine("{0} to generate data", end - start);
-                        Console.WriteLine(fileLogPath);
-
-                        PrintScopeReport(data.GetGlobalScope());
-                        PrintMethodCallReport(data.GetGlobalScope(), callLogPath);
-                        PrintErrorReport(errors);
-                    }
+                        if(Interlocked.Increment(ref count) % 25 == 0) {
+                            output.WriteLine("{0,12:N0} {1,12:ss\\.fff} {2,12:ss\\.fff} {3,12:ss\\.fff}", count,
+                                    new TimeSpan(parseElapsed),
+                                    new TimeSpan(deserializedElapsed),
+                                    new TimeSpan(compareElapsed));
+                        }
+                    });
+                    
+                    Console.WriteLine("Project: {0} {1}", testData.ProjectName, testData.Version);
+                    Console.WriteLine("{0,-15} {1,11:N0}", "# Files", count);
+                    Console.WriteLine("{0,-15} {1:g}", "Parsing", new TimeSpan(parseElapsed));
+                    Console.WriteLine("{0,-15} {1:g}", "Deserializing", new TimeSpan(deserializedElapsed));
+                    Console.WriteLine("{0,-15} {1:g}", "Comparing", new TimeSpan(compareElapsed));
+                    Console.WriteLine("{0,-15} {1:g}", "Total", new TimeSpan(parseElapsed + deserializedElapsed + compareElapsed));
                 }
+            }
+        }
+
+        private static IEnumerable<RealWorldTestProject> ReadProjectMap(string fileName) {
+            if(File.Exists(fileName)) {
+                var projects = from line in File.ReadAllLines(fileName)
+                               where !line.StartsWith("#")
+                               let parts = line.Split(',')
+                               where 4 == parts.Length
+                               let projectName = parts[0]
+                               let projectVersion = parts[1]
+                               let projectLanguage
+                               = SrcMLElement.GetLanguageFromString(parts[2])
+                               let rootDirectory = parts[3]
+                               select new RealWorldTestProject(projectName, projectVersion, projectLanguage, rootDirectory);
+                return projects;
+            }
+            return Enumerable.Empty<RealWorldTestProject>();
+        }
+
+        private static void CheckThatProjectExists(RealWorldTestProject project) {
+            if(!Directory.Exists(project.FullPath)) {
+                Assert.Ignore("Project directory for {0} {1} does not exist ({2})", project.ProjectName, project.Version, project.FullPath);
+            }
+        }
+
+        public class RealWorldTestProject {
+            
+            public string FullPath { get; set; }
+
+            public Language PrimaryLanguage { get; set; }
+
+            public string ProjectName { get; set; }
+
+            public string DataDirectory { get { return String.Format("{0}_{1}", ProjectName, Version); } }
+
+            public string Version { get; set; }
+
+            public RealWorldTestProject(string projectName, string projectVersion, Language language, string rootDirectory) {
+                ProjectName = projectName;
+                Version = projectVersion;
+                FullPath = Path.GetFullPath(rootDirectory);
+                PrimaryLanguage = language;
+            }
+
+            public override string ToString() {
+                return String.Format("{0} {1}", ProjectName, Version);
             }
         }
     }

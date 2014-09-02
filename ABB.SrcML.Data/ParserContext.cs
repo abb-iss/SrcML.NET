@@ -1,4 +1,16 @@
-﻿using System;
+﻿/******************************************************************************
+ * Copyright (c) 2014 ABB Group
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    Patrick Francis (ABB Group) - initial API, implementation, & documentation
+ *    Vinay Augustine (ABB Group) - initial API, implementation, & documentation
+ *****************************************************************************/
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Xml.Linq;
@@ -7,7 +19,7 @@ namespace ABB.SrcML.Data {
 
     /// <summary>
     /// Parser context objects store the current state of the
-    /// <see cref="AbstractCodeParser.ParseElement(XElement,ParserContext)"/> method.
+    /// <see cref="AbstractCodeParser.ParseStatement"/> method.
     /// </summary>
     public class ParserContext {
         private XElement fileUnitBeingParsed;
@@ -25,38 +37,38 @@ namespace ABB.SrcML.Data {
         /// <param name="fileUnit">The file unit for this context</param>
         public ParserContext(XElement fileUnit) {
             this.FileUnit = fileUnit;
-            ParentScopeStack = new Stack<IScope>();
-            ScopeStack = new Stack<IScope>();
+            //ParentStatementStack = new Stack<Statement>();
+            //StatementStack = new Stack<Statement>();
         }
 
-        /// <summary>
-        /// The aliases for this context. This should be set by a call to
-        /// <see cref="AbstractCodeParser.ParseUnitElement"/>.
-        /// </summary>
-        public Collection<IAlias> Aliases { get; set; }
+        ///// <summary>
+        ///// The aliases for this context. This should be set by a call to
+        ///// <see cref="AbstractCodeParser.ParseUnitElement"/>.
+        ///// </summary>
+        //public Collection<Alias> Aliases { get; set; }
 
-        /// <summary>
-        /// The current scope on <see cref="ParentScopeStack"/>. If the stack is empty, it returns
-        /// null.
-        /// </summary>
-        public IScope CurrentParentScope {
-            get {
-                if(ParentScopeStack.Count > 0)
-                    return ParentScopeStack.Peek();
-                return null;
-            }
-        }
+        ///// <summary>
+        ///// The current statement on <see cref="ParentStatementStack"/>. If the stack is empty, it returns
+        ///// null.
+        ///// </summary>
+        //public Statement CurrentParentStatement {
+        //    get {
+        //        if(ParentStatementStack.Count > 0)
+        //            return ParentStatementStack.Peek();
+        //        return null;
+        //    }
+        //}
 
-        /// <summary>
-        /// The current scope on <see cref="ScopeStack"/>. If the stack is empty, it returns null.
-        /// </summary>
-        public IScope CurrentScope {
-            get {
-                if(ScopeStack.Count > 0)
-                    return ScopeStack.Peek();
-                return null;
-            }
-        }
+        ///// <summary>
+        ///// The current statement on <see cref="StatementStack"/>. If the stack is empty, it returns null.
+        ///// </summary>
+        //public Statement CurrentStatement {
+        //    get {
+        //        if(StatementStack.Count > 0)
+        //            return StatementStack.Peek();
+        //        return null;
+        //    }
+        //}
 
         /// <summary>
         /// The file name from <see cref="FileUnit"/>
@@ -82,29 +94,29 @@ namespace ABB.SrcML.Data {
             }
         }
 
-        /// <summary>
-        /// the parent scope stack stores the parent of the scope being parsed. This is only used in
-        /// specific cases such as the following C# example: <code language="C#"> namespace A.B.C {
-        /// } </code> In this example, we want the tree to be <c>A->B->C</c>. What
-        /// <see cref="AbstractCodeParser.ParseNamespaceElement(XElement,ParserContext)"/> does in
-        /// this case is create three namespaces: <c>A</c>, <c>B</c>, and <c>C</c> and puts them all
-        /// on <see cref="ScopeStack"/>. Because we have created three elements, we need a way to
-        /// track how many need to be popped off. the <c>A</c> namespace will be put placed on
-        /// <see cref="ParentScopeStack"/>.
-        /// <see cref="AbstractCodeParser.ParseElement(XElement,ParserContext)"/> will see that
-        /// ParentScopeStack and <see cref="ScopeStack"/> are not equal and it will
-        /// <see cref="System.Collections.Stack.Pop()"/> elements off until they are.
-        /// </summary>
-        private Stack<IScope> ParentScopeStack { get; set; }
+        ///// <summary>
+        ///// The parent statement stack stores the parent of the statement being parsed. This is only used in
+        ///// specific cases such as the following C# example: <code language="C#"> namespace A.B.C {
+        ///// } </code> In this example, we want the tree to be <c>A->B->C</c>. What
+        ///// <see cref="AbstractCodeParser.ParseNamespaceElement(XElement,ParserContext)"/> does in
+        ///// this case is create three namespaces: <c>A</c>, <c>B</c>, and <c>C</c> and puts them all
+        ///// on <see cref="StatementStack"/>. Because we have created three elements, we need a way to
+        ///// track how many need to be popped off. The <c>A</c> namespace will be put on
+        ///// <see cref="ParentStatementStack"/>.
+        ///// <see cref="AbstractCodeParser.ParseElement(XElement,ParserContext)"/> will see that
+        ///// ParentStatementStack and <see cref="StatementStack"/> are not equal and it will
+        ///// <see cref="System.Collections.Stack.Pop()"/> elements off until they are.
+        ///// </summary>
+        //private Stack<Statement> ParentStatementStack { get; set; }
 
-        /// <summary>
-        /// The scope stack stores all of the scopes being parsed. When
-        /// <see cref="AbstractCodeParser.ParseElement(XElement,ParserContext)"/> creates a scope it
-        /// pushes it onto the stack. Once it has finished creating the scope (including calling
-        /// <see cref="AbstractCodeParser.ParseElement(XElement,ParserContext)"/> on all of its
-        /// children) , it removes it from the stack.
-        /// </summary>
-        private Stack<IScope> ScopeStack { get; set; }
+        ///// <summary>
+        ///// The statement stack stores all of the statements currently being parsed. When
+        ///// <see cref="AbstractCodeParser.ParseElement(XElement,ParserContext)"/> creates a statement it
+        ///// pushes it onto the stack. Once it has finished creating the statement (including calling
+        ///// <see cref="AbstractCodeParser.ParseElement(XElement,ParserContext)"/> on all of its
+        ///// children), it removes it from the stack.
+        ///// </summary>
+        //private Stack<Statement> StatementStack { get; set; }
 
         /// <summary>
         /// Creates a location object for the given
@@ -131,52 +143,52 @@ namespace ABB.SrcML.Data {
             return location;
         }
 
-        /// <summary>
-        /// Removes the most recent scope from the scope stack and returns it. If intermediate
-        /// scopes were inserted, it calls <see cref="RevertToNextParent()"/>.
-        /// </summary>
-        /// <returns>the most recent scope.</returns>
-        public IScope Pop() {
-            RevertToNextParent();
-            ParentScopeStack.Pop();
-            return ScopeStack.Pop();
-        }
+        ///// <summary>
+        ///// Removes the most recent statement from the statement stack and returns it. If intermediate
+        ///// statements were inserted, it calls <see cref="RevertToNextParent()"/>.
+        ///// </summary>
+        ///// <returns>The most recent statement.</returns>
+        //public Statement Pop() {
+        //    RevertToNextParent();
+        //    ParentStatementStack.Pop();
+        //    return StatementStack.Pop();
+        //}
 
-        /// <summary>
-        /// adds
-        /// <paramref name="scope"/>to this scope stack. This simply calls
-        /// <see cref="Push(IScope,IScope)"/> with both arguments set to
-        /// <paramref name="scope"/></summary>
-        /// <param name="scope">the scope to add.</param>
-        public void Push(IScope scope) {
-            Push(scope, scope);
-        }
+        ///// <summary>
+        ///// Adds
+        ///// <paramref name="statement"/>to the statement stack. This simply calls
+        ///// <see cref="Push(Statement,Statement)"/> with both arguments set to
+        ///// <paramref name="statement"/></summary>
+        ///// <param name="statement">The statement to add.</param>
+        //public void Push(Statement statement) {
+        //    Push(statement, statement);
+        //}
 
-        /// <summary>
-        /// Adds
-        /// <paramref name="scope"/>and
-        /// <paramref name="parent">it's parent</paramref> . If <see cref="CurrentParentScope"/> is
-        /// equal to
-        /// <paramref name="parent"/>then parent is not added.
-        /// </summary>
-        /// <param name="scope"></param>
-        /// <param name="parent"></param>
-        public void Push(IScope scope, IScope parent) {
-            ScopeStack.Push(scope);
-            if(parent != CurrentParentScope) {
-                ParentScopeStack.Push(parent);
-            }
-        }
+        ///// <summary>
+        ///// Adds
+        ///// <paramref name="statement"/>and
+        ///// <paramref name="parent">it's parent</paramref> . If <see cref="CurrentParentStatement"/> is
+        ///// equal to
+        ///// <paramref name="parent"/>then parent is not added.
+        ///// </summary>
+        ///// <param name="statement"></param>
+        ///// <param name="parent"></param>
+        //public void Push(Statement statement, Statement parent) {
+        //    StatementStack.Push(statement);
+        //    if(parent != CurrentParentStatement) {
+        //        ParentStatementStack.Push(parent);
+        //    }
+        //}
 
-        /// <summary>
-        /// Removes scopes until <c>CurrentScope == CurrentParentScope</c>. As each scope is
-        /// removed, it is added as a child to its predecessor.
-        /// </summary>
-        public void RevertToNextParent() {
-            while(CurrentScope != CurrentParentScope) {
-                var scope = ScopeStack.Pop();
-                CurrentScope.AddChildScope(scope);
-            }
-        }
+        ///// <summary>
+        ///// Removes statements until <c>CurrentStatement == CurrentParentStatement</c>. As each statement is
+        ///// removed, it is added as a child to its predecessor.
+        ///// </summary>
+        //public void RevertToNextParent() {
+        //    while(CurrentStatement != CurrentParentStatement) {
+        //        var statement = StatementStack.Pop();
+        //        CurrentStatement.AddChildScope(statement);
+        //    }
+        //}
     }
 }

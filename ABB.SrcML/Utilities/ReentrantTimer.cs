@@ -41,7 +41,7 @@ namespace ABB.SrcML.Utilities {
         /// will be raised only once. Elapsed will not execute if either of the following are currently executing:
         /// <list type="ordered">
         ///     <item>A previously raised elapsed event</item>
-        ///     <item>A call to <see cref="ExecuteWhenIdle(action)"/></item>
+        ///     <item>A call to <see cref="ExecuteWhenIdle(Action)"/></item>
         /// </list>
         /// </summary>
         public event ElapsedEventHandler Elapsed;

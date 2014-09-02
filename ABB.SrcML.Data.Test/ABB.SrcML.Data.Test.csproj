@@ -1,19 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{4B9F1F96-FAAB-4535-9C72-8E2B69A1968A}</ProjectGuid>
+    <ProjectGuid>{2D910B34-7FEE-44DC-B79F-00DA2A914295}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ABB.SrcML.Data.Test</RootNamespace>
     <AssemblyName>ABB.SrcML.Data.Test</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
-    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -31,13 +28,10 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>
-    </DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="nunit.framework, Version=2.6.1.12217, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\NUnit.2.6.1\lib\nunit.framework.dll</HintPath>
+    <Reference Include="nunit.framework">
+      <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -52,41 +46,40 @@
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
     <Compile Include="BuiltInTypeFactoryTests.cs" />
+    <Compile Include="DataAssert.cs" />
+    <Compile Include="CodeParserTests.cs" />
+    <Compile Include="CPlusPlusCodeParserTests.cs" />
     <Compile Include="CSharpCodeParserTests.cs" />
-    <Compile Include="DataRepositoryTests.cs" />
+    <Compile Include="DataFileNameMappingTests.cs" />
+    <Compile Include="DataGeneratorTests.cs" />
+    <Compile Include="QueryTests.cs" />
     <Compile Include="FileRemovalTests_Cpp.cs" />
     <Compile Include="FileRemovalTests_CSharp.cs" />
     <Compile Include="FileRemovalTests_Java.cs" />
-    <Compile Include="GetScopeTests.cs" />
+    <Compile Include="GetStatementTests.cs" />
+    <Compile Include="JavaCodeParserTests.cs" />
+    <Compile Include="MergeTests.cs" />
     <Compile Include="MultithreadedAccessTests.cs" />
     <Compile Include="NameHelperTests.cs" />
+    <Compile Include="ProgamElementTests.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RealWorldTests.cs" />
-    <Compile Include="ScopeMergeTests.cs" />
-    <Compile Include="JavaCodeParserTests.cs" />
     <Compile Include="SerializationTests.cs" />
     <Compile Include="SourceLocationTests.cs" />
     <Compile Include="SrcMLLocationTests.cs" />
-    <Compile Include="TestHelper.cs" />
-    <Compile Include="SrcMLFileUnitSetup.cs" />
-    <Compile Include="CPlusPlusCodeParserTests.cs" />
-    <Compile Include="TypeInventoryTests.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StatementExtensionTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ABB.SrcML.Core\ABB.SrcML.Core.csproj">
-      <Project>{db649b35-b045-47c3-9903-f3404fa9c1be}</Project>
-      <Name>ABB.SrcML.Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ABB.SrcML.Data.Core\ABB.SrcML.Data.Core.csproj">
-      <Project>{2fcc803a-0727-4829-8ed9-54a13008eab8}</Project>
-      <Name>ABB.SrcML.Data.Core</Name>
-    </ProjectReference>
     <ProjectReference Include="..\ABB.SrcML.Data\ABB.SrcML.Data.csproj">
       <Project>{73c24e33-465b-424d-b35a-39f1750f705e}</Project>
       <Name>ABB.SrcML.Data</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ABB.SrcML.Test.Utilities\ABB.SrcML.Test.Utilities.csproj">
+      <Project>{46a346f2-679e-4eed-94a5-1a36ba56c2ee}</Project>
+      <Name>ABB.SrcML.Test.Utilities</Name>
     </ProjectReference>
     <ProjectReference Include="..\ABB.SrcML\ABB.SrcML.csproj">
       <Project>{d52626e7-a4ca-471a-8a6a-fe0110430fe6}</Project>

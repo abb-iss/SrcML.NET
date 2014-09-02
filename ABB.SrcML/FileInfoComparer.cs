@@ -30,7 +30,7 @@ namespace ABB.SrcML
             if (null == y)
                 throw new ArgumentNullException("y");
 
-            return 0 == String.Compare(x.FullName, y.FullName, StringComparison.CurrentCultureIgnoreCase);
+            return 0 == String.Compare(x.FullName, y.FullName, StringComparison.OrdinalIgnoreCase);
         }
 
         public override int GetHashCode(FileInfo obj)

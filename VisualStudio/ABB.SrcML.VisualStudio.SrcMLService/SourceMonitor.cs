@@ -15,19 +15,16 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
-namespace ABB.SrcML.VisualStudio.SrcMLService {
+namespace ABB.SrcML.VisualStudio {
 
     public class SourceMonitor : DirectoryScanningMonitor, IVsRunningDocTableEvents {
         private const int MaxNumberOfFilesInSolutionDirectory = 1000;
         private IVsRunningDocumentTable DocumentTable;
         private uint DocumentTableItemId;
-        private ISrcMLArchive sourceArchive;
 
         /// <summary>
         /// Creates a new source monitor
@@ -39,10 +36,23 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="baseDirectory">The base directory for this monitor</param>
         /// <param name="defaultArchive">The default archive to route files to</param>
         /// <param name="otherArchives">Other archives to route files to</param>
-        public SourceMonitor(Solution solution, double scanInterval, TaskScheduler scheduler, string baseDirectory, IArchive defaultArchive, ISrcMLArchive sourceArchive, params IArchive[] otherArchives)
+        public SourceMonitor(Solution solution, double scanInterval, TaskScheduler scheduler, string baseDirectory) : this(solution, scanInterval, scheduler, baseDirectory, null, null) { }
+
+        /// <summary>
+        /// Creates a new source monitor
+        /// </summary>
+        /// <param name="solution">The solution to monitor</param>
+        /// <param name="foldersToMonitor">A list of folders to monitor</param>
+        /// <param name="scanInterval">The interval at which to scan the folders (in
+        /// seconds) </param>
+        /// <param name="baseDirectory">The base directory for this monitor</param>
+        /// <param name="defaultArchive">The default archive to route files to</param>
+        /// <param name="otherArchives">Other archives to route files to</param>
+        public SourceMonitor(Solution solution, double scanInterval, TaskScheduler scheduler, string baseDirectory, AbstractArchive defaultArchive, SrcMLArchive sourceArchive, params AbstractArchive[] otherArchives)
             : base(DirectoryScanningMonitor.MONITOR_LIST_FILENAME, scanInterval, scheduler, baseDirectory, defaultArchive, otherArchives) {
-            RegisterArchive(sourceArchive, false);
-            this.sourceArchive = sourceArchive;
+            if(null != sourceArchive) {
+                RegisterArchive(sourceArchive, false);
+            }
             this.MonitoredSolution = solution;
         }
 
@@ -54,7 +64,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// <param name="baseDirectory">The base directory for this monitor</param>
         /// <param name="defaultArchive">The default archive to route files to</param>
         /// <param name="otherArchives">Other archives to route files to</param>
-        public SourceMonitor(Solution solution, string baseDirectory, IArchive defaultArchive, ISrcMLArchive sourceArchive, params IArchive[] otherArchives)
+        public SourceMonitor(Solution solution, string baseDirectory, AbstractArchive defaultArchive, SrcMLArchive sourceArchive, params AbstractArchive[] otherArchives)
             : this(solution, DEFAULT_SCAN_INTERVAL, TaskScheduler.Default, baseDirectory, defaultArchive, sourceArchive, otherArchives) { }
 
         /// <summary>
@@ -73,11 +83,9 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
             List<string> solutionFiles = new List<string>();
             var projectEnumerator = solution.Projects.GetEnumerator();
-            while (projectEnumerator.MoveNext())
-            {
+            while(projectEnumerator.MoveNext()) {
                 SearchProjectForFiles(solutionFiles, projectEnumerator.Current as Project);
             }
-
             return solutionFiles;
         }
 
@@ -93,7 +101,6 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
             var solutionFiles = GetSolutionFiles(solution);
             solutionFiles.Add(solution.FullName);
-            solutionFiles.RemoveAll(s => string.IsNullOrWhiteSpace(s));
             var commonPaths = Utilities.FileHelper.GetCommonPathList(solutionFiles);
             return commonPaths;
         }
@@ -215,34 +222,25 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         }
 
         private static void SearchProjectForFiles(List<string> solutionFiles, Project project) {
-            try
-            {
-                if (project != null)
-                {
-                    solutionFiles.Add(project.FullName);
-                    if (project.ProjectItems != null)
-                    {
-                        var itemEnumerator = project.ProjectItems.GetEnumerator();
-                        while (itemEnumerator.MoveNext())
-                        {
-                            var item = itemEnumerator.Current as ProjectItem;
-                            if (item != null && item.Name != null && item.FileCount > 0)
-                            {
-                                var proj = item.SubProject as Project;
-                                if (proj != null)
-                                {
-                                    SearchProjectForFiles(solutionFiles, proj);
-                                }
+            if(project != null)
+                if(project.ProjectItems != null) {
+                    var itemEnumerator = project.ProjectItems.GetEnumerator();
+                    while(itemEnumerator.MoveNext()) {
+                        var item = itemEnumerator.Current as ProjectItem;
+                        if(item != null && item.Name != null && item.FileCount > 0) {
+                            try {
+                                var myPath = Path.GetFullPath(item.FileNames[0]);
+                                if(!String.IsNullOrEmpty(Path.GetExtension(myPath)))
+                                    solutionFiles.Add(myPath);
+                            } catch(ArgumentException) { }
+                            var proj = item.SubProject as Project;
+                            if(proj != null) {
+                                SearchProjectForFiles(solutionFiles, proj);
                             }
                         }
                     }
                 }
-            }catch(NotImplementedException e){
-                //ignore - this happens when a project is not loaded
-                Debug.WriteLine(e.Message);
-            }
         }
-
 
         /// <summary>
         /// Subscribe to the running document table events

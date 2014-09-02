@@ -1,5 +1,3 @@
-<HTML>
-<BODY>
 <PRE>
 <!-- Manpage converted by man2html 3.0.1 -->
 
@@ -55,7 +53,7 @@
 
        <B>-t,</B> <B>--src-encoding=</B><I>encoding</I>
               Sets  the encoding used for the output text source-code files to
-              <I>encoding</I>. The default is --ISO-8859-1.
+              <I>encoding</I>. The default is ISO-8859-1.
 
        <B>-U,</B> <B>--unit=</B><I>number</I>
               Refers to a specific file in a  srcML  archive.   The  numbering
@@ -114,6 +112,8 @@
        <B>-p,</B> <B>--prefix=</B><I>uri</I>
               Output the prefix of the namespace given by uri. The name of the
               prefix is output with a newline character. The default namespace
+              information is that same as that of  the  full  flag  option  to
+              src2srcml to form it, without the leading "--".
 
        <B>-L,</B> <B>--longinfo</B>
               Output the metadata of the <B>--info</B> option along with the count of
@@ -166,14 +166,13 @@
               rameter src:position is the position of an  individual  unit  in
               the  root unit, e.g., the position of the file in the entire sr-
               cML archive. Parameters can also be passed to the  XSLT  program
-              from the <B>srcml2src</B> command line.
 
        <B>--relaxng=</B><I>relaxng</I><B>_</B><I>file</I>
               Apply  the  RelaxNG grammar <I>relaxng</I><B>_</B><I>file</I> to each individual unit
               in the srcML archive and combine the parts that match.
 
               The RelaxNG grammar  acts  as  a  filter  for  individual  units
-              (files).  If  the  RelaxNG gramar is valid for a unit, then that
+              (files).  If  the RelaxNG grammar is valid for a unit, then that
               unit is output. The result is a  srcML  archive  with  only  the
               files that are valid based on the given RelaxNG grammar.
 
@@ -218,21 +217,15 @@
 
        4: Unknown encoding
 
-       11: Text encoding option specified, but value missing
+       7: Invalid combination of options
 
-       13: Unit option specified, but value missing
-
-       14: Unit option value is not valid
-
+       8: Incomplete output due to termination
 
 
 </PRE>
-<H2>AUTHOR</H2><PRE>
-       Written by Michael L. Collard and Huzefa Kagdi
+<H2>CAVEATS</H2><PRE>
 
-
-
-srcml2src 1.0            Sun Jul 21 23:22:56 EDT 2013             <B>srcml2src(1)</B>
+srcml2src 1.0            Wed May 21 10:36:09 EDT 2014             <B>srcml2src(1)</B>
 </PRE>
 <HR>
 <ADDRESS>

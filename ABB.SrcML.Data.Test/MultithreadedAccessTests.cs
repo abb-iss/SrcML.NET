@@ -27,48 +27,42 @@ namespace ABB.SrcML.Data.Test {
             File.WriteAllText(barSourcePath, "void bar() { }");
 
             int iterations = 1000;
-            using(var archive = new SrcMLArchive(dataFolder)) {
-                using(var data = new DataRepository(archive)) {
-                    data.InitializeData();
-                    archive.AddOrUpdateFile(Path.Combine(sourceFolder, "foo.cpp"));
-                    archive.AddOrUpdateFile(Path.Combine(sourceFolder, "bar.cpp"));
+            using(var project = new DataProject<CompleteWorkingSet>(dataFolder, sourceFolder, "SrcML")) {
+                project.Update();
+                project.StartMonitoring();
 
-                    var developer = new Task(() => {
-                        for(int i = 0; i < iterations; i++) {
-                            File.WriteAllText(fooSourcePath, fooRevisions[i % 2]);
-                            archive.AddOrUpdateFile(fooSourcePath);
+                var developer = new Task(() => {
+                    for(int i = 0; i < iterations; i++) {
+                        File.WriteAllText(fooSourcePath, fooRevisions[i % 2]);
+                    }
+                });
+
+                developer.Start();
+                Assert.DoesNotThrow(() => {
+                    for(int i = 0; i < iterations; i++) {
+                        var foo = GetMethodWithName(project.WorkingSet, 500, "foo");
+                        var bar = GetMethodWithName(project.WorkingSet, 500, "bar");
+                        foo.ContainsCallTo(bar);
+                        if(i % 10 == 0 && i > 0) {
+                            Console.WriteLine("Finished {0} iterations", i);
                         }
-                    });
-
-                    developer.Start();
-                    Assert.DoesNotThrow(() => {
-                        for(int i = 0; i < iterations; i++) {
-                            var foo = GetMethodWithName(data, 500, "foo");
-                            Thread.Sleep(1);
-                            var bar = GetMethodWithName(data, 500, "bar");
-
-                            foo.ContainsCallTo(bar);
-                            if(i % 10 == 0 && i > 0) {
-                                Console.WriteLine("Finished {0} iterations", i);
-                            }
-                        }
-                    });
-
-                    developer.Wait();
-                }
+                    }
+                });
+                developer.Wait();
             }
         }
 
-        private static IMethodDefinition GetMethodWithName(IDataRepository dataRepository, int timeout, string methodName) {
-            IMethodDefinition result = null;
-            if(dataRepository.TryLockGlobalScope(timeout)) {
-                try {
-                    result = dataRepository.GetGlobalScope().GetChildScopesWithId<IMethodDefinition>("foo").FirstOrDefault();
-                } finally {
-                    dataRepository.ReleaseGlobalScopeLock();
-                }
+        private static MethodDefinition GetMethodWithName(AbstractWorkingSet workingSet, int timeout, string methodName) {
+            MethodDefinition result = null;
+            NamespaceDefinition globalScope;
+            Assert.That(workingSet.TryObtainReadLock(timeout, out globalScope));
+            try {
+                result = globalScope.GetNamedChildren<MethodDefinition>("foo").FirstOrDefault();
+                return result;
+            } finally {
+                workingSet.ReleaseReadLock();
             }
-            return result;
+
         }
     }
 }

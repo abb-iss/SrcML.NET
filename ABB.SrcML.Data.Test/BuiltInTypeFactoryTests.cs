@@ -9,6 +9,7 @@
  *    Vinay Augustine (ABB Group) - initial API, implementation, & documentation
  *****************************************************************************/
 
+using ABB.SrcML.Test.Utilities;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -43,11 +44,15 @@ namespace ABB.SrcML.Data.Test {
 
             foreach(var builtInModifier in new string[] { "unsigned", "signed", "long" }) {
                 foreach(var builtIn in new string[] { "int", "double" }) {
-                    var aXml = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(String.Format(xmlFormat, builtInModifier, builtIn), "a.cpp");
+                    var aXml = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(String.Format(xmlFormat, builtInModifier, builtIn), "a.cpp");
 
-                    var variableA = CodeParser[Language.CPlusPlus].ParseDeclarationElement(aXml.Descendants(SRC.Declaration).First(), new ParserContext(aXml)).First();
-                    var variableB = CodeParser[Language.CPlusPlus].ParseDeclarationElement(aXml.Descendants(SRC.Declaration).Last(), new ParserContext(aXml)).First();
-
+                    var globalScope = CodeParser[Language.CPlusPlus].ParseFileUnit(aXml);
+                    var variables = from stmt in globalScope.GetDescendants()
+                                    from declaration in stmt.GetExpressions().OfType<VariableDeclaration>()
+                                    select declaration;
+                    var variableA = variables.FirstOrDefault();
+                    var variableB = variables.LastOrDefault();
+                    
                     Assert.AreEqual("a", variableA.Name);
                     Assert.AreEqual("b", variableB.Name);
                     Assert.AreEqual(String.Format("{0} {1}", builtInModifier, builtIn), variableA.VariableType.Name, "TODO: Fix compound types");
@@ -66,10 +71,14 @@ namespace ABB.SrcML.Data.Test {
 <decl_stmt><decl><type><name>{0}</name></type> <name>b</name></decl>;</decl_stmt>";
 
             foreach(var builtIn in new string[] { "char", "short", "int", "long", "bool", "float", "double", "wchar_t" }) {
-                var aXml = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(String.Format(xmlFormat, builtIn), "a.cpp");
+                var aXml = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(String.Format(xmlFormat, builtIn), "a.cpp");
 
-                var variableA = CodeParser[Language.CPlusPlus].ParseDeclarationElement(aXml.Descendants(SRC.Declaration).First(), new ParserContext(aXml)).First();
-                var variableB = CodeParser[Language.CPlusPlus].ParseDeclarationElement(aXml.Descendants(SRC.Declaration).Last(), new ParserContext(aXml)).First();
+                var globalScope = CodeParser[Language.CPlusPlus].ParseFileUnit(aXml);
+                var variables = from stmt in globalScope.GetDescendants()
+                                from declaration in stmt.GetExpressions().OfType<VariableDeclaration>()
+                                select declaration;
+                var variableA = variables.FirstOrDefault();
+                var variableB = variables.LastOrDefault();
 
                 Assert.AreEqual("a", variableA.Name);
                 Assert.AreEqual("b", variableB.Name);
@@ -90,11 +99,14 @@ namespace ABB.SrcML.Data.Test {
             foreach(var builtIn in new string[] { "byte", "short", "int", "long", "float", "double", "boolean", "char" }) {
                 var aXml = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(String.Format(xmlFormat, builtIn), "a.java");
 
-                var variableA = CodeParser[Language.Java].ParseDeclarationElement(aXml.Descendants(SRC.Declaration).First(), new ParserContext(aXml)).First();
-                var variableB = CodeParser[Language.Java].ParseDeclarationElement(aXml.Descendants(SRC.Declaration).Last(), new ParserContext(aXml)).First();
+                var globalScope = CodeParser[Language.Java].ParseFileUnit(aXml);
+                var variables = from stmt in globalScope.GetDescendants()
+                                from declaration in stmt.GetExpressions().OfType<VariableDeclaration>()
+                                select declaration;
+                var variableA = variables.FirstOrDefault();
+                var variableB = variables.LastOrDefault();
 
-                Assert.AreEqual("a", variableA.Name);
-                Assert.AreEqual("b", variableB.Name);
+                
                 Assert.AreEqual(builtIn, variableA.VariableType.Name);
 
                 var typeOfA = variableA.VariableType.FindMatches().First();

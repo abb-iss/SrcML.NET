@@ -16,16 +16,24 @@ namespace ABB.SrcML {
     public class LastModifiedArchive : AbstractArchive {
         // private readonly object mapLock = new object();
 
+        /// <summary>
+        /// The default file name to store this archive in
+        /// </summary>
         public const string DEFAULT_FILENAME = "lastmodifiedmap.txt";
 
         //private Dictionary<string, DateTime> lastModifiedMap;
         private ConcurrentDictionary<string, DateTime> lastModifiedMap;
 
         /// <summary>
+        /// Creates a last modified archive that will be stored in <see cref="DEFAULT_FILENAME"/> within <see cref="Environment.CurrentDirectory"/>
+        /// </summary>
+        public LastModifiedArchive() : this(Environment.CurrentDirectory) { }
+
+        /// <summary>
         /// Creates a new archive in the
         /// <paramref name="baseDirectory">specified directory</paramref> with a default file name.
         /// </summary>
-        /// <param name="baseDirectory"></param>
+        /// <param name="baseDirectory">The directory to save the map to</param>
         public LastModifiedArchive(string baseDirectory)
             : this(baseDirectory, DEFAULT_FILENAME) {
         }
@@ -48,7 +56,7 @@ namespace ABB.SrcML {
         /// <param name="scheduler">The task factory to use for asynchronous methods</param>
         public LastModifiedArchive(string baseDirectory, string fileName, TaskScheduler scheduler)
             : base(baseDirectory, fileName, scheduler) {
-            lastModifiedMap = new ConcurrentDictionary<string, DateTime>(StringComparer.InvariantCultureIgnoreCase);
+                lastModifiedMap = new ConcurrentDictionary<string, DateTime>(StringComparer.OrdinalIgnoreCase);
             ReadMap();
         }
 
@@ -99,7 +107,7 @@ namespace ABB.SrcML {
             return fileNames;
         }
 
-        public DateTime GetLastModifiedTime(string fileName) {
+        public virtual DateTime GetLastModifiedTime(string fileName) {
             if(ContainsFile(fileName)) {
                 return lastModifiedMap[GetFullPath(fileName)];
             }

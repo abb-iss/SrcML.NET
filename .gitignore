@@ -106,3 +106,6 @@ UpgradeLog*.XML
 # Klocwork analysis files
 .klocwork/
 
+UpgradeLog.htm
+VisualStudio/ProgramTransformationSetup/external.wxs
+.HistoryData/

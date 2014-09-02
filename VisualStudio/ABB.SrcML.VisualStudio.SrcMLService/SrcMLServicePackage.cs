@@ -25,11 +25,10 @@ using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using log4net;
 using ABB.SrcML.Utilities;
-using ABB.VisualStudio.Interfaces;
 using ABB.VisualStudio;
-using ABB.SrcML.VisualStudio.Interfaces;
+using ABB.SrcML.Data;
 
-namespace ABB.SrcML.VisualStudio.SrcMLService {
+namespace ABB.SrcML.VisualStudio {
     /// <summary>
     /// This is the class that implements the package exposed by this assembly.
     ///
@@ -83,10 +82,11 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
     [ProvideService(typeof(SSrcMLGlobalService))]
     [ProvideService(typeof(STaskManagerService))]
     [ProvideService(typeof(SSrcMLDataService))]
+    [ProvideService(typeof(SWorkingSetRegistrarService))]
     /// <summary>
     /// Get the Guid.
     /// </summary>
-    [Guid(GuidList.guidSrcMLServicePkgString)]
+    [Guid(GuidList.SrcMLServicePackageId)]
 
     /// <summary>
     /// This attribute starts up this extension early so that it can listen to solution events.
@@ -114,15 +114,12 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         /// </summary>
         private IVsActivityLog ActivityLog;
 
+        private IWorkingSetRegistrarService _workingSetRegistrar;
+
         /// <summary>
         /// log4net logger.
         /// </summary>
         private ILog logger;
-
-        /// <summary>
-        /// The path of the SrcML.NET Service VS extension
-        /// </summary>
-        private string extensionDirectory;
 
         /// <summary>
         /// Default constructor of the package.
@@ -150,9 +147,13 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             serviceContainer.AddService(typeof(SSrcMLGlobalService), callback, true);
             serviceContainer.AddService(typeof(SSrcMLDataService), callback, true);
             serviceContainer.AddService(typeof(STaskManagerService), callback, true);
-            serviceContainer.AddService(typeof(SSrcMLLocalService), callback);
+            serviceContainer.AddService(typeof(SWorkingSetRegistrarService), callback, true);
         }
 
+        /// <summary>
+        /// The directory where this package is installed
+        /// </summary>
+        public string ExtensionDirectory { get; private set; }
         /// <summary>
         /// Step 3: Implement the callback method.
         /// This is the function that will create a new instance of the services the first time a client
@@ -175,20 +176,24 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             // Find the type of the requested service and create it.
             if(typeof(SSrcMLGlobalService) == serviceType) {
                 // Build the global service using this package as its service provider.
-                return new SrcMLGlobalService(this, extensionDirectory);
+                ITaskManagerService taskManager = GetService(typeof(STaskManagerService)) as ITaskManagerService;
+                return new VsMonitoringService(this, taskManager);
             }
 
             if(typeof(SSrcMLDataService) == serviceType) {
-                return new SrcMLDataService(this);
-            }
+                ITaskManagerService taskManager = GetService(typeof(STaskManagerService)) as ITaskManagerService;
+                ISrcMLGlobalService srcMLService = GetService(typeof(SSrcMLGlobalService)) as ISrcMLGlobalService;
+                IWorkingSetRegistrarService workingSetService = GetService(typeof(SWorkingSetRegistrarService)) as IWorkingSetRegistrarService;
 
-            if(typeof(SSrcMLLocalService) == serviceType) {
-                // Build the local service using this package as its service provider.
-                return new SrcMLLocalService(this);
+                return new VsDataService(this, taskManager, srcMLService, workingSetService);
             }
 
             if(typeof(STaskManagerService) == serviceType) {
                 return new TaskManagerService(this, new ConservativeAbbCoreStrategy());
+            }
+
+            if(typeof(SWorkingSetRegistrarService) == serviceType) {
+                return new WorkingSetRegistrarService(this);
             }
 
             // If we are here the service type is unknown, so write a message on the debug output
@@ -207,7 +212,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
             base.Initialize();
 
-            SetUpSrcMLServiceExtensionDirectory();
+            ExtensionDirectory = GetExtensionDirectory();
 
             SetUpLogger();
 
@@ -219,22 +224,17 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
             SetUpSrcMLService();
 
+            SetupWorkingSetRegistrar();
+
             SetUpDTEEvents();
 
             SrcMLFileLogger.DefaultLogger.Info("Initialization completed.");
         }
         #endregion
 
-        /// <summary>
-        /// Set up the working directory of the SrcMLService extention.
-        /// </summary>
-        /// <returns></returns>
-        private void SetUpSrcMLServiceExtensionDirectory() {
-            //pluginDirectory = Path.GetDirectoryName(Assembly.GetCallingAssembly().Location);
+        private string GetExtensionDirectory() {
             var uri = new UriBuilder(Assembly.GetExecutingAssembly().CodeBase);
-            extensionDirectory = Path.GetDirectoryName(Uri.UnescapeDataString(uri.Path));
-
-            SrcMLFileLogger.DefaultLogger.Info("> Set up working directory. [" + extensionDirectory + "]");
+            return Path.GetDirectoryName(Uri.UnescapeDataString(uri.Path));
         }
 
         /// <summary>
@@ -243,7 +243,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
         private void SetUpLogger() {
             //var logFilePath = Path.Combine("C:\\Data\\", this.ToString() + ".log");
             //logger = SrcMLFileLogger.CreateFileLogger(this.ToString() + "Logger", logFilePath);
-            var logFilePath = Path.Combine(extensionDirectory, "SrcML.NETService.log");
+            var logFilePath = Path.Combine(ExtensionDirectory, "SrcML.NETService.log");
             logger = SrcMLFileLogger.CreateFileLogger("SrcMLServiceLogger", logFilePath);
             SrcMLFileLogger.DefaultLogger.Info("> Set up log4net logger.");
         }
@@ -313,6 +313,10 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
             }
         }
 
+        private void SetupWorkingSetRegistrar() {
+            _workingSetRegistrar = GetService(typeof(SWorkingSetRegistrarService)) as IWorkingSetRegistrarService;
+            _workingSetRegistrar.RegisterWorkingSetFactory(new DefaultWorkingSetFactory<CompleteWorkingSet>());
+        }
         /// <summary>
         /// Register Visual Studio DTE events.
         /// </summary>
@@ -407,7 +411,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService {
 
         Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args) {
             var assemblyName = new AssemblyName(args.Name);
-            string assemblyFilePath = Path.Combine(extensionDirectory, assemblyName.Name + ".dll");
+            string assemblyFilePath = Path.Combine(ExtensionDirectory, assemblyName.Name + ".dll");
             
             Assembly assembly = null;
             if(!String.IsNullOrWhiteSpace(assemblyFilePath) && File.Exists(assemblyFilePath)) {

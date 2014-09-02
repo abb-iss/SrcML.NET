@@ -39,23 +39,13 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
-        /// Checks if the using statement is a namespace import
-        /// </summary>
-        /// <param name="aliasStatement"></param>
-        /// <returns></returns>
-        public override bool AliasIsNamespaceImport(XElement aliasStatement) {
-            // TODO handle "using A = B.C"
-            return true;
-        }
-
-        /// <summary>
         /// Tests whether this container is a reference or whether it includes a definition.
         /// </summary>
         /// <param name="element">The element to test</param>
         /// <returns>True if this is a reference element; false otherwise</returns>
-        public override bool ContainerIsReference(XElement element) {
+        protected override bool ContainerIsReference(XElement element) {
             if(element == null) {
-                throw new ArgumentNullException("typeUseElement");
+                throw new ArgumentNullException("element");
             }
 
             var functionNames = new[] { SRC.Function, SRC.Constructor, SRC.Destructor };
@@ -77,7 +67,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="typeElement">The type element to parse</param>
         /// <returns>The type use elements</returns>
-        public override IEnumerable<XElement> GetParentTypeUseElements(XElement typeElement) {
+        protected override IEnumerable<XElement> GetParentTypeUseElements(XElement typeElement) {
             var superElement = typeElement.Element(SRC.Super);
             if(superElement != null) {
                 return superElement.Elements(SRC.Name);
@@ -90,7 +80,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="literalValue">The literal value</param>
         /// <returns>returns "bool"</returns>
-        public override string GetTypeForBooleanLiteral(string literalValue) {
+        protected override string GetTypeForBooleanLiteral(string literalValue) {
             return "bool";
         }
 
@@ -99,7 +89,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="literalValue">The literal value</param>
         /// <returns>returns "char"</returns>
-        public override string GetTypeForCharacterLiteral(string literalValue) {
+        protected override string GetTypeForCharacterLiteral(string literalValue) {
             return "char";
         }
 
@@ -109,7 +99,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="literalValue">The literal value</param>
         /// <returns>returns the appropriate numeric type</returns>
-        public override string GetTypeForNumberLiteral(string literalValue) {
+        protected override string GetTypeForNumberLiteral(string literalValue) {
             //rules taken from C# 4.0 in a Nutshell by Joseph Albahari and Ben Albahari, page 22.
             bool isHex = literalValue.StartsWith("0x");
             string suffix;
@@ -151,7 +141,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="literalValue">The literal value</param>
         /// <returns>Returns "string"</returns>
-        public override string GetTypeForStringLiteral(string literalValue) {
+        protected override string GetTypeForStringLiteral(string literalValue) {
             return "string";
         }
 
@@ -160,133 +150,232 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="namespaceElement">the namespace element to parse</param>
         /// <param name="context">the parser context</param>
-        public override void ParseNamespaceElement(XElement namespaceElement, ParserContext context) {
+        protected override NamespaceDefinition ParseNamespaceElement(XElement namespaceElement, ParserContext context) {
             if(namespaceElement == null)
                 throw new ArgumentNullException("namespaceElement");
             if(!NamespaceElementNames.Contains(namespaceElement.Name))
                 throw new ArgumentException(string.Format("Not a valid namespace element: {0}", namespaceElement.Name), "namespaceElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
 
             var nameElement = namespaceElement.Element(SRC.Name);
-            string namespaceName;
             if(nameElement == null) {
-                namespaceName = string.Empty;
-            } else {
-                NamespaceDefinition root = null;
-                foreach(var name in NameHelper.GetNameElementsFromName(nameElement)) {
-                    var namespaceForName = new NamespaceDefinition() {
-                        Name = name.Value,
-                        ProgrammingLanguage = ParserLanguage,
-                    };
-                    if(root == null) {
-                        root = namespaceForName;
-                    } else {
-                        namespaceForName.AddSourceLocation(context.CreateLocation(name));
-                    }
-                    context.Push(namespaceForName, root);
+                throw new ParseException(context.FileName, namespaceElement.GetSrcLineNumber(), namespaceElement.GetSrcLinePosition(), this,
+                                         "No SRC.Name element found in namespace.", null);
+            }
+
+            //parse the name and create a NamespaceDefinition for each component
+            NamespaceDefinition topNS = null;
+            NamespaceDefinition lastNS = null;
+            foreach(var name in NameHelper.GetNameElementsFromName(nameElement)) {
+                var newNS = new NamespaceDefinition {
+                    Name = name.Value,
+                    ProgrammingLanguage = ParserLanguage
+                };
+                newNS.AddLocation(context.CreateLocation(name));
+                if(topNS == null) { topNS = newNS; }
+                if(lastNS != null) {
+                    lastNS.AddChildStatement(newNS);
+                }
+                lastNS = newNS;
+            }
+
+            //add body of namespace to lastNS
+            var blockElement = namespaceElement.Element(SRC.Block);
+            if(blockElement != null) {
+                foreach(var child in blockElement.Elements()) {
+                    lastNS.AddChildStatement(ParseStatement(child, context));
                 }
             }
+
+            return topNS;
         }
 
         /// <summary>
-        /// Parses the given typeElement and returns a TypeDefinition object.
+        /// Parses the given <paramref name="aliasElement"/> and creates an ImportStatement or AliasStatement from it.
         /// </summary>
-        /// <param name="typeElement">the type XML type element.</param>
-        /// <param name="context">the parser context</param>
-        /// <returns>A new TypeDefinition object</returns>
-        public override void ParseTypeElement(XElement typeElement, ParserContext context) {
-            base.ParseTypeElement(typeElement, context);
+        /// <param name="aliasElement">The alias element to parse.</param>
+        /// <param name="context">The parser context to use.</param>
+        /// <returns>An ImportStatement if the element is an import, or an AliasStatement if it is an alias.</returns>
+        protected override Statement ParseAliasElement(XElement aliasElement, ParserContext context) {
+            if(aliasElement == null)
+                throw new ArgumentNullException("aliasElement");
+            if(aliasElement.Name != AliasElementName)
+                throw new ArgumentException(string.Format("Must be a SRC.{0} element", AliasElementName.LocalName), "aliasElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+            
+            Statement stmt = null;
+            if(GetTextNodes(aliasElement).Any(n => n.Value.Contains("("))) {
+                //using block
+                stmt = ParseUsingBlockElement(aliasElement, context);
+            } else if(aliasElement.Element(SRC.Init) != null) {
+                //alias
+                var alias = new AliasStatement() {ProgrammingLanguage = ParserLanguage};
+                alias.AddLocation(context.CreateLocation(aliasElement));
 
-            var partials = from specifiers in typeElement.Elements(SRC.Specifier)
-                           where specifiers.Value == "partial"
-                           select specifiers;
-            (context.CurrentScope as ITypeDefinition).IsPartial = partials.Any();
+                var nameElement = aliasElement.Element(SRC.Name);
+                if(nameElement != null) {
+                    alias.AliasName = nameElement.Value;
+                }
+
+                var initElement = aliasElement.Element(SRC.Init);
+                alias.Target = ParseExpression<TypeContainerUse>(GetFirstChildExpression(initElement), context);
+                
+                stmt = alias;
+            } else {
+                //import
+                var import = new ImportStatement() {ProgrammingLanguage = ParserLanguage};
+                import.AddLocation(context.CreateLocation(aliasElement));
+
+                var nameElement = aliasElement.Element(SRC.Name);
+                if(nameElement != null) {
+                    import.ImportedNamespace = ParseNameUseElement<NamespaceUse>(nameElement, context);
+                }
+
+                stmt = import;
+            }
+            
+            return stmt;
         }
 
         /// <summary>
-        /// Parses the given typeUseElement and returns a TypeUse object. This handles the "var"
-        /// keyword for C# if used
+        /// Parses the given <paramref name="usingElement"/> and creates a <see cref="UsingBlockStatement"/> from it.
         /// </summary>
-        /// <param name="typeUseElement">The XML type use element</param>
+        /// <param name="usingElement">The SRC.Using element to parse.</param>
+        /// <param name="context">The parser context to use.</param>
+        /// <returns>A UsingBlockStatement created from the given usingElement.</returns>
+        protected virtual UsingBlockStatement ParseUsingBlockElement(XElement usingElement, ParserContext context) {
+            if(usingElement == null)
+                throw new ArgumentNullException("usingElement");
+            if(usingElement.Name != SRC.Using)
+                throw new ArgumentException("Must be a SRC.Using element", "usingElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            var usingStmt = new UsingBlockStatement() {ProgrammingLanguage = ParserLanguage};
+            usingStmt.AddLocation(context.CreateLocation(usingElement));
+
+            foreach(var child in usingElement.Elements()) {
+                if(child.Name == SRC.Init) {
+                    //TODO: waiting for update to srcml
+                    usingStmt.Initializer = ParseExpression(GetChildExpressions(child), context);
+                }
+                else if(child.Name == SRC.Block) {
+                    var blockStatements = child.Elements().Select(e => ParseStatement(e, context));
+                    usingStmt.AddChildStatements(blockStatements);
+                } else {
+                    usingStmt.AddChildStatement(ParseStatement(child, context));
+                }
+            }
+
+            return usingStmt;
+        }
+
+        /// <summary>
+        /// Creates a <see cref="MethodDefinition"/> object for <paramref name="methodElement"/>.
+        /// </summary>
+        /// <param name="methodElement">The element to parse</param>
+        /// <param name="context">The context to use</param>
+        protected override MethodDefinition ParseMethodElement(XElement methodElement, ParserContext context) {
+            var methodDefinition = base.ParseMethodElement(methodElement, context);
+            
+            var typeElement = methodElement.Elements(SRC.Type).FirstOrDefault();
+            methodDefinition.IsPartial = ElementHasPartialKeyword(null == typeElement ? methodElement : typeElement);
+
+            return methodDefinition;
+        }
+
+        /// <summary>
+        /// Parses an element corresponding to a type definition and creates a TypeDefinition object 
+        /// </summary>
+        /// <param name="typeElement">The type element to parse. This must be one of the elements contained in TypeElementNames.</param>
         /// <param name="context">The parser context</param>
-        /// <returns>A new TypeUse object</returns>
-        public override ITypeUse ParseTypeUseElement(XElement typeUseElement, ParserContext context) {
-            if(typeUseElement == null)
-                throw new ArgumentNullException("typeUseElement");
-
-            XElement typeElement;
-            XElement typeNameElement;
-
-            // validate the type use typeUseElement (must be a SRC.Name or SRC.Type)
-            if(typeUseElement.Name == SRC.Type) {
-                typeElement = typeUseElement;
-                typeNameElement = typeUseElement.Elements(SRC.Name).LastOrDefault();
-            } else if(typeUseElement.Name == SRC.Name) {
-                typeElement = typeUseElement.Ancestors(SRC.Type).FirstOrDefault();
-                typeNameElement = typeUseElement;
-            } else {
-                throw new ArgumentException("typeUseElement should be of type type or name", "typeUseElement");
-            }
-
-            if(typeNameElement.Value == "var") {
-                var initElement = typeElement.ElementsAfterSelf(SRC.Init).FirstOrDefault();
-                var expressionElement = (null == initElement ? null : initElement.Element(SRC.Expression));
-                var callElement = (null == expressionElement ? null : expressionElement.Element(SRC.Call));
-
-                IResolvesToType initializer = (null == callElement ? null : ParseCallElement(callElement, context));
-                var typeUse = new CSharpVarTypeUse() {
-                    Name = typeNameElement.Value,
-                    Initializer = initializer,
-                    ParentScope = context.CurrentScope,
-                    Location = context.CreateLocation(typeNameElement),
-                    ProgrammingLanguage = this.ParserLanguage,
-                };
-                return typeUse;
-            } else {
-                return base.ParseTypeUseElement(typeUseElement, context);
-            }
+        /// <returns>A TypeDefinition parsed from the element</returns>
+        protected override TypeDefinition ParseTypeElement(XElement typeElement, ParserContext context) {
+            var typeDefinition = base.ParseTypeElement(typeElement, context);
+            typeDefinition.IsPartial = ElementHasPartialKeyword(typeElement);
+            return typeDefinition;
         }
 
-        //TODO: implement support for using blocks, once SrcML has been fixed to parse them correctly
-        ///// <summary>
-        ///// Gets all of the variable declarations from a container
-        ///// </summary>
-        ///// <param name="container">the container</param>
-        ///// <param name="fileUnit">the containing file unit</param>
-        ///// <returns>An enumerable of variable declarations</returns>
-        //public override IEnumerable<VariableDeclaration> GetVariableDeclarationsFromContainer(XElement container, XElement fileUnit, Scope parentScope) {
-        //    if(null == container) return Enumerable.Empty<VariableDeclaration>();
+        
+        /// <summary>
+        /// Creates a <see cref="Statement"/> object for <paramref name="stmtElement"/>.
+        /// The expression contained within <paramref name="stmtElement"/> will be parsed and placed in 
+        /// Statement.Content.
+        /// </summary>
+        /// <param name="stmtElement">The SRC.ExpressionStatement element to parse.</param>
+        /// <param name="context">The context to use.</param>
+        /// <returns>A <see cref="Statement"/> corresponding to <paramref name="stmtElement"/>.</returns>
+        protected override Statement ParseDeclarationStatementElement(XElement stmtElement, ParserContext context) {
+            if(stmtElement == null)
+                throw new ArgumentNullException("stmtElement");
+            if(stmtElement.Name != SRC.DeclarationStatement)
+                throw new ArgumentException("Must be a SRC.DeclarationStatement element", "stmtElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+            
+            //first check if this is a property and parse accordingly
+            var declElement = stmtElement.Element(SRC.Declaration);
+            if(declElement != null) {
+                var blockElement = declElement.Element(SRC.Block);
+                if(blockElement != null) {
+                    //this is a property
+                    return ParsePropertyDeclarationElement(declElement, context);
+                }
+            }
 
-        // if(container.Name != SRC.Using) { return
-        // base.GetVariableDeclarationsFromContainer(container, fileUnit, parentScope); } //parse
-        // using typeUseElement
+            //otherwise, parse as base:
+            return base.ParseDeclarationStatementElement(stmtElement, context);
+        }
 
-        //}
+        /// <summary>
+        /// Creates a <see cref="PropertyDefinition"/> object for <paramref name="declElement"/>.
+        /// </summary>
+        /// <param name="declElement">The SRC.Declaration element to parse. This must be a declaration of a property.</param>
+        /// <param name="context">The context to use.</param>
+        /// <returns>A <see cref="PropertyDefinition"/> corresponding to <paramref name="declElement"/>.</returns>
+        protected virtual PropertyDefinition ParsePropertyDeclarationElement(XElement declElement, ParserContext context) {
+            if(declElement == null)
+                throw new ArgumentNullException("declElement");
+            if(declElement.Name != SRC.Declaration)
+                throw new ArgumentException("Must be a SRC.Declaration element", "declElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            var propertyDef = new PropertyDefinition {ProgrammingLanguage = ParserLanguage};
+            propertyDef.AddLocation(context.CreateLocation(declElement));
+
+            foreach(var child in declElement.Elements()) {
+                if(child.Name == SRC.Type) {
+                    propertyDef.Accessibility = GetAccessModifierFromTypeUseElement(child);
+                    propertyDef.ReturnType = ParseTypeUseElement(child, context);
+                }
+                else if(child.Name == SRC.Name) {
+                    propertyDef.Name = child.Value;
+                }
+                else if(child.Name == SRC.Block) {
+                    //add children from block. This should be the getter/setter methods
+                    var blockStatements = child.Elements().Select(e => ParseStatement(e, context));
+                    propertyDef.AddChildStatements(blockStatements);
+                } else {
+                    propertyDef.AddChildStatement(ParseStatement(child, context));
+                }
+            }
+
+            return propertyDef;
+        }
 
         #region Private methods
 
-        private NamespaceUse CreateNamespaceUsePrefix(XElement nameElement, ParserContext context) {
-            IEnumerable<XElement> parentNameElements = Enumerable.Empty<XElement>();
-
-            parentNameElements = NameHelper.GetNameElementsExceptLast(nameElement);
-            NamespaceUse current = null, root = null;
-
-            if(parentNameElements.Any()) {
-                foreach(var element in parentNameElements) {
-                    var namespaceUse = new NamespaceUse {
-                        Name = element.Value,
-                        Location = context.CreateLocation(element, false),
-                        ProgrammingLanguage = this.ParserLanguage,
-                    };
-                    if(null == root) {
-                        root = namespaceUse;
-                    }
-                    if(current != null) {
-                        current.ChildScopeUse = namespaceUse;
-                    }
-                    current = namespaceUse;
-                }
-            }
-            return root;
+        /// <summary>
+        /// Determines whether the given element contains a specifier element with the value "partial".
+        /// </summary>
+        private bool ElementHasPartialKeyword(XElement element) {
+            var partials = from specifier in element.Elements(SRC.Specifier)
+                           where specifier.Value == "partial"
+                           select specifier;
+            return partials.Any();
         }
 
         #endregion Private methods

@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace ABB.SrcML.Tools.MethodCallSurvey {
 
@@ -21,7 +22,7 @@ namespace ABB.SrcML.Tools.MethodCallSurvey {
             : this(null, null, sampleSize) {
         }
 
-        public MethodCallSample(ISrcMLArchive archive, IDataRepository data, int sampleSize) {
+        public MethodCallSample(SrcMLArchive archive, AbstractWorkingSet data, int sampleSize) {
             this.Archive = archive;
             this.Data = data;
             this.Date = DateTime.Now;
@@ -41,7 +42,7 @@ namespace ABB.SrcML.Tools.MethodCallSurvey {
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public ISrcMLArchive Archive { get; set; }
+        public SrcMLArchive Archive { get; set; }
 
         public ObservableCollection<MethodCall> CallSample {
             get { return this._callSampleCollection; }
@@ -73,7 +74,7 @@ namespace ABB.SrcML.Tools.MethodCallSurvey {
             }
         }
 
-        public IDataRepository Data { get; set; }
+        public AbstractWorkingSet Data { get; set; }
 
         public DateTime Date {
             get { return this._dateCreated; }
@@ -114,26 +115,36 @@ namespace ABB.SrcML.Tools.MethodCallSurvey {
         }
 
         public ObservableCollection<MethodCall> GetSampleOfMethodCalls(BackgroundWorker worker) {
-            var allCalls = from scope in Data.GetGlobalScope().GetDescendantScopes()
-                           from call in scope.MethodCalls
-                           select call;
-            int numberOfCalls = allCalls.Count();
+            // TODO reimplement once the MethodCalls property has been added
+            //try {
+            //    NamespaceDefinition globalScope;
+            //    if(Data.TryLockGlobalScope(Timeout.Infinite, out globalScope)) {
+            //        var allCalls = from scope in globalScope.GetDescendants()
+            //                       from call in scope.MethodCalls
+            //                       select call;
+            //        int numberOfCalls = allCalls.Count();
 
-            if(null != worker) {
-                worker.ReportProgress(0, String.Format("Found {0} calls", numberOfCalls));
-            }
+            //        if(null != worker) {
+            //            worker.ReportProgress(0, String.Format("Found {0} calls", numberOfCalls));
+            //        }
 
-            var rng = new Random();
-            var randomCallSample = allCalls.OrderBy(x => rng.Next()).Take(SampleSize);
+            //        var rng = new Random();
+            //        var randomCallSample = allCalls.OrderBy(x => rng.Next()).Take(SampleSize);
 
-            var calls = from call in randomCallSample
-                        select new MethodCall(Archive, call);
+            //        var calls = from call in randomCallSample
+            //                    select new MethodCall(Archive, call);
 
-            var callCollection = new ObservableCollection<MethodCall>(calls.Take(SampleSize));
-            if(null != worker) {
-                worker.ReportProgress(100, String.Format("Showing {0} / {1} calls", SampleSize, numberOfCalls));
-            }
-            return callCollection;
+            //        var callCollection = new ObservableCollection<MethodCall>(calls.Take(SampleSize));
+            //        if(null != worker) {
+            //            worker.ReportProgress(100, String.Format("Showing {0} / {1} calls", SampleSize, numberOfCalls));
+            //        }
+            //        return callCollection;
+            //    }
+            //} finally {
+            //    Data.ReleaseGlobalScopeLock();
+            //}
+            //return null;
+            throw new NotImplementedException();
         }
 
         public void StartMonitoringCalls() {

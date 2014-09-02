@@ -37,8 +37,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
-    <Reference Include="nunit.framework, Version=2.6.1.12217, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NUnit.2.6.1\lib\nunit.framework.dll</HintPath>
+    <Reference Include="nunit.framework, Version=2.6.3.13283, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
@@ -58,10 +59,6 @@
     <Compile Include="SyntacticCategoryTest.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\ABB.SrcML.Core\ABB.SrcML.Core.csproj">
-      <Project>{db649b35-b045-47c3-9903-f3404fa9c1be}</Project>
-      <Name>ABB.SrcML.Core</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\ABB.SrcML\ABB.SrcML.csproj">
       <Project>{d52626e7-a4ca-471a-8a6a-fe0110430fe6}</Project>
       <Name>ABB.SrcML</Name>
@@ -72,10 +69,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ItemGroup>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

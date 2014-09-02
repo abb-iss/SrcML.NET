@@ -70,7 +70,7 @@ namespace ABB.SrcML.Test
         [Test]
         public void FileWithBom()
         {
-            var srcmlObject = new ABB.SrcML.SrcML();
+            var srcmlObject = new ABB.SrcML.SrcML(Path.Combine(".", "SrcML"));
 
             var doc = srcmlObject.GenerateSrcMLFromFile("external\\fileWithBom.cpp", "external_xml\\fileWithBom.xml");
         }
@@ -78,7 +78,7 @@ namespace ABB.SrcML.Test
         [Test]
         public void JavaClassWithConstructor()
         {
-            var srcmlObject = new Src2SrcMLRunner();
+            var srcmlObject = new Src2SrcMLRunner(Path.Combine(".", "SrcML"));
 
             var doc = srcmlObject.GenerateSrcMLFromFile("external\\ClassWithConstructor.java", "external_xml\\ClassWithConstructor.java.xml");
             XElement classBlock = null;
@@ -91,7 +91,7 @@ namespace ABB.SrcML.Test
         [Test]
         public void DeclStmtWithTwoDecl()
         {
-            var srcmlObject = new Src2SrcMLRunner();
+            var srcmlObject = new Src2SrcMLRunner(Path.Combine(".", "SrcML"));
             var source = "int x = 0, y = 2;";
 
             var xml = srcmlObject.GenerateSrcMLFromString(source);
@@ -107,7 +107,7 @@ namespace ABB.SrcML.Test
         [Test]
         public void FunctionWithElseInCpp()
         {
-            var srcmlObject = new Src2SrcMLRunner();
+            var srcmlObject = new Src2SrcMLRunner(Path.Combine(".", "SrcML"));
 
             var doc = srcmlObject.GenerateSrcMLFromFile("external\\cpp_parsing_error.c", "external_xml\\cpp_parsing_error.c.xml");
 
@@ -117,7 +117,7 @@ namespace ABB.SrcML.Test
         [Test]
         public void MacroWithoutSemicolon()
         {
-            var srcmlObject = new Src2SrcMLRunner();
+            var srcmlObject = new Src2SrcMLRunner(Path.Combine(".", "SrcML"));
 
             var doc = srcmlObject.GenerateSrcMLFromFile("external\\MacroWithoutSemicolon.cpp", "external_xml\\MacroWithoutSemicolon.cpp.xml");
 
@@ -127,7 +127,7 @@ namespace ABB.SrcML.Test
         [Test]
         public void DestructorWithIfStatement()
         {
-            var srcmlObject = new Src2SrcMLRunner();
+            var srcmlObject = new Src2SrcMLRunner(Path.Combine(".", "SrcML"));
 
             var doc = srcmlObject.GenerateSrcMLFromFile("external\\DestructorWithIfStatement.cpp", "external_xml\\DestructorWithIfStatement.cpp.xml");
 
@@ -137,7 +137,7 @@ namespace ABB.SrcML.Test
         [Test]
         public void MethodWithFunctionPointerAsParameter()
         {
-            var srcmlObject = new Src2SrcMLRunner();
+            var srcmlObject = new Src2SrcMLRunner(Path.Combine(".", "SrcML"));
 
             var doc = srcmlObject.GenerateSrcMLFromFile("external\\MethodWithFunctionPointerParameters.cpp", "external_xml\\MethodWithFunctionPointerParameters.cpp.xml");
 

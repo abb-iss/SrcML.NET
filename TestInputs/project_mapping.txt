@@ -1,0 +1,3 @@
+# The project_mapping is used by SrcML Data RealWorldTests class
+# DON'T COMMIT THIS FILE
+# Project Name,Version,Primary Language,Full Path
