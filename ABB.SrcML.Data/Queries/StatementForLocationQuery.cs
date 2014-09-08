@@ -62,7 +62,7 @@ namespace ABB.SrcML.Data.Queries {
     /// This query object finds the deepest descendant of a statement that contains a given location and has type <typeparamref name="TStatement"/>
     /// </summary>
     /// <typeparam name="TStatement"></typeparam>
-    public class ScopeForLocationQuery<TStatement>
+    public class StatementForLocationQuery<TStatement>
         : AbstractQuery<SourceLocation, TStatement> where TStatement : Statement, new() {
         /// <summary>
         /// Creates a new query object
@@ -70,7 +70,7 @@ namespace ABB.SrcML.Data.Queries {
         /// <param name="workingSet">The working set to query</param>
         /// <param name="lockTimeout">The time in milliseconds to wait for the read lock</param>
         /// <param name="factory">The task factory for asynchronous queries</param>
-        public ScopeForLocationQuery(AbstractWorkingSet workingSet, int lockTimeout, TaskFactory factory)
+        public StatementForLocationQuery(AbstractWorkingSet workingSet, int lockTimeout, TaskFactory factory)
             : base(workingSet, lockTimeout, factory){ }
 
         /// <summary>
