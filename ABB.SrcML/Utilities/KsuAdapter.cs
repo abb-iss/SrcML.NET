@@ -99,18 +99,19 @@ namespace ABB.SrcML.Utilities
         [SecurityPermission(SecurityAction.Demand, Unrestricted=true)]
         internal static void RunExecutable(string executableFileName, string arguments)
         {
-            using (Process p = new Process())
-            {
-                p.StartInfo.FileName = executableFileName;
-                p.StartInfo.Arguments = arguments;
-                p.StartInfo.CreateNoWindow = true;
+            using(new ErrorModeContext(ErrorModes.FailCriticalErrors | ErrorModes.NoGpFaultErrorBox)) {
+                using(Process p = new Process()) {
+                    p.StartInfo.FileName = executableFileName;
+                    p.StartInfo.Arguments = arguments;
+                    p.StartInfo.CreateNoWindow = true;
 
-                p.StartInfo.UseShellExecute = false;
+                    p.StartInfo.UseShellExecute = false;
 
-                p.Start();
-                
-                p.WaitForExit();
-                RaiseExceptionOnError(executableFileName, arguments, (ExecutableReturnValue) p.ExitCode);
+                    p.Start();
+
+                    p.WaitForExit();
+                    RaiseExceptionOnError(executableFileName, arguments, (ExecutableReturnValue) p.ExitCode);
+                }
             }
         }
         
@@ -119,24 +120,27 @@ namespace ABB.SrcML.Utilities
         internal static string RunExecutable(string executableFileName, string arguments, string standardInput)
         {
             string output;
-            using (Process p = new Process())
-            {
-                p.StartInfo.FileName = executableFileName;
-                p.StartInfo.Arguments = arguments;
-                p.StartInfo.CreateNoWindow = true;
+            
+            using(new ErrorModeContext(ErrorModes.FailCriticalErrors | ErrorModes.NoGpFaultErrorBox)) {
+                using (Process p = new Process())
+                {
+                    p.StartInfo.FileName = executableFileName;
+                    p.StartInfo.Arguments = arguments;
+                    p.StartInfo.CreateNoWindow = true;
 
-                p.StartInfo.UseShellExecute = false;
-                p.StartInfo.RedirectStandardInput = true;
-                p.StartInfo.RedirectStandardOutput = true;
+                    p.StartInfo.UseShellExecute = false;
+                    p.StartInfo.RedirectStandardInput = true;
+                    p.StartInfo.RedirectStandardOutput = true;
 
-                p.Start();
+                    p.Start();
 
-                p.StandardInput.Write(standardInput);
-                p.StandardInput.Close();
-                output = p.StandardOutput.ReadToEnd();
+                    p.StandardInput.Write(standardInput);
+                    p.StandardInput.Close();
+                    output = p.StandardOutput.ReadToEnd();
 
-                p.WaitForExit();
-                RaiseExceptionOnError(executableFileName, arguments, (ExecutableReturnValue)p.ExitCode);
+                    p.WaitForExit();
+                    RaiseExceptionOnError(executableFileName, arguments, (ExecutableReturnValue)p.ExitCode);
+                }
             }
             return output;
         }

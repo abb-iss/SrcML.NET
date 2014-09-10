@@ -90,6 +90,7 @@
     <Compile Include="SrcMLNamespaces.cs" />
     <Compile Include="Exceptions\SrcMLRequiredNameException.cs" />
     <Compile Include="Utilities\ConservativeAbbCoreStrategy.cs" />
+    <Compile Include="Utilities\ErrorModeContext.cs" />
     <Compile Include="Utilities\IConcurrencyStrategy.cs" />
     <Compile Include="Utilities\LimitedConcurrencyLevelTaskScheduler.cs" />
     <Compile Include="Utilities\ReadyNotifier.cs" />

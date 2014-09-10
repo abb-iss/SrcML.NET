@@ -65,6 +65,14 @@ namespace ABB.SrcML.Data.Queries {
     public class StatementForLocationQuery<TStatement>
         : AbstractQuery<SourceLocation, TStatement> where TStatement : Statement, new() {
         /// <summary>
+        /// Create a new query object
+        /// </summary>
+        /// <param name="workingSet">The working set to query</param>
+        /// <param name="lockTimeout">The time in milliseconds to wait for the read lock</param>
+        public StatementForLocationQuery(AbstractWorkingSet workingSet, int lockTimeout)
+            : base(workingSet, lockTimeout) { }
+
+        /// <summary>
         /// Creates a new query object
         /// </summary>
         /// <param name="workingSet">The working set to query</param>
