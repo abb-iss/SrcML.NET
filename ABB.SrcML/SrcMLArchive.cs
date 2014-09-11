@@ -169,7 +169,7 @@ namespace ABB.SrcML {
                 string xmlPath = GetArchivePath(sourceFilePath);
                 
                 if(!File.Exists(xmlPath)) {
-                    AddOrUpdateFile(sourceFilePath);
+                    return null;
                 }
                 return SrcMLElement.Load(xmlPath);
             }
