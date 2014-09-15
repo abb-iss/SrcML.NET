@@ -217,7 +217,7 @@ namespace ABB.SrcML.Data {
             
             //search enclosing scopes and base types for the method
             foreach(var scope in ParentStatement.GetAncestors()) {
-                var matches = scope.GetNamedChildren<MethodDefinition>(this).ToList();
+                var matches = scope.GetNamedChildren<MethodDefinition>(this).Where(SignatureMatches).ToList();
                 if(matches.Any()) {
                     return matches;
                 }
