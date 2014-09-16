@@ -95,14 +95,6 @@ namespace ABB.SrcML.VisualStudio {
         public ReadOnlyCollection<string> MonitoredDirectories { get { return (CurrentMonitor == null ? null : this.CurrentMonitor.MonitoredDirectories); } }
 
         /// <summary>
-        /// The interval at which to save state
-        /// </summary>
-        public double SaveInterval {
-            get { return SaveTimer.Interval / 1000; }
-            set { SaveTimer.Interval = value * 1000; }
-        }
-
-        /// <summary>
         /// The interval at which to scan <see cref="MonitoredDirectories"/>
         /// </summary>
         public double ScanInterval {
