@@ -23,6 +23,11 @@ namespace ABB.SrcML.VisualStudio {
         private bool _isMonitoring;
         private bool _isUpdating;
 
+        /// <summary>
+        /// Default interval for the save timer in milliseconds
+        /// </summary>
+        public const int DEFAULT_SAVE_INTERVAL = 300;
+
         private AbstractMonitoringService() {
         }
 
@@ -34,6 +39,7 @@ namespace ABB.SrcML.VisualStudio {
         protected AbstractMonitoringService(SrcMLServicePackage serviceProvider, ITaskManagerService taskManagerService) {
             ServiceProvider = serviceProvider;
             SaveTimer = new ReentrantTimer(Save, GlobalScheduler);
+            SaveInterval = DEFAULT_SAVE_INTERVAL;
             _isMonitoring = false;
             _isUpdating = false;
         }
@@ -82,6 +88,14 @@ namespace ABB.SrcML.VisualStudio {
                     (_isUpdating ? (Action<EventArgs>) OnUpdateStarted : OnUpdateCompleted)(new EventArgs());
                 }
             }
+        }
+
+        /// <summary>
+        /// The interval at which to save state in seconds.
+        /// </summary>
+        public double SaveInterval {
+            get { return SaveTimer.Interval / 1000; }
+            set { SaveTimer.Interval = value * 1000; }
         }
 
         /// <summary>
