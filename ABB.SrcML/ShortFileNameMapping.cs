@@ -29,7 +29,7 @@ namespace ABB.SrcML {
         private Dictionary<string, string> mapping;
         private Dictionary<string, string> reverseMapping;
         private Dictionary<string, int> nameCount;
-
+        private volatile bool _changed;
         /// <summary>
         /// The name to use to save this mapping to disk
         /// </summary>
@@ -73,6 +73,7 @@ namespace ABB.SrcML {
                     targetPath = Path.Combine(TargetDirectory, string.Format("{0}.{1}{2}", sourceName, newNameNum, TargetExtension));
                     mapping[sourcePath] = targetPath;
                     reverseMapping[targetPath] = sourcePath;
+                    _changed = true;
                 }
             }
             return targetPath;
@@ -165,12 +166,15 @@ namespace ABB.SrcML {
         /// Saves the mapping to disk
         /// </summary>
         public override void SaveMapping() {
-            lock(mappingLock) {
-                using(var outFile = new StreamWriter(Path.Combine(TargetDirectory, mappingFile))) {
-                    foreach(var kvp in mapping) {
-                        outFile.WriteLine(string.Format("{0}|{1}", kvp.Key, kvp.Value));
+            if(_changed) {
+                lock(mappingLock) {
+                    using(var outFile = new StreamWriter(Path.Combine(TargetDirectory, mappingFile))) {
+                        foreach(var kvp in mapping) {
+                            outFile.WriteLine(string.Format("{0}|{1}", kvp.Key, kvp.Value));
+                        }
                     }
                 }
+                _changed = false;
             }
         }
 

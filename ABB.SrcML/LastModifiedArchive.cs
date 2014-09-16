@@ -15,6 +15,7 @@ namespace ABB.SrcML {
     /// </summary>
     public class LastModifiedArchive : AbstractArchive {
         // private readonly object mapLock = new object();
+        private volatile bool _changed;
 
         /// <summary>
         /// The default file name to store this archive in
@@ -58,6 +59,7 @@ namespace ABB.SrcML {
             : base(baseDirectory, fileName, scheduler) {
                 lastModifiedMap = new ConcurrentDictionary<string, DateTime>(StringComparer.OrdinalIgnoreCase);
             ReadMap();
+            _changed = false;
         }
 
         /// <summary>
@@ -159,14 +161,21 @@ namespace ABB.SrcML {
         /// Saves this map to disk (at <see cref="AbstractArchive.ArchivePath"/>
         /// </summary>
         public void SaveMap() {
-            if(File.Exists(this.ArchivePath)) {
-                File.Delete(this.ArchivePath);
-            }
+            bool isChanged = _changed;
 
-            using(var output = File.CreateText(this.ArchivePath)) {
-                foreach(var kvp in lastModifiedMap) {
-                    output.WriteLine("{0}|{1}", kvp.Key, kvp.Value.Ticks);
+            if(isChanged) {
+                var mapCopy = new Dictionary<string, DateTime>(lastModifiedMap, StringComparer.OrdinalIgnoreCase);
+                _changed = false;
+
+                var tempFileName = Path.Combine(Path.GetTempPath(), Path.ChangeExtension(Path.GetRandomFileName(), ".txt"));
+
+                using(var output = File.CreateText(tempFileName)) {
+                    foreach(var kvp in mapCopy) {
+                        output.WriteLine("{0}|{1}", kvp.Key, kvp.Value.Ticks);
+                    }
                 }
+                File.Copy(tempFileName, this.ArchivePath, true);
+                File.Delete(tempFileName);
             }
         }
 
@@ -181,6 +190,7 @@ namespace ABB.SrcML {
             string fullPath = GetFullPath(fileName);
             bool fileAlreadyExists = ContainsFile(fileName);
             lastModifiedMap[fullPath] = File.GetLastWriteTime(fullPath);
+            _changed = true;
             return (fileAlreadyExists ? FileEventType.FileChanged : FileEventType.FileAdded);
         }
 
@@ -198,6 +208,7 @@ namespace ABB.SrcML {
             mapContainsFile = lastModifiedMap.ContainsKey(fullPath);
             DateTime result;
             if(lastModifiedMap.TryRemove(fullPath, out result)) {
+                _changed = true;
                 return true;
             }
             return false;
@@ -221,6 +232,7 @@ namespace ABB.SrcML {
             DateTime result;
             lastModifiedMap.TryRemove(oldFullPath, out result);
             lastModifiedMap[newFullPath] = File.GetLastWriteTime(newFullPath);
+            _changed = true;
             return true;
         }
 
