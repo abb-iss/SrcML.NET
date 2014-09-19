@@ -374,6 +374,24 @@ namespace ABB.SrcML.Data {
             return rootScope.GetCallsTo(this, true);
         }
 
+        /// <summary>
+        /// Returns a string representation of this statement.
+        /// </summary>
+        public override string ToString() {
+            var signature = new StringBuilder();
+            if(Accessibility != AccessModifier.None) { signature.AppendFormat("{0} ", Accessibility.ToKeywordString()); }
+            if(IsPartial) { signature.Append("partial "); }
+            if(ReturnType != null) { signature.AppendFormat("{0} ", ReturnType); }
+            if(IsDestructor) { signature.Append("~"); }
+            signature.Append(Name);
+            var paramsString = string.Join(", ", Parameters);
+            signature.AppendFormat("({0})", paramsString);
+            var initString = string.Join(", ", ConstructorInitializers);
+            if(!string.IsNullOrEmpty(initString)) {
+                signature.AppendFormat(" : {0}", initString);
+            }
+            return signature.ToString();
+        }
 
         #region Private Methods
         private static string GetParameterFingerprint(ICollection<VariableDeclaration> parameters) {

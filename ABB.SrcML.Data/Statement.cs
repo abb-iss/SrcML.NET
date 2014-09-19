@@ -527,6 +527,13 @@ namespace ABB.SrcML.Data {
             return Locations.Any(l => xpath.StartsWith(l.XPath));
         }
 
+        /// <summary>
+        /// Returns a string representation of this statement.
+        /// </summary>
+        public override string ToString() {
+            return string.Format("{0};", Content);
+        }
+
         #region Private Methods
         private void AddAliasStatement(Statement child) {
             var loc = child.PrimaryLocation;

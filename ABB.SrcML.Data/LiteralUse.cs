@@ -100,6 +100,7 @@ namespace ABB.SrcML.Data {
             writer.WriteAttributeString(XmlTextName, Text);
             base.WriteXmlAttributes(writer);
         }
+
         /// <summary> Returns the text value of this literal. </summary>
         public override string ToString() {
             return Text;

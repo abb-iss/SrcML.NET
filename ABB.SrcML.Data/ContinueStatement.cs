@@ -29,5 +29,11 @@ namespace ABB.SrcML.Data {
         /// <returns>Returns the XML name for ContinueStatement</returns>
         public override string GetXmlName() { return ContinueStatement.XmlName; }
 
+        /// <summary>
+        /// Returns a string representation of this statement.
+        /// </summary>
+        public override string ToString() {
+            return "continue;";
+        }
     }
 }

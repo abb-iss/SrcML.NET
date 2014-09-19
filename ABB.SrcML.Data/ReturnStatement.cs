@@ -29,5 +29,11 @@ namespace ABB.SrcML.Data {
         /// <returns>Returns the XML name for ReturnStatement</returns>
         public override string GetXmlName() { return ReturnStatement.XmlName; }
 
+        /// <summary>
+        /// Returns a string representation of this statement.
+        /// </summary>
+        public override string ToString() {
+            return string.Format("return {0};", Content);
+        }
     }
 }

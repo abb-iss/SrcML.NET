@@ -90,5 +90,15 @@ namespace ABB.SrcML.Data {
                 yield return Target;
             }
         }
+
+        /// <summary>
+        /// Returns a string representation of this statement.
+        /// </summary>
+        public override string ToString() {
+            if(ProgrammingLanguage == Language.Java) {
+                return string.Format("import {0}", Target);
+            }
+            return string.Format("using {0} = {1}", AliasName, Target);
+        }
     }
 }

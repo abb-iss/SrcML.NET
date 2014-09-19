@@ -77,5 +77,12 @@ namespace ABB.SrcML.Data {
                 yield return Parameter;
             }
         }
+
+        /// <summary>
+        /// Returns a string representation of this statement.
+        /// </summary>
+        public override string ToString() {
+            return string.Format("catch({0})", Parameter);
+        }
     }
 }

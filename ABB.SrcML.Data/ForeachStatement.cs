@@ -28,5 +28,15 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <returns>Returns the XML name for ForeachStatement</returns>
         public override string GetXmlName() { return ForeachStatement.XmlName; }
+
+        /// <summary>
+        /// Returns a string representation of this statement.
+        /// </summary>
+        public override string ToString() {
+            if(ProgrammingLanguage == Language.Java) {
+                return string.Format("for({0})", Condition);
+            }
+            return string.Format("foreach({0})", Condition);
+        }
     }
 }

@@ -29,5 +29,11 @@ namespace ABB.SrcML.Data {
         /// <returns>Returns the XML name for SwitchStatement</returns>
         public override string GetXmlName() { return SwitchStatement.XmlName; }
 
+        /// <summary>
+        /// Returns a string representation of this statement.
+        /// </summary>
+        public override string ToString() {
+            return string.Format("switch({0})", Condition);
+        }
     }
 }

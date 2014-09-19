@@ -13,6 +13,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Xml;
 
 namespace ABB.SrcML.Data {
@@ -130,12 +131,19 @@ namespace ABB.SrcML.Data {
         /// Returns a string representation of this object.
         /// </summary>
         public override string ToString() {
-            //if(Accessibility != AccessModifier.None) {
-            //    return string.Format("{0} {1} {2}", Accessibility.ToKeywordString(), VariableType, Name);
-            //} else {
-            //    return string.Format("{0} {1}", VariableType, Name);
-            //}
-            return string.Format("{0} {1}", VariableType, Name);
+            var str = new StringBuilder();
+            str.AppendFormat("{0} {1}", VariableType, Name);
+            if(Initializer != null) {
+                str.AppendFormat(" = {0}", Initializer);
+            }
+            if(Range != null) {
+                if(ProgrammingLanguage == Language.Java) {
+                    str.AppendFormat(" : {0}", Range);
+                } else {
+                    str.AppendFormat(" in {0}", Range);
+                }
+            }
+            return str.ToString();
         }
 
         /// <summary>

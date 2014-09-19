@@ -10,6 +10,7 @@
  *    Patrick Francis (ABB Group) - initial API, implementation, & documentation
  *****************************************************************************/
 
+using System.Text;
 using ABB.SrcML.Utilities;
 using System;
 using System.Collections.Generic;
@@ -290,6 +291,22 @@ namespace ABB.SrcML.Data {
                 XmlSerialization.WriteCollection<TypeUse>(writer, XmlParentTypeNamesName, ParentTypeNames);
             }
             base.WriteXmlContents(writer);
+        }
+
+        /// <summary>
+        /// Returns a string representation of this statement.
+        /// </summary>
+        public override string ToString() {
+            var signature = new StringBuilder();
+            if(Accessibility != AccessModifier.None) { signature.AppendFormat("{0} ", Accessibility.ToKeywordString()); }
+            if(IsPartial) { signature.Append("partial "); }
+            signature.AppendFormat("{0} ", Kind.ToKeyword());
+            signature.Append(Name);
+            var parentsString = string.Join(", ", ParentTypeNames);
+            if(!string.IsNullOrEmpty(parentsString)) {
+                signature.AppendFormat(" : {0}", parentsString);
+            }
+            return signature.ToString();
         }
     }
 }

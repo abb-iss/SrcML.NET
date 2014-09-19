@@ -146,6 +146,17 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        /// <summary>
+        /// Returns a string representation of this statement.
+        /// </summary>
+        public override string ToString() {
+            if(Accessibility == AccessModifier.None) {
+                return string.Format("{0} {1}", ReturnType, Name);
+            } else {
+                return string.Format("{0} {1} {2}", Accessibility.ToKeywordString(), ReturnType, Name);
+            }
+        }
+
         #region Private Methods
         private MethodDefinition SearchForGetter() {
             return ChildStatements.OfType<MethodDefinition>().FirstOrDefault(m => m.Name == "get");
