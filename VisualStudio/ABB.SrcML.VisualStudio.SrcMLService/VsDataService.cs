@@ -79,6 +79,7 @@ namespace ABB.SrcML.VisualStudio {
 
             _srcMonitor = new ArchiveMonitor<SrcMLArchive>(GlobalScheduler, storagePath, sourceArchive, CurrentDataArchive);
             CurrentWorkingSet = _workingSetFactories.Default.CreateWorkingSet(storagePath, CurrentDataArchive, GlobalTaskFactory);
+            CurrentWorkingSet.UseAsynchronousMethods = true;
         }
 
         /// <summary>
