@@ -137,9 +137,10 @@ namespace ABB.SrcML.Data {
 
         /// <summary> Returns a string representation of this object. </summary>
         public override string ToString() {
-            var sb = new StringBuilder();
-            sb.AppendFormat("{0}{1}({2})", Prefix, Name, string.Join(",",argumentList));
-            return sb.ToString();
+            if(TypeArguments.Any()) {
+                return string.Format("{0}{1}<{2}>({3})", Prefix, Name, string.Join(",", TypeArguments), string.Join(",", Arguments));
+            }
+            return string.Format("{0}{1}({2})", Prefix, Name, string.Join(",", Arguments));
         }
 
         /// <summary>

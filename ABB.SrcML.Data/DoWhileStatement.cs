@@ -25,5 +25,12 @@ namespace ABB.SrcML.Data {
 
         /// <summary> Returns the XML name for this program element. </summary>
         public override string GetXmlName() { return DoWhileStatement.XmlName; }
+
+        /// <summary>
+        /// Returns a string representation of this statement.
+        /// </summary>
+        public override string ToString() {
+            return string.Format("do ... while({0});", Condition);
+        }
     }
 }

@@ -29,5 +29,11 @@ namespace ABB.SrcML.Data {
         /// <returns>Returns the XML name for GotoStatement</returns>
         public override string GetXmlName() { return GotoStatement.XmlName; }
 
+        /// <summary>
+        /// Returns a string representation of this statement.
+        /// </summary>
+        public override string ToString() {
+            return string.Format("goto {0};", Content);
+        }
     }
 }

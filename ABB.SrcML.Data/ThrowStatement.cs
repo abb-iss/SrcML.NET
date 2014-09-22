@@ -29,5 +29,11 @@ namespace ABB.SrcML.Data {
         /// <returns>Returns the XML name for ThrowStatement</returns>
         public override string GetXmlName() { return ThrowStatement.XmlName; }
 
+        /// <summary>
+        /// Returns a string representation of this statement.
+        /// </summary>
+        public override string ToString() {
+            return string.Format("throw {0};", Content);
+        }
     }
 }

@@ -83,5 +83,21 @@ namespace ABB.SrcML.Data {
                 yield return ImportedNamespace;
             }
         }
+
+        /// <summary>
+        /// Returns a string representation of this statement.
+        /// </summary>
+        public override string ToString() {
+            switch(ProgrammingLanguage) {
+                case Language.CSharp:
+                    return string.Format("using {0};", ImportedNamespace);
+                case Language.CPlusPlus:
+                    return string.Format("using namespace {0};", ImportedNamespace);
+                case Language.Java:
+                    return string.Format("import {0}.*;", ImportedNamespace);
+                default:
+                    goto case Language.CSharp;
+            }
+        }
     }
 }

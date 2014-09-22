@@ -105,5 +105,12 @@ namespace ABB.SrcML.Data
                 yield return Incrementer;
             }
         }
+
+        /// <summary>
+        /// Returns a string representation of this statement.
+        /// </summary>
+        public override string ToString() {
+            return string.Format("for({0}; {1}; {2})", Initializer, Condition, Incrementer);
+        }
     }
 }

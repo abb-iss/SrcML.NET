@@ -58,5 +58,12 @@ namespace ABB.SrcML.Data {
             }
             base.WriteXmlContents(writer);
         }
+
+        /// <summary>
+        /// Returns a string representation of this statement.
+        /// </summary>
+        public override string ToString() {
+            return string.Format("{0}:", Name);
+        }
     }
 }

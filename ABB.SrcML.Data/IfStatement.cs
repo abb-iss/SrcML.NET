@@ -118,5 +118,12 @@ namespace ABB.SrcML.Data {
             }
             return matches;
         }
+
+        /// <summary>
+        /// Returns a string representation of this statement.
+        /// </summary>
+        public override string ToString() {
+            return string.Format("if({0})", Condition);
+        }
     }
 }

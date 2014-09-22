@@ -58,5 +58,15 @@ namespace ABB.SrcML.Data {
             }
             base.ReadXmlAttributes(reader);
         }
+
+        /// <summary>
+        /// Returns a string representation of this statement.
+        /// </summary>
+        public override string ToString() {
+            if(IsDefault) {
+                return "default:";
+            }
+            return string.Format("case {0}:", Content);
+        }
     }
 }

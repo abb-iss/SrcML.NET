@@ -107,5 +107,16 @@ namespace ABB.SrcML.Data {
                 return matches;
             }
         }
+
+        /// <summary>
+        /// Returns a string representation of this statement.
+        /// </summary>
+        public override string ToString() {
+            if(Accessibility == AccessModifier.None) {
+                return string.Format("namespace {0}", Name);
+            } else {
+                return string.Format("{0} namespace {1}", Accessibility.ToKeywordString(), Name);
+            }
+        }
     }
 }

@@ -81,5 +81,12 @@ namespace ABB.SrcML.Data
                 yield return Initializer;
             }
         }
+
+        /// <summary>
+        /// Returns a string representation of this statement.
+        /// </summary>
+        public override string ToString() {
+            return string.Format("using({0})", Initializer);
+        }
     }
 }

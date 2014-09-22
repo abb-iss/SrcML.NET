@@ -94,6 +94,8 @@ namespace ABB.SrcML.Data {
                 return false;
             } catch(FileNotFoundException) {
                 return false;
+            } catch(ArgumentNullException) {
+                return false;
             }
         }
     }

@@ -31,5 +31,11 @@ namespace ABB.SrcML.Data {
         /// <returns>Returns the XML name for BreakStatement</returns>
         public override string GetXmlName() { return BreakStatement.XmlName; }
 
+        /// <summary>
+        /// Returns a string representation of this statement.
+        /// </summary>
+        public override string ToString() {
+            return "break;";
+        }
     }
 }

@@ -281,5 +281,16 @@ namespace ABB.SrcML.Data {
                 yield return Prefix;
             }
         }
+
+        /// <summary>
+        /// Returns a string representation of this statement.
+        /// </summary>
+        public override string ToString() {
+            if(Accessibility == AccessModifier.None) {
+                return Name;
+            } else {
+                return string.Format("{0} {1}", Accessibility.ToKeywordString(), Name);
+            }
+        }
     }
 }
