@@ -134,11 +134,13 @@ namespace ABB.SrcML {
         /// </summary>
         protected void DetectNonDefaultExecutables() {
             var defaultDir = new DirectoryInfo(defaultExecutable.ApplicationDirectory);
-            foreach(var dir in defaultDir.GetDirectories()) {
-                Language dirlanguage;
-                if(Enum.TryParse<Language>(dir.Name, true, out dirlanguage)) {
-                    if(File.Exists(Path.Combine(dir.FullName, Src2SrcMLRunner2.Src2SrcMLExecutableName))) {
-                        RegisterExecutable(dir.FullName, new[] {dirlanguage}, defaultArguments);
+            if(defaultDir.Exists) {
+                foreach(var dir in defaultDir.GetDirectories()) {
+                    Language dirlanguage;
+                    if(Enum.TryParse<Language>(dir.Name, true, out dirlanguage)) {
+                        if(File.Exists(Path.Combine(dir.FullName, Src2SrcMLRunner2.Src2SrcMLExecutableName))) {
+                            RegisterExecutable(dir.FullName, new[] { dirlanguage }, defaultArguments);
+                        }
                     }
                 }
             }

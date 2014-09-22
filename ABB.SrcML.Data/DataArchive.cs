@@ -99,10 +99,7 @@ namespace ABB.SrcML.Data {
             } else {
                 string xmlPath = GetArchivePath(sourceFileName);
 
-                if(!File.Exists(xmlPath)) {
-                    AddOrUpdateFile(sourceFileName);
-                }
-                return XmlSerialization.Load(xmlPath) as NamespaceDefinition;
+                return (File.Exists(xmlPath) ? XmlSerialization.Load(xmlPath) as NamespaceDefinition : null);
             }
         }
 
