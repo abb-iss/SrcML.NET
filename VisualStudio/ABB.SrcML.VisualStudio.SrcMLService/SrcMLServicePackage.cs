@@ -13,6 +13,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.ComponentModel.Design;
@@ -234,7 +235,29 @@ namespace ABB.SrcML.VisualStudio {
 
         private string GetExtensionDirectory() {
             var uri = new UriBuilder(Assembly.GetExecutingAssembly().CodeBase);
-            return Path.GetDirectoryName(Uri.UnescapeDataString(uri.Path));
+            var fallbackDirectory = Path.GetDirectoryName(Uri.UnescapeDataString(uri.Path));
+
+            var registry = this.UserRegistryRoot;
+            if(null == registry) { return fallbackDirectory; }
+
+            var extensionManager = registry.OpenSubKey("ExtensionManager");
+            if(null == registry) { return fallbackDirectory; }
+
+            var enabledExtensions = extensionManager.OpenSubKey("EnabledExtensions");
+            if(null == registry) { return fallbackDirectory; }
+
+            string extensionKey = (from key in enabledExtensions.GetValueNames()
+                                   where key.Length > 36
+                                   let guidKey = key.Substring(0, 36)
+                                   let guid = Guid.Parse(guidKey)
+                                   where GuidList.SrcMLServicePackageGuid == guid
+                                   select key).FirstOrDefault();
+            
+            if(String.IsNullOrEmpty(extensionKey)) { return fallbackDirectory; }
+
+            string directoryName = enabledExtensions.GetValue(extensionKey) as string;
+
+            return (String.IsNullOrEmpty(directoryName) ? fallbackDirectory : directoryName);
         }
 
         /// <summary>

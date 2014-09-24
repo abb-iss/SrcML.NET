@@ -171,7 +171,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="sourceFileName">the source file to add</param>
         /// <returns>A task for this file update</returns>
-        public Task AddOrUpdateFileAsync(string sourceFileName) {
+        public virtual Task AddOrUpdateFileAsync(string sourceFileName) {
             return Factory.StartNew(() => AddOrUpdateFile(sourceFileName));
         }
 
