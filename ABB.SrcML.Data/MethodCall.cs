@@ -246,19 +246,38 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <returns>An enumerable of the matching type definitions for this method</returns>
         public override IEnumerable<TypeDefinition> ResolveType() {
-            foreach(var methodDefinition in FindMatches().OfType<MethodDefinition>()) {
-                var matchingTypes = Enumerable.Empty<TypeDefinition>();
+            var matchingMethods = FindMatches().OfType<MethodDefinition>().ToList();
+            if(matchingMethods.Any()) {
+                foreach(var methodDefinition in matchingMethods) {
+                    var matchingTypes = Enumerable.Empty<TypeDefinition>();
 
-                if(methodDefinition.ReturnType != null) {
-                    matchingTypes = methodDefinition.ReturnType.ResolveType();
-                } else if(methodDefinition.IsConstructor) {
-                    var methodName = methodDefinition.Name; //define local var because of Resharper warning about accessing foreach var in closure
-                    matchingTypes = methodDefinition.GetAncestors<TypeDefinition>().Where(td => td.Name == methodName);
+                    if(methodDefinition.ReturnType != null) {
+                        matchingTypes = methodDefinition.ReturnType.ResolveType();
+                    } else if(methodDefinition.IsConstructor) {
+                        var methodName = methodDefinition.Name; //define local var because of Resharper warning about accessing foreach var in closure
+                        matchingTypes = methodDefinition.GetAncestors<TypeDefinition>().Where(td => td.Name == methodName);
+                    }
+                    foreach(var result in matchingTypes) {
+                        yield return result;
+                    }
                 }
-                foreach(var result in matchingTypes) {
-                    yield return result;
+            } else {
+                //no matches
+                //handle case of calls to default (implicit) constructors
+                if(IsConstructor && Arguments.Count == 0) {
+                    var tempType = new TypeUse() {
+                        Name = this.Name, 
+                        Location = this.Location,
+                        ParentStatement = this.ParentStatement, 
+                        ProgrammingLanguage = this.ProgrammingLanguage
+                    };
+                    foreach(var result in tempType.ResolveType()) {
+                        yield return result;
+                    }
                 }
             }
+
+
         }
 
 

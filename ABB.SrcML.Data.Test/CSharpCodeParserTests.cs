@@ -946,6 +946,31 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
+        public void TestDeclarationWithTypeVarFromImplicitConstructor() {
+            // B.cs namespace A { class B { } }
+            string bXml = @"<namespace pos:line=""1"" pos:column=""1"">namespace <name pos:line=""1"" pos:column=""11"">A</name> <block pos:line=""1"" pos:column=""13"">{ <class pos:line=""1"" pos:column=""15"">class <name pos:line=""1"" pos:column=""21"">B</name> <block pos:line=""1"" pos:column=""23"">{ }</block></class> }</block></namespace>";
+            // C.cs namespace A { class C { void main() { var b = new B(); } } }
+            string cXml = @"<namespace pos:line=""1"" pos:column=""1"">namespace <name pos:line=""1"" pos:column=""11"">A</name> <block pos:line=""1"" pos:column=""13"">{ <class pos:line=""1"" pos:column=""15"">class <name pos:line=""1"" pos:column=""21"">C</name> <block pos:line=""1"" pos:column=""23"">{ <function><type><name pos:line=""1"" pos:column=""25"">void</name></type> <name pos:line=""1"" pos:column=""30"">main</name><parameter_list pos:line=""1"" pos:column=""34"">()</parameter_list> <block pos:line=""1"" pos:column=""37"">{ <decl_stmt><decl><type><name pos:line=""1"" pos:column=""39"">var</name></type> <name pos:line=""1"" pos:column=""43"">b</name> <init pos:line=""1"" pos:column=""45"">= <expr><op:operator pos:line=""1"" pos:column=""47"">new</op:operator> <call><name pos:line=""1"" pos:column=""51"">B</name><argument_list pos:line=""1"" pos:column=""52"">()</argument_list></call></expr></init></decl>;</decl_stmt> }</block></function> }</block></class> }</block></namespace>";
+
+            var bUnit = fileSetup.GetFileUnitForXmlSnippet(bXml, "B.cs");
+            var cUnit = fileSetup.GetFileUnitForXmlSnippet(cXml, "C.cs");
+            var bScope = codeParser.ParseFileUnit(bUnit);
+            var cScope = codeParser.ParseFileUnit(cUnit);
+            var globalScope = bScope.Merge(cScope);
+
+            var typeB = globalScope.GetDescendants<TypeDefinition>().FirstOrDefault(t => t.Name == "B");
+            Assert.IsNotNull(typeB);
+            var main = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "main");
+            Assert.IsNotNull(main);
+
+            Assert.AreEqual(1, main.ChildStatements.Count);
+            var varDecl = main.ChildStatements[0].Content.GetDescendantsAndSelf<VariableDeclaration>().FirstOrDefault();
+            Assert.IsNotNull(varDecl);
+
+            Assert.AreSame(typeB, varDecl.ResolveType().FirstOrDefault());
+        }
+
+        [Test]
         public void TestDeclarationWithTypeVarFromMethod() {
             //namespace A {
             //    class B {
