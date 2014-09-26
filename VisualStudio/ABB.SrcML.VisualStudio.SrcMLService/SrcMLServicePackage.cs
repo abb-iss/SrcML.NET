@@ -247,10 +247,7 @@ namespace ABB.SrcML.VisualStudio {
             if(null == registry) { return fallbackDirectory; }
 
             string extensionKey = (from key in enabledExtensions.GetValueNames()
-                                   where key.Length > 36
-                                   let guidKey = key.Substring(0, 36)
-                                   let guid = Guid.Parse(guidKey)
-                                   where GuidList.SrcMLServicePackageGuid == guid
+                                   where key.StartsWith(GuidList.SrcMLServicePackageGuid.ToString(), StringComparison.OrdinalIgnoreCase)
                                    select key).FirstOrDefault();
             
             if(String.IsNullOrEmpty(extensionKey)) { return fallbackDirectory; }
