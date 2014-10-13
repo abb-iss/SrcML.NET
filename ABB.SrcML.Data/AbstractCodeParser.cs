@@ -254,10 +254,11 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
+            var methodIsDestructor = (methodElement.Name == SRC.Destructor || methodElement.Name == SRC.DestructorDeclaration);
             var methodDefinition = new MethodDefinition() {
-                Name = GetNameForMethod(methodElement),
+                Name = String.Format("{0}{1}", (methodIsDestructor ? "~" : String.Empty), GetNameForMethod(methodElement)),
                 IsConstructor = (methodElement.Name == SRC.Constructor || methodElement.Name == SRC.ConstructorDeclaration),
-                IsDestructor = (methodElement.Name == SRC.Destructor || methodElement.Name == SRC.DestructorDeclaration),
+                IsDestructor = methodIsDestructor,
                 Accessibility = GetAccessModifierForMethod(methodElement),
                 ProgrammingLanguage = ParserLanguage
             };

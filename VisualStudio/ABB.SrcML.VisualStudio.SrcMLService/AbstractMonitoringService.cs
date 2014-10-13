@@ -42,6 +42,10 @@ namespace ABB.SrcML.VisualStudio {
             SaveInterval = DEFAULT_SAVE_INTERVAL;
             _isMonitoring = false;
             _isUpdating = false;
+            if (taskManagerService != null)
+            {
+                this.TaskManager = taskManagerService;                
+            }
         }
 
         /// <summary>

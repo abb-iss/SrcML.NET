@@ -41,7 +41,7 @@ namespace ABB.SrcML {
         /// <param name="mapping">The file name mapping</param>
         /// <param name="scheduler">The task scheduler for asynchronous tasks</param>
         public GeneratorArchive(string baseDirectory, string archiveDirectory, bool useExistingArchive, TGenerator generator, AbstractFileNameMapping mapping, TaskScheduler scheduler)
-        : base(baseDirectory, archiveDirectory, TaskScheduler.Default) {
+        : base(baseDirectory, archiveDirectory, scheduler) {
             _fileMapping = mapping;
             Generator = generator;
             if(!Directory.Exists(this.ArchivePath)) {
