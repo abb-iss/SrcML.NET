@@ -37,11 +37,16 @@ namespace ABB.SrcML.Data {
     public abstract class AbstractWorkingSet : IDisposable {
         private GlobalScopeManager _globalScopeManager;
         private ReaderWriterLockSlim _globalScopeLock;
+        private bool _isUpdating;
 
         /// <summary>
         /// Event that indicates this working set has changed
         /// </summary>
         public event EventHandler Changed;
+
+        public event EventHandler UpdateStarted;
+
+        public event EventHandler UpdateCompleted;
 
         /// <summary>
         /// Data archive for this working set
@@ -58,6 +63,19 @@ namespace ABB.SrcML.Data {
         /// </summary>
         protected bool IsDisposed { get; private set; }
 
+        public bool IsUpdating {
+            get { return _isUpdating; }
+            protected set {
+                if(value != _isUpdating) {
+                    _isUpdating = value;
+                    if(_isUpdating) {
+                        OnUpdateStarted(new EventArgs());
+                    } else {
+                        OnUpdateCompleted(new EventArgs());
+                    }
+                }
+            }
+        }
         /// <summary>
         /// If true, this working set will use asynchronous methods in <see cref="Archive_FileChanged"/>. By default, this is false.
         /// </summary>
@@ -492,6 +510,23 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        protected virtual void OnUpdateCompleted(EventArgs e) {
+            if(IsDisposed) { throw new ObjectDisposedException(null); }
+
+            EventHandler handler = UpdateCompleted;
+            if(null != handler) {
+                handler(this, e);
+            }
+        }
+
+        protected virtual void OnUpdateStarted(EventArgs e) {
+            if(IsDisposed) { throw new ObjectDisposedException(null); }
+
+            EventHandler handler = UpdateStarted;
+            if(null != handler) {
+                handler(this, e);
+            }
+        }
         /// <summary>
         /// Subscribes <see cref="Archive_FileChanged"/> to <see cref="Archive"/>
         /// </summary>
