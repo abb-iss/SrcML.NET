@@ -55,19 +55,25 @@ namespace ABB.SrcML.Data {
             if(null == Archive) { throw new InvalidOperationException("Archive is null"); }
 
             bool workingSetChanged = false;
-            var mergedScopeFromArchive = ReadArchive();
-
-            if(null != mergedScopeFromArchive) {
-                GlobalScopeManager scopeManager;
-                if(TryObtainWriteLock(Timeout.Infinite, out scopeManager)) {
-                    try {
-                        scopeManager.GlobalScope = mergedScopeFromArchive;
-                        workingSetChanged = true;
-                    } finally {
-                        ReleaseWriteLock();
+            try {
+                IsUpdating = true;
+                
+                var mergedScopeFromArchive = ReadArchive();
+                if(null != mergedScopeFromArchive) {
+                    GlobalScopeManager scopeManager;
+                    if(TryObtainWriteLock(Timeout.Infinite, out scopeManager)) {
+                        try {
+                            scopeManager.GlobalScope = mergedScopeFromArchive;
+                            workingSetChanged = true;
+                        } finally {
+                            ReleaseWriteLock();
+                        }
                     }
                 }
+            } finally {
+                IsUpdating = false;
             }
+            
             if(workingSetChanged) {
                 OnChanged(new EventArgs());
             }
@@ -82,21 +88,25 @@ namespace ABB.SrcML.Data {
             if(null == Archive) { throw new InvalidOperationException("Archive is null"); }
 
             return Factory.StartNew(() => {
-                var readTask = ReadArchiveAsync();
-                readTask.Wait();
-                
                 bool globalScopeChanged = false;
+                try {
+                    IsUpdating = true;
+                    var readTask = ReadArchiveAsync();
+                    readTask.Wait();
 
-                if(null != readTask.Result) {
-                    GlobalScopeManager scopeManager;
-                    if(TryObtainWriteLock(Timeout.Infinite, out scopeManager)) {
-                        try {
-                            scopeManager.GlobalScope = readTask.Result;
-                            globalScopeChanged = true;
-                        } finally {
-                            ReleaseWriteLock();
+                    if(null != readTask.Result) {
+                        GlobalScopeManager scopeManager;
+                        if(TryObtainWriteLock(Timeout.Infinite, out scopeManager)) {
+                            try {
+                                scopeManager.GlobalScope = readTask.Result;
+                                globalScopeChanged = true;
+                            } finally {
+                                ReleaseWriteLock();
+                            }
                         }
                     }
+                } finally {
+                    IsUpdating = false;
                 }
 
                 if(globalScopeChanged) {
@@ -111,8 +121,10 @@ namespace ABB.SrcML.Data {
         /// <returns>A global scope for the archive</returns>
         protected NamespaceDefinition ReadArchive() {
             NamespaceDefinition globalScope = null;
+            IsUpdating = true;
+                
             var allData = from fileName in Archive.GetFiles()
-                          select Archive.GetData(fileName);
+                            select Archive.GetData(fileName);
             foreach(var data in allData) {
                 globalScope = (null == globalScope ? data : globalScope.Merge(data));
             }
