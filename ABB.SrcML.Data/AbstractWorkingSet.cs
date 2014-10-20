@@ -46,7 +46,16 @@ namespace ABB.SrcML.Data {
 
         public event EventHandler UpdateStarted;
 
+        
+        /// <summary>
+        /// Event that indicates that an update has completed
+        /// </summary>
         public event EventHandler UpdateCompleted;
+
+        /// <summary>
+        /// Event that indicates that an update has started
+        /// </summary>
+        public event EventHandler UpdateStarted;
 
         /// <summary>
         /// Data archive for this working set
@@ -63,18 +72,12 @@ namespace ABB.SrcML.Data {
         /// </summary>
         protected bool IsDisposed { get; private set; }
 
+        /// <summary>
+        /// True if this working set is currently updating; false otherwise
+        /// </summary>
         public bool IsUpdating {
             get { return _isUpdating; }
-            protected set {
-                if(value != _isUpdating) {
-                    _isUpdating = value;
-                    if(_isUpdating) {
-                        OnUpdateStarted(new EventArgs());
-                    } else {
-                        OnUpdateCompleted(new EventArgs());
-                    }
-                }
-            }
+            protected set { SetBooleanField(ref _isUpdating, value, OnUpdateStarted, OnUpdateCompleted); }
         }
         /// <summary>
         /// If true, this working set will use asynchronous methods in <see cref="Archive_FileChanged"/>. By default, this is false.
@@ -510,6 +513,11 @@ namespace ABB.SrcML.Data {
             }
         }
 
+
+        /// <summary>
+        /// Raises the <see cref="UpdateCompleted"/> event
+        /// </summary>
+        /// <param name="e">empty event args</param>
         protected virtual void OnUpdateCompleted(EventArgs e) {
             if(IsDisposed) { throw new ObjectDisposedException(null); }
 
@@ -519,6 +527,10 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        /// <summary>
+        /// Raises the <see cref="UpdateStarted"/> event
+        /// </summary>
+        /// <param name="e">empty event args</param>
         protected virtual void OnUpdateStarted(EventArgs e) {
             if(IsDisposed) { throw new ObjectDisposedException(null); }
 
@@ -547,6 +559,20 @@ namespace ABB.SrcML.Data {
             Archive.FileChanged -= Archive_FileChanged;
         }
 
+        /// <summary>
+        /// Sets <paramref name="field"/> to <paramref name="value"/> and then executes the appropriate event handler if <paramref name="field"/> has changed
+        /// </summary>
+        /// <param name="field">The private field to set</param>
+        /// <param name="value">The value</param>
+        /// <param name="startEventHandler">The event handler to execute if <paramref name="value"/> is true</param>
+        /// <param name="endEventHandler">The event handler to execute if <paramref name="value"/> is false</param>
+        /// <returns>True if the <paramref name="field"/> has changed; false otherwise</returns>
+        protected bool SetBooleanField(ref bool field, bool value, Action<EventArgs> startEventHandler, Action<EventArgs> endEventHandler) {
+            if(field == value) { return false; }
+            field = value;
+            (field ? startEventHandler : endEventHandler)(new EventArgs());
+            return true;
+        }
         /// <summary>
         /// The global scope manager provides a reference to a global scope object. It is returned via <see cref="TryObtainWriteLock"/>.
         /// the global scope manager allows you to 
