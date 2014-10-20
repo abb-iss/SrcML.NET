@@ -37,15 +37,23 @@ namespace ABB.SrcML.Data {
     public abstract class AbstractWorkingSet : IDisposable {
         private GlobalScopeManager _globalScopeManager;
         private ReaderWriterLockSlim _globalScopeLock;
+        private bool _isMonitoring;
         private bool _isUpdating;
-
+        
         /// <summary>
         /// Event that indicates this working set has changed
         /// </summary>
         public event EventHandler Changed;
 
-        public event EventHandler UpdateStarted;
+        /// <summary>
+        /// Event that indicates that this working set is not monitoring <see cref="Archive"/>
+        /// </summary>
+        public event EventHandler MonitoringStopped;
 
+        /// <summary>
+        /// Event that indicates that this working has started monitoring <see cref="Archive"/>
+        /// </summary>
+        public event EventHandler MonitoringStarted;
         
         /// <summary>
         /// Event that indicates that an update has completed
@@ -71,6 +79,14 @@ namespace ABB.SrcML.Data {
         /// Returns true if <see cref="Dispose"/> has been called
         /// </summary>
         protected bool IsDisposed { get; private set; }
+
+        /// <summary>
+        /// True if the working set is currently monitoring <see cref="Archive"/>; false, otherwise
+        /// </summary>
+        public bool IsMonitoring {
+            get { return _isMonitoring; }
+            protected set { SetBooleanField(ref _isMonitoring, value, OnMonitoringStarted, OnMonitoringStopped); }
+        }
 
         /// <summary>
         /// True if this working set is currently updating; false otherwise
@@ -153,6 +169,7 @@ namespace ABB.SrcML.Data {
         public virtual void StartMonitoring() {
             if(IsDisposed) { throw new ObjectDisposedException(null); }
             SubscribeToArchive();
+            IsMonitoring = true;
         }
 
         /// <summary>
@@ -161,6 +178,7 @@ namespace ABB.SrcML.Data {
         public virtual void StopMonitoring() {
             if(IsDisposed) { throw new ObjectDisposedException(null); }
             UnsubscribeFromArchive();
+            IsMonitoring = false;
         }
 
         #region global scope modification
@@ -513,6 +531,31 @@ namespace ABB.SrcML.Data {
             }
         }
 
+        /// <summary>
+        /// Raises the <see cref="MonitoringStarted"/> event
+        /// </summary>
+        /// <param name="e">empty event args</param>
+        private void OnMonitoringStarted(EventArgs e) {
+            if(IsDisposed) { throw new ObjectDisposedException(null); }
+
+            EventHandler handler = MonitoringStarted;
+            if(null != handler) {
+                handler(this, e);
+            }
+        }
+
+        /// <summary>
+        /// Raises the <see cref="MonitoringStopped"/> event
+        /// </summary>
+        /// <param name="e">empty event args</param>
+        protected virtual void OnMonitoringStopped(EventArgs e) {
+            if(IsDisposed) { throw new ObjectDisposedException(null); }
+
+            EventHandler handler = MonitoringStopped;
+            if(null != handler) {
+                handler(this, e);
+            }
+        }
 
         /// <summary>
         /// Raises the <see cref="UpdateCompleted"/> event
