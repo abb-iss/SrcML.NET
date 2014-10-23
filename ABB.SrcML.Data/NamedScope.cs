@@ -201,42 +201,6 @@ namespace ABB.SrcML.Data {
                 ParentStatement = null;
             }
         }
-        //public override void RemoveFile(string fileName) {
-        //    RemoveLocations(fileName);
-
-        //    RemoveFile(fileName, 0 == Locations.Count);
-        //}
-
-        //protected virtual Collection<Statement> RemoveFile(string fileName, bool willBeRemoved) {
-        //    Collection<Statement> orphanedChildren = new Collection<Statement>();
-
-        //    for(int i = ChildStatements.Count - 1; i >= 0; i--) {
-        //         ChildStatements[i].RemoveFile(fileName);
-        //        if(null != result) {
-        //            foreach(var child in result) {
-        //                orphanedChildren.Add(child);
-        //            }
-        //        }
-        //        if(null == ChildStatements[i].ParentStatement) {
-        //            childStatementsList.RemoveAt(i);
-        //        } else if(willBeRemoved) {
-        //            orphanedChildren.Add(ChildStatements[i]);
-        //            var namedScope = ChildStatements[i] as NamedScope;
-        //            if(null != namedScope) {
-        //                namedScope.ResetPrefix();
-        //            }
-        //        }
-        //    }
-
-        //    if(willBeRemoved) {
-        //        ParentStatement = null;
-        //        return orphanedChildren;
-        //    } else if(orphanedChildren.Count > 0) {
-        //        AddChildStatements(orphanedChildren);
-        //        RestructureChildren();
-        //    }
-        //    return null;
-        //}
         
         protected override void RestructureChildren() {
             var children = Statement.RestructureChildren(ChildStatements);
