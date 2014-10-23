@@ -362,7 +362,7 @@ namespace ABB.SrcML.Data {
         /// Removes <paramref name="child"/> from <see cref="ChildStatements"/>.
         /// </summary>
         /// <param name="child">The child statement to remove.</param>
-        public void RemoveChild(Statement child) {
+        public virtual void RemoveChild(Statement child) {
             ChildStatementsList.Remove(child);
         }
 
