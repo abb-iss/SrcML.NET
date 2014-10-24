@@ -368,10 +368,13 @@ namespace ABB.SrcML.Data {
         public void Dispose() {
             if(!IsDisposed) {
                 StopMonitoring();
-                Clear();
+                _globalScopeManager.GlobalScope = null;
+                _globalScopeManager = null;
+
                 if(null != Archive) {
                     Archive.Dispose();
                 }
+
                 IsDisposed = true;
                 Changed = null;
                 _globalScopeLock.Dispose();
