@@ -24,6 +24,7 @@ namespace ABB.SrcML.Data {
     /// </summary>
     public class NamedScope : BlockStatement, INamedEntity {
         private NamePrefix _prefix;
+        private Dictionary<string, List<NamedScope>> _nameCache;
 
         /// <summary> The XML name for NamedScope. </summary>
         public new const string XmlName = "NamedScope";
@@ -42,6 +43,7 @@ namespace ABB.SrcML.Data {
             Name = string.Empty;
             Accessibility = AccessModifier.None;
             PrefixIsResolved = true;
+            _nameCache = new Dictionary<string, List<NamedScope>>(StringComparer.Ordinal);
         }
 
         /// <summary> The name of the scope. </summary>
@@ -70,6 +72,26 @@ namespace ABB.SrcML.Data {
         /// The accessibility for this scope, e.g. public, private, etc.
         /// </summary>
         public AccessModifier Accessibility { get; set; }
+
+        /// <summary>
+        /// Adds the given Statement to the ChildStatements collection. Nothing will be done if <paramref name="child"/> is null.
+        /// Updates the internal cache of named children, if appropriate.
+        /// </summary>
+        /// <param name="child">The Statement to add.</param>
+        public override void AddChildStatement(Statement child) {
+            base.AddChildStatement(child);
+            AddNamedChild(child as NamedScope);
+        }
+
+        /// <summary>
+        /// Removes <paramref name="child"/> from the ChildStatements collection.
+        /// Updates the internal cache of named children, if appropriate.
+        /// </summary>
+        /// <param name="child">The child statement to remove.</param>
+        public override void RemoveChild(Statement child) {
+            base.RemoveChild(child);
+            RemoveNamedChild(child as NamedScope);
+        }
 
         /// <summary>
         /// Gets the full name by finding all of the named scope ancestors and combining them.
@@ -160,44 +182,10 @@ namespace ABB.SrcML.Data {
                 ParentStatement = null;
             }
         }
-        //public override void RemoveFile(string fileName) {
-        //    RemoveLocations(fileName);
-
-        //    RemoveFile(fileName, 0 == Locations.Count);
-        //}
-
-        //protected virtual Collection<Statement> RemoveFile(string fileName, bool willBeRemoved) {
-        //    Collection<Statement> orphanedChildren = new Collection<Statement>();
-
-        //    for(int i = ChildStatements.Count - 1; i >= 0; i--) {
-        //         ChildStatements[i].RemoveFile(fileName);
-        //        if(null != result) {
-        //            foreach(var child in result) {
-        //                orphanedChildren.Add(child);
-        //            }
-        //        }
-        //        if(null == ChildStatements[i].ParentStatement) {
-        //            childStatementsList.RemoveAt(i);
-        //        } else if(willBeRemoved) {
-        //            orphanedChildren.Add(ChildStatements[i]);
-        //            var namedScope = ChildStatements[i] as NamedScope;
-        //            if(null != namedScope) {
-        //                namedScope.ResetPrefix();
-        //            }
-        //        }
-        //    }
-
-        //    if(willBeRemoved) {
-        //        ParentStatement = null;
-        //        return orphanedChildren;
-        //    } else if(orphanedChildren.Count > 0) {
-        //        AddChildStatements(orphanedChildren);
-        //        RestructureChildren();
-        //    }
-        //    return null;
-        //}
+        
         protected override void RestructureChildren() {
             var children = Statement.RestructureChildren(ChildStatements);
+            _nameCache.Clear();
             ClearChildren();
             AddChildStatements(children);
 
@@ -267,6 +255,28 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
+        /// Returns the children of this statement named <paramref name="name"/> and the given <typeparamref name="T"/>.
+        /// This method searches only the immediate children.
+        /// In order to speed up the search, this method consults the internal name cache to get the list of matching <see cref="NamedScope">named scopes</see>
+        /// </summary>
+        /// <typeparam name="T">The type to filter on</typeparam>
+        /// <param name="name">The name to search for</param>
+        /// <param name="searchDeclarations">Whether to search the child declaration statements for named entities.</param>
+        /// <returns>Any children of this statement named <paramref name="name"/> of type <typeparamref name="T"/></returns>
+        public override IEnumerable<T> GetNamedChildren<T>(string name, bool searchDeclarations) {
+            List<NamedScope> resultsList = null;
+            _nameCache.TryGetValue(name, out resultsList);
+            IEnumerable<T> results = resultsList != null ? resultsList.OfType<T>() : Enumerable.Empty<T>();
+            if(!searchDeclarations) { return results; }
+
+            var decls = from declStmt in GetChildren().OfType<DeclarationStatement>()
+                        from decl in declStmt.GetDeclarations().OfType<T>()
+                        where string.Equals(decl.Name, name, StringComparison.Ordinal)
+                        select decl;
+
+            return results.Concat(decls);
+        }
+        /// <summary>
         /// Returns the locations where this entity appears in the source.
         /// </summary>
         public IEnumerable<SrcMLLocation> GetLocations() {
@@ -292,5 +302,38 @@ namespace ABB.SrcML.Data {
                 return string.Format("{0} {1}", Accessibility.ToKeywordString(), Name);
             }
         }
+
+        #region Private Methods
+        /// <summary>
+        /// Adds <paramref name="namedChild"/> to the name cache.
+        /// If <paramref name="namedChild"/> is null, then nothing happens.
+        /// </summary>
+        /// <param name="namedChild">The named child to add</param>
+        private void AddNamedChild(NamedScope namedChild) {
+            if(null == namedChild) { return; }
+            List<NamedScope> cacheForName;
+            if(_nameCache.TryGetValue(namedChild.Name, out cacheForName)) {
+                cacheForName.Add(namedChild);
+            } else {
+                _nameCache[namedChild.Name] = new List<NamedScope>() { namedChild };
+            }
+        }
+
+        /// <summary>
+        /// Removes <paramref name="namedChild"/> from the name cache.
+        /// If <paramref name="namedChild"/>is null, then nothing happens.
+        /// </summary>
+        /// <param name="namedChild">The named child to remove</param>
+        private void RemoveNamedChild(NamedScope namedChild) {
+            if(null == namedChild) { return; }
+            List<NamedScope> cacheForName;
+            if(_nameCache.TryGetValue(namedChild.Name, out cacheForName)) {
+                cacheForName.Remove(namedChild);
+                if(cacheForName.Count == 0) {
+                    _nameCache.Remove(namedChild.Name);
+                }
+            }
+        }
+        #endregion Private Methods
     }
 }
