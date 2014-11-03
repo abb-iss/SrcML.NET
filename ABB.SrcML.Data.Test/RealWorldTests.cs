@@ -165,6 +165,26 @@ namespace ABB.SrcML.Data.Test {
             }
         }
 
+        [Test, TestCaseSource("TestProjects")]
+        public void TestCompleteWorkingSet_SingleCore(RealWorldTestProject testData) {
+            CheckThatProjectExists(testData);
+            Console.WriteLine("{0} {1} Project Summary", testData.ProjectName, testData.Version);
+            Console.WriteLine("============================");
+            using(var project = new DataProject<CompleteWorkingSet>(new LimitedConcurrencyLevelTaskScheduler(1), new FileSystemFolderMonitor(testData.FullPath, testData.DataDirectory), new SrcMLGenerator("SrcML"))) {
+                string unknownLogPath = Path.Combine(project.StoragePath, "unknown.log");
+                DateTime start = DateTime.Now, end;
+                using(var unknownLog = new StreamWriter(unknownLogPath)) {
+                    project.UnknownLog = unknownLog;
+                    project.UpdateAsync().Wait();
+                }
+                end = DateTime.Now;
+
+                NamespaceDefinition globalScope;
+                Assert.That(project.WorkingSet.TryObtainReadLock(5000, out globalScope));
+                Assert.IsNotNull(globalScope);
+            }
+        }
+
         private static IEnumerable<RealWorldTestProject> ReadProjectMap(string fileName) {
             if(File.Exists(fileName)) {
                 var projects = from line in File.ReadAllLines(fileName)

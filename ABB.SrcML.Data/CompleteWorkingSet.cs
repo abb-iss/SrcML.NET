@@ -87,18 +87,17 @@ namespace ABB.SrcML.Data {
             if(IsDisposed) { throw new ObjectDisposedException(null); }
             if(null == Archive) { throw new InvalidOperationException("Archive is null"); }
 
-            return Factory.StartNew(() => {
-                bool globalScopeChanged = false;
-                try {
-                    IsUpdating = true;
-                    var readTask = ReadArchiveAsync();
-                    readTask.Wait();
+            IsUpdating = true;
 
-                    if(null != readTask.Result) {
+            return ReadArchiveAsync().ContinueWith((t) => {
+                bool globalScopeChanged = false;
+
+                try {
+                    if(null != t.Result) {
                         GlobalScopeManager scopeManager;
                         if(TryObtainWriteLock(Timeout.Infinite, out scopeManager)) {
                             try {
-                                scopeManager.GlobalScope = readTask.Result;
+                                scopeManager.GlobalScope = t.Result;
                                 globalScopeChanged = true;
                             } finally {
                                 ReleaseWriteLock();
@@ -107,10 +106,9 @@ namespace ABB.SrcML.Data {
                     }
                 } finally {
                     IsUpdating = false;
-                }
-
-                if(globalScopeChanged) {
-                    OnChanged(new EventArgs());
+                    if(globalScopeChanged) {
+                        OnChanged(new EventArgs());
+                    }
                 }
             });
         }
@@ -133,31 +131,28 @@ namespace ABB.SrcML.Data {
         }
 
         protected Task<NamespaceDefinition> ReadArchiveAsync() {
-            return Factory.StartNew(() => {
-                BlockingCollection<NamespaceDefinition> fileScopes = new BlockingCollection<NamespaceDefinition>();
+            BlockingCollection<NamespaceDefinition> fileScopes = new BlockingCollection<NamespaceDefinition>();
 
-                var readTask = Factory.StartNew(() => {
-                    var options = new ParallelOptions() { TaskScheduler = Factory.Scheduler };
-                    Parallel.ForEach(Archive.GetFiles(), options, (fileName) => {
-                        var data = Archive.GetData(fileName);
-                        if(null != data) {
-                            fileScopes.Add(data);
-                        }
-                    });
-                    fileScopes.CompleteAdding();
-                });
-                var mergeTask = Factory.StartNew(() => {
-                    NamespaceDefinition globalScope = null;
-                    foreach(var fileScope in fileScopes.GetConsumingEnumerable()) {
-                        globalScope = (null == globalScope ? fileScope : globalScope.Merge(fileScope));
+            var readTask = Factory.StartNew(() => {
+                var options = new ParallelOptions() { TaskScheduler = Factory.Scheduler };
+                Parallel.ForEach(Archive.GetFiles(), options, (fileName) => {
+                    var data = Archive.GetData(fileName);
+                    if(null != data) {
+                        fileScopes.Add(data);
                     }
-                    return globalScope;
                 });
-
-                Task.WaitAll(readTask, mergeTask);
-                return mergeTask.Result;
+                fileScopes.CompleteAdding();
             });
-            
+
+            var mergeTask = Factory.StartNew(() => {
+                NamespaceDefinition globalScope = null;
+                foreach(var fileScope in fileScopes.GetConsumingEnumerable()) {
+                    globalScope = (null == globalScope ? fileScope : globalScope.Merge(fileScope));
+                }
+                return globalScope;
+            });
+
+            return mergeTask;
         }
     }
 }
