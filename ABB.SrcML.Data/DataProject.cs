@@ -41,7 +41,8 @@ namespace ABB.SrcML.Data {
         /// </summary>
         /// <param name="scheduler">The task scheduler</param>
         /// <param name="monitor">The file monitor</param>
-        public DataProject(TaskScheduler scheduler, AbstractFileMonitor monitor) 
+        /// <param name="srcmlGenerator">The generator object for srcML</param>
+        public DataProject(TaskScheduler scheduler, AbstractFileMonitor monitor, SrcMLGenerator srcmlGenerator) 
         : base(scheduler, monitor, new SrcMLGenerator()) {
             var fileMapPath = Path.Combine(StoragePath, DataArchive.DEFAULT_ARCHIVE_DIRECTORY);
             Data = new DataArchive(StoragePath, DataArchive.DEFAULT_ARCHIVE_DIRECTORY, true, SourceArchive, new DataGenerator(), new DataFileNameMapping(fileMapPath), scheduler);
