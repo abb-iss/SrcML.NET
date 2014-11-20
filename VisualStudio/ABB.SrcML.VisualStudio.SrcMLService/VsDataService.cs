@@ -13,9 +13,11 @@ using ABB.SrcML.Data;
 using ABB.VisualStudio;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace ABB.SrcML.VisualStudio {
     /// <summary>
@@ -82,12 +84,85 @@ namespace ABB.SrcML.VisualStudio {
             CurrentWorkingSet.UseAsynchronousMethods = true;
         }
 
+        const string WS_FAILOVER_FILENAME = "FAILOVER_COMPLETE_WORKINGSET";
+
         /// <summary>
         /// Implementation method for <see cref="AbstractMonitoringService.Update"/>
         /// </summary>
         protected override void UpdateImpl() {
             _srcMonitor.UpdateArchivesAsync().Wait();
-            CurrentWorkingSet.InitializeAsync().Wait();
+
+            bool workingSetFailed = false;
+            try {
+                CurrentWorkingSet.InitializeAsync().Wait();
+            } catch(AggregateException e) {
+                workingSetFailed = true;
+                var logFileName = Path.Combine(ServiceProvider.ExtensionDirectory, "update_error.log");
+                bool logFileIsNew = !File.Exists(logFileName);
+                using(var error = new StreamWriter(logFileName, true)) {
+                    if(logFileIsNew) {
+                        error.WriteLine("Please e-mail the contents of this file to US-prodet@abb.com");
+                        error.WriteLine();
+                        error.WriteLine("Calling Assembly: {0}", this.GetType().AssemblyQualifiedName);
+                        error.WriteLine("Working Set: {0}", CurrentWorkingSet.GetType().AssemblyQualifiedName);
+                    }
+                    
+                    foreach(var exception in e.InnerExceptions) {
+                        error.WriteLine();
+                        error.WriteLine("=========================================================");
+                        error.WriteLine("Message: {0}", exception.Message);
+                        error.WriteLine("Source: {0}", exception.Source);
+                        error.WriteLine(exception.StackTrace);
+                    }
+                }
+
+                if(workingSetFailed) {
+                    var failoverFileName = Path.Combine(_srcMonitor.MonitorStoragePath, WS_FAILOVER_FILENAME);
+                    bool useCompleteWorkingSet;
+                    bool askUser = true;
+
+                    if(File.Exists(failoverFileName) && Boolean.TryParse(File.ReadAllText(failoverFileName), out useCompleteWorkingSet)) {
+                        askUser = false;
+                    } else {
+                        useCompleteWorkingSet = false;
+                    }
+
+                    if(askUser) {
+                        string message = String.Format("Prodet selective analysis has encountered an error. Do you want to load analysis for all files? Your solution has {0} files. Solutions with >1000 files may consume too much memory.", CurrentDataArchive.GetFiles().Count());
+                        int fileCount = CurrentDataArchive.GetFiles().Count();
+                        MessageBoxResult defaultResult = (fileCount > 1000 ? MessageBoxResult.No : MessageBoxResult.Yes);
+                        Application.Current.Dispatcher.Invoke(new Action(() => {
+                            var userInput = MessageBox.Show(Application.Current.MainWindow, message, "Working Set Error", MessageBoxButton.YesNo, MessageBoxImage.Error, defaultResult);
+
+                            switch(userInput) {
+                                case MessageBoxResult.Yes:
+                                    useCompleteWorkingSet = true;
+                                    break;
+                                case MessageBoxResult.No:
+                                    useCompleteWorkingSet = false;
+                                    break;
+                                default:
+                                    useCompleteWorkingSet = false;
+                                    break;
+                            }
+                        }));
+
+                        File.WriteAllText(failoverFileName, useCompleteWorkingSet.ToString());
+                    }
+
+                    if(logFileIsNew) {
+                        System.Diagnostics.Process.Start("notepad.exe", logFileName);
+                    }
+
+                    CurrentWorkingSet.Dispose();
+                    if(useCompleteWorkingSet) {
+                        CurrentWorkingSet = new CompleteWorkingSet(CurrentDataArchive, GlobalTaskFactory);
+                        CurrentWorkingSet.InitializeAsync().Wait();
+                    } else {
+                        CurrentWorkingSet = null;
+                    }
+                }
+            }
         }
 
         /// <summary>
