@@ -449,5 +449,8 @@ namespace ABB.SrcML {
 
         /// <summary> markup for the unchecked tag in C# </summary>
         public static readonly XName Unchecked = NS + "unchecked";
+
+        /// <summary> markup for the lock tag in C# </summary>
+        public static readonly XName Lock = NS + "lock";
     }
 }

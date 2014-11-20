@@ -1948,5 +1948,25 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual("Foo", callToFoo.Name);
             Assert.AreSame(fooMethod, callToFoo.FindMatches().FirstOrDefault());
         }
+
+        [Test]
+        public void TestLockStatement() {
+            //lock(myVar) {
+            //    myVar.DoFoo();
+            //}
+            string xml = @"<lock pos:line=""1"" pos:column=""1"">lock(<expr><name pos:line=""1"" pos:column=""6"">myVar</name></expr>) <block pos:line=""1"" pos:column=""13"">{
+    <expr_stmt><expr><call><name><name pos:line=""2"" pos:column=""5"">myVar</name><op:operator pos:line=""2"" pos:column=""10"">.</op:operator><name pos:line=""2"" pos:column=""11"">DoFoo</name></name><argument_list pos:line=""2"" pos:column=""16"">()</argument_list></call></expr>;</expr_stmt>
+}</block></lock>";
+            var xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.cs");
+            var globalScope = codeParser.ParseFileUnit(xmlElement);
+
+            var lockStmt = globalScope.ChildStatements.First() as LockStatement;
+            Assert.IsNotNull(lockStmt);
+            Assert.AreEqual(1, lockStmt.ChildStatements.Count);
+
+            var lockVar = lockStmt.LockExpression as NameUse;
+            Assert.IsNotNull(lockVar);
+            Assert.AreEqual("myVar", lockVar.Name);
+        }
     }
 }

@@ -72,6 +72,7 @@ namespace ABB.SrcML.Data {
             { WhileStatement.XmlName, CreateFromReader<WhileStatement> },
             { DoWhileStatement.XmlName, CreateFromReader<DoWhileStatement> },
             { UsingBlockStatement.XmlName, CreateFromReader<UsingBlockStatement> },
+            { LockStatement.XmlName, CreateFromReader<LockStatement> },
 
             /* Named statements */
             { NamedScope.XmlName, CreateFromReader<NamedScope> },

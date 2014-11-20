@@ -85,6 +85,7 @@
     <Compile Include="LiteralKind.cs" />
     <Compile Include="LiteralUse.cs" />
     <Compile Include="CSharpCodeParser.cs" />
+    <Compile Include="LockStatement.cs" />
     <Compile Include="MethodCall.cs" />
     <Compile Include="NamePrefix.cs" />
     <Compile Include="NamedScope.cs" />

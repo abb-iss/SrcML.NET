@@ -428,6 +428,14 @@
             <elementDefinition Id="9302354f-5fea-4383-aff6-6d823a5c0171" />
           </generalization>
         </generalsInternal>
+        <ownedAttributesInternal>
+          <property Id="e55d34a0-6d25-4e03-8257-7ce250c85938" name="Initializer" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="8eeb5100-f55f-4fb8-9e0b-187e82237818" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="211d32f2-01d6-49b5-a838-03031095d474" LastKnownName="Expression" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
       </class>
     </logicalClassDesignerModelHasTypes>
     <logicalClassDesignerModelHasTypes>
@@ -628,6 +636,25 @@
             <elementDefinition Id="1d73cd11-18aa-4713-9279-e53533c6b59b" />
           </generalization>
         </generalsInternal>
+      </class>
+    </logicalClassDesignerModelHasTypes>
+    <logicalClassDesignerModelHasTypes>
+      <class Id="b9856769-7dea-4dad-93e1-0e064a61044b" name="LockStatement" isAbstract="false" isLeaf="false" isActiveClass="false">
+        <elementDefinition Id="e01ee3bb-6763-4b21-8f5f-9eab4cfcc96d" />
+        <generalsInternal>
+          <generalization Id="75c4965a-02a5-4c7a-afb2-3da09fabb3ad" isSubstitutable="false">
+            <classMoniker Id="206039a4-2f20-481d-916c-8cbbc82b271a" LastKnownName="BlockStatement" />
+            <elementDefinition Id="86671f5c-37d9-42c5-a03f-d04a587cfd83" />
+          </generalization>
+        </generalsInternal>
+        <ownedAttributesInternal>
+          <property Id="b7050b6e-139e-471c-94c3-431e92963c2d" name="LockExpression" isLeaf="false" isStatic="false" isReadOnly="false" isUnique="false" isDerived="false" isDerivedUnion="false" aggregation="None" isComposite="false">
+            <elementDefinition Id="60c6d5f4-38b7-4033-b7f3-e1db983f8f5a" />
+            <type_NamedElement>
+              <referencedTypeMoniker Id="211d32f2-01d6-49b5-a838-03031095d474" LastKnownName="Expression" />
+            </type_NamedElement>
+          </property>
+        </ownedAttributesInternal>
       </class>
     </logicalClassDesignerModelHasTypes>
   </packagedElements>

@@ -203,6 +203,8 @@ namespace ABB.SrcML.Data {
                     stmt = ParseExternElement(element, context);
                 } else if(element.Name == SRC.EmptyStatement) {
                     stmt = ParseEmptyStatementElement(element, context);
+                } else if(element.Name == SRC.Lock) {
+                    stmt = ParseLockElement(element, context);
                 } else if(element.Name == SRC.Comment) {
                     // do nothing. we are ignoring comments
                 } else if(element.Name == SRC.Package) {
@@ -1051,6 +1053,37 @@ namespace ABB.SrcML.Data {
             var stmt = new Statement() {ProgrammingLanguage = ParserLanguage};
             stmt.AddLocation(context.CreateLocation(emptyElement));
             return stmt;
+        }
+
+        /// <summary>
+        /// Parses the given <paramref name="lockElement"/> and creates a <see cref="LockStatement"/> from it.
+        /// </summary>
+        /// <param name="lockElement">The SRC.Lock element to parse.</param>
+        /// <param name="context">The parser context to use.</param>
+        /// <returns>A LockStatement created from the given lockElement.</returns>
+        protected virtual LockStatement ParseLockElement(XElement lockElement, ParserContext context) {
+            if(lockElement == null)
+                throw new ArgumentNullException("lockElement");
+            if(lockElement.Name != SRC.Lock)
+                throw new ArgumentException("Must be a SRC.Lock element", "lockElement");
+            if(context == null)
+                throw new ArgumentNullException("context");
+
+            var lockStmt = new LockStatement() {ProgrammingLanguage = ParserLanguage};
+            lockStmt.AddLocation(context.CreateLocation(lockElement));
+
+            foreach(var child in lockElement.Elements()) {
+                if(child.Name == SRC.Expression) {
+                    lockStmt.LockExpression = ParseExpression(child, context);
+                } else if(child.Name == SRC.Block) {
+                    var blockStatements = child.Elements().Select(e => ParseStatement(e, context));
+                    lockStmt.AddChildStatements(blockStatements);
+                } else {
+                    lockStmt.AddChildStatement(ParseStatement(child, context));
+                }
+            }
+
+            return lockStmt;
         }
 
         #endregion Parse statement elements
