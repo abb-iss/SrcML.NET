@@ -80,6 +80,7 @@ namespace ABB.SrcML.VisualStudio {
     /// Step 1: Add the ProvideServiceAttribute to the VSPackage that provides the global service.
     /// ProvideServiceAttribute registers SSrcMLGlobalService with Visual Studio. Only the global service must be registered.
     /// </summary>
+    [ProvideService(typeof(SCursorMonitorService))]
     [ProvideService(typeof(SSrcMLGlobalService))]
     [ProvideService(typeof(STaskManagerService))]
     [ProvideService(typeof(SSrcMLDataService))]
@@ -110,11 +111,6 @@ namespace ABB.SrcML.VisualStudio {
         /// </summary>
         private SolutionEvents SolutionEvents;
 
-        /// <summary>
-        /// Visual Studio's Activity Logger.
-        /// </summary>
-        private IVsActivityLog ActivityLog;
-
         private IWorkingSetRegistrarService _workingSetRegistrar;
 
         /// <summary>
@@ -122,6 +118,7 @@ namespace ABB.SrcML.VisualStudio {
         /// </summary>
         private ILog logger;
 
+        private ICursorMonitorService cursorMonitor;
         /// <summary>
         /// Default constructor of the package.
         /// Inside this method you can place any initialization code that does not require 
@@ -149,6 +146,7 @@ namespace ABB.SrcML.VisualStudio {
             serviceContainer.AddService(typeof(SSrcMLDataService), callback, true);
             serviceContainer.AddService(typeof(STaskManagerService), callback, true);
             serviceContainer.AddService(typeof(SWorkingSetRegistrarService), callback, true);
+            serviceContainer.AddService(typeof(SCursorMonitorService), callback, true);
         }
 
         /// <summary>
@@ -175,6 +173,11 @@ namespace ABB.SrcML.VisualStudio {
             }
 
             // Find the type of the requested service and create it.
+
+            if(typeof(SCursorMonitorService) == serviceType) {
+                return new CursorMonitor(this);
+            }
+
             if(typeof(SSrcMLGlobalService) == serviceType) {
                 // Build the global service using this package as its service provider.
                 ITaskManagerService taskManager = GetService(typeof(STaskManagerService)) as ITaskManagerService;
@@ -217,15 +220,19 @@ namespace ABB.SrcML.VisualStudio {
 
             SetUpLogger();
 
-            SetUpActivityLogger();
-
             //SetUpCommand(); // SrcML.NET does not need any command so far.
 
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
 
-            SetUpSrcMLService();
+            // setup cursor monitoring service
+            cursorMonitor = GetService(typeof(SCursorMonitorService)) as ICursorMonitorService;
+            
+            // setup srcML service
+            srcMLService = GetService(typeof(SSrcMLGlobalService)) as ISrcMLGlobalService;
 
-            SetupWorkingSetRegistrar();
+            // setup working set registrar
+            _workingSetRegistrar = GetService(typeof(SWorkingSetRegistrarService)) as IWorkingSetRegistrarService;
+            _workingSetRegistrar.RegisterWorkingSetFactory(new DefaultWorkingSetFactory<CompleteWorkingSet>());
 
             SetUpDTEEvents();
 
@@ -269,18 +276,6 @@ namespace ABB.SrcML.VisualStudio {
         }
 
         /// <summary>
-        /// Set up Visual Studio activity logger.
-        /// </summary>
-        private void SetUpActivityLogger() {
-            SrcMLFileLogger.DefaultLogger.Info("> Set up Visual Studio activity logger.");
-
-            ActivityLog = GetService(typeof(SVsActivityLog)) as IVsActivityLog;
-            if(null == ActivityLog) {
-                Trace.WriteLine("Can not get the Activity Log service.");
-            }
-        }
-
-        /// <summary>
         /// Set up command handlers for menu (commands must exist in the .vsct file)
         /// </summary>
         private void SetUpCommand() {
@@ -321,22 +316,6 @@ namespace ABB.SrcML.VisualStudio {
                        out result));
         }
 
-        /// <summary>
-        /// Set up SrcML Service.
-        /// </summary>
-        private void SetUpSrcMLService() {
-            SrcMLFileLogger.DefaultLogger.Info("> Set up SrcML Service.");
-
-            srcMLService = GetService(typeof(SSrcMLGlobalService)) as ISrcMLGlobalService;
-            if(null == srcMLService) {
-                Trace.WriteLine("Can not get the SrcML global service.");
-            }
-        }
-
-        private void SetupWorkingSetRegistrar() {
-            _workingSetRegistrar = GetService(typeof(SWorkingSetRegistrarService)) as IWorkingSetRegistrarService;
-            _workingSetRegistrar.RegisterWorkingSetFactory(new DefaultWorkingSetFactory<CompleteWorkingSet>());
-        }
         /// <summary>
         /// Register Visual Studio DTE events.
         /// </summary>
@@ -454,20 +433,8 @@ namespace ABB.SrcML.VisualStudio {
         /// </summary>
         private void DTEBeginShutdown() {
             SrcMLFileLogger.DefaultLogger.Info("Respond to the Visual Studio DTE event that occurs when the development environment is closing.");
-
             //UnregisterSolutionEvents(); // TODO if necessary
             //UnregisterDTEEvents(); // TODO if necessary
-        }
-
-        /// <summary>
-        /// Write Visual Studio's Activity Log.
-        /// See %AppData%\Roaming\Microsoft\VisualStudio\11.0Exp\ActivityLog.xml
-        /// </summary>
-        /// <param name="str"></param>
-        private void WriteActivityLog(string str) {
-            if(ActivityLog != null) {
-                int hr = ActivityLog.LogEntry((UInt32)__ACTIVITYLOG_ENTRYTYPE.ALE_INFORMATION, this.ToString(), str);
-            }
         }
     }
 }

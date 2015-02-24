@@ -24,6 +24,12 @@ namespace ABB.VisualStudio {
         /// <summary>SrcML service package command GUID</summary>
         public static readonly Guid guidSrcMLServiceCmdSet = new Guid(guidSrcMLServiceCmdSetString);
 
+        /// <summary><see cref="ABB.SrcML.VisualStudio.ICursorMonitorService"/> ID</summary>
+        public const string ICursorMonitorServiceId = "243E0BCC-563C-4E31-A360-49DB56F825BB";
+
+        /// <summary><see cref="ABB.SrcML.VisualStudio.SCursorMonitorService"/> ID</summary>
+        public const string SCursorMonitorServiceId = "36BEEBB8-613C-4764-A0ED-D2090CCBA023";
+        
         /// <summary><see cref="ABB.SrcML.VisualStudio.ISrcMLGlobalService"/> ID</summary>
         public const string ISrcMLGlobalServiceId = "ba9fe7a3-e216-424e-87f9-dee001228d04";
 
@@ -48,8 +54,15 @@ namespace ABB.VisualStudio {
         /// <summary><see cref="ABB.SrcML.VisualStudio.SWorkingSetRegistrarService"/> ID</summary>
         public const string SWorkingSetRegistrarServiceId = "07C20FC2-3AF4-4194-89E4-6B2226C4497B";
 
+        
         /// <summary><see cref="ABB.SrcML.VisualStudio.SrcMLServicePackage"/> GUID</summary>
         public static readonly Guid SrcMLServicePackageGuid = new Guid(SrcMLServicePackageId);
+
+        /// <summary><see cref="ABB.SrcML.VisualStudio.ICursorMonitorService"/> GUID</summary>
+        public static readonly Guid ICursorMonitorServiceGuid = new Guid(ICursorMonitorServiceId);
+
+        /// <summary><see cref="ABB.SrcML.VisualStudio.SCursorMonitorService"/> GUID</summary>
+        public static readonly Guid SCursorMonitorServiceGuid = new Guid(SCursorMonitorServiceId);
 
         /// <summary><see cref="ABB.SrcML.VisualStudio.ISrcMLGlobalService"/> GUID</summary>
         public static readonly Guid ISrcMLGlobalServiceGuid = new Guid(ISrcMLGlobalServiceId);

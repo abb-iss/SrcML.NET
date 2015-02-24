@@ -112,11 +112,13 @@
       <Link>Properties\SolutionInfo.cs</Link>
     </Compile>
     <Compile Include="AbstractMonitoringService.cs" />
+    <Compile Include="CursorMonitor.cs" />
     <Compile Include="Guids.cs" />
     <Compile Include="HelperFunctions.cs" />
     <Compile Include="ISrcMLDataService.cs" />
     <Compile Include="ISrcMLGlobalService.cs" />
     <Compile Include="ITaskManagerService.cs" />
+    <Compile Include="ICursorMonitorService.cs" />
     <Compile Include="IWorkingSetRegistrarService.cs" />
     <Compile Include="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
