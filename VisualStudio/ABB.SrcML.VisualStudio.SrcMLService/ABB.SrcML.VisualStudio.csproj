@@ -128,11 +128,9 @@
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="SolutionReloadEventListener.cs" />
     <Compile Include="SourceMonitor.cs" />
-    <Compile Include="SrcMLDataService.cs" />
-    <Compile Include="SrcMLGlobalService.cs" />
-    <Compile Include="SrcMLServicePackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PkgCmdID.cs" />
+    <Compile Include="SrcMLServicePackage.cs" />
     <Compile Include="TaskManagerService.cs" />
     <Compile Include="VsDataService.cs" />
     <Compile Include="VsMonitoringService.cs" />
