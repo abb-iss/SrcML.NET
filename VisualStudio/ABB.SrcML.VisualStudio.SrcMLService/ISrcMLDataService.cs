@@ -55,6 +55,11 @@ namespace ABB.SrcML.VisualStudio {
         AbstractWorkingSet CurrentWorkingSet { get; }
 
         /// <summary>
+        /// The data archive for the current solution
+        /// </summary>
+        DataArchive CurrentDataArchive { get; }
+
+        /// <summary>
         /// True if the service is currently monitoring; false otherwise (<see cref="MonitoringStarted" /> will be called before
         /// this is set to true, and <see cref="MonitoringStopped"/> will be called when it is set to false.
         /// </summary>

@@ -118,7 +118,8 @@ namespace ABB.SrcML.VisualStudio {
         /// </summary>
         private ILog logger;
 
-        private ICursorMonitorService cursorMonitor;
+        //private ICursorMonitorService cursorMonitor;
+
         /// <summary>
         /// Default constructor of the package.
         /// Inside this method you can place any initialization code that does not require 
@@ -224,8 +225,8 @@ namespace ABB.SrcML.VisualStudio {
 
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
 
-            // setup cursor monitoring service
-            cursorMonitor = GetService(typeof(SCursorMonitorService)) as ICursorMonitorService;
+            //// setup cursor monitoring service
+            //cursorMonitor = GetService(typeof(SCursorMonitorService)) as ICursorMonitorService;
             
             // setup srcML service
             srcMLService = GetService(typeof(SSrcMLGlobalService)) as ISrcMLGlobalService;
