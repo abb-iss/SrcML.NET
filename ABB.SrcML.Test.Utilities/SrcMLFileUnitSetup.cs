@@ -46,7 +46,7 @@ namespace ABB.SrcML.Test.Utilities {
 
         public XElement GetFileUnitForXmlSnippet(string xmlSnippet, string fileName) {
             var xml = string.Format(FileTemplate, xmlSnippet, KsuAdapter.GetLanguage(SourceLanguage), fileName);
-            var fileUnit = XElement.Parse(xml);
+            var fileUnit = XElement.Parse(xml, LoadOptions.PreserveWhitespace);
             return fileUnit;
         }
     }

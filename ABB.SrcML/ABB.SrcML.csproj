@@ -121,6 +121,7 @@
     <Compile Include="Utilities\ReadOnlyDictionary.cs" />
     <Compile Include="Utilities\ReentrantTimer.cs" />
     <Compile Include="Utilities\SingleCoreStrategy.cs" />
+    <Compile Include="Utilities\SrcDiffFilter.cs" />
     <Compile Include="Utilities\SrcMLExceptionFormatter.cs" />
     <Compile Include="Utilities\SrcMLFileLogger.cs" />
     <Compile Include="Utilities\SrcMLRuntimeException.cs" />
