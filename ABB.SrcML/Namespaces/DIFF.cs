@@ -43,6 +43,11 @@ namespace ABB.SrcML
         /// </summary>
         public static readonly XName Delete = NS + "delete";
 
+        /// <summary>
+        /// Markup for the diff:common tag
+        /// </summary>
+        public static readonly XName Common = NS + "common";
+
         // type attribute constants
         /// <summary>
         /// XName for the "type" attribute. The value of this attribute can be either TypeWhitespace or TypeChange
