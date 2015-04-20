@@ -148,6 +148,7 @@ namespace ABB.SrcML.VisualStudio {
             serviceContainer.AddService(typeof(STaskManagerService), callback, true);
             serviceContainer.AddService(typeof(SWorkingSetRegistrarService), callback, true);
             serviceContainer.AddService(typeof(SCursorMonitorService), callback, true);
+            serviceContainer.AddService(typeof(SMethodTrackService), callback, true);
         }
 
         /// <summary>
@@ -177,6 +178,11 @@ namespace ABB.SrcML.VisualStudio {
 
             if(typeof(SCursorMonitorService) == serviceType) {
                 return new CursorMonitor(this);
+            }
+
+            if (typeof(SMethodTrackService) == serviceType)
+            {
+                return new MethodTrack(this);
             }
 
             if(typeof(SSrcMLGlobalService) == serviceType) {

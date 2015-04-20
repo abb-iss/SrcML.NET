@@ -7,20 +7,30 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using ABB.VisualStudio;
 
 namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
     [TestClass]
     public class TestHelpers {
         internal static Scaffold<ISrcMLGlobalService> TestScaffold;
+        internal static Scaffold<ICursorMonitorService> TestScaffoldCM;
+        internal static Scaffold<IMethodTrackService> TestScaffoldMT;
+        internal static Scaffold<ISrcMLDataService> TestScaffoldData;
 
         [AssemblyInitialize]
         public static void AssemblySetup(TestContext testContext) {
             TestScaffold = Scaffold<ISrcMLGlobalService>.Setup(new SrcMLServicePackage(), typeof(SSrcMLGlobalService));
+            TestScaffoldCM = Scaffold<ICursorMonitorService>.Setup(new SrcMLServicePackage(), typeof(SCursorMonitorService));
+            TestScaffoldMT = Scaffold<IMethodTrackService>.Setup(new SrcMLServicePackage(), typeof(SMethodTrackService));
+            TestScaffoldData = Scaffold<ISrcMLDataService>.Setup(new SrcMLServicePackage(), typeof(SSrcMLDataService));
         }
 
         [AssemblyCleanup]
         public static void AssemblyCleanup() {
             TestScaffold.Cleanup();
+            TestScaffoldCM.Cleanup();
+            TestScaffoldMT.Cleanup();
+            TestScaffoldData.Cleanup();
         }
 
         
