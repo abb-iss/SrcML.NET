@@ -60,6 +60,31 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             return !service.IsUpdating;
         }
 
+        internal static bool WaitForServiceToFinish(ISrcMLDataService service, int millisecondsTimeout)
+        {
+            AutoResetEvent monitoringStartedResetEvent = new AutoResetEvent(false),
+                           updateStartedResetEvent = new AutoResetEvent(false),
+                           updateCompletedResetEvent = new AutoResetEvent(false);
+
+            EventHandler monitoringStartedEventHandler = GetEventHandler(monitoringStartedResetEvent),
+                         updateStartedEventHandler = GetEventHandler(updateStartedResetEvent),
+                         updateCompleteEventHandler = GetEventHandler(updateCompletedResetEvent);
+
+            service.MonitoringStarted += monitoringStartedEventHandler;
+            service.UpdateStarted += updateStartedEventHandler;
+            service.UpdateCompleted += updateCompleteEventHandler;
+            
+            Assert.IsTrue(updateStartedResetEvent.WaitOne(millisecondsTimeout));
+            Assert.IsTrue(monitoringStartedResetEvent.WaitOne(millisecondsTimeout));
+            Assert.IsTrue(updateCompletedResetEvent.WaitOne(millisecondsTimeout));
+
+            service.MonitoringStarted -= monitoringStartedEventHandler;
+            service.UpdateStarted -= updateStartedEventHandler;
+            service.UpdateCompleted -= updateCompleteEventHandler;
+
+            return !service.IsUpdating;
+        }
+
         internal static EventHandler GetEventHandler(AutoResetEvent resetEvent) {
             return (o, e) => resetEvent.Set();
         }

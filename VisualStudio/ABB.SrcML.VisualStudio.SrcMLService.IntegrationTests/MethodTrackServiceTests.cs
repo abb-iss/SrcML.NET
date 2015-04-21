@@ -169,7 +169,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
 
             TestSolution.Open(Path.GetFullPath(TestSolutionPath));
             Assert.IsTrue(TestHelpers.WaitForServiceToFinish(TestHelpers.TestScaffold.Service, 5000));
-            System.Diagnostics.Debugger.Launch(); // workaround for Wait DataService to finish - click "No"
+            //System.Diagnostics.Debugger.Launch(); // workaround for Wait DataService to finish - click "No"
+            Assert.IsTrue(TestHelpers.WaitForServiceToFinish(TestHelpers.TestScaffoldData.Service, 5000));
         }
 
         [TestCleanup]
