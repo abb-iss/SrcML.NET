@@ -17,6 +17,9 @@ namespace ABB.VisualStudio {
     public static class GuidList {
         /// <summary>SrcML service package GUID</summary>
         public const string SrcMLServicePackageId = "8b448a37-2665-4b23-a2f9-cad4510f1337";
+
+        /// <summary><see cref="ABB.SrcML.VisualStudio.SrcMLServicePackage"/> GUID</summary>
+        public static readonly Guid SrcMLServicePackageGuid = new Guid(SrcMLServicePackageId);
         
         /// <summary>SrcML service package command ID</summary>
         public const string guidSrcMLServiceCmdSetString = "a92a902c-213b-4b54-9580-afacc7240bec";
@@ -24,6 +27,12 @@ namespace ABB.VisualStudio {
         /// <summary>SrcML service package command GUID</summary>
         public static readonly Guid guidSrcMLServiceCmdSet = new Guid(guidSrcMLServiceCmdSetString);
 
+        /// <summary><see cref="ABB.SrcML.VisualStudio.IMethodTrackService"/> ID</summary>
+        public const string IMethodTrackServiceId = "49069910-2125-4DA1-920B-5DCACCF2D105";
+        
+        /// <summary><see cref="ABB.SrcML.VisualStudio.SMethodTrackService"/> ID</summary>
+        public const string SMethodTrackServiceId = "C368B627-B76F-410C-8E11-E9243E47F562";
+        
         /// <summary><see cref="ABB.SrcML.VisualStudio.ICursorMonitorService"/> ID</summary>
         public const string ICursorMonitorServiceId = "243E0BCC-563C-4E31-A360-49DB56F825BB";
 
@@ -54,10 +63,13 @@ namespace ABB.VisualStudio {
         /// <summary><see cref="ABB.SrcML.VisualStudio.SWorkingSetRegistrarService"/> ID</summary>
         public const string SWorkingSetRegistrarServiceId = "07C20FC2-3AF4-4194-89E4-6B2226C4497B";
 
-        
-        /// <summary><see cref="ABB.SrcML.VisualStudio.SrcMLServicePackage"/> GUID</summary>
-        public static readonly Guid SrcMLServicePackageGuid = new Guid(SrcMLServicePackageId);
 
+        /// <summary><see cref="ABB.SrcML.VisualStudio.IMethodTrackService"/> GUID</summary>
+        public static readonly Guid IMethodTrackServiceGuid = new Guid(IMethodTrackServiceId);
+
+        /// <summary><see cref="ABB.SrcML.VisualStudio.SMethodTrackService"/> GUID</summary>
+        public static readonly Guid SMethodTrackServiceGuid = new Guid(SMethodTrackServiceId);
+        
         /// <summary><see cref="ABB.SrcML.VisualStudio.ICursorMonitorService"/> GUID</summary>
         public static readonly Guid ICursorMonitorServiceGuid = new Guid(ICursorMonitorServiceId);
 

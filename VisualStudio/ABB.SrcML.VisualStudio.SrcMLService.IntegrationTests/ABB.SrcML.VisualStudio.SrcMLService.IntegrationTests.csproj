@@ -104,6 +104,7 @@
     <!---->
     <!---->
     <!---->
+    <Compile Include="MethodTrackServiceTests.cs" />
     <Compile Include="Scaffold.cs" />
     <Compile Include="SrcMLServiceCPlusPlusTests.cs" />
     <Compile Include="SrcMLServiceCSharpTests.cs" />
@@ -114,6 +115,10 @@
     <Compile Include="TestHelpers.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\ABB.SrcML.Data\ABB.SrcML.Data.csproj">
+      <Project>{73c24e33-465b-424d-b35a-39f1750f705e}</Project>
+      <Name>ABB.SrcML.Data</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\ABB.SrcML.Test.Utilities\ABB.SrcML.Test.Utilities.csproj">
       <Project>{46a346f2-679e-4eed-94a5-1a36ba56c2ee}</Project>
       <Name>ABB.SrcML.Test.Utilities</Name>
@@ -128,13 +133,22 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>
     </PostBuildEvent>
   </PropertyGroup>
+  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
+  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
