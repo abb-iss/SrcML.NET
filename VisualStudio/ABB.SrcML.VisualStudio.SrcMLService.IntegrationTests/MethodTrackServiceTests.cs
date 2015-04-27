@@ -1,20 +1,15 @@
-﻿using ABB.SrcML.Test.Utilities;
-using ABB.VisualStudio;
-using ABB.SrcML.Data;
-using EnvDTE;
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.VSSDK.Tools.VsIdeTesting;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+using ABB.SrcML.Test.Utilities;
+using ABB.VisualStudio;
+using EnvDTE;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VSSDK.Tools.VsIdeTesting;
 
 namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
 
@@ -59,8 +54,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             TestHelpers.TestScaffoldCM.Service.PropertyChanged += action;
 
             // open a file (Class1.cs) 
-            string FilePath = Path.Combine(Path.GetDirectoryName(project.FullName), "Class1.cs");
-            var window = testDTE.ItemOperations.OpenFile(FilePath);
+            string filePath = Path.Combine(Path.GetDirectoryName(project.FullName), "Class1.cs");
+            var window = testDTE.ItemOperations.OpenFile(filePath);
             Assert.AreEqual(window.Kind, "Document");
             var document = window.Document;
             Assert.AreEqual(document.Name, "Class1.cs");
@@ -99,7 +94,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
                     }
                 }
             };
-            TestHelpers.TestScaffoldMT.Service.MethodEvent += action; 
+            TestHelpers.TestScaffoldMT.Service.MethodUpdatedEvent += action; 
 
             // open a file (Class1.cs) 
             string FilePath = Path.Combine(Path.GetDirectoryName(project.FullName), "Class1.cs");
@@ -112,24 +107,20 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             // move cursor to (15,x) which is in method "member1"
             testDTE.ExecuteCommand("Edit.Goto", "15");
             Assert.AreEqual(MTservice.CurrentLineNumber, 15);
-            Assert.AreEqual(MTservice.currentMethod.Name, "member1");
-            Assert.AreEqual(MTservice.currentMethod.StartLineNumber, 13);
-            Console.WriteLine(MTservice.currentMethod.NameSpace);
-            Console.WriteLine(MTservice.currentMethod.Type);
-            List<string> paranames = new List<string>();
-            paranames.Add("x");
-            paranames.Add("y");
-            Assert.AreEqual(MTservice.currentMethod.ParameterNames.Count, paranames.Count);
+            Assert.AreEqual(MTservice.CurrentMethod.Name, "member1");
+            Assert.AreEqual(MTservice.CurrentMethod.StartLineNumber, 13);
+            Console.WriteLine(MTservice.CurrentMethod.NameSpace);
+            Console.WriteLine(MTservice.CurrentMethod.Type);
+            List<string> paranames = new List<string> {"x", "y"};
+            Assert.AreEqual(MTservice.CurrentMethod.ParameterNames.Count, paranames.Count);
             for (int i = 0; i < paranames.Count; i++)
-                Assert.AreEqual(MTservice.currentMethod.ParameterNames[i], paranames[i]);
-            List<string> paratypes = new List<string>();
-            paratypes.Add("int");
-            paratypes.Add("string");
-            Assert.AreEqual(MTservice.currentMethod.ParameterTypes.Count, paratypes.Count);
+                Assert.AreEqual(MTservice.CurrentMethod.ParameterNames[i], paranames[i]);
+            List<string> paratypes = new List<string> {"int", "string"};
+            Assert.AreEqual(MTservice.CurrentMethod.ParameterTypes.Count, paratypes.Count);
             for (int i = 0; i < paratypes.Count; i++)
-                Assert.AreEqual(MTservice.currentMethod.ParameterTypes[i], paratypes[i]);
+                Assert.AreEqual(MTservice.CurrentMethod.ParameterTypes[i], paratypes[i]);
 
-                TestHelpers.TestScaffoldMT.Service.MethodEvent -= action;
+                TestHelpers.TestScaffoldMT.Service.MethodUpdatedEvent -= action;
         }
 
         [TestMethod]
@@ -152,8 +143,8 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
 
         [TestMethod]
         [HostType("VS IDE")]
-        public void TestMTServiceStartup() {
-            var method = TestHelpers.TestScaffoldMT.Service.currentMethod;
+        public void TestMtServiceStartup() {
+            var method = TestHelpers.TestScaffoldMT.Service.CurrentMethod;
             int line = TestHelpers.TestScaffoldMT.Service.CurrentLineNumber;
             int column = TestHelpers.TestScaffoldMT.Service.CurrentColumnNumber;
             Assert.IsNotNull(method, "Could not get the current file");

@@ -31,14 +31,17 @@ namespace ABB.VisualStudio
         /// <summary>
         /// Raised when a method is change (position change, method add/delete)
         /// </summary>
-        event EventHandler<MethodEventRaisedArgs> MethodEvent;
+        event EventHandler<MethodEventRaisedArgs> MethodUpdatedEvent;
 
-        Method currentMethod { get; }
+        /// <summary>
+        /// The current method that the cursor is on
+        /// </summary>
+        Method CurrentMethod { get; }
 
-        /// <summary>The current line number in <see cref="currentMethod"/> that the cursor is on</summary>
+        /// <summary>The current line number in <see cref="CurrentMethod"/> that the cursor is on</summary>
         int CurrentLineNumber { get; }
 
-        /// <summary>The current column number in <see cref="currentMethod"/> that the cursor is at</summary>
+        /// <summary>The current column number in <see cref="CurrentMethod"/> that the cursor is at</summary>
         int CurrentColumnNumber { get; }
 
     }

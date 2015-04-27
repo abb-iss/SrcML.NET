@@ -66,13 +66,13 @@ namespace ABB.VisualStudio
 
         private ICursorMonitorService _cursorMonitor;
 
-        public event EventHandler<MethodEventRaisedArgs> MethodEvent;
+        public event EventHandler<MethodEventRaisedArgs> MethodUpdatedEvent;
 
         private CursorPos _currentCursor;
         private CursorPos _lastCursor;
         private Method _currentMethod;
         
-        public Method currentMethod
+        public Method CurrentMethod
         {
             get { return _currentMethod; }
         }
@@ -100,7 +100,7 @@ namespace ABB.VisualStudio
            if (null != _cursorMonitor)
                _cursorMonitor.PropertyChanged += OnCursorMoving;
            if(null != _srcmlService)
-                _srcmlService.SourceFileChanged += onFileChanged;
+                _srcmlService.SourceFileChanged += OnFileChanged;
         }
 
      
@@ -153,7 +153,7 @@ namespace ABB.VisualStudio
                //System.Diagnostics.Debugger.Launch(); //for integration test debugging only
                bool isMethod = GetMethod(fileName, curLine, curColumn);
                if(isMethod)
-                   onMethodEvent(new MethodEventRaisedArgs(this.currentMethod, this.CurrentLineNumber, this.CurrentColumnNumber));
+                   OnMethodUpdatedEvent(new MethodEventRaisedArgs(CurrentMethod, CurrentLineNumber, CurrentColumnNumber));
               }
 
        }
@@ -161,7 +161,7 @@ namespace ABB.VisualStudio
 
 
        #region file changed
-       internal void onFileChanged(object sender, FileEventRaisedArgs e)
+       internal void OnFileChanged(object sender, FileEventRaisedArgs e)
        {
             
        }
@@ -169,12 +169,12 @@ namespace ABB.VisualStudio
        #endregion
 
        /// <summary>
-       /// Raises the method event
+       /// Raises the method updated event
        /// </summary>
        /// <param name="e">The event arguments</param>
-       protected virtual void onMethodEvent(MethodEventRaisedArgs e)
+       protected virtual void OnMethodUpdatedEvent(MethodEventRaisedArgs e)
        {
-           EventHandler<MethodEventRaisedArgs> handler = MethodEvent;
+           EventHandler<MethodEventRaisedArgs> handler = MethodUpdatedEvent;
            if (null != handler)
            {
                handler(this, e);
