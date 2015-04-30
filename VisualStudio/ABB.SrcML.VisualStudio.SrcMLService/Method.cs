@@ -23,7 +23,7 @@ namespace ABB.VisualStudio
 
     public class Method
     {
-        public string FilePath { get; private set; }
+        public string FilePath { get; set; }
 
         public string NameSpace { get; private set; } //namespace
         
@@ -83,6 +83,20 @@ namespace ABB.VisualStudio
             return CompareMethodDefinitions(this, b);
         }
 
+        /// <summary>
+        /// Determine if two methods have the same signatures (name, paramtertype)
+        /// </summary>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        public bool SignatureEquals(Method b)
+        {
+            if (null == b)
+            {
+                return false;
+            }
+            return (this.Name == b.Name && ParameterTypesMatch(this.ParameterTypes, b.ParameterTypes));
+        }
+
         private static bool CompareMethodDefinitions(Method a, Method b)
         {
             if (a == null || b == null)
@@ -90,12 +104,9 @@ namespace ABB.VisualStudio
 
             if (a.Name == b.Name
                 && ParameterTypesMatch(a.ParameterTypes, b.ParameterTypes)
-                )
-            {
-                //if (a.SrcMlScope == null || b.SrcMlScope == null || a.SrcMlScope.PrimaryLocation == null || b.SrcMlScope.PrimaryLocation == null)
-                //    return true;
-                //else
-                    return a.StartLineNumber == b.StartLineNumber;
+               )
+            {   
+                return a.StartLineNumber == b.StartLineNumber;
             }
             else
                 return false;

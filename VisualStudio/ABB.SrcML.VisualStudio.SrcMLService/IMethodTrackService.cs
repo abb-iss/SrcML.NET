@@ -44,6 +44,14 @@ namespace ABB.VisualStudio
         /// <summary>The current column number in <see cref="CurrentMethod"/> that the cursor is at</summary>
         int CurrentColumnNumber { get; }
 
+        /// <summary>
+        /// A list of methods that have been navigated (collected based on cursor movements, 
+        /// incorporating various types of method update such as change and deletion)
+        /// NOTE: there is no duplication or order of the methods 
+        /// (i.e., method being navigated more than once only stores once and remains at the same location of the list)
+        /// </summary>
+        /// <returns></returns>
+        List<Method> NavigatedMethods { get; }
     }
 
     /// <summary>

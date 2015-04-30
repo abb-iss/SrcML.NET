@@ -21,10 +21,10 @@ namespace ABB.VisualStudio
     /// </summary>
     public enum MethodEventType
     {
-        /// <summary>
-        /// Raised when a method is added
-        /// </summary>
-        MethodAdded,
+        ///// <summary>
+        ///// Raised when a method is added
+        ///// </summary>
+        //MethodAdded,
 
         /// <summary>
         /// Raised when a method is changed 
@@ -61,23 +61,23 @@ namespace ABB.VisualStudio
         /// <param name="methodObj">method name, type, file FilePath, start line number of the method</param>
         /// <param name="curLine">current line number of the method</param>
         /// <param name="curColumn">current column of the method</param>
-        public MethodEventRaisedArgs(MethodEventType eventType, Method methodObj, int curLine, int curColumn)            
+        public MethodEventRaisedArgs(MethodEventType eventType, Method methodObj, Method oldMethod, int curLine, int curColumn)            
         {
             this.EventType = eventType;
             this.method = methodObj;
+            this.oldMethod = oldMethod;
             this.curLine = curLine;
             this.curColumn = curColumn;
         }
 
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        /// <param name="methodObj">method name, type, file FilePath, start line number of the method</param>
-        /// <param name="curLine">current line number of the method</param>
-        /// <param name="curColumn">current column of the method</param>
-        public MethodEventRaisedArgs(Method methodObj, int curLine, int curColumn)
-            : this(MethodEventType.PositionChanged, methodObj, curLine, curColumn)
+        public MethodEventRaisedArgs(Method methodObj, Method oldMethod, int curLine, int curColumn)
+            : this(MethodEventType.PositionChanged, methodObj, oldMethod, curLine, curColumn)
         {      
+        }
+
+        public MethodEventRaisedArgs(MethodEventType eventType, Method methodObj, Method oldMethod)
+            : this(eventType, methodObj, oldMethod, 0, 0)
+        {   
         }
 
         /// <summary>
@@ -90,9 +90,21 @@ namespace ABB.VisualStudio
         }
 
         /// <summary>
-        /// Method Object
+        /// Method Object (three cases)
+        /// 1. a method where the current cursor is at: MethodEventType.PositionChanged
+        /// 2. a new method after method change:  MethodEventType.MethodChanged
+        /// 3. NULL when a method is deleted: MethodEventType.MethodDeleted
         /// </summary>
         public Method method
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Old Method Object (before the method is changed/deleted)
+        /// </summary>
+        public Method oldMethod
         {
             get;
             set;

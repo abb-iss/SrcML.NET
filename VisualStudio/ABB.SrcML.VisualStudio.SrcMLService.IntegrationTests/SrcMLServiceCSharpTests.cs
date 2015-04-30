@@ -51,6 +51,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             FileEventType expectedEventType = FileEventType.FileDeleted;
 
             EventHandler<FileEventRaisedArgs> action = (o, e) => {
+                //Console.WriteLine(e.EventType.ToString());
                 lock(TestLock) {
                     if(e.FilePath.Equals(expectedFilePath, StringComparison.InvariantCultureIgnoreCase) && e.EventType == expectedEventType) {
                         resetEvent.Set();
@@ -91,9 +92,21 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             item.Delete();
             project.Save();
             Assert.IsTrue(resetEvent.WaitOne(scanIntervalMs));
-
             Assert.IsFalse(archive.IsOutdated(expectedFilePath));
             //Assert.AreEqual(2, archive.FileUnits.Count());
+
+            // change a file: clear all contents in the file to simulate "file change"
+            expectedEventType = FileEventType.FileChanged;
+            expectedFilePath = Path.Combine(Path.GetDirectoryName(project.FullName), "Class1.cs");
+            var window = VsIdeTestHostContext.Dte.ItemOperations.OpenFile(expectedFilePath);
+            window.Activate();
+            VsIdeTestHostContext.Dte.ExecuteCommand("EDIT.GoTo", "3");
+            VsIdeTestHostContext.Dte.ExecuteCommand("EDIT.SelectAll");
+            VsIdeTestHostContext.Dte.ExecuteCommand("EDIT.Cut");
+            project.Save();
+
+            Assert.IsTrue(resetEvent.WaitOne(scanIntervalMs));
+
             TestHelpers.TestScaffold.Service.SourceFileChanged -= action;
         }
 
