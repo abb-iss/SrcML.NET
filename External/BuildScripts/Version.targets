@@ -36,12 +36,14 @@
 		<BUILD_NUMBER Condition="'$(BUILD_NUMBER)'==''">0</BUILD_NUMBER>
 		<Version>$(ReleaseTag).0.0</Version>
 		<RootDirectory Condition="'$(RootDirectory)'==''">$(MSBuildStartupDirectory)</RootDirectory>
-    <VersionOutputFile Condition="'$(VersionOutputFile)'==''">Version.txt</VersionOutputFile>
+		<VersionOutputFile Condition="'$(VersionOutputFile)'==''">Version.txt</VersionOutputFile>
 		<XmlNamespaces>
 			<Namespace Prefix="nuget"
 			           Uri="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd" />
 			<Namespace Prefix="v"
-					   Uri="http://schemas.microsoft.com/developer/vsx-schema/2010" />
+			           Uri="http://schemas.microsoft.com/developer/vsx-schema/2010" />
+			<Namespace Prefix="csproj"
+			           Uri="http://schemas.microsoft.com/developer/msbuild/2003" />
 		</XmlNamespaces>
 	</PropertyGroup>
 	
@@ -77,10 +79,10 @@ using System.Resources%3B
 		<Message Text="$(Version)" />
 	</Target>
   
-  <Target Name="PrintVersionToFile" DependsOnTargets="SetVersion">
-    <WriteLinesToFile File="$(VersionOutputFile)" Overwrite="True"
-      Lines="VERSION=$(Version)" />
-  </Target>
+	<Target Name="PrintVersionToFile" DependsOnTargets="SetVersion">
+		<WriteLinesToFile File="$(VersionOutputFile)" Overwrite="True"
+		                  Lines="VERSION=$(Version)" />
+	</Target>
   
 	<Import Project="$(MSBuildCommunityTasksPath)\MSBuild.Community.Tasks.Targets"
 			Condition="Exists('$(MSBuildCommunityTasksPath)\MSBuild.Community.Tasks.Targets')" />
