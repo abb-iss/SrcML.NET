@@ -187,7 +187,6 @@ namespace ABB.SrcML.VisualStudio {
         /// </summary>
         protected override void StopMonitoringImpl() {
             if(CurrentMonitor != null && CurrentSrcMLArchive != null) {
-                OnMonitoringStopped(new EventArgs());
                 SaveTimer.Stop();
                 CurrentProject.StopMonitoring();
                 
