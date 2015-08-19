@@ -25,7 +25,7 @@ namespace ABB.SrcML {
         /// <summary>
         /// XNamespace for the SrcML SRC XML namespace
         /// </summary>
-        public static readonly XNamespace NS = "http://www.sdml.info/srcML/src";
+        public static readonly XNamespace NS = "http://www.srcML.org/srcML/src";
 
         /// <summary>
         /// XMLNS prefix for the SrcML SRC namespace
