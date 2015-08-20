@@ -79,7 +79,7 @@ namespace LoggingTransformation
 
         [SetUp]
         public void TestSetup() {
-            generator = new SrcMLGenerator(TestConstants.SrcmlPath);
+            generator = new SrcMLGenerator(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
         }
 
         [Test]

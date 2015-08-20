@@ -33,7 +33,7 @@ namespace ABB.SrcML.Test
         public void GetXPathExtensionTest()
         {
             File.WriteAllText("test.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
-<unit  xmlns=""http://www.sdml.info/srcML/src"" xmlns:cpp=""http://www.sdml.info/srcML/cpp"">
+<unit  xmlns=""http://www.srcML.org/srcML/src"" xmlns:cpp=""http://www.srcML.org/srcML/cpp"">
 <unit languageFilter=""C"" filename=""c:\Test\myapp.c"">
 <cpp:include>#<cpp:directive>include</cpp:directive> <cpp:file>&lt;stdio.h&gt;</cpp:file></cpp:include>
 

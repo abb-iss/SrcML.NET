@@ -28,14 +28,14 @@ namespace ABB.SrcML
         /// <summary>
         /// The srcml2src executable name
         /// </summary>
-        public const string SrcML2SrcExecutableName = "srcml2src.exe";
+        public const string SrcML2SrcExecutableName = "srcml.exe";
 
         #region Constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="SrcML2SrcRunner"/> class.
         /// </summary>
         public SrcML2SrcRunner()
-            : this(SrcMLHelper.GetSrcMLDefaultDirectory())
+            : this(SrcMLHelper.GetSrcMLRootDirectory())
         {
 
         }

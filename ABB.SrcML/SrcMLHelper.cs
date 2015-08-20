@@ -23,8 +23,8 @@ namespace ABB.SrcML
     /// </summary>
     public static class SrcMLHelper
     {
-        
 
+        public const string srcMLExecutableLocation = "srcML1.0\\bin";
         /// <summary>
         /// Gets the default srcML binary directory. It checks the following conditions:
         /// 1. If the SRCMLBINDIR environment variable is set, then that is used.
@@ -35,7 +35,7 @@ namespace ABB.SrcML
         /// This function does not check that any of the paths actually contains the srcML executables.
         /// </summary>
         /// <returns>The default srcML binary directory.</returns>
-        public static string GetSrcMLDefaultDirectory()
+        public static string GetSrcMLRootDirectory()
          {
             var srcmlDir = Environment.GetEnvironmentVariable("SRCMLBINDIR");
             if (null == srcmlDir)
@@ -43,7 +43,7 @@ namespace ABB.SrcML
                 var programFilesDir = Environment.GetEnvironmentVariable("ProgramFiles(x86)");
                 if (null == programFilesDir)
                     programFilesDir = Environment.GetEnvironmentVariable("ProgramFiles");
-                srcmlDir = Path.Combine(programFilesDir, Path.Combine("SrcML", "bin"));
+                srcmlDir = Path.Combine(programFilesDir, Path.Combine(srcMLExecutableLocation, "bin"));
             }
              
             if (!Directory.Exists(srcmlDir))
@@ -56,12 +56,13 @@ namespace ABB.SrcML
         /// </summary>
         /// <param name="extensionDirectory"></param>
         /// <returns></returns>
-        public static string GetSrcMLDefaultDirectory(string extensionDirectory)
+        public static string GetSrcMLRootDirectory(string extensionDirectory)
         {
-            if(!Directory.Exists(Path.Combine(extensionDirectory, "SrcML"))) {
-                return SrcMLHelper.GetSrcMLDefaultDirectory();
+            if (!Directory.Exists(Path.Combine(extensionDirectory, srcMLExecutableLocation)))
+            {
+                return SrcMLHelper.GetSrcMLRootDirectory();
             } else {
-                return Path.Combine(extensionDirectory, "SrcML");
+                return Path.Combine(extensionDirectory, srcMLExecutableLocation);
             }
         }
     }

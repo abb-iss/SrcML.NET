@@ -8,7 +8,7 @@ using System.Text;
 
 namespace ABB.SrcML {
     /// <summary>
-    /// Simpler version of <see cref="Src2SrcMLRunner"/>. This is a thin wrapper around the src2srcml executable from KSU.
+    /// Simpler version of <see cref="SrcDiffRunner"/>. This is a thin wrapper around the src2srcml executable from KSU.
     /// </summary>
     public class Src2SrcMLRunner2 {
         private string appDir;
@@ -16,12 +16,12 @@ namespace ABB.SrcML {
         /// <summary>
         /// The src2srcml executable name
         /// </summary>
-        public const string Src2SrcMLExecutableName = "src2srcml.exe";
+        public const string Src2SrcMLExecutableName = "srcml.exe";
 
         /// <summary>
-        /// Constructs a new object with <see cref="ApplicationDirectory"/> set via <see cref="SrcMLHelper.GetSrcMLDefaultDirectory()"/>.
+        /// Constructs a new object with <see cref="ApplicationDirectory"/> set via <see cref="SrcMLHelper.GetSrcMLRootDirectory()"/>.
         /// </summary>
-        public Src2SrcMLRunner2() : this(SrcMLHelper.GetSrcMLDefaultDirectory()) { }
+        public Src2SrcMLRunner2() : this(SrcMLHelper.GetSrcMLRootDirectory()) { }
 
         /// <summary>
         /// Constructs a new object with <see cref="ApplicationDirectory"/> set to <paramref name="applicationDirectory"/>

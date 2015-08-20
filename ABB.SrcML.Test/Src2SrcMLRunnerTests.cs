@@ -85,7 +85,7 @@ namespace LoggingTransformation
         [Test]
         public void DifferentLanguageTest()
         {
-            var srcmlObject = new Src2SrcMLRunner(Path.Combine(".", "SrcML"));
+            var srcmlObject = new Src2SrcMLRunner(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
             
             var doc = srcmlObject.GenerateSrcMLFromFile("srcmltest\\CSHARP.cs", "srcml_xml\\differentlanguage_java.xml", Language.Java);
 
@@ -98,7 +98,7 @@ namespace LoggingTransformation
             string sourceCode = @"int foo() {
 printf(""hello world!"");
 }";
-            var srcmlObject = new Src2SrcMLRunner(Path.Combine(".", "SrcML"));
+            var srcmlObject = new Src2SrcMLRunner(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
             string xml = srcmlObject.GenerateSrcMLFromString(sourceCode, Language.C);
 
             XElement element = XElement.Parse(xml);
@@ -109,7 +109,7 @@ printf(""hello world!"");
         [Test]
         public void InvalidLanguageTest()
         {
-            var srcmlObject = new Src2SrcMLRunner(Path.Combine(".", "SrcML"));
+            var srcmlObject = new Src2SrcMLRunner(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
 
             var doc = srcmlObject.GenerateSrcMLFromFile("srcmltest\\foo.c", "srcml_xml\\invalidlanguage_java.xml", Language.Java);
             Assert.IsNotNull(doc);
@@ -127,7 +127,7 @@ printf(""hello world!"");
         [Test]
         public void SingleFileTest()
         {
-            var srcmlObject = new Src2SrcMLRunner(Path.Combine(".", "SrcML"));
+            var srcmlObject = new Src2SrcMLRunner(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
 
             var doc = srcmlObject.GenerateSrcMLFromFile("srcmltest\\foo.c", "srcml_xml\\singlefile.xml");
             
@@ -138,12 +138,12 @@ printf(""hello world!"");
 
         /// <summary>
         /// Added by JZ on 12/3/2012.
-        /// Unit test for Src2SrcMLRunner.GenerateSrcMLAndStringFromFile()
+        /// Unit test for SrcDiffRunner.GenerateSrcMLAndStringFromFile()
         /// </summary>
         [Test]
         public void SingleFileToFileAndStringTest()
         {
-            var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
+            var srcmlObject = new Src2SrcMLRunner(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
 
             string xml = srcmlObject.GenerateSrcMLAndStringFromFile("srcmltest\\foo.c", "srcml_xml\\singlefile.xml");
             Console.WriteLine("xml = " + xml);
@@ -156,12 +156,12 @@ printf(""hello world!"");
 
         /// <summary>
         /// Added by JZ on 12/4/2012.
-        /// Unit test for Src2SrcMLRunner.GenerateSrcMLAndXElementFromFile()
+        /// Unit test for SrcDiffRunner.GenerateSrcMLAndXElementFromFile()
         /// </summary>
         [Test]
         public void SingleFileToFileAndXElementTest()
         {
-            var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
+            var srcmlObject = new Src2SrcMLRunner(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
 
             XElement xElement = srcmlObject.GenerateSrcMLAndXElementFromFile("srcmltest\\foo.c", "srcml_xml\\singlefile.xml");
 
@@ -174,7 +174,7 @@ printf(""hello world!"");
         [Test]
         public void MultipleFilesTest()
         {
-            var srcmlObject = new Src2SrcMLRunner(Path.Combine(".", "SrcML"));
+            var srcmlObject = new Src2SrcMLRunner(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
             var doc = srcmlObject.GenerateSrcMLFromFiles(new string[] {"srcmltest\\foo.c", "srcmltest\\bar.c"}, "srcml_xml\\multiplefile.xml");
 
             Assert.IsNotNull(doc);
@@ -183,11 +183,11 @@ printf(""hello world!"");
             Assert.AreEqual("srcmltest\\foo.c", files[0].Attribute("filename").Value);
             Assert.AreEqual("srcmltest\\bar.c", files[1].Attribute("filename").Value);
         }
-
+        /*This test might be making bad assumptions about srcML's parsing order*/
         [Test]
         public void MultipleFilesTest_DifferentDirectories()
         {
-            var srcmlObject = new Src2SrcMLRunner(Path.Combine(".", "SrcML"));
+            var srcmlObject = new Src2SrcMLRunner(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
             var doc = srcmlObject.GenerateSrcMLFromFiles(new string[] {"srcmltest\\foo.c", "srcmltest\\bar.c", "..\\..\\TestInputs\\baz.cpp"}, "srcml_xml\\multiplefile.xml");
 
             Assert.IsNotNull(doc);
@@ -197,10 +197,10 @@ printf(""hello world!"");
             Assert.AreEqual("srcmltest\\bar.c", files[1].Attribute("filename").Value);
             Assert.AreEqual("TestInputs\\baz.cpp", files[2].Attribute("filename").Value);
         }
-
+        /*This test might be making bad assumptions about srcML's parsing order*/
         [Test]
         public void MultipleFilesTest_Language() {
-            var srcmlObject = new Src2SrcMLRunner(Path.Combine(".", "SrcML"));
+            var srcmlObject = new Src2SrcMLRunner(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
             var doc = srcmlObject.GenerateSrcMLFromFiles(new string[] { "srcmltest\\foo.c", "srcmltest\\bar.c" }, "srcml_xml\\multiplefile.xml", Language.CPlusPlus);
 
             Assert.IsNotNull(doc);
@@ -216,7 +216,7 @@ printf(""hello world!"");
         // TODO this test depends on my computer. Fix it.
         //public void TestDirectoryParsing()
         //{
-        //    var srcmlObject = new Src2SrcMLRunner(TestConstants.SrcmlPath);
+        //    var srcmlObject = new SrcDiffRunner(TestConstants.SrcmlPath);
         //    var xmlFileName = Path.GetTempFileName();
         //    var document = srcmlObject.GenerateSrcMLFromDirectory(@"C:\Users\USVIAUG\Documents\Source Code\Notepad++", xmlFileName);
         //    Assert.AreEqual(283, document.FileUnits.Count());
@@ -229,7 +229,7 @@ printf(""hello world!"");
             exclusionList.Add("srcmltest\\BadPath™\\badPathTest.c");
             exclusionList.Add("srcmltest\\fooBody.c");
 
-            var srcmlObject = new Src2SrcMLRunner(Path.Combine(".", "SrcML"));
+            var srcmlObject = new Src2SrcMLRunner(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
 
             var doc = srcmlObject.GenerateSrcMLFromDirectory("srcmltest", "srcml_xml\\exclusionfilter.xml", exclusionList, Language.C);
 
@@ -247,7 +247,7 @@ printf(""hello world!"");
         [Test]
         public void EmptyOutputFileTest()
         {
-            var srcmlObject = new Src2SrcMLRunner(Path.Combine(".", "SrcML"));
+            var srcmlObject = new Src2SrcMLRunner(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
             File.WriteAllText("srcml_xml\\emptyFile.xml", "");
             Assert.IsTrue(File.Exists("srcml_xml\\emptyFile.xml"));
 
@@ -260,7 +260,7 @@ printf(""hello world!"");
         [Test]
         public void InputWithSpacesTest()
         {
-            var runner = new Src2SrcMLRunner(Path.Combine(".", "SrcML"));
+            var runner = new Src2SrcMLRunner(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
             var doc = runner.GenerateSrcMLFromFile("srcmltest\\File with spaces.cpp", "srcml_xml\\input_with_spaces.xml");
 
             Assert.IsNotNull(doc);
@@ -270,7 +270,7 @@ printf(""hello world!"");
         [Test]
         public void MyTestMethod()
         {
-            var runner = new Src2SrcMLRunner(Path.Combine(".", "SrcML"));
+            var runner = new Src2SrcMLRunner(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
             runner.GenerateSrcMLFromDirectory("srcmltest", "srcmltest1.xml");
             runner.GenerateSrcMLFromFile("srcmltest\\File with spaces.cpp", "testfile.xml");
         }

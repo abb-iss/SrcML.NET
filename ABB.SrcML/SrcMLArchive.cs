@@ -86,8 +86,8 @@ namespace ABB.SrcML {
         /// <summary>
         /// Creates a new SrcMLArchive. By default, any existing srcML will be used.
         /// </summary>
-        /// <param name="baseDirectory">The parent of <paramref name="srcMLDirectory"/>. <see cref="AbstractArchive.ArchivePath"/> will be set to <c>Path.Combine(baseDirectory, srcMLDirectory)</c></param>
-        /// <param name="srcMLDirectory">The directory to store the SrcML files in. This will be created as a subdirectory of <paramref name="baseDirectory"/></param>
+        /// <param name="baseDirectory">The parent of <paramref name="srcMLExecutableLocation"/>. <see cref="AbstractArchive.ArchivePath"/> will be set to <c>Path.Combine(baseDirectory, srcMLExecutableLocation)</c></param>
+        /// <param name="srcMLExecutableLocation">The directory to store the SrcML files in. This will be created as a subdirectory of <paramref name="baseDirectory"/></param>
         public SrcMLArchive(string baseDirectory, string srcMLDirectory)
             : this(baseDirectory, srcMLDirectory, true) {
         }
@@ -95,8 +95,8 @@ namespace ABB.SrcML {
         /// <summary>
         /// Creates a new SrcMLArchive.
         /// </summary>
-        /// <param name="baseDirectory">The parent of <paramref name="srcMLDirectory"/>. <see cref="AbstractArchive.ArchivePath"/> will be set to <c>Path.Combine(baseDirectory, srcMLDirectory)</c></param>
-        /// <param name="srcMLDirectory">The directory to store the SrcML files in. This will be created as a subdirectory of <paramref name="baseDirectory"/></param>
+        /// <param name="baseDirectory">The parent of <paramref name="srcMLExecutableLocation"/>. <see cref="AbstractArchive.ArchivePath"/> will be set to <c>Path.Combine(baseDirectory, srcMLExecutableLocation)</c></param>
+        /// <param name="srcMLExecutableLocation">The directory to store the SrcML files in. This will be created as a subdirectory of <paramref name="baseDirectory"/></param>
         /// <param name="useExistingSrcML">If True, any existing SrcML files in <see cref="AbstractArchive.ArchivePath"/> will be used. If False, these files will be deleted and potentially recreated.</param>
         public SrcMLArchive(string baseDirectory, string srcMLDirectory, bool useExistingSrcML)
             : this(baseDirectory, srcMLDirectory, useExistingSrcML, new SrcMLGenerator()) {
@@ -105,8 +105,8 @@ namespace ABB.SrcML {
         /// <summary>
         /// Creates a new SrcMLArchive.
         /// </summary>
-        /// <param name="baseDirectory">The parent of <paramref name="srcMLDirectory"/>. <see cref="AbstractArchive.ArchivePath"/> will be set to <c>Path.Combine(baseDirectory, srcMLDirectory)</c></param>
-        /// <param name="srcMLDirectory">The directory to store the SrcML files in. This will be created as a subdirectory of <paramref name="baseDirectory"/></param>
+        /// <param name="baseDirectory">The parent of <paramref name="srcMLExecutableLocation"/>. <see cref="AbstractArchive.ArchivePath"/> will be set to <c>Path.Combine(baseDirectory, srcMLExecutableLocation)</c></param>
+        /// <param name="srcMLExecutableLocation">The directory to store the SrcML files in. This will be created as a subdirectory of <paramref name="baseDirectory"/></param>
         /// <param name="useExistingSrcML">If True, any existing SrcML files in <see cref="AbstractArchive.ArchivePath"/> will be used. If False, these files will be deleted and potentially recreated.</param>
         /// <param name="generator">The SrcMLGenerator to use to convert source files to SrcML.</param>
         public SrcMLArchive(string baseDirectory, string srcMLDirectory, bool useExistingSrcML, SrcMLGenerator generator)
@@ -118,8 +118,8 @@ namespace ABB.SrcML {
         /// <summary>
         /// Creates a new SrcMLArchive.
         /// </summary>
-        /// <param name="baseDirectory">The parent of <paramref name="srcMLDirectory"/>. <see cref="AbstractArchive.ArchivePath"/> will be set to <c>Path.Combine(baseDirectory, srcMLDirectory)</c></param>
-        /// <param name="srcMLDirectory">The directory to store the SrcML files in. This will be created as a subdirectory of <paramref name="baseDirectory"/></param>
+        /// <param name="baseDirectory">The parent of <paramref name="srcMLExecutableLocation"/>. <see cref="AbstractArchive.ArchivePath"/> will be set to <c>Path.Combine(baseDirectory, srcMLExecutableLocation)</c></param>
+        /// <param name="srcMLExecutableLocation">The directory to store the SrcML files in. This will be created as a subdirectory of <paramref name="baseDirectory"/></param>
         /// <param name="useExistingSrcML">If True, any existing SrcML files in <see cref="AbstractArchive.ArchivePath"/> will be used. If False, these files will be deleted and potentially recreated.</param>
         /// <param name="generator">The SrcMLGenerator to use to convert source files to SrcML.</param>
         /// <param name="xmlMapping">The XmlFileNameMapping to use to map source paths to xml file paths.</param>
