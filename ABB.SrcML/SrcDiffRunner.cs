@@ -1,4 +1,15 @@
-﻿using ABB.SrcML.Utilities;
+﻿/******************************************************************************
+ * Copyright (c) 2010 ABB Group
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    Vinay Augustine (ABB Group) - initial API, implementation, & documentation
+ *****************************************************************************/
+
+using ABB.SrcML.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -13,7 +24,7 @@ namespace ABB.SrcML
     public class SrcDiffRunner : SrcMLRunner
     {
         /// <summary>
-        /// The src2srcml executable name
+        /// The srcDiff executable name
         /// </summary>
         public const string SrcDiffExecutableName = "srcdiff.exe";
 
@@ -23,7 +34,7 @@ namespace ABB.SrcML
         /// Initializes a new instance of the <see cref="SrcDiffRunner"/> class.
         /// </summary>
         public SrcDiffRunner()
-            : this(SrcMLHelper.GetSrcMLDefaultDirectory()) {}
+            : this(SrcToolsHelper.GetSrcMLToolDefaultDirectory("srcdiff")) {}
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SrcDiffRunner"/> class.
@@ -45,113 +56,65 @@ namespace ABB.SrcML
         #region File Conversion
 
         /// <summary>
-        /// Added by JZ on 12/4/2012
-        /// Generate both a SrcML XElement and document from a single source file. The language will be inferred from the extension.
+        /// Generate both a SrcML XElement and document from the difference between <see cref="nameOfOriginalFile"/> and <see cref="modifiedFileName"/>. The language will be inferred from the extension.
         /// </summary>
-        /// <param name="sourceFileName">path to the source file to convert.</param>
+        /// <param name="nameOfOriginalFile">path to the source file to convert.</param>
         /// <param name="modifiedFileName">The File name to write the resulting XML to.</param>
-        /// <param name="xmlFileName">The File name to write the resulting XML to.</param>
+        /// <param name="outputXmlFileName">The File name to write the resulting XML to.</param>
         /// <returns>An XElement representing the source.</returns>
-        public XElement GenerateSrcDiffAndXElementFromFile(string sourceFileName, string modifiedFileName, string xmlFileName) {
-            SrcMLFile srcMLFile = GenerateSrcDiffFromFile(sourceFileName, modifiedFileName, xmlFileName);
-            //string srcml = srcMLFile.GetXMLString();
+        public XElement GenerateSrcDiffAndXElementFromFile(string nameOfOriginalFile, string modifiedFileName, string outputXmlFileName) {
+            SrcMLFile srcMLFile = GenerateSrcDiffFromFile(nameOfOriginalFile, modifiedFileName, outputXmlFileName);
             return srcMLFile.FileUnits.FirstOrDefault();
-            //if (srcml != String.Empty)
-            //{
-            //    return XElement.Parse(srcml, LoadOptions.PreserveWhitespace);
-            //}
-            //else
-            //{
-            //    return null;
-            //}
         }
 
         /// <summary>
-        /// Added by JZ on 12/3/2012
-        /// Generate both a SrcML string and document from a single source file. The language will be inferred from the extension.
+        /// Generate both a SrcML string and document from the difference between <see cref="nameOfOriginalFile"/> and <see cref="modifiedFileName"/>. The language will be inferred from the extension.
         /// </summary>
-        /// <param name="sourceFileName">path to the source file to convert.</param>
-        /// <param name="modifiedXmlFile">The File name to write the resulting XML to.</param>
+        /// <param name="nameOfOriginalFile">path to the source file to convert.</param>
+        /// <param name="nameOfModifiedFile">The File name to write the resulting XML to.</param>
         /// <param name="xmlFileName">The File name to write the resulting XML to.</param>
         /// <returns>An XML string representing the source.</returns>
-        public string GenerateSrDiffAndStringFromFile(string sourceFileName, string modifiedXmlFile, string xmlFileName) {
-            SrcMLFile srcMLFile = GenerateSrcDiffFromFile(sourceFileName, modifiedXmlFile, xmlFileName);
+        public string GenerateSrDiffAndStringFromFile(string nameOfOriginalFile, string nameOfModifiedFile, string outputXmlFileName) {
+            SrcMLFile srcMLFile = GenerateSrcDiffFromFile(nameOfOriginalFile, nameOfModifiedFile, outputXmlFileName);
             return srcMLFile.GetXMLString();
         }
 
         /// <summary>
         /// Generate a SrcML document from a single source file. The language will be inferred from the extension.
         /// </summary>
-        /// <param name="sourceFileName">path to the source file to convert.</param>
-        /// <param name="modifiedXmlFile">The File name to write the resulting XML to.</param>
-        /// <param name="xmlFileName">The File name to write the resulting XML to.</param>
-        /// <returns>A SrcMLFile for <paramref name="xmlFileName"/>.</returns>
-        public SrcMLFile GenerateSrcDiffFromFile(string sourceFileName, string modifiedXmlFile, string xmlFileName) {
-            return GenerateSrcDiffFromFile(sourceFileName, modifiedXmlFile, xmlFileName, Language.Any);
+        /// <param name="nameOfOriginalFile">path to the source file to convert.</param>
+        /// <param name="nameOfModifiedFile">The File name to write the resulting XML to.</param>
+        /// <param name="outputXmlFileName">The File name to write the resulting XML to.</param>
+        /// <returns>A SrcMLFile for <paramref name="outputXmlFileName"/>.</returns>
+        public SrcMLFile GenerateSrcDiffFromFile(string nameOfOriginalFile, string nameOfModifiedFile, string outputXmlFileName) {
+            return GenerateSrcDiffFromFile(nameOfOriginalFile, nameOfModifiedFile, outputXmlFileName, Language.Any);
         }
 
         /// <summary>
-        /// Generate a SrcML document from a single source file with the specified language.
+        /// Generate a SrcML document from the difference between <see cref="nameOfOriginalFile"/> and <see cref="modifiedFileName"/> with the specified language.
         /// </summary>
-        /// <param name="sourceFileName">The path to the source file to convert.</param>
-        /// <param name="modifiedXmlFile">The File name to write the resulting XML to.</param>
+        /// <param name="nameOfOriginalFile">The path to the source file to convert.</param>
+        /// <param name="nameOfModifiedFile">The File name to write the resulting XML to.</param>
         /// <param name="xmlFileName">The file name to write the resulting XML to.</param>
         /// <param name="language">The language to parse the source file as.</param>
         /// <returns>A SrcMLFile for <paramref name="xmlFileName"/>.</returns>
-        public SrcMLFile GenerateSrcDiffFromFile(string sourceFileName, string modifiedXmlFile, string xmlFileName, Language language) {
+        public SrcMLFile GenerateSrcDiffFromFile(string nameOfOriginalFile, string nameOfModifiedFile, string xmlFileName, Language language) {
            // Console.WriteLine("xmlFileName = [" + xmlFileName + "]");
-            if (!File.Exists(sourceFileName))
-                throw new FileNotFoundException(String.Format(CultureInfo.CurrentCulture, "{0} does not exist.", sourceFileName));
-            if (!File.Exists(modifiedXmlFile))
-                throw new FileNotFoundException(String.Format(CultureInfo.CurrentCulture, "{0} does not exist.", modifiedXmlFile));
+            if (!File.Exists(nameOfOriginalFile))
+                throw new FileNotFoundException(String.Format(CultureInfo.CurrentCulture, "{0} does not exist.", nameOfOriginalFile));
+            if (!File.Exists(nameOfModifiedFile))
+                throw new FileNotFoundException(String.Format(CultureInfo.CurrentCulture, "{0} does not exist.", nameOfModifiedFile));
 
             var arguments = new Collection<string>();
             if(language > Language.Any) {
                 arguments.Add(String.Format(CultureInfo.InvariantCulture, "--language={0}", KsuAdapter.GetLanguage(language)));
             }
 
-            arguments.Add(String.Format("\"{0}\" \"{1}\"", sourceFileName, modifiedXmlFile));
-            //Console.Write(String.Format("\"{0} {1}\"", sourceFileName, modifiedXmlFile));
+            arguments.Add(String.Format("\"{0}\" \"{1}\"", nameOfOriginalFile, nameOfModifiedFile));
 
-            //Console.WriteLine("sourceFileName = [" + sourceFileName + "]");
-            //Console.WriteLine("xmlFileName = [" + xmlFileName + "]");
             Run(xmlFileName, arguments);
-
-            Console.WriteLine("CONTENTS: {0}", xmlFileName);
             return new SrcMLFile(xmlFileName);
         }
-        #endregion
-
-        #region String Conversion
-
-        /// <summary>
-        /// Generate SrcML from a given string of source code. The source code will be parsed as C++.
-        /// </summary>
-        /// <param name="source">A string containing the source code to parse.</param>
-        /// <returns>XML representing the source.</returns>
-        public string GenerateSrcDiffFromString(string source) {
-            return GenerateSrcDiffFromString(source, Language.CPlusPlus);
-        }
-
-        /// <summary>
-        /// Generate SrcML from a given string of source code.
-        /// </summary>
-        /// <param name="source">A string containing the source code to parse.</param>
-        /// <param name="language">The language to parse the string as. Language.Any is not valid.</param>
-        /// <returns>XML representing the source.</returns>
-        public string GenerateSrcDiffFromString(string source, Language language) {
-            if(language == Language.Any) {
-                throw new SrcMLException("Any is not a valid language. Pick an actual language in the enumeration");
-            }
-
-            Collection<string> arguments = new Collection<string>(this.NamespaceArguments);
-            arguments.Add("--no-xml-decl");
-            arguments.Add(String.Format(CultureInfo.InvariantCulture, "--language={0}", KsuAdapter.GetLanguage(language)));
-
-            var xml = Run(arguments, source);
-            return xml;
-        }
-
         #endregion
     }
 }
