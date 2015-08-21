@@ -98,9 +98,9 @@ namespace ABB.SrcML.Test {
 
         [Test]
         public void TestGetLanguageForUnit_ValidLanguage() {
-            string testXml = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>
-<unit xmlns=""http://www.sdml.info/srcML/src"" language=""C++"" filename=""test.cpp""><expr_stmt><expr></expr></expr_stmt>
-</unit>";
+            string testXml = String.Format(@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>
+<unit xmlns=""{0}"" language=""C++"" filename=""test.cpp""><expr_stmt><expr></expr></expr_stmt>
+</unit>", SRC.NS);
 
             XElement fileUnit = XElement.Parse(testXml);
 
@@ -109,9 +109,9 @@ namespace ABB.SrcML.Test {
 
         [Test]
         public void TestGetLanguageForUnit_NoLanguage() {
-            string testXml = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>
-<unit xmlns=""http://www.sdml.info/srcML/src"" filename=""test.cpp""><expr_stmt><expr></expr></expr_stmt>
-</unit>";
+            string testXml = String.Format(@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>
+<unit xmlns=""{0}"" filename=""test.cpp""><expr_stmt><expr></expr></expr_stmt>
+</unit>", SRC.NS);
 
             XElement fileUnit = XElement.Parse(testXml);
 
@@ -120,9 +120,9 @@ namespace ABB.SrcML.Test {
 
         [Test]
         public void TestGetLanguageForUnit_InvalidLanguage() {
-            string testXml = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>
-<unit xmlns=""http://www.sdml.info/srcML/src"" language=""C+"" filename=""test.cpp""><expr_stmt><expr></expr></expr_stmt>
-</unit>";
+            string testXml = String.Format(@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>
+<unit xmlns=""{0}"" language=""C+"" filename=""test.cpp""><expr_stmt><expr></expr></expr_stmt>
+</unit>", SRC.NS);
 
             XElement fileUnit = XElement.Parse(testXml);
 

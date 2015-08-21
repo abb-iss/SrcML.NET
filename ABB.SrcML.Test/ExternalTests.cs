@@ -55,6 +55,7 @@ namespace ABB.SrcML.Test
         [TestFixtureTearDown]
         public static void SRCTestCleanup()
         {
+            
             foreach (var file in Directory.GetFiles("external"))
             {
                 File.Delete(file);
@@ -88,9 +89,17 @@ namespace ABB.SrcML.Test
             Assert.AreEqual(1, classBlock.Elements(SRC.Function).Count(), srcmlObject.ApplicationDirectory);
         }
 
+        /// <summary>
+        /// Originally, this test looked to see if there were 2 names and inits inside of a decl for the given input. The new version of
+        /// srcML fixes an old issue and so now each decl only has 1 name and init for the given input. Therefore, changing the assertion to 1
+        /// instead of 2.Possibly deprecated.
+        /// </summary>
         [Test]
         public void DeclStmtWithTwoDecl()
         {
+            const int NumNamesInDecl = 1;
+            const int NumInitInDecl = 1;
+
             var srcmlObject = new Src2SrcMLRunner(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
             var source = "int x = 0, y = 2;";
 
@@ -100,8 +109,8 @@ namespace ABB.SrcML.Test
             var decl = element.Element(SRC.DeclarationStatement).Element(SRC.Declaration);
             var nameCount = decl.Elements(SRC.Name).Count();
             var initCount = decl.Elements(SRC.Init).Count();
-            Assert.AreEqual(2, nameCount, srcmlObject.ApplicationDirectory);
-            Assert.AreEqual(2, initCount, srcmlObject.ApplicationDirectory);
+            Assert.AreEqual(NumNamesInDecl, nameCount, srcmlObject.ApplicationDirectory);
+            Assert.AreEqual(NumInitInDecl, initCount, srcmlObject.ApplicationDirectory);
         }
 
         [Test]
@@ -171,7 +180,7 @@ namespace ABB.SrcML.Test
             var generator = new SrcMLGenerator(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
             generator.GenerateSrcMLFromFile("external\\TestCppTypeModifiers.cpp", "external_xml\\TestCppStaticModifier.cpp.xml");
             var fileUnit = SrcMLElement.Load("external_xml\\TestCppStaticModifier.cpp.xml");
-            var typeWithStatic = fileUnit.Descendants(SRC.Type).LastOrDefault();
+            var typeWithStatic = fileUnit.Descendants(SRC.Declaration).LastOrDefault();
             Assert.IsNotNull(typeWithStatic);
             var staticModifier = typeWithStatic.Elements(SRC.Specifier).FirstOrDefault();
             Assert.IsNotNull(staticModifier);
@@ -229,7 +238,10 @@ namespace ABB.SrcML.Test
             Assert.IsNotNull(methodBlock);
             Assert.AreEqual(1, methodBlock.Elements(SRC.ExpressionStatement).Count());
         }
-
+        /// <summary>
+        /// "using" tag for csharp was changed to "using_stmt" in a newer version of srcML. Updated SRC.Using to reflect that.
+        /// Also, "Using" isn't followed by decl directly anymore. Instead, it's followed by init.
+        /// </summary>
         [Test]
         public void TestCSharpUsingStatement() {
             var generator = new SrcMLGenerator(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
@@ -239,7 +251,7 @@ namespace ABB.SrcML.Test
             var usingBlock = fileUnit.Elements(SRC.Using).FirstOrDefault();
             Assert.IsNotNull(usingBlock);
 
-            Assert.AreEqual(1, usingBlock.Elements(SRC.Declaration).Count());
+            Assert.AreEqual(1, usingBlock.Elements(SRC.Init).Count());
             Assert.AreEqual(1, usingBlock.Elements(SRC.Block).Count());
         }
     }

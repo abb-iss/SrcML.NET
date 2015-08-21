@@ -47,7 +47,7 @@ namespace ABB.SrcML.Test
                 File.Delete(file);
             }
             Directory.Delete("srctest");
-            Directory.Delete("srctest_xml");
+            Directory.Delete("srctest_xml"); 
         }
 
         [Test]
@@ -58,7 +58,6 @@ namespace ABB.SrcML.Test
             var doc = srcmlObject.GenerateSrcMLFromFile(@"srctest\foo.c", @"srctest_xml\singleunit_position.xml");
 
             var firstUnit = doc.FileUnits.First();
-
             Assert.AreEqual(0, firstUnit.GetSrcLinePosition());
             Assert.AreEqual(1, firstUnit.Descendants(SRC.Type).First().Element(SRC.Name).GetSrcLinePosition());
             Assert.AreEqual(1, firstUnit.Element(SRC.Function).GetSrcLinePosition());

@@ -68,7 +68,7 @@ namespace LoggingTransformation
         [TestFixtureTearDown]
         public static void SrcMLTestCleanup()
         {
-            /*
+            
             foreach (var file in Directory.GetFiles("srcmltest"))
             {
                 File.Delete(file);
@@ -79,7 +79,7 @@ namespace LoggingTransformation
             }
             Directory.Delete("srcmltest");
             Directory.Delete("srcml_xml");
-            */
+            
         }
 
         [Test]
@@ -180,10 +180,23 @@ printf(""hello world!"");
             Assert.IsNotNull(doc);
             var files = doc.FileUnits.ToList();
             Assert.AreEqual(2, files.Count());
-            Assert.AreEqual("srcmltest\\foo.c", files[0].Attribute("filename").Value);
-            Assert.AreEqual("srcmltest\\bar.c", files[1].Attribute("filename").Value);
+
+            string file = "srcmltest\\foo.c";
+            var f1 = (from ele in files
+                      where ele.Attribute("filename").Value == file
+                      select ele);
+            Assert.AreEqual("srcmltest\\foo.c", f1.FirstOrDefault().Attribute("filename").Value);
+
+            string file1 = "srcmltest\\bar.c";
+            var f2 = (from ele in files
+                      where ele.Attribute("filename").Value == file1
+                      select ele);
+            Assert.AreEqual("srcmltest\\bar.c", f2.FirstOrDefault().Attribute("filename").Value);
         }
-        /*This test might be making bad assumptions about srcML's parsing order*/
+        /// <summary>
+        /// Modified this test to not care about the order in which the files are placed in srcML's archive. If order is somehow important we'll have to change it back but I don't think srcML guarantees
+        /// the order in which units are placed in an archive. Might be wrong on that, though (it didn't seem to guarantee it when I was testing).
+        /// </summary>
         [Test]
         public void MultipleFilesTest_DifferentDirectories()
         {
@@ -193,9 +206,25 @@ printf(""hello world!"");
             Assert.IsNotNull(doc);
             var files = doc.FileUnits.ToList();
             Assert.AreEqual(3, files.Count());
-            Assert.AreEqual("srcmltest\\foo.c", files[0].Attribute("filename").Value);
-            Assert.AreEqual("srcmltest\\bar.c", files[1].Attribute("filename").Value);
-            Assert.AreEqual("TestInputs\\baz.cpp", files[2].Attribute("filename").Value);
+
+            string file = "srcmltest\\foo.c";
+            var f1 = (from ele in files
+                          where ele.Attribute("filename").Value == file
+                          select ele);
+            Assert.AreEqual("srcmltest\\foo.c", f1.FirstOrDefault().Attribute("filename").Value);
+
+            string file1 = "srcmltest\\bar.c";
+            var f2 = (from ele in files
+                      where ele.Attribute("filename").Value == file1
+                      select ele);
+            Assert.AreEqual("srcmltest\\bar.c", f2.FirstOrDefault().Attribute("filename").Value);
+
+            string file2 = "\\..\\TestInputs\\baz.cpp";
+            var f3 = (from ele in files
+                      where ele.Attribute("filename").Value == file2
+                      select ele);
+            Console.WriteLine(f3.FirstOrDefault().Value);
+            Assert.AreEqual("\\..\\TestInputs\\baz.cpp", f3.FirstOrDefault().Attribute("filename").Value);
         }
         /*This test might be making bad assumptions about srcML's parsing order*/
         [Test]
@@ -206,10 +235,19 @@ printf(""hello world!"");
             Assert.IsNotNull(doc);
             var files = doc.FileUnits.ToList();
             Assert.AreEqual(2, files.Count());
-            Assert.AreEqual("srcmltest\\foo.c", files[0].Attribute("filename").Value);
-            Assert.AreEqual("C++", files[0].Attribute("language").Value);
-            Assert.AreEqual("srcmltest\\bar.c", files[1].Attribute("filename").Value);
-            Assert.AreEqual("C++", files[1].Attribute("language").Value);
+            string file = "srcmltest\\foo.c";
+            var f1 = (from ele in files
+                      where ele.Attribute("filename").Value == file
+                      select ele);
+            Assert.AreEqual("srcmltest\\foo.c", f1.FirstOrDefault().Attribute("filename").Value);
+            Assert.AreEqual("C++", f1.FirstOrDefault().Attribute("language").Value);
+
+            string file2 = "srcmltest\\bar.c";
+            var f2 = (from ele in files
+                      where ele.Attribute("filename").Value == file2
+                      select ele);
+            Assert.AreEqual("srcmltest\\bar.c", f2.FirstOrDefault().Attribute("filename").Value);
+            Assert.AreEqual("C++", f2.FirstOrDefault().Attribute("language").Value);
         }
 
         //[Test]

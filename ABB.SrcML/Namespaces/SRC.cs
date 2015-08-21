@@ -299,7 +299,7 @@ namespace ABB.SrcML {
         /// <summary>
         /// markup for the param tag
         /// </summary>
-        public static readonly XName Parameter = NS + "param";
+        public static readonly XName Parameter = NS + "parameter";
 
         /// <summary>
         /// markup for the specifier tag
@@ -424,7 +424,7 @@ namespace ABB.SrcML {
         /// <summary>
         /// markup for the using tag
         /// </summary>
-        public static readonly XName Using = NS + "using";
+        public static readonly XName Using = NS + "using_stmt";
 
         /// <summary> markup for the extern tag </summary>
         public static readonly XName Extern = NS + "extern"; // extern

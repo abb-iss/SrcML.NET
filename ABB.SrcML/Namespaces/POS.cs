@@ -31,7 +31,7 @@ namespace ABB.SrcML
         /// <summary>
         /// XNamespace for the SrcML Position XML namespace
         /// </summary>
-        public static readonly XNamespace NS = "http://www.sdml.info/srcML/position";
+        public static readonly XNamespace NS = "http://www.srcML.org/srcML/position";
 
         /// <summary>
         /// XMLNS prefix for the SrcML OP namespace
