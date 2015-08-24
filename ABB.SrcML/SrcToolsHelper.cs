@@ -16,16 +16,6 @@ using System.Text;
 using System.Xml.Linq;
 using System.IO;
 
-/// <summary>
-/// Gets the default srcML binary directory. It checks the following conditions:
-/// 1. If the SRCMLBINDIR environment variable is set, then that is used.
-/// 2. If c:\Program Files (x86)\SrcML\bin directory exists (should only exist on 64-bit systems), then that is used.
-/// 3. If c:\Program Files\SrcML\bin directory exists, then that is used.
-/// 4. If none of the above is true, then the current directory is used.
-/// 
-/// This function does not check that any of the paths actually contains the srcML executables.
-/// </summary>
-/// <returns>The default srcML binary directory.</returns>
 namespace ABB.SrcML
 {
     /// <summary>
@@ -43,7 +33,7 @@ namespace ABB.SrcML
         /// <param name="toolName">The name of the tool (since there are multiple) that the user is looking for.</param>
         /// Does not check to see if the directory contains the executables
         /// <returns>Path to the proper directory for the given tool</returns>
-        public static string GetSrcMLToolDefaultDirectory(String toolName)
+        public static string GetSrcMLToolDefaultDirectory(string toolName)
         {
             toolName = toolName.ToLower(); //tool names are all lowercase
             var srcmlToolsDir = Environment.GetEnvironmentVariable("SRCTOOLSBINDIR");

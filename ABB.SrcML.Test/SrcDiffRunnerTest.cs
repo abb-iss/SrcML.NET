@@ -68,7 +68,7 @@ namespace LoggingTransformation
         [TestFixtureTearDown]
         public static void SrcMLTestCleanup()
         {
-            /*
+            
             foreach (var file in Directory.GetFiles("srcmltest"))
             {
                 File.Delete(file);
@@ -79,7 +79,7 @@ namespace LoggingTransformation
             }
             Directory.Delete("srcmltest");
             Directory.Delete("srcml_xml");
-            */
+            
         }
 
         [Test]
@@ -109,7 +109,9 @@ namespace LoggingTransformation
 
             Assert.IsNotNull(doc);
         }
-
+        /// <summary>
+        /// Runs srcDiff on a single file and then checks to see if 1. Document was return, 2. Expected number of units are in file and 3. The unit had the same name as the  provided file
+        /// </summary>
         [Test]
         public void SingleFileTest()
         {
@@ -123,7 +125,6 @@ namespace LoggingTransformation
         }
 
         /// <summary>
-        /// Added by JZ on 12/4/2012.
         /// Unit test for SrcDiffRunner.GenerateSrcDiffAndXElementFromFile()
         /// </summary>
         [Test]
@@ -151,7 +152,9 @@ namespace LoggingTransformation
             Assert.IsNotNull(doc);
             Assert.AreEqual(1, doc.FileUnits.Count());
         }
-
+        /// <summary>
+        /// Test with spaces in input file name
+        /// </summary>
         [Test]
         public void InputWithSpacesTest()
         {
@@ -161,7 +164,9 @@ namespace LoggingTransformation
             Assert.IsNotNull(doc);
             Assert.AreEqual(1, doc.FileUnits.Count());
         }
-
+        /// <summary>
+        /// Test template?
+        /// </summary>
         [Test]
         public void MyTestMethod()
         {
