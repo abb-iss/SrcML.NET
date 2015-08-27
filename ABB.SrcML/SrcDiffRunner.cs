@@ -21,8 +21,7 @@ using System.Xml.Linq;
 
 namespace ABB.SrcML
 {
-    public class SrcDiffRunner : SrcMLRunner
-    {
+    public class SrcDiffRunner : SrcMLRunner {
         /// <summary>
         /// The srcDiff executable name
         /// </summary>

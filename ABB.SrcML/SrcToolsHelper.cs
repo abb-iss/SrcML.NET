@@ -21,8 +21,7 @@ namespace ABB.SrcML
     /// <summary>
     /// Collection of helper functions for working with srcML elements
     /// </summary>
-    public static class SrcToolsHelper
-    {
+    public static class SrcToolsHelper {
         /// <summary>
         /// Gets the default srcTools directory. It checks the following conditions:
         /// 1. If SRCTOOLSBINDIR environment variable is set, then that is used.
@@ -33,20 +32,20 @@ namespace ABB.SrcML
         /// <param name="toolName">The name of the tool (since there are multiple) that the user is looking for.</param>
         /// Does not check to see if the directory contains the executables
         /// <returns>Path to the proper directory for the given tool</returns>
-        public static string GetSrcMLToolDefaultDirectory(string toolName)
-        {
+        public static string GetSrcMLToolDefaultDirectory(string toolName) {
             toolName = toolName.ToLower(); //tool names are all lowercase
             var srcmlToolsDir = Environment.GetEnvironmentVariable("SRCTOOLSBINDIR");
-            if (null == srcmlToolsDir)
-            {
+            if (null == srcmlToolsDir) {
                 var programFilesDir = Environment.GetEnvironmentVariable("ProgramFiles(x86)");
-                if (null == programFilesDir)
+                if (null == programFilesDir) {
                     programFilesDir = Environment.GetEnvironmentVariable("ProgramFiles");
+                }
                 srcmlToolsDir = Path.Combine(programFilesDir, Path.Combine("SrcTools", String.Format("{0}\\bin", toolName)));
             }
 
-            if (!Directory.Exists(srcmlToolsDir))
+            if (!Directory.Exists(srcmlToolsDir)) {
                 return Directory.GetCurrentDirectory();
+            }
             return srcmlToolsDir;
         }
 
@@ -55,14 +54,11 @@ namespace ABB.SrcML
         /// </summary>
         /// <param name="extensionDirectory"></param>
         /// <returns></returns>
-        public static string GetSrcMLDefaultDirectory(string toolName, string extensionDirectory)
-        {
-            if (!Directory.Exists(Path.Combine(extensionDirectory, "SrcTools")))
-            {
+        public static string GetSrcMLDefaultDirectory(string toolName, string extensionDirectory) {
+            if (!Directory.Exists(Path.Combine(extensionDirectory, "SrcTools"))) {
                 return SrcToolsHelper.GetSrcMLToolDefaultDirectory(toolName);
             }
-            else
-            {
+            else {
                 return Path.Combine(extensionDirectory, "srcTools");
             }
         }

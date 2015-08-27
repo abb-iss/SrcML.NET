@@ -422,9 +422,14 @@ namespace ABB.SrcML {
         public static readonly XName Namespace = NS + "namespace";
 
         /// <summary>
+        /// markup for the using tag when used as statement
+        /// </summary>
+        public static readonly XName Using_Stmt = NS + "using_stmt";
+        
+        /// <summary>
         /// markup for the using tag
         /// </summary>
-        public static readonly XName Using = NS + "using_stmt";
+        public static readonly XName Using = NS + "using";
 
         /// <summary> markup for the extern tag </summary>
         public static readonly XName Extern = NS + "extern"; // extern

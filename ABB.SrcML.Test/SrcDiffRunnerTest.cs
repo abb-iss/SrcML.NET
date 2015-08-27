@@ -18,15 +18,12 @@ using NUnit.Framework;
 using ABB.SrcML;
 using System.Xml.Linq;
 
-namespace ABB.SrcML.Test
-{
+namespace ABB.SrcML.Test {
     [TestFixture]
     [Category("Build")]
-    public class SrcDiffRunnerTests
-    {
+    public class SrcDiffRunnerTests {
         [TestFixtureSetUp]
-        public static void SrcMLTestInitialize()
-        {
+        public static void SrcMLTestInitialize() {
             Directory.CreateDirectory("srcmltest");
             Directory.CreateDirectory("srcml_xml");
             File.WriteAllText("srcmltest\\foo.c", String.Format(@"int foo() {{{0}printf(""hello world!"");{0}}}", Environment.NewLine));
@@ -66,8 +63,7 @@ namespace LoggingTransformation
         }
 
         [TestFixtureTearDown]
-        public static void SrcMLTestCleanup()
-        {
+        public static void SrcMLTestCleanup() {
             
             foreach (var file in Directory.GetFiles("srcmltest"))
             {
@@ -83,8 +79,7 @@ namespace LoggingTransformation
         }
 
         [Test]
-        public void DifferentLanguageTest()
-        {
+        public void DifferentLanguageTest() {
             var srcmlObject = new SrcDiffRunner(Path.Combine("..\\..\\External\\", "SrcDiff"));
 
             var doc = srcmlObject.GenerateSrcDiffFromFile("srcmltest\\CSHARP.cs", "srcmltest\\CSHARP.cs", "srcml_xml\\differentlanguage_java.xml", Language.Java);
@@ -93,8 +88,7 @@ namespace LoggingTransformation
         }
 
         [Test]
-        public void InvalidLanguageTest()
-        {
+        public void InvalidLanguageTest() {
             var srcmlObject = new SrcDiffRunner(Path.Combine("..\\..\\External\\", "SrcDiff"));
 
             var doc = srcmlObject.GenerateSrcDiffFromFile("srcmltest\\foo.c", "srcmltest\\foo.c", "srcml_xml\\invalidlanguage_java.xml", Language.Java);
@@ -113,8 +107,7 @@ namespace LoggingTransformation
         /// Runs srcDiff on a single file and then checks to see if 1. Document was return, 2. Expected number of units are in file and 3. The unit had the same name as the  provided file
         /// </summary>
         [Test]
-        public void SingleFileTest()
-        {
+        public void SingleFileTest() {
             var srcmlObject = new SrcDiffRunner(Path.Combine("..\\..\\External\\", "SrcDiff"));
 
             var doc = srcmlObject.GenerateSrcDiffFromFile("srcmltest\\foo.c", "srcmltest\\foo.c", "srcml_xml\\singlefile.xml");
@@ -128,8 +121,7 @@ namespace LoggingTransformation
         /// Unit test for SrcDiffRunner.GenerateSrcDiffAndXElementFromFile()
         /// </summary>
         [Test]
-        public void SingleFileToFileAndXElementTest()
-        {
+        public void SingleFileToFileAndXElementTest() {
             var srcmlObject = new SrcDiffRunner(Path.Combine("..\\..\\External\\", "SrcDiff"));
 
             XElement xElement = srcmlObject.GenerateSrcDiffAndXElementFromFile("srcmltest\\foo.c", "srcmltest\\foo.c", "srcml_xml\\singlefile.xml");
@@ -141,8 +133,7 @@ namespace LoggingTransformation
         }
 
         [Test]
-        public void EmptyOutputFileTest()
-        {
+        public void EmptyOutputFileTest() {
             var srcmlObject = new SrcDiffRunner(Path.Combine("..\\..\\External\\", "SrcDiff"));
             File.WriteAllText("srcml_xml\\emptyFile.xml", "");
             Assert.IsTrue(File.Exists("srcml_xml\\emptyFile.xml"));
@@ -156,8 +147,7 @@ namespace LoggingTransformation
         /// Test with spaces in input file name
         /// </summary>
         [Test]
-        public void InputWithSpacesTest()
-        {
+        public void InputWithSpacesTest() {
             var runner = new SrcDiffRunner(Path.Combine("..\\..\\External\\", "SrcDiff"));
             var doc = runner.GenerateSrcDiffFromFile("srcmltest\\File with spaces.cpp", "srcmltest\\File with spaces.cpp", "srcml_xml\\input_with_spaces.xml");
 
@@ -168,8 +158,7 @@ namespace LoggingTransformation
         /// Test template?
         /// </summary>
         [Test]
-        public void MyTestMethod()
-        {
+        public void MyTestMethod() {
             var runner = new SrcDiffRunner(Path.Combine("..\\..\\External\\", "SrcDiff"));
             runner.GenerateSrcDiffFromFile("srcmltest\\File with spaces.cpp", "srcmltest\\File with spaces.cpp", "testfile.xml");
         }

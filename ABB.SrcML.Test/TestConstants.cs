@@ -18,8 +18,7 @@ using System.Text;
 
 namespace ABB.SrcML.Test
 {
-    class TestConstants
-    {
+    class TestConstants {
         public static string SrcmlPath { get; private set; }
 
         static TestConstants() {

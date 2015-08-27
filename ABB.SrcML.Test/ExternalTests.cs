@@ -248,7 +248,7 @@ namespace ABB.SrcML.Test
             generator.GenerateSrcMLFromFile("external\\TestCSharpUsingStatement.cs", "external_xml\\TestCSharpUsingStatement.cs.xml");
             var fileUnit = SrcMLElement.Load("external_xml\\TestCSharpUsingStatement.cs.xml");
 
-            var usingBlock = fileUnit.Elements(SRC.Using).FirstOrDefault();
+            var usingBlock = fileUnit.Elements(SRC.Using_Stmt).FirstOrDefault();
             Assert.IsNotNull(usingBlock);
 
             Assert.AreEqual(1, usingBlock.Elements(SRC.Init).Count());

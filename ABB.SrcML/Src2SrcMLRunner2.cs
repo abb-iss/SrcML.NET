@@ -8,7 +8,7 @@ using System.Text;
 
 namespace ABB.SrcML {
     /// <summary>
-    /// Simpler version of <see cref="SrcDiffRunner"/>. This is a thin wrapper around the src2srcml executable from KSU.
+    /// Simpler version of <see cref="Src2SrcMLRunner"/>. This is a thin wrapper around the src2srcml executable from KSU.
     /// </summary>
     public class Src2SrcMLRunner2 {
         private string appDir;
