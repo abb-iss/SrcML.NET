@@ -16,8 +16,7 @@ using System.Text;
 using System.Xml.Linq;
 using System.IO;
 
-namespace ABB.SrcML
-{
+namespace ABB.SrcML {
     /// <summary>
     /// Collection of helper functions for working with srcML elements
     /// </summary>
