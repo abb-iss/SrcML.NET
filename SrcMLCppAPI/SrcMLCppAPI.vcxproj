@@ -43,8 +43,9 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\Christian\Documents\SrcML.NET\External\srcML1.0\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\Christian\Documents\SrcML.NET\External\srcML1.0\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SRCMLBINDIR)\srcML1.0\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SRCMLBINDIR)\srcML1.0\lib;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SRCMLBINDIR)\srcML1.0\bin\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>

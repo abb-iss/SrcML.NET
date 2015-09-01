@@ -46,6 +46,7 @@ extern"C"{
 		/* free the srcML archive data */
 		srcml_archive_free(archive);
 
+		//Return 0 to say it worked-- need to do error checking still for when srcml returns an issue.
 		return 0;
 	}
 	/// <summary>
@@ -71,7 +72,7 @@ extern"C"{
 
 			unit = srcml_unit_create(archive);
 			
-			//Read file into pair of c-string and size of the file
+			//Read file into pair of c-string and size of the file. TODO: Error check
 			std::pair<char*, std::streamoff> bufferPair = ReadFileC(argv[i]);
 
 			srcml_unit_set_language(unit, srcml_archive_check_extension(archive, argv[i]));
@@ -92,7 +93,7 @@ extern"C"{
 		/* free the srcML archive data */
 		srcml_archive_free(archive);
 
-		/*Trim any garbage data from the end of the string*/
+		/*Trim any garbage data from the end of the string. TODO: Error check*/
 		TrimFromEnd(s, size);
 		return s;
 	}
