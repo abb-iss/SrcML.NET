@@ -2,34 +2,31 @@
 
 #include "stdafx.h"
 #include "srcml.h"
-#include <iostream>
-#include <string>
-#include "Windows.h"
+#include "SrcMLCppAPI.h"
+
 using namespace System;
 using namespace System::Runtime::InteropServices;
+
 extern"C"{
-	__declspec(dllexport) int SrcmlCreateArchiveFromFilename(char** argv, int argc, const char* outputFile){
+	/// <summary>
+	/// This creates an archive from a list of files
+	/// </summary>
+	///<param name="argv">List of files to be read</param>
+	///<param name="argc">Number of arguments in argv</param>
+	///<param name="outputFile">File to output to</param>
+	__declspec(dllexport) int SrcmlCreateArchiveFromListOfFiles(char** argv, int argc, const char* outputFile){
 		int i;
 		struct srcml_archive* archive;
 		struct srcml_unit* unit;
-		
-		String^ clistr = gcnew String(outputFile);
-		char* str2 = (char*)(void*)Marshal::StringToHGlobalAnsi(clistr);
 		
 		/* create a new srcml archive structure */
 		archive = srcml_archive_create();
 
 		/* open a srcML archive for output */
-		srcml_archive_write_open_filename(archive, str2, 0);
-
-		//Marshal::FreeHGlobal(str2);
+		srcml_archive_write_open_filename(archive, outputFile, 0);
 
 		/* add all the files to the archive */
 		for (i = 0; i < argc; ++i) {
-			String^ clistr = gcnew String(argv[i]);
-			char* str2 = (char*)(void*)Marshal::StringToHGlobalAnsi(clistr);
-			Console::WriteLine(clistr);
-
 			unit = srcml_unit_create(archive);
 
 			srcml_unit_set_filename(unit, argv[i]);
@@ -51,14 +48,17 @@ extern"C"{
 
 		return 0;
 	}
-	__declspec(dllexport) char* SrcmlCreateArchiveFromMemory(char** argv, int argc){
+	/// <summary>
+	/// This creates an archive from a file and returns the resulting srcML as a string
+	/// </summary>
+	///<param name="argv">List of files to be read</param>
+	///<param name="argc">Number of arguments in argv</param>
+	__declspec(dllexport)char* SrcmlCreateArchiveInMemory(char** argv, int argc){
 		int i;
-		LPDWORD n;
 		struct srcml_archive* archive;
 		struct srcml_unit* unit;
 		char * s;
 		size_t size;
-		HANDLE srcml_input;
 
 		/* create a new srcml archive structure */
 		archive = srcml_archive_create();
@@ -67,23 +67,23 @@ extern"C"{
 		srcml_archive_write_open_memory(archive, &s, &size);
 
 		/* add all the files to the archive */
-		for (i = 1; i < argc; ++i) {
+		for (i = 0; i < argc; ++i) {
 
 			unit = srcml_unit_create(archive);
+			
+			//Read file into pair of c-string and size of the file
+			std::pair<char*, std::streamoff> bufferPair = ReadFileC(argv[i]);
 
-			/* Translate to srcml and append to the archive */
-			char buffer[256];
-			srcml_input = CreateFile((LPCWSTR)argv[i], OF_READ, 0, NULL, NULL, FILE_ATTRIBUTE_NORMAL, NULL);
-			int num_read = ReadFile(srcml_input, buffer, 256, n, 0);
-			CloseHandle(srcml_input);
 			srcml_unit_set_language(unit, srcml_archive_check_extension(archive, argv[i]));
 
-			srcml_unit_parse_memory(unit, buffer, num_read);
+			srcml_unit_parse_memory(unit, bufferPair.first, bufferPair.second);
 
 			/* Translate to srcml and append to the archive */
 			srcml_write_unit(archive, unit);
 
 			srcml_unit_free(unit);
+
+			delete[] bufferPair.first;
 		}
 
 		/* close the srcML archive */
@@ -92,6 +92,8 @@ extern"C"{
 		/* free the srcML archive data */
 		srcml_archive_free(archive);
 
+		/*Trim any garbage data from the end of the string*/
+		TrimFromEnd(s, size);
 		return s;
 	}
 }

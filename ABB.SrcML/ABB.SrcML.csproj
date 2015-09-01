@@ -45,6 +45,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\log4net.2.0.0\lib\net40-full\log4net.dll</HintPath>
     </Reference>
+    <Reference Include="SrcMLCppAPI">
+      <HintPath>..\Debug\SrcMLCppAPI.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -61,6 +64,8 @@
     <Compile Include="AbstractDocument.cs" />
     <Compile Include="AbstractFileMonitor.cs" />
     <Compile Include="AbstractGenerator.cs" />
+    <Compile Include="SrcDiffRunner.cs" />
+    <Compile Include="SrcMLCppAPI.cs" />
     <Compile Include="SrcMLProject.cs" />
     <Compile Include="ShortFileNameMapping.cs" />
     <Compile Include="DirectoryScanningMonitorEventArgs.cs" />
@@ -88,6 +93,7 @@
     <Compile Include="Exceptions\SrcMLException.cs" />
     <Compile Include="SrcMLNamespaces.cs" />
     <Compile Include="Exceptions\SrcMLRequiredNameException.cs" />
+    <Compile Include="SrcToolsHelper.cs" />
     <Compile Include="Utilities\ConservativeAbbCoreStrategy.cs" />
     <Compile Include="Utilities\ErrorModeContext.cs" />
     <Compile Include="Utilities\IConcurrencyStrategy.cs" />
