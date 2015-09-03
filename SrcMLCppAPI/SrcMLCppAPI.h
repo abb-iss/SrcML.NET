@@ -3,16 +3,16 @@
 using namespace System;
 using namespace System::Runtime::InteropServices;
 public struct ArchiveAdapter {
-	char* encoding;
-	char* src_encoding;
-	char* revision;
-	char* language;
-	char* filename;
-	char* url;
-	char* version;
-	char* timestamp;
-	char* hash;
-	int tabstop;
+    char* encoding;
+    char* src_encoding;
+    char* revision;
+    char* language;
+    char* filename;
+    char* url;
+    char* version;
+    char* timestamp;
+    char* hash;
+    int tabstop;
 };
 /// <summary>
 /// Utility function that trims from the right of a string. For now it's just solving a weird issue with srcML
