@@ -9,7 +9,7 @@ using namespace System::Runtime::InteropServices;
 
 extern"C"{
     /// <summary>
-    /// This creates an archive from a list of files
+    /// This creates an archive from a list of files and saves to a file
     /// </summary>
     ///<param name="argv">List of files to be read</param>
     ///<param name="argc">Number of arguments in argv</param>
@@ -21,10 +21,10 @@ extern"C"{
         String^ clistr = gcnew String(ad->encoding);
         String^ clistr2 = gcnew String(ad->filename);
         Console::WriteLine("AD'S ENCODING IS: {0} and file name is: {1}", clistr, clistr2);
-        /* create a new srcml archive structure */
+        /*create a new srcml archive structure */
         archive = srcml_archive_create();
 
-        /* open a srcML archive for output */
+        /*open a srcML archive for output */
         srcml_archive_write_open_filename(archive, outputFile, 0);
 
         /* add all the files to the archive */
@@ -33,24 +33,30 @@ extern"C"{
 
             srcml_unit_set_filename(unit, argv[i]);
 
-            /* Translate to srcml and append to the archive */
+            /*Translate to srcml and append to the archive */
             srcml_unit_parse_filename(unit, argv[i]);
 
-            /* Translate to srcml and append to the archive */
+            /*Translate to srcml and append to the archive */
             srcml_write_unit(archive, unit);
 
             srcml_unit_free(unit);
         }
 
-        /* close the srcML archive */
+        /*close the srcML archive */
         srcml_archive_close(archive);
 
-        /* free the srcML archive data */
+        /*free the srcML archive data */
         srcml_archive_free(archive);
 
         //Return 0 to say it worked-- need to do error checking still for when srcml returns an issue.
         return 0;
     }
+    /// <summary>
+    /// This creates an archive from a buffer and saves to a file 
+    /// </summary>
+    ///<param name="argv">List of files to be read</param>
+    ///<param name="argc">Number of arguments in argv</param>
+    ///<param name="outputFile">File to output to</param>
     __declspec(dllexport) int SrcmlCreateArchiveMtF(char* argv, int argc, const char* outputFile, ArchiveAdapter* ad){
         int i;
         struct srcml_archive* archive;
@@ -87,7 +93,7 @@ extern"C"{
         return 0;
     }
     /// <summary>
-    /// This creates an archive from a file and returns the resulting srcML as a string
+    /// This creates an archive from a file and returns the resulting srcML in a buffer
     /// </summary>
     ///<param name="argv">List of files to be read</param>
     ///<param name="argc">Number of arguments in argv</param>
@@ -136,7 +142,7 @@ extern"C"{
     }
 
     /// <summary>
-    /// This creates an archive from a buffer and returns the resulting srcML as a string
+    /// This creates an archive from a buffer and returns the resulting srcML in a buffer
     /// </summary>
     ///<param name="argv">List of files to be read</param>
     ///<param name="argc">Number of arguments in argv</param>

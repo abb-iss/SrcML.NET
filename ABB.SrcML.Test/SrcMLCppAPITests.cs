@@ -7,11 +7,7 @@ using NUnit.Framework;
 using ABB.SrcML;
 using System.Xml;
 using System.Runtime.InteropServices;
-/*
- *             Int32 ret = Reset(ptr);
-            control = (Register)Marshal.PtrToStructure(ptr, typeof(control));
-            Marshal.FreeHGlobal(ptr);
-            ptr = IntPtr.Zero;*/
+
 namespace ABB.SrcML.Test {
 
     [TestFixture]
@@ -53,7 +49,6 @@ namespace ABB.SrcML.Test {
                       where ele.Attribute("filename").Value == file1
                       select ele);
             Assert.AreEqual("input2.cpp", f2.FirstOrDefault().Attribute("filename").Value);
-            //Further testing should check for units
         }
         /// TODO: This requires some modifications to be made to SrcMLFile so that it can take strings of xml. Going to do
         /// A pull of what I have so far before I go making those kinds of changes.
