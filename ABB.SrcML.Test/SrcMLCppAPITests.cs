@@ -7,6 +7,7 @@ using NUnit.Framework;
 using ABB.SrcML;
 using System.Xml;
 using System.Runtime.InteropServices;
+using System.Xml.Linq;
 
 namespace ABB.SrcML.Test {
 
@@ -64,6 +65,23 @@ namespace ABB.SrcML.Test {
             IntPtr ptr = SrcMLCppAPI.CreatePtrFromStruct(ad);
             string s = SrcMLCppAPI.SrcmlCreateArchiveFtM(l.ToArray(), l.Count(), ptr);
             Assert.False(String.IsNullOrEmpty(s));
+            XDocument doc = XDocument.Parse(s);
+            var units = from unit in doc.Descendants(XName.Get("unit", "http://www.srcML.org/srcML/src"))
+                       where unit.Attribute("filename") != null
+                       select unit;
+                
+            string file = "input.cpp";
+            var f1 = (from ele in units
+                      where ele.Attribute("filename").Value == file
+                      select ele);
+            Assert.AreEqual("input.cpp", f1.FirstOrDefault().Attribute("filename").Value);
+
+            string file2 = "input2.cpp";
+            var f2 = (from ele in units
+                      where ele.Attribute("filename").Value == file2
+                      select ele);
+            Assert.AreEqual("input2.cpp", f2.FirstOrDefault().Attribute("filename").Value);
+
             //XmlReader reader = XmlReader.Create(new StringReader(s));
             Console.WriteLine(s);
         }
@@ -77,6 +95,7 @@ namespace ABB.SrcML.Test {
             String str = "int main(){int c; c = 0; ++c;}";
 
             SrcMLCppAPI.ArchiveAdapter ad = new SrcMLCppAPI.ArchiveAdapter();
+            ad.SetArchiveFilename("input.cpp");
             IntPtr ptr = SrcMLCppAPI.CreatePtrFromStruct(ad);
 
             Assert.True(SrcMLCppAPI.SrcmlCreateArchiveMtF(str, str.Length, "output.cpp.xml", ptr) == 0);
@@ -108,11 +127,21 @@ namespace ABB.SrcML.Test {
             String str = "int main(){int c; c = 0; ++c;}";
 
             SrcMLCppAPI.ArchiveAdapter ad = new SrcMLCppAPI.ArchiveAdapter();
+            ad.SetArchiveFilename("input.cpp");
             IntPtr ptr = SrcMLCppAPI.CreatePtrFromStruct(ad);
 
             string s = SrcMLCppAPI.SrcmlCreateArchiveMtM(str, str.Length, ptr);
             Assert.False(String.IsNullOrEmpty(s));
-            //XmlReader reader = XmlReader.Create(new StringReader(s));
+            XDocument doc = XDocument.Parse(s);
+            var units = from unit in doc.Descendants(XName.Get("unit", "http://www.srcML.org/srcML/src"))
+                        where unit.Attribute("filename") != null
+                        select unit;
+
+            string file = "input.cpp";
+            var f1 = (from ele in units
+                      where ele.Attribute("filename").Value == file
+                      select ele);
+            Assert.AreEqual("input.cpp", f1.FirstOrDefault().Attribute("filename").Value);
             Console.WriteLine(s);
         }
 

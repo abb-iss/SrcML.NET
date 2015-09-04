@@ -14,7 +14,7 @@ extern"C"{
     ///<param name="argv">List of files to be read</param>
     ///<param name="argc">Number of arguments in argv</param>
     ///<param name="outputFile">File to output to</param>
-    __declspec(dllexport) int SrcmlCreateArchiveFtF(char** argv, int argc, const char* outputFile, ArchiveAdapter* ad){
+    __declspec(dllexport) int SrcmlCreateArchiveFtF(char** argv, int argc, const char* outputFile, ArchiveAdapter* ad) {
         int i;
         struct srcml_archive* archive;
         struct srcml_unit* unit;
@@ -57,7 +57,7 @@ extern"C"{
     ///<param name="argv">List of files to be read</param>
     ///<param name="argc">Number of arguments in argv</param>
     ///<param name="outputFile">File to output to</param>
-    __declspec(dllexport) int SrcmlCreateArchiveMtF(char* argv, int argc, const char* outputFile, ArchiveAdapter* ad){
+    __declspec(dllexport) int SrcmlCreateArchiveMtF(char* argv, int argc, const char* outputFile, ArchiveAdapter* ad) {
         int i;
         struct srcml_archive* archive;
         struct srcml_unit* unit;
@@ -71,7 +71,7 @@ extern"C"{
         /* add all the files to the archive */
         unit = srcml_unit_create(archive);
 
-        srcml_unit_set_filename(unit, "input.cpp");
+        srcml_unit_set_filename(unit, ad->filename);
 
         /*Set language*/
         srcml_unit_set_language(unit, SRCML_LANGUAGE_CSHARP);
@@ -97,7 +97,7 @@ extern"C"{
     /// </summary>
     ///<param name="argv">List of files to be read</param>
     ///<param name="argc">Number of arguments in argv</param>
-    __declspec(dllexport) char* SrcmlCreateArchiveFtM(char** argv, int argc, ArchiveAdapter* ad){
+    __declspec(dllexport) char* SrcmlCreateArchiveFtM(char** argv, int argc, ArchiveAdapter* ad) {
         int i;
         struct srcml_archive* archive;
         struct srcml_unit* unit;
@@ -114,7 +114,8 @@ extern"C"{
         for (i = 0; i < argc; ++i) {
 
             unit = srcml_unit_create(archive);
-            
+
+			srcml_unit_set_filename(unit, argv[i]);
             //Read file into pair of c-string and size of the file. TODO: Error check
             std::pair<char*, std::streamoff> bufferPair = ReadFileC(argv[i]);
 
@@ -146,7 +147,7 @@ extern"C"{
     /// </summary>
     ///<param name="argv">List of files to be read</param>
     ///<param name="argc">Number of arguments in argv</param>
-    __declspec(dllexport) char* SrcmlCreateArchiveMtM(char* argv, int argc, ArchiveAdapter* ad){
+    __declspec(dllexport) char* SrcmlCreateArchiveMtM(char* argv, int argc, ArchiveAdapter* ad) {
         int i;
         struct srcml_archive* archive;
         struct srcml_unit* unit;
@@ -159,6 +160,8 @@ extern"C"{
         /* open a srcML archive for output */
         srcml_archive_write_open_memory(archive, &s, &size);
         unit = srcml_unit_create(archive);
+
+		srcml_unit_set_filename(unit, ad->filename);
 
         /*Set language*/
         srcml_unit_set_language(unit, SRCML_LANGUAGE_CSHARP);

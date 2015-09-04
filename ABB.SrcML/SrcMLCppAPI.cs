@@ -199,17 +199,17 @@ namespace ABB.SrcML {
             Marshal.StructureToPtr(ad, ptr, false);
             return ptr;
         }
-        [DllImport(@"..\..\External\srcML1.0\bin\SrcMLCppAPI.dll", CallingConvention = CallingConvention.StdCall)]
+        [DllImport(@"..\..\External\srcML1.0\bin\SrcMLCppAPI.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern int SrcmlCreateArchiveFtF(string[] argv, int argc, string outputFile, IntPtr Adapter);
-        
-        [DllImport(@"..\..\External\srcML1.0\bin\SrcMLCppAPI.dll", CallingConvention = CallingConvention.StdCall)]
+
+        [DllImport(@"..\..\External\srcML1.0\bin\SrcMLCppAPI.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern int SrcmlCreateArchiveMtF(string argv, int argc, string outputFile, IntPtr Adapter);
-        
-        [DllImport(@"..\..\External\srcML1.0\bin\SrcMLCppAPI.dll", CallingConvention = CallingConvention.StdCall)]
+
+        [DllImport(@"..\..\External\srcML1.0\bin\SrcMLCppAPI.dll", CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.LPStr)]
         public static extern string SrcmlCreateArchiveFtM(string[] argv, int argc, IntPtr Adapter);
-        
-        [DllImport(@"..\..\External\srcML1.0\bin\SrcMLCppAPI.dll", CallingConvention = CallingConvention.StdCall)]
+
+        [DllImport(@"..\..\External\srcML1.0\bin\SrcMLCppAPI.dll", CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.LPStr)]
         public static extern string SrcmlCreateArchiveMtM(string argv, int argc, IntPtr Adapter);
     }
