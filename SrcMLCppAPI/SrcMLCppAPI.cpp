@@ -3,10 +3,46 @@
 #include "stdafx.h"
 #include "srcml.h"
 #include "SrcMLCppAPI.h"
-
 using namespace System;
 using namespace System::Runtime::InteropServices;
+void SetArchive(ArchiveAdapter* adapterArchive){
+	if (adapterArchive->src_encoding != ""){
+		srcml_set_src_encoding(adapterArchive->src_encoding);
+	}
 
+	if (adapterArchive->filename != ""){
+		srcml_set_filename(adapterArchive->filename);
+	}
+
+	if (adapterArchive->language != ""){
+		srcml_set_language(adapterArchive->language);
+	}
+
+	if (adapterArchive->tabstop != 0){
+		srcml_set_tabstop(adapterArchive->tabstop);
+	}
+
+	if (adapterArchive->url != ""){
+		srcml_set_url(adapterArchive->url);
+	}
+
+	if (adapterArchive->timestamp != ""){
+		srcml_set_timestamp(adapterArchive->timestamp);
+	}
+
+	if (adapterArchive->hash != ""){
+		srcml_set_hash(adapterArchive->hash);
+	}
+
+	if (adapterArchive->version != ""){
+		srcml_set_version(adapterArchive->version);
+	}
+
+	if (adapterArchive->encoding != ""){
+		srcml_set_xml_encoding(adapterArchive->encoding);
+	}
+
+}
 extern"C"{
     /// <summary>
     /// This creates an archive from a list of files and saves to a file
@@ -21,12 +57,14 @@ extern"C"{
         String^ clistr = gcnew String(ad->encoding);
         String^ clistr2 = gcnew String(ad->filename);
         Console::WriteLine("AD'S ENCODING IS: {0} and file name is: {1}", clistr, clistr2);
-        /*create a new srcml archive structure */
+        
+		SetArchive(ad);
+
+		/*create a new srcml archive structure */
         archive = srcml_archive_create();
 
         /*open a srcML archive for output */
         srcml_archive_write_open_filename(archive, outputFile, 0);
-
         /* add all the files to the archive */
         for (i = 0; i < argc; ++i) {
             unit = srcml_unit_create(archive);
@@ -61,6 +99,8 @@ extern"C"{
         int i;
         struct srcml_archive* archive;
         struct srcml_unit* unit;
+
+		SetArchive(ad);
 
         /* create a new srcml archive structure */
         archive = srcml_archive_create();
@@ -103,6 +143,8 @@ extern"C"{
         struct srcml_unit* unit;
         char * s;
         size_t size;
+
+		SetArchive(ad);
 
         /* create a new srcml archive structure */
         archive = srcml_archive_create();
@@ -153,7 +195,7 @@ extern"C"{
         struct srcml_unit* unit;
         char * s;
         size_t size;
-
+		SetArchive(ad);
         /* create a new srcml archive structure */
         archive = srcml_archive_create();
 

@@ -61,7 +61,26 @@ namespace ABB.SrcML {
             /** Encode the original source encoding as an attribute */
             public const ulong SRCML_OPTION_STORE_ENCODING = 1 << 26;
             public const ulong SRCML_OPTION_DEFAULT = (SRCML_OPTION_ARCHIVE | SRCML_OPTION_XML_DECL | SRCML_OPTION_NAMESPACE_DECL | SRCML_OPTION_HASH | SRCML_OPTION_PSEUDO_BLOCK | SRCML_OPTION_TERNARY);
+
+            /* Core language set */
+            /** srcML language not set */
+            public const int SRCML_LANGUAGE_NONE = 0;
+            /** string for language C */
+            public const string SRCML_LANGUAGE_C = "C";
+            /** string for language C++ */
+            public const string  SRCML_LANGUAGE_CXX = "C++";
+            /** string for language Java */
+            public const string  SRCML_LANGUAGE_JAVA = "Java";
+            /** string for language C# */
+            public const string  SRCML_LANGUAGE_CSHARP ="C#";
+            /** string for language C# */
+            public const string  SRCML_LANGUAGE_OBJECTIVE_C = "Objective-C";
+            /** string for language XML */
+            public const string SRCML_LANGUAGE_XML = "xml";
         }
+        /// <summary>
+        /// Carries data between C# and C++ for srcML's archives
+        /// </summary>
         [StructLayout(LayoutKind.Sequential, Pack=1)]
         public struct ArchiveAdapter {
             private IntPtr encoding;
