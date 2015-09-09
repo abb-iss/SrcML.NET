@@ -3,44 +3,44 @@
 #include "stdafx.h"
 #include "srcml.h"
 #include "SrcMLCppAPI.h"
+#include <iostream>
 using namespace System;
 using namespace System::Runtime::InteropServices;
-void SetArchive(ArchiveAdapter* adapterArchive){
-	if (adapterArchive->src_encoding != ""){
-		srcml_set_src_encoding(adapterArchive->src_encoding);
-	}
+void SetMetaData(srcml_unit* unit, SourceData* archiveData){
+    if (archiveData->src_encoding != ""){
+        srcml_set_src_encoding(archiveData->src_encoding);
+    }
 
-	if (adapterArchive->filename != ""){
-		srcml_set_filename(adapterArchive->filename);
-	}
+    if (archiveData->language != ""){
+        String^ clistr = gcnew String(archiveData->language);
+        Console::WriteLine("AD'S LANGUAGE IS: {0}", clistr);
+        srcml_unit_set_language(unit, archiveData->language);
+        srcml_set_language(archiveData->language);
+    }
 
-	if (adapterArchive->language != ""){
-		srcml_set_language(adapterArchive->language);
-	}
+    if (archiveData->tabstop != 0){
+        srcml_set_tabstop(archiveData->tabstop);
+    }
 
-	if (adapterArchive->tabstop != 0){
-		srcml_set_tabstop(adapterArchive->tabstop);
-	}
+    if (archiveData->url != ""){
+        srcml_set_url(archiveData->url);
+    }
 
-	if (adapterArchive->url != ""){
-		srcml_set_url(adapterArchive->url);
-	}
+    if (archiveData->timestamp != ""){
+        srcml_set_timestamp(archiveData->timestamp);
+    }
 
-	if (adapterArchive->timestamp != ""){
-		srcml_set_timestamp(adapterArchive->timestamp);
-	}
+    if (archiveData->hash != ""){
+        srcml_set_hash(archiveData->hash);
+    }
 
-	if (adapterArchive->hash != ""){
-		srcml_set_hash(adapterArchive->hash);
-	}
+    if (archiveData->version != ""){
+        srcml_set_version(archiveData->version);
+    }
 
-	if (adapterArchive->version != ""){
-		srcml_set_version(adapterArchive->version);
-	}
-
-	if (adapterArchive->encoding != ""){
-		srcml_set_xml_encoding(adapterArchive->encoding);
-	}
+    if (archiveData->encoding != ""){
+        srcml_set_xml_encoding(archiveData->encoding);
+    }
 
 }
 extern"C"{
@@ -50,35 +50,39 @@ extern"C"{
     ///<param name="argv">List of files to be read</param>
     ///<param name="argc">Number of arguments in argv</param>
     ///<param name="outputFile">File to output to</param>
-    __declspec(dllexport) int SrcmlCreateArchiveFtF(char** argv, int argc, const char* outputFile, ArchiveAdapter* ad) {
+    __declspec(dllexport) int SrcmlCreateArchiveFtF(SourceData** sd, int argc, const char* outputFile) {
         int i;
         struct srcml_archive* archive;
-        struct srcml_unit* unit;
-        String^ clistr = gcnew String(ad->encoding);
-        String^ clistr2 = gcnew String(ad->filename);
-        Console::WriteLine("AD'S ENCODING IS: {0} and file name is: {1}", clistr, clistr2);
-        
-		SetArchive(ad);
+        struct srcml_unit* unit;		
 
-		/*create a new srcml archive structure */
+        /*create a new srcml archive structure */
         archive = srcml_archive_create();
 
         /*open a srcML archive for output */
         srcml_archive_write_open_filename(archive, outputFile, 0);
         /* add all the files to the archive */
-        for (i = 0; i < argc; ++i) {
-            unit = srcml_unit_create(archive);
+        for (int i = 0; i < argc; ++i){
+            for (int k = 0; k < sd[i]->buffercount; ++k) {
+                unit = srcml_unit_create(archive);
 
-            srcml_unit_set_filename(unit, argv[i]);
+                String^ clistr = gcnew String(sd[i]->encoding);
+                String^ clistr2 = gcnew String(sd[i]->filename[k]);
+                Console::WriteLine("AD'S ENCODING IS: {0} and file name is: {1}", clistr, clistr2);
 
-            /*Translate to srcml and append to the archive */
-            srcml_unit_parse_filename(unit, argv[i]);
+                SetMetaData(unit, sd[i]);
 
-            /*Translate to srcml and append to the archive */
-            srcml_write_unit(archive, unit);
+                srcml_unit_set_filename(unit, sd[i]->filename[k]);
 
-            srcml_unit_free(unit);
+                /*Translate to srcml and append to the archive */
+                srcml_unit_parse_filename(unit, sd[i]->filename[k]);
+
+                /*Translate to srcml and append to the archive */
+                srcml_write_unit(archive, unit);
+
+                srcml_unit_free(unit);
+            }
         }
+
 
         /*close the srcML archive */
         srcml_archive_close(archive);
@@ -95,39 +99,40 @@ extern"C"{
     ///<param name="argv">List of files to be read</param>
     ///<param name="argc">Number of arguments in argv</param>
     ///<param name="outputFile">File to output to</param>
-    __declspec(dllexport) int SrcmlCreateArchiveMtF(char* argv, int argc, const char* outputFile, ArchiveAdapter* ad) {
-        int i;
-        struct srcml_archive* archive;
-        struct srcml_unit* unit;
+    __declspec(dllexport) int SrcmlCreateArchiveMtF(SourceData** sd, int argc, const char* outputFile) {
+        for (int i = 0; i < argc; ++i){
+            struct srcml_archive* archive;
+            /* create a new srcml archive structure */
+            archive = srcml_archive_create();
+            /* open a srcML archive for output */
+            int numRead = 0;
+            srcml_archive_write_open_filename(archive, "test.xml", 0);
+            for (int j = 0; j < sd[i]->buffercount; ++j){
+                struct srcml_unit* unit;
+                /* add all the files to the archive */
 
-		SetArchive(ad);
+                unit = srcml_unit_create(archive);
+                SetMetaData(unit, sd[i]);
+                srcml_unit_set_filename(unit, sd[i]->filename[j]);
 
-        /* create a new srcml archive structure */
-        archive = srcml_archive_create();
+                /*Parse*/
+                int error = srcml_unit_parse_memory(unit, sd[i]->buffer[j], sd[i]->buffersize[j]);
+                if (error){
+                    //Handle error
+                }
 
-        /* open a srcML archive for output */
-        srcml_archive_write_open_filename(archive, outputFile, 0);
+                /* Translate to srcml and append to the archive */
+                srcml_write_unit(archive, unit);
+                srcml_unit_free(unit);
 
-        /* add all the files to the archive */
-        unit = srcml_unit_create(archive);
+            }
 
-        srcml_unit_set_filename(unit, ad->filename);
+            /* close the srcML archive */
+            srcml_archive_close(archive);
 
-        /*Set language*/
-        srcml_unit_set_language(unit, SRCML_LANGUAGE_CSHARP);
-
-        /*Parse*/
-        srcml_unit_parse_memory(unit, argv, argc);
-
-        /* Translate to srcml and append to the archive */
-        srcml_write_unit(archive, unit);
-        srcml_unit_free(unit);
-
-        /* close the srcML archive */
-        srcml_archive_close(archive);
-
-        /* free the srcML archive data */
-        srcml_archive_free(archive);
+            /* free the srcML archive data */
+            srcml_archive_free(archive);
+        }
 
         //Return 0 to say it worked-- need to do error checking still for when srcml returns an issue.
         return 0;
@@ -137,14 +142,11 @@ extern"C"{
     /// </summary>
     ///<param name="argv">List of files to be read</param>
     ///<param name="argc">Number of arguments in argv</param>
-    __declspec(dllexport) char* SrcmlCreateArchiveFtM(char** argv, int argc, ArchiveAdapter* ad) {
-        int i;
+    __declspec(dllexport) char* SrcmlCreateArchiveFtM(SourceData** sd, int argc) {
         struct srcml_archive* archive;
         struct srcml_unit* unit;
         char * s;
         size_t size;
-
-		SetArchive(ad);
 
         /* create a new srcml archive structure */
         archive = srcml_archive_create();
@@ -153,24 +155,25 @@ extern"C"{
         srcml_archive_write_open_memory(archive, &s, &size);
 
         /* add all the files to the archive */
-        for (i = 0; i < argc; ++i) {
+        for (int i = 0; i < argc; ++i) {
+            for (int k = 0; k < sd[i]->buffercount; ++k){
+                unit = srcml_unit_create(archive);
 
-            unit = srcml_unit_create(archive);
+                SetMetaData(unit, sd[i]);
 
-			srcml_unit_set_filename(unit, argv[i]);
-            //Read file into pair of c-string and size of the file. TODO: Error check
-            std::pair<char*, std::streamoff> bufferPair = ReadFileC(argv[i]);
+                srcml_unit_set_filename(unit, sd[i]->filename[k]);
+                //Read file into pair of c-string and size of the file. TODO: Error check
+                std::pair<char*, std::streamoff> bufferPair = ReadFileC(sd[i]->filename[k]);
 
-            srcml_unit_set_language(unit, srcml_archive_check_extension(archive, argv[i]));
+                srcml_unit_parse_memory(unit, bufferPair.first, bufferPair.second);
 
-            srcml_unit_parse_memory(unit, bufferPair.first, bufferPair.second);
+                /* Translate to srcml and append to the archive */
+                srcml_write_unit(archive, unit);
 
-            /* Translate to srcml and append to the archive */
-            srcml_write_unit(archive, unit);
+                srcml_unit_free(unit);
 
-            srcml_unit_free(unit);
-
-            delete[] bufferPair.first;
+                delete[] bufferPair.first;
+            }
         }
 
         /* close the srcML archive */
@@ -189,40 +192,37 @@ extern"C"{
     /// </summary>
     ///<param name="argv">List of files to be read</param>
     ///<param name="argc">Number of arguments in argv</param>
-    __declspec(dllexport) char* SrcmlCreateArchiveMtM(char* argv, int argc, ArchiveAdapter* ad) {
-        int i;
+    __declspec(dllexport) char* SrcmlCreateArchiveMtM(SourceData** sd, int argc) {
         struct srcml_archive* archive;
         struct srcml_unit* unit;
         char * s;
         size_t size;
-		SetArchive(ad);
-        /* create a new srcml archive structure */
-        archive = srcml_archive_create();
+        for (int i = 0; i < argc; ++i){
+            /* create a new srcml archive structure */
+            archive = srcml_archive_create();
 
-        /* open a srcML archive for output */
-        srcml_archive_write_open_memory(archive, &s, &size);
-        unit = srcml_unit_create(archive);
+            /* open a srcML archive for output */
+            srcml_archive_write_open_memory(archive, &s, &size);
+            for (int k = 0; k < sd[i]->buffercount; ++k){
+                unit = srcml_unit_create(archive);
+                SetMetaData(unit, sd[i]);
+                srcml_unit_set_filename(unit, sd[i]->filename[k]);
+                /*Parse*/
+                srcml_unit_parse_memory(unit, sd[i]->buffer[k], sd[i]->buffersize[k]);
 
-		srcml_unit_set_filename(unit, ad->filename);
+                /* Translate to srcml and append to the archive */
+                srcml_write_unit(archive, unit);
+                srcml_unit_free(unit);
+            }
+            /* close the srcML archive */
+            srcml_archive_close(archive);
 
-        /*Set language*/
-        srcml_unit_set_language(unit, SRCML_LANGUAGE_CSHARP);
+            /* free the srcML archive data */
+            srcml_archive_free(archive);
 
-        /*Parse*/
-        srcml_unit_parse_memory(unit, argv, argc);
-
-        /* Translate to srcml and append to the archive */
-        srcml_write_unit(archive, unit);
-        srcml_unit_free(unit);
-
-        /* close the srcML archive */
-        srcml_archive_close(archive);
-
-        /* free the srcML archive data */
-        srcml_archive_free(archive);
-
-        /*Trim any garbage data from the end of the string. TODO: Error check*/
-        TrimFromEnd(s, size);
+            /*Trim any garbage data from the end of the string. TODO: Error check*/
+            TrimFromEnd(s, size);
+        }
         return s;
     }
 }

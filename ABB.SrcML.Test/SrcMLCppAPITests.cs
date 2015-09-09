@@ -20,22 +20,31 @@ namespace ABB.SrcML.Test {
         /// </summary>
         [Test]
         public void TestCreateSrcMLArchiveFtF() {
-            List<String> l = new List<string>();
-            l.Add("input.cpp");
-            l.Add("input2.cpp");
+            SrcMLCppAPI.SourceData ad = new SrcMLCppAPI.SourceData();
+            ad.SetArchiveFilename("input.cpp");
+            ad.SetArchiveLanguage(SrcMLCppAPI.SrcMLOptions.SRCML_LANGUAGE_CXX);
 
-            SrcMLCppAPI.ArchiveAdapter ad = new SrcMLCppAPI.ArchiveAdapter();
-            
-            ad.SetArchiveXmlEncoding("abc");
-            ad.SetArchiveFilename("abc.cpp.xml");
+            SrcMLCppAPI.SourceData bc = new SrcMLCppAPI.SourceData();
+            bc.SetArchiveFilename("input2.cpp");
+            bc.SetArchiveLanguage(SrcMLCppAPI.SrcMLOptions.SRCML_LANGUAGE_CXX);
+
+            List<SrcMLCppAPI.SourceData> data = new List<SrcMLCppAPI.SourceData>();
+            data.Add(ad);
+            data.Add(bc);
+
             IntPtr ptr = SrcMLCppAPI.CreatePtrFromStruct(ad);
+            IntPtr ptr2 = SrcMLCppAPI.CreatePtrFromStruct(bc);
 
-            Assert.True(SrcMLCppAPI.SrcmlCreateArchiveFtF(l.ToArray(), l.Count(), "output.cpp.xml", ptr) == 0);
+            List<IntPtr> ptrptr = new List<IntPtr>();
+            ptrptr.Add(ptr);
+            ptrptr.Add(ptr2);
+
+            Assert.True(SrcMLCppAPI.SrcmlCreateArchiveFtF(ptrptr.ToArray(), ptrptr.Count(), "output.cpp.xml") == 0);
             Assert.True(File.Exists("output.cpp.xml"));
 
             SrcMLFile srcFile = new SrcMLFile("output.cpp.xml");
             Assert.IsNotNull(srcFile);
-            
+
             var files = srcFile.FileUnits.ToList();
             Assert.AreEqual(2, files.Count());
 
@@ -58,18 +67,33 @@ namespace ABB.SrcML.Test {
         /// </summary>
         [Test]
         public void TestCreateSrcMLArchiveFtM() {
-            List<String> l = new List<string>();
-            l.Add("input.cpp");
-            l.Add("input2.cpp");
-            SrcMLCppAPI.ArchiveAdapter ad = new SrcMLCppAPI.ArchiveAdapter();
+            SrcMLCppAPI.SourceData ad = new SrcMLCppAPI.SourceData();
+            ad.SetArchiveFilename("input.cpp");
+            ad.SetArchiveLanguage(SrcMLCppAPI.SrcMLOptions.SRCML_LANGUAGE_CXX);
+
+            SrcMLCppAPI.SourceData bc = new SrcMLCppAPI.SourceData();
+            bc.SetArchiveFilename("input2.cpp");
+            bc.SetArchiveLanguage(SrcMLCppAPI.SrcMLOptions.SRCML_LANGUAGE_CXX);
+
+            List<SrcMLCppAPI.SourceData> data = new List<SrcMLCppAPI.SourceData>();
+            data.Add(ad);
+            data.Add(bc);
+
             IntPtr ptr = SrcMLCppAPI.CreatePtrFromStruct(ad);
-            string s = SrcMLCppAPI.SrcmlCreateArchiveFtM(l.ToArray(), l.Count(), ptr);
+            IntPtr ptr2 = SrcMLCppAPI.CreatePtrFromStruct(bc);
+
+            List<IntPtr> ptrptr = new List<IntPtr>();
+            ptrptr.Add(ptr);
+            ptrptr.Add(ptr2);
+
+            string s = SrcMLCppAPI.SrcmlCreateArchiveFtM(ptrptr.ToArray(), ptrptr.Count());
+
             Assert.False(String.IsNullOrEmpty(s));
             XDocument doc = XDocument.Parse(s);
             var units = from unit in doc.Descendants(XName.Get("unit", "http://www.srcML.org/srcML/src"))
-                       where unit.Attribute("filename") != null
-                       select unit;
-                
+                        where unit.Attribute("filename") != null
+                        select unit;
+
             string file = "input.cpp";
             var f1 = (from ele in units
                       where ele.Attribute("filename").Value == file
@@ -92,27 +116,50 @@ namespace ABB.SrcML.Test {
         /// </summary>
         [Test]
         public void TestCreateSrcMLArchiveMtF() {
-            String str = "int main(){int c; c = 0; ++c;}";
+            SrcMLCppAPI.SourceData ad = new SrcMLCppAPI.SourceData();
 
-            SrcMLCppAPI.ArchiveAdapter ad = new SrcMLCppAPI.ArchiveAdapter();
-            ad.SetArchiveFilename("input.cpp");
+            List<String> fileL = new List<String>();
+            List<String> fileL2 = new List<String>();
+            String str = "int main(){int c; c = 0; ++c;}";
+            String str2 = "int foo(){int c; c = 0; ++c;}";
+            fileL.Add(str);
+            fileL.Add(str2);
+            ad.SetArchiveBuffer(fileL);
+
+            
+            fileL2.Add("input.cpp");
+            fileL2.Add("input2.cpp");
+            ad.SetArchiveFilename(fileL2);
+
+            ad.SetArchiveLanguage(SrcMLCppAPI.SrcMLOptions.SRCML_LANGUAGE_CXX);
+
             IntPtr ptr = SrcMLCppAPI.CreatePtrFromStruct(ad);
 
-            Assert.True(SrcMLCppAPI.SrcmlCreateArchiveMtF(str, str.Length, "output.cpp.xml", ptr) == 0);
-            Assert.True(File.Exists("output.cpp.xml"));
+            List<IntPtr> ptrptr = new List<IntPtr>();
+            ptrptr.Add(ptr);
 
-            SrcMLFile srcFile = new SrcMLFile("output.cpp.xml");
+            //Console.WriteLine("check: {0}", Marshal.PtrToStringAnsi(ad.buffer[0]));
+            Assert.True(SrcMLCppAPI.SrcmlCreateArchiveMtF(ptrptr.ToArray(), ptrptr.Count(), "test.xml") == 0);
+            Assert.True(File.Exists("test.xml"));
+            
+            SrcMLFile srcFile = new SrcMLFile("test.xml");
             Assert.IsNotNull(srcFile);
 
             var files = srcFile.FileUnits.ToList();
-            Assert.AreEqual(1, files.Count());
+            Assert.AreEqual(2, files.Count());
 
             string file = "input.cpp";
             var f1 = (from ele in files
                       where ele.Attribute("filename").Value == file
                       select ele);
             Assert.AreEqual("input.cpp", f1.FirstOrDefault().Attribute("filename").Value);
-
+            
+            string file2 = "input2.cpp";
+            var f2 = (from ele in files
+                      where ele.Attribute("filename").Value == file2
+                      select ele);
+            Assert.AreEqual("input.cpp", f1.FirstOrDefault().Attribute("filename").Value);
+            
         }
         /// TODO: This requires some modifications to be made to SrcMLFile so that it can take strings of xml. Going to do
         /// A pull of what I have so far before I go making those kinds of changes.
@@ -121,16 +168,30 @@ namespace ABB.SrcML.Test {
         /// </summary>
         [Test]
         public void TestCreateSrcMLArchiveMtM() {
-            List<String> l = new List<string>();
-            l.Add("input.cpp");
-            l.Add("input2.cpp");
-            String str = "int main(){int c; c = 0; ++c;}";
+            SrcMLCppAPI.SourceData ad = new SrcMLCppAPI.SourceData();
 
-            SrcMLCppAPI.ArchiveAdapter ad = new SrcMLCppAPI.ArchiveAdapter();
-            ad.SetArchiveFilename("input.cpp");
+            List<String> fileL = new List<String>();
+            List<String> fileL2 = new List<String>();
+            String str = "int main(){int c; c = 0; ++c;}";
+            String str2 = "int foo(){int c; c = 0; ++c;}";
+            fileL.Add(str);
+            fileL.Add(str2);
+            ad.SetArchiveBuffer(fileL);
+
+
+            fileL2.Add("input.cpp");
+            fileL2.Add("input2.cpp");
+            ad.SetArchiveFilename(fileL2);
+
+            ad.SetArchiveLanguage(SrcMLCppAPI.SrcMLOptions.SRCML_LANGUAGE_CXX);
+
             IntPtr ptr = SrcMLCppAPI.CreatePtrFromStruct(ad);
 
-            string s = SrcMLCppAPI.SrcmlCreateArchiveMtM(str, str.Length, ptr);
+            List<IntPtr> ptrptr = new List<IntPtr>();
+            ptrptr.Add(ptr);
+
+            string s = SrcMLCppAPI.SrcmlCreateArchiveMtM(ptrptr.ToArray(), ptrptr.Count());
+
             Assert.False(String.IsNullOrEmpty(s));
             XDocument doc = XDocument.Parse(s);
             var units = from unit in doc.Descendants(XName.Get("unit", "http://www.srcML.org/srcML/src"))
@@ -142,6 +203,12 @@ namespace ABB.SrcML.Test {
                       where ele.Attribute("filename").Value == file
                       select ele);
             Assert.AreEqual("input.cpp", f1.FirstOrDefault().Attribute("filename").Value);
+
+            string file2 = "input2.cpp";
+            var f2 = (from ele in units
+                      where ele.Attribute("filename").Value == file2
+                      select ele);
+            Assert.AreEqual("input2.cpp", f2.FirstOrDefault().Attribute("filename").Value);
             Console.WriteLine(s);
         }
 
