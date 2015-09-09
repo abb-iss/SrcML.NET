@@ -4,6 +4,7 @@
 #include "srcml.h"
 #include "SrcMLCppAPI.h"
 #include <iostream>
+#include <string>
 using namespace System;
 using namespace System::Runtime::InteropServices;
 void SetMetaData(srcml_unit* unit, SourceData* archiveData){
@@ -12,8 +13,6 @@ void SetMetaData(srcml_unit* unit, SourceData* archiveData){
     }
 
     if (archiveData->language != ""){
-        String^ clistr = gcnew String(archiveData->language);
-        Console::WriteLine("AD'S LANGUAGE IS: {0}", clistr);
         srcml_unit_set_language(unit, archiveData->language);
         srcml_set_language(archiveData->language);
     }
@@ -51,23 +50,23 @@ extern"C"{
     ///<param name="argc">Number of arguments in argv</param>
     ///<param name="outputFile">File to output to</param>
     __declspec(dllexport) int SrcmlCreateArchiveFtF(SourceData** sd, int argc, const char* outputFile) {
-        int i;
         struct srcml_archive* archive;
         struct srcml_unit* unit;		
-
-        /*create a new srcml archive structure */
-        archive = srcml_archive_create();
-
-        /*open a srcML archive for output */
-        srcml_archive_write_open_filename(archive, outputFile, 0);
-        /* add all the files to the archive */
+        
         for (int i = 0; i < argc; ++i){
+            /*create a new srcml archive structure */
+            archive = srcml_archive_create();
+            std::string filename(outputFile);
+            filename += std::to_string(i) + ".cpp.xml";
+            /*open a srcML archive for output */
+            srcml_archive_write_open_filename(archive, filename.c_str(), 0);
+            
+            /* add all the files to the archive */
             for (int k = 0; k < sd[i]->buffercount; ++k) {
                 unit = srcml_unit_create(archive);
 
                 String^ clistr = gcnew String(sd[i]->encoding);
                 String^ clistr2 = gcnew String(sd[i]->filename[k]);
-                Console::WriteLine("AD'S ENCODING IS: {0} and file name is: {1}", clistr, clistr2);
 
                 SetMetaData(unit, sd[i]);
 
@@ -81,14 +80,12 @@ extern"C"{
 
                 srcml_unit_free(unit);
             }
+            /*close the srcML archive */
+            srcml_archive_close(archive);
+
+            /*free the srcML archive data */
+            srcml_archive_free(archive);
         }
-
-
-        /*close the srcML archive */
-        srcml_archive_close(archive);
-
-        /*free the srcML archive data */
-        srcml_archive_free(archive);
 
         //Return 0 to say it worked-- need to do error checking still for when srcml returns an issue.
         return 0;
@@ -105,8 +102,10 @@ extern"C"{
             /* create a new srcml archive structure */
             archive = srcml_archive_create();
             /* open a srcML archive for output */
-            int numRead = 0;
-            srcml_archive_write_open_filename(archive, "test.xml", 0);
+            std::string filename(outputFile);
+            filename += std::to_string(i) + ".cpp.xml";
+            /*open a srcML archive for output */
+            srcml_archive_write_open_filename(archive, filename.c_str(), 0);
             for (int j = 0; j < sd[i]->buffercount; ++j){
                 struct srcml_unit* unit;
                 /* add all the files to the archive */
@@ -184,7 +183,7 @@ extern"C"{
 
         /*Trim any garbage data from the end of the string. TODO: Error check*/
         TrimFromEnd(s, size);
-        return s;
+        return s;//Will return only most recent string; need to fix.
     }
 
     /// <summary>
@@ -223,6 +222,6 @@ extern"C"{
             /*Trim any garbage data from the end of the string. TODO: Error check*/
             TrimFromEnd(s, size);
         }
-        return s;
+        return s; //Will return only most recent string; need to fix.
     }
 }
