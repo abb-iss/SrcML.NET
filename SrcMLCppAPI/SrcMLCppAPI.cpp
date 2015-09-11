@@ -68,7 +68,7 @@ extern"C"{
     __declspec(dllexport) int SrcmlCreateArchiveFtF(SourceData** sd, int argc, const char* outputFile) {
         struct srcml_archive* archive;
         struct srcml_unit* unit;		
-        int srcmlreturncode = 0;
+        int srcmlreturncode = -1;
         for (int i = 0; i < argc; ++i){
             /*create a new srcml archive structure */
             archive = srcml_archive_create();
@@ -92,7 +92,7 @@ extern"C"{
                 srcml_unit_set_filename(unit, sd[i]->filename[k]);
 
                 /*Translate to srcml and append to the archive */
-                int srcmlreturncode = srcml_unit_parse_filename(unit, sd[i]->filename[k]);
+                srcmlreturncode = srcml_unit_parse_filename(unit, sd[i]->filename[k]);
 
                 /*Translate to srcml and append to the archive */
                 srcml_write_unit(archive, unit);
@@ -111,8 +111,6 @@ extern"C"{
             /*free the srcML archive data */
             srcml_archive_free(archive);
         }
-
-        //Return 0 to say it worked-- need to do error checking still for when srcml returns an issue.
         return srcmlreturncode;
     }
     /// <summary>
@@ -124,7 +122,7 @@ extern"C"{
     __declspec(dllexport) int SrcmlCreateArchiveMtF(SourceData** sd, int argc, const char* outputFile) {
         struct srcml_archive* archive;
         struct srcml_unit* unit;
-        int srcmlreturncode = 0;
+        int srcmlreturncode = -1;
         for (int i = 0; i < argc; ++i){
             /* create a new srcml archive structure */
             archive = srcml_archive_create();
@@ -169,9 +167,7 @@ extern"C"{
             /* free the srcML archive data */
             srcml_archive_free(archive);
         }
-
-        //Return 0 to say it worked-- need to do error checking still for when srcml returns an issue.
-        return 0;
+        return srcmlreturncode;
     }
     /// <summary>
     /// This creates an archive from a file and returns the resulting srcML in a buffer
@@ -200,10 +196,14 @@ extern"C"{
 
                 /*Set filename for unit*/
                 srcml_unit_set_filename(unit, sd[i]->filename[k]);
+                std::pair<char*, std::streamoff> bufferPair;
+                try{
+                    //Read file into pair of c-string and size of the file. TODO: Error check
+                    bufferPair = ReadFileC(sd[i]->filename[k]);
 
-                //Read file into pair of c-string and size of the file. TODO: Error check
-                std::pair<char*, std::streamoff> bufferPair = ReadFileC(sd[i]->filename[k]);
-
+                }catch (System::Exception^ e){
+                    throw e; //pass exception along to API
+                }
                 /*Parse memory; bufferpair.first is the c-string from the read. bufferpair.second is the count of characters*/
                 srcmlreturncode = srcml_unit_parse_memory(unit, bufferPair.first, bufferPair.second);
 
@@ -212,6 +212,7 @@ extern"C"{
                 srcml_unit_free(unit);
 
                 delete[] bufferPair.first;
+
                 if (srcmlreturncode){
                     srcml_archive_close(archive);
                     srcml_archive_free(archive);
@@ -228,7 +229,7 @@ extern"C"{
             /*Trim any garbage data from the end of the string. TODO: Error check*/
             TrimFromEnd(pp[i], size);
         }
-        return pp;//Will return only most recent string; need to fix.
+        return pp;
     }
 
     /// <summary>
@@ -280,6 +281,6 @@ extern"C"{
             /*Trim any garbage data from the end of the string. TODO: Error check*/
             TrimFromEnd(pp[i], size);
         }
-        return pp; //Will return only most recent string; need to fix.
+        return pp;
     }
 }

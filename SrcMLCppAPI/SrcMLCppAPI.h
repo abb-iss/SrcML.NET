@@ -60,10 +60,8 @@ std::pair<char*, std::streamoff> ReadFileC(const char* argv){
 
         return std::make_pair(buffer, length);
     }else{
-        //Should do something here. Either error and quit or exception and handle?
-        String^ clistr = gcnew String(argv);
-        Console::WriteLine("ERROR, could not open file: {0}", clistr);
-        throw std::exception("Couldn't open file");
+        Exception^ error = gcnew Exception(String::Format("ERROR, could not open file: {0}", gcnew String(argv)));
+        throw error;
     }
 
 }
