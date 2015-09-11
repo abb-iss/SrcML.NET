@@ -292,9 +292,8 @@ namespace ABB.SrcML {
         /// <param name="SourceMetadata"></param>
         /// <param name="archiveCount"></param>
         /// <returns>string representing the archive srcML produced</returns>
-        [DllImport(@"..\..\External\srcML1.0\bin\SrcMLCppAPI.dll", CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.LPStr)]
-        public static extern string SrcmlCreateArchiveFtM(IntPtr[] SourceMetadata, int archiveCount);
+        [DllImport(@"..\..\External\srcML1.0\bin\SrcMLCppAPI.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        public static extern IntPtr SrcmlCreateArchiveFtM(IntPtr[] SourceMetadata, int archiveCount);
         /// <summary>
         /// Creates archive from memory buffer and returns a separate buffer with resulting srcML
         /// </summary>
@@ -302,7 +301,6 @@ namespace ABB.SrcML {
         /// <param name="archiveCount"></param>
         /// <returns>string representing the archive srcML produced</returns>
         [DllImport(@"..\..\External\srcML1.0\bin\SrcMLCppAPI.dll", CallingConvention = CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.LPStr)]
-        public static extern string SrcmlCreateArchiveMtM(IntPtr[] SourceMetadata, int archiveCount);
+        public static extern IntPtr SrcmlCreateArchiveMtM(IntPtr[] SourceMetadata, int archiveCount);
     }
 }

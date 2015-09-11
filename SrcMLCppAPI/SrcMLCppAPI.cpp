@@ -178,22 +178,21 @@ extern"C"{
     /// </summary>
     ///<param name="argv">List of files to be read</param>
     ///<param name="argc">Number of arguments in argv</param>
-    __declspec(dllexport) char* SrcmlCreateArchiveFtM(SourceData** sd, int argc) {
-        struct srcml_archive* archive;
-        struct srcml_unit* unit;
-        char * s;
+    __declspec(dllexport) char** SrcmlCreateArchiveFtM(SourceData** sd, int argc) {
+        char** pp = new char*[2];
         size_t size;
         int srcmlreturncode = 0;
         /* add all the files to the archive */
         for (int i = 0; i < argc; ++i) {
             /* create a new srcml archive structure */
+            struct srcml_archive* archive;
             archive = srcml_archive_create();
             SetArchiveData(archive, sd[i]);
 
             /* open a srcML archive for output */
-            srcml_archive_write_open_memory(archive, &s, &size);
+            srcml_archive_write_open_memory(archive, &pp[i], &size);
             for (int k = 0; k < sd[i]->buffercount; ++k){
-
+                struct srcml_unit* unit;
                 unit = srcml_unit_create(archive);
 
                 /*Set all srcML options provided through sd*/
@@ -210,7 +209,6 @@ extern"C"{
 
                 /* Translate to srcml and append to the archive */
                 srcml_write_unit(archive, unit);
-
                 srcml_unit_free(unit);
 
                 delete[] bufferPair.first;
@@ -221,18 +219,16 @@ extern"C"{
                     throw error;
                 }
             }
+            /* close the srcML archive */
+            srcml_archive_close(archive);
+
+            /* free the srcML archive data */
+            srcml_archive_free(archive);
+
+            /*Trim any garbage data from the end of the string. TODO: Error check*/
+            TrimFromEnd(pp[i], size);
         }
-
-        /* close the srcML archive */
-        srcml_archive_close(archive);
-
-        /* free the srcML archive data */
-        srcml_archive_free(archive);
-
-        /*Trim any garbage data from the end of the string. TODO: Error check*/
-        TrimFromEnd(s, size);
-
-        return s;//Will return only most recent string; need to fix.
+        return pp;//Will return only most recent string; need to fix.
     }
 
     /// <summary>
@@ -240,20 +236,20 @@ extern"C"{
     /// </summary>
     ///<param name="argv">List of files to be read</param>
     ///<param name="argc">Number of arguments in argv</param>
-    __declspec(dllexport) char* SrcmlCreateArchiveMtM(SourceData** sd, int argc) {
-        struct srcml_archive* archive;
-        struct srcml_unit* unit;
+    __declspec(dllexport) char** SrcmlCreateArchiveMtM(SourceData** sd, int argc) {
+
         int srcmlreturncode = 0;
-        char * s;
+        char ** pp = new char*[argc];
         size_t size;
         for (int i = 0; i < argc; ++i){
+            struct srcml_archive* archive;
             /* create a new srcml archive structure */
             archive = srcml_archive_create();
             SetArchiveData(archive, sd[i]);
-
             /* open a srcML archive for output */
-            srcml_archive_write_open_memory(archive, &s, &size);
+            srcml_archive_write_open_memory(archive, &pp[i], &size);
             for (int k = 0; k < sd[i]->buffercount; ++k){
+                struct srcml_unit* unit;
                 unit = srcml_unit_create(archive);
 
                 /*Set all srcML options provided through sd*/
@@ -282,8 +278,8 @@ extern"C"{
             srcml_archive_free(archive);
 
             /*Trim any garbage data from the end of the string. TODO: Error check*/
-            TrimFromEnd(s, size);
+            TrimFromEnd(pp[i], size);
         }
-        return s; //Will return only most recent string; need to fix.
+        return pp; //Will return only most recent string; need to fix.
     }
 }

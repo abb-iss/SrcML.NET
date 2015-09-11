@@ -99,30 +99,45 @@ namespace ABB.SrcML.Test {
             List<IntPtr> structArrayPtr = new List<IntPtr>();
             structArrayPtr.Add(structPtr);
             structArrayPtr.Add(structPtr2);
+            IntPtr s = new IntPtr(0);
+            try {
+                s = SrcMLCppAPI.SrcmlCreateArchiveFtM(structArrayPtr.ToArray(), structArrayPtr.Count());
+            }
+            catch (Exception e) {
+                Console.WriteLine("EXCEPTION: {0}",e.Message);
+                Assert.True(false);
+            }
 
-            string s = SrcMLCppAPI.SrcmlCreateArchiveFtM(structArrayPtr.ToArray(), structArrayPtr.Count());
+            List<String> documents = new List<String>();
+            for (int i = 0; i < 2; ++i) {
+                IntPtr docptr = Marshal.ReadIntPtr(s);
+                String docstr = Marshal.PtrToStringAnsi(docptr);
+                Marshal.FreeHGlobal(docptr);
+                documents.Add(docstr);
+                s += Marshal.SizeOf(typeof(IntPtr));
+            }
 
-            Assert.False(String.IsNullOrEmpty(s));
-            XDocument doc = XDocument.Parse(s);
+            Assert.False(String.IsNullOrEmpty(documents.ElementAt(0)));
+            XDocument doc = XDocument.Parse(documents.ElementAt(0));
             var units = from unit in doc.Descendants(XName.Get("unit", "http://www.srcML.org/srcML/src"))
                         where unit.Attribute("filename") != null
                         select unit;
-            /*TODO: FIX.
             string file = "input.cpp";
             var f1 = (from ele in units
                       where ele.Attribute("filename").Value == file
                       select ele);
             Assert.AreEqual("input.cpp", f1.FirstOrDefault().Attribute("filename").Value);
-            */
+
+            Assert.False(String.IsNullOrEmpty(documents.ElementAt(1)));
+            XDocument doc2 = XDocument.Parse(documents.ElementAt(1));
+            var units2 = from unit in doc2.Descendants(XName.Get("unit", "http://www.srcML.org/srcML/src"))
+                         where unit.Attribute("filename") != null
+                         select unit;
             string file2 = "input2.cpp";
-            var f2 = (from ele in units
+            var f2 = (from ele in units2
                       where ele.Attribute("filename").Value == file2
                       select ele);
             Assert.AreEqual("input2.cpp", f2.FirstOrDefault().Attribute("filename").Value);
-
-            //XmlReader reader = XmlReader.Create(new StringReader(s));
-            Console.WriteLine(s);
-
             ad.Dispose();
             bc.Dispose();
         }
@@ -204,11 +219,26 @@ namespace ABB.SrcML.Test {
 
             List<IntPtr> structArrayPtr = new List<IntPtr>();
             structArrayPtr.Add(structPtr);
+            IntPtr s = new IntPtr(0);
+            try {
+                s = SrcMLCppAPI.SrcmlCreateArchiveMtM(structArrayPtr.ToArray(), structArrayPtr.Count());
+            }
+            catch (Exception e) {
+                Console.WriteLine("EXCEPTION: {0}", e.Message);
+                Assert.True(false);
+            }
 
-            string s = SrcMLCppAPI.SrcmlCreateArchiveMtM(structArrayPtr.ToArray(), structArrayPtr.Count());
+            List<String> documents = new List<String>();
+            for (int i = 0; i < 1; ++i) {
+                IntPtr docptr = Marshal.ReadIntPtr(s);
+                String docstr = Marshal.PtrToStringAnsi(docptr);
+                Marshal.FreeHGlobal(docptr);
+                documents.Add(docstr);
+                s += Marshal.SizeOf(typeof(IntPtr));
+            }
 
-            Assert.False(String.IsNullOrEmpty(s));
-            XDocument doc = XDocument.Parse(s);
+            Assert.False(String.IsNullOrEmpty(documents.ElementAt(0)));
+            XDocument doc = XDocument.Parse(documents.ElementAt(0));
             var units = from unit in doc.Descendants(XName.Get("unit", "http://www.srcML.org/srcML/src"))
                         where unit.Attribute("filename") != null
                         select unit;
