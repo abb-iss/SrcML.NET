@@ -7,6 +7,7 @@ using NUnit.Framework;
 using ABB.SrcML;
 using System.Xml;
 using System.Runtime.InteropServices;
+using System.Xml.Linq;
 
 namespace ABB.SrcML.Test {
 
@@ -14,27 +15,148 @@ namespace ABB.SrcML.Test {
     [Category("Build")]
     class SrcMLCppAPITests {
         /// <summary>
-        /// This tests the creation of an archive called 'output.cpp.xml' using a list of source files
-        /// from which the archive will be derived.
+        /// This tests the creation of an archive using a list of source files
         /// </summary>
         [Test]
         public void TestCreateSrcMLArchiveFtF() {
-            List<String> l = new List<string>();
-            l.Add("input.cpp");
-            l.Add("input2.cpp");
+            SrcMLCppAPI.SourceData ad = new SrcMLCppAPI.SourceData();
+            ad.SetArchiveFilename("input.cpp");
+            ad.SetArchiveLanguage(SrcMLCppAPI.SrcMLOptions.SRCML_LANGUAGE_CXX);
 
-            SrcMLCppAPI.ArchiveAdapter ad = new SrcMLCppAPI.ArchiveAdapter();
+            SrcMLCppAPI.SourceData bc = new SrcMLCppAPI.SourceData();
+            bc.SetArchiveFilename("input2.cpp");
+            bc.SetArchiveLanguage(SrcMLCppAPI.SrcMLOptions.SRCML_LANGUAGE_CXX);
+
+            List<SrcMLCppAPI.SourceData> data = new List<SrcMLCppAPI.SourceData>();
+            data.Add(ad);
+            data.Add(bc);
+
+            IntPtr structPtr = SrcMLCppAPI.CreatePtrFromStruct(ad);
+            IntPtr structPtr2 = SrcMLCppAPI.CreatePtrFromStruct(bc);
+
+            List<IntPtr> structArrayPtr = new List<IntPtr>();
+            structArrayPtr.Add(structPtr);
+            structArrayPtr.Add(structPtr2);
+
+            Assert.True(SrcMLCppAPI.SrcmlCreateArchiveFtF(structArrayPtr.ToArray(), structArrayPtr.Count(), "output") == 0);
             
-            ad.SetArchiveXmlEncoding("abc");
-            ad.SetArchiveFilename("abc.cpp.xml");
-            IntPtr ptr = SrcMLCppAPI.CreatePtrFromStruct(ad);
 
-            Assert.True(SrcMLCppAPI.SrcmlCreateArchiveFtF(l.ToArray(), l.Count(), "output.cpp.xml", ptr) == 0);
-            Assert.True(File.Exists("output.cpp.xml"));
+            {
+                Assert.True(File.Exists("output0.cpp.xml"));
+                SrcMLFile srcFile = new SrcMLFile("output0.cpp.xml");
+                Assert.IsNotNull(srcFile);
 
-            SrcMLFile srcFile = new SrcMLFile("output.cpp.xml");
+                var files = srcFile.FileUnits.ToList();
+                Assert.AreEqual(1, files.Count());
+
+                string file = "input.cpp";
+                var f1 = (from ele in files
+                          where ele.Attribute("filename").Value == file
+                          select ele);
+                Assert.AreEqual("input.cpp", f1.FirstOrDefault().Attribute("filename").Value);
+            }
+            {
+                Assert.True(File.Exists("output1.cpp.xml"));
+                SrcMLFile srcFile = new SrcMLFile("output1.cpp.xml");
+                Assert.IsNotNull(srcFile);
+
+                var files = srcFile.FileUnits.ToList();
+                Assert.AreEqual(1, files.Count());
+
+                string file1 = "input2.cpp";
+                var f2 = (from ele in files
+                          where ele.Attribute("filename").Value == file1
+                          select ele);
+                Assert.AreEqual("input2.cpp", f2.FirstOrDefault().Attribute("filename").Value);
+            }
+            ad.Dispose();
+            bc.Dispose();
+        }
+
+        /// <summary>
+        /// Tests the creation of srcML from a file and returned via string
+        /// </summary>
+        [Test]
+        public void TestCreateSrcMLArchiveFtM() {
+            SrcMLCppAPI.SourceData ad = new SrcMLCppAPI.SourceData();
+            ad.SetArchiveFilename("input.cpp");
+            ad.SetArchiveLanguage(SrcMLCppAPI.SrcMLOptions.SRCML_LANGUAGE_CXX);
+
+            SrcMLCppAPI.SourceData bc = new SrcMLCppAPI.SourceData();
+            bc.SetArchiveFilename("input2.cpp");
+            bc.SetArchiveLanguage(SrcMLCppAPI.SrcMLOptions.SRCML_LANGUAGE_CXX);
+
+            List<SrcMLCppAPI.SourceData> data = new List<SrcMLCppAPI.SourceData>();
+            data.Add(ad);
+            data.Add(bc);
+
+            IntPtr structPtr = SrcMLCppAPI.CreatePtrFromStruct(ad);
+            IntPtr structPtr2 = SrcMLCppAPI.CreatePtrFromStruct(bc);
+
+            List<IntPtr> structArrayPtr = new List<IntPtr>();
+            structArrayPtr.Add(structPtr);
+            structArrayPtr.Add(structPtr2);
+
+            string s = SrcMLCppAPI.SrcmlCreateArchiveFtM(structArrayPtr.ToArray(), structArrayPtr.Count());
+
+            Assert.False(String.IsNullOrEmpty(s));
+            XDocument doc = XDocument.Parse(s);
+            var units = from unit in doc.Descendants(XName.Get("unit", "http://www.srcML.org/srcML/src"))
+                        where unit.Attribute("filename") != null
+                        select unit;
+
+            string file = "input.cpp";
+            var f1 = (from ele in units
+                      where ele.Attribute("filename").Value == file
+                      select ele);
+            Assert.AreEqual("input.cpp", f1.FirstOrDefault().Attribute("filename").Value);
+
+            string file2 = "input2.cpp";
+            var f2 = (from ele in units
+                      where ele.Attribute("filename").Value == file2
+                      select ele);
+            Assert.AreEqual("input2.cpp", f2.FirstOrDefault().Attribute("filename").Value);
+
+            //XmlReader reader = XmlReader.Create(new StringReader(s));
+            Console.WriteLine(s);
+
+            ad.Dispose();
+            bc.Dispose();
+        }
+
+        /// <summary>
+        /// Tests the creation of srcML from code in memory and placed in a file
+        /// </summary>
+        [Test]
+        public void TestCreateSrcMLArchiveMtF() {
+            SrcMLCppAPI.SourceData ad = new SrcMLCppAPI.SourceData();
+
+            List<String> BufferList = new List<String>();
+            List<String> FileList = new List<String>();
+            String str = "int main(){int c; c = 0; ++c;}";
+            String str2 = "int foo(){int c; c = 0; ++c;}";
+            BufferList.Add(str);
+            BufferList.Add(str2);
+            ad.SetArchiveBuffer(BufferList);
+
+            
+            FileList.Add("input.cpp");
+            FileList.Add("input2.cpp");
+            ad.SetArchiveFilename(FileList);
+
+            ad.SetArchiveLanguage(SrcMLCppAPI.SrcMLOptions.SRCML_LANGUAGE_CXX);
+
+            IntPtr structPtr = SrcMLCppAPI.CreatePtrFromStruct(ad);
+
+            List<IntPtr> structArrayPtr = new List<IntPtr>();
+            structArrayPtr.Add(structPtr);
+
+            Assert.True(SrcMLCppAPI.SrcmlCreateArchiveMtF(structArrayPtr.ToArray(), structArrayPtr.Count(), "test") == 0);
+            Assert.True(File.Exists("test0.cpp.xml"));
+            
+            SrcMLFile srcFile = new SrcMLFile("test0.cpp.xml");
             Assert.IsNotNull(srcFile);
-            
+
             var files = srcFile.FileUnits.ToList();
             Assert.AreEqual(2, files.Count());
 
@@ -43,78 +165,65 @@ namespace ABB.SrcML.Test {
                       where ele.Attribute("filename").Value == file
                       select ele);
             Assert.AreEqual("input.cpp", f1.FirstOrDefault().Attribute("filename").Value);
-
-            string file1 = "input2.cpp";
+            
+            string file2 = "input2.cpp";
             var f2 = (from ele in files
-                      where ele.Attribute("filename").Value == file1
+                      where ele.Attribute("filename").Value == file2
                       select ele);
-            Assert.AreEqual("input2.cpp", f2.FirstOrDefault().Attribute("filename").Value);
+            Assert.AreEqual("input.cpp", f1.FirstOrDefault().Attribute("filename").Value);
+
+            ad.Dispose();
         }
-        /// TODO: This requires some modifications to be made to SrcMLFile so that it can take strings of xml. Going to do
-        /// A pull of what I have so far before I go making those kinds of changes.
+
         /// <summary>
-        /// Tests the creation of srcML to be returned as a string instead of being placed in af file.
+        /// Tests the creation of srcML from code in memory and returned as a string
         /// </summary>
         [Test]
-        public void TestCreateSrcMLArchiveFtM() {
-            List<String> l = new List<string>();
-            l.Add("input.cpp");
-            l.Add("input2.cpp");
-            SrcMLCppAPI.ArchiveAdapter ad = new SrcMLCppAPI.ArchiveAdapter();
-            IntPtr ptr = SrcMLCppAPI.CreatePtrFromStruct(ad);
-            string s = SrcMLCppAPI.SrcmlCreateArchiveFtM(l.ToArray(), l.Count(), ptr);
-            Assert.False(String.IsNullOrEmpty(s));
-            //XmlReader reader = XmlReader.Create(new StringReader(s));
-            Console.WriteLine(s);
-        }
-        /// TODO: This requires some modifications to be made to SrcMLFile so that it can take strings of xml. Going to do
-        /// A pull of what I have so far before I go making those kinds of changes.
-        /// <summary>
-        /// Tests the creation of srcML to be returned as a string instead of being placed in af file.
-        /// </summary>
-        [Test]
-        public void TestCreateSrcMLArchiveMtF() {
+        public void TestCreateSrcMLArchiveMtM() {
+            SrcMLCppAPI.SourceData ad = new SrcMLCppAPI.SourceData();
+
+            List<String> BufferList = new List<String>();
+            List<String> FileList = new List<String>();
             String str = "int main(){int c; c = 0; ++c;}";
+            String str2 = "int foo(){int c; c = 0; ++c;}";
+            BufferList.Add(str);
+            BufferList.Add(str2);
+            ad.SetArchiveBuffer(BufferList);
 
-            SrcMLCppAPI.ArchiveAdapter ad = new SrcMLCppAPI.ArchiveAdapter();
-            IntPtr ptr = SrcMLCppAPI.CreatePtrFromStruct(ad);
 
-            Assert.True(SrcMLCppAPI.SrcmlCreateArchiveMtF(str, str.Length, "output.cpp.xml", ptr) == 0);
-            Assert.True(File.Exists("output.cpp.xml"));
+            FileList.Add("input.cpp");
+            FileList.Add("input2.cpp");
+            ad.SetArchiveFilename(FileList);
 
-            SrcMLFile srcFile = new SrcMLFile("output.cpp.xml");
-            Assert.IsNotNull(srcFile);
+            ad.SetArchiveLanguage(SrcMLCppAPI.SrcMLOptions.SRCML_LANGUAGE_CXX);
 
-            var files = srcFile.FileUnits.ToList();
-            Assert.AreEqual(1, files.Count());
+            IntPtr structPtr = SrcMLCppAPI.CreatePtrFromStruct(ad);
+
+            List<IntPtr> structArrayPtr = new List<IntPtr>();
+            structArrayPtr.Add(structPtr);
+
+            string s = SrcMLCppAPI.SrcmlCreateArchiveMtM(structArrayPtr.ToArray(), structArrayPtr.Count());
+
+            Assert.False(String.IsNullOrEmpty(s));
+            XDocument doc = XDocument.Parse(s);
+            var units = from unit in doc.Descendants(XName.Get("unit", "http://www.srcML.org/srcML/src"))
+                        where unit.Attribute("filename") != null
+                        select unit;
 
             string file = "input.cpp";
-            var f1 = (from ele in files
+            var f1 = (from ele in units
                       where ele.Attribute("filename").Value == file
                       select ele);
             Assert.AreEqual("input.cpp", f1.FirstOrDefault().Attribute("filename").Value);
 
-        }
-        /// TODO: This requires some modifications to be made to SrcMLFile so that it can take strings of xml. Going to do
-        /// A pull of what I have so far before I go making those kinds of changes.
-        /// <summary>
-        /// Tests the creation of srcML to be returned as a string instead of being placed in af file.
-        /// </summary>
-        [Test]
-        public void TestCreateSrcMLArchiveMtM() {
-            List<String> l = new List<string>();
-            l.Add("input.cpp");
-            l.Add("input2.cpp");
-            String str = "int main(){int c; c = 0; ++c;}";
-
-            SrcMLCppAPI.ArchiveAdapter ad = new SrcMLCppAPI.ArchiveAdapter();
-            IntPtr ptr = SrcMLCppAPI.CreatePtrFromStruct(ad);
-
-            string s = SrcMLCppAPI.SrcmlCreateArchiveMtM(str, str.Length, ptr);
-            Assert.False(String.IsNullOrEmpty(s));
-            //XmlReader reader = XmlReader.Create(new StringReader(s));
+            string file2 = "input2.cpp";
+            var f2 = (from ele in units
+                      where ele.Attribute("filename").Value == file2
+                      select ele);
+            Assert.AreEqual("input2.cpp", f2.FirstOrDefault().Attribute("filename").Value);
             Console.WriteLine(s);
+            ad.Dispose();
         }
-
+      
     }
 }

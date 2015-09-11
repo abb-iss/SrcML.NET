@@ -61,18 +61,40 @@ namespace ABB.SrcML {
             /** Encode the original source encoding as an attribute */
             public const ulong SRCML_OPTION_STORE_ENCODING = 1 << 26;
             public const ulong SRCML_OPTION_DEFAULT = (SRCML_OPTION_ARCHIVE | SRCML_OPTION_XML_DECL | SRCML_OPTION_NAMESPACE_DECL | SRCML_OPTION_HASH | SRCML_OPTION_PSEUDO_BLOCK | SRCML_OPTION_TERNARY);
+
+            /* Core language set */
+            /** srcML language not set */
+            public const int SRCML_LANGUAGE_NONE = 0;
+            /** string for language C */
+            public const string SRCML_LANGUAGE_C = "C";
+            /** string for language C++ */
+            public const string SRCML_LANGUAGE_CXX = "C++";
+            /** string for language Java */
+            public const string SRCML_LANGUAGE_JAVA = "Java";
+            /** string for language C# */
+            public const string SRCML_LANGUAGE_CSHARP = "C#";
+            /** string for language C# */
+            public const string SRCML_LANGUAGE_OBJECTIVE_C = "Objective-C";
+            /** string for language XML */
+            public const string SRCML_LANGUAGE_XML = "xml";
         }
-        [StructLayout(LayoutKind.Sequential, Pack=1)]
-        public struct ArchiveAdapter {
+        /// <summary>
+        /// Carries data between C# and C++ for srcML's archives
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        public struct SourceData : IDisposable {
             private IntPtr encoding;
             private IntPtr src_encoding;
             private IntPtr revision;
             private IntPtr language;
-            private IntPtr filename;
+            private IntPtr filenames;
             private IntPtr url;
             private IntPtr version;
             private IntPtr timestamp;
             private IntPtr hash;
+            private IntPtr buffer;
+            private int bufferCount;
+            private IntPtr bufferSize;
             private int tabstop;
 
             /// <summary>
@@ -97,11 +119,29 @@ namespace ABB.SrcML {
                 language = Marshal.StringToHGlobalAnsi(lang);
             }
             /// <summary>
-            /// Name for the archive being created. This gets set on the <unit>
+            /// Name for the archive being created. This gets set on the <unit>. This version takes a list
+            /// of file names. These must be in order (in synch with the buffer's list). Otherwise, the
+            /// wrong file name will be assigned to units.
             /// </summary>
             /// <param name="fname">Chosen name for file</param>
-            public void SetArchiveFilename(string fname) {
-                filename = Marshal.StringToHGlobalAnsi(fname);
+            public void SetArchiveFilename(List<String> fileList) {
+                filenames = Marshal.AllocHGlobal(fileList.Count * Marshal.SizeOf(typeof(IntPtr)));
+                IntPtr ptr = filenames;
+                foreach (string str in fileList) {
+                    Marshal.WriteIntPtr(ptr, Marshal.StringToHGlobalAnsi(str));
+                    ptr += Marshal.SizeOf(typeof(IntPtr));
+                }
+            }
+            /// <summary>
+            /// Name for the archive being created. This gets set on the <unit>. This version takes a single
+            /// file name and points an IntPtr at it.
+            /// </summary>
+            /// <param name="fname">Chosen name for file</param>
+            public void SetArchiveFilename(String filename) {
+                filenames = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(IntPtr)));
+                IntPtr ptr = filenames;
+                Marshal.WriteIntPtr(ptr, Marshal.StringToHGlobalAnsi(filename));
+                bufferCount = 1;
             }
             /// <summary>
             /// URL for namespace in archive
@@ -116,6 +156,26 @@ namespace ABB.SrcML {
             /// <param name="srcVersion">Version number</param>
             public void SetArchiveSrcVersion(string srcVersion) {
                 version = Marshal.StringToHGlobalAnsi(srcVersion);
+            }
+            /// <summary>
+            /// Function takes a list of strings (that represent some source code) and manually lays it out into a 
+            /// two dimensional array that can be passed into the cpp .dll
+            /// </summary>
+            /// <param name="bufferList"></param>
+            public void SetArchiveBuffer(List<String> bufferList) {
+                buffer = Marshal.AllocHGlobal(bufferList.Count * Marshal.SizeOf(typeof(IntPtr)));
+                bufferSize = Marshal.AllocHGlobal(bufferList.Count * Marshal.SizeOf(typeof(IntPtr)));
+                IntPtr buffptr = buffer;
+                IntPtr numptr = bufferSize;
+                int i = 0;
+                foreach (string str in bufferList) {
+                    Marshal.WriteIntPtr(buffptr, Marshal.StringToHGlobalAnsi(str));
+                    buffptr += Marshal.SizeOf(typeof(IntPtr));
+                    Marshal.WriteIntPtr(numptr, new IntPtr(str.Length));
+                    numptr += Marshal.SizeOf(typeof(IntPtr));
+                    ++i;
+                }
+                bufferCount = bufferList.Count();
             }
             /// <summary>
             /// Sets the tabstop for the archive
@@ -192,25 +252,57 @@ namespace ABB.SrcML {
             void UnparseSetEol(int eol) {
                 //To be implemented
             }
+            /// <summary>
+            /// Clean up manually allocated resources
+            /// </summary>
+            public void Dispose() {
+                Marshal.FreeHGlobal(buffer);
+                Marshal.FreeHGlobal(bufferSize);
+                Marshal.FreeHGlobal(filenames);
+                GC.SuppressFinalize(this);
+            }
         }
-        public static IntPtr CreatePtrFromStruct(SrcMLCppAPI.ArchiveAdapter ad) {
+        public static IntPtr CreatePtrFromStruct(SrcMLCppAPI.SourceData ad) {
             int size = Marshal.SizeOf(ad);
             IntPtr ptr = Marshal.AllocHGlobal(Marshal.SizeOf(ad));
             Marshal.StructureToPtr(ad, ptr, false);
             return ptr;
         }
-        [DllImport(@"..\..\External\srcML1.0\bin\SrcMLCppAPI.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern int SrcmlCreateArchiveFtF(string[] argv, int argc, string outputFile, IntPtr Adapter);
-        
-        [DllImport(@"..\..\External\srcML1.0\bin\SrcMLCppAPI.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern int SrcmlCreateArchiveMtF(string argv, int argc, string outputFile, IntPtr Adapter);
-        
-        [DllImport(@"..\..\External\srcML1.0\bin\SrcMLCppAPI.dll", CallingConvention = CallingConvention.StdCall)]
+        /// <summary>
+        /// Creates archive from a file and reads it out into a file
+        /// </summary>
+        /// <param name="SourceMetadata">Data about the source; file name, encoding, etc.</param>
+        /// <param name="archiveCount">Number of archives to be read</param>
+        /// <param name="outputFile">File name for resulting archive</param>
+        /// <returns>Error code (see srcML documentation). 0 means nothing went wrong.</returns>
+        [DllImport(@"..\..\External\srcML1.0\bin\SrcMLCppAPI.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int SrcmlCreateArchiveFtF(IntPtr[] SourceMetadata, int archiveCount, string outputFile);
+        /// <summary>
+        /// Creates archive from memory buffer and reads it out into a file
+        /// </summary>
+        /// <param name="SourceMetadata">Data about the source; file name, encoding, etc.</param>
+        /// <param name="archiveCount">Number of archives to be read</param>
+        /// <param name="outputFile">File name for resulting archive</param>
+        /// <returns>Error code (see srcML documentation). 0 means nothing went wrong.</returns>
+        [DllImport(@"..\..\External\srcML1.0\bin\SrcMLCppAPI.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int SrcmlCreateArchiveMtF(IntPtr[] SourceMetadata, int archiveCount, string outputFile);
+        /// <summary>
+        /// Creates archive from File and reads it into a string which gets returned
+        /// </summary>
+        /// <param name="SourceMetadata"></param>
+        /// <param name="archiveCount"></param>
+        /// <returns>string representing the archive srcML produced</returns>
+        [DllImport(@"..\..\External\srcML1.0\bin\SrcMLCppAPI.dll", CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.LPStr)]
-        public static extern string SrcmlCreateArchiveFtM(string[] argv, int argc, IntPtr Adapter);
-        
-        [DllImport(@"..\..\External\srcML1.0\bin\SrcMLCppAPI.dll", CallingConvention = CallingConvention.StdCall)]
+        public static extern string SrcmlCreateArchiveFtM(IntPtr[] SourceMetadata, int archiveCount);
+        /// <summary>
+        /// Creates archive from memory buffer and returns a separate buffer with resulting srcML
+        /// </summary>
+        /// <param name="SourceMetadata"></param>
+        /// <param name="archiveCount"></param>
+        /// <returns>string representing the archive srcML produced</returns>
+        [DllImport(@"..\..\External\srcML1.0\bin\SrcMLCppAPI.dll", CallingConvention = CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.LPStr)]
-        public static extern string SrcmlCreateArchiveMtM(string argv, int argc, IntPtr Adapter);
+        public static extern string SrcmlCreateArchiveMtM(IntPtr[] SourceMetadata, int archiveCount);
     }
 }

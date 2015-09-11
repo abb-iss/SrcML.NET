@@ -2,16 +2,19 @@
 #include <fstream>
 using namespace System;
 using namespace System::Runtime::InteropServices;
-public struct ArchiveAdapter {
+public struct SourceData {
     char* encoding;
     char* src_encoding;
     char* revision;
     char* language;
-    char* filename;
+    char** filename;
     char* url;
     char* version;
     char* timestamp;
     char* hash;
+    char** buffer;
+    int buffercount;
+    int* buffersize;
     int tabstop;
 };
 /// <summary>
@@ -56,8 +59,7 @@ std::pair<char*, std::streamoff> ReadFileC(const char* argv){
         is.close();
 
         return std::make_pair(buffer, length);
-    }
-    else{
+    }else{
         //Should do something here. Either error and quit or exception and handle?
         String^ clistr = gcnew String(argv);
         Console::WriteLine("ERROR, could not open file: {0}", clistr);
