@@ -1,13 +1,12 @@
 // This is the main DLL file.
-
 #include "stdafx.h"
+#include "LibSrcMLWrapper.h"
 #include "srcml.h"
-#include "SrcMLCppAPI.h"
 #include <iostream>
 #include <string>
 using namespace System;
 using namespace System::Runtime::InteropServices;
-void SetArchiveData(srcml_archive* archive, SourceData* sd){
+void SetArchiveData(srcml_archive* archive, LibSrcMLWrapper::SourceData* sd){
     /* Setup options for srcml archive. Compare to empty string; if they're equal (returns 0) then skip.*/
     if (sd->src_encoding){
         srcml_archive_set_src_encoding(archive, sd->src_encoding);
@@ -33,7 +32,7 @@ void SetArchiveData(srcml_archive* archive, SourceData* sd){
     //srcml_archive_set_processing_instruction(archive, const char* target, const char* data);
     //srcml_archive_register_macro(archive, const char* token, const char* type);
 }
-void SetUnitData(srcml_unit* unit, SourceData* sd){
+void SetUnitData(srcml_unit* unit, LibSrcMLWrapper::SourceData* sd){
     /* Setup options for srcml unit. Compare to empty string; if they're equal (returns 0) then skip. */
     if (sd->language){
         srcml_unit_set_language(unit, sd->language);
@@ -55,7 +54,7 @@ void SetUnitData(srcml_unit* unit, SourceData* sd){
     }
     /*
     if (std::strcmp(sd->eol, emptyString)){
-        srcml_unit_unparse_set_eol(unit, sd->eol);
+    srcml_unit_unparse_set_eol(unit, sd->eol);
     }*/
 }
 extern"C"{
@@ -65,9 +64,9 @@ extern"C"{
     ///<param name="argv">List of files to be read</param>
     ///<param name="argc">Number of arguments in argv</param>
     ///<param name="outputFile">File to output to</param>
-    __declspec(dllexport) int SrcmlCreateArchiveFtF(SourceData** sd, int argc, const char* outputFile) {
+    __declspec(dllexport) int SrcmlCreateArchiveFtF(LibSrcMLWrapper::SourceData** sd, int argc, const char* outputFile) {
         struct srcml_archive* archive;
-        struct srcml_unit* unit;		
+        struct srcml_unit* unit;
         int srcmlreturncode = -1;
         for (int i = 0; i < argc; ++i){
             /*create a new srcml archive structure */
@@ -79,10 +78,10 @@ extern"C"{
 
             /*open a srcML archive for output */
             srcml_archive_write_open_filename(archive, filename.c_str(), 0);
-            
+
             /* add all the files to the archive */
             for (int k = 0; k < sd[i]->buffercount; ++k) {
-                
+
                 unit = srcml_unit_create(archive);
 
                 /*Set all srcML options provided through sd*/
@@ -119,7 +118,7 @@ extern"C"{
     ///<param name="argv">List of files to be read</param>
     ///<param name="argc">Number of arguments in argv</param>
     ///<param name="outputFile">File to output to</param>
-    __declspec(dllexport) int SrcmlCreateArchiveMtF(SourceData** sd, int argc, const char* outputFile) {
+    __declspec(dllexport) int SrcmlCreateArchiveMtF(LibSrcMLWrapper::SourceData** sd, int argc, const char* outputFile) {
         struct srcml_archive* archive;
         struct srcml_unit* unit;
         int srcmlreturncode = -1;
@@ -174,7 +173,7 @@ extern"C"{
     /// </summary>
     ///<param name="argv">List of files to be read</param>
     ///<param name="argc">Number of arguments in argv</param>
-    __declspec(dllexport) char** SrcmlCreateArchiveFtM(SourceData** sd, int argc) {
+    __declspec(dllexport) char** SrcmlCreateArchiveFtM(LibSrcMLWrapper::SourceData** sd, int argc) {
         char** pp = new char*[2];
         size_t size;
         int srcmlreturncode = 0;
@@ -199,9 +198,10 @@ extern"C"{
                 std::pair<char*, std::streamoff> bufferPair;
                 try{
                     //Read file into pair of c-string and size of the file. TODO: Error check
-                    bufferPair = ReadFileC(sd[i]->filename[k]);
+                    bufferPair = LibSrcMLWrapper::ReadFileC(sd[i]->filename[k]);
 
-                }catch (System::Exception^ e){
+                }
+                catch (System::Exception^ e){
                     throw e; //pass exception along to API
                 }
                 /*Parse memory; bufferpair.first is the c-string from the read. bufferpair.second is the count of characters*/
@@ -227,7 +227,7 @@ extern"C"{
             srcml_archive_free(archive);
 
             /*Trim any garbage data from the end of the string. TODO: Error check*/
-            TrimFromEnd(pp[i], size);
+            LibSrcMLWrapper::TrimFromEnd(pp[i], size);
         }
         return pp;
     }
@@ -237,7 +237,7 @@ extern"C"{
     /// </summary>
     ///<param name="argv">List of files to be read</param>
     ///<param name="argc">Number of arguments in argv</param>
-    __declspec(dllexport) char** SrcmlCreateArchiveMtM(SourceData** sd, int argc) {
+    __declspec(dllexport) char** SrcmlCreateArchiveMtM(LibSrcMLWrapper::SourceData** sd, int argc) {
 
         int srcmlreturncode = 0;
         char ** pp = new char*[argc];
@@ -279,7 +279,7 @@ extern"C"{
             srcml_archive_free(archive);
 
             /*Trim any garbage data from the end of the string. TODO: Error check*/
-            TrimFromEnd(pp[i], size);
+            LibSrcMLWrapper::TrimFromEnd(pp[i], size);
         }
         return pp;
     }

@@ -1,10 +1,12 @@
-﻿using System;
+﻿/* Setup options for srcml unit */
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
 namespace ABB.SrcML {
     public class SrcMLCppAPI {
+        public const string LIBSRCMLPATH = "LibSrcMLWrapper.dll";
         public struct SrcMLOptions {
             /** Create an archive */
             public const ulong SRCML_OPTION_ARCHIVE = 1 << 0;
@@ -275,7 +277,7 @@ namespace ABB.SrcML {
         /// <param name="archiveCount">Number of archives to be read</param>
         /// <param name="outputFile">File name for resulting archive</param>
         /// <returns>Error code (see srcML documentation). 0 means nothing went wrong.</returns>
-        [DllImport(@"..\..\External\srcML1.0\bin\SrcMLCppAPI.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
         public static extern int SrcmlCreateArchiveFtF(IntPtr[] SourceMetadata, int archiveCount, string outputFile);
         /// <summary>
         /// Creates archive from memory buffer and reads it out into a file
@@ -284,7 +286,7 @@ namespace ABB.SrcML {
         /// <param name="archiveCount">Number of archives to be read</param>
         /// <param name="outputFile">File name for resulting archive</param>
         /// <returns>Error code (see srcML documentation). 0 means nothing went wrong.</returns>
-        [DllImport(@"..\..\External\srcML1.0\bin\SrcMLCppAPI.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
         public static extern int SrcmlCreateArchiveMtF(IntPtr[] SourceMetadata, int archiveCount, string outputFile);
         /// <summary>
         /// Creates archive from File and reads it into a string which gets returned
@@ -292,7 +294,7 @@ namespace ABB.SrcML {
         /// <param name="SourceMetadata"></param>
         /// <param name="archiveCount"></param>
         /// <returns>string representing the archive srcML produced</returns>
-        [DllImport(@"..\..\External\srcML1.0\bin\SrcMLCppAPI.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         public static extern IntPtr SrcmlCreateArchiveFtM(IntPtr[] SourceMetadata, int archiveCount);
         /// <summary>
         /// Creates archive from memory buffer and returns a separate buffer with resulting srcML
@@ -300,7 +302,7 @@ namespace ABB.SrcML {
         /// <param name="SourceMetadata"></param>
         /// <param name="archiveCount"></param>
         /// <returns>string representing the archive srcML produced</returns>
-        [DllImport(@"..\..\External\srcML1.0\bin\SrcMLCppAPI.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr SrcmlCreateArchiveMtM(IntPtr[] SourceMetadata, int archiveCount);
     }
 }
