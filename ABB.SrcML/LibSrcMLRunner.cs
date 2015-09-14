@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
 namespace ABB.SrcML {
-    public class SrcMLCppAPI {
+    public class LibSrcMLRunner {
         public const string LIBSRCMLPATH = "LibSrcMLWrapper.dll";
         public struct SrcMLOptions {
             /** Create an archive */
@@ -303,7 +303,7 @@ namespace ABB.SrcML {
                 GC.SuppressFinalize(this);
             }
         }
-        public static IntPtr CreatePtrFromStruct(SrcMLCppAPI.SourceData ad) {
+        public static IntPtr CreatePtrFromStruct(LibSrcMLRunner.SourceData ad) {
             int size = Marshal.SizeOf(ad);
             IntPtr ptr = Marshal.AllocHGlobal(Marshal.SizeOf(ad));
             Marshal.StructureToPtr(ad, ptr, false);

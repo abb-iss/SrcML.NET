@@ -62,7 +62,7 @@
     <Compile Include="AbstractFileMonitor.cs" />
     <Compile Include="AbstractGenerator.cs" />
     <Compile Include="SrcDiffRunner.cs" />
-    <Compile Include="SrcMLCppAPI.cs" />
+    <Compile Include="LibSrcMLRunner.cs" />
     <Compile Include="SrcMLProject.cs" />
     <Compile Include="ShortFileNameMapping.cs" />
     <Compile Include="DirectoryScanningMonitorEventArgs.cs" />
