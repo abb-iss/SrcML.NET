@@ -21,6 +21,14 @@ namespace LibSrcMLWrapper {
         int buffercount;
         int* buffersize;
         int tabstop;
+        unsigned long long optionSet;
+        unsigned long long optionEnable;
+        unsigned long long optionDisable;
+        char** extandlanguage;
+        char** prefixandnamespace;
+        char** targetanddata;
+        char** tokenandtype;
+        int eol;
     };
     /// <summary>
     /// Utility function that trims from the right of a string. For now it's just solving a weird issue with srcML

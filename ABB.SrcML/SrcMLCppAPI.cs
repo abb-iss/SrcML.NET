@@ -98,6 +98,14 @@ namespace ABB.SrcML {
             private int bufferCount;
             private IntPtr bufferSize;
             private int tabstop;
+            private ulong optionset;
+            private ulong optionenable;
+            private ulong optiondisable;
+            private IntPtr ExtAndLanguage;
+            private IntPtr PrefixAndNamespace;
+            private IntPtr TargetAndData;
+            private IntPtr TokenAndType;
+            private int eol;
 
             /// <summary>
             /// Sets the encoding for source code
@@ -204,23 +212,36 @@ namespace ABB.SrcML {
             /// Set an option to be used by the parser on the archive
             /// </summary>
             /// <param name="option"></param>
-            void SetOptions(long option) {
-                //To be implemented
+            public void SetOptions(ulong srcoption) {
+                optionset = srcoption;
+            }
+            /// <summary>
+            /// Set an option to be enabled
+            /// </summary>
+            /// <param name="option"></param>
+            public void EnableOption(ulong srcoption) {
+                optionenable = srcoption;
             }
             /// <summary>
             /// Disable an option
             /// </summary>
             /// <param name="option"></param>
-            void DisableOption(long option) {
-                //To be implemented
+            public void DisableOption(ulong srcoption) {
+                optiondisable = srcoption;
             }
             /// <summary>
             /// Register a file extension to be used with a particular language
             /// </summary>
             /// <param name="extension">The extension string (IE; cpp, cs, java)</param>
             /// <param name="language">Language attributed with extension (IE; C++, C#, Java)</param>
-            void RegisterFileExtension(string extension, string language) {
-                //To be implemented
+            public void RegisterFileExtension(string extension, string language) {
+                ExtAndLanguage = Marshal.AllocHGlobal(2 * Marshal.SizeOf(typeof(IntPtr)));
+               
+                IntPtr ptr = ExtAndLanguage;
+                Marshal.WriteIntPtr(ptr, Marshal.StringToHGlobalAnsi(extension));
+
+                ptr += Marshal.SizeOf(typeof(IntPtr));
+                Marshal.WriteIntPtr(ptr, Marshal.StringToHGlobalAnsi(language));
             }
             /// <summary>
             /// Create your own namespace; you may need to do this if you add your own custom tags to srcML archives.
@@ -228,31 +249,49 @@ namespace ABB.SrcML {
             /// </summary>
             /// <param name="prefix"></param>
             /// <param name="ns"></param>
-            void RegisterNamespace(string prefix, string ns) {
-                //To be implemented
+            public void RegisterNamespace(string prefix, string ns) {
+                PrefixAndNamespace = Marshal.AllocHGlobal(2 * Marshal.SizeOf(typeof(IntPtr)));
+
+                IntPtr ptr = PrefixAndNamespace;
+                Marshal.WriteIntPtr(ptr, Marshal.StringToHGlobalAnsi(prefix));
+
+                ptr += Marshal.SizeOf(typeof(IntPtr));
+                Marshal.WriteIntPtr(ptr, Marshal.StringToHGlobalAnsi(ns));
             }
             /// <summary>
             /// Todo (I'm not sure what this function does yet)
             /// </summary>
             /// <param name="target"></param>
             /// <param name="data"></param>
-            void SetProcessingInstruction(string target, string data) {
-                //To be implemented
+            public void SetProcessingInstruction(string target, string data) {
+                TargetAndData = Marshal.AllocHGlobal(2 * Marshal.SizeOf(typeof(IntPtr)));
+
+                IntPtr ptr = TargetAndData;
+                Marshal.WriteIntPtr(ptr, Marshal.StringToHGlobalAnsi(target));
+
+                ptr += Marshal.SizeOf(typeof(IntPtr));
+                Marshal.WriteIntPtr(ptr, Marshal.StringToHGlobalAnsi(data));
             }
             /// <summary>
             /// Register a macro so that srcML recognizes it when it finds it in the source code to be parsed to srcML
             /// </summary>
             /// <param name="token"></param>
             /// <param name="type"></param>
-            void RegisterMacro(string token, string type) {
-                //To be implemented
+            public void RegisterMacro(string token, string type) {
+                TokenAndType = Marshal.AllocHGlobal(2 * Marshal.SizeOf(typeof(IntPtr)));
+
+                IntPtr ptr = ExtAndLanguage;
+                Marshal.WriteIntPtr(ptr, Marshal.StringToHGlobalAnsi(token));
+
+                ptr += Marshal.SizeOf(typeof(IntPtr));
+                Marshal.WriteIntPtr(ptr, Marshal.StringToHGlobalAnsi(type));
             }
             /// <summary>
             /// Set end of line marker
             /// </summary>
             /// <param name="eol"></param>
-            void UnparseSetEol(int eol) {
-                //To be implemented
+            public void UnparseSetEol(int srceol) {
+                eol = srceol;
             }
             /// <summary>
             /// Clean up manually allocated resources

@@ -23,14 +23,33 @@ void SetArchiveData(srcml_archive* archive, LibSrcMLWrapper::SourceData* sd){
     if (sd->version){
         srcml_archive_set_version(archive, sd->version);
     }
-    //srcml_archive_set_options(archive, sd->option);
-    //srcml_archive_enable_option(archive, sd->option);
-    //srcml_archive_disable_option(archive, sd->option);
-    //srcml_archive_set_tabstop(archive, size_t tabstop);
-    //srcml_archive_register_file_extension(archive, const char* extension, const char* language);
-    //srcml_archive_register_namespace(archive, const char* prefix, const char* uri);
-    //srcml_archive_set_processing_instruction(archive, const char* target, const char* data);
-    //srcml_archive_register_macro(archive, const char* token, const char* type);
+    if (sd->optionSet){
+        srcml_archive_set_options(archive, sd->optionSet);
+    }
+    if (sd->optionEnable){
+        srcml_archive_enable_option(archive, sd->optionEnable);
+    }
+    if (sd->optionDisable){
+        srcml_archive_disable_option(archive, sd->optionDisable);
+    }
+    if (sd->tabstop){
+        srcml_archive_set_tabstop(archive, sd->tabstop);
+    }
+    if (sd->extandlanguage){
+        srcml_archive_register_file_extension(archive, sd->extandlanguage[0], sd->extandlanguage[1]);
+    }
+    if (sd->prefixandnamespace){
+        srcml_archive_register_namespace(archive, sd->prefixandnamespace[0], sd->prefixandnamespace[1]);
+    }
+    if (sd->targetanddata){
+        srcml_archive_set_processing_instruction(archive, sd->targetanddata[0], sd->targetanddata[1]);
+    }
+    if (sd->tokenandtype){
+        srcml_archive_register_macro(archive, sd->tokenandtype[0], sd->tokenandtype[1]);
+    }
+    if (sd->eol){
+        srcml_unparse_set_eol(sd->eol);
+    }
 }
 void SetUnitData(srcml_unit* unit, LibSrcMLWrapper::SourceData* sd){
     /* Setup options for srcml unit. Compare to empty string; if they're equal (returns 0) then skip. */
@@ -52,10 +71,9 @@ void SetUnitData(srcml_unit* unit, LibSrcMLWrapper::SourceData* sd){
     if (sd->hash){
         srcml_unit_set_hash(unit, sd->hash);
     }
-    /*
-    if (std::strcmp(sd->eol, emptyString)){
-    srcml_unit_unparse_set_eol(unit, sd->eol);
-    }*/
+    if (sd->eol){
+        srcml_unit_unparse_set_eol(unit, sd->eol);
+    }
 }
 extern"C"{
     /// <summary>

@@ -28,6 +28,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML", "ABB.SrcML\ABB.SrcML.csproj", "{D52626E7-A4CA-471A-8A6A-FE0110430FE6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML.Test", "ABB.SrcML.Test\ABB.SrcML.Test.csproj", "{86EFC1F8-3E42-4130-B290-FEBE98C3D784}"
+	ProjectSection(ProjectDependencies) = postProject
+		{5A139FFE-60CB-4C14-B565-73009393B47A} = {5A139FFE-60CB-4C14-B565-73009393B47A}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ABB.SrcML.Tools.Converter", "Tools\ABB.SrcML.Tools.Converter\ABB.SrcML.Tools.Converter.csproj", "{F5A50144-E874-4B1F-9A3C-C82D918F7A0A}"
 EndProject
