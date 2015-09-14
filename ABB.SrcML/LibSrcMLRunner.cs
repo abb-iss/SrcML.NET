@@ -343,5 +343,46 @@ namespace ABB.SrcML {
         /// <returns>string representing the archive srcML produced</returns>
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr SrcmlCreateArchiveMtM(IntPtr[] SourceMetadata, int archiveCount);
+
+#region Test Functions
+        [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int TestArchiveSetXmlEncoding(IntPtr[] sd);
+
+        [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int TestArchiveSetSrcEncoding(IntPtr[] sd);
+
+        [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int TestArchiveSetLanguage(IntPtr[] sd);
+
+        [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int TestArchiveSetUrl(IntPtr[] sd);
+
+        [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int TestArchiveSetVersion(IntPtr[] sd);
+
+        [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int TestArchiveSetOptions(IntPtr[] sd);
+
+        [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int TestArchiveSnaLeOption(IntPtr[] sd);
+
+        [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int TestArchiveSisBleOption(IntPtr[] sd);
+
+        [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int TestArchiveSetTabstop(IntPtr[] sd);
+
+        [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int TestArchiveRegisterFileExtension(IntPtr[] sd);
+
+        [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int TestArchiveRegisterNamespace(IntPtr[] sd);
+
+        [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int TestArchiveSetProcessingInstruction(IntPtr[] sd);
+
+        [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int TestArchiveRegisterMacro(IntPtr[] sd);
+#endregion
     }
 }

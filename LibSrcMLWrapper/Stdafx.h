@@ -3,5 +3,9 @@
 // but are changed infrequently
 
 #pragma once
-
+#include "LibSrcMLWrapper.h"
+#include "srcml.h"
+#include <iostream>
+#include <string>
+#include <cassert>
 

@@ -13,7 +13,7 @@ namespace ABB.SrcML.Test {
 
     [TestFixture]
     [Category("Build")]
-    class SrcMLCppAPITests {
+    class LibSrcMLRunnerTests {
         /// <summary>
         /// This tests the creation of an archive using a list of source files
         /// </summary>
@@ -258,5 +258,15 @@ namespace ABB.SrcML.Test {
             ad.Dispose();
         }
       
+        [Test]
+        public void TestArchiveXmlEncoding() {
+            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
+            ad.SetArchiveLanguage(LibSrcMLRunner.SrcMLOptions.SRCML_LANGUAGE_CXX);
+            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+
+            List<IntPtr> structArrayPtr = new List<IntPtr>();
+            structArrayPtr.Add(structPtr);
+            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestArchiveSetLanguage(structArrayPtr.ToArray())));
+        }
     }
 }
