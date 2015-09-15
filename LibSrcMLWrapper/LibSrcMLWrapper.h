@@ -21,9 +21,9 @@ namespace LibSrcMLWrapper {
         int buffercount;
         int* buffersize;
         int tabstop;
-        unsigned long long optionSet;
-        unsigned long long optionEnable;
-        unsigned long long optionDisable;
+        unsigned long optionSet;
+        unsigned long optionEnable;
+        unsigned long  optionDisable;
         char** extandlanguage;
         char** prefixandnamespace;
         char** targetanddata;

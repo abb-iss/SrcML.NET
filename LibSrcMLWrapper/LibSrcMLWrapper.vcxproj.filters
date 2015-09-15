@@ -35,8 +35,8 @@
     <ClCompile Include="Stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TestWrapper.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="WrapperTestInterface.h">
+      <Filter>Header Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

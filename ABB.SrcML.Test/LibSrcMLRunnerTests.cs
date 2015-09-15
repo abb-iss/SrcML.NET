@@ -257,9 +257,31 @@ namespace ABB.SrcML.Test {
             Console.WriteLine(s);
             ad.Dispose();
         }
-      
+        #region WrapperTests
+        [Test]
+        public void TestArchiveSetSrcEncoding() {
+            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
+            ad.SetArchiveSrcEncoding("ISO-8859-1");
+            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+
+            List<IntPtr> structArrayPtr = new List<IntPtr>();
+            structArrayPtr.Add(structPtr);
+            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestArchiveSetSrcEncoding(structArrayPtr.ToArray())));
+        }
+
         [Test]
         public void TestArchiveXmlEncoding() {
+            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
+            ad.SetArchiveXmlEncoding("ISO-8859-1");
+            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+
+            List<IntPtr> structArrayPtr = new List<IntPtr>();
+            structArrayPtr.Add(structPtr);
+            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestArchiveSetXmlEncoding(structArrayPtr.ToArray())));
+        }
+
+        [Test]
+        public void TestArchiveSetLanguage() {
             LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
             ad.SetArchiveLanguage(LibSrcMLRunner.SrcMLOptions.SRCML_LANGUAGE_CXX);
             IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
@@ -268,5 +290,106 @@ namespace ABB.SrcML.Test {
             structArrayPtr.Add(structPtr);
             Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestArchiveSetLanguage(structArrayPtr.ToArray())));
         }
+        [Test]
+        public void TestArchiveSetUrl() {
+            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
+            ad.SetArchiveUrl("http://www.srcml.org/");
+            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+
+            List<IntPtr> structArrayPtr = new List<IntPtr>();
+            structArrayPtr.Add(structPtr);
+            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestArchiveSetUrl(structArrayPtr.ToArray())));
+        }
+        [Test]
+        public void TestArchiveSetVersion() {
+            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
+            ad.SetArchiveSrcVersion("1.0");
+            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+
+            List<IntPtr> structArrayPtr = new List<IntPtr>();
+            structArrayPtr.Add(structPtr);
+            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestArchiveSetVersion(structArrayPtr.ToArray())));
+        }
+        [Test]
+        public void TestArchiveSetOptions() {
+            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
+            ad.SetOptions(LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_LITERAL);
+            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+
+            List<IntPtr> structArrayPtr = new List<IntPtr>();
+            structArrayPtr.Add(structPtr);
+            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestArchiveSetOptions(structArrayPtr.ToArray())));
+        }
+        [Test]
+        public void TestArchiveEnableOption() {
+            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
+            ad.EnableOption(LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_LITERAL);
+            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+
+            List<IntPtr> structArrayPtr = new List<IntPtr>();
+            structArrayPtr.Add(structPtr);
+            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestArchiveEnableOption(structArrayPtr.ToArray())));
+        }
+        [Test]
+        public void TestArchiveDisableOption() {
+            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
+            ad.DisableOption(LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_LITERAL);
+            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+
+            List<IntPtr> structArrayPtr = new List<IntPtr>();
+            structArrayPtr.Add(structPtr);
+            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestArchiveDisableOption(structArrayPtr.ToArray())));
+        }
+        [Test]
+        public void TestArchiveSetTabstop() {
+            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
+            ad.SetArchiveTabstop(2);
+            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+
+            List<IntPtr> structArrayPtr = new List<IntPtr>();
+            structArrayPtr.Add(structPtr);
+            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestArchiveSetTabstop(structArrayPtr.ToArray())));
+        }
+        [Test]
+        public void TestArchiveRegisterFileExtension() {
+            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
+            ad.RegisterFileExtension("h", LibSrcMLRunner.SrcMLOptions.SRCML_LANGUAGE_CXX);
+            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+
+            List<IntPtr> structArrayPtr = new List<IntPtr>();
+            structArrayPtr.Add(structPtr);
+            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestArchiveRegisterFileExtension(structArrayPtr.ToArray())));
+        }
+        [Test]
+        public void TestArchiveRegisterNamespace() {
+            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
+            ad.RegisterNamespace("abb", "www.abb.com");
+            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+
+            List<IntPtr> structArrayPtr = new List<IntPtr>();
+            structArrayPtr.Add(structPtr);
+            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestArchiveRegisterNamespace(structArrayPtr.ToArray())));
+        }
+        [Test]
+        public void TestArchiveSetProcessingInstruction() {
+            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
+            ad.SetProcessingInstruction("hpp", "data");
+            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+
+            List<IntPtr> structArrayPtr = new List<IntPtr>();
+            structArrayPtr.Add(structPtr);
+            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestArchiveSetProcessingInstruction(structArrayPtr.ToArray())));
+        }
+        [Test]
+        public void TestArchiveRegisterMacro() {
+            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
+            ad.RegisterMacro("Token", "type");
+            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+
+            List<IntPtr> structArrayPtr = new List<IntPtr>();
+            structArrayPtr.Add(structPtr);
+            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestArchiveRegisterMacro(structArrayPtr.ToArray())));
+        }
+        #endregion
     }
 }

@@ -9,60 +9,60 @@ namespace ABB.SrcML {
         public const string LIBSRCMLPATH = "LibSrcMLWrapper.dll";
         public struct SrcMLOptions {
             /** Create an archive */
-            public const ulong SRCML_OPTION_ARCHIVE = 1 << 0;
+            public const UInt32 SRCML_OPTION_ARCHIVE = 1 << 0;
             /** Include line/column position attributes */
-            public const ulong SRCML_OPTION_POSITION = 1 << 1;
+            public const UInt32 SRCML_OPTION_POSITION = 1 << 1;
             /** Markup preprocessor elements (default for C, C++, C#) */
-            public const ulong SRCML_OPTION_CPP_NOMACRO = 1 << 2;
+            public const UInt32 SRCML_OPTION_CPP_NOMACRO = 1 << 2;
             /** Markup preprocessor elements (default for C, C++) */
-            public const ulong SRCML_OPTION_CPP = 1 << 2 | 1 << 3;
+            public const UInt32 SRCML_OPTION_CPP = 1 << 2 | 1 << 3;
             /** Issue an XML declaration */
-            public const ulong SRCML_OPTION_XML_DECL = 1 << 4;
+            public const UInt32 SRCML_OPTION_XML_DECL = 1 << 4;
             /** Include any XML namespace declarations */
-            public const ulong SRCML_OPTION_NAMESPACE_DECL = 1 << 5;
+            public const UInt32 SRCML_OPTION_NAMESPACE_DECL = 1 << 5;
             /** Leave as text preprocessor else parts (default: markup) */
-            public const ulong SRCML_OPTION_CPP_TEXT_ELSE = 1 << 6;
+            public const UInt32 SRCML_OPTION_CPP_TEXT_ELSE = 1 << 6;
             /** Markup preprocessor @code #if 0 @endcode sections (default: leave as text) */
-            public const ulong SRCML_OPTION_CPP_MARKUP_IF0 = 1 << 7;
+            public const UInt32 SRCML_OPTION_CPP_MARKUP_IF0 = 1 << 7;
             /** Apply transformations to the entire srcML file (default: each unit */
-            public const ulong SRCML_OPTION_APPLY_ROOT = 1 << 8;
+            public const UInt32 SRCML_OPTION_APPLY_ROOT = 1 << 8;
             /** Nest if in else if intead of elseif tag */
-            public const ulong SRCML_OPTION_NESTIF = 1 << 9;
+            public const UInt32 SRCML_OPTION_NESTIF = 1 << 9;
             /** Output hash attribute on each unit (default: on) */
-            public const ulong SRCML_OPTION_HASH = 1 << 10;
+            public const UInt32 SRCML_OPTION_HASH = 1 << 10;
             /** Wrap function/classes/etc with templates (default: on) */
-            public const ulong SRCML_OPTION_WRAP_TEMPLATE = 1 << 11;
+            public const UInt32 SRCML_OPTION_WRAP_TEMPLATE = 1 << 11;
             /** output is interactive (good for editing applications) */
-            public const ulong SRCML_OPTION_INTERACTIVE = 1 << 12;
+            public const UInt32 SRCML_OPTION_INTERACTIVE = 1 << 12;
             /** Not sure what this used for */
-            public const ulong SRCML_OPTION_XPATH_TOTAL = 1 << 13;
+            public const UInt32 SRCML_OPTION_XPATH_TOTAL = 1 << 13;
             /** expression mode */
-            public const ulong SRCML_OPTION_EXPRESSION = 1 << 14;
+            public const UInt32 SRCML_OPTION_EXPRESSION = 1 << 14;
             /** Extra processing of @code#line@endcode for position information */
-            public const ulong SRCML_OPTION_LINE = 1 << 15;
+            public const UInt32 SRCML_OPTION_LINE = 1 << 15;
             /** additional cpp:if/cpp:endif checking */
-            public const ulong SRCML_OPTION_CPPIF_CHECK = 1 << 16;
+            public const UInt32 SRCML_OPTION_CPPIF_CHECK = 1 << 16;
             /** debug time attribute */
-            public const ulong SRCML_OPTION_DEBUG_TIMER = 1 << 17;
+            public const UInt32 SRCML_OPTION_DEBUG_TIMER = 1 << 17;
             /** turn on optional ternary operator markup */
-            public const ulong SRCML_OPTION_TERNARY = 1 << 18;
+            public const UInt32 SRCML_OPTION_TERNARY = 1 << 18;
             /** turn on optional ternary operator markup */
-            public const ulong SRCML_OPTION_PSEUDO_BLOCK = 1 << 19;
+            public const UInt32 SRCML_OPTION_PSEUDO_BLOCK = 1 << 19;
             /** Turn on old optional markup behaviour */
-            public const ulong SRCML_OPTION_OPTIONAL_MARKUP = 1 << 20;
+            public const UInt32 SRCML_OPTION_OPTIONAL_MARKUP = 1 << 20;
             /** Markups literal in special namespace */
-            public const ulong SRCML_OPTION_LITERAL = 1 << 21;
+            public const UInt32 SRCML_OPTION_LITERAL = 1 << 21;
             /** Markups modifiers in special namespace */
-            public const ulong SRCML_OPTION_MODIFIER = 1 << 22;
+            public const UInt32 SRCML_OPTION_MODIFIER = 1 << 22;
             /** Markups operator in special namespace */
-            public const ulong SRCML_OPTION_OPERATOR = 1 << 23;
+            public const UInt32 SRCML_OPTION_OPERATOR = 1 << 23;
             /** Parser output special tokens for debugging the parser */
-            public const ulong SRCML_OPTION_DEBUG = 1 << 24;
+            public const UInt32 SRCML_OPTION_DEBUG = 1 << 24;
             /** Markups OpenMP in special namespace */
-            public const ulong SRCML_OPTION_OPENMP = 1 << 25;
+            public const UInt32 SRCML_OPTION_OPENMP = 1 << 25;
             /** Encode the original source encoding as an attribute */
-            public const ulong SRCML_OPTION_STORE_ENCODING = 1 << 26;
-            public const ulong SRCML_OPTION_DEFAULT = (SRCML_OPTION_ARCHIVE | SRCML_OPTION_XML_DECL | SRCML_OPTION_NAMESPACE_DECL | SRCML_OPTION_HASH | SRCML_OPTION_PSEUDO_BLOCK | SRCML_OPTION_TERNARY);
+            public const UInt32 SRCML_OPTION_STORE_ENCODING = 1 << 26;
+            public const UInt32 SRCML_OPTION_DEFAULT = (SRCML_OPTION_ARCHIVE | SRCML_OPTION_XML_DECL | SRCML_OPTION_NAMESPACE_DECL | SRCML_OPTION_HASH | SRCML_OPTION_PSEUDO_BLOCK | SRCML_OPTION_TERNARY);
 
             /* Core language set */
             /** srcML language not set */
@@ -98,9 +98,12 @@ namespace ABB.SrcML {
             private int bufferCount;
             private IntPtr bufferSize;
             private int tabstop;
-            private ulong optionset;
-            private ulong optionenable;
-            private ulong optiondisable;
+            [MarshalAs(UnmanagedType.U4)]
+            private UInt32 optionset;
+            [MarshalAs(UnmanagedType.U4)]
+            private UInt32 optionenable;
+            [MarshalAs(UnmanagedType.U4)]
+            private UInt32 optiondisable;
             private IntPtr ExtAndLanguage;
             private IntPtr PrefixAndNamespace;
             private IntPtr TargetAndData;
@@ -211,22 +214,22 @@ namespace ABB.SrcML {
             /// <summary>
             /// Set an option to be used by the parser on the archive
             /// </summary>
-            /// <param name="option"></param>
-            public void SetOptions(ulong srcoption) {
+            /// <param name="srcoption"></param>
+            public void SetOptions(UInt32 srcoption) {
                 optionset = srcoption;
             }
             /// <summary>
             /// Set an option to be enabled
             /// </summary>
             /// <param name="option"></param>
-            public void EnableOption(ulong srcoption) {
+            public void EnableOption(UInt32 srcoption) {
                 optionenable = srcoption;
             }
             /// <summary>
             /// Disable an option
             /// </summary>
             /// <param name="option"></param>
-            public void DisableOption(ulong srcoption) {
+            public void DisableOption(UInt32 srcoption) {
                 optiondisable = srcoption;
             }
             /// <summary>
@@ -280,7 +283,7 @@ namespace ABB.SrcML {
             public void RegisterMacro(string token, string type) {
                 TokenAndType = Marshal.AllocHGlobal(2 * Marshal.SizeOf(typeof(IntPtr)));
 
-                IntPtr ptr = ExtAndLanguage;
+                IntPtr ptr = TokenAndType;
                 Marshal.WriteIntPtr(ptr, Marshal.StringToHGlobalAnsi(token));
 
                 ptr += Marshal.SizeOf(typeof(IntPtr));
@@ -364,10 +367,10 @@ namespace ABB.SrcML {
         public static extern int TestArchiveSetOptions(IntPtr[] sd);
 
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int TestArchiveSnaLeOption(IntPtr[] sd);
+        public static extern int TestArchiveEnableOption(IntPtr[] sd);
 
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int TestArchiveSisBleOption(IntPtr[] sd);
+        public static extern int TestArchiveDisableOption(IntPtr[] sd);
 
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
         public static extern int TestArchiveSetTabstop(IntPtr[] sd);
