@@ -386,6 +386,27 @@ namespace ABB.SrcML {
 
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
         public static extern int TestArchiveRegisterMacro(IntPtr[] sd);
+
+        [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int TestUnitSetLanguage(IntPtr[] sd);
+
+        [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int TestUnitSetSrcEncoding(IntPtr[] sd);
+
+        [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int TestUnitSetUrl(IntPtr[] sd);
+
+        [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int TestUnitSetVersion(IntPtr[] sd);
+
+        [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int TestUnitSetTimestamp(IntPtr[] sd);
+
+        [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int TestUnitSetHash(IntPtr[] sd);
+
+        [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int TestUnitUnparseSetEol(IntPtr[] sd);
 #endregion
     }
 }

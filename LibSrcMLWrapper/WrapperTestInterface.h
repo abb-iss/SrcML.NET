@@ -204,4 +204,109 @@ extern"C"{
             return 0;
         }
     }
+    __declspec(dllexport) inline int TestUnitSetLanguage(LibSrcMLWrapper::SourceData** sd){
+        struct srcml_archive *archive;
+        archive = srcml_archive_create();
+        struct srcml_unit *unit;
+        unit = srcml_unit_create(archive);
+        srcml_unit_set_filename(unit, sd[0]->filename[0]);
+        const char* ufname = srcml_unit_get_filename(unit);
+        if (std::strcmp(sd[0]->filename[0], ufname) == 0){
+            srcml_unit_free(unit);
+            return 1;
+        }
+        else{
+            srcml_unit_free(unit);
+            return 0;
+        }
+    }
+    __declspec(dllexport) inline int TestUnitSetSrcEncoding(LibSrcMLWrapper::SourceData** sd){
+        struct srcml_archive *archive;
+        archive = srcml_archive_create();
+        struct srcml_unit *unit;
+        unit = srcml_unit_create(archive);
+        srcml_unit_set_src_encoding(unit, "UTF-8");
+        if (std::strcmp(srcml_unit_get_src_encoding(unit), "UTF-8") == 0){
+            srcml_unit_free(unit);
+            return 1;
+        }
+        else{
+            srcml_unit_free(unit);
+            return 0;
+        }
+    }
+    __declspec(dllexport) inline int TestUnitSetUrl(LibSrcMLWrapper::SourceData** sd){
+        struct srcml_archive *archive;
+        archive = srcml_archive_create();
+        struct srcml_unit *unit;
+        unit = srcml_unit_create(archive);
+        srcml_unit_set_url(unit, "www.abb.com");
+        if (std::strcmp(srcml_unit_get_url(unit), "www.abb.com")){
+            srcml_unit_free(unit);
+            return 1;
+        }
+        else{
+            srcml_unit_free(unit);
+            return 0;
+        }
+    }
+    __declspec(dllexport) inline int TestUnitSetVersion(LibSrcMLWrapper::SourceData** sd){
+        struct srcml_archive *archive;
+        archive = srcml_archive_create();
+        struct srcml_unit *unit;
+        unit = srcml_unit_create(archive);
+        srcml_unit_set_version(unit, "1.0");
+        if (std::strcmp(srcml_unit_get_version(unit), "1.0")){
+            srcml_unit_free(unit);
+            return 1;
+        }
+        else{
+            srcml_unit_free(unit);
+            return 0;
+        }
+    }
+    __declspec(dllexport) inline int TestUnitSetTimestamp(LibSrcMLWrapper::SourceData** sd){
+        struct srcml_archive *archive;
+        archive = srcml_archive_create();
+        struct srcml_unit *unit;
+        unit = srcml_unit_create(archive);
+        srcml_unit_set_timestamp(unit, "0800");
+        if (std::strcmp(srcml_unit_get_timestamp(unit), "0800") == 0){
+            srcml_unit_free(unit);
+            return 1;
+        }
+        else{
+            srcml_unit_free(unit);
+            return 0;
+        }
+    }
+    __declspec(dllexport) inline int TestUnitSetHash(LibSrcMLWrapper::SourceData** sd){
+        struct srcml_archive *archive;
+        archive = srcml_archive_create();
+        struct srcml_unit *unit;
+        unit = srcml_unit_create(archive);
+        srcml_unit_set_hash(unit, "hash");
+        if (std::strcmp(srcml_unit_get_hash(unit), "hash") == 0){
+            srcml_unit_free(unit);
+            return 1;
+        }
+        else{
+            srcml_unit_free(unit);
+            return 0;
+        }
+    }
+    __declspec(dllexport) inline int TestUnitUnparseSetEol(LibSrcMLWrapper::SourceData** sd){
+        struct srcml_archive *archive;
+        archive = srcml_archive_create();
+        struct srcml_unit *unit;
+        unit = srcml_unit_create(archive);
+        if (srcml_unit_unparse_set_eol(unit, 5)){
+            srcml_unit_free(unit);
+            return 1;
+        }
+        else{
+            srcml_unit_free(unit);
+            return 0;
+        }
+    }
 }

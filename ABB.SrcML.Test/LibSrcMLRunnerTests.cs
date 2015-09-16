@@ -390,6 +390,76 @@ namespace ABB.SrcML.Test {
             structArrayPtr.Add(structPtr);
             Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestArchiveRegisterMacro(structArrayPtr.ToArray())));
         }
+        [Test]
+        public void TestUnitSetLanguage() {
+            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
+            ad.SetArchiveLanguage(LibSrcMLRunner.SrcMLOptions.SRCML_LANGUAGE_CXX);
+            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+
+            List<IntPtr> structArrayPtr = new List<IntPtr>();
+            structArrayPtr.Add(structPtr);
+            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestUnitSetLanguage(structArrayPtr.ToArray())));
+        }
+        [Test]
+        public void TestUnitSetSrcEncoding() {
+            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
+            ad.SetArchiveSrcEncoding("UTF-8");
+            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+
+            List<IntPtr> structArrayPtr = new List<IntPtr>();
+            structArrayPtr.Add(structPtr);
+            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestUnitSetSrcEncoding(structArrayPtr.ToArray())));
+        }
+        [Test]
+        public void TestUnitSetUrl() {
+            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
+            ad.SetArchiveUrl("www.abb.com");
+            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+
+            List<IntPtr> structArrayPtr = new List<IntPtr>();
+            structArrayPtr.Add(structPtr);
+            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestUnitSetUrl(structArrayPtr.ToArray())));
+        }
+        [Test]
+        public void TestUnitSetVersion() {
+            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
+            ad.SetArchiveSrcVersion("1.0");
+            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+
+            List<IntPtr> structArrayPtr = new List<IntPtr>();
+            structArrayPtr.Add(structPtr);
+            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestUnitSetVersion(structArrayPtr.ToArray())));
+        }
+        [Test]
+        public void TestUnitSetTimestamp() {
+            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
+            ad.SetArchiveTimestamp("0800");
+            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+
+            List<IntPtr> structArrayPtr = new List<IntPtr>();
+            structArrayPtr.Add(structPtr);
+            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestUnitSetTimestamp(structArrayPtr.ToArray())));
+        }
+        [Test]
+        public void TestUnitSetHash() {
+            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
+            ad.SetHash("hash");
+            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+
+            List<IntPtr> structArrayPtr = new List<IntPtr>();
+            structArrayPtr.Add(structPtr);
+            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestUnitSetHash(structArrayPtr.ToArray())));
+        }
+        [Test]
+        public void TestUnitUnparseSetEol() {
+            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
+            ad.UnparseSetEol(50);
+            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+
+            List<IntPtr> structArrayPtr = new List<IntPtr>();
+            structArrayPtr.Add(structPtr);
+            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestUnitUnparseSetEol(structArrayPtr.ToArray())));
+        }
         #endregion
     }
 }
