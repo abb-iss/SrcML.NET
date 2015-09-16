@@ -391,6 +391,16 @@ namespace ABB.SrcML.Test {
             Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestArchiveRegisterMacro(structArrayPtr.ToArray())));
         }
         [Test]
+        public void TestUnitSetFilename() {
+            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
+            ad.SetArchiveFilename("Bleep.cpp");
+            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+
+            List<IntPtr> structArrayPtr = new List<IntPtr>();
+            structArrayPtr.Add(structPtr);
+            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestUnitSetFilename(structArrayPtr.ToArray())));
+        }
+        [Test]
         public void TestUnitSetLanguage() {
             LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
             ad.SetArchiveLanguage(LibSrcMLRunner.SrcMLOptions.SRCML_LANGUAGE_CXX);

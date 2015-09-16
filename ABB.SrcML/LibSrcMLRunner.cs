@@ -400,6 +400,9 @@ namespace ABB.SrcML {
         public static extern int TestArchiveRegisterMacro(IntPtr[] sd);
 
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int TestUnitSetFilename(IntPtr[] sd);
+
+        [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
         public static extern int TestUnitSetLanguage(IntPtr[] sd);
 
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
