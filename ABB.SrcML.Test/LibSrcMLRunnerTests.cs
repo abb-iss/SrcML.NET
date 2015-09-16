@@ -26,7 +26,6 @@ namespace ABB.SrcML.Test {
         [Test]
         public void TestCreateSrcMLArchiveFtF() {
             LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
-            var bla = Path.Combine(TestInputPath, "input.cpp");
             ad.SetArchiveFilename(Path.Combine(TestInputPath, "input.cpp"));
             ad.SetArchiveLanguage(LibSrcMLRunner.SrcMLOptions.SRCML_LANGUAGE_CXX);
 
@@ -195,7 +194,7 @@ namespace ABB.SrcML.Test {
             var f2 = (from ele in files
                       where ele.Attribute("filename").Value == file2
                       select ele);
-            Assert.AreEqual("input.cpp", f1.FirstOrDefault().Attribute("filename").Value);
+            Assert.AreEqual(file2, f2.FirstOrDefault().Attribute("filename").Value);
 
             ad.Dispose();
         }
