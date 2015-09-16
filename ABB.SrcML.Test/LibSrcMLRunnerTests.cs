@@ -266,7 +266,7 @@ namespace ABB.SrcML.Test {
 
             List<IntPtr> structArrayPtr = new List<IntPtr>();
             structArrayPtr.Add(structPtr);
-            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestArchiveSetSrcEncoding(structArrayPtr.ToArray())));
+            Assert.IsTrue(LibSrcMLRunner.TestArchiveSetSrcEncoding(structArrayPtr.ToArray()));
         }
 
         [Test]
@@ -277,7 +277,7 @@ namespace ABB.SrcML.Test {
 
             List<IntPtr> structArrayPtr = new List<IntPtr>();
             structArrayPtr.Add(structPtr);
-            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestArchiveSetXmlEncoding(structArrayPtr.ToArray())));
+            Assert.IsTrue(LibSrcMLRunner.TestArchiveSetXmlEncoding(structArrayPtr.ToArray()));
         }
 
         [Test]
@@ -288,7 +288,7 @@ namespace ABB.SrcML.Test {
 
             List<IntPtr> structArrayPtr = new List<IntPtr>();
             structArrayPtr.Add(structPtr);
-            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestArchiveSetLanguage(structArrayPtr.ToArray())));
+            Assert.IsTrue(LibSrcMLRunner.TestArchiveSetLanguage(structArrayPtr.ToArray()));
         }
         [Test]
         public void TestArchiveSetUrl() {
@@ -298,7 +298,7 @@ namespace ABB.SrcML.Test {
 
             List<IntPtr> structArrayPtr = new List<IntPtr>();
             structArrayPtr.Add(structPtr);
-            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestArchiveSetUrl(structArrayPtr.ToArray())));
+            Assert.IsTrue(LibSrcMLRunner.TestArchiveSetUrl(structArrayPtr.ToArray()));
         }
         [Test]
         public void TestArchiveSetVersion() {
@@ -308,7 +308,7 @@ namespace ABB.SrcML.Test {
 
             List<IntPtr> structArrayPtr = new List<IntPtr>();
             structArrayPtr.Add(structPtr);
-            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestArchiveSetVersion(structArrayPtr.ToArray())));
+            Assert.IsTrue(LibSrcMLRunner.TestArchiveSetVersion(structArrayPtr.ToArray()));
         }
         [Test]
         public void TestArchiveSetOptions() {
@@ -318,7 +318,7 @@ namespace ABB.SrcML.Test {
 
             List<IntPtr> structArrayPtr = new List<IntPtr>();
             structArrayPtr.Add(structPtr);
-            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestArchiveSetOptions(structArrayPtr.ToArray())));
+            Assert.IsTrue(LibSrcMLRunner.TestArchiveSetOptions(structArrayPtr.ToArray()));
         }
         [Test]
         public void TestArchiveEnableOption() {
@@ -328,7 +328,7 @@ namespace ABB.SrcML.Test {
 
             List<IntPtr> structArrayPtr = new List<IntPtr>();
             structArrayPtr.Add(structPtr);
-            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestArchiveEnableOption(structArrayPtr.ToArray())));
+            Assert.IsTrue(LibSrcMLRunner.TestArchiveEnableOption(structArrayPtr.ToArray()));
         }
         [Test]
         public void TestArchiveDisableOption() {
@@ -338,7 +338,7 @@ namespace ABB.SrcML.Test {
 
             List<IntPtr> structArrayPtr = new List<IntPtr>();
             structArrayPtr.Add(structPtr);
-            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestArchiveDisableOption(structArrayPtr.ToArray())));
+            Assert.IsTrue(LibSrcMLRunner.TestArchiveDisableOption(structArrayPtr.ToArray()));
         }
         [Test]
         public void TestArchiveSetTabstop() {
@@ -348,7 +348,7 @@ namespace ABB.SrcML.Test {
 
             List<IntPtr> structArrayPtr = new List<IntPtr>();
             structArrayPtr.Add(structPtr);
-            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestArchiveSetTabstop(structArrayPtr.ToArray())));
+            Assert.IsTrue(LibSrcMLRunner.TestArchiveSetTabstop(structArrayPtr.ToArray()));
         }
         [Test]
         public void TestArchiveRegisterFileExtension() {
@@ -358,7 +358,7 @@ namespace ABB.SrcML.Test {
 
             List<IntPtr> structArrayPtr = new List<IntPtr>();
             structArrayPtr.Add(structPtr);
-            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestArchiveRegisterFileExtension(structArrayPtr.ToArray())));
+            Assert.IsTrue(LibSrcMLRunner.TestArchiveRegisterFileExtension(structArrayPtr.ToArray()));
         }
         [Test]
         public void TestArchiveRegisterNamespace() {
@@ -368,7 +368,7 @@ namespace ABB.SrcML.Test {
 
             List<IntPtr> structArrayPtr = new List<IntPtr>();
             structArrayPtr.Add(structPtr);
-            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestArchiveRegisterNamespace(structArrayPtr.ToArray())));
+            Assert.IsTrue(LibSrcMLRunner.TestArchiveRegisterNamespace(structArrayPtr.ToArray()));
         }
         [Test]
         public void TestArchiveSetProcessingInstruction() {
@@ -378,7 +378,7 @@ namespace ABB.SrcML.Test {
 
             List<IntPtr> structArrayPtr = new List<IntPtr>();
             structArrayPtr.Add(structPtr);
-            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestArchiveSetProcessingInstruction(structArrayPtr.ToArray())));
+            Assert.IsTrue(LibSrcMLRunner.TestArchiveSetProcessingInstruction(structArrayPtr.ToArray()));
         }
         [Test]
         public void TestArchiveRegisterMacro() {
@@ -388,7 +388,7 @@ namespace ABB.SrcML.Test {
 
             List<IntPtr> structArrayPtr = new List<IntPtr>();
             structArrayPtr.Add(structPtr);
-            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestArchiveRegisterMacro(structArrayPtr.ToArray())));
+            Assert.IsTrue(LibSrcMLRunner.TestArchiveRegisterMacro(structArrayPtr.ToArray()));
         }
         [Test]
         public void TestUnitSetFilename() {
@@ -398,7 +398,7 @@ namespace ABB.SrcML.Test {
 
             List<IntPtr> structArrayPtr = new List<IntPtr>();
             structArrayPtr.Add(structPtr);
-            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestUnitSetFilename(structArrayPtr.ToArray())));
+            Assert.IsTrue(LibSrcMLRunner.TestUnitSetFilename(structArrayPtr.ToArray()));
         }
         [Test]
         public void TestUnitSetLanguage() {
@@ -408,7 +408,7 @@ namespace ABB.SrcML.Test {
 
             List<IntPtr> structArrayPtr = new List<IntPtr>();
             structArrayPtr.Add(structPtr);
-            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestUnitSetLanguage(structArrayPtr.ToArray())));
+            Assert.IsTrue(LibSrcMLRunner.TestUnitSetLanguage(structArrayPtr.ToArray()));
         }
         [Test]
         public void TestUnitSetSrcEncoding() {
@@ -418,7 +418,7 @@ namespace ABB.SrcML.Test {
 
             List<IntPtr> structArrayPtr = new List<IntPtr>();
             structArrayPtr.Add(structPtr);
-            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestUnitSetSrcEncoding(structArrayPtr.ToArray())));
+            Assert.IsTrue(LibSrcMLRunner.TestUnitSetSrcEncoding(structArrayPtr.ToArray()));
         }
         [Test]
         public void TestUnitSetUrl() {
@@ -428,7 +428,7 @@ namespace ABB.SrcML.Test {
 
             List<IntPtr> structArrayPtr = new List<IntPtr>();
             structArrayPtr.Add(structPtr);
-            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestUnitSetUrl(structArrayPtr.ToArray())));
+            Assert.IsTrue(LibSrcMLRunner.TestUnitSetUrl(structArrayPtr.ToArray()));
         }
         [Test]
         public void TestUnitSetVersion() {
@@ -438,7 +438,7 @@ namespace ABB.SrcML.Test {
 
             List<IntPtr> structArrayPtr = new List<IntPtr>();
             structArrayPtr.Add(structPtr);
-            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestUnitSetVersion(structArrayPtr.ToArray())));
+            Assert.IsTrue(LibSrcMLRunner.TestUnitSetVersion(structArrayPtr.ToArray()));
         }
         [Test]
         public void TestUnitSetTimestamp() {
@@ -448,7 +448,7 @@ namespace ABB.SrcML.Test {
 
             List<IntPtr> structArrayPtr = new List<IntPtr>();
             structArrayPtr.Add(structPtr);
-            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestUnitSetTimestamp(structArrayPtr.ToArray())));
+            Assert.IsTrue(LibSrcMLRunner.TestUnitSetTimestamp(structArrayPtr.ToArray()));
         }
         [Test]
         public void TestUnitSetHash() {
@@ -458,7 +458,7 @@ namespace ABB.SrcML.Test {
 
             List<IntPtr> structArrayPtr = new List<IntPtr>();
             structArrayPtr.Add(structPtr);
-            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestUnitSetHash(structArrayPtr.ToArray())));
+            Assert.IsTrue(LibSrcMLRunner.TestUnitSetHash(structArrayPtr.ToArray()));
         }
         [Test]
         public void TestUnitUnparseSetEol() {
@@ -468,7 +468,7 @@ namespace ABB.SrcML.Test {
 
             List<IntPtr> structArrayPtr = new List<IntPtr>();
             structArrayPtr.Add(structPtr);
-            Assert.IsTrue(Convert.ToBoolean(LibSrcMLRunner.TestUnitUnparseSetEol(structArrayPtr.ToArray())));
+            Assert.IsTrue(LibSrcMLRunner.TestUnitUnparseSetEol(structArrayPtr.ToArray()));
         }
         #endregion
     }

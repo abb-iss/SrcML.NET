@@ -361,67 +361,67 @@ namespace ABB.SrcML {
 
 #region Test Functions
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int TestArchiveSetXmlEncoding(IntPtr[] sd);
+        public static extern bool TestArchiveSetXmlEncoding(IntPtr[] sd);
 
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int TestArchiveSetSrcEncoding(IntPtr[] sd);
+        public static extern bool TestArchiveSetSrcEncoding(IntPtr[] sd);
 
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int TestArchiveSetLanguage(IntPtr[] sd);
+        public static extern bool TestArchiveSetLanguage(IntPtr[] sd);
 
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int TestArchiveSetUrl(IntPtr[] sd);
+        public static extern bool TestArchiveSetUrl(IntPtr[] sd);
 
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int TestArchiveSetVersion(IntPtr[] sd);
+        public static extern bool TestArchiveSetVersion(IntPtr[] sd);
 
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int TestArchiveSetOptions(IntPtr[] sd);
+        public static extern bool TestArchiveSetOptions(IntPtr[] sd);
 
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int TestArchiveEnableOption(IntPtr[] sd);
+        public static extern bool TestArchiveEnableOption(IntPtr[] sd);
 
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int TestArchiveDisableOption(IntPtr[] sd);
+        public static extern bool TestArchiveDisableOption(IntPtr[] sd);
 
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int TestArchiveSetTabstop(IntPtr[] sd);
+        public static extern bool TestArchiveSetTabstop(IntPtr[] sd);
 
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int TestArchiveRegisterFileExtension(IntPtr[] sd);
+        public static extern bool TestArchiveRegisterFileExtension(IntPtr[] sd);
 
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int TestArchiveRegisterNamespace(IntPtr[] sd);
+        public static extern bool TestArchiveRegisterNamespace(IntPtr[] sd);
 
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int TestArchiveSetProcessingInstruction(IntPtr[] sd);
+        public static extern bool TestArchiveSetProcessingInstruction(IntPtr[] sd);
 
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int TestArchiveRegisterMacro(IntPtr[] sd);
+        public static extern bool TestArchiveRegisterMacro(IntPtr[] sd);
 
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int TestUnitSetFilename(IntPtr[] sd);
+        public static extern bool TestUnitSetFilename(IntPtr[] sd);
 
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int TestUnitSetLanguage(IntPtr[] sd);
+        public static extern bool TestUnitSetLanguage(IntPtr[] sd);
 
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int TestUnitSetSrcEncoding(IntPtr[] sd);
+        public static extern bool TestUnitSetSrcEncoding(IntPtr[] sd);
 
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int TestUnitSetUrl(IntPtr[] sd);
+        public static extern bool TestUnitSetUrl(IntPtr[] sd);
 
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int TestUnitSetVersion(IntPtr[] sd);
+        public static extern bool TestUnitSetVersion(IntPtr[] sd);
 
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int TestUnitSetTimestamp(IntPtr[] sd);
+        public static extern bool TestUnitSetTimestamp(IntPtr[] sd);
 
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int TestUnitSetHash(IntPtr[] sd);
+        public static extern bool TestUnitSetHash(IntPtr[] sd);
 
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int TestUnitUnparseSetEol(IntPtr[] sd);
+        public static extern bool TestUnitUnparseSetEol(IntPtr[] sd);
 #endregion
     }
 }
