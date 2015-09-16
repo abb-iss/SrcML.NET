@@ -14,17 +14,24 @@ namespace ABB.SrcML.Test {
     [TestFixture]
     [Category("Build")]
     class LibSrcMLRunnerTests {
+        private const string TestInputPath = @"..\..\TestInputs";
+        [TearDown]
+        public void Cleanup() {
+            File.Delete("output0.cpp.xml");
+            File.Delete("output1.cpp.xml");
+        }
         /// <summary>
         /// This tests the creation of an archive using a list of source files
         /// </summary>
         [Test]
         public void TestCreateSrcMLArchiveFtF() {
             LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
-            ad.SetArchiveFilename("input.cpp");
+            var bla = Path.Combine(TestInputPath, "input.cpp");
+            ad.SetArchiveFilename(Path.Combine(TestInputPath, "input.cpp"));
             ad.SetArchiveLanguage(LibSrcMLRunner.SrcMLOptions.SRCML_LANGUAGE_CXX);
 
             LibSrcMLRunner.SourceData bc = new LibSrcMLRunner.SourceData();
-            bc.SetArchiveFilename("input2.cpp");
+            bc.SetArchiveFilename(Path.Combine(TestInputPath, "input2.cpp"));
             bc.SetArchiveLanguage(LibSrcMLRunner.SrcMLOptions.SRCML_LANGUAGE_CXX);
 
             List<LibSrcMLRunner.SourceData> data = new List<LibSrcMLRunner.SourceData>();
@@ -52,11 +59,11 @@ namespace ABB.SrcML.Test {
                 var files = srcFile.FileUnits.ToList();
                 Assert.AreEqual(1, files.Count());
 
-                string file = "input.cpp";
+                string file = Path.Combine(TestInputPath, "input.cpp");
                 var f1 = (from ele in files
                           where ele.Attribute("filename").Value == file
                           select ele);
-                Assert.AreEqual("input.cpp", f1.FirstOrDefault().Attribute("filename").Value);
+                Assert.AreEqual(file, f1.FirstOrDefault().Attribute("filename").Value);
             }
             {
                 Assert.True(File.Exists("output1.cpp.xml"));
@@ -66,11 +73,11 @@ namespace ABB.SrcML.Test {
                 var files = srcFile.FileUnits.ToList();
                 Assert.AreEqual(1, files.Count());
 
-                string file1 = "input2.cpp";
+                string file1 = Path.Combine(TestInputPath, "input2.cpp");
                 var f2 = (from ele in files
                           where ele.Attribute("filename").Value == file1
                           select ele);
-                Assert.AreEqual("input2.cpp", f2.FirstOrDefault().Attribute("filename").Value);
+                Assert.AreEqual(file1, f2.FirstOrDefault().Attribute("filename").Value);
             }
             ad.Dispose();
             bc.Dispose();
@@ -82,11 +89,11 @@ namespace ABB.SrcML.Test {
         [Test]
         public void TestCreateSrcMLArchiveFtM() {
             LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
-            ad.SetArchiveFilename("input.cpp");
+            ad.SetArchiveFilename(Path.Combine(TestInputPath, "input.cpp"));
             ad.SetArchiveLanguage(LibSrcMLRunner.SrcMLOptions.SRCML_LANGUAGE_CXX);
 
             LibSrcMLRunner.SourceData bc = new LibSrcMLRunner.SourceData();
-            bc.SetArchiveFilename("input2.cpp");
+            bc.SetArchiveFilename(Path.Combine(TestInputPath, "input2.cpp"));
             bc.SetArchiveLanguage(LibSrcMLRunner.SrcMLOptions.SRCML_LANGUAGE_CXX);
 
             List<LibSrcMLRunner.SourceData> data = new List<LibSrcMLRunner.SourceData>();
@@ -122,22 +129,22 @@ namespace ABB.SrcML.Test {
             var units = from unit in doc.Descendants(XName.Get("unit", "http://www.srcML.org/srcML/src"))
                         where unit.Attribute("filename") != null
                         select unit;
-            string file = "input.cpp";
+            string file = Path.Combine(TestInputPath, "input.cpp"); ;
             var f1 = (from ele in units
                       where ele.Attribute("filename").Value == file
                       select ele);
-            Assert.AreEqual("input.cpp", f1.FirstOrDefault().Attribute("filename").Value);
+            Assert.AreEqual(file, f1.FirstOrDefault().Attribute("filename").Value);
 
             Assert.False(String.IsNullOrEmpty(documents.ElementAt(1)));
             XDocument doc2 = XDocument.Parse(documents.ElementAt(1));
             var units2 = from unit in doc2.Descendants(XName.Get("unit", "http://www.srcML.org/srcML/src"))
                          where unit.Attribute("filename") != null
                          select unit;
-            string file2 = "input2.cpp";
+            string file2 = Path.Combine(TestInputPath, "input2.cpp"); ;
             var f2 = (from ele in units2
                       where ele.Attribute("filename").Value == file2
                       select ele);
-            Assert.AreEqual("input2.cpp", f2.FirstOrDefault().Attribute("filename").Value);
+            Assert.AreEqual(file2, f2.FirstOrDefault().Attribute("filename").Value);
             ad.Dispose();
             bc.Dispose();
         }
@@ -169,10 +176,10 @@ namespace ABB.SrcML.Test {
             List<IntPtr> structArrayPtr = new List<IntPtr>();
             structArrayPtr.Add(structPtr);
 
-            Assert.True(LibSrcMLRunner.SrcmlCreateArchiveMtF(structArrayPtr.ToArray(), structArrayPtr.Count(), "test") == 0);
-            Assert.True(File.Exists("test0.cpp.xml"));
+            Assert.True(LibSrcMLRunner.SrcmlCreateArchiveMtF(structArrayPtr.ToArray(), structArrayPtr.Count(), "output") == 0);
+            Assert.True(File.Exists("output0.cpp.xml"));
             
-            SrcMLFile srcFile = new SrcMLFile("test0.cpp.xml");
+            SrcMLFile srcFile = new SrcMLFile("output0.cpp.xml");
             Assert.IsNotNull(srcFile);
 
             var files = srcFile.FileUnits.ToList();
