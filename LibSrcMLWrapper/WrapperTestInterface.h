@@ -213,10 +213,14 @@ extern"C"{
         const char* ufname = srcml_unit_get_filename(unit);
         if (std::strcmp(sd[0]->filename[0], ufname) == 0){
             srcml_unit_free(unit);
+            srcml_archive_close(archive);
+            srcml_archive_free(archive);
             return true;
         }
         else{
             srcml_unit_free(unit);
+            srcml_archive_close(archive);
+            srcml_archive_free(archive);
             return false;
         }
     }
@@ -229,10 +233,14 @@ extern"C"{
         const char* lang = srcml_unit_get_language(unit);
         if (std::strcmp(sd[0]->language, lang) == 0){
             srcml_unit_free(unit);
+            srcml_archive_close(archive);
+            srcml_archive_free(archive);
             return true;
         }
         else{
             srcml_unit_free(unit);
+            srcml_archive_close(archive);
+            srcml_archive_free(archive);
             return false;
         }
     }
@@ -244,10 +252,14 @@ extern"C"{
         srcml_unit_set_src_encoding(unit, sd[0]->src_encoding);
         if (std::strcmp(srcml_unit_get_src_encoding(unit), "UTF-8") == 0){
             srcml_unit_free(unit);
+            srcml_archive_close(archive);
+            srcml_archive_free(archive);
             return true;
         }
         else{
             srcml_unit_free(unit);
+            srcml_archive_close(archive);
+            srcml_archive_free(archive);
             return false;
         }
     }
@@ -259,10 +271,14 @@ extern"C"{
         srcml_unit_set_url(unit, sd[0]->url);
         if (std::strcmp(srcml_unit_get_url(unit), "www.abb.com") == 0){
             srcml_unit_free(unit);
+            srcml_archive_close(archive);
+            srcml_archive_free(archive);
             return true;
         }
         else{
             srcml_unit_free(unit);
+            srcml_archive_close(archive);
+            srcml_archive_free(archive);
             return false;
         }
     }
@@ -274,10 +290,14 @@ extern"C"{
         srcml_unit_set_version(unit, sd[0]->version);
         if (std::strcmp(srcml_unit_get_version(unit), "1.0") == 0){
             srcml_unit_free(unit);
+            srcml_archive_close(archive);
+            srcml_archive_free(archive);
             return true;
         }
         else{
             srcml_unit_free(unit);
+            srcml_archive_close(archive);
+            srcml_archive_free(archive);
             return false;
         }
     }
@@ -289,10 +309,14 @@ extern"C"{
         srcml_unit_set_timestamp(unit, sd[0]->timestamp);
         if (std::strcmp(srcml_unit_get_timestamp(unit), "0800") == 0){
             srcml_unit_free(unit);
+            srcml_archive_close(archive);
+            srcml_archive_free(archive);
             return true;
         }
         else{
             srcml_unit_free(unit);
+            srcml_archive_close(archive);
+            srcml_archive_free(archive);
             return false;
         }
     }
@@ -304,10 +328,14 @@ extern"C"{
         srcml_unit_set_hash(unit, sd[0]->hash);
         if (std::strcmp(srcml_unit_get_hash(unit), "hash") == 0){
             srcml_unit_free(unit);
+            srcml_archive_close(archive);
+            srcml_archive_free(archive);
             return true;
         }
         else{
             srcml_unit_free(unit);
+            srcml_archive_close(archive);
+            srcml_archive_free(archive);
             return false;
         }
     }
@@ -318,10 +346,14 @@ extern"C"{
         unit = srcml_unit_create(archive);
         if (srcml_unit_unparse_set_eol(unit, sd[0]->eol)){
             srcml_unit_free(unit);
+            srcml_archive_close(archive);
+            srcml_archive_free(archive);
             return true;
         }
         else{
             srcml_unit_free(unit);
+            srcml_archive_close(archive);
+            srcml_archive_free(archive);
             return false;
         }
     }
