@@ -5,8 +5,15 @@ using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
 namespace ABB.SrcML {
+    /// <summary>
+    /// C#-facing API for libsrcml
+    /// </summary>
+    [CLSCompliant(false)]
     public class LibSrcMLRunner {
         public const string LIBSRCMLPATH = "LibSrcMLWrapper.dll";
+        /// <summary>
+        /// Options that can be set on a srcML unit or archive
+        /// </summary>
         public struct SrcMLOptions {
             /** Create an archive */
             public const UInt32 SRCML_OPTION_ARCHIVE = 1 << 0;
@@ -292,7 +299,7 @@ namespace ABB.SrcML {
             /// <summary>
             /// Set end of line marker
             /// </summary>
-            /// <param name="eol"></param>
+            /// <param name="srceol"></param>
             public void UnparseSetEol(int srceol) {
                 eol = srceol;
             }
@@ -306,6 +313,11 @@ namespace ABB.SrcML {
                 GC.SuppressFinalize(this);
             }
         }
+        /// <summary>
+        /// Marshal's the given object and returns an IntPtr to that object
+        /// </summary>
+        /// <param name="ad">Object to be marshaled</param>
+        /// <returns></returns>
         public static IntPtr CreatePtrFromStruct(LibSrcMLRunner.SourceData ad) {
             int size = Marshal.SizeOf(ad);
             IntPtr ptr = Marshal.AllocHGlobal(Marshal.SizeOf(ad));
