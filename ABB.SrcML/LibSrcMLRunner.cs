@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
 namespace ABB.SrcML {
+    [CLSCompliant(false)]
     public class LibSrcMLRunner {
         public const string LIBSRCMLPATH = "LibSrcMLWrapper.dll";
         public struct SrcMLOptions {
