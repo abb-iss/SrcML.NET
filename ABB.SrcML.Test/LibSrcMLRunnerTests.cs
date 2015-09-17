@@ -8,6 +8,7 @@ using ABB.SrcML;
 using System.Xml;
 using System.Runtime.InteropServices;
 using System.Xml.Linq;
+using System.Collections.ObjectModel;
 
 namespace ABB.SrcML.Test {
 
@@ -27,11 +28,11 @@ namespace ABB.SrcML.Test {
         public void TestCreateSrcMLArchiveFtF() {
             LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
             ad.SetArchiveFilename(Path.Combine(TestInputPath, "input.cpp"));
-            ad.SetArchiveLanguage(LibSrcMLRunner.SrcMLOptions.SRCML_LANGUAGE_CXX);
+            ad.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
 
             LibSrcMLRunner.SourceData bc = new LibSrcMLRunner.SourceData();
             bc.SetArchiveFilename(Path.Combine(TestInputPath, "input2.cpp"));
-            bc.SetArchiveLanguage(LibSrcMLRunner.SrcMLOptions.SRCML_LANGUAGE_CXX);
+            bc.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
 
             List<LibSrcMLRunner.SourceData> data = new List<LibSrcMLRunner.SourceData>();
             data.Add(ad);
@@ -44,7 +45,8 @@ namespace ABB.SrcML.Test {
             structArrayPtr.Add(structPtr);
             structArrayPtr.Add(structPtr2);
             try {
-                Assert.True(LibSrcMLRunner.SrcmlCreateArchiveFtF(structArrayPtr.ToArray(), structArrayPtr.Count(), "output") == 0);
+                int status =LibSrcMLRunner.SrcmlCreateArchiveFtF(structArrayPtr.ToArray(), structArrayPtr.Count(), "output");
+                Assert.True(status == 0);
             }
             catch (SrcMLException e) {
                 Console.WriteLine(e.Message);
@@ -89,11 +91,11 @@ namespace ABB.SrcML.Test {
         public void TestCreateSrcMLArchiveFtM() {
             LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
             ad.SetArchiveFilename(Path.Combine(TestInputPath, "input.cpp"));
-            ad.SetArchiveLanguage(LibSrcMLRunner.SrcMLOptions.SRCML_LANGUAGE_CXX);
+            ad.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
 
             LibSrcMLRunner.SourceData bc = new LibSrcMLRunner.SourceData();
             bc.SetArchiveFilename(Path.Combine(TestInputPath, "input2.cpp"));
-            bc.SetArchiveLanguage(LibSrcMLRunner.SrcMLOptions.SRCML_LANGUAGE_CXX);
+            bc.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
 
             List<LibSrcMLRunner.SourceData> data = new List<LibSrcMLRunner.SourceData>();
             data.Add(ad);
@@ -168,7 +170,7 @@ namespace ABB.SrcML.Test {
             FileList.Add("input2.cpp");
             ad.SetArchiveFilename(FileList);
 
-            ad.SetArchiveLanguage(LibSrcMLRunner.SrcMLOptions.SRCML_LANGUAGE_CXX);
+            ad.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
 
             IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
 
@@ -219,7 +221,7 @@ namespace ABB.SrcML.Test {
             FileList.Add("input2.cpp");
             ad.SetArchiveFilename(FileList);
 
-            ad.SetArchiveLanguage(LibSrcMLRunner.SrcMLOptions.SRCML_LANGUAGE_CXX);
+            ad.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
 
             IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
 
@@ -263,6 +265,23 @@ namespace ABB.SrcML.Test {
             Console.WriteLine(s);
             ad.Dispose();
         }
+
+        [Test]
+        public void TestGenerateSrcMLFromString() {
+            LibSrcMLRunner run = new LibSrcMLRunner();
+            string b = run.GenerateSrcMLFromString("int main(){int x;}", "input.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_MODIFIER }, false);
+            Assert.False(String.IsNullOrEmpty(b));
+            XDocument doc = XDocument.Parse(b);
+            var units = from unit in doc.Descendants(XName.Get("unit", "http://www.srcML.org/srcML/src"))
+                        where unit.Attribute("filename") != null
+                        select unit;
+
+            string file = "input.cpp";
+            var f1 = (from ele in units
+                      where ele.Attribute("filename").Value == file
+                      select ele);
+            Assert.AreEqual("input.cpp", f1.FirstOrDefault().Attribute("filename").Value);
+        }
         #region WrapperTests
         [Test]
         public void TestArchiveSetSrcEncoding() {
@@ -289,7 +308,7 @@ namespace ABB.SrcML.Test {
         [Test]
         public void TestArchiveSetLanguage() {
             LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
-            ad.SetArchiveLanguage(LibSrcMLRunner.SrcMLOptions.SRCML_LANGUAGE_CXX);
+            ad.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
             IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
 
             List<IntPtr> structArrayPtr = new List<IntPtr>();
@@ -359,7 +378,7 @@ namespace ABB.SrcML.Test {
         [Test]
         public void TestArchiveRegisterFileExtension() {
             LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
-            ad.RegisterFileExtension("h", LibSrcMLRunner.SrcMLOptions.SRCML_LANGUAGE_CXX);
+            ad.RegisterFileExtension("h", LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
             IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
 
             List<IntPtr> structArrayPtr = new List<IntPtr>();
@@ -409,7 +428,7 @@ namespace ABB.SrcML.Test {
         [Test]
         public void TestUnitSetLanguage() {
             LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
-            ad.SetArchiveLanguage(LibSrcMLRunner.SrcMLOptions.SRCML_LANGUAGE_CXX);
+            ad.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
             IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
 
             List<IntPtr> structArrayPtr = new List<IntPtr>();
