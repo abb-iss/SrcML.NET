@@ -16,13 +16,14 @@
   </PropertyGroup>
   <ItemGroup>
 	  <AssemblyInfoFiles Include="SolutionInfo.cs" />
+      <CppAssemblyInfoFiles Include="SolutionInfo.cpp" />
 	  <SourceManifests Include="VisualStudio\ABB.SrcML.VisualStudio.SrcMLService\source.extension.vsixmanifest" />
 	  <NuspecFiles Include="**/*.nuspec" />
   </ItemGroup>
   
   <Import Project="External\BuildScripts\Version.targets" />
   
-  <Target Name="Build" Outputs="$(OutDir)\$(Configuration)" DependsOnTargets="CreateAssemblyInfo;SetVsixVersion">
+  <Target Name="Build" Outputs="$(OutDir)\$(Configuration)" DependsOnTargets="CreateAssemblyInfo;CreateCppAssemblyInfo;SetVsixVersion">
     <MSBuild Projects="@(SolutionToBuild)" Properties="Configuration=$(Configuration);Platform=Any CPU" />
   </Target>
   

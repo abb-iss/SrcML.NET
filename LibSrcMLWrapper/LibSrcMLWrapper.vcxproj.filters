@@ -38,6 +38,9 @@
     <ClCompile Include="WrapperTestInterface.h">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\SolutionInfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
