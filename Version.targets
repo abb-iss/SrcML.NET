@@ -64,6 +64,26 @@ using System.Resources%3B
 [assembly: AssemblyInformationalVersion(&quot;$(Version)-Release-$(CommitHash)&quot;)]
 #endif" />
 	</Target>
+    
+    <Target Name="CreateCppAssemblyInfo" DependsOnTargets="SetVersion">
+		<WriteLinesToFile File="%(CppAssemblyInfoFiles.FullPath)" Overwrite="true"
+						  Lines="
+using namespace System::Reflection%3B
+using namespace System::Resources%3B
+
+[assembly:AssemblyCompanyAttribute(L&quot;$(Company)&quot;)]%3B
+[assembly:NeutralResourcesLanguageAttribute(L&quot;$(NeutralResourcesLanguage)&quot;)]%3B
+[assembly:AssemblyVersionAttribute(L&quot;$(Version)&quot;)]%3B
+
+#if DEBUG
+[assembly:AssemblyConfigurationAttribute(L&quot;Debug&quot;)]%3B
+[assembly:AssemblyInformationalVersionAttribute(L&quot;$(Version)-Debug-$(CommitHash)&quot;)]%3B
+#else
+[assembly:AssemblyConfigurationAttribute(L&quot;Release&quot;)]%3B
+[assembly:AssemblyInformationalVersionAttribute(L&quot;$(Version)-Release-$(CommitHash)&quot;)]%3B
+#endif
+"/>
+	</Target>
 	
 	<Target Name="SetNuspecVersion" DependsOnTargets="SetVersion">
 		<XmlPoke Namespaces="$(XmlNamespaces)" XmlInputPath="%(NuspecFiles.FullPath)"
