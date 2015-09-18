@@ -68,7 +68,7 @@
     <Compile Include="SrcMLArchiveTests.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="SrcMLCppAPITests.cs" />
+    <Compile Include="LibSrcMLRunnerTests.cs" />
     <Compile Include="SrcMLElementTests.cs" />
     <Compile Include="SrcMLFileTest.cs" />
     <Compile Include="SrcMLGeneratorTests.cs" />

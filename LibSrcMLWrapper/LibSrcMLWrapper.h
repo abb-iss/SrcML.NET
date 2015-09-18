@@ -21,9 +21,9 @@ namespace LibSrcMLWrapper {
         int buffercount;
         int* buffersize;
         int tabstop;
-        unsigned long long optionSet;
-        unsigned long long optionEnable;
-        unsigned long long optionDisable;
+        unsigned long optionSet;
+        unsigned long optionEnable;
+        unsigned long  optionDisable;
         char** extandlanguage;
         char** prefixandnamespace;
         char** targetanddata;
@@ -34,12 +34,11 @@ namespace LibSrcMLWrapper {
     /// Utility function that trims from the right of a string. For now it's just solving a weird issue with srcML
     /// and garbage text ending up at the end of the cstring it returns.
     /// </summary>
-    char* TrimFromEnd(char *s, size_t len){
+    inline char* TrimFromEnd(char *s, size_t len){
         for (int i = len - 1; i > 0; --i){
             if (s[i] != '>'){
                 s[i] = 0;
-            }
-            else{
+            }else{
                 return s;
             }
         }
@@ -49,7 +48,7 @@ namespace LibSrcMLWrapper {
     /// Utility function that is meant to Read a file from beginning to end.
     /// </summary>
     /// <param name="argv">The name of the file to be read.</param>
-    std::pair<char*, std::streamoff> ReadFileC(const char* argv){
+    inline std::pair<char*, std::streamoff> ReadFileC(const char* argv){
         std::ifstream is(argv, std::ifstream::binary);
         char * buffer = nullptr;
         std::streamoff length;
@@ -72,8 +71,7 @@ namespace LibSrcMLWrapper {
             is.close();
 
             return std::make_pair(buffer, length);
-        }
-        else{
+        }else{
             Exception^ error = gcnew Exception(String::Format("ERROR, could not open file: {0}", gcnew String(argv)));
             throw error;
         }

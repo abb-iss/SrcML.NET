@@ -1,78 +1,4 @@
-// This is the main DLL file.
-#include "stdafx.h"
-#include "LibSrcMLWrapper.h"
-using namespace System;
-using namespace System::Runtime::InteropServices;
-
 extern"C"{
-    void SetArchiveData(srcml_archive* archive, LibSrcMLWrapper::SourceData* sd){
-        if (sd->src_encoding){
-            srcml_archive_set_src_encoding(archive, sd->src_encoding);
-        }
-        if (sd->encoding){
-            srcml_archive_set_xml_encoding(archive, sd->encoding);
-        }
-        if (sd->language){
-            srcml_archive_set_language(archive, sd->language);
-        }
-        if (sd->url){
-            srcml_archive_set_url(archive, sd->url);
-        }
-        if (sd->version){
-            srcml_archive_set_version(archive, sd->version);
-        }
-        if (sd->optionSet){
-            srcml_archive_set_options(archive, sd->optionSet);
-        }
-        if (sd->optionEnable){
-            srcml_archive_enable_option(archive, sd->optionEnable);
-        }
-        if (sd->optionDisable){
-            srcml_archive_disable_option(archive, sd->optionDisable);
-        }
-        if (sd->tabstop){
-            srcml_archive_set_tabstop(archive, sd->tabstop);
-        }
-        if (sd->extandlanguage){
-            srcml_archive_register_file_extension(archive, sd->extandlanguage[0], sd->extandlanguage[1]);
-        }
-        if (sd->prefixandnamespace){
-            srcml_archive_register_namespace(archive, sd->prefixandnamespace[0], sd->prefixandnamespace[1]);
-        }
-        if (sd->targetanddata){
-            srcml_archive_set_processing_instruction(archive, sd->targetanddata[0], sd->targetanddata[1]);
-        }
-        if (sd->tokenandtype){
-            srcml_archive_register_macro(archive, sd->tokenandtype[0], sd->tokenandtype[1]);
-        }
-        if (sd->eol){
-            srcml_unparse_set_eol(sd->eol);
-        }
-    }
-    void SetUnitData(srcml_unit* unit, LibSrcMLWrapper::SourceData* sd){
-        /* Setup options for srcml unit. Compare to empty string; if they're equal (returns 0) then skip. */
-        if (sd->language){
-            srcml_unit_set_language(unit, sd->language);
-        }
-        if (sd->src_encoding){
-            srcml_unit_set_src_encoding(unit, sd->src_encoding);
-        }
-        if (sd->url){
-            srcml_unit_set_url(unit, sd->url);
-        }
-        if (sd->version){
-            srcml_unit_set_version(unit, sd->version);
-        }
-        if (sd->timestamp){
-            srcml_unit_set_timestamp(unit, sd->timestamp);
-        }
-        if (sd->hash){
-            srcml_unit_set_hash(unit, sd->hash);
-        }
-        if (sd->eol){
-            srcml_unit_unparse_set_eol(unit, sd->eol);
-        }
-    }
     /// <summary>
     /// This creates an archive from a list of files and saves to a file
     /// </summary>
@@ -298,4 +224,3 @@ extern"C"{
         }
         return pp;
     }
-}

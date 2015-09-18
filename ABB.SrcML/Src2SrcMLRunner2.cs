@@ -70,7 +70,7 @@ namespace ABB.SrcML {
         /// <summary>
         /// Generates srcML from a file
         /// </summary>
-        /// <param name="fileNames">An enumerable of filenames</param>
+        /// <param name="fileNames">An enumerable of fileNames</param>
         /// <param name="xmlFileName">the output file name</param>
         /// <param name="language">The language to use</param>
         /// <param name="namespaceArguments">additional arguments</param>
