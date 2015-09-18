@@ -326,7 +326,6 @@ namespace ABB.SrcML {
                 Marshal.FreeHGlobal(buffer);
                 Marshal.FreeHGlobal(bufferSize);
                 Marshal.FreeHGlobal(filenames);
-                GC.SuppressFinalize(this);
             }
         }
         /// <summary>
@@ -349,8 +348,13 @@ namespace ABB.SrcML {
         /// <param name="language">The language to use</param>
         /// <param name="namespaceArguments">additional arguments</param>
         /// <param name="extensionMapping">an extension mapping</param>
-        public void GenerateSrcMLFromFile(string fileName, string xmlFileName, Language language, Collection<UInt32> namespaceArguments, Dictionary<string, Language> extensionMapping) {
-
+        public void GenerateSrcMLFromFile(string fileName, string xmlFileName, Language language, IEnumerable<UInt32> namespaceArguments, Dictionary<string, Language> extensionMapping) {
+            try {
+                GenerateSrcMLFromFiles(new List<string>() { fileName }, xmlFileName, language, namespaceArguments, extensionMapping);
+            }
+            catch (Exception e) {
+                throw new SrcMLException(e.Message, e);
+            }
         }
         /// <summary>
         /// Generates srcML from a file
@@ -377,7 +381,7 @@ namespace ABB.SrcML {
 
                 LibSrcMLRunner.SrcmlCreateArchiveFtF(structArrayPtr.ToArray(), structArrayPtr.Count(), xmlFileName);
             }
-            catch (SrcMLRuntimeException e) {
+            catch (Exception e) {
                 throw new SrcMLException(e.Message, e);
             }
         }
@@ -391,29 +395,33 @@ namespace ABB.SrcML {
         /// <param name="namespaceArguments">additional arguments</param>
         /// <param name="omitXmlDeclaration">If true, the XML header is omitted</param>
         /// <returns>The srcML</returns>
-        public string GenerateSrcMLFromStrings(IEnumerable<string> sources, string unitFilename, Language language, Collection<UInt32> namespaceArguments, bool omitXmlDeclaration) {
+        public List<string> GenerateSrcMLFromStrings(IEnumerable<string> sources, IEnumerable<string> unitFilename, Language language, IEnumerable<UInt32> namespaceArguments, bool omitXmlDeclaration) {
             if (omitXmlDeclaration) {
                 //arguments.Add("--no-xml-declaration");
             }
 
             try {
-                LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
-                ad.SetArchiveBuffer(sources);
-                ad.SetArchiveFilename(unitFilename);
-                ad.SetArchiveLanguage(LanguageEnumDictionary[language]); //need to correspond between Language enum and srcmloptions
-                ad.EnableOption(GenerateArguments(namespaceArguments));
-                IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+                using (LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData()) {
+                    ad.SetArchiveBuffer(sources);
+                    ad.SetArchiveFilename(unitFilename);
+                    ad.SetArchiveLanguage(LanguageEnumDictionary[language]); //need to correspond between Language enum and srcmloptions
+                    ad.EnableOption(GenerateArguments(namespaceArguments));
+                    IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
 
-                List<IntPtr> structArrayPtr = new List<IntPtr>();
-                structArrayPtr.Add(structPtr);
-                IntPtr s = LibSrcMLRunner.SrcmlCreateArchiveMtM(structArrayPtr.ToArray(), structArrayPtr.Count());
+                    List<IntPtr> structArrayPtr = new List<IntPtr>();
+                    structArrayPtr.Add(structPtr);
+                    IntPtr s = LibSrcMLRunner.SrcmlCreateArchiveMtM(structArrayPtr.ToArray(), structArrayPtr.Count());
 
-                IntPtr docptr = Marshal.ReadIntPtr(s);
-                String docstr = Marshal.PtrToStringAnsi(docptr);
-                Marshal.FreeHGlobal(docptr);
-
-                ad.Dispose();
-                return docstr;
+                    List<String> documents = new List<String>();
+                    for (int i = 0; i < 1; ++i) {
+                        IntPtr docptr = Marshal.ReadIntPtr(s);
+                        String docstr = Marshal.PtrToStringAnsi(docptr);
+                        Marshal.FreeHGlobal(docptr);
+                        documents.Add(docstr);
+                        s += Marshal.SizeOf(typeof(IntPtr));
+                    }
+                    return documents;
+                }
             }
             catch (Exception e) {
                 throw new SrcMLException(e.Message, e);
@@ -428,13 +436,13 @@ namespace ABB.SrcML {
         /// <param name="namespaceArguments">additional arguments</param>
         /// <param name="omitXmlDeclaration">If true, the XML header is omitted</param>
         /// <returns>The srcML</returns>
-        public string GenerateSrcMLFromString(string source, string unitFilename, Language language, Collection<UInt32> namespaceArguments, bool omitXmlDeclaration) {
+        public string GenerateSrcMLFromString(string source, string unitFilename, Language language, IEnumerable<UInt32> namespaceArguments, bool omitXmlDeclaration) {
             if (omitXmlDeclaration) {
                 //arguments.Add("--no-xml-declaration");
             }
 
             try {
-                return GenerateSrcMLFromStrings(new List<string>(){source}, unitFilename, language, namespaceArguments,omitXmlDeclaration);
+                return GenerateSrcMLFromStrings(new List<string>(){source}, new List<string>(){unitFilename}, language, namespaceArguments,omitXmlDeclaration).ElementAt(0);
             }
             catch (Exception e) {
                 throw new SrcMLException(e.Message, e);
