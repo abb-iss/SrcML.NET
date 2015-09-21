@@ -110,10 +110,10 @@ namespace ABB.SrcML {
             private IntPtr srcEncoding;
             private IntPtr revision;
             private IntPtr language;
-            private IntPtr fileNames;
+            private IntPtr filenames;
             private IntPtr url;
             private IntPtr version;
-            private IntPtr timeStamp;
+            private IntPtr timestamp;
             private IntPtr hash;
             private IntPtr buffer;
             private int bufferCount;

@@ -93,7 +93,7 @@ extern"C"{
 
             /*open a srcML archive for output */
             srcml_archive_write_open_filename(archive, filename.c_str(), 0);
-            int a = sd[i]->buffercount;
+
             /* add all the files to the archive */
             for (int k = 0; k < sd[i]->buffercount; ++k) {
 
