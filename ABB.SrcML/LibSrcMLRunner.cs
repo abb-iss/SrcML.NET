@@ -160,8 +160,8 @@ namespace ABB.SrcML {
             /// </summary>
             /// <param name="fname">Chosen name for file</param>
             public void SetArchiveFilename(ICollection<String> fileList) {
-                fileNames = Marshal.AllocHGlobal(fileList.Count * Marshal.SizeOf(typeof(IntPtr)));
-                IntPtr ptr = fileNames;
+                filenames = Marshal.AllocHGlobal(fileList.Count * Marshal.SizeOf(typeof(IntPtr)));
+                IntPtr ptr = filenames;
                 int i = 0;
                 foreach (string str in fileList) {
                     ++i;
@@ -224,7 +224,7 @@ namespace ABB.SrcML {
             /// </summary>
             /// <param name="srcTimeStamp">The time</param>
             public void SetArchiveTimestamp(string srcTimeStamp) {
-                timeStamp = Marshal.StringToHGlobalAnsi(srcTimeStamp);
+                timestamp = Marshal.StringToHGlobalAnsi(srcTimeStamp);
             }
             /// <summary>
             /// TODO
@@ -325,7 +325,7 @@ namespace ABB.SrcML {
             public void Dispose() {
                 Marshal.FreeHGlobal(buffer);
                 Marshal.FreeHGlobal(bufferSize);
-                Marshal.FreeHGlobal(fileNames);
+                Marshal.FreeHGlobal(filenames);
 
             }
         }
@@ -360,7 +360,7 @@ namespace ABB.SrcML {
         /// <summary>
         /// Generates srcML from a file
         /// </summary>
-        /// <param name="fileNames">An enumerable of filenames</param>
+        /// <param name="filenames">An enumerable of filenames</param>
         /// <param name="xmlFileName">the output file name</param>
         /// <param name="language">The language to use</param>
         /// <param name="namespaceArguments">additional arguments</param>
