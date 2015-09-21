@@ -254,100 +254,122 @@ namespace ABB.SrcML.Test {
             }
         }
         [Test]
+        public void TestGenerateSrcMLFromString() {
+            LibSrcMLRunner run = new LibSrcMLRunner();
+            try {
+                string b = run.GenerateSrcMLFromString("int main(){int x;}", "input.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_MODIFIER }, false);
+                
+                Assert.False(String.IsNullOrEmpty(b));
+                
+                XDocument doc = XDocument.Parse(b);
+                var units = from unit in doc.Descendants(XName.Get("unit", "http://www.srcML.org/srcML/src"))
+                            where unit.Attribute("filename") != null
+                            select unit;
+
+                string file = "input.cpp";
+                var f1 = (from ele in units
+                          where ele.Attribute("filename").Value == file
+                          select ele);
+                Assert.AreEqual(file, f1.FirstOrDefault().Attribute("filename").Value);
+            }
+            catch (SrcMLException e) {
+                throw e;
+            }
+        }
+        [Test]
         public void TestGenerateSrcMLFromStrings() {
             LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
 
             List<String> BufferList = new List<String>();
             List<String> FileList = new List<String>();
+
             String str = "int main(){int c; c = 0; ++c;}";
             String str2 = "int foo(){int c; c = 0; ++c;}";
             BufferList.Add(str);
             BufferList.Add(str2);
-            ad.SetArchiveBuffer(BufferList);
 
+            ad.SetArchiveBuffer(BufferList);
 
             FileList.Add("input.cpp");
             FileList.Add("input2.cpp");
             ad.SetArchiveFilename(FileList);
             LibSrcMLRunner run = new LibSrcMLRunner();
+            try {
+                List<string> b = run.GenerateSrcMLFromStrings(BufferList, FileList, Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_MODIFIER }, false).ToList<string>();
+                Assert.True(Convert.ToBoolean(b.Count));
+                XDocument doc = XDocument.Parse(b.ElementAt(0));
+                var units = from unit in doc.Descendants(XName.Get("unit", "http://www.srcML.org/srcML/src"))
+                            where unit.Attribute("filename") != null
+                            select unit;
 
-            List<string> b = run.GenerateSrcMLFromStrings(BufferList, FileList, Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_MODIFIER }, false).ToList<string>();
-            Assert.True(Convert.ToBoolean(b.Count));
-            XDocument doc = XDocument.Parse(b.ElementAt(0));
-            var units = from unit in doc.Descendants(XName.Get("unit", "http://www.srcML.org/srcML/src"))
-                        where unit.Attribute("filename") != null
-                        select unit;
+                string file = "input.cpp";
+                var f1 = (from ele in units
+                          where ele.Attribute("filename").Value == file
+                          select ele);
+                Assert.AreEqual(file, f1.FirstOrDefault().Attribute("filename").Value);
 
-            string file = "input.cpp";
-            var f1 = (from ele in units
-                      where ele.Attribute("filename").Value == file
-                      select ele);
-            Assert.AreEqual(file, f1.FirstOrDefault().Attribute("filename").Value);
-
-            string file2 = "input2.cpp";
-            var f2 = (from ele in units
-                      where ele.Attribute("filename").Value == file2
-                      select ele);
-            Assert.AreEqual(file2, f2.FirstOrDefault().Attribute("filename").Value);
+                string file2 = "input2.cpp";
+                var f2 = (from ele in units
+                          where ele.Attribute("filename").Value == file2
+                          select ele);
+                Assert.AreEqual(file2, f2.FirstOrDefault().Attribute("filename").Value);
+            }
+            catch (SrcMLException e) {
+                throw e;
+            }
         }
         [Test]
-        public void TestGenerateSrcMLFromString() {
+        public void TestGenerateSrcMLFromFile() {
             LibSrcMLRunner run = new LibSrcMLRunner();
-            string b = run.GenerateSrcMLFromString("int main(){int x;}", "input.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_MODIFIER }, false);
-            Assert.False(String.IsNullOrEmpty(b));
-            XDocument doc = XDocument.Parse(b);
-            var units = from unit in doc.Descendants(XName.Get("unit", "http://www.srcML.org/srcML/src"))
-                        where unit.Attribute("filename") != null
-                        select unit;
+            try {
+                run.GenerateSrcMLFromFile(Path.Combine(TestInputPath, "input.cpp"), "output", Language.CPlusPlus, new List<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_MODIFIER }, new Dictionary<string, Language>() { });
 
-            string file = "input.cpp";
-            var f1 = (from ele in units
-                      where ele.Attribute("filename").Value == file
-                      select ele);
-            Assert.AreEqual(file, f1.FirstOrDefault().Attribute("filename").Value);
+                Assert.True(File.Exists("output0.cpp.xml"));
+                SrcMLFile srcFile = new SrcMLFile("output0.cpp.xml");
+                Assert.IsNotNull(srcFile);
+
+                var files = srcFile.FileUnits.ToList();
+                Assert.AreEqual(1, files.Count());
+
+                string file = Path.Combine(TestInputPath, "input.cpp");
+                var f1 = (from ele in files
+                          where ele.Attribute("filename").Value == file
+                          select ele);
+                Assert.AreEqual(file, f1.FirstOrDefault().Attribute("filename").Value);
+            }
+            catch (SrcMLException e) {
+                throw e;
+            }
         }
         [Test]
         public void TestGenerateSrcMLFromFiles() {
             LibSrcMLRunner run = new LibSrcMLRunner();
             List<string> fileList = new List<string>() { Path.Combine(TestInputPath, "input.cpp"), Path.Combine(TestInputPath, "input2.cpp") };
-            run.GenerateSrcMLFromFiles(fileList, "output", Language.CPlusPlus, new List<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_MODIFIER }, new Dictionary<string, Language>() { });
+            try {
+                run.GenerateSrcMLFromFiles(fileList, "output", Language.CPlusPlus, new List<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_MODIFIER }, new Dictionary<string, Language>() { });
 
-            Assert.True(File.Exists("output0.cpp.xml"));
-            SrcMLFile srcFile = new SrcMLFile("output0.cpp.xml");
-            Assert.IsNotNull(srcFile);
+                Assert.True(File.Exists("output0.cpp.xml"));
+                SrcMLFile srcFile = new SrcMLFile("output0.cpp.xml");
+                Assert.IsNotNull(srcFile);
 
-            var files = srcFile.FileUnits.ToList();
-            Assert.AreEqual(2, files.Count());
+                var files = srcFile.FileUnits.ToList();
+                Assert.AreEqual(2, files.Count());
 
-            string file = Path.Combine(TestInputPath, "input.cpp");
-            var f1 = (from ele in files
-                      where ele.Attribute("filename").Value == file
-                      select ele);
-            Assert.AreEqual(file, f1.FirstOrDefault().Attribute("filename").Value);
+                string file = Path.Combine(TestInputPath, "input.cpp");
+                var f1 = (from ele in files
+                          where ele.Attribute("filename").Value == file
+                          select ele);
+                Assert.AreEqual(file, f1.FirstOrDefault().Attribute("filename").Value);
 
-            string file2 = Path.Combine(TestInputPath, "input2.cpp");
-            var f2 = (from ele in files
-                      where ele.Attribute("filename").Value == file2
-                      select ele);
-            Assert.AreEqual(file2, f2.FirstOrDefault().Attribute("filename").Value);
-        }
-        [Test]
-        public void TestGenerateSrcMLFromFile() {
-            LibSrcMLRunner run = new LibSrcMLRunner();
-            run.GenerateSrcMLFromFile(Path.Combine(TestInputPath, "input.cpp"), "output", Language.CPlusPlus, new List<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_MODIFIER }, new Dictionary<string, Language>() { });
-
-            Assert.True(File.Exists("output0.cpp.xml"));
-            SrcMLFile srcFile = new SrcMLFile("output0.cpp.xml");
-            Assert.IsNotNull(srcFile);
-
-            var files = srcFile.FileUnits.ToList();
-            Assert.AreEqual(1, files.Count());
-
-            string file = Path.Combine(TestInputPath, "input.cpp");
-            var f1 = (from ele in files
-                      where ele.Attribute("filename").Value == file
-                      select ele);
-            Assert.AreEqual(file, f1.FirstOrDefault().Attribute("filename").Value);
+                string file2 = Path.Combine(TestInputPath, "input2.cpp");
+                var f2 = (from ele in files
+                          where ele.Attribute("filename").Value == file2
+                          select ele);
+                Assert.AreEqual(file2, f2.FirstOrDefault().Attribute("filename").Value);
+            }
+            catch (SrcMLException e) {
+                throw e;
+            }
         }
         #region WrapperTests
         [Test]

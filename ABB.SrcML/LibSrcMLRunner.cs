@@ -397,12 +397,11 @@ namespace ABB.SrcML {
         /// <param name="omitXmlDeclaration">If true, the XML header is omitted</param>
         /// <returns>The srcML</returns>
         public ICollection<string> GenerateSrcMLFromStrings(ICollection<string> sources, ICollection<string> unitFilename, Language language, ICollection<UInt32> namespaceArguments, bool omitXmlDeclaration) {
-            if (omitXmlDeclaration) {
-                //arguments.Add("--no-xml-declaration");
-            }
-
             try {
                 using (LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData()) {
+                    if (omitXmlDeclaration) {
+                        ad.DisableOption(LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_XML_DECL);
+                    }
                     ad.SetArchiveBuffer(sources);
                     ad.SetArchiveFilename(unitFilename);
                     ad.SetArchiveLanguage(LanguageEnumDictionary[language]); //need to correspond between Language enum and srcmloptions
@@ -438,15 +437,11 @@ namespace ABB.SrcML {
         /// <param name="omitXmlDeclaration">If true, the XML header is omitted</param>
         /// <returns>The srcML</returns>
         public string GenerateSrcMLFromString(string source, string unitFilename, Language language, ICollection<UInt32> namespaceArguments, bool omitXmlDeclaration) {
-            if (omitXmlDeclaration) {
-                //arguments.Add("--no-xml-declaration");
-            }
-
             try {
-                return GenerateSrcMLFromStrings(new List<string>(){source}, new List<string>(){unitFilename}, language, namespaceArguments,omitXmlDeclaration).ElementAt(0);
+                return GenerateSrcMLFromStrings(new List<string>(){source}, new List<string>(){unitFilename}, language, namespaceArguments, omitXmlDeclaration).ElementAt(0);
             }
-            catch (Exception e) {
-                throw new SrcMLException(e.Message, e);
+            catch (SrcMLException e) {
+                throw e;
             }
         }
         /// <summary>
@@ -467,40 +462,6 @@ namespace ABB.SrcML {
             }
 
             return arguments;
-        }
-        /// <summary>
-        /// Converts <paramref name="language"/> to <c>--language=LANGUAGE</c>
-        /// </summary>
-        /// <param name="language">The language to use</param>
-        /// <returns>the language command line parameter</returns>
-        private static string MakeLanguageArgument(Language language) {
-            return (language == Language.Any ? String.Empty : String.Format("--language={0}", KsuAdapter.GetLanguage(language)));
-        }
-
-        /// <summary>
-        /// Converts <paramref name="extensionMap"/> to <c>--register-ext EXTENSIONMAP</c>
-        /// </summary>
-        /// <param name="extensionMap">the extension map to use</param>
-        /// <returns>The extension map command line parameter</returns>
-        private static string MakeExtensionMapArgument(Dictionary<string, Language> extensionMap) {
-            return (extensionMap.Count > 0 ? String.Format("--register-ext {0}", KsuAdapter.ConvertMappingToString(extensionMap)) : String.Empty);
-        }
-
-        /// <summary>
-        /// Converts <paramref name="xmlFileName"/> to <c>--output="XMLFILENAME"</c>
-        /// </summary>
-        /// <param name="xmlFileName">the xml file name</param>
-        /// <returns>The output command line parameter</returns>
-        private static string MakeOutputArgument(string xmlFileName) {
-            return String.Format("--output={0}", QuoteFileName(xmlFileName));
-        }
-        /// <summary>
-        /// Surrounds a <paramref name="fileName"/> with quotation marks
-        /// </summary>
-        /// <param name="fileName">The file name</param>
-        /// <returns>The file name, surrounded with double quotes</returns>
-        private static string QuoteFileName(string fileName) {
-            return String.Format("\"{0}\"", fileName);
         }
         #region Low-level API functions
         /// <summary>
