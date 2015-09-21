@@ -50,7 +50,7 @@ extern"C"{
         }
     }
     void SetUnitData(srcml_unit* unit, LibSrcMLWrapper::SourceData* sd){
-        /* Setup options for srcml unit. Compare to empty string; if they're equal (returns 0) then skip. */
+        /* Setup options for srcml unit.*/
         if (sd->language){
             srcml_unit_set_language(unit, sd->language);
         }
@@ -189,7 +189,7 @@ extern"C"{
     ///<param name="argv">List of files to be read</param>
     ///<param name="argc">Number of arguments in argv</param>
     __declspec(dllexport) char** SrcmlCreateArchiveFtM(LibSrcMLWrapper::SourceData** sd, int argc) {
-        char** pp = new char*[2];
+        char** pp = new char*[argc];
         size_t size;
         int srcmlreturncode = 0;
         /* add all the files to the archive */

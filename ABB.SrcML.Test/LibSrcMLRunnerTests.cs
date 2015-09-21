@@ -271,8 +271,8 @@ namespace ABB.SrcML.Test {
             ad.SetArchiveFilename(FileList);
             LibSrcMLRunner run = new LibSrcMLRunner();
 
-            List<string> b = run.GenerateSrcMLFromStrings(BufferList, FileList, Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_MODIFIER }, false);
-            Assert.True(Convert.ToBoolean(b.Count()));
+            List<string> b = run.GenerateSrcMLFromStrings(BufferList, FileList, Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_MODIFIER }, false).ToList<string>();
+            Assert.True(Convert.ToBoolean(b.Count));
             XDocument doc = XDocument.Parse(b.ElementAt(0));
             var units = from unit in doc.Descendants(XName.Get("unit", "http://www.srcML.org/srcML/src"))
                         where unit.Attribute("filename") != null

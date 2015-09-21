@@ -159,8 +159,8 @@ namespace ABB.SrcML {
             /// wrong file name will be assigned to units.
             /// </summary>
             /// <param name="fname">Chosen name for file</param>
-            public void SetArchiveFilename(IEnumerable<String> fileList) {
-                fileNames = Marshal.AllocHGlobal(fileList.Count() * Marshal.SizeOf(typeof(IntPtr)));
+            public void SetArchiveFilename(ICollection<String> fileList) {
+                fileNames = Marshal.AllocHGlobal(fileList.Count * Marshal.SizeOf(typeof(IntPtr)));
                 IntPtr ptr = fileNames;
                 int i = 0;
                 foreach (string str in fileList) {
@@ -197,8 +197,8 @@ namespace ABB.SrcML {
             /// two dimensional array that can be passed into the cpp .dll
             /// </summary>
             /// <param name="bufferList"></param>
-            public void SetArchiveBuffer(IEnumerable<String> bufferList) {
-                buffer = Marshal.AllocHGlobal(bufferList.Count() * Marshal.SizeOf(typeof(IntPtr)));
+            public void SetArchiveBuffer(ICollection<String> bufferList) {
+                buffer = Marshal.AllocHGlobal(bufferList.Count * Marshal.SizeOf(typeof(IntPtr)));
                 bufferSize = Marshal.AllocHGlobal(bufferList.Count() * Marshal.SizeOf(typeof(IntPtr)));
                 IntPtr buffptr = buffer;
                 IntPtr numptr = bufferSize;
@@ -245,14 +245,14 @@ namespace ABB.SrcML {
             /// </summary>
             /// <param name="option"></param>
             public void EnableOption(UInt32 srcOption) {
-                optionEnable = srcOption;
+                optionEnable |= srcOption;
             }
             /// <summary>
             /// Disable an option
             /// </summary>
             /// <param name="option"></param>
             public void DisableOption(UInt32 srcOption) {
-                optionDisable = srcOption;
+                optionDisable ^= srcOption;
             }
             /// <summary>
             /// Register a file extension to be used with a particular language
@@ -349,7 +349,7 @@ namespace ABB.SrcML {
         /// <param name="language">The language to use</param>
         /// <param name="namespaceArguments">additional arguments</param>
         /// <param name="extensionMapping">an extension mapping</param>
-        public void GenerateSrcMLFromFile(string fileName, string xmlFileName, Language language, IEnumerable<UInt32> namespaceArguments, Dictionary<string, Language> extensionMapping) {
+        public void GenerateSrcMLFromFile(string fileName, string xmlFileName, Language language, ICollection<UInt32> namespaceArguments, Dictionary<string, Language> extensionMapping) {
             try {
                 GenerateSrcMLFromFiles(new List<string>() { fileName }, xmlFileName, language, namespaceArguments, extensionMapping);
             }
@@ -365,7 +365,7 @@ namespace ABB.SrcML {
         /// <param name="language">The language to use</param>
         /// <param name="namespaceArguments">additional arguments</param>
         /// <param name="extensionMapping">an extension mapping</param>
-        public void GenerateSrcMLFromFiles(IEnumerable<string> fileNames, string xmlFileName, Language language, IEnumerable<UInt32> namespaceArguments, Dictionary<string, Language> extensionMapping) {
+        public void GenerateSrcMLFromFiles(ICollection<string> fileNames, string xmlFileName, Language language, ICollection<UInt32> namespaceArguments, Dictionary<string, Language> extensionMapping) {
             UInt32 arguments = GenerateArguments(namespaceArguments);
             try {
                 LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
@@ -396,7 +396,7 @@ namespace ABB.SrcML {
         /// <param name="namespaceArguments">additional arguments</param>
         /// <param name="omitXmlDeclaration">If true, the XML header is omitted</param>
         /// <returns>The srcML</returns>
-        public List<string> GenerateSrcMLFromStrings(IEnumerable<string> sources, IEnumerable<string> unitFilename, Language language, IEnumerable<UInt32> namespaceArguments, bool omitXmlDeclaration) {
+        public ICollection<string> GenerateSrcMLFromStrings(ICollection<string> sources, ICollection<string> unitFilename, Language language, ICollection<UInt32> namespaceArguments, bool omitXmlDeclaration) {
             if (omitXmlDeclaration) {
                 //arguments.Add("--no-xml-declaration");
             }
@@ -437,7 +437,7 @@ namespace ABB.SrcML {
         /// <param name="namespaceArguments">additional arguments</param>
         /// <param name="omitXmlDeclaration">If true, the XML header is omitted</param>
         /// <returns>The srcML</returns>
-        public string GenerateSrcMLFromString(string source, string unitFilename, Language language, IEnumerable<UInt32> namespaceArguments, bool omitXmlDeclaration) {
+        public string GenerateSrcMLFromString(string source, string unitFilename, Language language, ICollection<UInt32> namespaceArguments, bool omitXmlDeclaration) {
             if (omitXmlDeclaration) {
                 //arguments.Add("--no-xml-declaration");
             }
@@ -457,7 +457,7 @@ namespace ABB.SrcML {
         /// <param name="namespaceArguments">additional arguments</param>
         /// <param name="extensionMapping">a mapping of file extensions to languages</param>
         /// <returns>A collection of command line arguments</returns>
-        private static UInt32 GenerateArguments(IEnumerable<UInt32> namespaceArguments) {
+        private static UInt32 GenerateArguments(ICollection<UInt32> namespaceArguments) {
             UInt32 arguments = 0;
 
             if (namespaceArguments == null) throw new ArgumentNullException("namespaceArguments");
