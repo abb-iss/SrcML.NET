@@ -7,19 +7,21 @@ using namespace System::Runtime::InteropServices;
 #include <fstream>
 #include <iostream>
 namespace LibSrcMLWrapper {
-    public struct SourceData {
+    public struct UnitData{
         char* encoding;
-        char* src_encoding;
         char* revision;
         char* language;
-        char** filename;
+        char* filename;
         char* url;
         char* version;
         char* timestamp;
         char* hash;
-        char** buffer;
-        int buffercount;
-        int* buffersize;
+        int eol;
+        char* buffer;
+        int bufferSize;
+    };
+    public struct SourceData {
+        int unitCount;
         int tabstop;
         unsigned long optionSet;
         unsigned long optionEnable;
@@ -28,7 +30,12 @@ namespace LibSrcMLWrapper {
         char** prefixandnamespace;
         char** targetanddata;
         char** tokenandtype;
-        int eol;
+        char* url;
+        char* language;
+        char* version;
+        char* srcEncoding;
+        char* xmlEncoding;
+        UnitData* units;
     };
     /// <summary>
     /// Utility function that trims from the right of a string. For now it's just solving a weird issue with srcML

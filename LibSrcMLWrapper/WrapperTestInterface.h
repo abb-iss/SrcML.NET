@@ -1,11 +1,11 @@
 #include "stdafx.h"
 using System::String;
 extern"C"{
-    __declspec(dllexport) inline bool TestArchiveSetXmlEncoding(LibSrcMLWrapper::SourceData** sd){
+    __declspec(dllexport) inline bool TestArchiveSetSrcEncoding(LibSrcMLWrapper::SourceData** sd){
         struct srcml_archive* archive;
         archive = srcml_archive_create();
-        srcml_archive_set_xml_encoding(archive, sd[0]->encoding);
-        if (srcml_archive_get_xml_encoding(archive)){
+        srcml_archive_set_src_encoding(archive, sd[0]->srcEncoding);
+        if (srcml_archive_get_src_encoding(archive)){
             srcml_archive_close(archive);
             srcml_archive_free(archive);
             return true;
@@ -16,11 +16,13 @@ extern"C"{
             return false;
         }
     }
-    __declspec(dllexport) inline bool TestArchiveSetSrcEncoding(LibSrcMLWrapper::SourceData** sd){
+
+
+    __declspec(dllexport) inline bool TestArchiveSetXmlEncoding(LibSrcMLWrapper::SourceData** sd){
         struct srcml_archive* archive;
         archive = srcml_archive_create();
-        srcml_archive_set_src_encoding(archive, sd[0]->src_encoding);
-        if (srcml_archive_get_src_encoding(archive)){
+        srcml_archive_set_xml_encoding(archive, sd[0]->xmlEncoding);
+        if (srcml_archive_get_xml_encoding(archive)){
             srcml_archive_close(archive);
             srcml_archive_free(archive);
             return true;
@@ -209,9 +211,9 @@ extern"C"{
         archive = srcml_archive_create();
         struct srcml_unit *unit;
         unit = srcml_unit_create(archive);
-        srcml_unit_set_filename(unit, sd[0]->filename[0]);
+        srcml_unit_set_filename(unit, sd[0]->units[0].filename);
         const char* ufname = srcml_unit_get_filename(unit);
-        if (std::strcmp(sd[0]->filename[0], ufname) == 0){
+        if (std::strcmp(sd[0]->units[0].filename, ufname) == 0){
             srcml_unit_free(unit);
             srcml_archive_close(archive);
             srcml_archive_free(archive);
@@ -229,9 +231,9 @@ extern"C"{
         archive = srcml_archive_create();
         struct srcml_unit *unit;
         unit = srcml_unit_create(archive);
-        srcml_unit_set_language(unit, sd[0]->language);
+        srcml_unit_set_language(unit, sd[0]->units[0].language);
         const char* lang = srcml_unit_get_language(unit);
-        if (std::strcmp(sd[0]->language, lang) == 0){
+        if (std::strcmp(sd[0]->units[0].language, lang) == 0){
             srcml_unit_free(unit);
             srcml_archive_close(archive);
             srcml_archive_free(archive);
@@ -249,7 +251,7 @@ extern"C"{
         archive = srcml_archive_create();
         struct srcml_unit *unit;
         unit = srcml_unit_create(archive);
-        srcml_unit_set_src_encoding(unit, sd[0]->src_encoding);
+        srcml_unit_set_src_encoding(unit, sd[0]->units[0].encoding);
         if (std::strcmp(srcml_unit_get_src_encoding(unit), "UTF-8") == 0){
             srcml_unit_free(unit);
             srcml_archive_close(archive);
@@ -268,7 +270,7 @@ extern"C"{
         archive = srcml_archive_create();
         struct srcml_unit *unit;
         unit = srcml_unit_create(archive);
-        srcml_unit_set_url(unit, sd[0]->url);
+        srcml_unit_set_url(unit, sd[0]->units[0].url);
         if (std::strcmp(srcml_unit_get_url(unit), "www.abb.com") == 0){
             srcml_unit_free(unit);
             srcml_archive_close(archive);
@@ -287,7 +289,7 @@ extern"C"{
         archive = srcml_archive_create();
         struct srcml_unit *unit;
         unit = srcml_unit_create(archive);
-        srcml_unit_set_version(unit, sd[0]->version);
+        srcml_unit_set_version(unit, sd[0]->units[0].version);
         if (std::strcmp(srcml_unit_get_version(unit), "1.0") == 0){
             srcml_unit_free(unit);
             srcml_archive_close(archive);
@@ -306,7 +308,7 @@ extern"C"{
         archive = srcml_archive_create();
         struct srcml_unit *unit;
         unit = srcml_unit_create(archive);
-        srcml_unit_set_timestamp(unit, sd[0]->timestamp);
+        srcml_unit_set_timestamp(unit, sd[0]->units[0].timestamp);
         if (std::strcmp(srcml_unit_get_timestamp(unit), "0800") == 0){
             srcml_unit_free(unit);
             srcml_archive_close(archive);
@@ -325,7 +327,7 @@ extern"C"{
         archive = srcml_archive_create();
         struct srcml_unit *unit;
         unit = srcml_unit_create(archive);
-        srcml_unit_set_hash(unit, sd[0]->hash);
+        srcml_unit_set_hash(unit, sd[0]->units[0].hash);
         if (std::strcmp(srcml_unit_get_hash(unit), "hash") == 0){
             srcml_unit_free(unit);
             srcml_archive_close(archive);
@@ -344,7 +346,7 @@ extern"C"{
         archive = srcml_archive_create();
         struct srcml_unit *unit;
         unit = srcml_unit_create(archive);
-        if (srcml_unit_unparse_set_eol(unit, sd[0]->eol)){
+        if (srcml_unit_unparse_set_eol(unit, sd[0]->units[0].eol)){
             srcml_unit_free(unit);
             srcml_archive_close(archive);
             srcml_archive_free(archive);

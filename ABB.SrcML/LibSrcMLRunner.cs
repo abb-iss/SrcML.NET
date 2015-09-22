@@ -6,13 +6,14 @@ using System.Text;
 using System.Runtime.InteropServices;
 using System.Collections.ObjectModel;
 using ABB.SrcML.Utilities;
+using System.Diagnostics.Contracts;
 using System.IO;
 namespace ABB.SrcML {
     /// <summary>
     /// C#-facing API for libsrcml
     /// </summary>
     [CLSCompliant(false)]
-    public class LibSrcMLRunner {
+    public class LibSrcMLRunner : IDisposable {
         public const string LIBSRCMLPATH = "LibSrcMLWrapper.dll";
         public static Dictionary<Language, string> LanguageEnumDictionary = new Dictionary<Language, string>() {
                 {Language.Any, SrcMLLanguages.SRCML_LANGUAGE_NONE },
@@ -101,12 +102,8 @@ namespace ABB.SrcML {
             /** string for language XML */
             public const string SRCML_LANGUAGE_XML = "xml";
         }
-        /// <summary>
-        /// Carries data between C# and C++ for srcML's archives
-        /// </summary>
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        public struct SourceData : IDisposable {
-            private IntPtr encoding;
+        public struct UnitData : IDisposable {
             private IntPtr srcEncoding;
             private IntPtr revision;
             private IntPtr language;
@@ -115,115 +112,60 @@ namespace ABB.SrcML {
             private IntPtr version;
             private IntPtr timestamp;
             private IntPtr hash;
-            private IntPtr buffer;
-            private int bufferCount;
-            private IntPtr bufferSize;
-            private int tabStop;
-            [MarshalAs(UnmanagedType.U4)]
-            private UInt32 optionSet;
-            [MarshalAs(UnmanagedType.U4)]
-            private UInt32 optionEnable;
-            [MarshalAs(UnmanagedType.U4)]
-            private UInt32 optionDisable;
-            private IntPtr extAndLanguage;
-            private IntPtr prefixAndNamespace;
-            private IntPtr targetAndData;
-            private IntPtr tokenAndType;
             private int eol;
-
-            #region ArchiveAndUnitModificationFunctions
+            private IntPtr buffer;
+            private int bufferSize;
             /// <summary>
             /// Sets the encoding for source code
             /// </summary>
             /// <param name="sourceEncoding">The encoding to be set</param>
-            public void SetArchiveSrcEncoding(string sourceEncoding) {
+            public void SetUnitSrcEncoding(string sourceEncoding) {
                 srcEncoding = Marshal.StringToHGlobalAnsi(sourceEncoding);
-            }
-            /// <summary>
-            /// Sets the xml encoding for the archive
-            /// </summary>
-            /// <param name="xmlEncoding">The chosen encoding</param>
-            public void SetArchiveXmlEncoding(string xmlEncoding) {
-                encoding = Marshal.StringToHGlobalAnsi(xmlEncoding);
             }
             /// <summary>
             /// Language that srcML should assume for the given document(s)
             /// </summary>
             /// <param name="lang">The chosen language</param>
-            public void SetArchiveLanguage(string lang) {
+            public void SetUnitLanguage(string lang) {
                 language = Marshal.StringToHGlobalAnsi(lang);
             }
-            /// <summary>
-            /// Name for the archive being created. This gets set on the <unit>. This version takes a list
-            /// of file names. These must be in order (in synch with the buffer's list). Otherwise, the
-            /// wrong file name will be assigned to units.
-            /// </summary>
-            /// <param name="fname">Chosen name for file</param>
-            public void SetArchiveFilename(ICollection<String> fileList) {
-                filenames = Marshal.AllocHGlobal(fileList.Count * Marshal.SizeOf(typeof(IntPtr)));
-                IntPtr ptr = filenames;
-                int i = 0;
-                foreach (string str in fileList) {
-                    ++i;
-                    Marshal.WriteIntPtr(ptr, Marshal.StringToHGlobalAnsi(str));
-                    ptr += Marshal.SizeOf(typeof(IntPtr));
-                }
-                bufferCount = i;
-            }
+
             /// <summary>
             /// Name for the archive being created. This gets set on the <unit>. This version takes a single
             /// file name and points an IntPtr at it.
             /// </summary>
-            /// <param name="fname">Chosen name for file</param>
-            public void SetArchiveFilename(String filename) {
-                SetArchiveFilename(new List<string>() { filename });
+            /// <param name="filename">Chosen name for file</param>
+            public void SetUnitFilename(string filename) {
+                filenames = Marshal.StringToHGlobalAnsi(filename);
             }
             /// <summary>
             /// URL for namespace in archive
             /// </summary>
             /// <param name="srcUrl">Chosen URL</param>
-            public void SetArchiveUrl(string srcUrl) {
+            public void SetUnitUrl(string srcUrl) {
                 url = Marshal.StringToHGlobalAnsi(srcUrl);
             }
             /// <summary>
             /// Version of srcML that generated this archive
             /// </summary>
             /// <param name="srcVersion">Version number</param>
-            public void SetArchiveSrcVersion(string srcVersion) {
+            public void SetUnitSrcVersion(string srcVersion) {
                 version = Marshal.StringToHGlobalAnsi(srcVersion);
             }
             /// <summary>
-            /// Function takes a list of strings (that represent some source code) and manually lays it out into a 
-            /// two dimensional array that can be passed into the cpp .dll
+            /// Function takes a string (that represents some source code) and marhals it into a buffer
             /// </summary>
-            /// <param name="bufferList"></param>
-            public void SetArchiveBuffer(ICollection<String> bufferList) {
-                buffer = Marshal.AllocHGlobal(bufferList.Count * Marshal.SizeOf(typeof(IntPtr)));
-                bufferSize = Marshal.AllocHGlobal(bufferList.Count() * Marshal.SizeOf(typeof(IntPtr)));
-                IntPtr buffptr = buffer;
-                IntPtr numptr = bufferSize;
-                int i = 0;
-                foreach (string str in bufferList) {
-                    Marshal.WriteIntPtr(buffptr, Marshal.StringToHGlobalAnsi(str));
-                    buffptr += Marshal.SizeOf(typeof(IntPtr));
-                    Marshal.WriteIntPtr(numptr, new IntPtr(str.Length));
-                    numptr += Marshal.SizeOf(typeof(IntPtr));
-                    ++i;
-                }
-                bufferCount = bufferList.Count();
+            /// <param name="buf"></param>
+            public void SetUnitBuffer(string buf) {
+                buffer = Marshal.StringToHGlobalAnsi(buf);
+                bufferSize = buf.Length;
             }
-            /// <summary>
-            /// Sets the tabStop for the archive
-            /// </summary>
-            /// <param name="srcTab"></param>
-            public void SetArchiveTabstop(int srcTab) {
-                tabStop = srcTab;
-            }
+
             /// <summary>
             /// Timestamp for when archive was generated
             /// </summary>
             /// <param name="srcTimeStamp">The time</param>
-            public void SetArchiveTimestamp(string srcTimeStamp) {
+            public void SetUnitTimestamp(string srcTimeStamp) {
                 timestamp = Marshal.StringToHGlobalAnsi(srcTimeStamp);
             }
             /// <summary>
@@ -234,25 +176,99 @@ namespace ABB.SrcML {
                 hash = Marshal.StringToHGlobalAnsi(srcHash);
             }
             /// <summary>
+            /// Set end of line marker
+            /// </summary>
+            /// <param name="srcEol"></param>
+            public void UnparseSetEol(int srcEol) {
+                eol = srcEol;
+            }
+            /// <summary>
+            /// Clean up manually allocated resources
+            /// </summary>
+            public void Dispose() {
+                //Marshal.FreeHGlobal(filenames);
+                //Marshal.FreeHGlobal(buffer);
+            }
+        }
+        /// <summary>
+        /// Carries data between C# and C++ for srcML's archives
+        /// </summary>
+
+        public class Archive : IDisposable{
+            public Archive() {
+                archive = new SourceData();
+                units = new List<UnitData>();
+            }
+            [StructLayout(LayoutKind.Sequential, Pack = 1)]
+            internal struct SourceData : IDisposable {
+                internal int unitCount;
+                internal int tabStop;
+                [MarshalAs(UnmanagedType.U4)]
+                internal UInt32 optionSet;
+                [MarshalAs(UnmanagedType.U4)]
+                internal UInt32 optionEnable;
+                [MarshalAs(UnmanagedType.U4)]
+                internal UInt32 optionDisable;
+                internal IntPtr extAndLanguage;
+                internal IntPtr prefixAndNamespace;
+                internal IntPtr targetAndData;
+                internal IntPtr tokenAndType;
+                internal IntPtr url;
+                internal IntPtr language;
+                internal IntPtr version;
+                internal IntPtr srcEncoding;
+                internal IntPtr xmlEncoding;
+                internal IntPtr listOfUnits;
+                public void Dispose() {
+                    /*
+                    for (int i = 0; i < unitCount; ++i) {
+                        IntPtr ptr = Marshal.ReadIntPtr(listOfUnits);
+                        UnitData dat = (UnitData)Marshal.PtrToStructure(ptr, typeof(UnitData));
+                        ptr += Marshal.SizeOf(typeof(IntPtr));
+                        dat.Dispose();
+                    }*/
+                }
+            }
+            #region ArchiveAndUnitModificationFunctions
+            /// <summary>
             /// Set an option to be used by the parser on the archive
             /// </summary>
             /// <param name="srcOption"></param>
             public void SetOptions(UInt32 srcOption) {
-                optionSet = srcOption;
+                archive.optionSet = srcOption;
             }
             /// <summary>
             /// Set an option to be enabled
             /// </summary>
             /// <param name="option"></param>
             public void EnableOption(UInt32 srcOption) {
-                optionEnable |= srcOption;
+                archive.optionEnable |= srcOption;
             }
             /// <summary>
             /// Disable an option
             /// </summary>
             /// <param name="option"></param>
             public void DisableOption(UInt32 srcOption) {
-                optionDisable ^= srcOption;
+                archive.optionDisable ^= srcOption;
+            }
+            /// <summary>
+            /// Disable an option
+            /// </summary>
+            /// <param name="option"></param>
+            public void SetArchiveUrl(string srcurl) {
+                archive.url = Marshal.StringToHGlobalAnsi(srcurl);
+            }
+            public void SetArchiveLanguage(string lang) {
+                archive.language = Marshal.StringToHGlobalAnsi(lang);
+            }
+            public void SetArchiveSrcVersion(string version) {
+                archive.version = Marshal.StringToHGlobalAnsi(version);
+            }
+            public void SetArchiveSrcEncoding(string encoding) {
+                archive.srcEncoding = Marshal.StringToHGlobalAnsi(encoding);
+            }
+            public void SetArchiveXmlEncoding(string encoding) {
+                archive.xmlEncoding = Marshal.StringToHGlobalAnsi(encoding);
             }
             /// <summary>
             /// Register a file extension to be used with a particular language
@@ -260,9 +276,9 @@ namespace ABB.SrcML {
             /// <param name="extension">The extension string (IE; cpp, cs, java)</param>
             /// <param name="language">Language attributed with extension (IE; C++, C#, Java)</param>
             public void RegisterFileExtension(string extension, string language) {
-                extAndLanguage = Marshal.AllocHGlobal(2 * Marshal.SizeOf(typeof(IntPtr)));
-               
-                IntPtr ptr = extAndLanguage;
+                archive.extAndLanguage = Marshal.AllocHGlobal(2 * Marshal.SizeOf(typeof(IntPtr)));
+
+                IntPtr ptr = archive.extAndLanguage;
                 Marshal.WriteIntPtr(ptr, Marshal.StringToHGlobalAnsi(extension));
 
                 ptr += Marshal.SizeOf(typeof(IntPtr));
@@ -275,9 +291,9 @@ namespace ABB.SrcML {
             /// <param name="prefix"></param>
             /// <param name="ns"></param>
             public void RegisterNamespace(string prefix, string ns) {
-                prefixAndNamespace = Marshal.AllocHGlobal(2 * Marshal.SizeOf(typeof(IntPtr)));
+                archive.prefixAndNamespace = Marshal.AllocHGlobal(2 * Marshal.SizeOf(typeof(IntPtr)));
 
-                IntPtr ptr = prefixAndNamespace;
+                IntPtr ptr = archive.prefixAndNamespace;
                 Marshal.WriteIntPtr(ptr, Marshal.StringToHGlobalAnsi(prefix));
 
                 ptr += Marshal.SizeOf(typeof(IntPtr));
@@ -289,9 +305,9 @@ namespace ABB.SrcML {
             /// <param name="target"></param>
             /// <param name="data"></param>
             public void SetProcessingInstruction(string target, string data) {
-                targetAndData = Marshal.AllocHGlobal(2 * Marshal.SizeOf(typeof(IntPtr)));
+                archive.targetAndData = Marshal.AllocHGlobal(2 * Marshal.SizeOf(typeof(IntPtr)));
 
-                IntPtr ptr = targetAndData;
+                IntPtr ptr = archive.targetAndData;
                 Marshal.WriteIntPtr(ptr, Marshal.StringToHGlobalAnsi(target));
 
                 ptr += Marshal.SizeOf(typeof(IntPtr));
@@ -303,43 +319,53 @@ namespace ABB.SrcML {
             /// <param name="token"></param>
             /// <param name="type"></param>
             public void RegisterMacro(string token, string type) {
-                tokenAndType = Marshal.AllocHGlobal(2 * Marshal.SizeOf(typeof(IntPtr)));
+                archive.tokenAndType = Marshal.AllocHGlobal(2 * Marshal.SizeOf(typeof(IntPtr)));
 
-                IntPtr ptr = tokenAndType;
+                IntPtr ptr = archive.tokenAndType;
                 Marshal.WriteIntPtr(ptr, Marshal.StringToHGlobalAnsi(token));
 
                 ptr += Marshal.SizeOf(typeof(IntPtr));
                 Marshal.WriteIntPtr(ptr, Marshal.StringToHGlobalAnsi(type));
             }
+
             /// <summary>
-            /// Set end of line marker
+            /// Sets the tabStop for the archive
             /// </summary>
-            /// <param name="srcEol"></param>
-            public void UnparseSetEol(int srcEol) {
-                eol = srcEol;
+            /// <param name="srcTab"></param>
+            public void SetArchiveTabstop(int srcTab) {
+                archive.tabStop = srcTab;
             }
             #endregion
             /// <summary>
-            /// Clean up manually allocated resources
+            /// Marshal's the given object and returns an IntPtr to that object
             /// </summary>
-            public void Dispose() {
-                Marshal.FreeHGlobal(buffer);
-                Marshal.FreeHGlobal(bufferSize);
-                Marshal.FreeHGlobal(filenames);
+            /// <returns>Pointer to internal data</returns>
+            public IntPtr GetPtrToStruct() {
+                IntPtr ptr = Marshal.AllocHGlobal(Marshal.SizeOf(archive));
+                Marshal.StructureToPtr(archive, ptr, false);
+                return ptr;
+            }
+            public void AddUnit(UnitData unit) {
+                units.Add(unit);
+            }
+            public void ArchivePack() {
+                archive.listOfUnits = Marshal.AllocHGlobal(units.Count * Marshal.SizeOf(typeof(UnitData)));
+                IntPtr unitptr = archive.listOfUnits;
+                foreach (UnitData str in units) {
+                    Marshal.StructureToPtr(str, unitptr, false);
+                    unitptr += Marshal.SizeOf(typeof(UnitData));
+                }
+                archive.unitCount = units.Count;
+            }
+            internal SourceData archive;
+            internal List<UnitData> units;
 
+            public void Dispose() {
+                //hm
             }
         }
-        /// <summary>
-        /// Marshal's the given object and returns an IntPtr to that object
-        /// </summary>
-        /// <param name="ad">Object to be marshaled</param>
-        /// <returns></returns>
-        public static IntPtr CreatePtrFromStruct(LibSrcMLRunner.SourceData ad) {
-            int size = Marshal.SizeOf(ad);
-            IntPtr ptr = Marshal.AllocHGlobal(Marshal.SizeOf(ad));
-            Marshal.StructureToPtr(ad, ptr, false);
-            return ptr;
-        }
+
+
 
         /// <summary>
         /// Generates srcML from a file
@@ -354,7 +380,7 @@ namespace ABB.SrcML {
                 GenerateSrcMLFromFiles(new List<string>() { fileName }, xmlFileName, language, namespaceArguments, extensionMapping);
             }
             catch (Exception e) {
-                throw new SrcMLException(e.Message, e);
+                throw new SrcMLException("error");
             }
         }
         /// <summary>
@@ -368,25 +394,27 @@ namespace ABB.SrcML {
         public void GenerateSrcMLFromFiles(ICollection<string> fileNames, string xmlFileName, Language language, ICollection<UInt32> namespaceArguments, Dictionary<string, Language> extensionMapping) {
             UInt32 arguments = GenerateArguments(namespaceArguments);
             try {
-                LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
-                ad.SetArchiveFilename(fileNames);
-                ad.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
-
-                List<LibSrcMLRunner.SourceData> data = new List<LibSrcMLRunner.SourceData>();
-                data.Add(ad);
-
-                IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
-
-                List<IntPtr> structArrayPtr = new List<IntPtr>();
-                structArrayPtr.Add(structPtr);
-
-                LibSrcMLRunner.SrcmlCreateArchiveFtF(structArrayPtr.ToArray(), structArrayPtr.Count(), xmlFileName);
+                using (LibSrcMLRunner.Archive srcmlarchive = new LibSrcMLRunner.Archive()) {
+                    foreach(string file in fileNames){
+                        using (LibSrcMLRunner.UnitData srcmlunit = new LibSrcMLRunner.UnitData()) {
+                            //Does this look right?
+                            srcmlunit.SetUnitFilename(file);
+                            srcmlunit.SetUnitLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
+                            srcmlarchive.AddUnit(srcmlunit);
+                        }
+                    }
+                    srcmlarchive.ArchivePack();
+                    IntPtr structPtr = srcmlarchive.GetPtrToStruct();
+                    List<IntPtr> structArrayPtr = new List<IntPtr>();
+                    structArrayPtr.Add(structPtr);
+                    LibSrcMLRunner.SrcmlCreateArchiveFtF(structArrayPtr.ToArray(), structArrayPtr.Count(), xmlFileName);
+                }
             }
             catch (Exception e) {
                 throw new SrcMLException(e.Message, e);
             }
         }
-
+        
         /// <summary>
         /// Generates srcML from the given string of source code
         /// </summary>
@@ -396,36 +424,44 @@ namespace ABB.SrcML {
         /// <param name="namespaceArguments">additional arguments</param>
         /// <param name="omitXmlDeclaration">If true, the XML header is omitted</param>
         /// <returns>The srcML</returns>
+        
         public ICollection<string> GenerateSrcMLFromStrings(ICollection<string> sources, ICollection<string> unitFilename, Language language, ICollection<UInt32> namespaceArguments, bool omitXmlDeclaration) {
+            Contract.Requires(sources.Count == unitFilename.Count);
             try {
-                using (LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData()) {
-                    if (omitXmlDeclaration) {
-                        ad.DisableOption(LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_XML_DECL);
-                    }
-                    ad.SetArchiveBuffer(sources);
-                    ad.SetArchiveFilename(unitFilename);
-                    ad.SetArchiveLanguage(LanguageEnumDictionary[language]); //need to correspond between Language enum and srcmloptions
-                    ad.EnableOption(GenerateArguments(namespaceArguments));
-                    IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+                using (LibSrcMLRunner.Archive srcmlarchive = new LibSrcMLRunner.Archive()) {
+                    for(int i = 0; i< sources.Count; ++i){
+                        using (LibSrcMLRunner.UnitData srcmlunit = new LibSrcMLRunner.UnitData()) {
+                            if (omitXmlDeclaration) {
+                                srcmlarchive.DisableOption(LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_XML_DECL);
+                            }
+                            srcmlunit.SetUnitBuffer(sources.ElementAt(i));
+                            srcmlunit.SetUnitFilename(unitFilename.ElementAt(i));
+                            srcmlarchive.SetArchiveLanguage(LanguageEnumDictionary[language]); //need to correspond between Language enum and srcmloptions
+                            srcmlarchive.EnableOption(GenerateArguments(namespaceArguments));
+                            IntPtr structPtr = srcmlarchive.GetPtrToStruct();
 
-                    List<IntPtr> structArrayPtr = new List<IntPtr>();
-                    structArrayPtr.Add(structPtr);
-                    IntPtr s = LibSrcMLRunner.SrcmlCreateArchiveMtM(structArrayPtr.ToArray(), structArrayPtr.Count());
+                            List<IntPtr> structArrayPtr = new List<IntPtr>();
+                            structArrayPtr.Add(structPtr);
+                            IntPtr s = LibSrcMLRunner.SrcmlCreateArchiveMtM(structArrayPtr.ToArray(), structArrayPtr.Count());
 
-                    List<String> documents = new List<String>();
-                    for (int i = 0; i < 1; ++i) {
-                        IntPtr docptr = Marshal.ReadIntPtr(s);
-                        String docstr = Marshal.PtrToStringAnsi(docptr);
-                        Marshal.FreeHGlobal(docptr);
-                        documents.Add(docstr);
-                        s += Marshal.SizeOf(typeof(IntPtr));
+                            List<String> documents = new List<String>();
+                            for (int k = 0; k < sources.Count; ++k) {
+                                IntPtr docptr = Marshal.ReadIntPtr(s);
+                                String docstr = Marshal.PtrToStringAnsi(docptr);
+                                Marshal.FreeHGlobal(docptr);
+                                documents.Add(docstr);
+                                s += Marshal.SizeOf(typeof(IntPtr));
+                            }
+                            return documents;
+                        }
                     }
-                    return documents;
+
                 }
             }
             catch (Exception e) {
                 throw new SrcMLException(e.Message, e);
             }
+            return null;
         }
         /// <summary>
         /// Generates srcML from the given string of source code
@@ -562,6 +598,54 @@ namespace ABB.SrcML {
 
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
         public static extern bool TestUnitUnparseSetEol(IntPtr[] sd);
+
+        [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern bool TestUnitSetXmlEncoding(IntPtr[] sd);
         #endregion
+
+        public void Dispose() {
+            //throw new NotImplementedException();
+        }
     }
 }
+/*
+            /// <summary>
+            /// Function takes a list of strings (that represent some source code) and manually lays it out into a 
+            /// two dimensional array that can be passed into the cpp .dll
+            /// </summary>
+            /// <param name="bufferList"></param>
+            public void SetArchiveBuffer(ICollection<String> bufferList) {
+                buffer = Marshal.AllocHGlobal(bufferList.Count * Marshal.SizeOf(typeof(IntPtr)));
+                bufferSize = Marshal.AllocHGlobal(bufferList.Count() * Marshal.SizeOf(typeof(IntPtr)));
+                IntPtr buffptr = buffer;
+                IntPtr numptr = bufferSize;
+                int i = 0;
+                foreach (string str in bufferList) {
+                    Marshal.WriteIntPtr(buffptr, Marshal.StringToHGlobalAnsi(str));
+                    buffptr += Marshal.SizeOf(typeof(IntPtr));
+                    Marshal.WriteIntPtr(numptr, new IntPtr(str.Length));
+                    numptr += Marshal.SizeOf(typeof(IntPtr));
+                    ++i;
+                }
+                unitCount = bufferList.Count();
+            }
+*/
+/// <summary>
+/// Name for the archive being created. This gets set on the <unit>. This version takes a list
+/// of file names. These must be in order (in synch with the buffer's list). Otherwise, the
+/// wrong file name will be assigned to units.
+/// </summary>
+/// <param name="fname">Chosen name for file</param>
+/// 
+/*
+public void SetUnitFilename(ICollection<String> fileList) {
+    filenames = Marshal.AllocHGlobal(fileList.Count * Marshal.SizeOf(typeof(IntPtr)));
+    IntPtr ptr = filenames;
+    int i = 0;
+    foreach (string str in fileList) {
+        ++i;
+        Marshal.WriteIntPtr(ptr, Marshal.StringToHGlobalAnsi(str));
+        ptr += Marshal.SizeOf(typeof(IntPtr));
+    }
+    unitCount = i;
+}*/

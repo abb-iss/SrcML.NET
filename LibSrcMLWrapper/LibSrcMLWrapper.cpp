@@ -5,6 +5,7 @@ using namespace System;
 using namespace System::Runtime::InteropServices;
 
 extern"C"{
+    /*
     void SetArchiveData(srcml_archive* archive, LibSrcMLWrapper::SourceData* sd){
         if (sd->src_encoding){
             srcml_archive_set_src_encoding(archive, sd->src_encoding);
@@ -48,9 +49,9 @@ extern"C"{
         if (sd->eol){
             srcml_unparse_set_eol(sd->eol);
         }
-    }
+    }*/
+    /*
     void SetUnitData(srcml_unit* unit, LibSrcMLWrapper::SourceData* sd){
-        /* Setup options for srcml unit.*/
         if (sd->language){
             srcml_unit_set_language(unit, sd->language);
         }
@@ -72,7 +73,7 @@ extern"C"{
         if (sd->eol){
             srcml_unit_unparse_set_eol(unit, sd->eol);
         }
-    }
+    }*/
     /// <summary>
     /// This creates an archive from a list of files and saves to a file
     /// </summary>
@@ -86,7 +87,7 @@ extern"C"{
         for (int i = 0; i < argc; ++i){
             /*create a new srcml archive structure */
             archive = srcml_archive_create();
-            SetArchiveData(archive, sd[i]);
+           // SetArchiveData(archive, sd[i]);
 
             std::string filename(outputFile);
             filename += std::to_string(i) + ".cpp.xml";
@@ -95,18 +96,19 @@ extern"C"{
             srcml_archive_write_open_filename(archive, filename.c_str(), 0);
 
             /* add all the files to the archive */
-            for (int k = 0; k < sd[i]->buffercount; ++k) {
+            for (int k = 0; k < sd[i]->unitCount; ++k) {
 
                 unit = srcml_unit_create(archive);
 
                 /*Set all srcML options provided through sd*/
-                SetUnitData(unit, sd[i]);
+                //SetUnitData(unit, sd[i]);
 
                 /*Set filename for unit*/
-                srcml_unit_set_filename(unit, sd[i]->filename[k]);
+                Console::WriteLine(String::Format("could not parse file {0}. SrcML returned with status {1}", gcnew String(sd[i]->units[k].filename), srcmlreturncode));
+                srcml_unit_set_filename(unit, sd[i]->units[k].filename);
 
                 /*Translate to srcml and append to the archive */
-                srcmlreturncode = srcml_unit_parse_filename(unit, sd[i]->filename[k]);
+                srcmlreturncode = srcml_unit_parse_filename(unit, sd[i]->units[k].filename);
 
                 /*Translate to srcml and append to the archive */
                 srcml_write_unit(archive, unit);
@@ -115,7 +117,7 @@ extern"C"{
                 if (srcmlreturncode){
                     srcml_archive_close(archive);
                     srcml_archive_free(archive);
-                    Exception^ error = gcnew Exception(String::Format("could not parse file {0}. SrcML returned with status {1}", gcnew String(sd[i]->filename[k]), srcmlreturncode));
+                    Exception^ error = gcnew Exception(String::Format("could not parse file {0}. SrcML returned with status {1}", gcnew String(sd[i]->units[k].filename), srcmlreturncode));
                     throw error;
                 }
             }
@@ -140,7 +142,7 @@ extern"C"{
         for (int i = 0; i < argc; ++i){
             /* create a new srcml archive structure */
             archive = srcml_archive_create();
-            SetArchiveData(archive, sd[i]);
+            //SetArchiveData(archive, sd[i]);
 
             /* open a srcML archive for output */
             std::string filename(outputFile);
@@ -149,20 +151,20 @@ extern"C"{
             /*open a srcML archive for output */
             srcml_archive_write_open_filename(archive, filename.c_str(), 0);
 
-            for (int j = 0; j < sd[i]->buffercount; ++j){
+            for (int k = 0; k < sd[i]->unitCount; ++k){
 
                 /* add all the files to the archive */
 
                 unit = srcml_unit_create(archive);
 
                 /*Set all srcML options provided through sd*/
-                SetUnitData(unit, sd[i]);
+                //SetUnitData(unit, sd[i]);
 
                 /*Set filename for unit*/
-                srcml_unit_set_filename(unit, sd[i]->filename[j]);
+                srcml_unit_set_filename(unit, sd[i]->units[k].filename);
 
                 /*Parse*/
-                srcmlreturncode = srcml_unit_parse_memory(unit, sd[i]->buffer[j], sd[i]->buffersize[j]);
+                srcmlreturncode = srcml_unit_parse_memory(unit, sd[i]->units[k].buffer, sd[i]->units[k].bufferSize);
 
                 /* Translate to srcml and append to the archive */
                 srcml_write_unit(archive, unit);
@@ -170,7 +172,7 @@ extern"C"{
                 if (srcmlreturncode){
                     srcml_archive_close(archive);
                     srcml_archive_free(archive);
-                    Exception^ error = gcnew Exception(String::Format("could not parse file {0}. SrcML returned with status {1}", gcnew String(sd[i]->filename[j]), srcmlreturncode));
+                    Exception^ error = gcnew Exception(String::Format("could not parse file {0}. SrcML returned with status {1}", gcnew String(sd[i]->units[k].filename), srcmlreturncode));
                     throw error;
                 }
             }
@@ -197,23 +199,23 @@ extern"C"{
             /* create a new srcml archive structure */
             struct srcml_archive* archive;
             archive = srcml_archive_create();
-            SetArchiveData(archive, sd[i]);
+            //SetArchiveData(archive, sd[i]);
 
             /* open a srcML archive for output */
             srcml_archive_write_open_memory(archive, &pp[i], &size);
-            for (int k = 0; k < sd[i]->buffercount; ++k){
+            for (int k = 0; k < sd[i]->unitCount; ++k){
                 struct srcml_unit* unit;
                 unit = srcml_unit_create(archive);
 
                 /*Set all srcML options provided through sd*/
-                SetUnitData(unit, sd[i]);
+                //SetUnitData(unit, sd[i]);
 
                 /*Set filename for unit*/
-                srcml_unit_set_filename(unit, sd[i]->filename[k]);
+                srcml_unit_set_filename(unit, sd[i]->units[k].filename);
                 std::pair<char*, std::streamoff> bufferPair;
                 try{
                     //Read file into pair of c-string and size of the file. TODO: Error check
-                    bufferPair = LibSrcMLWrapper::ReadFileC(sd[i]->filename[k]);
+                    bufferPair = LibSrcMLWrapper::ReadFileC(sd[i]->units[k].filename);
 
                 }
                 catch (System::Exception^ e){
@@ -231,7 +233,7 @@ extern"C"{
                 if (srcmlreturncode){
                     srcml_archive_close(archive);
                     srcml_archive_free(archive);
-                    Exception^ error = gcnew Exception(String::Format("could not parse file {0}. SrcML returned with status {1}", gcnew String(sd[i]->filename[k]), srcmlreturncode));
+                    Exception^ error = gcnew Exception(String::Format("could not parse file {0}. SrcML returned with status {1}", gcnew String(sd[i]->units[k].filename), srcmlreturncode));
                     throw error;
                 }
             }
@@ -261,21 +263,21 @@ extern"C"{
             struct srcml_archive* archive;
             /* create a new srcml archive structure */
             archive = srcml_archive_create();
-            SetArchiveData(archive, sd[i]);
+            //SetArchiveData(archive, sd[i]);
             /* open a srcML archive for output */
             srcml_archive_write_open_memory(archive, &pp[i], &size);
-            for (int k = 0; k < sd[i]->buffercount; ++k){
+            for (int k = 0; k < sd[i]->unitCount; ++k){
                 struct srcml_unit* unit;
                 unit = srcml_unit_create(archive);
 
                 /*Set all srcML options provided through sd*/
-                SetUnitData(unit, sd[i]);
+                //SetUnitData(unit, sd[i]);
 
                 /*Set filename for unit*/
-                srcml_unit_set_filename(unit, sd[i]->filename[k]);
+                srcml_unit_set_filename(unit, sd[i]->units[k].filename);
 
                 /*Parse*/
-                srcmlreturncode = srcml_unit_parse_memory(unit, sd[i]->buffer[k], sd[i]->buffersize[k]);
+                srcmlreturncode = srcml_unit_parse_memory(unit, sd[i]->units[k].buffer, sd[i]->units[k].bufferSize);
 
                 /* Translate to srcml and append to the archive */
                 srcml_write_unit(archive, unit);
@@ -283,7 +285,7 @@ extern"C"{
                 if (srcmlreturncode){
                     srcml_archive_close(archive);
                     srcml_archive_free(archive);
-                    Exception^ error = gcnew Exception(String::Format("could not parse file {0}. SrcML returned with status {1}", gcnew String(sd[i]->filename[k]), srcmlreturncode));
+                    Exception^ error = gcnew Exception(String::Format("could not parse file {0}. SrcML returned with status {1}", gcnew String(sd[i]->units[k].filename), srcmlreturncode));
                     throw error;
                 }
             }
