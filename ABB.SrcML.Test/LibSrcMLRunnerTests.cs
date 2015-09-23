@@ -17,16 +17,16 @@ namespace ABB.SrcML.Test {
         private const string TestInputPath = @"..\..\TestInputs";
         [TearDown]
         public void Cleanup() {
-            //File.Delete("output0.cpp.xml");
-            // File.Delete("output1.cpp.xml");
+            File.Delete("output0.cpp.xml");
+            File.Delete("output1.cpp.xml");
         }
         /// <summary>
         /// This tests the creation of an archive using a list of source files
         /// </summary>
         [Test]
         public void TestCreateSrcMLArchiveFtF() {
-            using (LibSrcMLRunner.Archive srcmlarchive = new LibSrcMLRunner.Archive(), srcmlarchive2 = new LibSrcMLRunner.Archive()) {
-                using (LibSrcMLRunner.UnitData srcmlunit = new LibSrcMLRunner.UnitData()) {
+            using (Archive srcmlarchive = new Archive(), srcmlarchive2 = new Archive()) {
+                using (Unit srcmlunit = new Unit()) {
                     srcmlunit.SetUnitFilename(Path.Combine(TestInputPath, "input.cpp"));
                     srcmlarchive.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
                     srcmlarchive.AddUnit(srcmlunit);
@@ -87,13 +87,19 @@ namespace ABB.SrcML.Test {
         /// </summary>
         [Test]
         public void TestCreateSrcMLArchiveFtM() {
-            using (LibSrcMLRunner.Archive srcmlarchive = new LibSrcMLRunner.Archive(), srcmlarchive2 = new LibSrcMLRunner.Archive()) {
-                using (LibSrcMLRunner.UnitData srcmlunit = new LibSrcMLRunner.UnitData()) {
+            IntPtr s = new IntPtr(0);
+            List<String> documents = new List<String>();
+            using (Archive srcmlarchive = new Archive(), srcmlarchive2 = new Archive()) {
+                using (Unit srcmlunit = new Unit()) {
                     srcmlunit.SetUnitFilename(Path.Combine(TestInputPath, "input.cpp"));
-                    srcmlarchive2.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
+                    srcmlunit.SetUnitLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
+                    srcmlarchive.AddUnit(srcmlunit);
+                    srcmlarchive.ArchivePack();
 
                     srcmlunit.SetUnitFilename(Path.Combine(TestInputPath, "input2.cpp"));
-                    srcmlarchive.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
+                    srcmlunit.SetUnitLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
+                    srcmlarchive2.AddUnit(srcmlunit);
+                    srcmlarchive2.ArchivePack();
 
                     IntPtr structPtr = srcmlarchive.GetPtrToStruct();
                     IntPtr structPtr2 = srcmlarchive2.GetPtrToStruct();
@@ -101,15 +107,13 @@ namespace ABB.SrcML.Test {
                     List<IntPtr> structArrayPtr = new List<IntPtr>();
                     structArrayPtr.Add(structPtr);
                     structArrayPtr.Add(structPtr2);
-                    IntPtr s = new IntPtr(0);
+
                     try {
                         s = LibSrcMLRunner.SrcmlCreateArchiveFtM(structArrayPtr.ToArray(), structArrayPtr.Count());
                     }
                     catch (Exception e) {
                         throw new SrcMLException(e.Message, e);
                     }
-
-                    List<String> documents = new List<String>();
                     for (int i = 0; i < 2; ++i) {
                         IntPtr docptr = Marshal.ReadIntPtr(s);
                         String docstr = Marshal.PtrToStringAnsi(docptr);
@@ -117,30 +121,28 @@ namespace ABB.SrcML.Test {
                         documents.Add(docstr);
                         s += Marshal.SizeOf(typeof(IntPtr));
                     }
-
-                    Assert.False(String.IsNullOrEmpty(documents.ElementAt(0)));
-                    XDocument doc = XDocument.Parse(documents.ElementAt(0));
-                    var units = from unit in doc.Descendants(XName.Get("unit", "http://www.srcML.org/srcML/src"))
-                                where unit.Attribute("filename") != null
-                                select unit;
-                    string file = Path.Combine(TestInputPath, "input.cpp"); ;
-                    var f1 = (from ele in units
-                              where ele.Attribute("filename").Value == file
-                              select ele);
-                    Assert.AreEqual(file, f1.FirstOrDefault().Attribute("filename").Value);
-
-                    Assert.False(String.IsNullOrEmpty(documents.ElementAt(1)));
-                    XDocument doc2 = XDocument.Parse(documents.ElementAt(1));
-                    var units2 = from unit in doc2.Descendants(XName.Get("unit", "http://www.srcML.org/srcML/src"))
-                                 where unit.Attribute("filename") != null
-                                 select unit;
-                    string file2 = Path.Combine(TestInputPath, "input2.cpp"); ;
-                    var f2 = (from ele in units2
-                              where ele.Attribute("filename").Value == file2
-                              select ele);
-                    Assert.AreEqual(file2, f2.FirstOrDefault().Attribute("filename").Value);
                 }
+                Assert.False(String.IsNullOrEmpty(documents.ElementAt(0)));
+                XDocument doc = XDocument.Parse(documents.ElementAt(0));
+                var units = from unit in doc.Descendants(XName.Get("unit", "http://www.srcML.org/srcML/src"))
+                            where unit.Attribute("filename") != null
+                            select unit;
+                string file = Path.Combine(TestInputPath, "input.cpp"); ;
+                var f1 = (from ele in units
+                          where ele.Attribute("filename").Value == file
+                          select ele);
+                Assert.AreEqual(file, f1.FirstOrDefault().Attribute("filename").Value);
 
+                Assert.False(String.IsNullOrEmpty(documents.ElementAt(1)));
+                XDocument doc2 = XDocument.Parse(documents.ElementAt(1));
+                var units2 = from unit in doc2.Descendants(XName.Get("unit", "http://www.srcML.org/srcML/src"))
+                             where unit.Attribute("filename") != null
+                             select unit;
+                string file2 = Path.Combine(TestInputPath, "input2.cpp"); ;
+                var f2 = (from ele in units2
+                          where ele.Attribute("filename").Value == file2
+                          select ele);
+                Assert.AreEqual(file2, f2.FirstOrDefault().Attribute("filename").Value);
             }
         }
 
@@ -149,7 +151,7 @@ namespace ABB.SrcML.Test {
         /// </summary>
         [Test]
         public void TestCreateSrcMLArchiveMtF() {
-            using (LibSrcMLRunner.Archive srcmlarchive = new LibSrcMLRunner.Archive()) {
+            using (Archive srcmlarchive = new Archive()) {
                 List<String> BufferList = new List<String>();
                 List<String> FileList = new List<String>();
 
@@ -164,43 +166,42 @@ namespace ABB.SrcML.Test {
 
                 var buffandfile = BufferList.Zip(FileList, (b, f) => new { buf = b, file = f });
                 foreach (var pair in buffandfile) {
-                    using (LibSrcMLRunner.UnitData srcmlunit = new LibSrcMLRunner.UnitData()) {
-
+                    using (Unit srcmlunit = new Unit()) {
                         srcmlunit.SetUnitBuffer(pair.buf);
                         srcmlunit.SetUnitFilename(pair.file);
 
                         srcmlarchive.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
-
-                        IntPtr structPtr = srcmlarchive.GetPtrToStruct();
-
-                        List<IntPtr> structArrayPtr = new List<IntPtr>();
-                        structArrayPtr.Add(structPtr);
-
-                        Assert.True(LibSrcMLRunner.SrcmlCreateArchiveMtF(structArrayPtr.ToArray(), structArrayPtr.Count(), "output") == 0);
-                        Assert.True(File.Exists("output0.cpp.xml"));
-
-                        SrcMLFile srcFile = new SrcMLFile("output0.cpp.xml");
-                        Assert.IsNotNull(srcFile);
-
-                        srcmlunit.SetUnitLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
-
-                        var files = srcFile.FileUnits.ToList();
-                        Assert.AreEqual(2, files.Count());
-
-
-                        string file = "input.cpp";
-                        var f1 = (from ele in files
-                                  where ele.Attribute("filename").Value == file
-                                  select ele);
-                        Assert.AreEqual("input.cpp", f1.FirstOrDefault().Attribute("filename").Value);
-
-                        string file2 = "input2.cpp";
-                        var f2 = (from ele in files
-                                  where ele.Attribute("filename").Value == file2
-                                  select ele);
-                        Assert.AreEqual(file2, f2.FirstOrDefault().Attribute("filename").Value);
+                        srcmlarchive.AddUnit(srcmlunit);
                     }
                 }
+                srcmlarchive.ArchivePack();
+
+                IntPtr structPtr = srcmlarchive.GetPtrToStruct();
+
+                List<IntPtr> structArrayPtr = new List<IntPtr>();
+                structArrayPtr.Add(structPtr);
+
+                Assert.True(LibSrcMLRunner.SrcmlCreateArchiveMtF(structArrayPtr.ToArray(), structArrayPtr.Count(), "output") == 0);
+                Assert.True(File.Exists("output0.cpp.xml"));
+
+                SrcMLFile srcFile = new SrcMLFile("output0.cpp.xml");
+                Assert.IsNotNull(srcFile);
+
+                var files = srcFile.FileUnits.ToList();
+                Assert.AreEqual(2, files.Count());
+
+
+                string file = "input.cpp";
+                var f1 = (from ele in files
+                          where ele.Attribute("filename").Value == file
+                          select ele);
+                Assert.AreEqual("input.cpp", f1.FirstOrDefault().Attribute("filename").Value);
+
+                string file2 = "input2.cpp";
+                var f2 = (from ele in files
+                          where ele.Attribute("filename").Value == file2
+                          select ele);
+                Assert.AreEqual(file2, f2.FirstOrDefault().Attribute("filename").Value);
             }
         }
 
@@ -209,7 +210,7 @@ namespace ABB.SrcML.Test {
         /// </summary>
         [Test]
         public void TestCreateSrcMLArchiveMtM() {
-            using (LibSrcMLRunner.Archive srcmlarchive = new LibSrcMLRunner.Archive()) {
+            using (Archive srcmlarchive = new Archive()) {
                 List<String> BufferList = new List<String>();
                 List<String> FileList = new List<String>();
                 String str = "int main(){int c; c = 0; ++c;}";
@@ -222,54 +223,55 @@ namespace ABB.SrcML.Test {
 
                 var buffandfile = BufferList.Zip(FileList, (b, f) => new { buf = b, file = f });
                 foreach (var pair in buffandfile) {
-                    using (LibSrcMLRunner.UnitData srcmlunit = new LibSrcMLRunner.UnitData()) {
+                    using (Unit srcmlunit = new Unit()) {
                         srcmlunit.SetUnitBuffer(pair.buf);
                         srcmlunit.SetUnitFilename(pair.file);
 
-                        srcmlarchive.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
-
-                        IntPtr structPtr = srcmlarchive.GetPtrToStruct();
-
-                        List<IntPtr> structArrayPtr = new List<IntPtr>();
-                        structArrayPtr.Add(structPtr);
-                        IntPtr s = new IntPtr(0);
-                        try {
-                            s = LibSrcMLRunner.SrcmlCreateArchiveMtM(structArrayPtr.ToArray(), structArrayPtr.Count());
-                        }
-                        catch (Exception e) {
-                            Console.WriteLine("EXCEPTION: {0}", e.Message);
-                            Assert.True(false);
-                        }
-
-                        List<String> documents = new List<String>();
-                        for (int i = 0; i < 1; ++i) {
-                            IntPtr docptr = Marshal.ReadIntPtr(s);
-                            String docstr = Marshal.PtrToStringAnsi(docptr);
-                            Marshal.FreeHGlobal(docptr);
-                            documents.Add(docstr);
-                            s += Marshal.SizeOf(typeof(IntPtr));
-                        }
-
-                        Assert.False(String.IsNullOrEmpty(documents.ElementAt(0)));
-                        XDocument doc = XDocument.Parse(documents.ElementAt(0));
-                        var units = from unit in doc.Descendants(XName.Get("unit", "http://www.srcML.org/srcML/src"))
-                                    where unit.Attribute("filename") != null
-                                    select unit;
-
-                        string file = "input.cpp";
-                        var f1 = (from ele in units
-                                  where ele.Attribute("filename").Value == file
-                                  select ele);
-                        Assert.AreEqual("input.cpp", f1.FirstOrDefault().Attribute("filename").Value);
-
-                        string file2 = "input2.cpp";
-                        var f2 = (from ele in units
-                                  where ele.Attribute("filename").Value == file2
-                                  select ele);
-                        Assert.AreEqual("input2.cpp", f2.FirstOrDefault().Attribute("filename").Value);
-                        Console.WriteLine(s);
+                        srcmlunit.SetUnitLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
+                        srcmlarchive.AddUnit(srcmlunit);
                     }
                 }
+
+                srcmlarchive.ArchivePack();
+                IntPtr structPtr = srcmlarchive.GetPtrToStruct();
+                List<IntPtr> structArrayPtr = new List<IntPtr>();
+                structArrayPtr.Add(structPtr);
+                IntPtr s = new IntPtr(0);
+                try {
+                    s = LibSrcMLRunner.SrcmlCreateArchiveMtM(structArrayPtr.ToArray(), structArrayPtr.Count());
+                }
+                catch (Exception e) {
+                    Console.WriteLine("EXCEPTION: {0}", e.Message);
+                    Assert.True(false);
+                }
+
+                List<String> documents = new List<String>();
+                for (int i = 0; i < 1; ++i) {
+                    IntPtr docptr = Marshal.ReadIntPtr(s);
+                    String docstr = Marshal.PtrToStringAnsi(docptr);
+                    Marshal.FreeHGlobal(docptr);
+                    documents.Add(docstr);
+                    s += Marshal.SizeOf(typeof(IntPtr));
+                }
+
+                Assert.False(String.IsNullOrEmpty(documents.ElementAt(0)));
+                XDocument doc = XDocument.Parse(documents.ElementAt(0));
+                var units = from unit in doc.Descendants(XName.Get("unit", "http://www.srcML.org/srcML/src"))
+                            where unit.Attribute("filename") != null
+                            select unit;
+
+                string file = "input.cpp";
+                var f1 = (from ele in units
+                          where ele.Attribute("filename").Value == file
+                          select ele);
+                Assert.AreEqual("input.cpp", f1.FirstOrDefault().Attribute("filename").Value);
+
+                string file2 = "input2.cpp";
+                var f2 = (from ele in units
+                          where ele.Attribute("filename").Value == file2
+                          select ele);
+                Assert.AreEqual("input2.cpp", f2.FirstOrDefault().Attribute("filename").Value);
+                Console.WriteLine(s);
             }
         }
         [Test]
@@ -297,73 +299,64 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestGenerateSrcMLFromStrings() {
-            using (LibSrcMLRunner.Archive ad = new LibSrcMLRunner.Archive()) {
+            List<String> BufferList = new List<String>();
+            List<String> FileList = new List<String>();
 
-                List<String> BufferList = new List<String>();
-                List<String> FileList = new List<String>();
+            String str = "int main(){int c; c = 0; ++c;}";
+            String str2 = "int foo(){int c; c = 0; ++c;}";
 
-                String str = "int main(){int c; c = 0; ++c;}";
-                String str2 = "int foo(){int c; c = 0; ++c;}";
+            FileList.Add("input.cpp");
+            FileList.Add("input2.cpp");
+            BufferList.Add(str);
+            BufferList.Add(str2);
 
-                FileList.Add("input.cpp");
-                FileList.Add("input2.cpp");
-                BufferList.Add(str);
-                BufferList.Add(str2);
-                var buffandfile = BufferList.Zip(FileList, (b, f) => new { buf = b, file = f });
-                using (LibSrcMLRunner.UnitData srcmlunit = new LibSrcMLRunner.UnitData()) {
-                    foreach (var pair in buffandfile) {
-                        srcmlunit.SetUnitBuffer(pair.buf);
-                        srcmlunit.SetUnitFilename(pair.file);
-                        LibSrcMLRunner run = new LibSrcMLRunner();
-                        try {
-                            List<string> b = run.GenerateSrcMLFromStrings(BufferList, FileList, Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_MODIFIER }, false).ToList<string>();
-                            Assert.True(Convert.ToBoolean(b.Count));
-                            XDocument doc = XDocument.Parse(b.ElementAt(0));
-                            var units = from unit in doc.Descendants(XName.Get("unit", "http://www.srcML.org/srcML/src"))
-                                        where unit.Attribute("filename") != null
-                                        select unit;
+            LibSrcMLRunner run = new LibSrcMLRunner();
 
-                            string file = "input.cpp";
-                            var f1 = (from ele in units
-                                      where ele.Attribute("filename").Value == file
-                                      select ele);
-                            Assert.AreEqual(file, f1.FirstOrDefault().Attribute("filename").Value);
+            try {
+                List<string> b = run.GenerateSrcMLFromStrings(BufferList, FileList, Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_MODIFIER }, false).ToList<string>();
+                Assert.True(Convert.ToBoolean(b.Count));
+                XDocument doc = XDocument.Parse(b.ElementAt(0));
+                var units = from unit in doc.Descendants(XName.Get("unit", "http://www.srcML.org/srcML/src"))
+                            where unit.Attribute("filename") != null
+                            select unit;
 
-                            string file2 = "input2.cpp";
-                            var f2 = (from ele in units
-                                      where ele.Attribute("filename").Value == file2
-                                      select ele);
-                            Assert.AreEqual(file2, f2.FirstOrDefault().Attribute("filename").Value);
-                        }
-                        catch (SrcMLException e) {
-                            throw e;
-                        }
-                    }
-                }
+                string file = "input.cpp";
+                var f1 = (from ele in units
+                          where ele.Attribute("filename").Value == file
+                          select ele);
+                Assert.AreEqual(file, f1.FirstOrDefault().Attribute("filename").Value);
+
+                string file2 = "input2.cpp";
+                var f2 = (from ele in units
+                          where ele.Attribute("filename").Value == file2
+                          select ele);
+                Assert.AreEqual(file2, f2.FirstOrDefault().Attribute("filename").Value);
+            }
+            catch (SrcMLException e) {
+                throw e;
             }
         }
         [Test]
         public void TestGenerateSrcMLFromFile() {
-            using (LibSrcMLRunner run = new LibSrcMLRunner()) {
-                try {
-                    run.GenerateSrcMLFromFile(Path.Combine(TestInputPath, "input.cpp"), "output", Language.CPlusPlus, new List<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_MODIFIER }, new Dictionary<string, Language>() { });
+            LibSrcMLRunner run = new LibSrcMLRunner();
+            try {
+                run.GenerateSrcMLFromFile(Path.Combine(TestInputPath, "input.cpp"), "output", Language.CPlusPlus, new List<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_MODIFIER }, new Dictionary<string, Language>() { });
 
-                    Assert.True(File.Exists("output0.cpp.xml"));
-                    SrcMLFile srcFile = new SrcMLFile("output0.cpp.xml");
-                    Assert.IsNotNull(srcFile);
+                Assert.True(File.Exists("output0.cpp.xml"));
+                SrcMLFile srcFile = new SrcMLFile("output0.cpp.xml");
+                Assert.IsNotNull(srcFile);
 
-                    var files = srcFile.FileUnits.ToList();
-                    Assert.AreEqual(1, files.Count());
+                var files = srcFile.FileUnits.ToList();
+                Assert.AreEqual(1, files.Count());
 
-                    string file = Path.Combine(TestInputPath, "input.cpp");
-                    var f1 = (from ele in files
-                              where ele.Attribute("filename").Value == file
-                              select ele);
-                    Assert.AreEqual(file, f1.FirstOrDefault().Attribute("filename").Value);
-                }
-                catch (SrcMLException e) {
-                    throw new SrcMLException(e.Message, e);
-                }
+                string file = Path.Combine(TestInputPath, "input.cpp");
+                var f1 = (from ele in files
+                          where ele.Attribute("filename").Value == file
+                          select ele);
+                Assert.AreEqual(file, f1.FirstOrDefault().Attribute("filename").Value);
+            }
+            catch (SrcMLException e) {
+                throw new SrcMLException(e.Message, e);
             }
         }
         [Test]
@@ -400,8 +393,8 @@ namespace ABB.SrcML.Test {
         #region WrapperTests
         [Test]
         public void TestArchiveSetSrcEncoding() {
-            using (LibSrcMLRunner.Archive srcmlarchive = new LibSrcMLRunner.Archive()) {
-                using (LibSrcMLRunner.UnitData srcmlunit = new LibSrcMLRunner.UnitData()) {
+            using (Archive srcmlarchive = new Archive()) {
+                using (Unit srcmlunit = new Unit()) {
                     srcmlarchive.SetArchiveSrcEncoding("ISO-8859-1");
                     srcmlarchive.AddUnit(srcmlunit);
                     srcmlarchive.ArchivePack();
@@ -416,8 +409,8 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestArchiveXmlEncoding() {
-            using (LibSrcMLRunner.Archive srcmlarchive = new LibSrcMLRunner.Archive()) {
-                using (LibSrcMLRunner.UnitData srcmlunit = new LibSrcMLRunner.UnitData()) {
+            using (Archive srcmlarchive = new Archive()) {
+                using (Unit srcmlunit = new Unit()) {
                     srcmlarchive.SetArchiveXmlEncoding("ISO-8859-1");
                     srcmlarchive.AddUnit(srcmlunit);
                     srcmlarchive.ArchivePack();
@@ -432,8 +425,8 @@ namespace ABB.SrcML.Test {
 
         [Test]
         public void TestArchiveSetLanguage() {
-            using (LibSrcMLRunner.Archive srcmlarchive = new LibSrcMLRunner.Archive()) {
-                using (LibSrcMLRunner.UnitData srcmlunit = new LibSrcMLRunner.UnitData()) {
+            using (Archive srcmlarchive = new Archive()) {
+                using (Unit srcmlunit = new Unit()) {
                     srcmlarchive.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
                     srcmlarchive.AddUnit(srcmlunit);
                     srcmlarchive.ArchivePack();
@@ -447,8 +440,8 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestArchiveSetUrl() {
-            using (LibSrcMLRunner.Archive srcmlarchive = new LibSrcMLRunner.Archive()) {
-                using (LibSrcMLRunner.UnitData srcmlunit = new LibSrcMLRunner.UnitData()) {
+            using (Archive srcmlarchive = new Archive()) {
+                using (Unit srcmlunit = new Unit()) {
                     srcmlarchive.SetArchiveUrl("http://www.srcml.org/");
                     srcmlarchive.AddUnit(srcmlunit);
                     srcmlarchive.ArchivePack();
@@ -462,8 +455,8 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestArchiveSetVersion() {
-            using (LibSrcMLRunner.Archive srcmlarchive = new LibSrcMLRunner.Archive()) {
-                using (LibSrcMLRunner.UnitData srcmlunit = new LibSrcMLRunner.UnitData()) {
+            using (Archive srcmlarchive = new Archive()) {
+                using (Unit srcmlunit = new Unit()) {
                     srcmlarchive.SetArchiveSrcVersion("1.0");
                     srcmlarchive.AddUnit(srcmlunit);
                     srcmlarchive.ArchivePack();
@@ -477,8 +470,8 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestArchiveSetOptions() {
-            using (LibSrcMLRunner.Archive srcmlarchive = new LibSrcMLRunner.Archive()) {
-                using (LibSrcMLRunner.UnitData srcmlunit = new LibSrcMLRunner.UnitData()) {
+            using (Archive srcmlarchive = new Archive()) {
+                using (Unit srcmlunit = new Unit()) {
                     srcmlarchive.SetOptions(LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_LITERAL);
                     srcmlarchive.AddUnit(srcmlunit);
                     srcmlarchive.ArchivePack();
@@ -492,8 +485,8 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestArchiveEnableOption() {
-            using (LibSrcMLRunner.Archive srcmlarchive = new LibSrcMLRunner.Archive()) {
-                using (LibSrcMLRunner.UnitData srcmlunit = new LibSrcMLRunner.UnitData()) {
+            using (Archive srcmlarchive = new Archive()) {
+                using (Unit srcmlunit = new Unit()) {
                     srcmlarchive.EnableOption(LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_LITERAL);
                     srcmlarchive.AddUnit(srcmlunit);
                     srcmlarchive.ArchivePack();
@@ -507,8 +500,8 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestArchiveDisableOption() {
-            using (LibSrcMLRunner.Archive srcmlarchive = new LibSrcMLRunner.Archive()) {
-                using (LibSrcMLRunner.UnitData srcmlunit = new LibSrcMLRunner.UnitData()) {
+            using (Archive srcmlarchive = new Archive()) {
+                using (Unit srcmlunit = new Unit()) {
                     srcmlarchive.DisableOption(LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_LITERAL);
                     srcmlarchive.AddUnit(srcmlunit);
                     srcmlarchive.ArchivePack();
@@ -522,8 +515,8 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestArchiveSetTabstop() {
-            using (LibSrcMLRunner.Archive srcmlarchive = new LibSrcMLRunner.Archive()) {
-                using (LibSrcMLRunner.UnitData srcmlunit = new LibSrcMLRunner.UnitData()) {
+            using (Archive srcmlarchive = new Archive()) {
+                using (Unit srcmlunit = new Unit()) {
                     srcmlarchive.SetArchiveTabstop(2);
                     srcmlarchive.AddUnit(srcmlunit);
                     srcmlarchive.ArchivePack();
@@ -537,8 +530,8 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestArchiveRegisterFileExtension() {
-            using (LibSrcMLRunner.Archive srcmlarchive = new LibSrcMLRunner.Archive()) {
-                using (LibSrcMLRunner.UnitData srcmlunit = new LibSrcMLRunner.UnitData()) {
+            using (Archive srcmlarchive = new Archive()) {
+                using (Unit srcmlunit = new Unit()) {
                     srcmlarchive.RegisterFileExtension("h", LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
                     srcmlarchive.AddUnit(srcmlunit);
                     srcmlarchive.ArchivePack();
@@ -552,8 +545,8 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestArchiveRegisterNamespace() {
-            using (LibSrcMLRunner.Archive srcmlarchive = new LibSrcMLRunner.Archive()) {
-                using (LibSrcMLRunner.UnitData srcmlunit = new LibSrcMLRunner.UnitData()) {
+            using (Archive srcmlarchive = new Archive()) {
+                using (Unit srcmlunit = new Unit()) {
                     srcmlarchive.RegisterNamespace("abb", "www.abb.com");
                     srcmlarchive.AddUnit(srcmlunit);
                     srcmlarchive.ArchivePack();
@@ -567,8 +560,8 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestArchiveSetProcessingInstruction() {
-            using (LibSrcMLRunner.Archive srcmlarchive = new LibSrcMLRunner.Archive()) {
-                using (LibSrcMLRunner.UnitData srcmlunit = new LibSrcMLRunner.UnitData()) {
+            using (Archive srcmlarchive = new Archive()) {
+                using (Unit srcmlunit = new Unit()) {
                     srcmlarchive.SetProcessingInstruction("hpp", "data");
                     srcmlarchive.AddUnit(srcmlunit);
                     srcmlarchive.ArchivePack();
@@ -582,8 +575,8 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestArchiveRegisterMacro() {
-            using (LibSrcMLRunner.Archive srcmlarchive = new LibSrcMLRunner.Archive()) {
-                using (LibSrcMLRunner.UnitData srcmlunit = new LibSrcMLRunner.UnitData()) {
+            using (Archive srcmlarchive = new Archive()) {
+                using (Unit srcmlunit = new Unit()) {
                     srcmlarchive.RegisterMacro("Token", "type");
                     srcmlarchive.AddUnit(srcmlunit);
                     srcmlarchive.ArchivePack();
@@ -597,8 +590,8 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestUnitSetFilename() {
-            using (LibSrcMLRunner.Archive srcmlarchive = new LibSrcMLRunner.Archive()) {
-                using (LibSrcMLRunner.UnitData srcmlunit = new LibSrcMLRunner.UnitData()) {
+            using (Archive srcmlarchive = new Archive()) {
+                using (Unit srcmlunit = new Unit()) {
                     srcmlunit.SetUnitFilename("Bleep.cpp");
                     srcmlarchive.AddUnit(srcmlunit);
                     srcmlarchive.ArchivePack();
@@ -612,8 +605,8 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestUnitSetLanguage() {
-            using (LibSrcMLRunner.Archive srcmlarchive = new LibSrcMLRunner.Archive()) {
-                using (LibSrcMLRunner.UnitData srcmlunit = new LibSrcMLRunner.UnitData()) {
+            using (Archive srcmlarchive = new Archive()) {
+                using (Unit srcmlunit = new Unit()) {
                     srcmlunit.SetUnitLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
                     srcmlarchive.AddUnit(srcmlunit);
                     srcmlarchive.ArchivePack();
@@ -627,8 +620,8 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestUnitSetSrcEncoding() {
-            using (LibSrcMLRunner.Archive srcmlarchive = new LibSrcMLRunner.Archive()) {
-                using (LibSrcMLRunner.UnitData srcmlunit = new LibSrcMLRunner.UnitData()) {
+            using (Archive srcmlarchive = new Archive()) {
+                using (Unit srcmlunit = new Unit()) {
                     srcmlunit.SetUnitSrcEncoding("UTF-8");
                     srcmlarchive.AddUnit(srcmlunit);
                     srcmlarchive.ArchivePack();
@@ -642,8 +635,8 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestUnitSetUrl() {
-            using (LibSrcMLRunner.Archive srcmlarchive = new LibSrcMLRunner.Archive()) {
-                using (LibSrcMLRunner.UnitData srcmlunit = new LibSrcMLRunner.UnitData()) {
+            using (Archive srcmlarchive = new Archive()) {
+                using (Unit srcmlunit = new Unit()) {
                     srcmlunit.SetUnitUrl("www.abb.com");
                     srcmlarchive.AddUnit(srcmlunit);
                     srcmlarchive.ArchivePack();
@@ -657,8 +650,8 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestUnitSetVersion() {
-            using (LibSrcMLRunner.Archive srcmlarchive = new LibSrcMLRunner.Archive()) {
-                using (LibSrcMLRunner.UnitData srcmlunit = new LibSrcMLRunner.UnitData()) {
+            using (Archive srcmlarchive = new Archive()) {
+                using (Unit srcmlunit = new Unit()) {
                     srcmlunit.SetUnitSrcVersion("1.0");
                     srcmlarchive.AddUnit(srcmlunit);
                     srcmlarchive.ArchivePack();
@@ -672,8 +665,8 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestUnitSetTimestamp() {
-            using (LibSrcMLRunner.Archive srcmlarchive = new LibSrcMLRunner.Archive()) {
-                using (LibSrcMLRunner.UnitData srcmlunit = new LibSrcMLRunner.UnitData()) {
+            using (Archive srcmlarchive = new Archive()) {
+                using (Unit srcmlunit = new Unit()) {
                     srcmlunit.SetUnitTimestamp("0800");
                     srcmlarchive.AddUnit(srcmlunit);
                     srcmlarchive.ArchivePack();
@@ -687,8 +680,8 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestUnitSetHash() {
-            using (LibSrcMLRunner.Archive srcmlarchive = new LibSrcMLRunner.Archive()) {
-                using (LibSrcMLRunner.UnitData srcmlunit = new LibSrcMLRunner.UnitData()) {
+            using (Archive srcmlarchive = new Archive()) {
+                using (Unit srcmlunit = new Unit()) {
                     srcmlunit.SetHash("hash");
                     srcmlarchive.AddUnit(srcmlunit);
                     srcmlarchive.ArchivePack();
@@ -702,8 +695,8 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestUnitUnparseSetEol() {
-            using (LibSrcMLRunner.Archive srcmlarchive = new LibSrcMLRunner.Archive()) {
-                using (LibSrcMLRunner.UnitData srcmlunit = new LibSrcMLRunner.UnitData()) {
+            using (Archive srcmlarchive = new Archive()) {
+                using (Unit srcmlunit = new Unit()) {
                     srcmlunit.UnparseSetEol(50);
                     srcmlarchive.AddUnit(srcmlunit);
                     srcmlarchive.ArchivePack();

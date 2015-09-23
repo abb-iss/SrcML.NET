@@ -5,13 +5,13 @@ using namespace System;
 using namespace System::Runtime::InteropServices;
 
 extern"C"{
-    /*
+    
     void SetArchiveData(srcml_archive* archive, LibSrcMLWrapper::SourceData* sd){
-        if (sd->src_encoding){
-            srcml_archive_set_src_encoding(archive, sd->src_encoding);
+        if (sd->srcEncoding){
+            srcml_archive_set_src_encoding(archive, sd->srcEncoding);
         }
-        if (sd->encoding){
-            srcml_archive_set_xml_encoding(archive, sd->encoding);
+        if (sd->xmlEncoding){
+            srcml_archive_set_xml_encoding(archive, sd->xmlEncoding);
         }
         if (sd->language){
             srcml_archive_set_language(archive, sd->language);
@@ -46,34 +46,31 @@ extern"C"{
         if (sd->tokenandtype){
             srcml_archive_register_macro(archive, sd->tokenandtype[0], sd->tokenandtype[1]);
         }
-        if (sd->eol){
-            srcml_unparse_set_eol(sd->eol);
+    }
+    
+    void SetUnitData(srcml_unit* unit, LibSrcMLWrapper::UnitData* clientUnit){
+        if (clientUnit->language){
+            srcml_unit_set_language(unit, clientUnit->language);
         }
-    }*/
-    /*
-    void SetUnitData(srcml_unit* unit, LibSrcMLWrapper::SourceData* sd){
-        if (sd->language){
-            srcml_unit_set_language(unit, sd->language);
+        if (clientUnit->encoding){
+            srcml_unit_set_src_encoding(unit, clientUnit->encoding);
         }
-        if (sd->src_encoding){
-            srcml_unit_set_src_encoding(unit, sd->src_encoding);
+        if (clientUnit->url){
+            srcml_unit_set_url(unit, clientUnit->url);
         }
-        if (sd->url){
-            srcml_unit_set_url(unit, sd->url);
+        if (clientUnit->version){
+            srcml_unit_set_version(unit, clientUnit->version);
         }
-        if (sd->version){
-            srcml_unit_set_version(unit, sd->version);
+        if (clientUnit->timestamp){
+            srcml_unit_set_timestamp(unit, clientUnit->timestamp);
         }
-        if (sd->timestamp){
-            srcml_unit_set_timestamp(unit, sd->timestamp);
+        if (clientUnit->hash){
+            srcml_unit_set_hash(unit, clientUnit->hash);
         }
-        if (sd->hash){
-            srcml_unit_set_hash(unit, sd->hash);
+        if (clientUnit->eol){
+            srcml_unit_unparse_set_eol(unit, clientUnit->eol);
         }
-        if (sd->eol){
-            srcml_unit_unparse_set_eol(unit, sd->eol);
-        }
-    }*/
+    }
     /// <summary>
     /// This creates an archive from a list of files and saves to a file
     /// </summary>
@@ -87,7 +84,7 @@ extern"C"{
         for (int i = 0; i < argc; ++i){
             /*create a new srcml archive structure */
             archive = srcml_archive_create();
-           // SetArchiveData(archive, sd[i]);
+           SetArchiveData(archive, sd[i]);
 
             std::string filename(outputFile);
             filename += std::to_string(i) + ".cpp.xml";
@@ -101,10 +98,9 @@ extern"C"{
                 unit = srcml_unit_create(archive);
 
                 /*Set all srcML options provided through sd*/
-                //SetUnitData(unit, sd[i]);
+                SetUnitData(unit, &sd[i]->units[k]);
 
                 /*Set filename for unit*/
-                Console::WriteLine(String::Format("could not parse file {0}. SrcML returned with status {1}", gcnew String(sd[i]->units[k].filename), srcmlreturncode));
                 srcml_unit_set_filename(unit, sd[i]->units[k].filename);
 
                 /*Translate to srcml and append to the archive */
@@ -142,7 +138,7 @@ extern"C"{
         for (int i = 0; i < argc; ++i){
             /* create a new srcml archive structure */
             archive = srcml_archive_create();
-            //SetArchiveData(archive, sd[i]);
+            SetArchiveData(archive, sd[i]);
 
             /* open a srcML archive for output */
             std::string filename(outputFile);
@@ -158,7 +154,7 @@ extern"C"{
                 unit = srcml_unit_create(archive);
 
                 /*Set all srcML options provided through sd*/
-                //SetUnitData(unit, sd[i]);
+                SetUnitData(unit, &sd[i]->units[k]);
 
                 /*Set filename for unit*/
                 srcml_unit_set_filename(unit, sd[i]->units[k].filename);
@@ -199,7 +195,7 @@ extern"C"{
             /* create a new srcml archive structure */
             struct srcml_archive* archive;
             archive = srcml_archive_create();
-            //SetArchiveData(archive, sd[i]);
+            SetArchiveData(archive, sd[i]);
 
             /* open a srcML archive for output */
             srcml_archive_write_open_memory(archive, &pp[i], &size);
@@ -208,7 +204,7 @@ extern"C"{
                 unit = srcml_unit_create(archive);
 
                 /*Set all srcML options provided through sd*/
-                //SetUnitData(unit, sd[i]);
+                SetUnitData(unit, &sd[i]->units[k]);
 
                 /*Set filename for unit*/
                 srcml_unit_set_filename(unit, sd[i]->units[k].filename);
@@ -263,7 +259,7 @@ extern"C"{
             struct srcml_archive* archive;
             /* create a new srcml archive structure */
             archive = srcml_archive_create();
-            //SetArchiveData(archive, sd[i]);
+            SetArchiveData(archive, sd[i]);
             /* open a srcML archive for output */
             srcml_archive_write_open_memory(archive, &pp[i], &size);
             for (int k = 0; k < sd[i]->unitCount; ++k){
@@ -271,7 +267,7 @@ extern"C"{
                 unit = srcml_unit_create(archive);
 
                 /*Set all srcML options provided through sd*/
-                //SetUnitData(unit, sd[i]);
+                SetUnitData(unit, &sd[i]->units[k]);
 
                 /*Set filename for unit*/
                 srcml_unit_set_filename(unit, sd[i]->units[k].filename);
