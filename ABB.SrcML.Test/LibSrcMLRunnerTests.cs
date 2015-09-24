@@ -502,6 +502,7 @@ namespace ABB.SrcML.Test {
         public void TestArchiveDisableOption() {
             using (Archive srcmlarchive = new Archive()) {
                 using (Unit srcmlunit = new Unit()) {
+                    srcmlarchive.SetOptions(LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_LITERAL);
                     srcmlarchive.DisableOption(LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_LITERAL);
                     srcmlarchive.AddUnit(srcmlunit);
                     srcmlarchive.ArchivePack();

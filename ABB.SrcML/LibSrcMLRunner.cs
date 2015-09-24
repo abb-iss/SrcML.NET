@@ -46,7 +46,7 @@ namespace ABB.SrcML {
             internal IntPtr listOfUnits;
 
         }
-        #region ArchiveModificationFunctions
+        #region ArchiveMutatorFunctions
         /// <summary>
         /// Set an option to be used by the parser on the archive
         /// </summary>
@@ -66,7 +66,7 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="srcOption"></param>
         public void DisableOption(UInt32 srcOption) {
-            archive.optionDisable ^= srcOption;
+            archive.optionDisable |= srcOption;
         }
         /// <summary>
         /// Set Archive URL
@@ -243,7 +243,7 @@ namespace ABB.SrcML {
             internal int bufferSize;
 
         }
-        #region UnitModificationFunctions
+        #region UnitMutatorFunctions
         /// <summary>
         /// Sets the encoding for source code
         /// </summary>
@@ -350,7 +350,7 @@ namespace ABB.SrcML {
     [CLSCompliant(false)]
     public class LibSrcMLRunner {
         public const string LIBSRCMLPATH = "LibSrcMLWrapper.dll";
-        public static Dictionary<Language, string> LanguageEnumDictionary = new Dictionary<Language, string>() {
+        public static readonly Dictionary<Language, string> LanguageEnumDictionary = new Dictionary<Language, string>() {
                 {Language.Any, SrcMLLanguages.SRCML_LANGUAGE_NONE },
                 {Language.AspectJ, SrcMLLanguages.SRCML_LANGUAGE_JAVA},
                 {Language.C, SrcMLLanguages.SRCML_LANGUAGE_C },
@@ -516,17 +516,17 @@ namespace ABB.SrcML {
         public ICollection<string> GenerateSrcMLFromStrings(ICollection<string> sources, ICollection<string> unitFilename, Language language, ICollection<UInt32> namespaceArguments, bool omitXmlDeclaration) {
             Contract.Requires(sources.Count == unitFilename.Count);
             try {
-                //var buffandfile = BufferList.Zip(FileList, (b, f) => new { buf = b, file = f });
                 using (Archive srcmlarchive = new Archive()) {
                     srcmlarchive.SetArchiveLanguage(LanguageEnumDictionary[language]);
                     srcmlarchive.EnableOption(GenerateArguments(namespaceArguments));
-                    for (int i = 0; i < sources.Count; ++i) {
+                    var sourceandfile = sources.Zip(unitFilename, (src, fle) => new { source = src, file = fle });
+                    foreach(var pair in sourceandfile){
                         using (Unit srcmlunit = new Unit()) {
                             if (omitXmlDeclaration) {
                                 srcmlarchive.DisableOption(LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_XML_DECL);
                             }
-                            srcmlunit.SetUnitBuffer(sources.ElementAt(i));
-                            srcmlunit.SetUnitFilename(unitFilename.ElementAt(i));
+                            srcmlunit.SetUnitBuffer(pair.source);
+                            srcmlunit.SetUnitFilename(pair.file);
                             srcmlunit.SetUnitLanguage(LanguageEnumDictionary[language]);
                             srcmlarchive.AddUnit(srcmlunit);
                         }
@@ -571,10 +571,6 @@ namespace ABB.SrcML {
 
             return arguments;
         }
-
-        /*public T Run<T>(Func<T> srcmlgenerator) {
-
-        }*/
         #region Low-level API functions
         /// <summary>
         /// Creates archive from a file and reads it out into a file

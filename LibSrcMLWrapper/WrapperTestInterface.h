@@ -113,7 +113,7 @@ extern"C"{
     __declspec(dllexport) inline bool TestArchiveDisableOption(LibSrcMLWrapper::SourceData** sd){
         struct srcml_archive* archive;
         archive = srcml_archive_create();
-        srcml_archive_enable_option(archive, SRCML_OPTION_LITERAL);
+        srcml_archive_enable_option(archive, sd[0]->optionSet);
         unsigned long opts = srcml_archive_get_options(archive);
         srcml_archive_disable_option(archive, sd[0]->optionDisable);
         if (srcml_archive_get_options(archive) != opts){
