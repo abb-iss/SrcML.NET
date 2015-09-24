@@ -39,6 +39,12 @@ namespace ABB.SrcML
         AspectJ,
         /// <summary>Indicates that srcML should use the C# language.</summary>
         [XmlEnum(Name="C#")]
-        CSharp
+        CSharp,
+        /// <summary>Indicates that srcML should use the ObjectiveC language.</summary>
+        [XmlEnum(Name="ObjectiveC")]
+        ObjectiveC,
+        /// <summary>Indicates that srcML should use the Xml language.</summary>
+        [XmlEnum(Name="Xml")]
+        XmlLang
     }
 }
