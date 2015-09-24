@@ -35,6 +35,7 @@ namespace LibSrcMLWrapper {
         char* version;
         char* srcEncoding;
         char* xmlEncoding;
+        char* outputFile;
         UnitData* units;
     };
     /// <summary>

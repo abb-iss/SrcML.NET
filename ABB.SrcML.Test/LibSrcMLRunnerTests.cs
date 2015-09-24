@@ -30,11 +30,13 @@ namespace ABB.SrcML.Test {
                     srcmlUnit.SetUnitFilename(Path.Combine(TestInputPath, "input.cpp"));
                     srcmlArchive.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
                     srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.SetOutputFile("output");
                     srcmlArchive.ArchivePack();
 
                     srcmlUnit.SetUnitFilename(Path.Combine(TestInputPath, "input2.cpp"));
                     srcmlArchive2.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
                     srcmlArchive2.AddUnit(srcmlUnit);
+                    srcmlArchive2.SetOutputFile("output");
                     srcmlArchive2.ArchivePack();
 
                     IntPtr structPtr = srcmlArchive.GetPtrToStruct();
@@ -45,7 +47,7 @@ namespace ABB.SrcML.Test {
                     structArrayPtr.Add(structPtr2);
 
                     try {
-                        Assert.True(LibSrcMLRunner.SrcmlCreateArchiveFtF(structArrayPtr.ToArray(), structArrayPtr.Count(), "output") == 0);
+                        Assert.True(LibSrcMLRunner.SrcmlCreateArchiveFtF(structArrayPtr.ToArray(), structArrayPtr.Count()) == IntPtr.Zero);
                     }
                     catch (SrcMLException e) {
                         Console.WriteLine(e.Message);
@@ -174,6 +176,7 @@ namespace ABB.SrcML.Test {
                         srcmlArchive.AddUnit(srcmlUnit);
                     }
                 }
+                srcmlArchive.SetOutputFile("output");
                 srcmlArchive.ArchivePack();
 
                 IntPtr structPtr = srcmlArchive.GetPtrToStruct();
@@ -181,7 +184,7 @@ namespace ABB.SrcML.Test {
                 List<IntPtr> structArrayPtr = new List<IntPtr>();
                 structArrayPtr.Add(structPtr);
 
-                Assert.True(LibSrcMLRunner.SrcmlCreateArchiveMtF(structArrayPtr.ToArray(), structArrayPtr.Count(), "output") == 0);
+                Assert.True(LibSrcMLRunner.SrcmlCreateArchiveMtF(structArrayPtr.ToArray(), structArrayPtr.Count()) == IntPtr.Zero);
                 Assert.True(File.Exists("output0.cpp.xml"));
 
                 SrcMLFile srcFile = new SrcMLFile("output0.cpp.xml");

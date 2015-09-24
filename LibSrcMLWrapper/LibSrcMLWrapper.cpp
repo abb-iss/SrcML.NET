@@ -77,7 +77,7 @@ extern"C"{
     ///<param name="argv">List of files to be read</param>
     ///<param name="argc">Number of arguments in argv</param>
     ///<param name="outputFile">File to output to</param>
-    __declspec(dllexport) int SrcmlCreateArchiveFtF(LibSrcMLWrapper::SourceData** sd, int argc, const char* outputFile) {
+    __declspec(dllexport) int SrcmlCreateArchiveFtF(LibSrcMLWrapper::SourceData** sd, int argc) {
         struct srcml_archive* archive;
         struct srcml_unit* unit;
         int srcmlreturncode = -1;
@@ -86,7 +86,7 @@ extern"C"{
             archive = srcml_archive_create();
            SetArchiveData(archive, sd[i]);
 
-            std::string filename(outputFile);
+            std::string filename(sd[i]->outputFile);
             filename += std::to_string(i) + ".cpp.xml";
 
             /*open a srcML archive for output */
@@ -131,7 +131,7 @@ extern"C"{
     ///<param name="argv">List of files to be read</param>
     ///<param name="argc">Number of arguments in argv</param>
     ///<param name="outputFile">File to output to</param>
-    __declspec(dllexport) int SrcmlCreateArchiveMtF(LibSrcMLWrapper::SourceData** sd, int argc, const char* outputFile) {
+    __declspec(dllexport) int SrcmlCreateArchiveMtF(LibSrcMLWrapper::SourceData** sd, int argc) {
         struct srcml_archive* archive;
         struct srcml_unit* unit;
         int srcmlreturncode = -1;
@@ -141,7 +141,7 @@ extern"C"{
             SetArchiveData(archive, sd[i]);
 
             /* open a srcML archive for output */
-            std::string filename(outputFile);
+            std::string filename(sd[i]->outputFile);
             filename += std::to_string(i) + ".cpp.xml";
 
             /*open a srcML archive for output */

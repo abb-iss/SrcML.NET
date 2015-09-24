@@ -8,6 +8,7 @@ using System.Collections.ObjectModel;
 using ABB.SrcML.Utilities;
 using System.Diagnostics.Contracts;
 using System.IO;
+using System.Xml.Linq;
 namespace ABB.SrcML {
     /// <summary>
     /// Carries data between C# and C++ for srcML's archives
@@ -43,9 +44,19 @@ namespace ABB.SrcML {
             internal IntPtr version;
             internal IntPtr srcEncoding;
             internal IntPtr xmlEncoding;
+            internal IntPtr outputFile;
             internal IntPtr listOfUnits;
 
         }
+        /// <summary>
+        /// Set an option to be used by the parser on the archive
+        /// </summary>
+        /// <param name="srcOption"></param>
+        public string OutputFile{
+            get { return Marshal.PtrToStringAnsi(archive.outputFile); }
+            set { archive.outputFile = Marshal.StringToHGlobalAnsi(value); }
+        }
+         
         #region ArchiveMutatorFunctions
         /// <summary>
         /// Set an option to be used by the parser on the archive
@@ -102,6 +113,13 @@ namespace ABB.SrcML {
         /// <param name="encoding"></param>
         public void SetArchiveXmlEncoding(string encoding) {
             archive.xmlEncoding = Marshal.StringToHGlobalAnsi(encoding);
+        }
+        /// <summary>
+        /// Set an option to be used by the parser on the archive
+        /// </summary>
+        /// <param name="srcOption"></param>
+        public void SetOutputFile(string outputFile) {
+            archive.outputFile = Marshal.StringToHGlobalAnsi(outputFile);
         }
         /// <summary>
         /// Register a file extension to be used with a particular language
@@ -446,7 +464,7 @@ namespace ABB.SrcML {
         /// <param name="language">The language to use</param>
         /// <param name="namespaceArguments">additional arguments</param>
         /// <param name="extensionMapping">an extension mapping</param>
-        public void GenerateSrcMLFromFile(string fileName, string xmlFileName, Language language, ICollection<UInt32> namespaceArguments, Dictionary<string, Language> extensionMapping) {
+        public void GenerateSrcMLFromFile(string fileName, string xmlFileName, Language language, ICollection<UInt32> namespaceArguments, IDictionary<string, Language> extensionMapping) {
             try {
                 GenerateSrcMLFromFiles(new List<string>() { fileName }, xmlFileName, language, namespaceArguments, extensionMapping);
             }
@@ -462,23 +480,22 @@ namespace ABB.SrcML {
         /// <param name="language">The language to use</param>
         /// <param name="namespaceArguments">additional arguments</param>
         /// <param name="extensionMapping">an extension mapping</param>
-        public void GenerateSrcMLFromFiles(ICollection<string> fileNames, string xmlFileName, Language language, ICollection<UInt32> namespaceArguments, Dictionary<string, Language> extensionMapping) {
+        public void GenerateSrcMLFromFiles(ICollection<string> fileNames, string xmlFileName, Language language, ICollection<UInt32> namespaceArguments, IDictionary<string, Language> extensionMapping) {
             UInt32 arguments = GenerateArguments(namespaceArguments);
             try {
                 using (Archive srcmlarchive = new Archive()) {
+                    if (Convert.ToBoolean(extensionMapping.Count())) {
+                        srcmlarchive.RegisterFileExtension(extensionMapping.ElementAt(0).Key, extensionMapping.ElementAt(0).Value.ToString());
+                    }
                     foreach (string file in fileNames) {
                         using (Unit srcmlunit = new Unit()) {
-                            //Does this look right?
                             srcmlunit.SetUnitFilename(file);
                             srcmlunit.SetUnitLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
                             srcmlarchive.AddUnit(srcmlunit);
                         }
                     }
-                    srcmlarchive.ArchivePack();
-                    IntPtr structPtr = srcmlarchive.GetPtrToStruct();
-                    List<IntPtr> structArrayPtr = new List<IntPtr>();
-                    structArrayPtr.Add(structPtr);
-                    LibSrcMLRunner.SrcmlCreateArchiveFtF(structArrayPtr.ToArray(), structArrayPtr.Count(), xmlFileName);
+                    srcmlarchive.SetOutputFile(xmlFileName);
+                    RunSrcML(srcmlarchive, LibSrcMLRunner.SrcmlCreateArchiveFtF);
                 }
             }
             catch (Exception e) {
@@ -531,28 +548,32 @@ namespace ABB.SrcML {
                             srcmlarchive.AddUnit(srcmlunit);
                         }
                     }
-
-                    srcmlarchive.ArchivePack();
-
-                    IntPtr structPtr = srcmlarchive.GetPtrToStruct();
-
-                    List<IntPtr> structArrayPtr = new List<IntPtr>();
-                    structArrayPtr.Add(structPtr);
-                    IntPtr s = LibSrcMLRunner.SrcmlCreateArchiveMtM(structArrayPtr.ToArray(), structArrayPtr.Count());
-
-                    List<String> documents = new List<String>();
-                    IntPtr docptr = Marshal.ReadIntPtr(s);
-                    String docstr = Marshal.PtrToStringAnsi(docptr);
-
-                    //Marshal.FreeHGlobal(docptr);
-                    documents.Add(docstr);
-
-                    return documents;
+                    return RunSrcML(srcmlarchive, LibSrcMLRunner.SrcmlCreateArchiveMtM);
                 }
             }
             catch (Exception e) {
                 throw new SrcMLException(e.Message, e);
             }
+        }
+
+        private List<string> RunSrcML(Archive srcmlarchive, Func<IntPtr[], int, IntPtr> func){
+            srcmlarchive.ArchivePack();
+
+            IntPtr structPtr = srcmlarchive.GetPtrToStruct();
+
+            List<IntPtr> structArrayPtr = new List<IntPtr>();
+            structArrayPtr.Add(structPtr);
+
+            IntPtr s = func(structArrayPtr.ToArray(), structArrayPtr.Count());
+
+            if (s == IntPtr.Zero) {
+                return new List<string>(){srcmlarchive.OutputFile};
+            }
+
+            IntPtr docptr = Marshal.ReadIntPtr(s);
+            string docstr = Marshal.PtrToStringAnsi(docptr);
+
+            return new List<string>(){docstr};
         }
 
         /// <summary>
@@ -580,7 +601,7 @@ namespace ABB.SrcML {
         /// <param name="outputFile">File name for resulting archive</param>
         /// <returns>Error code (see srcML documentation). 0 means nothing went wrong.</returns>
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int SrcmlCreateArchiveFtF(IntPtr[] SourceMetadata, int archiveCount, string outputFile);
+        public static extern IntPtr SrcmlCreateArchiveFtF(IntPtr[] SourceMetadata, int archiveCount);
         /// <summary>
         /// Creates archive from memory buffer and reads it out into a file
         /// </summary>
@@ -589,7 +610,7 @@ namespace ABB.SrcML {
         /// <param name="outputFile">File name for resulting archive</param>
         /// <returns>Error code (see srcML documentation). 0 means nothing went wrong.</returns>
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int SrcmlCreateArchiveMtF(IntPtr[] SourceMetadata, int archiveCount, string outputFile);
+        public static extern IntPtr SrcmlCreateArchiveMtF(IntPtr[] SourceMetadata, int archiveCount);
         /// <summary>
         /// Creates archive from File and reads it into a string which gets returned
         /// </summary>
