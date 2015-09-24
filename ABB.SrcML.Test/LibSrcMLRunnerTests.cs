@@ -25,20 +25,20 @@ namespace ABB.SrcML.Test {
         /// </summary>
         [Test]
         public void TestCreateSrcMLArchiveFtF() {
-            using (Archive srcmlarchive = new Archive(), srcmlarchive2 = new Archive()) {
-                using (Unit srcmlunit = new Unit()) {
-                    srcmlunit.SetUnitFilename(Path.Combine(TestInputPath, "input.cpp"));
-                    srcmlarchive.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
-                    srcmlarchive.AddUnit(srcmlunit);
-                    srcmlarchive.ArchivePack();
+            using (Archive srcmlArchive = new Archive(), srcmlArchive2 = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlUnit.SetUnitFilename(Path.Combine(TestInputPath, "input.cpp"));
+                    srcmlArchive.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
 
-                    srcmlunit.SetUnitFilename(Path.Combine(TestInputPath, "input2.cpp"));
-                    srcmlarchive2.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
-                    srcmlarchive2.AddUnit(srcmlunit);
-                    srcmlarchive2.ArchivePack();
+                    srcmlUnit.SetUnitFilename(Path.Combine(TestInputPath, "input2.cpp"));
+                    srcmlArchive2.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
+                    srcmlArchive2.AddUnit(srcmlUnit);
+                    srcmlArchive2.ArchivePack();
 
-                    IntPtr structPtr = srcmlarchive.GetPtrToStruct();
-                    IntPtr structPtr2 = srcmlarchive2.GetPtrToStruct();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
+                    IntPtr structPtr2 = srcmlArchive2.GetPtrToStruct();
 
                     List<IntPtr> structArrayPtr = new List<IntPtr>();
                     structArrayPtr.Add(structPtr);
@@ -89,20 +89,20 @@ namespace ABB.SrcML.Test {
         public void TestCreateSrcMLArchiveFtM() {
             IntPtr s = new IntPtr(0);
             List<String> documents = new List<String>();
-            using (Archive srcmlarchive = new Archive(), srcmlarchive2 = new Archive()) {
-                using (Unit srcmlunit = new Unit()) {
-                    srcmlunit.SetUnitFilename(Path.Combine(TestInputPath, "input.cpp"));
-                    srcmlunit.SetUnitLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
-                    srcmlarchive.AddUnit(srcmlunit);
-                    srcmlarchive.ArchivePack();
+            using (Archive srcmlArchive = new Archive(), srcmlArchive2 = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlUnit.SetUnitFilename(Path.Combine(TestInputPath, "input.cpp"));
+                    srcmlUnit.SetUnitLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
 
-                    srcmlunit.SetUnitFilename(Path.Combine(TestInputPath, "input2.cpp"));
-                    srcmlunit.SetUnitLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
-                    srcmlarchive2.AddUnit(srcmlunit);
-                    srcmlarchive2.ArchivePack();
+                    srcmlUnit.SetUnitFilename(Path.Combine(TestInputPath, "input2.cpp"));
+                    srcmlUnit.SetUnitLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
+                    srcmlArchive2.AddUnit(srcmlUnit);
+                    srcmlArchive2.ArchivePack();
 
-                    IntPtr structPtr = srcmlarchive.GetPtrToStruct();
-                    IntPtr structPtr2 = srcmlarchive2.GetPtrToStruct();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
+                    IntPtr structPtr2 = srcmlArchive2.GetPtrToStruct();
 
                     List<IntPtr> structArrayPtr = new List<IntPtr>();
                     structArrayPtr.Add(structPtr);
@@ -151,32 +151,32 @@ namespace ABB.SrcML.Test {
         /// </summary>
         [Test]
         public void TestCreateSrcMLArchiveMtF() {
-            using (Archive srcmlarchive = new Archive()) {
-                List<String> BufferList = new List<String>();
-                List<String> FileList = new List<String>();
+            using (Archive srcmlArchive = new Archive()) {
+                List<String> bufferList = new List<String>();
+                List<String> fileList = new List<String>();
 
                 String str = "int main(){int c; c = 0; ++c;}";
                 String str2 = "int foo(){int c; c = 0; ++c;}";
 
-                FileList.Add("input.cpp");
-                FileList.Add("input2.cpp");
+                fileList.Add("input.cpp");
+                fileList.Add("input2.cpp");
 
-                BufferList.Add(str);
-                BufferList.Add(str2);
+                bufferList.Add(str);
+                bufferList.Add(str2);
 
-                var buffandfile = BufferList.Zip(FileList, (b, f) => new { buf = b, file = f });
+                var buffandfile = bufferList.Zip(fileList, (b, f) => new { buf = b, file = f });
                 foreach (var pair in buffandfile) {
-                    using (Unit srcmlunit = new Unit()) {
-                        srcmlunit.SetUnitBuffer(pair.buf);
-                        srcmlunit.SetUnitFilename(pair.file);
+                    using (Unit srcmlUnit = new Unit()) {
+                        srcmlUnit.SetUnitBuffer(pair.buf);
+                        srcmlUnit.SetUnitFilename(pair.file);
 
-                        srcmlarchive.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
-                        srcmlarchive.AddUnit(srcmlunit);
+                        srcmlArchive.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
+                        srcmlArchive.AddUnit(srcmlUnit);
                     }
                 }
-                srcmlarchive.ArchivePack();
+                srcmlArchive.ArchivePack();
 
-                IntPtr structPtr = srcmlarchive.GetPtrToStruct();
+                IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
                 List<IntPtr> structArrayPtr = new List<IntPtr>();
                 structArrayPtr.Add(structPtr);
@@ -210,30 +210,30 @@ namespace ABB.SrcML.Test {
         /// </summary>
         [Test]
         public void TestCreateSrcMLArchiveMtM() {
-            using (Archive srcmlarchive = new Archive()) {
-                List<String> BufferList = new List<String>();
-                List<String> FileList = new List<String>();
+            using (Archive srcmlArchive = new Archive()) {
+                List<String> bufferList = new List<String>();
+                List<String> fileList = new List<String>();
                 String str = "int main(){int c; c = 0; ++c;}";
                 String str2 = "int foo(){int c; c = 0; ++c;}";
-                BufferList.Add(str);
-                BufferList.Add(str2);
+                bufferList.Add(str);
+                bufferList.Add(str2);
 
-                FileList.Add("input.cpp");
-                FileList.Add("input2.cpp");
+                fileList.Add("input.cpp");
+                fileList.Add("input2.cpp");
 
-                var buffandfile = BufferList.Zip(FileList, (b, f) => new { buf = b, file = f });
+                var buffandfile = bufferList.Zip(fileList, (b, f) => new { buf = b, file = f });
                 foreach (var pair in buffandfile) {
-                    using (Unit srcmlunit = new Unit()) {
-                        srcmlunit.SetUnitBuffer(pair.buf);
-                        srcmlunit.SetUnitFilename(pair.file);
+                    using (Unit srcmlUnit = new Unit()) {
+                        srcmlUnit.SetUnitBuffer(pair.buf);
+                        srcmlUnit.SetUnitFilename(pair.file);
 
-                        srcmlunit.SetUnitLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
-                        srcmlarchive.AddUnit(srcmlunit);
+                        srcmlUnit.SetUnitLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
+                        srcmlArchive.AddUnit(srcmlUnit);
                     }
                 }
 
-                srcmlarchive.ArchivePack();
-                IntPtr structPtr = srcmlarchive.GetPtrToStruct();
+                srcmlArchive.ArchivePack();
+                IntPtr structPtr = srcmlArchive.GetPtrToStruct();
                 List<IntPtr> structArrayPtr = new List<IntPtr>();
                 structArrayPtr.Add(structPtr);
                 IntPtr s = new IntPtr(0);
@@ -299,21 +299,21 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestGenerateSrcMLFromStrings() {
-            List<String> BufferList = new List<String>();
-            List<String> FileList = new List<String>();
+            List<String> bufferList = new List<String>();
+            List<String> fileList = new List<String>();
 
             String str = "int main(){int c; c = 0; ++c;}";
             String str2 = "int foo(){int c; c = 0; ++c;}";
 
-            FileList.Add("input.cpp");
-            FileList.Add("input2.cpp");
-            BufferList.Add(str);
-            BufferList.Add(str2);
+            fileList.Add("input.cpp");
+            fileList.Add("input2.cpp");
+            bufferList.Add(str);
+            bufferList.Add(str2);
 
             LibSrcMLRunner run = new LibSrcMLRunner();
 
             try {
-                List<string> b = run.GenerateSrcMLFromStrings(BufferList, FileList, Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_MODIFIER }, false).ToList<string>();
+                List<string> b = run.GenerateSrcMLFromStrings(bufferList, fileList, Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_MODIFIER }, false).ToList<string>();
                 Assert.True(Convert.ToBoolean(b.Count));
                 XDocument doc = XDocument.Parse(b.ElementAt(0));
                 var units = from unit in doc.Descendants(XName.Get("unit", "http://www.srcML.org/srcML/src"))
@@ -393,13 +393,13 @@ namespace ABB.SrcML.Test {
         #region WrapperTests
         [Test]
         public void TestArchiveSetSrcEncoding() {
-            using (Archive srcmlarchive = new Archive()) {
-                using (Unit srcmlunit = new Unit()) {
-                    srcmlarchive.SetArchiveSrcEncoding("ISO-8859-1");
-                    srcmlarchive.AddUnit(srcmlunit);
-                    srcmlarchive.ArchivePack();
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlArchive.SetArchiveSrcEncoding("ISO-8859-1");
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
 
-                    IntPtr structPtr = srcmlarchive.GetPtrToStruct();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
                     List<IntPtr> structArrayPtr = new List<IntPtr>();
                     structArrayPtr.Add(structPtr);
@@ -409,12 +409,12 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestArchiveXmlEncoding() {
-            using (Archive srcmlarchive = new Archive()) {
-                using (Unit srcmlunit = new Unit()) {
-                    srcmlarchive.SetArchiveXmlEncoding("ISO-8859-1");
-                    srcmlarchive.AddUnit(srcmlunit);
-                    srcmlarchive.ArchivePack();
-                    IntPtr structPtr = srcmlarchive.GetPtrToStruct();
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlArchive.SetArchiveXmlEncoding("ISO-8859-1");
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
                     List<IntPtr> structArrayPtr = new List<IntPtr>();
                     structArrayPtr.Add(structPtr);
@@ -425,12 +425,12 @@ namespace ABB.SrcML.Test {
 
         [Test]
         public void TestArchiveSetLanguage() {
-            using (Archive srcmlarchive = new Archive()) {
-                using (Unit srcmlunit = new Unit()) {
-                    srcmlarchive.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
-                    srcmlarchive.AddUnit(srcmlunit);
-                    srcmlarchive.ArchivePack();
-                    IntPtr structPtr = srcmlarchive.GetPtrToStruct();
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlArchive.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
                     List<IntPtr> structArrayPtr = new List<IntPtr>();
                     structArrayPtr.Add(structPtr);
@@ -440,12 +440,12 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestArchiveSetUrl() {
-            using (Archive srcmlarchive = new Archive()) {
-                using (Unit srcmlunit = new Unit()) {
-                    srcmlarchive.SetArchiveUrl("http://www.srcml.org/");
-                    srcmlarchive.AddUnit(srcmlunit);
-                    srcmlarchive.ArchivePack();
-                    IntPtr structPtr = srcmlarchive.GetPtrToStruct();
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlArchive.SetArchiveUrl("http://www.srcml.org/");
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
                     List<IntPtr> structArrayPtr = new List<IntPtr>();
                     structArrayPtr.Add(structPtr);
@@ -455,12 +455,12 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestArchiveSetVersion() {
-            using (Archive srcmlarchive = new Archive()) {
-                using (Unit srcmlunit = new Unit()) {
-                    srcmlarchive.SetArchiveSrcVersion("1.0");
-                    srcmlarchive.AddUnit(srcmlunit);
-                    srcmlarchive.ArchivePack();
-                    IntPtr structPtr = srcmlarchive.GetPtrToStruct();
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlArchive.SetArchiveSrcVersion("1.0");
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
                     List<IntPtr> structArrayPtr = new List<IntPtr>();
                     structArrayPtr.Add(structPtr);
@@ -470,12 +470,12 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestArchiveSetOptions() {
-            using (Archive srcmlarchive = new Archive()) {
-                using (Unit srcmlunit = new Unit()) {
-                    srcmlarchive.SetOptions(LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_LITERAL);
-                    srcmlarchive.AddUnit(srcmlunit);
-                    srcmlarchive.ArchivePack();
-                    IntPtr structPtr = srcmlarchive.GetPtrToStruct();
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlArchive.SetOptions(LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_LITERAL);
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
                     List<IntPtr> structArrayPtr = new List<IntPtr>();
                     structArrayPtr.Add(structPtr);
@@ -485,12 +485,12 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestArchiveEnableOption() {
-            using (Archive srcmlarchive = new Archive()) {
-                using (Unit srcmlunit = new Unit()) {
-                    srcmlarchive.EnableOption(LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_LITERAL);
-                    srcmlarchive.AddUnit(srcmlunit);
-                    srcmlarchive.ArchivePack();
-                    IntPtr structPtr = srcmlarchive.GetPtrToStruct();
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlArchive.EnableOption(LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_LITERAL);
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
                     List<IntPtr> structArrayPtr = new List<IntPtr>();
                     structArrayPtr.Add(structPtr);
@@ -500,13 +500,13 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestArchiveDisableOption() {
-            using (Archive srcmlarchive = new Archive()) {
-                using (Unit srcmlunit = new Unit()) {
-                    srcmlarchive.SetOptions(LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_LITERAL);
-                    srcmlarchive.DisableOption(LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_LITERAL);
-                    srcmlarchive.AddUnit(srcmlunit);
-                    srcmlarchive.ArchivePack();
-                    IntPtr structPtr = srcmlarchive.GetPtrToStruct();
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlArchive.SetOptions(LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_LITERAL);
+                    srcmlArchive.DisableOption(LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_LITERAL);
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
                     List<IntPtr> structArrayPtr = new List<IntPtr>();
                     structArrayPtr.Add(structPtr);
@@ -516,12 +516,12 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestArchiveSetTabstop() {
-            using (Archive srcmlarchive = new Archive()) {
-                using (Unit srcmlunit = new Unit()) {
-                    srcmlarchive.SetArchiveTabstop(2);
-                    srcmlarchive.AddUnit(srcmlunit);
-                    srcmlarchive.ArchivePack();
-                    IntPtr structPtr = srcmlarchive.GetPtrToStruct();
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlArchive.SetArchiveTabstop(2);
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
                     List<IntPtr> structArrayPtr = new List<IntPtr>();
                     structArrayPtr.Add(structPtr);
@@ -531,12 +531,12 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestArchiveRegisterFileExtension() {
-            using (Archive srcmlarchive = new Archive()) {
-                using (Unit srcmlunit = new Unit()) {
-                    srcmlarchive.RegisterFileExtension("h", LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
-                    srcmlarchive.AddUnit(srcmlunit);
-                    srcmlarchive.ArchivePack();
-                    IntPtr structPtr = srcmlarchive.GetPtrToStruct();
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlArchive.RegisterFileExtension("h", LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
                     List<IntPtr> structArrayPtr = new List<IntPtr>();
                     structArrayPtr.Add(structPtr);
@@ -546,12 +546,12 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestArchiveRegisterNamespace() {
-            using (Archive srcmlarchive = new Archive()) {
-                using (Unit srcmlunit = new Unit()) {
-                    srcmlarchive.RegisterNamespace("abb", "www.abb.com");
-                    srcmlarchive.AddUnit(srcmlunit);
-                    srcmlarchive.ArchivePack();
-                    IntPtr structPtr = srcmlarchive.GetPtrToStruct();
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlArchive.RegisterNamespace("abb", "www.abb.com");
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
                     List<IntPtr> structArrayPtr = new List<IntPtr>();
                     structArrayPtr.Add(structPtr);
@@ -561,12 +561,12 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestArchiveSetProcessingInstruction() {
-            using (Archive srcmlarchive = new Archive()) {
-                using (Unit srcmlunit = new Unit()) {
-                    srcmlarchive.SetProcessingInstruction("hpp", "data");
-                    srcmlarchive.AddUnit(srcmlunit);
-                    srcmlarchive.ArchivePack();
-                    IntPtr structPtr = srcmlarchive.GetPtrToStruct();
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlArchive.SetProcessingInstruction("hpp", "data");
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
                     List<IntPtr> structArrayPtr = new List<IntPtr>();
                     structArrayPtr.Add(structPtr);
@@ -576,12 +576,12 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestArchiveRegisterMacro() {
-            using (Archive srcmlarchive = new Archive()) {
-                using (Unit srcmlunit = new Unit()) {
-                    srcmlarchive.RegisterMacro("Token", "type");
-                    srcmlarchive.AddUnit(srcmlunit);
-                    srcmlarchive.ArchivePack();
-                    IntPtr structPtr = srcmlarchive.GetPtrToStruct();
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlArchive.RegisterMacro("Token", "type");
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
                     List<IntPtr> structArrayPtr = new List<IntPtr>();
                     structArrayPtr.Add(structPtr);
@@ -591,12 +591,12 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestUnitSetFilename() {
-            using (Archive srcmlarchive = new Archive()) {
-                using (Unit srcmlunit = new Unit()) {
-                    srcmlunit.SetUnitFilename("Bleep.cpp");
-                    srcmlarchive.AddUnit(srcmlunit);
-                    srcmlarchive.ArchivePack();
-                    IntPtr structPtr = srcmlarchive.GetPtrToStruct();
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlUnit.SetUnitFilename("Bleep.cpp");
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
                     List<IntPtr> structArrayPtr = new List<IntPtr>();
                     structArrayPtr.Add(structPtr);
@@ -606,12 +606,12 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestUnitSetLanguage() {
-            using (Archive srcmlarchive = new Archive()) {
-                using (Unit srcmlunit = new Unit()) {
-                    srcmlunit.SetUnitLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
-                    srcmlarchive.AddUnit(srcmlunit);
-                    srcmlarchive.ArchivePack();
-                    IntPtr structPtr = srcmlarchive.GetPtrToStruct();
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlUnit.SetUnitLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
                     List<IntPtr> structArrayPtr = new List<IntPtr>();
                     structArrayPtr.Add(structPtr);
@@ -621,12 +621,12 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestUnitSetSrcEncoding() {
-            using (Archive srcmlarchive = new Archive()) {
-                using (Unit srcmlunit = new Unit()) {
-                    srcmlunit.SetUnitSrcEncoding("UTF-8");
-                    srcmlarchive.AddUnit(srcmlunit);
-                    srcmlarchive.ArchivePack();
-                    IntPtr structPtr = srcmlarchive.GetPtrToStruct();
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlUnit.SetUnitSrcEncoding("UTF-8");
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
                     List<IntPtr> structArrayPtr = new List<IntPtr>();
                     structArrayPtr.Add(structPtr);
@@ -636,12 +636,12 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestUnitSetUrl() {
-            using (Archive srcmlarchive = new Archive()) {
-                using (Unit srcmlunit = new Unit()) {
-                    srcmlunit.SetUnitUrl("www.abb.com");
-                    srcmlarchive.AddUnit(srcmlunit);
-                    srcmlarchive.ArchivePack();
-                    IntPtr structPtr = srcmlarchive.GetPtrToStruct();
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlUnit.SetUnitUrl("www.abb.com");
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
                     List<IntPtr> structArrayPtr = new List<IntPtr>();
                     structArrayPtr.Add(structPtr);
@@ -651,12 +651,12 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestUnitSetVersion() {
-            using (Archive srcmlarchive = new Archive()) {
-                using (Unit srcmlunit = new Unit()) {
-                    srcmlunit.SetUnitSrcVersion("1.0");
-                    srcmlarchive.AddUnit(srcmlunit);
-                    srcmlarchive.ArchivePack();
-                    IntPtr structPtr = srcmlarchive.GetPtrToStruct();
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlUnit.SetUnitSrcVersion("1.0");
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
                     List<IntPtr> structArrayPtr = new List<IntPtr>();
                     structArrayPtr.Add(structPtr);
@@ -666,12 +666,12 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestUnitSetTimestamp() {
-            using (Archive srcmlarchive = new Archive()) {
-                using (Unit srcmlunit = new Unit()) {
-                    srcmlunit.SetUnitTimestamp("0800");
-                    srcmlarchive.AddUnit(srcmlunit);
-                    srcmlarchive.ArchivePack();
-                    IntPtr structPtr = srcmlarchive.GetPtrToStruct();
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlUnit.SetUnitTimestamp("0800");
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
                     List<IntPtr> structArrayPtr = new List<IntPtr>();
                     structArrayPtr.Add(structPtr);
@@ -681,12 +681,12 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestUnitSetHash() {
-            using (Archive srcmlarchive = new Archive()) {
-                using (Unit srcmlunit = new Unit()) {
-                    srcmlunit.SetHash("hash");
-                    srcmlarchive.AddUnit(srcmlunit);
-                    srcmlarchive.ArchivePack();
-                    IntPtr structPtr = srcmlarchive.GetPtrToStruct();
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlUnit.SetHash("hash");
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
                     List<IntPtr> structArrayPtr = new List<IntPtr>();
                     structArrayPtr.Add(structPtr);
@@ -696,12 +696,12 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestUnitUnparseSetEol() {
-            using (Archive srcmlarchive = new Archive()) {
-                using (Unit srcmlunit = new Unit()) {
-                    srcmlunit.UnparseSetEol(50);
-                    srcmlarchive.AddUnit(srcmlunit);
-                    srcmlarchive.ArchivePack();
-                    IntPtr structPtr = srcmlarchive.GetPtrToStruct();
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlUnit.UnparseSetEol(50);
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
                     List<IntPtr> structArrayPtr = new List<IntPtr>();
                     structArrayPtr.Add(structPtr);
