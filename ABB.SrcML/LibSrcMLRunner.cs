@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
+using System.Collections.ObjectModel;
+using ABB.SrcML.Utilities;
+using System.IO;
 namespace ABB.SrcML {
     /// <summary>
     /// C#-facing API for libsrcml
@@ -11,6 +14,16 @@ namespace ABB.SrcML {
     [CLSCompliant(false)]
     public class LibSrcMLRunner {
         public const string LIBSRCMLPATH = "LibSrcMLWrapper.dll";
+        public static Dictionary<Language, string> LanguageEnumDictionary = new Dictionary<Language, string>() {
+                {Language.Any, SrcMLLanguages.SRCML_LANGUAGE_NONE },
+                {Language.AspectJ, SrcMLLanguages.SRCML_LANGUAGE_JAVA},
+                {Language.C, SrcMLLanguages.SRCML_LANGUAGE_C },
+                {Language.CPlusPlus, SrcMLLanguages.SRCML_LANGUAGE_CXX },
+                {Language.CSharp, SrcMLLanguages.SRCML_LANGUAGE_CSHARP },
+                {Language.Java, SrcMLLanguages.SRCML_LANGUAGE_JAVA },
+                {Language.ObjectiveC, SrcMLLanguages.SRCML_LANGUAGE_OBJECTIVE_C },
+                {Language.XmlLang, SrcMLLanguages.SRCML_LANGUAGE_XML }
+        };
         /// <summary>
         /// Options that can be set on a srcML unit or archive
         /// </summary>
@@ -70,10 +83,11 @@ namespace ABB.SrcML {
             /** Encode the original source encoding as an attribute */
             public const UInt32 SRCML_OPTION_STORE_ENCODING = 1 << 26;
             public const UInt32 SRCML_OPTION_DEFAULT = (SRCML_OPTION_ARCHIVE | SRCML_OPTION_XML_DECL | SRCML_OPTION_NAMESPACE_DECL | SRCML_OPTION_HASH | SRCML_OPTION_PSEUDO_BLOCK | SRCML_OPTION_TERNARY);
-
+        }
+        public struct SrcMLLanguages {
             /* Core language set */
             /** srcML language not set */
-            public const int SRCML_LANGUAGE_NONE = 0;
+            public const string SRCML_LANGUAGE_NONE = "";
             /** string for language C */
             public const string SRCML_LANGUAGE_C = "C";
             /** string for language C++ */
@@ -96,10 +110,10 @@ namespace ABB.SrcML {
             private IntPtr srcEncoding;
             private IntPtr revision;
             private IntPtr language;
-            private IntPtr fileNames;
+            private IntPtr filenames;
             private IntPtr url;
             private IntPtr version;
-            private IntPtr timeStamp;
+            private IntPtr timestamp;
             private IntPtr hash;
             private IntPtr buffer;
             private int bufferCount;
@@ -117,6 +131,7 @@ namespace ABB.SrcML {
             private IntPtr tokenAndType;
             private int eol;
 
+            #region ArchiveAndUnitModificationFunctions
             /// <summary>
             /// Sets the encoding for source code
             /// </summary>
@@ -144,24 +159,24 @@ namespace ABB.SrcML {
             /// wrong file name will be assigned to units.
             /// </summary>
             /// <param name="fname">Chosen name for file</param>
-            public void SetArchiveFilename(List<String> fileList) {
-                fileNames = Marshal.AllocHGlobal(fileList.Count * Marshal.SizeOf(typeof(IntPtr)));
-                IntPtr ptr = fileNames;
+            public void SetArchiveFilename(ICollection<String> fileList) {
+                filenames = Marshal.AllocHGlobal(fileList.Count * Marshal.SizeOf(typeof(IntPtr)));
+                IntPtr ptr = filenames;
+                int i = 0;
                 foreach (string str in fileList) {
+                    ++i;
                     Marshal.WriteIntPtr(ptr, Marshal.StringToHGlobalAnsi(str));
                     ptr += Marshal.SizeOf(typeof(IntPtr));
                 }
+                bufferCount = i;
             }
             /// <summary>
             /// Name for the archive being created. This gets set on the <unit>. This version takes a single
             /// file name and points an IntPtr at it.
             /// </summary>
             /// <param name="fname">Chosen name for file</param>
-            public void SetArchiveFilename(String fileName) {
-                fileNames = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(IntPtr)));
-                IntPtr ptr = fileNames;
-                Marshal.WriteIntPtr(ptr, Marshal.StringToHGlobalAnsi(fileName));
-                bufferCount = 1;
+            public void SetArchiveFilename(String filename) {
+                SetArchiveFilename(new List<string>() { filename });
             }
             /// <summary>
             /// URL for namespace in archive
@@ -182,9 +197,9 @@ namespace ABB.SrcML {
             /// two dimensional array that can be passed into the cpp .dll
             /// </summary>
             /// <param name="bufferList"></param>
-            public void SetArchiveBuffer(List<String> bufferList) {
+            public void SetArchiveBuffer(ICollection<String> bufferList) {
                 buffer = Marshal.AllocHGlobal(bufferList.Count * Marshal.SizeOf(typeof(IntPtr)));
-                bufferSize = Marshal.AllocHGlobal(bufferList.Count * Marshal.SizeOf(typeof(IntPtr)));
+                bufferSize = Marshal.AllocHGlobal(bufferList.Count() * Marshal.SizeOf(typeof(IntPtr)));
                 IntPtr buffptr = buffer;
                 IntPtr numptr = bufferSize;
                 int i = 0;
@@ -209,7 +224,7 @@ namespace ABB.SrcML {
             /// </summary>
             /// <param name="srcTimeStamp">The time</param>
             public void SetArchiveTimestamp(string srcTimeStamp) {
-                timeStamp = Marshal.StringToHGlobalAnsi(srcTimeStamp);
+                timestamp = Marshal.StringToHGlobalAnsi(srcTimeStamp);
             }
             /// <summary>
             /// TODO
@@ -230,14 +245,14 @@ namespace ABB.SrcML {
             /// </summary>
             /// <param name="option"></param>
             public void EnableOption(UInt32 srcOption) {
-                optionEnable = srcOption;
+                optionEnable |= srcOption;
             }
             /// <summary>
             /// Disable an option
             /// </summary>
             /// <param name="option"></param>
             public void DisableOption(UInt32 srcOption) {
-                optionDisable = srcOption;
+                optionDisable ^= srcOption;
             }
             /// <summary>
             /// Register a file extension to be used with a particular language
@@ -303,14 +318,15 @@ namespace ABB.SrcML {
             public void UnparseSetEol(int srcEol) {
                 eol = srcEol;
             }
+            #endregion
             /// <summary>
             /// Clean up manually allocated resources
             /// </summary>
             public void Dispose() {
                 Marshal.FreeHGlobal(buffer);
                 Marshal.FreeHGlobal(bufferSize);
-                Marshal.FreeHGlobal(fileNames);
-                GC.SuppressFinalize(this);
+                Marshal.FreeHGlobal(filenames);
+
             }
         }
         /// <summary>
@@ -324,6 +340,130 @@ namespace ABB.SrcML {
             Marshal.StructureToPtr(ad, ptr, false);
             return ptr;
         }
+
+        /// <summary>
+        /// Generates srcML from a file
+        /// </summary>
+        /// <param name="fileName">The source file name</param>
+        /// <param name="xmlFileName">the output file name</param>
+        /// <param name="language">The language to use</param>
+        /// <param name="namespaceArguments">additional arguments</param>
+        /// <param name="extensionMapping">an extension mapping</param>
+        public void GenerateSrcMLFromFile(string fileName, string xmlFileName, Language language, ICollection<UInt32> namespaceArguments, Dictionary<string, Language> extensionMapping) {
+            try {
+                GenerateSrcMLFromFiles(new List<string>() { fileName }, xmlFileName, language, namespaceArguments, extensionMapping);
+            }
+            catch (Exception e) {
+                throw new SrcMLException(e.Message, e);
+            }
+        }
+        /// <summary>
+        /// Generates srcML from a file
+        /// </summary>
+        /// <param name="filenames">An enumerable of filenames</param>
+        /// <param name="xmlFileName">the output file name</param>
+        /// <param name="language">The language to use</param>
+        /// <param name="namespaceArguments">additional arguments</param>
+        /// <param name="extensionMapping">an extension mapping</param>
+        public void GenerateSrcMLFromFiles(ICollection<string> fileNames, string xmlFileName, Language language, ICollection<UInt32> namespaceArguments, Dictionary<string, Language> extensionMapping) {
+            UInt32 arguments = GenerateArguments(namespaceArguments);
+            try {
+                LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
+                ad.SetArchiveFilename(fileNames);
+                ad.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
+
+                List<LibSrcMLRunner.SourceData> data = new List<LibSrcMLRunner.SourceData>();
+                data.Add(ad);
+
+                IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+
+                List<IntPtr> structArrayPtr = new List<IntPtr>();
+                structArrayPtr.Add(structPtr);
+
+                LibSrcMLRunner.SrcmlCreateArchiveFtF(structArrayPtr.ToArray(), structArrayPtr.Count(), xmlFileName);
+            }
+            catch (Exception e) {
+                throw new SrcMLException(e.Message, e);
+            }
+        }
+
+        /// <summary>
+        /// Generates srcML from the given string of source code
+        /// </summary>
+        /// <param name="sources">list of strings of code (each string is a whole file)</param>
+        /// <param name="unitFilename">What name to give the unit</param>
+        /// <param name="language">The language</param>
+        /// <param name="namespaceArguments">additional arguments</param>
+        /// <param name="omitXmlDeclaration">If true, the XML header is omitted</param>
+        /// <returns>The srcML</returns>
+        public ICollection<string> GenerateSrcMLFromStrings(ICollection<string> sources, ICollection<string> unitFilename, Language language, ICollection<UInt32> namespaceArguments, bool omitXmlDeclaration) {
+            try {
+                using (LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData()) {
+                    if (omitXmlDeclaration) {
+                        ad.DisableOption(LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_XML_DECL);
+                    }
+                    ad.SetArchiveBuffer(sources);
+                    ad.SetArchiveFilename(unitFilename);
+                    ad.SetArchiveLanguage(LanguageEnumDictionary[language]); //need to correspond between Language enum and srcmloptions
+                    ad.EnableOption(GenerateArguments(namespaceArguments));
+                    IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+
+                    List<IntPtr> structArrayPtr = new List<IntPtr>();
+                    structArrayPtr.Add(structPtr);
+                    IntPtr s = LibSrcMLRunner.SrcmlCreateArchiveMtM(structArrayPtr.ToArray(), structArrayPtr.Count());
+
+                    List<String> documents = new List<String>();
+                    for (int i = 0; i < 1; ++i) {
+                        IntPtr docptr = Marshal.ReadIntPtr(s);
+                        String docstr = Marshal.PtrToStringAnsi(docptr);
+                        Marshal.FreeHGlobal(docptr);
+                        documents.Add(docstr);
+                        s += Marshal.SizeOf(typeof(IntPtr));
+                    }
+                    return documents;
+                }
+            }
+            catch (Exception e) {
+                throw new SrcMLException(e.Message, e);
+            }
+        }
+        /// <summary>
+        /// Generates srcML from the given string of source code
+        /// </summary>
+        /// <param name="source">A single body of source code in a a string</param>
+        /// <param name="unitFilename">What name to give the unit</param>
+        /// <param name="language">The language</param>
+        /// <param name="namespaceArguments">additional arguments</param>
+        /// <param name="omitXmlDeclaration">If true, the XML header is omitted</param>
+        /// <returns>The srcML</returns>
+        public string GenerateSrcMLFromString(string source, string unitFilename, Language language, ICollection<UInt32> namespaceArguments, bool omitXmlDeclaration) {
+            try {
+                return GenerateSrcMLFromStrings(new List<string>(){source}, new List<string>(){unitFilename}, language, namespaceArguments, omitXmlDeclaration).ElementAt(0);
+            }
+            catch (SrcMLException e) {
+                throw e;
+            }
+        }
+        /// <summary>
+        /// Generates command line arguments for src2srcml.exe
+        /// </summary>
+        /// <param name="xmlFileName">the output file name</param>
+        /// <param name="language">The programming language</param>
+        /// <param name="namespaceArguments">additional arguments</param>
+        /// <param name="extensionMapping">a mapping of file extensions to languages</param>
+        /// <returns>A collection of command line arguments</returns>
+        private static UInt32 GenerateArguments(ICollection<UInt32> namespaceArguments) {
+            UInt32 arguments = 0;
+
+            if (namespaceArguments == null) throw new ArgumentNullException("namespaceArguments");
+
+            foreach (var namespaceArgument in namespaceArguments) {
+                arguments |= namespaceArgument;
+            }
+
+            return arguments;
+        }
+        #region Low-level API functions
         /// <summary>
         /// Creates archive from a file and reads it out into a file
         /// </summary>
@@ -358,8 +498,8 @@ namespace ABB.SrcML {
         /// <returns>string representing the archive srcML produced</returns>
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr SrcmlCreateArchiveMtM(IntPtr[] SourceMetadata, int archiveCount);
-
-#region Test Functions
+        #endregion
+        #region Test Functions
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
         public static extern bool TestArchiveSetXmlEncoding(IntPtr[] sd);
 
@@ -422,6 +562,6 @@ namespace ABB.SrcML {
 
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
         public static extern bool TestUnitUnparseSetEol(IntPtr[] sd);
-#endregion
+        #endregion
     }
 }
