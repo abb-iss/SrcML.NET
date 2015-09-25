@@ -9,7 +9,6 @@ using System.Xml;
 using System.Runtime.InteropServices;
 using System.Xml.Linq;
 using System.Collections.ObjectModel;
-
 namespace ABB.SrcML.Test {
 
     [TestFixture]
@@ -26,27 +25,34 @@ namespace ABB.SrcML.Test {
         /// </summary>
         [Test]
         public void TestCreateSrcMLArchiveFtF() {
-            using (LibSrcMLRunner.SourceData bc = new LibSrcMLRunner.SourceData(), ad = new LibSrcMLRunner.SourceData()) {
-                ad.SetArchiveFilename(Path.Combine(TestInputPath, "input.cpp"));
-                ad.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
+            using (Archive srcmlArchive = new Archive(), srcmlArchive2 = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlUnit.SetUnitFilename(Path.Combine(TestInputPath, "input.cpp"));
+                    srcmlArchive.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.SetOutputFile("output");
+                    srcmlArchive.ArchivePack();
 
+                    srcmlUnit.SetUnitFilename(Path.Combine(TestInputPath, "input2.cpp"));
+                    srcmlArchive2.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
+                    srcmlArchive2.AddUnit(srcmlUnit);
+                    srcmlArchive2.SetOutputFile("output");
+                    srcmlArchive2.ArchivePack();
 
-                bc.SetArchiveFilename(Path.Combine(TestInputPath, "input2.cpp"));
-                bc.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
+                    IntPtr structPtr2 = srcmlArchive2.GetPtrToStruct();
 
-                IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
-                IntPtr structPtr2 = LibSrcMLRunner.CreatePtrFromStruct(bc);
+                    List<IntPtr> structArrayPtr = new List<IntPtr>();
+                    structArrayPtr.Add(structPtr);
+                    structArrayPtr.Add(structPtr2);
 
-                List<IntPtr> structArrayPtr = new List<IntPtr>();
-                structArrayPtr.Add(structPtr);
-                structArrayPtr.Add(structPtr2);
-                try {
-                    Assert.True(LibSrcMLRunner.SrcmlCreateArchiveFtF(structArrayPtr.ToArray(), structArrayPtr.Count(), "output") == 0);
+                    try {
+                        Assert.True(LibSrcMLRunner.SrcmlCreateArchiveFtF(structArrayPtr.ToArray(), structArrayPtr.Count()) == IntPtr.Zero);
+                    }
+                    catch (SrcMLException e) {
+                        Console.WriteLine(e.Message);
+                    }
                 }
-                catch (SrcMLException e) {
-                    Console.WriteLine(e.Message);
-                }
-
                 {
                     Assert.True(File.Exists("output0.cpp.xml"));
                     SrcMLFile srcFile = new SrcMLFile("output0.cpp.xml");
@@ -83,36 +89,41 @@ namespace ABB.SrcML.Test {
         /// </summary>
         [Test]
         public void TestCreateSrcMLArchiveFtM() {
-            using (LibSrcMLRunner.SourceData bc = new LibSrcMLRunner.SourceData(), ad = new LibSrcMLRunner.SourceData()) {
-                ad.SetArchiveFilename(Path.Combine(TestInputPath, "input.cpp"));
-                ad.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
+            IntPtr s = new IntPtr(0);
+            List<String> documents = new List<String>();
+            using (Archive srcmlArchive = new Archive(), srcmlArchive2 = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlUnit.SetUnitFilename(Path.Combine(TestInputPath, "input.cpp"));
+                    srcmlUnit.SetUnitLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
 
-                bc.SetArchiveFilename(Path.Combine(TestInputPath, "input2.cpp"));
-                bc.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
+                    srcmlUnit.SetUnitFilename(Path.Combine(TestInputPath, "input2.cpp"));
+                    srcmlUnit.SetUnitLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
+                    srcmlArchive2.AddUnit(srcmlUnit);
+                    srcmlArchive2.ArchivePack();
 
-                IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
-                IntPtr structPtr2 = LibSrcMLRunner.CreatePtrFromStruct(bc);
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
+                    IntPtr structPtr2 = srcmlArchive2.GetPtrToStruct();
 
-                List<IntPtr> structArrayPtr = new List<IntPtr>();
-                structArrayPtr.Add(structPtr);
-                structArrayPtr.Add(structPtr2);
-                IntPtr s = new IntPtr(0);
-                try {
-                    s = LibSrcMLRunner.SrcmlCreateArchiveFtM(structArrayPtr.ToArray(), structArrayPtr.Count());
+                    List<IntPtr> structArrayPtr = new List<IntPtr>();
+                    structArrayPtr.Add(structPtr);
+                    structArrayPtr.Add(structPtr2);
+
+                    try {
+                        s = LibSrcMLRunner.SrcmlCreateArchiveFtM(structArrayPtr.ToArray(), structArrayPtr.Count());
+                    }
+                    catch (Exception e) {
+                        throw new SrcMLException(e.Message, e);
+                    }
+                    for (int i = 0; i < 2; ++i) {
+                        IntPtr docptr = Marshal.ReadIntPtr(s);
+                        String docstr = Marshal.PtrToStringAnsi(docptr);
+                        Marshal.FreeHGlobal(docptr);
+                        documents.Add(docstr);
+                        s += Marshal.SizeOf(typeof(IntPtr));
+                    }
                 }
-                catch (Exception e) {
-                    throw new SrcMLException(e.Message, e);
-                }
-
-                List<String> documents = new List<String>();
-                for (int i = 0; i < 2; ++i) {
-                    IntPtr docptr = Marshal.ReadIntPtr(s);
-                    String docstr = Marshal.PtrToStringAnsi(docptr);
-                    Marshal.FreeHGlobal(docptr);
-                    documents.Add(docstr);
-                    s += Marshal.SizeOf(typeof(IntPtr));
-                }
-
                 Assert.False(String.IsNullOrEmpty(documents.ElementAt(0)));
                 XDocument doc = XDocument.Parse(documents.ElementAt(0));
                 var units = from unit in doc.Descendants(XName.Get("unit", "http://www.srcML.org/srcML/src"))
@@ -142,34 +153,42 @@ namespace ABB.SrcML.Test {
         /// </summary>
         [Test]
         public void TestCreateSrcMLArchiveMtF() {
-            using (LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData()) {
+            using (Archive srcmlArchive = new Archive()) {
+                List<String> bufferList = new List<String>();
+                List<String> fileList = new List<String>();
 
-                List<String> BufferList = new List<String>();
-                List<String> FileList = new List<String>();
                 String str = "int main(){int c; c = 0; ++c;}";
                 String str2 = "int foo(){int c; c = 0; ++c;}";
-                BufferList.Add(str);
-                BufferList.Add(str2);
-                ad.SetArchiveBuffer(BufferList);
 
-                FileList.Add("input.cpp");
-                FileList.Add("input2.cpp");
-                ad.SetArchiveFilename(FileList);
+                fileList.Add("input.cpp");
+                fileList.Add("input2.cpp");
 
-                ad.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
+                bufferList.Add(str);
+                bufferList.Add(str2);
 
-                IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+                var buffandfile = bufferList.Zip(fileList, (b, f) => new { buf = b, file = f });
+                foreach (var pair in buffandfile) {
+                    using (Unit srcmlUnit = new Unit()) {
+                        srcmlUnit.SetUnitBuffer(pair.buf);
+                        srcmlUnit.SetUnitFilename(pair.file);
+
+                        srcmlArchive.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
+                        srcmlArchive.AddUnit(srcmlUnit);
+                    }
+                }
+                srcmlArchive.SetOutputFile("output");
+                srcmlArchive.ArchivePack();
+
+                IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
                 List<IntPtr> structArrayPtr = new List<IntPtr>();
                 structArrayPtr.Add(structPtr);
 
-                Assert.True(LibSrcMLRunner.SrcmlCreateArchiveMtF(structArrayPtr.ToArray(), structArrayPtr.Count(), "output") == 0);
+                Assert.True(LibSrcMLRunner.SrcmlCreateArchiveMtF(structArrayPtr.ToArray(), structArrayPtr.Count()) == IntPtr.Zero);
                 Assert.True(File.Exists("output0.cpp.xml"));
 
                 SrcMLFile srcFile = new SrcMLFile("output0.cpp.xml");
                 Assert.IsNotNull(srcFile);
-
-                ad.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
 
                 var files = srcFile.FileUnits.ToList();
                 Assert.AreEqual(2, files.Count());
@@ -186,7 +205,6 @@ namespace ABB.SrcML.Test {
                           where ele.Attribute("filename").Value == file2
                           select ele);
                 Assert.AreEqual(file2, f2.FirstOrDefault().Attribute("filename").Value);
-
             }
         }
 
@@ -195,24 +213,30 @@ namespace ABB.SrcML.Test {
         /// </summary>
         [Test]
         public void TestCreateSrcMLArchiveMtM() {
-            using (LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData()) {
-                List<String> BufferList = new List<String>();
-                List<String> FileList = new List<String>();
+            using (Archive srcmlArchive = new Archive()) {
+                List<String> bufferList = new List<String>();
+                List<String> fileList = new List<String>();
                 String str = "int main(){int c; c = 0; ++c;}";
                 String str2 = "int foo(){int c; c = 0; ++c;}";
-                BufferList.Add(str);
-                BufferList.Add(str2);
-                ad.SetArchiveBuffer(BufferList);
+                bufferList.Add(str);
+                bufferList.Add(str2);
 
+                fileList.Add("input.cpp");
+                fileList.Add("input2.cpp");
 
-                FileList.Add("input.cpp");
-                FileList.Add("input2.cpp");
-                ad.SetArchiveFilename(FileList);
+                var buffandfile = bufferList.Zip(fileList, (b, f) => new { buf = b, file = f });
+                foreach (var pair in buffandfile) {
+                    using (Unit srcmlUnit = new Unit()) {
+                        srcmlUnit.SetUnitBuffer(pair.buf);
+                        srcmlUnit.SetUnitFilename(pair.file);
 
-                ad.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
+                        srcmlUnit.SetUnitLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
+                        srcmlArchive.AddUnit(srcmlUnit);
+                    }
+                }
 
-                IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
-
+                srcmlArchive.ArchivePack();
+                IntPtr structPtr = srcmlArchive.GetPtrToStruct();
                 List<IntPtr> structArrayPtr = new List<IntPtr>();
                 structArrayPtr.Add(structPtr);
                 IntPtr s = new IntPtr(0);
@@ -258,9 +282,9 @@ namespace ABB.SrcML.Test {
             LibSrcMLRunner run = new LibSrcMLRunner();
             try {
                 string b = run.GenerateSrcMLFromString("int main(){int x;}", "input.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_MODIFIER }, false);
-                
+
                 Assert.False(String.IsNullOrEmpty(b));
-                
+
                 XDocument doc = XDocument.Parse(b);
                 var units = from unit in doc.Descendants(XName.Get("unit", "http://www.srcML.org/srcML/src"))
                             where unit.Attribute("filename") != null
@@ -278,24 +302,21 @@ namespace ABB.SrcML.Test {
         }
         [Test]
         public void TestGenerateSrcMLFromStrings() {
-            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
-
-            List<String> BufferList = new List<String>();
-            List<String> FileList = new List<String>();
+            List<String> bufferList = new List<String>();
+            List<String> fileList = new List<String>();
 
             String str = "int main(){int c; c = 0; ++c;}";
             String str2 = "int foo(){int c; c = 0; ++c;}";
-            BufferList.Add(str);
-            BufferList.Add(str2);
 
-            ad.SetArchiveBuffer(BufferList);
+            fileList.Add("input.cpp");
+            fileList.Add("input2.cpp");
+            bufferList.Add(str);
+            bufferList.Add(str2);
 
-            FileList.Add("input.cpp");
-            FileList.Add("input2.cpp");
-            ad.SetArchiveFilename(FileList);
             LibSrcMLRunner run = new LibSrcMLRunner();
+
             try {
-                List<string> b = run.GenerateSrcMLFromStrings(BufferList, FileList, Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_MODIFIER }, false).ToList<string>();
+                List<string> b = run.GenerateSrcMLFromStrings(bufferList, fileList, Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_MODIFIER }, false).ToList<string>();
                 Assert.True(Convert.ToBoolean(b.Count));
                 XDocument doc = XDocument.Parse(b.ElementAt(0));
                 var units = from unit in doc.Descendants(XName.Get("unit", "http://www.srcML.org/srcML/src"))
@@ -338,7 +359,7 @@ namespace ABB.SrcML.Test {
                 Assert.AreEqual(file, f1.FirstOrDefault().Attribute("filename").Value);
             }
             catch (SrcMLException e) {
-                throw e;
+                throw new SrcMLException(e.Message, e);
             }
         }
         [Test]
@@ -371,218 +392,325 @@ namespace ABB.SrcML.Test {
                 throw e;
             }
         }
+
         #region WrapperTests
         [Test]
         public void TestArchiveSetSrcEncoding() {
-            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
-            ad.SetArchiveSrcEncoding("ISO-8859-1");
-            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlArchive.SetArchiveSrcEncoding("ISO-8859-1");
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
 
-            List<IntPtr> structArrayPtr = new List<IntPtr>();
-            structArrayPtr.Add(structPtr);
-            Assert.IsTrue(LibSrcMLRunner.TestArchiveSetSrcEncoding(structArrayPtr.ToArray()));
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
+
+                    List<IntPtr> structArrayPtr = new List<IntPtr>();
+                    structArrayPtr.Add(structPtr);
+                    Assert.IsTrue(LibSrcMLRunner.TestArchiveSetSrcEncoding(structArrayPtr.ToArray()));
+                }
+            }
         }
-
         [Test]
         public void TestArchiveXmlEncoding() {
-            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
-            ad.SetArchiveXmlEncoding("ISO-8859-1");
-            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlArchive.SetArchiveXmlEncoding("ISO-8859-1");
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
-            List<IntPtr> structArrayPtr = new List<IntPtr>();
-            structArrayPtr.Add(structPtr);
-            Assert.IsTrue(LibSrcMLRunner.TestArchiveSetXmlEncoding(structArrayPtr.ToArray()));
+                    List<IntPtr> structArrayPtr = new List<IntPtr>();
+                    structArrayPtr.Add(structPtr);
+                    Assert.IsTrue(LibSrcMLRunner.TestArchiveSetXmlEncoding(structArrayPtr.ToArray()));
+                }
+            }
         }
 
         [Test]
         public void TestArchiveSetLanguage() {
-            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
-            ad.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
-            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlArchive.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
-            List<IntPtr> structArrayPtr = new List<IntPtr>();
-            structArrayPtr.Add(structPtr);
-            Assert.IsTrue(LibSrcMLRunner.TestArchiveSetLanguage(structArrayPtr.ToArray()));
+                    List<IntPtr> structArrayPtr = new List<IntPtr>();
+                    structArrayPtr.Add(structPtr);
+                    Assert.IsTrue(LibSrcMLRunner.TestArchiveSetLanguage(structArrayPtr.ToArray()));
+                }
+            }
         }
         [Test]
         public void TestArchiveSetUrl() {
-            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
-            ad.SetArchiveUrl("http://www.srcml.org/");
-            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlArchive.SetArchiveUrl("http://www.srcml.org/");
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
-            List<IntPtr> structArrayPtr = new List<IntPtr>();
-            structArrayPtr.Add(structPtr);
-            Assert.IsTrue(LibSrcMLRunner.TestArchiveSetUrl(structArrayPtr.ToArray()));
+                    List<IntPtr> structArrayPtr = new List<IntPtr>();
+                    structArrayPtr.Add(structPtr);
+                    Assert.IsTrue(LibSrcMLRunner.TestArchiveSetUrl(structArrayPtr.ToArray()));
+                }
+            }
         }
         [Test]
         public void TestArchiveSetVersion() {
-            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
-            ad.SetArchiveSrcVersion("1.0");
-            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlArchive.SetArchiveSrcVersion("1.0");
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
-            List<IntPtr> structArrayPtr = new List<IntPtr>();
-            structArrayPtr.Add(structPtr);
-            Assert.IsTrue(LibSrcMLRunner.TestArchiveSetVersion(structArrayPtr.ToArray()));
+                    List<IntPtr> structArrayPtr = new List<IntPtr>();
+                    structArrayPtr.Add(structPtr);
+                    Assert.IsTrue(LibSrcMLRunner.TestArchiveSetVersion(structArrayPtr.ToArray()));
+                }
+            }
         }
         [Test]
         public void TestArchiveSetOptions() {
-            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
-            ad.SetOptions(LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_LITERAL);
-            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlArchive.SetOptions(LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_LITERAL);
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
-            List<IntPtr> structArrayPtr = new List<IntPtr>();
-            structArrayPtr.Add(structPtr);
-            Assert.IsTrue(LibSrcMLRunner.TestArchiveSetOptions(structArrayPtr.ToArray()));
+                    List<IntPtr> structArrayPtr = new List<IntPtr>();
+                    structArrayPtr.Add(structPtr);
+                    Assert.IsTrue(LibSrcMLRunner.TestArchiveSetOptions(structArrayPtr.ToArray()));
+                }
+            }
         }
         [Test]
         public void TestArchiveEnableOption() {
-            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
-            ad.EnableOption(LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_LITERAL);
-            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlArchive.EnableOption(LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_LITERAL);
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
-            List<IntPtr> structArrayPtr = new List<IntPtr>();
-            structArrayPtr.Add(structPtr);
-            Assert.IsTrue(LibSrcMLRunner.TestArchiveEnableOption(structArrayPtr.ToArray()));
+                    List<IntPtr> structArrayPtr = new List<IntPtr>();
+                    structArrayPtr.Add(structPtr);
+                    Assert.IsTrue(LibSrcMLRunner.TestArchiveEnableOption(structArrayPtr.ToArray()));
+                }
+            }
         }
         [Test]
         public void TestArchiveDisableOption() {
-            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
-            ad.DisableOption(LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_LITERAL);
-            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlArchive.SetOptions(LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_LITERAL);
+                    srcmlArchive.DisableOption(LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_LITERAL);
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
-            List<IntPtr> structArrayPtr = new List<IntPtr>();
-            structArrayPtr.Add(structPtr);
-            Assert.IsTrue(LibSrcMLRunner.TestArchiveDisableOption(structArrayPtr.ToArray()));
+                    List<IntPtr> structArrayPtr = new List<IntPtr>();
+                    structArrayPtr.Add(structPtr);
+                    Assert.IsTrue(LibSrcMLRunner.TestArchiveDisableOption(structArrayPtr.ToArray()));
+                }
+            }
         }
         [Test]
         public void TestArchiveSetTabstop() {
-            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
-            ad.SetArchiveTabstop(2);
-            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlArchive.SetArchiveTabstop(2);
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
-            List<IntPtr> structArrayPtr = new List<IntPtr>();
-            structArrayPtr.Add(structPtr);
-            Assert.IsTrue(LibSrcMLRunner.TestArchiveSetTabstop(structArrayPtr.ToArray()));
+                    List<IntPtr> structArrayPtr = new List<IntPtr>();
+                    structArrayPtr.Add(structPtr);
+                    Assert.IsTrue(LibSrcMLRunner.TestArchiveSetTabstop(structArrayPtr.ToArray()));
+                }
+            }
         }
         [Test]
         public void TestArchiveRegisterFileExtension() {
-            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
-            ad.RegisterFileExtension("h", LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
-            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlArchive.RegisterFileExtension("h", LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
-            List<IntPtr> structArrayPtr = new List<IntPtr>();
-            structArrayPtr.Add(structPtr);
-            Assert.IsTrue(LibSrcMLRunner.TestArchiveRegisterFileExtension(structArrayPtr.ToArray()));
+                    List<IntPtr> structArrayPtr = new List<IntPtr>();
+                    structArrayPtr.Add(structPtr);
+                    Assert.IsTrue(LibSrcMLRunner.TestArchiveRegisterFileExtension(structArrayPtr.ToArray()));
+                }
+            }
         }
         [Test]
         public void TestArchiveRegisterNamespace() {
-            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
-            ad.RegisterNamespace("abb", "www.abb.com");
-            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlArchive.RegisterNamespace("abb", "www.abb.com");
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
-            List<IntPtr> structArrayPtr = new List<IntPtr>();
-            structArrayPtr.Add(structPtr);
-            Assert.IsTrue(LibSrcMLRunner.TestArchiveRegisterNamespace(structArrayPtr.ToArray()));
+                    List<IntPtr> structArrayPtr = new List<IntPtr>();
+                    structArrayPtr.Add(structPtr);
+                    Assert.IsTrue(LibSrcMLRunner.TestArchiveRegisterNamespace(structArrayPtr.ToArray()));
+                }
+            }
         }
         [Test]
         public void TestArchiveSetProcessingInstruction() {
-            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
-            ad.SetProcessingInstruction("hpp", "data");
-            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlArchive.SetProcessingInstruction("hpp", "data");
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
-            List<IntPtr> structArrayPtr = new List<IntPtr>();
-            structArrayPtr.Add(structPtr);
-            Assert.IsTrue(LibSrcMLRunner.TestArchiveSetProcessingInstruction(structArrayPtr.ToArray()));
+                    List<IntPtr> structArrayPtr = new List<IntPtr>();
+                    structArrayPtr.Add(structPtr);
+                    Assert.IsTrue(LibSrcMLRunner.TestArchiveSetProcessingInstruction(structArrayPtr.ToArray()));
+                }
+            }
         }
         [Test]
         public void TestArchiveRegisterMacro() {
-            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
-            ad.RegisterMacro("Token", "type");
-            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlArchive.RegisterMacro("Token", "type");
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
-            List<IntPtr> structArrayPtr = new List<IntPtr>();
-            structArrayPtr.Add(structPtr);
-            Assert.IsTrue(LibSrcMLRunner.TestArchiveRegisterMacro(structArrayPtr.ToArray()));
+                    List<IntPtr> structArrayPtr = new List<IntPtr>();
+                    structArrayPtr.Add(structPtr);
+                    Assert.IsTrue(LibSrcMLRunner.TestArchiveRegisterMacro(structArrayPtr.ToArray()));
+                }
+            }
         }
         [Test]
         public void TestUnitSetFilename() {
-            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
-            ad.SetArchiveFilename("Bleep.cpp");
-            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlUnit.SetUnitFilename("Bleep.cpp");
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
-            List<IntPtr> structArrayPtr = new List<IntPtr>();
-            structArrayPtr.Add(structPtr);
-            Assert.IsTrue(LibSrcMLRunner.TestUnitSetFilename(structArrayPtr.ToArray()));
+                    List<IntPtr> structArrayPtr = new List<IntPtr>();
+                    structArrayPtr.Add(structPtr);
+                    Assert.IsTrue(LibSrcMLRunner.TestUnitSetFilename(structArrayPtr.ToArray()));
+                }
+            }
         }
         [Test]
         public void TestUnitSetLanguage() {
-            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
-            ad.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
-            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlUnit.SetUnitLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
-            List<IntPtr> structArrayPtr = new List<IntPtr>();
-            structArrayPtr.Add(structPtr);
-            Assert.IsTrue(LibSrcMLRunner.TestUnitSetLanguage(structArrayPtr.ToArray()));
+                    List<IntPtr> structArrayPtr = new List<IntPtr>();
+                    structArrayPtr.Add(structPtr);
+                    Assert.IsTrue(LibSrcMLRunner.TestUnitSetLanguage(structArrayPtr.ToArray()));
+                }
+            }
         }
         [Test]
         public void TestUnitSetSrcEncoding() {
-            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
-            ad.SetArchiveSrcEncoding("UTF-8");
-            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlUnit.SetUnitSrcEncoding("UTF-8");
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
-            List<IntPtr> structArrayPtr = new List<IntPtr>();
-            structArrayPtr.Add(structPtr);
-            Assert.IsTrue(LibSrcMLRunner.TestUnitSetSrcEncoding(structArrayPtr.ToArray()));
+                    List<IntPtr> structArrayPtr = new List<IntPtr>();
+                    structArrayPtr.Add(structPtr);
+                    Assert.IsTrue(LibSrcMLRunner.TestUnitSetSrcEncoding(structArrayPtr.ToArray()));
+                }
+            }
         }
         [Test]
         public void TestUnitSetUrl() {
-            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
-            ad.SetArchiveUrl("www.abb.com");
-            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlUnit.SetUnitUrl("www.abb.com");
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
-            List<IntPtr> structArrayPtr = new List<IntPtr>();
-            structArrayPtr.Add(structPtr);
-            Assert.IsTrue(LibSrcMLRunner.TestUnitSetUrl(structArrayPtr.ToArray()));
+                    List<IntPtr> structArrayPtr = new List<IntPtr>();
+                    structArrayPtr.Add(structPtr);
+                    Assert.IsTrue(LibSrcMLRunner.TestUnitSetUrl(structArrayPtr.ToArray()));
+                }
+            }
         }
         [Test]
         public void TestUnitSetVersion() {
-            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
-            ad.SetArchiveSrcVersion("1.0");
-            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlUnit.SetUnitSrcVersion("1.0");
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
-            List<IntPtr> structArrayPtr = new List<IntPtr>();
-            structArrayPtr.Add(structPtr);
-            Assert.IsTrue(LibSrcMLRunner.TestUnitSetVersion(structArrayPtr.ToArray()));
+                    List<IntPtr> structArrayPtr = new List<IntPtr>();
+                    structArrayPtr.Add(structPtr);
+                    Assert.IsTrue(LibSrcMLRunner.TestUnitSetVersion(structArrayPtr.ToArray()));
+                }
+            }
         }
         [Test]
         public void TestUnitSetTimestamp() {
-            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
-            ad.SetArchiveTimestamp("0800");
-            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlUnit.SetUnitTimestamp("0800");
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
-            List<IntPtr> structArrayPtr = new List<IntPtr>();
-            structArrayPtr.Add(structPtr);
-            Assert.IsTrue(LibSrcMLRunner.TestUnitSetTimestamp(structArrayPtr.ToArray()));
+                    List<IntPtr> structArrayPtr = new List<IntPtr>();
+                    structArrayPtr.Add(structPtr);
+                    Assert.IsTrue(LibSrcMLRunner.TestUnitSetTimestamp(structArrayPtr.ToArray()));
+                }
+            }
         }
         [Test]
         public void TestUnitSetHash() {
-            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
-            ad.SetHash("hash");
-            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlUnit.SetHash("hash");
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
-            List<IntPtr> structArrayPtr = new List<IntPtr>();
-            structArrayPtr.Add(structPtr);
-            Assert.IsTrue(LibSrcMLRunner.TestUnitSetHash(structArrayPtr.ToArray()));
+                    List<IntPtr> structArrayPtr = new List<IntPtr>();
+                    structArrayPtr.Add(structPtr);
+                    Assert.IsTrue(LibSrcMLRunner.TestUnitSetHash(structArrayPtr.ToArray()));
+                }
+            }
         }
         [Test]
         public void TestUnitUnparseSetEol() {
-            LibSrcMLRunner.SourceData ad = new LibSrcMLRunner.SourceData();
-            ad.UnparseSetEol(50);
-            IntPtr structPtr = LibSrcMLRunner.CreatePtrFromStruct(ad);
+            using (Archive srcmlArchive = new Archive()) {
+                using (Unit srcmlUnit = new Unit()) {
+                    srcmlUnit.UnparseSetEol(50);
+                    srcmlArchive.AddUnit(srcmlUnit);
+                    srcmlArchive.ArchivePack();
+                    IntPtr structPtr = srcmlArchive.GetPtrToStruct();
 
-            List<IntPtr> structArrayPtr = new List<IntPtr>();
-            structArrayPtr.Add(structPtr);
-            Assert.IsTrue(LibSrcMLRunner.TestUnitUnparseSetEol(structArrayPtr.ToArray()));
+                    List<IntPtr> structArrayPtr = new List<IntPtr>();
+                    structArrayPtr.Add(structPtr);
+                    Assert.IsTrue(LibSrcMLRunner.TestUnitUnparseSetEol(structArrayPtr.ToArray()));
+                }
+            }
         }
         #endregion
     }
