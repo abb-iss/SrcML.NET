@@ -13,7 +13,6 @@ namespace ABB.SrcML {
     /// <summary>
     /// Carries data between C# and C++ for srcML's archives
     /// </summary>
-
     public class Archive : IDisposable {
         internal SourceData archive;
         internal List<Unit> units;
@@ -226,9 +225,7 @@ namespace ABB.SrcML {
                 uni.Dispose();
             }
             //Free memory allocated to archive for units
-            IntPtr ptr = archive.listOfUnits;
-            archive.listOfUnits += Marshal.SizeOf(typeof(Unit.UnitData));
-            Marshal.FreeHGlobal(ptr);
+            Marshal.FreeHGlobal(archive.listOfUnits);
 
             //free archive memory
             Marshal.FreeHGlobal(archive.extAndLanguage);
