@@ -25,6 +25,8 @@ namespace ABB.SrcML {
             units = new List<Unit>();
         }
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        //Structs are laid out in specific order; C++ assumes C# will send structs with this particular memory layout
+        //If you modify the structure here, you MUST modify it on C++'s end as well. 
         internal struct SourceData {
             internal int unitCount;
             internal int tabStop;
@@ -242,7 +244,8 @@ namespace ABB.SrcML {
     public class Unit : IDisposable {
         internal UnitData unit;
         internal int referencecount;
-
+        //Structs are laid out in specific order; C++ assumes C# will send structs with this particular memory layout
+        //If you modify the structure here, you MUST modify it on C#'s end as well. 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         internal struct UnitData {
             internal IntPtr srcEncoding;
@@ -363,7 +366,7 @@ namespace ABB.SrcML {
     /// C#-facing API for libsrcml
     /// </summary>
     [CLSCompliant(false)]
-    public class LibSrcMLRunner {
+    public class LibSrcMLRunner : ISrcMLRunner {
         public const string LIBSRCMLPATH = "LibSrcMLWrapper.dll";
         public static readonly Dictionary<Language, string> LanguageEnumDictionary = new Dictionary<Language, string>() {
                 {Language.Any, SrcMLLanguages.SRCML_LANGUAGE_NONE },
