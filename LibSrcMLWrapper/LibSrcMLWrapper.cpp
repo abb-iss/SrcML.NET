@@ -296,4 +296,48 @@ extern"C"{
         }
         return pp;
     }
+    __declspec(dllexport) int SrcMLApplyXsltFtF(const char* srcmlFilename, const char* xslFileName, const char* outputFile) {
+        struct srcml_archive * iarchive = srcml_archive_create();
+        struct srcml_archive * oarchive;
+        int srcmlreturncode = -1;
+
+        srcml_archive_read_open_filename(iarchive, srcmlFilename);
+        oarchive = srcml_archive_clone(iarchive);
+
+        std::string ofileName(outputFile);
+        srcml_archive_write_open_filename(oarchive, (ofileName + ".xslout").c_str(), 0);
+
+        srcml_append_transform_xslt_filename(iarchive, xslFileName);
+
+        srcmlreturncode = srcml_apply_transforms(iarchive, oarchive);
+
+        srcml_archive_close(iarchive);
+        srcml_archive_close(oarchive);
+
+        srcml_archive_free(iarchive);
+        srcml_archive_free(oarchive);
+
+        return srcmlreturncode;
+    }
+    __declspec(dllexport) char** SrcMLApplyXsltMtM(const char* srcmlBuffer, const char* xslFileName){
+        struct srcml_archive * iarchive = srcml_archive_create();
+        struct srcml_archive * oarchive = srcml_archive_clone(iarchive);
+
+        char ** pp = new char*[1];
+        size_t size = 0;
+        srcml_archive_write_open_memory(oarchive, &pp[0], &size);
+        std::string srcmlbuf(srcmlBuffer);
+
+        srcml_archive_read_open_memory(iarchive, srcmlbuf.c_str(), srcmlbuf.length());
+        srcml_append_transform_xslt_filename(iarchive, xslFileName);
+        srcml_apply_transforms(iarchive, oarchive);
+
+        srcml_archive_close(iarchive);
+        srcml_archive_close(oarchive);
+
+        srcml_archive_free(iarchive);
+        srcml_archive_free(oarchive);
+       
+        return pp;
+    }
 }
