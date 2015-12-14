@@ -20,8 +20,9 @@ namespace ABB.SrcML.Test {
             File.Delete("output0.cpp.xml");
             File.Delete("output1.cpp.xml");
         }
+
         /// <summary>
-        /// This tests the creation of an archive using a list of source files
+        /// This tests the creation of an archive using a list of source files.
         /// </summary>
         [Test]
         public void TestCreateSrcMLArchiveFtF() {
@@ -37,6 +38,7 @@ namespace ABB.SrcML.Test {
                     srcmlArchive2.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
                     srcmlArchive2.AddUnit(srcmlUnit);
                     srcmlArchive2.SetOutputFile("output");
+
                     srcmlArchive2.ArchivePack();
 
                     IntPtr structPtr = srcmlArchive.GetPtrToStruct();
@@ -223,7 +225,7 @@ namespace ABB.SrcML.Test {
 
                 fileList.Add("input.cpp");
                 fileList.Add("input2.cpp");
-
+                
                 var buffandfile = bufferList.Zip(fileList, (b, f) => new { buf = b, file = f });
                 foreach (var pair in buffandfile) {
                     using (Unit srcmlUnit = new Unit()) {
@@ -392,7 +394,13 @@ namespace ABB.SrcML.Test {
                 throw e;
             }
         }
-
+        [Test]
+        public void TestApplyXsltToSrcMLFile() {
+            LibSrcMLRunner run = new LibSrcMLRunner();
+            Assert.IsTrue(File.Exists("function_def.xml"));
+            Assert.IsTrue(File.Exists("Test.xsl"));
+            run.ApplyXsltToSrcMLFile("function_def.xml", "Test.xsl", "o.cpp.xml");
+        }
         #region WrapperTests
         [Test]
         public void TestArchiveSetSrcEncoding() {
