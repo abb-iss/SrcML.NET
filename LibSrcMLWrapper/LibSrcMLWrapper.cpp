@@ -341,4 +341,27 @@ extern"C"{
         LibSrcMLWrapper::TrimFromEnd(pp[0], size);
         return pp;
     }
+    __declspec(dllexport) char** SrcMLApplyXPathMtM(const char* srcmlBuffer, const char* xPath){
+        std::string srcmlbuf(srcmlBuffer);
+        struct srcml_archive * iarchive = srcml_archive_create();
+        srcml_archive_read_open_memory(iarchive, srcmlbuf.c_str(), srcmlbuf.length());
+
+        struct srcml_archive * oarchive = srcml_archive_clone(iarchive);
+
+        char ** pp = new char*[1];
+        size_t size = 0;
+        srcml_archive_write_open_memory(oarchive, &pp[0], &size);
+        
+        srcml_append_transform_xpath(iarchive, xPath);
+        srcml_apply_transforms(iarchive, oarchive);
+
+        srcml_archive_close(iarchive);
+        srcml_archive_close(oarchive);
+
+        srcml_archive_free(iarchive);
+        srcml_archive_free(oarchive);
+
+        LibSrcMLWrapper::TrimFromEnd(pp[0], size);
+        return pp;
+    }
 }

@@ -624,6 +624,14 @@ namespace ABB.SrcML {
             }
             return null;
         }
+        public string ApplyXPathToSrcMLString(string srcMLBuff, string xPathFile) {
+            //Function sould take a srcML buffer string and then pass it into C++ to apply xsltFile to it. 
+            //C++ will return buffer with transformed srcML
+            IntPtr buff = LibSrcMLRunner.SrcMLApplyXPathMtM(Marshal.StringToHGlobalAnsi(srcMLBuff), Marshal.StringToHGlobalAnsi(xPathFile));
+            IntPtr docptr = Marshal.ReadIntPtr(buff);
+            string docstr = Marshal.PtrToStringAnsi(docptr);
+            return docstr;
+        }
         #region Low-level API functions
         /// <summary>
         /// Creates archive from a file and reads it out into a file
@@ -678,6 +686,14 @@ namespace ABB.SrcML {
         /// <returns></returns>
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr SrcMLApplyXsltMtM(IntPtr srcmlBuff, IntPtr xsltFile);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="srcmlBuff"></param>
+        /// <param name="xPathFile"></param>
+        /// <returns></returns>
+        [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr SrcMLApplyXPathMtM(IntPtr srcmlBuff, IntPtr xPathFile);
         #endregion
         #region Test Functions
         /// <summary>

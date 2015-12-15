@@ -439,6 +439,28 @@ namespace ABB.SrcML.Test {
             Assert.IsNotNull(persist);
             Assert.AreEqual(persist.Value, "TestPassed");
         }
+        [Test]
+        public void TestApplyXPathToSrcMLString() {
+            LibSrcMLRunner run = new LibSrcMLRunner();
+            string srcML = run.GenerateSrcMLFromString("int main(){int x;}", "input.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_MODIFIER }, false);
+
+            Assert.IsTrue(File.Exists("function_def.xml"));
+            Assert.IsTrue(File.Exists("Test.xsl"));
+
+            string xslSrcML = run.ApplyXPathToSrcMLString(srcML, "//src:unit");
+
+            XDocument srcMLDoc = XDocument.Parse(xslSrcML);
+
+            Assert.IsNotNull(srcMLDoc);
+
+            XmlReader read = srcMLDoc.CreateReader();
+            XmlNamespaceManager namespaceManager = new XmlNamespaceManager(read.NameTable);
+            namespaceManager.AddNamespace("src", "http://www.srcML.org/srcML/src");
+
+            var persist = srcMLDoc.XPathSelectElement("//src:test", namespaceManager);
+            Assert.IsNotNull(persist);
+            Assert.AreEqual(persist.Value, "TestPassed");
+        }
         #region WrapperTests
         [Test]
         public void TestArchiveSetSrcEncoding() {
