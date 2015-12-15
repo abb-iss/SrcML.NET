@@ -338,6 +338,7 @@ extern"C"{
         srcml_archive_free(iarchive);
         srcml_archive_free(oarchive);
        
+        LibSrcMLWrapper::TrimFromEnd(pp[0], size);
         return pp;
     }
 }

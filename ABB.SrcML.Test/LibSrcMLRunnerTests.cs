@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml.XPath;
 using System.Text;
 using System.IO;
 using NUnit.Framework;
@@ -400,6 +401,43 @@ namespace ABB.SrcML.Test {
             Assert.IsTrue(File.Exists("function_def.xml"));
             Assert.IsTrue(File.Exists("Test.xsl"));
             run.ApplyXsltToSrcMLFile("function_def.xml", "Test.xsl", "o.cpp.xml");
+           
+            SrcMLFile srcFile = new SrcMLFile("o.cpp.xml.xslout");
+            Assert.IsNotNull(srcFile);
+
+            var files = srcFile.FileUnits.ToList();
+            Assert.AreEqual(1, files.Count());
+
+            XmlReader read = srcFile.GetXDocument().CreateReader();
+            XmlNamespaceManager namespaceManager = new XmlNamespaceManager(read.NameTable);
+            namespaceManager.AddNamespace("src", "http://www.srcML.org/srcML/src");
+
+            var persist = srcFile.GetXDocument().XPathSelectElement("//src:test",namespaceManager);
+            Assert.IsNotNull(persist);
+            Assert.AreEqual(persist.Value, "TestPassed");
+            
+        }
+        [Test]
+        public void TestApplyXsltToSrcMLString() {
+            LibSrcMLRunner run = new LibSrcMLRunner();
+            string srcML = run.GenerateSrcMLFromString("int main(){int x;}", "input.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_MODIFIER }, false);
+
+            Assert.IsTrue(File.Exists("function_def.xml"));
+            Assert.IsTrue(File.Exists("Test.xsl"));
+
+            string xslSrcML = run.ApplyXsltToSrcMLString(srcML, "Test.xsl");
+
+            XDocument srcMLDoc = XDocument.Parse(xslSrcML);
+
+            Assert.IsNotNull(srcMLDoc);
+
+            XmlReader read = srcMLDoc.CreateReader();
+            XmlNamespaceManager namespaceManager = new XmlNamespaceManager(read.NameTable);
+            namespaceManager.AddNamespace("src", "http://www.srcML.org/srcML/src");
+
+            var persist = srcMLDoc.XPathSelectElement("//src:test", namespaceManager);
+            Assert.IsNotNull(persist);
+            Assert.AreEqual(persist.Value, "TestPassed");
         }
         #region WrapperTests
         [Test]

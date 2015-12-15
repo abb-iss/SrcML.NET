@@ -616,7 +616,13 @@ namespace ABB.SrcML {
         public string ApplyXsltToSrcMLString(string srcMLBuff, string xsltFile) {
             //Function sould take a srcML buffer string and then pass it into C++ to apply xsltFile to it. 
             //C++ will return buffer with transformed srcML
-            return "";
+            if (File.Exists(xsltFile)) {
+                IntPtr buff = LibSrcMLRunner.SrcMLApplyXsltMtM(Marshal.StringToHGlobalAnsi(srcMLBuff), Marshal.StringToHGlobalAnsi(xsltFile));
+                IntPtr docptr = Marshal.ReadIntPtr(buff);
+                string docstr = Marshal.PtrToStringAnsi(docptr);
+                return docstr;
+            }
+            return null;
         }
         #region Low-level API functions
         /// <summary>
