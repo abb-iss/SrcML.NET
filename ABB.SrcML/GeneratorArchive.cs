@@ -19,6 +19,11 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace ABB.SrcML {
+    using Directory = Pri.LongPath.Directory;
+    using File = Pri.LongPath.File;
+    using FileInfo = Pri.LongPath.FileInfo;
+    using Path = Pri.LongPath.Path;
+
     /// <summary>
     /// keeps track of files by using the provided <see cref="Generator"/>. The files in the archive have their last-write time set to the corresponding file on disk
     /// </summary>
@@ -48,7 +53,7 @@ namespace ABB.SrcML {
                 Directory.CreateDirectory(this.ArchivePath);
             } else if(!useExistingArchive) {
                 foreach(var fileName in GetArchivedFiles().ToList()) {
-                    File.Delete(fileName);
+                    if (File.Exists(fileName)) File.Delete(fileName);
                 }
             }
         }
@@ -80,7 +85,7 @@ namespace ABB.SrcML {
                         Thread.Sleep(10);
                     }
                 }
-                File.Delete(tempFileName);
+                if (File.Exists(tempFileName)) File.Delete(tempFileName);
             }
         }
 

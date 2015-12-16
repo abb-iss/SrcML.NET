@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using ABB.SrcML.Test.Utilities;
 
 namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
+    using Path = Pri.LongPath.Path;
+
     class TestConstants {
         public static string SolutionDirectory { get; private set; }
         public static string InputFolderPath { get; private set; }

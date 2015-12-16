@@ -19,6 +19,10 @@ using NUnit.Framework;
 using System.IO;
 
 namespace ABB.SrcML.Data.Test {
+    using Directory = Pri.LongPath.Directory;
+    using File = Pri.LongPath.File;
+    using Path = Pri.LongPath.Path;
+
     [TestFixture]
     [Category("Build")]
     class DataGeneratorTests {
@@ -45,7 +49,7 @@ namespace ABB.SrcML.Data.Test {
         [TearDown]
         public void TestSetup() {
             foreach(var fileName in Directory.GetFiles(SOURCE_DIRECTORY).Concat(Directory.GetFiles(OUTPUT_DIRECTORY))) {
-                File.Delete(fileName);
+                if (File.Exists(fileName)) File.Delete(fileName);
             }
         }
 

@@ -20,6 +20,10 @@ using System.Xml.Linq;
 using VsPackage = Microsoft.VisualStudio.Shell.Package;
 
 namespace ABB.SrcML.VisualStudio {
+    using Directory = Pri.LongPath.Directory;
+    using File = Pri.LongPath.File;
+    using Path = Pri.LongPath.Path;
+
     /// <summary>
     /// Service for monitoring changes to files within the currently open solution
     /// </summary>
@@ -115,7 +119,7 @@ namespace ABB.SrcML.VisualStudio {
             if(null != openSolution) {
                 var storagePath = GetBaseDirectory(openSolution);
                 if(ShouldReset()) {
-                    Directory.Delete(storagePath, true);
+                    if (Directory.Exists(storagePath)) Directory.Delete(storagePath, true);
                 }
                 CurrentMonitor = new SourceMonitor(openSolution, DirectoryScanningMonitor.DEFAULT_SCAN_INTERVAL, GlobalScheduler, storagePath);
                 CurrentProject = new SrcMLProject(GlobalScheduler, CurrentMonitor, new SrcMLGenerator(Path.Combine(ServiceProvider.ExtensionDirectory, "SrcML")));

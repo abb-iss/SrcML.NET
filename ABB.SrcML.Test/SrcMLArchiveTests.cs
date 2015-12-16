@@ -21,6 +21,11 @@ using NUnit.Framework;
 
 namespace ABB.SrcML.Test
 {
+    using Directory = Pri.LongPath.Directory;
+    using DirectoryInfo = Pri.LongPath.DirectoryInfo;
+    using File = Pri.LongPath.File;
+    using Path = Pri.LongPath.Path;
+
     [TestFixture]
     [Category("Build")]
     public class SrcMLArchiveTests
@@ -52,12 +57,12 @@ namespace ABB.SrcML.Test
         public void TestSetUp() {
             if(srcDirectoryInfo.Exists) {
                 foreach(var file in srcDirectoryInfo.GetFiles("*.*")) {
-                    File.Delete(file.Name);
+                    if (File.Exists(file.Name)) File.Delete(file.Name);
                 }
             }
             if(archiveDirectoryInfo.Exists) {
                 foreach(var file in archiveDirectoryInfo.GetFiles("*.*")) {
-                    File.Delete(file.Name);
+                    if (File.Exists(file.Name)) File.Delete(file.Name);
                 }
             }
         }
@@ -135,7 +140,7 @@ namespace ABB.SrcML.Test
 
             expectedEventType = FileEventType.FileDeleted;
             var deletedFileName = Path.Combine(SourceDirectory, "subdir1", "subdir12", "bar12.c");
-            File.Delete(deletedFileName);
+            if (File.Exists(deletedFileName)) File.Delete(deletedFileName);
             Assert.That(archive.IsOutdated(deletedFileName));
             archive.DeleteFile(deletedFileName);
             Assert.That(resetEvent.WaitOne(300));

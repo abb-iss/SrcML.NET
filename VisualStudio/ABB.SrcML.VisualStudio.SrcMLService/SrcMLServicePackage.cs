@@ -30,6 +30,9 @@ using ABB.VisualStudio;
 using ABB.SrcML.Data;
 
 namespace ABB.SrcML.VisualStudio {
+    using File = Pri.LongPath.File;
+    using Path = Pri.LongPath.Path;
+
     /// <summary>
     /// This is the class that implements the package exposed by this assembly.
     ///

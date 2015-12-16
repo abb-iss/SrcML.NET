@@ -26,6 +26,12 @@ using System.Security;
 
 namespace ABB.SrcML
 {
+    using Directory = Pri.LongPath.Directory;
+    using DirectoryInfo = Pri.LongPath.DirectoryInfo;
+    using File = Pri.LongPath.File;
+    using FileInfo = Pri.LongPath.FileInfo;
+    using Path = Pri.LongPath.Path;
+
     /// <summary>
     /// This is a utility class for generating SrcML files. It has functions that use the original SrcML executables,
     /// and some native C# functions for generating SrcML.
@@ -155,7 +161,7 @@ namespace ABB.SrcML
             }
             finally
             {
-                File.Delete(tempFileListing);
+                if (File.Exists(tempFileListing)) File.Delete(tempFileListing);
             }
         }
 
@@ -416,7 +422,7 @@ namespace ABB.SrcML
                 output = reader.ReadToEnd();
             }
 
-            File.Delete(outfile);
+            if (File.Exists(outfile)) File.Delete(outfile);
 
             return output;
         }

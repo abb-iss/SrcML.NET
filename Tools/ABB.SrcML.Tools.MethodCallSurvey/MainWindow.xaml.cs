@@ -17,9 +17,10 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using FilePath = System.IO.Path;
+using FilePath = Pri.LongPath.Path;
 
 namespace ABB.SrcML.Tools.MethodCallSurvey {
+    using File = Pri.LongPath.File;
 
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -59,7 +60,7 @@ namespace ABB.SrcML.Tools.MethodCallSurvey {
                 var l = control.DataContext as ILocatable;
                 Process p = new Process();
 
-                if(null != Editor && System.IO.File.Exists(Editor)) {
+                if(null != Editor && File.Exists(Editor)) {
                     p.StartInfo.FileName = @"C:\Program Files (x86)\Notepad++\notepad++.exe";
                     p.StartInfo.Arguments = String.Format("-nosession -ro -n{0} -c{1} \"{2}\"", l.Location.StartingLineNumber, l.Location.StartingColumnNumber, l.Path);
                 } else {

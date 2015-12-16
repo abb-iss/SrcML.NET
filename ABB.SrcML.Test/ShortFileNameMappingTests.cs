@@ -7,6 +7,9 @@ using System.Text;
 using System.Threading;
 
 namespace ABB.SrcML.Test {
+    using Directory = Pri.LongPath.Directory;
+    using File = Pri.LongPath.File;
+    using Path = Pri.LongPath.Path;
 
     [TestFixture]
     [Category("Build")]
@@ -115,7 +118,7 @@ namespace ABB.SrcML.Test {
 
         [Test]
         public void TestConstructor_CurrentDirectory() {
-            Directory.SetCurrentDirectory("mappingTest");
+            System.IO.Directory.SetCurrentDirectory("mappingTest");
             var map = new SrcMLFileNameMapping(".");
             var xmlPath = map.GetTargetPath("Foo.cs");
             Assert.That(xmlPath.StartsWith(Environment.CurrentDirectory));
@@ -267,7 +270,7 @@ C:\Foo\Bar\xyzzy\Example.cs|C:\srcmlArchive\Example.cs.2.xml";
         public void TestSetUp() {
             if(Directory.Exists("mappingTest")) {
                 foreach(var file in Directory.GetFiles("mappingTest")) {
-                    File.Delete(file);
+                    if (File.Exists(file)) File.Delete(file);
                 }
             }
         }

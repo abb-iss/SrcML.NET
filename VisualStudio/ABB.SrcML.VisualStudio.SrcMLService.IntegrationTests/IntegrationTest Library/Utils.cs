@@ -18,6 +18,10 @@ using Microsoft.VSSDK.Tools.VsIdeTesting;
 using Microsoft.VisualStudio;
 
 namespace Microsoft.VsSDK.IntegrationTestLibrary {
+    using Directory = Pri.LongPath.Directory;
+    using File = Pri.LongPath.File;
+    using Path = Pri.LongPath.Path;
+
     /// <summary>
     /// </summary>
     public class TestUtils {

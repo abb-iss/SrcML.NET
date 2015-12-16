@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace ABB.SrcML.Tools.DataTester {
+    using File = Pri.LongPath.File;
 
     internal class Program {
 

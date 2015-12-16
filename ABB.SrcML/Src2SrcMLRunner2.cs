@@ -7,6 +7,9 @@ using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML {
+    using File = Pri.LongPath.File;
+    using Path = Pri.LongPath.Path;
+
     /// <summary>
     /// Simpler version of <see cref="Src2SrcMLRunner"/>. This is a thin wrapper around the src2srcml executable from KSU.
     /// </summary>
@@ -93,7 +96,7 @@ namespace ABB.SrcML {
             } catch(SrcMLRuntimeException e) {
                 throw new SrcMLException(e.Message, e);
             } finally {
-                File.Delete(tempFilePath);
+                if (File.Exists(tempFilePath)) File.Delete(tempFilePath);
             }
         }
 

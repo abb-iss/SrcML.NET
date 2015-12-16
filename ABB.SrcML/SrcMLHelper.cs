@@ -18,6 +18,9 @@ using System.IO;
 
 namespace ABB.SrcML
 {
+    using Directory = Pri.LongPath.Directory;
+    using Path = Pri.LongPath.Path;
+
     /// <summary>
     /// Collection of helper functions for working with srcML elements
     /// </summary>

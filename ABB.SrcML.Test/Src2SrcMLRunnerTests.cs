@@ -20,6 +20,10 @@ using System.Xml.Linq;
 
 namespace ABB.SrcML.Test
 {
+    using Directory = Pri.LongPath.Directory;
+    using File = Pri.LongPath.File;
+    using Path = Pri.LongPath.Path;
+
     [TestFixture]
     [Category("Build")]
     public class Src2SrcMLRunnerTests

@@ -16,6 +16,9 @@ using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML {
+    using Directory = Pri.LongPath.Directory;
+    using Path = Pri.LongPath.Path;
+
     /// <summary>
     /// Maintains a mapping between source file paths and their corresponding target file paths.
     /// </summary>

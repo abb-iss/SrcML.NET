@@ -21,6 +21,9 @@ using System.Collections;
 
 namespace ABB.SrcML
 {
+    using File = Pri.LongPath.File;
+    using Path = Pri.LongPath.Path;
+
     /// <summary>
     /// Abstract class for controlling srcml executables (src2srcml, srcml2src, and srcdiff).
     /// </summary>
@@ -180,7 +183,7 @@ namespace ABB.SrcML
             }
             finally
             {
-                File.Delete(tempFileListing);
+                if (File.Exists(tempFileListing)) File.Delete(tempFileListing);
             }
         }
     }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML.Utilities {
+    using Path = Pri.LongPath.Path;
 
     /// <summary>
     /// FileHelper contains numerous static methods for working with files

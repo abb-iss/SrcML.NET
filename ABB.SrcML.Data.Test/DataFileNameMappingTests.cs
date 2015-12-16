@@ -18,6 +18,10 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ABB.SrcML.Data.Test {
+    using Directory = Pri.LongPath.Directory;
+    using File = Pri.LongPath.File;
+    using Path = Pri.LongPath.Path;
+
     [TestFixture(Category="Build")]
     public class DataFileNameMappingTests {
         public const string TEST_DIRECTORY = "dataMappingTest";

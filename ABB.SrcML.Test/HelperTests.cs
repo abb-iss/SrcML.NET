@@ -18,6 +18,8 @@ using System.IO;
 using System.Xml.XPath;
 namespace ABB.SrcML.Test
 {
+    using File = Pri.LongPath.File;
+
     [TestFixture]
     [Category("Build")]
     public class HelperTests

@@ -9,6 +9,9 @@ using log4net.Layout;
 using log4net.Repository.Hierarchy;
 
 namespace ABB.SrcML.Utilities {
+    using FileInfo = Pri.LongPath.FileInfo;
+    using Path = Pri.LongPath.Path;
+
     /// <summary>
     /// File logger for SrcML.NET
     /// </summary>

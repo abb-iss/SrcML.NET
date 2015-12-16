@@ -18,6 +18,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ABB.SrcML.Data {
+    using Path = Pri.LongPath.Path;
+
     /// <summary>
     /// The project class is a wrapper that automates the connections between <see cref="AbstractWorkingSet"/> objects, <see cref="DataArchive"/> objects, and <see cref="SrcMLArchive"/> objects.
     /// </summary>

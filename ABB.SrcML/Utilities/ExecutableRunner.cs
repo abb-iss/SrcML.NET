@@ -18,6 +18,8 @@ using System.Collections.ObjectModel;
 
 namespace ABB.SrcML.Utilities
 {
+    using Path = Pri.LongPath.Path;
+
     /// <summary>
     /// Wrapper class for running executables with given command line arguments
     /// </summary>

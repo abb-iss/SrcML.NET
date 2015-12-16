@@ -14,6 +14,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
+    using File = Pri.LongPath.File;
+    using Path = Pri.LongPath.Path;
 
     [TestClass]
     public class SrcMLServiceCSharpTests : IInvoker {
@@ -157,7 +159,7 @@ namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
             expectedEventType = FileEventType.FileDeleted;
             TestSolution.Remove(addedProject);
             foreach(var expectedFile in expectedFiles) {
-                File.Delete(expectedFile);
+                if (File.Exists(expectedFile)) File.Delete(expectedFile);
                 Assert.IsTrue(resetEvent.WaitOne(scanIntervalMs * 2));
                 Assert.IsFalse(archive.ContainsFile(expectedFile));
             }

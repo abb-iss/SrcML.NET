@@ -20,6 +20,9 @@ using System.Xml;
 using System.Xml.Serialization;
 
 namespace ABB.SrcML.Data {
+    using File = Pri.LongPath.File;
+    using Path = Pri.LongPath.Path;
+
     internal delegate T XmlInitializer<T>(XmlReader reader) where T : IXmlElement, new();
     
     /// <summary>

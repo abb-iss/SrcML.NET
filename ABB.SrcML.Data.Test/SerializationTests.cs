@@ -19,6 +19,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ABB.SrcML.Data.Test {
+    using File = Pri.LongPath.File;
+    using Path = Pri.LongPath.Path;
+
     [TestFixture(Category="Build")]
     public class SerializationTests {
         private const string TestInputPath = @"..\..\TestInputs";
@@ -26,10 +29,12 @@ namespace ABB.SrcML.Data.Test {
         private const string DefaultOutputName = "serializationtest_output";
         [SetUp]
         public void TestSetup() {
-            File.Delete(DefaultInputName);
-            File.Delete(DefaultOutputName);
-            File.Delete(Path.ChangeExtension(DefaultOutputName, XmlSerialization.DEFAULT_EXTENSION));
-            File.Delete(Path.ChangeExtension(DefaultOutputName, XmlSerialization.DEFAULT_COMPRESSED_EXTENSION));
+            if (File.Exists(DefaultInputName)) File.Delete(DefaultInputName);
+            if (File.Exists(DefaultOutputName)) File.Delete(DefaultOutputName);
+            var del = Path.ChangeExtension(DefaultOutputName, XmlSerialization.DEFAULT_EXTENSION);
+            if (File.Exists(del)) File.Delete(del);
+            del = Path.ChangeExtension(DefaultOutputName, XmlSerialization.DEFAULT_COMPRESSED_EXTENSION);
+            if (File.Exists(del)) File.Delete(del);
         }
 
         [Test]

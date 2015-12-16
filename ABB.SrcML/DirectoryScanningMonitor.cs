@@ -22,6 +22,10 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace ABB.SrcML {
+    using Directory = Pri.LongPath.Directory;
+    using DirectoryInfo = Pri.LongPath.DirectoryInfo;
+    using File = Pri.LongPath.File;
+    using Path = Pri.LongPath.Path;
 
     /// <summary>
     /// The directory scanning monitor scans a collection of directories every

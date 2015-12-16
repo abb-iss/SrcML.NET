@@ -19,6 +19,12 @@ using System.Text;
 using System.Xml.Linq;
 
 namespace ABB.SrcML {
+    using Directory = Pri.LongPath.Directory;
+    using DirectoryInfo = Pri.LongPath.DirectoryInfo;
+    using File = Pri.LongPath.File;
+    using FileInfo = Pri.LongPath.FileInfo;
+    using Path = Pri.LongPath.Path;
+
     /// <summary>
     /// The SrcML Generator class provides a convenient wrapper for multiple <see cref="Src2SrcMLRunner2">src2srcml runners</see>, each targetted at a different language.
     /// </summary>
@@ -222,8 +228,8 @@ namespace ABB.SrcML {
                 tempResult = new SrcMLFile(tempOutputFile);
                 var oldArchiveFile = tempArchive != null ? tempArchive.FileName : null;
                 tempArchive = tempResult.Merge(tempArchive, Path.GetTempFileName());
-                File.Delete(tempOutputFile);
-                if(oldArchiveFile != null) { File.Delete(oldArchiveFile); }
+                if (File.Exists(tempOutputFile)) File.Delete(tempOutputFile);
+                if(oldArchiveFile != null) { if (File.Exists(oldArchiveFile)) File.Delete(oldArchiveFile); }
             }
 
             if(tempArchive != null) {

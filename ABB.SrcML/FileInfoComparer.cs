@@ -20,6 +20,8 @@ using System.Xml.Linq;
 
 namespace ABB.SrcML
 {
+    using FileInfo = Pri.LongPath.FileInfo;
+
     internal class FileInfoComparer : EqualityComparer<FileInfo>
     {
 

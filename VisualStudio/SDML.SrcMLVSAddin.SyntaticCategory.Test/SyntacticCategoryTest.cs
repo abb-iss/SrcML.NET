@@ -23,6 +23,8 @@ using System.IO;
 
 namespace SDML.SrcMLVSAddin.SyntaticCategory.Test
 {
+    using File = Pri.LongPath.File;
+
     /// <summary>
     /// Summary description for SyntacticCategoryTest
     /// </summary>

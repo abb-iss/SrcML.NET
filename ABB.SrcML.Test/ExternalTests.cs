@@ -19,6 +19,10 @@ using System.Xml.Linq;
 using ABB.SrcML;
 namespace ABB.SrcML.Test
 {
+    using Directory = Pri.LongPath.Directory;
+    using File = Pri.LongPath.File;
+    using Path = Pri.LongPath.Path;
+
     [TestFixture]
     [Category("Build")]
     public class ExternalTests
@@ -57,14 +61,14 @@ namespace ABB.SrcML.Test
         {
             foreach (var file in Directory.GetFiles("external"))
             {
-                File.Delete(file);
+                if (File.Exists(file)) File.Delete(file);
             }
             foreach (var file in Directory.GetFiles("external_xml"))
             {
-                File.Delete(file);
+                if (File.Exists(file)) File.Delete(file);
             }
-            Directory.Delete("external");
-            Directory.Delete("external_xml");
+            if (Directory.Exists("external")) Directory.Delete("external");
+            if (Directory.Exists("external_xml")) Directory.Delete("external_xml");
         }
 
         [Test]

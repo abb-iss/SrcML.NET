@@ -19,6 +19,9 @@ using System.Xml;
 using System.Xml.Linq;
 
 namespace ABB.SrcML.Data {
+    using File = Pri.LongPath.File;
+    using Path = Pri.LongPath.Path;
+
     /// <summary>
     /// File name mapping for data files
     /// </summary>

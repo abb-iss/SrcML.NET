@@ -20,6 +20,8 @@ using System.Xml;
 using System.Xml.Linq;
 
 namespace ABB.SrcML {
+    using File = Pri.LongPath.File;
+
     /// <summary>
     /// Contains static utility methods that act upon srcML XElements.
     /// </summary>

@@ -22,6 +22,9 @@ using System.Security.Permissions;
 
 namespace ABB.SrcML.Utilities
 {
+    using FileInfo = Pri.LongPath.FileInfo;
+    using Path = Pri.LongPath.Path;
+
     /// <summary>
     /// Collection of functions for working with the Kent State SrcML executables
     /// </summary>

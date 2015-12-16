@@ -7,6 +7,9 @@ using System.Linq;
 using System.Text;
 
 namespace ABB.SrcML {
+    using DirectoryInfo = Pri.LongPath.DirectoryInfo;
+    using File = Pri.LongPath.File;
+    using Path = Pri.LongPath.Path;
 
     /// <summary>
     /// An implementation of <see cref="AbstractFileMonitor"/> that responds to file system events.

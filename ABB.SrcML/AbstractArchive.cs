@@ -12,6 +12,8 @@ using ABB.SrcML.Utilities;
 
 namespace ABB.SrcML
 {
+    using Path = Pri.LongPath.Path;
+
     /// <summary>
     /// The abstract archive class is the base class for archives. Archives are responsible for recording changes to files and then raising an <see cref="FileChanged">event</see> when they are done.
     /// </summary>

@@ -5,6 +5,10 @@ using System.Text;
 using NUnit.Framework;
 using System.IO;
 namespace ABB.SrcML.Test {
+    using Directory = Pri.LongPath.Directory;
+    using File = Pri.LongPath.File;
+    using Path = Pri.LongPath.Path;
+
     [TestFixture]
     [Category("Build")]
     class LastModifiedArchiveTests {
@@ -21,7 +25,7 @@ namespace ABB.SrcML.Test {
         public void TestSetUp() {
             if(Directory.Exists(testDirectory)) {
                 foreach(var file in Directory.GetFiles(testDirectory)) {
-                    File.Delete(file);
+                    if (File.Exists(file)) File.Delete(file);
                 }
             }
         }
@@ -65,7 +69,7 @@ namespace ABB.SrcML.Test {
             archive.AddOrUpdateFile(fileFoo);
             Assert.That(receivedFileUpdated);
 
-            File.Delete(fileFoo);
+            if (File.Exists(fileFoo)) File.Delete(fileFoo);
             Assert.That(archive.IsOutdated(fileFoo));
             archive.DeleteFile(fileFoo);
             Assert.That(receivedFileDeleted);

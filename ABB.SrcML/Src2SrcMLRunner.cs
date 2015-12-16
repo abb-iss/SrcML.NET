@@ -20,6 +20,10 @@ using System.Globalization;
 using System.Xml.Linq;
 
 namespace ABB.SrcML {
+    using Directory = Pri.LongPath.Directory;
+    using DirectoryInfo = Pri.LongPath.DirectoryInfo;
+    using FileInfo = Pri.LongPath.FileInfo;
+
     /// <summary>
     /// Utility class for running src2srcml.exe
     /// </summary>

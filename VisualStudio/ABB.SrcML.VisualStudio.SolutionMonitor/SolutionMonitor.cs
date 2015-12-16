@@ -30,6 +30,7 @@ using System.Xml.Linq;
 using Thread = System.Threading.Thread;
 
 namespace ABB.SrcML.VisualStudio.SolutionMonitor {
+    using File = Pri.LongPath.File;
 
     /// <summary>
     /// This class implements three Visual Studio basic IDE interfaces: (1)

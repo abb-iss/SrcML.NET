@@ -22,6 +22,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ABB.SrcML {
+    using FileInfo = Pri.LongPath.FileInfo;
+    using Path = Pri.LongPath.Path;
 
     /// <summary>
     /// <para>Represents an abstract file monitor. This class contains archives for storing various

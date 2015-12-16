@@ -18,6 +18,11 @@ using System.Threading.Tasks;
 
 namespace ABB.SrcML.Test.Utilities
 {
+    using Directory = Pri.LongPath.Directory;
+    using DirectoryInfo = Pri.LongPath.DirectoryInfo;
+    using File = Pri.LongPath.File;
+    using Path = Pri.LongPath.Path;
+
     public class FileUtils
     {
         public static void CopyDirectory(string sourcePath, string destinationPath) {

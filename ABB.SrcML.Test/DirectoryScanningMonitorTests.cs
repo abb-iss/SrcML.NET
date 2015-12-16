@@ -20,6 +20,9 @@ using System.Text;
 using System.Threading;
 
 namespace ABB.SrcML.Test {
+    using Directory = Pri.LongPath.Directory;
+    using File = Pri.LongPath.File;
+    using Path = Pri.LongPath.Path;
 
     [TestFixture, Category("Build")]
     public class DirectoryScanningMonitorTests {
@@ -31,8 +34,8 @@ namespace ABB.SrcML.Test {
 
         [TearDown]
         public void TestCleanup() {
-            Directory.Delete(monitorFolder, true);
-            Directory.Delete(testFolder, true);
+            if (Directory.Exists(monitorFolder)) Directory.Delete(monitorFolder, true);
+            if (Directory.Exists(testFolder)) Directory.Delete(testFolder, true);
         }
 
         [SetUp]
@@ -176,7 +179,7 @@ namespace ABB.SrcML.Test {
             Assert.AreEqual(expectedLastWriteTime, archive.GetLastModifiedTime(expectedFileName));
 
             expectedEventType = FileEventType.FileDeleted;
-            File.Delete(expectedFileName);
+            if (File.Exists(expectedFileName)) File.Delete(expectedFileName);
             Assert.IsTrue(are.WaitOne(WaitInterval));
         }
 

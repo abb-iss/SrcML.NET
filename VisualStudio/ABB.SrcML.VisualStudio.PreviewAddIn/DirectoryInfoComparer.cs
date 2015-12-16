@@ -17,6 +17,8 @@ using System.IO;
 
 namespace ABB.SrcML.VisualStudio.PreviewAddIn
 {
+    using DirectoryInfo = Pri.LongPath.DirectoryInfo;
+
     public class DirectoryInfoComparer : EqualityComparer<DirectoryInfo>
     {
         public override bool Equals(DirectoryInfo x, DirectoryInfo y)

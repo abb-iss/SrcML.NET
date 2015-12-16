@@ -18,6 +18,8 @@ using System.Text;
 
 namespace ABB.SrcML.Test
 {
+    using Path = Pri.LongPath.Path;
+
     class TestConstants
     {
         public static string SrcmlPath { get; private set; }

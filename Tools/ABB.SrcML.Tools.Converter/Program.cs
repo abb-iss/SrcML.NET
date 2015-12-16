@@ -22,6 +22,10 @@ using System.Collections.ObjectModel;
 
 namespace ABB.SrcML.Tools.Converter
 {
+    using Directory = Pri.LongPath.Directory;
+    using File = Pri.LongPath.File;
+    using Path = Pri.LongPath.Path;
+
     class Program
     {
         static void Main(string[] args)
@@ -153,8 +157,9 @@ namespace ABB.SrcML.Tools.Converter
                 //        Console.Error.WriteLine("\t{0}", error);
                 //}
 
-                if (null != outputFolder)
-                    File.Delete(workingFileName);
+                if (null != outputFolder) {
+                    if (File.Exists(workingFileName)) File.Delete(workingFileName);
+                }
             }
             catch (SrcMLException ex)
             {

@@ -18,6 +18,8 @@ using System.Globalization;
 
 namespace ABB.SrcML.Utilities
 {
+    using Path = Pri.LongPath.Path;
+
     /// <summary>
     /// Reader class for reading Visual Studo project files
     /// </summary>

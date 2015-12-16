@@ -20,6 +20,10 @@ using System.Xml.Linq;
 using ABB.SrcML.Utilities;
 
 namespace ABB.SrcML.Test {
+    using Directory = Pri.LongPath.Directory;
+    using File = Pri.LongPath.File;
+    using Path = Pri.LongPath.Path;
+
     [TestFixture]
     [Category("Build")]
     public class SrcMLGeneratorTests {
@@ -72,9 +76,9 @@ namespace LoggingTransformation
 
         [TestFixtureTearDown]
         public static void FixtureCleanup() {
-            Directory.Delete("srcmltest", true);
-            Directory.Delete("srcml_xml", true);
-            Directory.Delete("badPathTest", true);
+            if (Directory.Exists("srcmltest")) Directory.Delete("srcmltest", true);
+            if (Directory.Exists("srcml_xml")) Directory.Delete("srcml_xml", true);
+            if (Directory.Exists("badPathTest")) Directory.Delete("badPathTest", true);
         }
 
         [SetUp]

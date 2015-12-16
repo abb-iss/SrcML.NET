@@ -5,6 +5,9 @@ using System.Threading;
 using ABB.SrcML.Data.Queries;
 
 namespace ABB.SrcML.Data.Test {
+    using Directory = Pri.LongPath.Directory;
+    using File = Pri.LongPath.File;
+    using Path = Pri.LongPath.Path;
 
     [TestFixture]
     [Category("Build")]

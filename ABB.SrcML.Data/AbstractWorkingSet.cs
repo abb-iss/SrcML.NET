@@ -18,6 +18,8 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace ABB.SrcML.Data {
+    using Path = Pri.LongPath.Path;
+
     /// <summary>
     /// Working set objects track a given <see cref="Archive">data archive</see>. They maintain a merged scope based on files
     /// in <see cref="Archive"/>. Sub-classes should maintain a subset of the <see cref="Archive"/> files  for use by their clients

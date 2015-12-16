@@ -20,6 +20,9 @@ using System.Threading.Tasks;
 using System.Windows;
 
 namespace ABB.SrcML.VisualStudio {
+    using File = Pri.LongPath.File;
+    using Path = Pri.LongPath.Path;
+
     /// <summary>
     /// The VS Data service responds to file change events from <see cref="VsMonitoringService"/> and keeps <see cref="CurrentWorkingSet"/> up to date.
     /// </summary>

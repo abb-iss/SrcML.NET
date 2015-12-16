@@ -17,6 +17,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ABB.SrcML.Data {
+    using File = Pri.LongPath.File;
+    using Path = Pri.LongPath.Path;
+
     /// <summary>
     /// The data archive uses a <see cref="MonitoredArchive">SrcML Archive</see> to generate and store SrcML Data for each <see cref="SrcMLArchive.FileUnits">file unit</see>.
     /// </summary>

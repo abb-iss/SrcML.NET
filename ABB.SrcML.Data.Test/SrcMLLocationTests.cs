@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 
 namespace ABB.SrcML.Data.Test {
+    using Path = Pri.LongPath.Path;
 
     [TestFixture]
     [Category("Build")]

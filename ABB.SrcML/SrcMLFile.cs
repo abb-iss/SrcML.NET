@@ -19,6 +19,9 @@ using System.Xml;
 using System.Xml.Linq;
 
 namespace ABB.SrcML {
+    using Directory = Pri.LongPath.Directory;
+    using File = Pri.LongPath.File;
+    using Path = Pri.LongPath.Path;
 
     /// <summary>
     /// This class represents a SrcMLFile. The underlying data is stored in an XML file, and can be
@@ -115,7 +118,7 @@ namespace ABB.SrcML {
                     }
                     xw.WriteEndElement();
                 }
-                File.Delete(this.ArchivePath);
+                if (File.Exists(this.ArchivePath)) File.Delete(this.ArchivePath);
                 File.Move(tempFileName, this.ArchivePath);
 
                 _rootDirectory = value;

@@ -12,7 +12,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using ABB.SrcML;
-using FSPath = System.IO.Path;
+using FSPath = Pri.LongPath.Path;
 
 namespace ABB.SrcML.Tools.ArchiveUpdater
 {

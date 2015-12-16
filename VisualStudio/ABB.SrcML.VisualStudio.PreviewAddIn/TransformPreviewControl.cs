@@ -24,6 +24,12 @@ using SDML.SrcMLVSAddin.SyntaticCategory;
 
 namespace ABB.SrcML.VisualStudio.PreviewAddIn
 {
+    using Directory = Pri.LongPath.Directory;
+    using DirectoryInfo = Pri.LongPath.DirectoryInfo;
+    using File = Pri.LongPath.File;
+    using FileInfo = Pri.LongPath.FileInfo;
+    using Path = Pri.LongPath.Path;
+
     /// <summary>
     /// Summary description for TransformPreviewControl.
     /// </summary>

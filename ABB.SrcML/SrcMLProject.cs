@@ -18,6 +18,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ABB.SrcML {
+    using Path = Pri.LongPath.Path;
+
     /// <summary>
     /// The SrcML Project object creates an <see cref="AbstractFileMonitor"/>, <see cref="NonSourceArchive"/>,  <see cref="SourceArchive"/> and wires them all up".
     /// </summary>

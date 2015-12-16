@@ -8,6 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ABB.SrcML {
+    using File = Pri.LongPath.File;
+    using Path = Pri.LongPath.Path;
 
     /// <summary>
     /// The last modified archive simply stores the last-modified times of all its files. It
@@ -175,7 +177,7 @@ namespace ABB.SrcML {
                     }
                 }
                 File.Copy(tempFileName, this.ArchivePath, true);
-                File.Delete(tempFileName);
+                if (File.Exists(tempFileName)) File.Delete(tempFileName);
             }
         }
 

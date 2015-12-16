@@ -20,6 +20,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 namespace ABB.SrcML.VisualStudio {
+    using Path = Pri.LongPath.Path;
 
     public class SourceMonitor : DirectoryScanningMonitor, IVsRunningDocTableEvents {
         private const int MaxNumberOfFilesInSolutionDirectory = 1000;

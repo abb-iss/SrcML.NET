@@ -19,6 +19,10 @@ using System.Text;
 using System.Text.RegularExpressions;
 
 namespace ABB.SrcML {
+    using Directory = Pri.LongPath.Directory;
+    using File = Pri.LongPath.File;
+    using Path = Pri.LongPath.Path;
+
     /// <summary>
     /// Maintains a mapping between source file paths and the paths where XML versions are stored.
     /// The names of the XML files are relatively short to avoid exceeding the Windows file path
@@ -154,7 +158,7 @@ namespace ABB.SrcML {
                             if(!string.IsNullOrWhiteSpace(sourcePath)) {
                                 ProcessMapFileEntry(sourcePath, Path.GetFullPath(targetFile));
                             } else {
-                                File.Delete(targetFile);
+                                if (File.Exists(targetFile)) File.Delete(targetFile);
                             }
                         }
                     }

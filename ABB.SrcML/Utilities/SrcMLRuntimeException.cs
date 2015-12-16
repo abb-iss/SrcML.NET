@@ -19,6 +19,8 @@ using System.Globalization;
 
 namespace ABB.SrcML.Utilities
 {
+    using Path = Pri.LongPath.Path;
+
     [Serializable]
     class SrcMLRuntimeException : SrcMLException
     {

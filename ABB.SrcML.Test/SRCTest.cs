@@ -20,6 +20,10 @@ using System.Xml.Linq;
 
 namespace ABB.SrcML.Test
 {
+    using Directory = Pri.LongPath.Directory;
+    using File = Pri.LongPath.File;
+    using Path = Pri.LongPath.Path;
+
     [TestFixture]
     [Category("Build")]
     public class SRCTest
@@ -40,14 +44,14 @@ namespace ABB.SrcML.Test
         {
             foreach (var file in Directory.GetFiles("srctest"))
             {
-                File.Delete(file);
+                if (File.Exists(file)) File.Delete(file);
             }
             foreach (var file in Directory.GetFiles("srctest_xml"))
             {
-                File.Delete(file);
+                if (File.Exists(file)) File.Delete(file);
             }
-            Directory.Delete("srctest");
-            Directory.Delete("srctest_xml");
+            if (Directory.Exists("srctest")) Directory.Delete("srctest");
+            if (Directory.Exists("srctest_xml")) Directory.Delete("srctest_xml");
         }
 
         [Test]

@@ -21,6 +21,10 @@ using System.Xml.Linq;
 
 namespace ABB.SrcML.Test
 {
+    using Directory = Pri.LongPath.Directory;
+    using File = Pri.LongPath.File;
+    using Path = Pri.LongPath.Path;
+
     /// <summary>
     /// Tests for ABB.SrcML.SrcMLFile.
     /// </summary>
@@ -56,9 +60,9 @@ namespace ABB.SrcML.Test
         {
             foreach (var file in Directory.GetFiles("srcmlfiletest"))
             {
-                File.Delete(file);
+                if (File.Exists(file)) File.Delete(file);
             }
-            Directory.Delete("srcmlfiletest");
+            if (Directory.Exists("srcmlfiletest")) Directory.Delete("srcmlfiletest");
         }
         //
         // Use TestInitialize to run code before running each test 

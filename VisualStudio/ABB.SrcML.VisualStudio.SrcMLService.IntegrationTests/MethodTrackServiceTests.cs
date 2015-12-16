@@ -13,6 +13,8 @@ using Microsoft.VSSDK.Tools.VsIdeTesting;
 using Thread = System.Threading.Thread;
 
 namespace ABB.SrcML.VisualStudio.SrcMLService.IntegrationTests {
+    using File = Pri.LongPath.File;
+    using Path = Pri.LongPath.Path;
 
     [TestClass]
     public class MethodTrackServiceTests : IInvoker {

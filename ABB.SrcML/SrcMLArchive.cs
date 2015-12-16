@@ -23,6 +23,9 @@ using ABB.SrcML.Utilities;
 using System.Collections.ObjectModel;
 
 namespace ABB.SrcML {
+    using File = Pri.LongPath.File;
+    using Path = Pri.LongPath.Path;
+
     /// <summary>
     /// This is an implementation of <see cref="AbstractArchive"/>. File changes trigger the addition, update, and deletion of srcML archives in
     /// the archive directory

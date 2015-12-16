@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 
 namespace ABB.SrcML.Tools.MethodCallSurvey {
+    using File = Pri.LongPath.File;
 
     public class MethodCallSample : INotifyPropertyChanged {
         private ObservableCollection<MethodCall> _callSampleCollection;
