@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ABB.SrcML.Tools.ArchiveUpdater</RootNamespace>
     <AssemblyName>ABB.SrcML.Tools.ArchiveUpdater</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
@@ -21,11 +21,13 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputPath>..\..\Build\Debug\</OutputPath>
     <DocumentationFile>..\..\Build\Debug\ABB.SrcML.Tools.ArchiveUpdater.XML</DocumentationFile>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputPath>..\..\Build\Release\</OutputPath>
     <DocumentationFile>..\..\Build\Release\ABB.SrcML.Tools.ArchiveUpdater.XML</DocumentationFile>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
