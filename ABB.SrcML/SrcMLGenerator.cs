@@ -34,6 +34,9 @@ namespace ABB.SrcML {
                                                                          {
                                                                              {".c", Language.C},
                                                                              {".h", Language.CPlusPlus},
+                                                                             {".hh", Language.CPlusPlus},
+                                                                             {".hpp", Language.CPlusPlus},
+                                                                             {".cc", Language.CPlusPlus},
                                                                              {".cpp", Language.CPlusPlus},
                                                                              {".cxx", Language.CPlusPlus},
                                                                              {".java", Language.Java},
