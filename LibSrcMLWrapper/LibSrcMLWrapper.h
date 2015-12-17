@@ -7,6 +7,8 @@ using namespace System::Runtime::InteropServices;
 #include <fstream>
 #include <iostream>
 namespace LibSrcMLWrapper {
+    //Structs are laid out in specific order; C++ assumes C# will send structs with this particular memory layout
+    //If you modify the structure here, you MUST modify it on C#'s end as well. 
     public struct UnitData{
         char* encoding;
         char* revision;

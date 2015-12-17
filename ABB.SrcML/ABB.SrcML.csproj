@@ -61,6 +61,7 @@
     <Compile Include="AbstractDocument.cs" />
     <Compile Include="AbstractFileMonitor.cs" />
     <Compile Include="AbstractGenerator.cs" />
+    <Compile Include="ISrcMLRunner.cs" />
     <Compile Include="SrcDiffRunner.cs" />
     <Compile Include="LibSrcMLRunner.cs" />
     <Compile Include="SrcMLProject.cs" />
