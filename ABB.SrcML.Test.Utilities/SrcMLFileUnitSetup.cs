@@ -14,6 +14,7 @@ using System;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
+using System.Linq;
 
 namespace ABB.SrcML.Test.Utilities {
 
@@ -45,9 +46,10 @@ namespace ABB.SrcML.Test.Utilities {
         }
 
         public XElement GetFileUnitForXmlSnippet(string xmlSnippet, string fileName) {
-            var xml = string.Format(FileTemplate, xmlSnippet, KsuAdapter.GetLanguage(SourceLanguage), fileName);
-            var fileUnit = XElement.Parse(xml, LoadOptions.PreserveWhitespace);
-            return fileUnit;
+            XNamespace nsSys = "http://www.srcML.org/srcML/src";
+            XDocument doc = XDocument.Parse(xmlSnippet);
+            var query = (from c in doc.Descendants(nsSys + "unit") select c).FirstOrDefault().Element(nsSys+"unit");
+            return query;
         }
     }
 }
