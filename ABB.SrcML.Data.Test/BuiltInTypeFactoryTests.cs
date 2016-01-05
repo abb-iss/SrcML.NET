@@ -13,6 +13,7 @@ using ABB.SrcML.Test.Utilities;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace ABB.SrcML.Data.Test {
@@ -39,12 +40,14 @@ namespace ABB.SrcML.Data.Test {
         [Category("Todo")]
         public void TestCppBuiltIns_WithDoubleWord() {
             // #a.cpp #example: "unsigned int a;"; MODIFIER TYPE a; MODIFIER TYPE b;
-            string xmlFormat = @"<decl_stmt><decl><type><name>{0}</name> <name>{1}</name></type> <name>a</name></decl>;</decl_stmt>
-<decl_stmt><decl><type><name>{0}</name> <name>{1}</name></type> <name>b</name></decl>;</decl_stmt>";
+            string xmlFormat = @"{0} {1} a; {0} {1} b";
 
             foreach(var builtInModifier in new string[] { "unsigned", "signed", "long" }) {
                 foreach(var builtIn in new string[] { "int", "double" }) {
-                    var aXml = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(String.Format(xmlFormat, builtInModifier, builtIn), "a.cpp");
+                    LibSrcMLRunner run = new LibSrcMLRunner();
+                    string srcML = run.GenerateSrcMLFromString(String.Format(xmlFormat, builtInModifier, builtIn), "a.cpp", Language.CPlusPlus, new Collection<UInt32>() { }, false);
+
+                    var aXml = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(srcML, "a.cpp");
 
                     var globalScope = CodeParser[Language.CPlusPlus].ParseFileUnit(aXml);
                     var variables = from stmt in globalScope.GetDescendants()
@@ -67,11 +70,13 @@ namespace ABB.SrcML.Data.Test {
         public void TestCppBuiltIns_WithSingleWord() {
             // #a.cpp TYPE a; TYPE b;
 
-            string xmlFormat = @"<decl_stmt><decl><type><name>{0}</name></type> <name>a</name></decl>;</decl_stmt>
-<decl_stmt><decl><type><name>{0}</name></type> <name>b</name></decl>;</decl_stmt>";
+            string xmlFormat = @"{0} a; {0} b;";
 
             foreach(var builtIn in new string[] { "char", "short", "int", "long", "bool", "float", "double", "wchar_t" }) {
-                var aXml = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(String.Format(xmlFormat, builtIn), "a.cpp");
+                LibSrcMLRunner run = new LibSrcMLRunner();
+                string srcML = run.GenerateSrcMLFromString(String.Format(xmlFormat, builtIn), "a.cpp", Language.CPlusPlus, new Collection<UInt32>() { }, false);
+
+                var aXml = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(srcML, "a.cpp");
 
                 var globalScope = CodeParser[Language.CPlusPlus].ParseFileUnit(aXml);
                 var variables = from stmt in globalScope.GetDescendants()
@@ -93,12 +98,13 @@ namespace ABB.SrcML.Data.Test {
         [Test]
         public void TestJavaBuiltIns() {
             // #a.java TYPE a; TYPE b;
-            string xmlFormat = @"<decl_stmt><decl><type><name>{0}</name></type> <name>a</name></decl>;</decl_stmt>
-<decl_stmt><decl><type><name>{0}</name></type> <name>b</name></decl>;</decl_stmt>";
+            string xmlFormat = @"TYPE a; TYPE b;";
 
             foreach(var builtIn in new string[] { "byte", "short", "int", "long", "float", "double", "boolean", "char" }) {
-                var aXml = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(String.Format(xmlFormat, builtIn), "a.java");
+                LibSrcMLRunner run = new LibSrcMLRunner();
+                string srcML = run.GenerateSrcMLFromString(String.Format(xmlFormat, builtIn), "a.cpp", Language.CPlusPlus, new Collection<UInt32>() { }, false);
 
+                var aXml = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(srcML, "a.cpp");
                 var globalScope = CodeParser[Language.Java].ParseFileUnit(aXml);
                 var variables = from stmt in globalScope.GetDescendants()
                                 from declaration in stmt.GetExpressions().OfType<VariableDeclaration>()

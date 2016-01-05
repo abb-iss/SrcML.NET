@@ -3,7 +3,7 @@
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+ * http:www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
  *    Vinay Augustine (ABB Group) - initial API, implementation, & documentation
@@ -12,28 +12,35 @@
 
 using ABB.SrcML.Test.Utilities;
 using NUnit.Framework;
+using System;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace ABB.SrcML.Data.Test {
+namespace ABB.SrcML.Data.Test
+{
 
     [TestFixture]
     [Category("Build")]
-    internal class JavaCodeParserTests {
+    internal class JavaCodeParserTests
+    {
         private AbstractCodeParser codeParser;
         private SrcMLFileUnitSetup fileSetup;
 
         [TestFixtureSetUp]
-        public void ClassSetup() {
+        public void ClassSetup()
+        {
             codeParser = new JavaCodeParser();
             fileSetup = new SrcMLFileUnitSetup(Language.Java);
         }
 
         [Test]
-        public void TestCreateAliasesForFiles_ImportClass() {
-            //import x.y.z;
-            string xml = @"<import>import <name><name>x</name><op:operator>.</op:operator><name>y</name><op:operator>.</op:operator><name>z</name></name>;</import>";
-            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
+        public void TestCreateAliasesForFiles_ImportClass()
+        {
+            string xml = @"import x.y.z;";
+            LibSrcMLRunner runA = new LibSrcMLRunner();
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.java", Language.Java, new Collection<UInt32>() { }, false);
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.java");
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
             Assert.AreEqual(1, globalScope.ChildStatements.Count);
@@ -45,10 +52,12 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestCreateAliasesForFiles_ImportNamespace() {
-            // import x . /*test */ y  /*test */ . z .* /*test*/;
-            string xml = @"<import>import <name><name>x</name> <op:operator>.</op:operator> <comment type=""block"">/*test */</comment> <name>y</name>  <comment type=""block"">/*test */</comment> <op:operator>.</op:operator> <name>z</name></name> .* <comment type=""block"">/*test*/</comment>;</import>";
-            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
+        public void TestCreateAliasesForFiles_ImportNamespace()
+        {
+            string xml = @"import x . /*test */ y  /*test */ . z .* /*test*/;";
+            LibSrcMLRunner runA = new LibSrcMLRunner();
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.java", Language.Java, new Collection<UInt32>() { }, false);
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.java");
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
             Assert.AreEqual(1, globalScope.ChildStatements.Count);
@@ -59,12 +68,13 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestCreateTypeDefinition_ClassInPackage() {
-            //package A.B.C;
-            //public class D { }
-            string xml = @"<package>package <name><name>A</name><op:operator>.</op:operator><name>B</name><op:operator>.</op:operator><name>C</name></name>;</package>
-<class><specifier>public</specifier> class <name>D</name> <block>{ }</block></class>";
-            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "D.java");
+        public void TestCreateTypeDefinition_ClassInPackage()
+        {
+            string xml = @"package A.B.C;
+            public class D { }";
+            LibSrcMLRunner runD = new LibSrcMLRunner();
+            string srcMLA = runD.GenerateSrcMLFromString(xml, "D.java", Language.Java, new Collection<UInt32>() { }, false);
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "D.java");
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
             Assert.IsTrue(globalScope.IsGlobal);
@@ -94,11 +104,13 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestCreateTypeDefinitions_Class() {
-            // class A { }
-            string xml = @"<class>class <name>A</name> <block>{
-}</block></class>";
-            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
+        public void TestCreateTypeDefinitions_Class()
+        {
+
+            string xml = @"class A { }";
+            LibSrcMLRunner runA = new LibSrcMLRunner();
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.java", Language.Java, new Collection<UInt32>() { }, false);
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.java");
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
             Assert.IsTrue(globalScope.IsGlobal);
@@ -110,16 +122,14 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestCreateTypeDefinitions_ClassInFunction() {
-            // class A { int foo() { class B { } } }
-            string xml = @"<class>class <name>A</name> <block>{
-	<function><type><name>int</name></type> <name>foo</name><parameter_list>()</parameter_list> <block>{
-		<class>class <name>B</name> <block>{
-		}</block></class>
-}</block></function>
-}</block></class>";
+        public void TestCreateTypeDefinitions_ClassInFunction()
+        {
 
-            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
+            string xml = @"class A { int foo() { class B { } } }";
+
+            LibSrcMLRunner runA = new LibSrcMLRunner();
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.java", Language.Java, new Collection<UInt32>() { }, false);
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.java");
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
 
@@ -135,16 +145,17 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestCreateTypeDefinitions_ClassWithExtendsAndImplements() {
-            //Foo.java
-            //public class Foo extends xyzzy implements A, B, C {
-            //    public int bar;
-            //}
-            string xml = @"<class><specifier>public</specifier> class <name>Foo</name> <super><extends>extends <name>xyzzy</name></extends> <implements>implements <name>A</name>, <name>B</name>, <name>C</name></implements></super> <block>{
-    <decl_stmt><decl><type><specifier>public</specifier> <name>int</name></type> <name>bar</name></decl>;</decl_stmt>
-}</block></class>";
+        public void TestCreateTypeDefinitions_ClassWithExtendsAndImplements()
+        {
 
-            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.java");
+            string xml = @"Foo.java
+            public class Foo extends xyzzy implements A, B, C {
+                public int bar;
+            }";
+
+            LibSrcMLRunner runFoo = new LibSrcMLRunner();
+            string srcMLA = runFoo.GenerateSrcMLFromString(xml, "Foo.java", Language.Java, new Collection<UInt32>() { }, false);
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "Foo.java");
 
             var actual = codeParser.ParseFileUnit(xmlElement).ChildStatements.First() as TypeDefinition;
             Assert.IsNotNull(actual);
@@ -158,20 +169,20 @@ namespace ABB.SrcML.Data.Test {
                               select parent.Name;
 
             var tests = Enumerable.Zip<string, string, bool>(new[] { "xyzzy", "A", "B", "C" }, parentNames, (e, a) => e == a);
-            foreach(var test in tests) {
+            foreach (var test in tests)
+            {
                 Assert.That(test);
             }
         }
 
         [Test]
-        public void TestCreateTypeDefinitions_ClassWithInnerClass() {
-            // class A { class B { } }
-            string xml = @"<class>class <name>A</name> <block>{
-	<class>class <name>B</name> <block>{
-	}</block></class>
-}</block></class>";
+        public void TestCreateTypeDefinitions_ClassWithInnerClass()
+        {
+            string xml = @"class A { class B { } }";
 
-            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
+            LibSrcMLRunner runA = new LibSrcMLRunner();
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.java", Language.Java, new Collection<UInt32>() { }, false);
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.java");
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
 
@@ -184,12 +195,13 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestCreateTypeDefinitions_ClassWithParents() {
-            // class A implements B,C,D { }
-            string xml = @"<class>class <name>A</name> <super><implements>implements <name>B</name>,<name>C</name>,<name>D</name></implements></super> <block>{
-}</block></class>";
+        public void TestCreateTypeDefinitions_ClassWithParents()
+        {
+            string xml = @"class A implements B,C,D { }";
 
-            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
+            LibSrcMLRunner runA = new LibSrcMLRunner();
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.java", Language.Java, new Collection<UInt32>() { }, false);
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.java");
 
             var actual = codeParser.ParseFileUnit(xmlElement).ChildStatements.First() as TypeDefinition;
             var globalNamespace = actual.ParentStatement as NamespaceDefinition;
@@ -201,17 +213,20 @@ namespace ABB.SrcML.Data.Test {
                               select parent.Name;
 
             var tests = Enumerable.Zip<string, string, bool>(new[] { "B", "C", "D" }, parentNames, (e, a) => e == a);
-            foreach(var test in tests) {
+            foreach (var test in tests)
+            {
                 Assert.That(test);
             }
         }
 
         [Test]
-        public void TestCreateTypeDefinitions_ClassWithQualifiedParent() {
-            // class D implements A.B.C { }
-            string xml = @"<class>class <name>D</name> <super><implements>implements <name><name>A</name><op:operator>.</op:operator><name>B</name><op:operator>.</op:operator><name>C</name></name></implements></super> <block>{ }</block></class>";
+        public void TestCreateTypeDefinitions_ClassWithQualifiedParent()
+        {
+            string xml = @"class D implements A.B.C { }";
 
-            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "D.java");
+            LibSrcMLRunner runD = new LibSrcMLRunner();
+            string srcMLA = runD.GenerateSrcMLFromString(xml, "D.java", Language.Java, new Collection<UInt32>() { }, false);
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "D.java");
 
             var actual = codeParser.ParseFileUnit(xmlElement).ChildStatements.First() as TypeDefinition;
             var globalNamespace = actual.ParentStatement as NamespaceDefinition;
@@ -223,7 +238,7 @@ namespace ABB.SrcML.Data.Test {
             var parent = actual.ParentTypeNames.First();
 
             Assert.AreEqual("C", parent.Name);
-            
+
             var prefixNames = parent.Prefix.Names.ToList();
             Assert.AreEqual(2, prefixNames.Count);
             Assert.AreEqual("A", prefixNames[0].Name);
@@ -231,15 +246,16 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestCreateTypeDefinitions_ClassWithSuperClass() {
-            //Foo.java
-            //public class Foo extends xyzzy {
-            //    public int bar;
-            //}
-            string xml = @"<class><specifier>public</specifier> class <name>Foo</name> <super><extends>extends <name>xyzzy</name></extends></super> <block>{
-    <decl_stmt><decl><type><specifier>public</specifier> <name>int</name></type> <name>bar</name></decl>;</decl_stmt>
-}</block></class>";
-            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.java");
+        public void TestCreateTypeDefinitions_ClassWithSuperClass()
+        {
+
+            string xml = @"Foo.java
+            public class Foo extends xyzzy {
+                public int bar;
+            }";
+            LibSrcMLRunner runFoo = new LibSrcMLRunner();
+            string srcMLA = runFoo.GenerateSrcMLFromString(xml, "Foo.java", Language.Java, new Collection<UInt32>() { }, false);
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "Foo.java");
 
             var actual = codeParser.ParseFileUnit(xmlElement).ChildStatements.First() as TypeDefinition;
             Assert.IsNotNull(actual);
@@ -252,15 +268,14 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestCreateTypeDefinitions_InnerClassWithNamespace() {
-            // package A; class B { class C { } }
-            string xml = @"<package>package <name>A</name>;</package>
-<class>class <name>B</name> <block>{
-	<class>class <name>C</name> <block>{
-	}</block></class>
-}</block></class>";
+        public void TestCreateTypeDefinitions_InnerClassWithNamespace()
+        {
 
-            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "B.java");
+            string xml = @"package A; class B { class C { } }";
+
+            LibSrcMLRunner runB = new LibSrcMLRunner();
+            string srcMLA = runB.GenerateSrcMLFromString(xml, "B.java", Language.Java, new Collection<UInt32>() { }, false);
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "B.java");
             var globalScope = codeParser.ParseFileUnit(xmlElement);
 
             var typeDefinitions = globalScope.GetDescendants<TypeDefinition>().ToList();
@@ -279,12 +294,14 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestCreateTypeDefinitions_Interface() {
-            // interface A { }
-            string xml = @"<class type=""interface"">interface <name>A</name> <block>{
-}</block></class>";
+        public void TestCreateTypeDefinitions_Interface()
+        {
 
-            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
+            string xml = @"interface A { }";
+
+            LibSrcMLRunner runA = new LibSrcMLRunner();
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.java", Language.Java, new Collection<UInt32>() { }, false);
+            XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.java");
 
             var actual = codeParser.ParseFileUnit(xmlElement).ChildStatements.First() as TypeDefinition;
             var globalNamespace = actual.ParentStatement as NamespaceDefinition;
@@ -295,13 +312,13 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestFieldCreation() {
-            // # A.java class A { int B; }
-            string xml = @"<class>class <name>A</name> <block>{
-    <decl_stmt><decl><type><name>int</name></type> <name>B</name></decl>;</decl_stmt>
-}</block></class>";
+        public void TestFieldCreation()
+        {
+            string xml = @"class A { int B; }";
 
-            var xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
+            LibSrcMLRunner runA = new LibSrcMLRunner();
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.java", Language.Java, new Collection<UInt32>() { }, false);
+            var xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.java");
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
 
@@ -316,14 +333,15 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestGetAccessModifierForMethod_None() {
-            //public class Foo {
-            //    bool Bar() { return true; }
-            //}
-            string xml = @"<class><specifier>public</specifier> class <name>Foo</name> <block>{
-    <function><type><name>bool</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><name>true</name></expr>;</return> }</block></function>
-}</block></class>";
-            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.java");
+        public void TestGetAccessModifierForMethod_None()
+        {
+
+            string xml = @"public class Foo {
+                bool Bar() { return true; }
+            }";
+            LibSrcMLRunner runFoo = new LibSrcMLRunner();
+            string srcMLA = runFoo.GenerateSrcMLFromString(xml, "Foo.java", Language.Java, new Collection<UInt32>() { }, false);
+            var unit = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "Foo.java");
 
             var globalScope = codeParser.ParseFileUnit(unit);
             var method = globalScope.GetDescendants<MethodDefinition>().First();
@@ -332,14 +350,15 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestGetAccessModifierForMethod_Normal() {
-            //public class Foo {
-            //    public bool Bar() { return true; }
-            //}
-            string xml = @"<class><specifier>public</specifier> class <name>Foo</name> <block>{
-    <function><type><specifier>public</specifier> <name>bool</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><name>true</name></expr>;</return> }</block></function>
-}</block></class>";
-            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.java");
+        public void TestGetAccessModifierForMethod_Normal()
+        {
+
+            string xml = @"public class Foo {
+                public bool Bar() { return true; }
+            }";
+            LibSrcMLRunner runFoo = new LibSrcMLRunner();
+            string srcMLA = runFoo.GenerateSrcMLFromString(xml, "Foo.java", Language.Java, new Collection<UInt32>() { }, false);
+            var unit = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "Foo.java");
 
             var globalScope = codeParser.ParseFileUnit(unit);
             var method = globalScope.GetDescendants<MethodDefinition>().First();
@@ -348,14 +367,15 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestGetAccessModifierForMethod_Static() {
-            //public class Foo {
-            //    static public bool Bar() { return true; }
-            //}
-            string xml = @"<class><specifier>public</specifier> class <name>Foo</name> <block>{
-    <function><type><specifier>static</specifier> <specifier>public</specifier> <name>bool</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><name>true</name></expr>;</return> }</block></function>
-}</block></class>";
-            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.java");
+        public void TestGetAccessModifierForMethod_Static()
+        {
+
+            string xml = @"public class Foo {
+                static public bool Bar() { return true; }
+            }";
+            LibSrcMLRunner runFoo = new LibSrcMLRunner();
+            string srcMLA = runFoo.GenerateSrcMLFromString(xml, "Foo.java", Language.Java, new Collection<UInt32>() { }, false);
+            var unit = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "Foo.java");
 
             var globalScope = codeParser.ParseFileUnit(unit);
             var method = globalScope.GetDescendants<MethodDefinition>().First();
@@ -364,10 +384,12 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestGetAccessModifierForType_None() {
-            //class Foo {}
-            string xml = @"<class>class <name>Foo</name> <block>{}</block></class>";
-            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.java");
+        public void TestGetAccessModifierForType_None()
+        {
+            string xml = @"class Foo {}";
+            LibSrcMLRunner runFoo = new LibSrcMLRunner();
+            string srcMLA = runFoo.GenerateSrcMLFromString(xml, "Foo.java", Language.Java, new Collection<UInt32>() { }, false);
+            var unit = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "Foo.java");
 
             var globalScope = codeParser.ParseFileUnit(unit);
             var type = globalScope.GetDescendants<TypeDefinition>().First();
@@ -376,10 +398,13 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestGetAccessModifierForType_Normal() {
-            //public class Foo {}
-            string xml = @"<class><specifier>public</specifier> class <name>Foo</name> <block>{}</block></class>";
-            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.java");
+        public void TestGetAccessModifierForType_Normal()
+        {
+
+            string xml = @"public class Foo {}";
+            LibSrcMLRunner runFoo = new LibSrcMLRunner();
+            string srcMLA = runFoo.GenerateSrcMLFromString(xml, "Foo.java", Language.Java, new Collection<UInt32>() { }, false);
+            var unit = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "Foo.java");
 
             var globalScope = codeParser.ParseFileUnit(unit);
             var type = globalScope.GetDescendants<TypeDefinition>().First();
@@ -388,10 +413,12 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestGetAccessModifierForType_Static() {
-            //static public class Foo {}
-            string xml = @"<class><specifier>static</specifier> <specifier>public</specifier> class <name>Foo</name> <block>{}</block></class>";
-            var unit = fileSetup.GetFileUnitForXmlSnippet(xml, "Foo.java");
+        public void TestGetAccessModifierForType_Static()
+        {
+            string xml = @"static public class Foo {}";
+            LibSrcMLRunner runFoo = new LibSrcMLRunner();
+            string srcMLA = runFoo.GenerateSrcMLFromString(xml, "Foo.java", Language.Java, new Collection<UInt32>() { }, false);
+            var unit = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "Foo.java");
 
             var globalScope = codeParser.ParseFileUnit(unit);
             var type = globalScope.GetDescendants<TypeDefinition>().First();
@@ -402,26 +429,24 @@ namespace ABB.SrcML.Data.Test {
 
 
         [Test]
-        public void TestMethodCallCreation_WithConflictingMethodNames() {
-            //# A.java
-            //class A {
-            //    B b;
-            //    boolean Contains() { b.Contains(); }
-            //}
-            string a_xml = @"<class>class <name>A</name> <block>{
-    <decl_stmt><decl><type><name>B</name></type> <name>b</name></decl>;</decl_stmt>
-    <function><type><name>boolean</name></type> <name>Contains</name><parameter_list>()</parameter_list> <block>{ <expr_stmt><expr><call><name><name>b</name><op:operator>.</op:operator><name>Contains</name></name><argument_list>()</argument_list></call></expr>;</expr_stmt> }</block></function>
-}</block></class>";
+        public void TestMethodCallCreation_WithConflictingMethodNames()
+        {
+            string a_xml = @"class A {
+                B b;
+                boolean Contains() { b.Contains(); }
+            }";
 
-            //class B {
-            //    boolean Contains() { return true; }
-            //}
-            string b_xml = @"<class>class <name>B</name> <block>{
-    <function><type><name>boolean</name></type> <name>Contains</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><lit:literal type=""boolean"">true</lit:literal></expr>;</return> }</block></function>
-}</block></class>";
 
-            var fileUnitA = fileSetup.GetFileUnitForXmlSnippet(a_xml, "A.java");
-            var fileUnitB = fileSetup.GetFileUnitForXmlSnippet(b_xml, "B.java");
+            string b_xml = @"class B {
+                boolean Contains() { return true; }
+            }";
+
+            LibSrcMLRunner runA = new LibSrcMLRunner();
+            string srcMLA = runA.GenerateSrcMLFromString(a_xml, "A.java", Language.Java, new Collection<UInt32>() { }, false);
+            var fileUnitA = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.java");
+            LibSrcMLRunner runB = new LibSrcMLRunner();
+            string srcMLB = runB.GenerateSrcMLFromString(b_xml, "B.java", Language.Java, new Collection<UInt32>() { }, false);
+            var fileUnitB = fileSetup.GetFileUnitForXmlSnippet(srcMLB, "B.java");
 
             var scopeForA = codeParser.ParseFileUnit(fileUnitA);
             var scopeForB = codeParser.ParseFileUnit(fileUnitB);
@@ -444,25 +469,20 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestMethodCallCreation_WithThisKeyword() {
-            //class A {
-            //    void Bar() { }
-            //    class B {
-            //        int a;
-            //        void Foo() { this.Bar(); }
-            //        void Bar() { return this.a; }
-            //    }
-            //}
-            string a_xml = @"<class>class <name>A</name> <block>{
-    <function><type><name>void</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ }</block></function>
-    <class>class <name>B</name> <block>{
-        <decl_stmt><decl><type><name>int</name></type> <name>a</name></decl>;</decl_stmt>
-        <function><type><name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ <expr_stmt><expr><call><name><name>this</name><op:operator>.</op:operator><name>Bar</name></name><argument_list>()</argument_list></call></expr>;</expr_stmt> }</block></function>
-        <function><type><name>void</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><name>this</name><op:operator>.</op:operator><name>a</name></expr>;</return> }</block></function>
-    }</block></class>
-}</block></class>";
+        public void TestMethodCallCreation_WithThisKeyword()
+        {
+            string a_xml = @"class A {
+                void Bar() { }
+                class B {
+                    int a;
+                    void Foo() { this.Bar(); }
+                    void Bar() { return this.a; }
+                }
+            }";
 
-            var fileUnit = fileSetup.GetFileUnitForXmlSnippet(a_xml, "A.java");
+            LibSrcMLRunner runA = new LibSrcMLRunner();
+            string srcMLA = runA.GenerateSrcMLFromString(a_xml, "A.java", Language.Java, new Collection<UInt32>() { }, false);
+            var fileUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.java");
             var globalScope = codeParser.ParseFileUnit(fileUnit);
 
             var aDotBar = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "Bar" && ((TypeDefinition)m.ParentStatement).Name == "A");
@@ -485,26 +505,20 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestMethodCallCreation_WithSuperKeyword() {
-            //class B {
-            //  public void Foo() { } 
-            //}
-            //class C extends B { 
-            //  public void Foo() { }
-            //  public void Bar() { 
-            //    super.Foo(); 
-            //  }
-            //}
-            string xml = @"<class>class <name>B</name> <block>{
-  <function><type><specifier>public</specifier> <name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></function> 
-}</block></class>
-<class>class <name>C</name> <super><extends>extends <name>B</name></extends></super> <block>{ 
-  <function><type><specifier>public</specifier> <name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></function>
-  <function><type><specifier>public</specifier> <name>void</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ 
-    <expr_stmt><expr><call><name><name>super</name><op:operator>.</op:operator><name>Foo</name></name><argument_list>()</argument_list></call></expr>;</expr_stmt> 
-  }</block></function>
-}</block></class>";
-            var xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
+        public void TestMethodCallCreation_WithSuperKeyword()
+        {
+            string xml = @"class B {
+              public void Foo() { } 
+            }
+            class C extends B { 
+              public void Foo() { }
+              public void Bar() { 
+                super.Foo(); 
+              }
+            }";
+            LibSrcMLRunner runA = new LibSrcMLRunner();
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.java", Language.Java, new Collection<UInt32>() { }, false);
+            var xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.java");
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
             Assert.AreEqual(2, globalScope.ChildStatements.Count);
@@ -525,24 +539,19 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestMethodCallCreation_SuperConstructor() {
-            //class B {
-            //  public B(int num) { }
-            //}
-            //class C extends B { 
-            //  public C() {
-            //    super(17);
-            //  }
-            //}
-            string xml = @"<class>class <name>B</name> <block>{
-  <constructor><specifier>public</specifier> <name>B</name><parameter_list>(<param><decl><type><name>int</name></type> <name>num</name></decl></param>)</parameter_list> <block>{ }</block></constructor>
-}</block></class>
-<class>class <name>C</name> <super><extends>extends <name>B</name></extends></super> <block>{ 
-  <constructor><specifier>public</specifier> <name>C</name><parameter_list>()</parameter_list> <block>{
-    <expr_stmt><expr><call><name>super</name><argument_list>(<argument><expr><lit:literal type=""number"">17</lit:literal></expr></argument>)</argument_list></call></expr>;</expr_stmt>
-  }</block></constructor>
-}</block></class>";
-            var xmlElement = fileSetup.GetFileUnitForXmlSnippet(xml, "A.java");
+        public void TestMethodCallCreation_SuperConstructor()
+        {
+            string xml = @"class B {
+              public B(int num) { }
+            }
+            class C extends B { 
+              public C() {
+                super(17);
+              }
+            }";
+            LibSrcMLRunner runA = new LibSrcMLRunner();
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.java", Language.Java, new Collection<UInt32>() { }, false);
+            var xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.java");
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
             Assert.AreEqual(2, globalScope.ChildStatements.Count);
@@ -551,7 +560,7 @@ namespace ABB.SrcML.Data.Test {
             Assert.IsNotNull(bConstructor);
             var cConstructor = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "C");
             Assert.IsNotNull(cConstructor);
-            
+
             Assert.AreEqual(1, cConstructor.ChildStatements.Count);
             var superCall = cConstructor.ChildStatements[0].Content.GetDescendantsAndSelf<MethodCall>().FirstOrDefault();
             Assert.IsNotNull(superCall);
@@ -560,33 +569,29 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestMethodCallCreation_ConstructorFromOtherNamespace() {
-            //package A.B;
-            //class C {
-            //	public C() { }
-            //}
-            string c_xml = @"<package>package <name>A</name>.<name>B</name>;</package>
-<class>class <name>C</name> <block>{
-	<constructor><specifier>public</specifier> <name>C</name><parameter_list>()</parameter_list> <block>{ }</block></constructor>
-}</block></class>";
+        public void TestMethodCallCreation_ConstructorFromOtherNamespace()
+        {
 
-            //package A.D;
-            //import A.B.*;
-            //class E {
-            //	public void main() {
-            //		C c = new C();
-            //	}
-            //}
-            string e_xml = @"<package>package <name>A</name>.<name>D</name>;</package>
-<import>import <name>A</name>.<name>B</name>.*;</import>
-<class>class <name>E</name> <block>{
-	<function><type><specifier>public</specifier> <name>void</name></type> <name>main</name><parameter_list>()</parameter_list> <block>{
-		<decl_stmt><decl><type><name>C</name></type> <name>c</name> =<init> <expr><op:operator>new</op:operator> <call><name>C</name><argument_list>()</argument_list></call></expr></init></decl>;</decl_stmt>
-	}</block></function>
-}</block></class>";
+            string c_xml = @"package A.B;
+            class C {
+              public C() { }
+            }";
 
-            var cUnit = fileSetup.GetFileUnitForXmlSnippet(c_xml, "C.java");
-            var eUnit = fileSetup.GetFileUnitForXmlSnippet(e_xml, "E.java");
+
+            string e_xml = @"package A.D;
+            import A.B.*;
+            class E {
+              public void main() {
+                  C c = new C();
+              }
+            }";
+
+            LibSrcMLRunner runC = new LibSrcMLRunner();
+            string srcMLA = runC.GenerateSrcMLFromString(c_xml, "C.java", Language.Java, new Collection<UInt32>() { }, false);
+            var cUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "C.java");
+            LibSrcMLRunner runE = new LibSrcMLRunner();
+            string srcMLE = runE.GenerateSrcMLFromString(e_xml, "E.java", Language.Java, new Collection<UInt32>() { }, false);
+            var eUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLE, "E.java");
 
             var cScope = codeParser.ParseFileUnit(cUnit);
             var eScope = codeParser.ParseFileUnit(eUnit);
@@ -625,16 +630,17 @@ namespace ABB.SrcML.Data.Test {
 
             Assert.AreEqual(constructorForC, callToC.FindMatches().FirstOrDefault());
         }
-        
+
         [Test]
-        public void TestVariablesWithSpecifiers() {
-            //public static int A;
-            //public final int B;
-            //private static final Foo C;
-            string testXml = @"<decl_stmt><decl><type><specifier>public</specifier> <specifier>static</specifier> <name>int</name></type> <name>A</name></decl>;</decl_stmt>
-<decl_stmt><decl><type><specifier>public</specifier> <specifier>final</specifier> <name>int</name></type> <name>B</name></decl>;</decl_stmt>
-<decl_stmt><decl><type><specifier>private</specifier> <specifier>static</specifier> <specifier>final</specifier> <name>Foo</name></type> <name>C</name></decl>;</decl_stmt>";
-            var testUnit = fileSetup.GetFileUnitForXmlSnippet(testXml, "test.java");
+        public void TestVariablesWithSpecifiers()
+        {
+
+            string testXml = @"public static int A;
+            public final int B;
+            private static final Foo C;";
+            LibSrcMLRunner runtest = new LibSrcMLRunner();
+            string srcMLA = runtest.GenerateSrcMLFromString(testXml, "test.java", Language.Java, new Collection<UInt32>() { }, false);
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "test.java");
 
             var globalScope = codeParser.ParseFileUnit(testUnit);
             Assert.AreEqual(3, globalScope.ChildStatements.Count);
@@ -659,30 +665,25 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestImport_NameResolution() {
-            //A.java
-            //import Foo.Bar.*;
-            //package A;
-            //public class Robot {
-            //  public Baz GetThingy() { return new Baz(); }
-            //}
-            string xmlA = @"<import pos:line=""1"" pos:column=""1"">import <name><name pos:line=""1"" pos:column=""8"">Foo</name><op:operator pos:line=""1"" pos:column=""11"">.</op:operator><name pos:line=""1"" pos:column=""12"">Bar</name></name>.*;</import>
-<package pos:line=""2"" pos:column=""1"">package <name pos:line=""2"" pos:column=""9"">A</name>;</package>
-<class><specifier pos:line=""3"" pos:column=""1"">public</specifier> class <name pos:line=""3"" pos:column=""14"">Robot</name> <block pos:line=""3"" pos:column=""20"">{
-  <function><type><specifier pos:line=""4"" pos:column=""3"">public</specifier> <name pos:line=""4"" pos:column=""10"">Baz</name></type> <name pos:line=""4"" pos:column=""14"">GetThingy</name><parameter_list pos:line=""4"" pos:column=""23"">()</parameter_list> <block pos:line=""4"" pos:column=""26"">{ <return pos:line=""4"" pos:column=""28"">return <expr><op:operator pos:line=""4"" pos:column=""35"">new</op:operator> <call><name pos:line=""4"" pos:column=""39"">Baz</name><argument_list pos:line=""4"" pos:column=""42"">()</argument_list></call></expr>;</return> }</block></function>
-}</block></class>";
-            XElement xmlElementA = fileSetup.GetFileUnitForXmlSnippet(xmlA, "A.java");
-            //B.java
-            //package Foo.Bar;
-            //public class Baz {
-            //  public Baz() { }
-            //}
-            string xmlB = @"<package pos:line=""1"" pos:column=""1"">package <name><name pos:line=""1"" pos:column=""9"">Foo</name><op:operator pos:line=""1"" pos:column=""12"">.</op:operator><name pos:line=""1"" pos:column=""13"">Bar</name></name>;</package>
-<class><specifier pos:line=""2"" pos:column=""1"">public</specifier> class <name pos:line=""2"" pos:column=""14"">Baz</name> <block pos:line=""2"" pos:column=""18"">{
-  <constructor><specifier pos:line=""3"" pos:column=""3"">public</specifier> <name pos:line=""3"" pos:column=""10"">Baz</name><parameter_list pos:line=""3"" pos:column=""13"">()</parameter_list> <block pos:line=""3"" pos:column=""16"">{ }</block></constructor>
-}</block></class>";
-            XElement xmlElementB = fileSetup.GetFileUnitForXmlSnippet(xmlB, "B.java");
-            
+        public void TestImport_NameResolution()
+        {
+            string xmlA = @"import Foo.Bar.*;
+            package A;
+            public class Robot {
+              public Baz GetThingy() { return new Baz(); }
+            }";
+            LibSrcMLRunner runA = new LibSrcMLRunner();
+            string srcMLA = runA.GenerateSrcMLFromString(xmlA, "A.java", Language.Java, new Collection<UInt32>() { }, false);
+            XElement xmlElementA = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.java");
+
+            string xmlB = @"package Foo.Bar;
+            public class Baz {
+              public Baz() { }
+            }";
+            LibSrcMLRunner runB = new LibSrcMLRunner();
+            string srcMLB = runB.GenerateSrcMLFromString(xmlB, "B.java", Language.Java, new Collection<UInt32>() { }, false);
+            XElement xmlElementB = fileSetup.GetFileUnitForXmlSnippet(srcMLB, "B.java");
+
             var scopeA = codeParser.ParseFileUnit(xmlElementA);
             var scopeB = codeParser.ParseFileUnit(xmlElementB);
             var globalScope = scopeA.Merge(scopeB);
@@ -704,34 +705,26 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestAlias_NameResolution() {
-            //A.java
-            //package Foo.Bar;
-            //public class Baz {
-            //  public static void DoTheThing() { };
-            //}
-            string xmlA = @"<package pos:line=""1"" pos:column=""1"">package <name><name pos:line=""1"" pos:column=""9"">Foo</name><op:operator pos:line=""1"" pos:column=""12"">.</op:operator><name pos:line=""1"" pos:column=""13"">Bar</name></name>;</package>
-<class><specifier pos:line=""2"" pos:column=""1"">public</specifier> class <name pos:line=""2"" pos:column=""14"">Baz</name> <block pos:line=""2"" pos:column=""18"">{
-  <function><type><specifier pos:line=""3"" pos:column=""3"">public</specifier> <specifier pos:line=""3"" pos:column=""10"">static</specifier> <name pos:line=""3"" pos:column=""17"">void</name></type> <name pos:line=""3"" pos:column=""22"">DoTheThing</name><parameter_list pos:line=""3"" pos:column=""32"">()</parameter_list> <block pos:line=""3"" pos:column=""35"">{ }</block></function><empty_stmt pos:line=""3"" pos:column=""38"">;</empty_stmt>
-}</block></class>";
-            XElement xmlElementA = fileSetup.GetFileUnitForXmlSnippet(xmlA, "A.java");
-            //B.java
-            //import Foo.Bar.Baz;
-            //package A;
-            //public class B {
-            //  public B() {
-            //    Baz.DoTheThing();
-            //  }
-            //}
-            string xmlB = @"<import pos:line=""1"" pos:column=""1"">import <name><name pos:line=""1"" pos:column=""8"">Foo</name><op:operator pos:line=""1"" pos:column=""11"">.</op:operator><name pos:line=""1"" pos:column=""12"">Bar</name><op:operator pos:line=""1"" pos:column=""15"">.</op:operator><name pos:line=""1"" pos:column=""16"">Baz</name></name>;</import>
-<package pos:line=""2"" pos:column=""1"">package <name pos:line=""2"" pos:column=""9"">A</name>;</package>
-<class><specifier pos:line=""3"" pos:column=""1"">public</specifier> class <name pos:line=""3"" pos:column=""14"">B</name> <block pos:line=""3"" pos:column=""16"">{
-  <constructor><specifier pos:line=""4"" pos:column=""3"">public</specifier> <name pos:line=""4"" pos:column=""10"">B</name><parameter_list pos:line=""4"" pos:column=""11"">()</parameter_list> <block pos:line=""4"" pos:column=""14"">{
-    <expr_stmt><expr><call><name><name pos:line=""5"" pos:column=""5"">Baz</name><op:operator pos:line=""5"" pos:column=""8"">.</op:operator><name pos:line=""5"" pos:column=""9"">DoTheThing</name></name><argument_list pos:line=""5"" pos:column=""19"">()</argument_list></call></expr>;</expr_stmt>
-  }</block></constructor>
-}</block></class>";
-            XElement xmlElementB = fileSetup.GetFileUnitForXmlSnippet(xmlB, "B.java");
-            
+        public void TestAlias_NameResolution()
+        {
+            string xmlA = @"package Foo.Bar;
+            public class Baz {
+              public static void DoTheThing() { };
+            }";
+            LibSrcMLRunner runA = new LibSrcMLRunner();
+            string srcMLA = runA.GenerateSrcMLFromString(xmlA, "A.java", Language.Java, new Collection<UInt32>() { }, false);
+            XElement xmlElementA = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.java");
+            string xmlB = @"import Foo.Bar.Baz;
+            package A;
+            public class B {
+              public B() {
+                Baz.DoTheThing();
+              }
+            }";
+            LibSrcMLRunner runB = new LibSrcMLRunner();
+            string srcMLB = runB.GenerateSrcMLFromString(xmlB, "B.java", Language.Java, new Collection<UInt32>() { }, false);
+            XElement xmlElementB = fileSetup.GetFileUnitForXmlSnippet(srcMLB, "B.java");
+
             var scopeA = codeParser.ParseFileUnit(xmlElementA);
             var scopeB = codeParser.ParseFileUnit(xmlElementB);
             var globalScope = scopeA.Merge(scopeB);
@@ -750,22 +743,21 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void BasicParentTest_Java() {
-            // # A.java class A implements B { }
-            string a_xml = @"<class>class <name>A</name> <super><implements>implements <name>B</name></implements></super> <block>{
-}</block></class>";
-            // # B.java class B { }
-            string b_xml = @"<class>class <name>B</name> <block>{
-}</block></class>";
+        public void BasicParentTest_Java()
+        {
+            string a_xml = @"class A implements B { }";
+            string b_xml = @"class B { }";
+            string c_xml = @"class C { A a; }";
 
-            // # C.java class C { A a; }
-            string c_xml = @"<class>class <name>C</name> <block>{
-	<decl_stmt><decl><type><name>A</name></type> <name>a</name></decl>;</decl_stmt>
-}</block></class>";
-
-            var fileUnitA = fileSetup.GetFileUnitForXmlSnippet(a_xml, "A.java");
-            var fileUnitB = fileSetup.GetFileUnitForXmlSnippet(b_xml, "B.java");
-            var fileUnitC = fileSetup.GetFileUnitForXmlSnippet(c_xml, "C.java");
+            LibSrcMLRunner runA = new LibSrcMLRunner();
+            string srcMLA = runA.GenerateSrcMLFromString(a_xml, "A.java", Language.Java, new Collection<UInt32>() { }, false);
+            var fileUnitA = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.java");
+            LibSrcMLRunner runB = new LibSrcMLRunner();
+            string srcMLB = runB.GenerateSrcMLFromString(b_xml, "B.java", Language.Java, new Collection<UInt32>() { }, false);
+            var fileUnitB = fileSetup.GetFileUnitForXmlSnippet(srcMLB, "B.java");
+            LibSrcMLRunner runC = new LibSrcMLRunner();
+            string srcMLC = runC.GenerateSrcMLFromString(c_xml, "C.java", Language.Java, new Collection<UInt32>() { }, false);
+            var fileUnitC = fileSetup.GetFileUnitForXmlSnippet(srcMLC, "C.java");
 
             var globalScope = codeParser.ParseFileUnit(fileUnitA);
             globalScope = globalScope.Merge(codeParser.ParseFileUnit(fileUnitB));
@@ -790,35 +782,30 @@ namespace ABB.SrcML.Data.Test {
         }
 
         [Test]
-        public void TestTypeUseForOtherNamespace() {
-            //package A.B;
-            //class C {
-            //    int Foo();
-            //}
-            string c_xml = @"<package pos:line=""1"" pos:column=""1"">package <name><name pos:line=""1"" pos:column=""9"">A</name><op:operator pos:line=""1"" pos:column=""10"">.</op:operator><name pos:line=""1"" pos:column=""11"">B</name></name>;</package>
-<class pos:line=""2"" pos:column=""1"">class <name pos:line=""2"" pos:column=""7"">C</name> <block pos:line=""2"" pos:column=""9"">{
-    <function_decl><type><name pos:line=""3"" pos:column=""5"">int</name></type> <name pos:line=""3"" pos:column=""9"">Foo</name><parameter_list pos:line=""3"" pos:column=""12"">()</parameter_list>;</function_decl>
-}</block></class>";
+        public void TestTypeUseForOtherNamespace()
+        {
 
-            //package D;
-            //import A.B.*;
-            //class E {
-            //    public static void main() {
-            //        C c = new C();
-            //        c.Foo();
-            //    }
-            //}
-            string e_xml = @"<package pos:line=""1"" pos:column=""1"">package <name pos:line=""1"" pos:column=""9"">D</name>;</package>
-<import pos:line=""2"" pos:column=""1"">import <name><name pos:line=""2"" pos:column=""8"">A</name><op:operator pos:line=""2"" pos:column=""9"">.</op:operator><name pos:line=""2"" pos:column=""10"">B</name></name>.*;</import>
-<class pos:line=""3"" pos:column=""1"">class <name pos:line=""3"" pos:column=""7"">E</name> <block pos:line=""3"" pos:column=""9"">{
-    <function><type><specifier pos:line=""4"" pos:column=""5"">public</specifier> <specifier pos:line=""4"" pos:column=""12"">static</specifier> <name pos:line=""4"" pos:column=""19"">void</name></type> <name pos:line=""4"" pos:column=""24"">main</name><parameter_list pos:line=""4"" pos:column=""28"">()</parameter_list> <block pos:line=""4"" pos:column=""31"">{
-        <decl_stmt><decl><type><name pos:line=""5"" pos:column=""9"">C</name></type> <name pos:line=""5"" pos:column=""11"">c</name> <init pos:line=""5"" pos:column=""13"">= <expr><op:operator pos:line=""5"" pos:column=""15"">new</op:operator> <call><name pos:line=""5"" pos:column=""19"">C</name><argument_list pos:line=""5"" pos:column=""20"">()</argument_list></call></expr></init></decl>;</decl_stmt>
-        <expr_stmt><expr><call><name><name pos:line=""6"" pos:column=""9"">c</name><op:operator pos:line=""6"" pos:column=""10"">.</op:operator><name pos:line=""6"" pos:column=""11"">Foo</name></name><argument_list pos:line=""6"" pos:column=""14"">()</argument_list></call></expr>;</expr_stmt>
-    }</block></function>
-}</block></class>";
+            string c_xml = @"package A.B;
+            class C {
+                int Foo();
+            }";
 
-            var cUnit = fileSetup.GetFileUnitForXmlSnippet(c_xml, "C.java");
-            var eUnit = fileSetup.GetFileUnitForXmlSnippet(e_xml, "E.java");
+
+            string e_xml = @"package D;
+            import A.B.*;
+            class E {
+                public static void main() {
+                    C c = new C();
+                    c.Foo();
+                }
+            }";
+
+            LibSrcMLRunner runC = new LibSrcMLRunner();
+            string srcMLA = runC.GenerateSrcMLFromString(c_xml, "C.java", Language.Java, new Collection<UInt32>() { }, false);
+            var cUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "C.java");
+            LibSrcMLRunner runE = new LibSrcMLRunner();
+            string srcMLE = runE.GenerateSrcMLFromString(e_xml, "E.java", Language.Java, new Collection<UInt32>() { }, false);
+            var eUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLE, "E.java");
 
             var globalScope = codeParser.ParseFileUnit(cUnit);
             globalScope = globalScope.Merge(codeParser.ParseFileUnit(eUnit));
