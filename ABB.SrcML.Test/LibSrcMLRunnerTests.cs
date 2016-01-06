@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml.XPath;
 using System.Text;
 using System.IO;
 using NUnit.Framework;
@@ -20,8 +21,9 @@ namespace ABB.SrcML.Test {
             File.Delete("output0.cpp.xml");
             File.Delete("output1.cpp.xml");
         }
+
         /// <summary>
-        /// This tests the creation of an archive using a list of source files
+        /// This tests the creation of an archive using a list of source files.
         /// </summary>
         [Test]
         public void TestCreateSrcMLArchiveFtF() {
@@ -37,6 +39,7 @@ namespace ABB.SrcML.Test {
                     srcmlArchive2.SetArchiveLanguage(LibSrcMLRunner.SrcMLLanguages.SRCML_LANGUAGE_CXX);
                     srcmlArchive2.AddUnit(srcmlUnit);
                     srcmlArchive2.SetOutputFile("output");
+
                     srcmlArchive2.ArchivePack();
 
                     IntPtr structPtr = srcmlArchive.GetPtrToStruct();
@@ -223,7 +226,7 @@ namespace ABB.SrcML.Test {
 
                 fileList.Add("input.cpp");
                 fileList.Add("input2.cpp");
-
+                
                 var buffandfile = bufferList.Zip(fileList, (b, f) => new { buf = b, file = f });
                 foreach (var pair in buffandfile) {
                     using (Unit srcmlUnit = new Unit()) {
@@ -392,7 +395,72 @@ namespace ABB.SrcML.Test {
                 throw e;
             }
         }
+        [Test]
+        public void TestApplyXsltToSrcMLFile() {
+            LibSrcMLRunner run = new LibSrcMLRunner();
+            Assert.IsTrue(File.Exists("function_def.xml"));
+            Assert.IsTrue(File.Exists("Test.xsl"));
+            run.ApplyXsltToSrcMLFile("function_def.xml", "Test.xsl", "o.cpp.xml");
+           
+            SrcMLFile srcFile = new SrcMLFile("o.cpp.xml.xslout");
+            Assert.IsNotNull(srcFile);
 
+            var files = srcFile.FileUnits.ToList();
+            Assert.AreEqual(1, files.Count());
+
+            XmlReader read = srcFile.GetXDocument().CreateReader();
+            XmlNamespaceManager namespaceManager = new XmlNamespaceManager(read.NameTable);
+            namespaceManager.AddNamespace("src", "http://www.srcML.org/srcML/src");
+
+            var persist = srcFile.GetXDocument().XPathSelectElement("//src:test",namespaceManager);
+            Assert.IsNotNull(persist);
+            Assert.AreEqual(persist.Value, "TestPassed");
+            
+        }
+        [Test]
+        public void TestApplyXsltToSrcMLString() {
+            LibSrcMLRunner run = new LibSrcMLRunner();
+            string srcML = run.GenerateSrcMLFromString("int main(){int x;}", "input.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_MODIFIER }, false);
+
+            Assert.IsTrue(File.Exists("function_def.xml"));
+            Assert.IsTrue(File.Exists("Test.xsl"));
+
+            string xslSrcML = run.ApplyXsltToSrcMLString(srcML, "Test.xsl");
+
+            XDocument srcMLDoc = XDocument.Parse(xslSrcML);
+
+            Assert.IsNotNull(srcMLDoc);
+
+            XmlReader read = srcMLDoc.CreateReader();
+            XmlNamespaceManager namespaceManager = new XmlNamespaceManager(read.NameTable);
+            namespaceManager.AddNamespace("src", "http://www.srcML.org/srcML/src");
+
+            var persist = srcMLDoc.XPathSelectElement("//src:test", namespaceManager);
+            Assert.IsNotNull(persist);
+            Assert.AreEqual(persist.Value, "TestPassed");
+        }
+        [Test]
+        public void TestApplyXPathToSrcMLString() {
+            LibSrcMLRunner run = new LibSrcMLRunner();
+            string srcML = run.GenerateSrcMLFromString("int main(){int x;}", "input.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_MODIFIER }, false);
+
+            Assert.IsTrue(File.Exists("function_def.xml"));
+            Assert.IsTrue(File.Exists("Test.xsl"));
+
+            string xslSrcML = run.ApplyXPathToSrcMLString(srcML, "//src:unit");
+
+            XDocument srcMLDoc = XDocument.Parse(xslSrcML);
+
+            Assert.IsNotNull(srcMLDoc);
+
+            XmlReader read = srcMLDoc.CreateReader();
+            XmlNamespaceManager namespaceManager = new XmlNamespaceManager(read.NameTable);
+            namespaceManager.AddNamespace("src", "http://www.srcML.org/srcML/src");
+
+            var persist = srcMLDoc.XPathSelectElement("//src:test", namespaceManager);
+            Assert.IsNotNull(persist);
+            Assert.AreEqual(persist.Value, "TestPassed");
+        }
         #region WrapperTests
         [Test]
         public void TestArchiveSetSrcEncoding() {

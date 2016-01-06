@@ -1,7 +1,7 @@
 // LibSrcMLWrapper.h
 
 #pragma once
-
+#define WITH_LIBXSLT
 using namespace System;
 using namespace System::Runtime::InteropServices;
 #include <fstream>

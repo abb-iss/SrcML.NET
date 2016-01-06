@@ -18,17 +18,20 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using ABB.SrcML.Test.Utilities;
 using NUnit.Framework;
+using System.Collections.ObjectModel;
 
 namespace ABB.SrcML.Data.Test
 {
     [TestFixture]
     [Category("Build")]
-    public class CodeParserTests {
+    public class CodeParserTests
+    {
         private Dictionary<Language, AbstractCodeParser> codeParsers;
         private Dictionary<Language, SrcMLFileUnitSetup> fileSetup;
 
         [TestFixtureSetUp]
-        public void ClassSetup() {
+        public void ClassSetup()
+        {
             codeParsers = new Dictionary<Language, AbstractCodeParser>() {
                 {Language.CPlusPlus, new CPlusPlusCodeParser()},
                 {Language.CSharp, new CSharpCodeParser()},
@@ -44,10 +47,13 @@ namespace ABB.SrcML.Data.Test
         [TestCase(Language.CPlusPlus)]
         [TestCase(Language.CSharp)]
         [TestCase(Language.Java)]
-        public void TestTwoVariableDeclarations(Language lang) {
-            //int a,b;
-            string testXml = @"<decl_stmt><decl><type><name>int</name></type> <name>a</name></decl><op:operator>,</op:operator><decl><type ref=""prev""/><name>b</name></decl>;</decl_stmt>";
-            var testUnit = fileSetup[lang].GetFileUnitForXmlSnippet(testXml, "test.cpp");
+        public void TestTwoVariableDeclarations(Language lang)
+        {
+            int a, b;
+            string xml = @"int a,b;";
+            LibSrcMLRunner run = new LibSrcMLRunner();
+            string srcML = run.GenerateSrcMLFromString(xml, "test.cpp", lang, new Collection<UInt32>() { }, false);
+            var testUnit = fileSetup[lang].GetFileUnitForXmlSnippet(srcML, "test.cpp");
 
             var globalScope = codeParsers[lang].ParseFileUnit(testUnit);
 
@@ -61,24 +67,24 @@ namespace ABB.SrcML.Data.Test
             Assert.AreSame(varDecls[0].VariableType, varDecls[1].VariableType);
         }
 
-        
+
         [TestCase(Language.CSharp)]
         [TestCase(Language.Java)]
-        public void TestField(Language lang) {
-            //class A {
-            //  int Foo;
-            //  Bar baz;
-            //}
-            string xml = @"<class>class <name>A</name> <block>{
-  <decl_stmt><decl><type><name>int</name></type> <name>Foo</name></decl>;</decl_stmt>
-  <decl_stmt><decl><type><name>Bar</name></type> <name>baz</name></decl>;</decl_stmt>
-}</block></class>";
-            var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(xml, "test.code");
+        public void TestField(Language lang)
+        {
+
+            string xml = @"class A {
+              int Foo;
+              Bar baz;
+            }";
+            LibSrcMLRunner run = new LibSrcMLRunner();
+            string srcML = run.GenerateSrcMLFromString(xml, "test.code", lang, new Collection<UInt32>() { }, false);
+            var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(srcML, "test.code");
 
             var globalScope = codeParsers[lang].ParseFileUnit(xmlElement);
             var declStmts = globalScope.GetDescendantsAndSelf<DeclarationStatement>().ToList();
             Assert.AreEqual(2, declStmts.Count);
-            
+
             var foo = declStmts[0].Content.GetDescendantsAndSelf<VariableDeclaration>().FirstOrDefault();
             Assert.IsNotNull(foo);
             Assert.AreEqual("Foo", foo.Name);
@@ -93,21 +99,21 @@ namespace ABB.SrcML.Data.Test
         }
 
         [TestCase(Language.CPlusPlus)]
-        public void TestField_Cpp(Language lang) {
-            //class A {
-            //  int Foo;
-            //  Bar baz;
-            //}
-            string xml = @"<class>class <name>A</name> <block>{<private type=""default"">
-  <decl_stmt><decl><type><name>int</name></type> <name>Foo</name></decl>;</decl_stmt>
-  <decl_stmt><decl><type><name>Bar</name></type> <name>baz</name></decl>;</decl_stmt>
-</private>}</block><decl/></class>";
-            var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(xml, "test.code");
+        public void TestField_Cpp(Language lang)
+        {
+
+            string xml = @"class A {
+              int Foo;
+              Bar baz;
+            }";
+            LibSrcMLRunner run = new LibSrcMLRunner();
+            string srcML = run.GenerateSrcMLFromString(xml, "test.code", lang, new Collection<UInt32>() { }, false);
+            var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(srcML, "test.code");
 
             var globalScope = codeParsers[lang].ParseFileUnit(xmlElement);
             var declStmts = globalScope.GetDescendantsAndSelf<DeclarationStatement>().ToList();
             Assert.AreEqual(2, declStmts.Count);
-            
+
             var foo = declStmts[0].Content.GetDescendantsAndSelf<VariableDeclaration>().FirstOrDefault();
             Assert.IsNotNull(foo);
             Assert.AreEqual("Foo", foo.Name);
@@ -123,33 +129,25 @@ namespace ABB.SrcML.Data.Test
 
         [TestCase(Language.CSharp)]
         [TestCase(Language.Java)]
-        public void TestMethodCallCreation(Language lang) {
-            //// A.cs
-            //class A {
-            //    public int Execute() {
-            //        B b = new B();
-            //        for(int i = 0; i < b.max(); i++) {
-            //            try {
-            //                PrintOutput(b.analyze(i));
-            //            } catch(Exception e) {
-            //                PrintError(e.ToString());
-            //            }
-            //        }
-            //    }
-            //}
-            string xml = @"<class>class <name>A</name> <block>{
-    <function><type><specifier>public</specifier> <name>int</name></type> <name>Execute</name><parameter_list>()</parameter_list> <block>{
-        <decl_stmt><decl><type><name>B</name></type> <name>b</name> =<init> <expr><op:operator>new</op:operator> <call><name>B</name><argument_list>()</argument_list></call></expr></init></decl>;</decl_stmt>
-        <for>for(<init><decl><type><name>int</name></type> <name>i</name> =<init> <expr><lit:literal type=""number"">0</lit:literal></expr></init></decl>;</init> <condition><expr><name>i</name> <op:operator>&lt;</op:operator> <call><name><name>b</name><op:operator>.</op:operator><name>max</name></name><argument_list>()</argument_list></call></expr>;</condition> <incr><expr><name>i</name><op:operator>++</op:operator></expr></incr>) <block>{
-            <try>try <block>{
-                <expr_stmt><expr><call><name>PrintOutput</name><argument_list>(<argument><expr><call><name><name>b</name><op:operator>.</op:operator><name>analyze</name></name><argument_list>(<argument><expr><name>i</name></expr></argument>)</argument_list></call></expr></argument>)</argument_list></call></expr>;</expr_stmt>
-            }</block> <catch>catch(<param><decl><type><name>Exception</name></type> <name>e</name></decl></param>) <block>{
-                <expr_stmt><expr><call><name>PrintError</name><argument_list>(<argument><expr><call><name><name>e</name><op:operator>.</op:operator><name>ToString</name></name><argument_list>()</argument_list></call></expr></argument>)</argument_list></call></expr>;</expr_stmt>
-            }</block></catch></try>
-        }</block></for>
-    }</block></function>
-}</block></class>";
-            var fileUnit = fileSetup[lang].GetFileUnitForXmlSnippet(xml, "test.code");
+        public void TestMethodCallCreation(Language lang)
+        {
+            // A.cs
+
+            string xml = @"class A {
+                public int Execute() {
+                    B b = new B();
+                    for(int i = 0; i < b.max(); i++) {
+                        try {
+                            PrintOutput(b.analyze(i));
+                        } catch(Exception e) {
+                            PrintError(e.ToString());
+                        }
+                    }
+                }
+            }";
+            LibSrcMLRunner run = new LibSrcMLRunner();
+            string srcML = run.GenerateSrcMLFromString(xml, "test.code", lang, new Collection<UInt32>() { }, false);
+            var fileUnit = fileSetup[lang].GetFileUnitForXmlSnippet(srcML, "test.code");
             var globalScope = codeParsers[lang].ParseFileUnit(fileUnit);
 
             var executeMethod = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault();
@@ -203,10 +201,12 @@ namespace ABB.SrcML.Data.Test
         [TestCase(Language.CPlusPlus)]
         [TestCase(Language.CSharp)]
         [TestCase(Language.Java)]
-        public void TestSimpleExpression(Language lang) {
-            //foo = 2+3;
-            string xml = @"<expr_stmt><expr><name>foo</name> <op:operator>=</op:operator> <lit:literal type=""number"">2</lit:literal><op:operator>+</op:operator><lit:literal type=""number"">3</lit:literal></expr>;</expr_stmt>";
-            var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(xml, "test.code");
+        public void TestSimpleExpression(Language lang)
+        {
+            string xml = @"foo = 2+3;";
+            LibSrcMLRunner run = new LibSrcMLRunner();
+            string srcML = run.GenerateSrcMLFromString(xml, "test.code", lang, new Collection<UInt32>() { }, false);
+            var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(srcML, "test.code");
 
             var globalScope = codeParsers[lang].ParseFileUnit(xmlElement);
             Assert.AreEqual(1, globalScope.ChildStatements.Count);
@@ -233,10 +233,12 @@ namespace ABB.SrcML.Data.Test
         [TestCase(Language.CPlusPlus)]
         [TestCase(Language.CSharp)]
         [TestCase(Language.Java)]
-        public void TestSubExpression(Language lang) {
-            //foo = (2+3)*5;
-            string xml = @"<expr_stmt><expr><name>foo</name> <op:operator>=</op:operator> <op:operator>(</op:operator><lit:literal type=""number"">2</lit:literal><op:operator>+</op:operator><lit:literal type=""number"">3</lit:literal><op:operator>)</op:operator><op:operator>*</op:operator><lit:literal type=""number"">5</lit:literal></expr>;</expr_stmt>";
-            var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(xml, "test.code");
+        public void TestSubExpression(Language lang)
+        {
+            string xml = @"foo = (2+3)*5;";
+            LibSrcMLRunner run = new LibSrcMLRunner();
+            string srcML = run.GenerateSrcMLFromString(xml, "test.code", lang, new Collection<UInt32>() { }, false);
+            var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(srcML, "test.code");
 
             var globalScope = codeParsers[lang].ParseFileUnit(xmlElement);
             Assert.AreEqual(1, globalScope.ChildStatements.Count);
@@ -274,28 +276,21 @@ namespace ABB.SrcML.Data.Test
         [TestCase(Language.CPlusPlus)]
         [TestCase(Language.Java)]
         [TestCase(Language.CSharp)]
-        public void TestGetChildren_Statements(Language lang) {
-            //if(foo == 0) {
-            //  return;
-            //  try {
-            //    return;
-            //  } catch(Exception e) {
-            //    return;
-            //  } 
-            //} else {
-            //  return;
-            //}
-            string xml = @"<if>if<condition>(<expr><name>foo</name> <op:operator>==</op:operator> <lit:literal type=""number"">0</lit:literal></expr>)</condition><then> <block>{
-  <return>return;</return>
-  <try>try <block>{
-    <return>return;</return>
-  }</block> <catch>catch<parameter_list>(<param><decl><type><name>Exception</name></type> <name>e</name></decl></param>)</parameter_list> <block>{
-    <return>return;</return>
-  }</block></catch></try> 
-}</block></then> <else>else <block>{
-  <return>return;</return>
-}</block></else></if>";
-            var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(xml, "test.code");
+        public void TestGetChildren_Statements(Language lang)
+        {
+            string xml = @"if(foo == 0) {
+              return;
+              try {
+                return;
+              } catch(Exception e) {
+                return;
+              } 
+            } else {
+              return;
+            }";
+            LibSrcMLRunner run = new LibSrcMLRunner();
+            string srcML = run.GenerateSrcMLFromString(xml, "test.code", lang, new Collection<UInt32>() { }, false);
+            var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(srcML, "test.code");
 
             var globalScope = codeParsers[lang].ParseFileUnit(xmlElement);
             Assert.AreEqual(1, globalScope.ChildStatements.Count);
@@ -305,10 +300,12 @@ namespace ABB.SrcML.Data.Test
         [TestCase(Language.CPlusPlus)]
         [TestCase(Language.Java)]
         [TestCase(Language.CSharp)]
-        public void TestGetChildren_Expressions(Language lang) {
-            //Foo f = (bar + baz(qux(17))).Xyzzy();
-            string xml = @"<decl_stmt><decl><type><name>Foo</name></type> <name>f</name> <init>= <expr><op:operator>(</op:operator><name>bar</name> <op:operator>+</op:operator> <call><name>baz</name><argument_list>(<argument><expr><call><name>qux</name><argument_list>(<argument><expr><lit:literal type=""number"">17</lit:literal></expr></argument>)</argument_list></call></expr></argument>)</argument_list></call><op:operator>)</op:operator><op:operator>.</op:operator><call><name>Xyzzy</name><argument_list>()</argument_list></call></expr></init></decl>;</decl_stmt>";
-            var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(xml, "test.code");
+        public void TestGetChildren_Expressions(Language lang)
+        {
+            string xml = @"Foo f = (bar + baz(qux(17))).Xyzzy();";
+            LibSrcMLRunner run = new LibSrcMLRunner();
+            string srcML = run.GenerateSrcMLFromString(xml, "test.code", lang, new Collection<UInt32>() { }, false);
+            var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(srcML, "test.code");
 
             var globalScope = codeParsers[lang].ParseFileUnit(xmlElement);
             Assert.AreEqual(1, globalScope.ChildStatements.Count);
@@ -318,20 +315,17 @@ namespace ABB.SrcML.Data.Test
         [TestCase(Language.CPlusPlus)]
         [TestCase(Language.Java)]
         [TestCase(Language.CSharp)]
-        public void TestResolveLocalVariable(Language lang) {
-            //int Foo() {
-            //  if(MethodCall()) {
-            //    int bar = 17;
-            //    bar = 42;
-            //  }
-            //}
-            string xml = @"<function><type><name pos:line=""1"" pos:column=""1"">int</name></type> <name pos:line=""1"" pos:column=""5"">Foo</name><parameter_list pos:line=""1"" pos:column=""8"">()</parameter_list> <block pos:line=""1"" pos:column=""11"">{
-  <if pos:line=""2"" pos:column=""3"">if<condition pos:line=""2"" pos:column=""5"">(<expr><call><name pos:line=""2"" pos:column=""6"">MethodCall</name><argument_list pos:line=""2"" pos:column=""16"">()</argument_list></call></expr>)</condition><then pos:line=""2"" pos:column=""19""> <block pos:line=""2"" pos:column=""20"">{
-    <decl_stmt><decl><type><name pos:line=""3"" pos:column=""5"">int</name></type> <name pos:line=""3"" pos:column=""9"">bar</name> <init pos:line=""3"" pos:column=""13"">= <expr><lit:literal type=""number"" pos:line=""3"" pos:column=""15"">17</lit:literal></expr></init></decl>;</decl_stmt>
-    <expr_stmt><expr><name pos:line=""4"" pos:column=""5"">bar</name> <op:operator pos:line=""4"" pos:column=""9"">=</op:operator> <lit:literal type=""number"" pos:line=""4"" pos:column=""11"">42</lit:literal></expr>;</expr_stmt>
-  }</block></then></if>
-}</block></function>";
-            var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(xml, "test.code");
+        public void TestResolveLocalVariable(Language lang)
+        {
+            string xml = @"int Foo() {
+              if(MethodCall()) {
+                int bar = 17;
+                bar = 42;
+              }
+            }";
+            LibSrcMLRunner run = new LibSrcMLRunner();
+            string srcML = run.GenerateSrcMLFromString(xml, "test.code", lang, new Collection<UInt32>() { }, false);
+            var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(srcML, "test.code");
 
             var globalScope = codeParsers[lang].ParseFileUnit(xmlElement);
             var ifStmt = globalScope.GetDescendants<IfStatement>().First();
@@ -347,18 +341,16 @@ namespace ABB.SrcML.Data.Test
         [TestCase(Language.CPlusPlus)]
         [TestCase(Language.Java)]
         [TestCase(Language.CSharp)]
-        public void TestResolveLocalVariable_ParentExpression(Language lang) {
-            //int Foo() {
-            //  for(int i = 0; i < bar; i++) {
-            //    printf(i);
-            //  }
-            //}
-            string xml = @"<function><type><name pos:line=""1"" pos:column=""1"">int</name></type> <name pos:line=""1"" pos:column=""5"">Foo</name><parameter_list pos:line=""1"" pos:column=""8"">()</parameter_list> <block pos:line=""1"" pos:column=""11"">{
-  <for pos:line=""2"" pos:column=""3"">for(<init><decl><type><name pos:line=""2"" pos:column=""7"">int</name></type> <name pos:line=""2"" pos:column=""11"">i</name> <init pos:line=""2"" pos:column=""13"">= <expr><lit:literal type=""number"" pos:line=""2"" pos:column=""15"">0</lit:literal></expr></init></decl>;</init> <condition><expr><name pos:line=""2"" pos:column=""18"">i</name> <op:operator pos:line=""2"" pos:column=""20"">&lt;</op:operator> <name pos:line=""2"" pos:column=""22"">bar</name></expr>;</condition> <incr><expr><name pos:line=""2"" pos:column=""27"">i</name><op:operator pos:line=""2"" pos:column=""28"">++</op:operator></expr></incr>) <block pos:line=""2"" pos:column=""32"">{
-    <expr_stmt><expr><call><name pos:line=""3"" pos:column=""5"">printf</name><argument_list pos:line=""3"" pos:column=""11"">(<argument><expr><name pos:line=""3"" pos:column=""12"">i</name></expr></argument>)</argument_list></call></expr>;</expr_stmt>
-  }</block></for>
-}</block></function>";
-            var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(xml, "test.code");
+        public void TestResolveLocalVariable_ParentExpression(Language lang)
+        {
+            string xml = @"int Foo() {
+              for(int i = 0; i < bar; i++) {
+                printf(i);
+              }
+            }";
+            LibSrcMLRunner run = new LibSrcMLRunner();
+            string srcML = run.GenerateSrcMLFromString(xml, "test.code", lang, new Collection<UInt32>() { }, false);
+            var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(srcML, "test.code");
 
             var globalScope = codeParsers[lang].ParseFileUnit(xmlElement);
             var forStmt = globalScope.GetDescendants<ForStatement>().First();
@@ -374,20 +366,17 @@ namespace ABB.SrcML.Data.Test
         [TestCase(Language.CPlusPlus)]
         [TestCase(Language.Java)]
         [TestCase(Language.CSharp)]
-        public void TestResolveLocalVariable_Parameter(Language lang) {
-            //int Foo(int num, bool option) {
-            //  if(option) {
-            //    printf(num);
-            //  }
-            //  return 0;
-            //}
-            string xml = @"<function><type><name pos:line=""1"" pos:column=""1"">int</name></type> <name pos:line=""1"" pos:column=""5"">Foo</name><parameter_list pos:line=""1"" pos:column=""8"">(<param><decl><type><name pos:line=""1"" pos:column=""9"">int</name></type> <name pos:line=""1"" pos:column=""13"">num</name></decl></param>, <param><decl><type><name pos:line=""1"" pos:column=""18"">bool</name></type> <name pos:line=""1"" pos:column=""23"">option</name></decl></param>)</parameter_list> <block pos:line=""1"" pos:column=""31"">{
-  <if pos:line=""2"" pos:column=""3"">if<condition pos:line=""2"" pos:column=""5"">(<expr><name pos:line=""2"" pos:column=""6"">option</name></expr>)</condition><then pos:line=""2"" pos:column=""13""> <block pos:line=""2"" pos:column=""14"">{
-    <expr_stmt><expr><call><name pos:line=""3"" pos:column=""5"">printf</name><argument_list pos:line=""3"" pos:column=""11"">(<argument><expr><name pos:line=""3"" pos:column=""12"">num</name></expr></argument>)</argument_list></call></expr>;</expr_stmt>
-  }</block></then></if>
-  <return pos:line=""5"" pos:column=""3"">return <expr><lit:literal type=""number"" pos:line=""5"" pos:column=""10"">0</lit:literal></expr>;</return>
-}</block></function>";
-            XElement xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(xml, "A.cpp");
+        public void TestResolveLocalVariable_Parameter(Language lang)
+        {
+            string xml = @"int Foo(int num, bool option) {
+              if(option) {
+                printf(num);
+              }
+              return 0;
+            }";
+            LibSrcMLRunner run = new LibSrcMLRunner();
+            string srcML = run.GenerateSrcMLFromString(xml, "A.cpp", lang, new Collection<UInt32>() { }, false);
+            XElement xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(srcML, "A.cpp");
 
             var globalScope = codeParsers[lang].ParseFileUnit(xmlElement);
             var foo = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == "Foo");

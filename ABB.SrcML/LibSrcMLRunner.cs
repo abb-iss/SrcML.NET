@@ -592,6 +592,46 @@ namespace ABB.SrcML {
 
             return arguments;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="srcMLFile"></param>
+        /// <param name="xsltFile"></param>
+        /// <param name="outputFile"></param>
+        /// <returns></returns>
+        public int ApplyXsltToSrcMLFile(string srcMLFile, string xsltFile, string outputFile) {
+            if (File.Exists(srcMLFile) && File.Exists(xsltFile)) {
+                LibSrcMLRunner.SrcMLApplyXsltFtF(Marshal.StringToHGlobalAnsi(srcMLFile), Marshal.StringToHGlobalAnsi(xsltFile), Marshal.StringToHGlobalAnsi(outputFile));
+            }
+            return 0;
+            //Function should take a srcML file that as xsltFile applied to it within the C++ module. Nothing is returned
+            //As the results are stored in outputFile
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="srcMLBuff"></param>
+        /// <param name="xsltFile"></param>
+        /// <returns></returns>
+        public string ApplyXsltToSrcMLString(string srcMLBuff, string xsltFile) {
+            //Function sould take a srcML buffer string and then pass it into C++ to apply xsltFile to it. 
+            //C++ will return buffer with transformed srcML
+            if (File.Exists(xsltFile)) {
+                IntPtr buff = LibSrcMLRunner.SrcMLApplyXsltMtM(Marshal.StringToHGlobalAnsi(srcMLBuff), Marshal.StringToHGlobalAnsi(xsltFile));
+                IntPtr docptr = Marshal.ReadIntPtr(buff);
+                string docstr = Marshal.PtrToStringAnsi(docptr);
+                return docstr;
+            }
+            return null;
+        }
+        public string ApplyXPathToSrcMLString(string srcMLBuff, string xPathFile) {
+            //Function sould take a srcML buffer string and then pass it into C++ to apply xsltFile to it. 
+            //C++ will return buffer with transformed srcML
+            IntPtr buff = LibSrcMLRunner.SrcMLApplyXPathMtM(Marshal.StringToHGlobalAnsi(srcMLBuff), Marshal.StringToHGlobalAnsi(xPathFile));
+            IntPtr docptr = Marshal.ReadIntPtr(buff);
+            string docstr = Marshal.PtrToStringAnsi(docptr);
+            return docstr;
+        }
         #region Low-level API functions
         /// <summary>
         /// Creates archive from a file and reads it out into a file
@@ -627,6 +667,33 @@ namespace ABB.SrcML {
         /// <returns>string representing the archive srcML produced</returns>
         [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr SrcmlCreateArchiveMtM(IntPtr[] SourceMetadata, int archiveCount);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="srcmlFileName"></param>
+        /// <param name="xsltFile"></param>
+        /// <param name="outputFile"></param>
+        /// <returns></returns>
+        [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr SrcMLApplyXsltFtF(IntPtr srcmlFileName, IntPtr xsltFile, IntPtr outputFile);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="srcmlBuff"></param>
+        /// <param name="xsltFile"></param>
+        /// <returns></returns>
+        [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr SrcMLApplyXsltMtM(IntPtr srcmlBuff, IntPtr xsltFile);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="srcmlBuff"></param>
+        /// <param name="xPathFile"></param>
+        /// <returns></returns>
+        [DllImport(LIBSRCMLPATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr SrcMLApplyXPathMtM(IntPtr srcmlBuff, IntPtr xPathFile);
         #endregion
         #region Test Functions
         /// <summary>
