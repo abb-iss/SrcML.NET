@@ -53,7 +53,19 @@ namespace ABB.SrcML {
         /// </summary>
         /// TODO document comment attributes.
         public static readonly XName Comment = NS + "comment";
+        
+        // Operator
+        /// <summary>
+        /// markup for the operator tag
+        /// </summary>
+        
+        public static readonly XName Operator = NS + "operator";
+        // Literal
+        /// <summary>
+        /// markup for the literal tag
+        /// </summary>
 
+        public static readonly XName Literal = NS + "literal";
         // access specifiers
         /// <summary>
         /// markup for the public access specifier.

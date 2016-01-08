@@ -34,7 +34,7 @@ namespace ABB.SrcML
         public static readonly XNamespace NS = "http://www.srcML.org/srcML/position";
 
         /// <summary>
-        /// XMLNS prefix for the SrcML OP namespace
+        /// XMLNS prefix for the SrcML SRC namespace
         /// </summary>
         public const string Prefix = "pos";
 
@@ -53,5 +53,9 @@ namespace ABB.SrcML
         /// </summary>
         public static readonly XName Column = NS + "column";
         
+        /// <summary>
+        /// Position tag
+        /// </summary>
+        public static readonly XName Position = NS + "position";        
     }
 }

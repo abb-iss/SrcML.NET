@@ -1122,15 +1122,17 @@ namespace ABB.SrcML.Data {
                     exp = ParseNameUseElement<T>(element, context);
                 } else if(element.Name == SRC.Type) {
                     exp = ParseTypeUseElement(element, context);
-                } else if(element.Name == OP.Operator) {
+                } else if(element.Name == SRC.Operator) {
                     exp = ParseOperatorElement(element, context);
                 } else if(element.Name == SRC.Call) {
                     exp = ParseCallElement(element, context);
-                } else if(element.Name == LIT.Literal) {
+                } else if(element.Name == SRC.Literal) {
                     exp = ParseLiteralElement(element, context);
                 } else if(element.Name == SRC.Comment) {
                     //skip
-                } else if(element.Name == SRC.Class && ParserLanguage == Language.Java) {
+                } else if (element.Name == POS.Position) {
+                    //skip
+                } else if (element.Name == SRC.Class && ParserLanguage == Language.Java) {
                     //anonymous class, skip
                     //TODO: add parsing for anonymous classes in Java
                 } else if(element.Name.Namespace == CPP.NS) {
@@ -1336,8 +1338,9 @@ namespace ABB.SrcML.Data {
                 return ParseVariableUse(nameElement, context);
             }
 
-            if(nameElement.HasElements) {
-                return ParseExpression<T>(nameElement.Elements(), context);
+            var eleList = nameElement.Elements();//need to always generate this now? Is there a better way?
+            if (eleList.Count() > 1) { //position is always in name, so check to see if there's something more here.
+                return ParseExpression<T>(eleList, context);
             }
 
             //no children
@@ -1353,14 +1356,14 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Creates an OperatorUse object from the given operator element.
         /// </summary>
-        /// <param name="operatorElement">The OP.Operator element to parse.</param>
+        /// <param name="operatorElement">The SRC.Operator element to parse.</param>
         /// <param name="context">The parser context to use.</param>
         /// <returns>An OperatorUse corresponding to <paramref name="operatorElement"/>.</returns>
         protected virtual OperatorUse ParseOperatorElement(XElement operatorElement, ParserContext context) {
             if(operatorElement == null)
                 throw new ArgumentNullException("operatorElement");
-            if(operatorElement.Name != OP.Operator)
-                throw new ArgumentException("should be an OP.Operator", "operatorElement");
+            if(operatorElement.Name != SRC.Operator)
+                throw new ArgumentException("should be an SRC.Operator", "operatorElement");
             if(context == null)
                 throw new ArgumentNullException("context");
 
@@ -1521,7 +1524,7 @@ namespace ABB.SrcML.Data {
             }
 
             //check if this is a call to a constructor
-            if(callElement.ElementsBeforeSelf().Any(e => e.Name == OP.Operator && e.Value == "new")) {
+            if(callElement.ElementsBeforeSelf().Any(e => e.Name == SRC.Operator && e.Value == "new")) {
                 mc.IsConstructor = true;
             }
             var parentElement = callElement.Parent;
@@ -1566,7 +1569,7 @@ namespace ABB.SrcML.Data {
         protected virtual LiteralUse ParseLiteralElement(XElement literalElement, ParserContext context) {
             if(literalElement == null)
                 throw new ArgumentNullException("literalElement");
-            if(literalElement.Name != LIT.Literal)
+            if(literalElement.Name != SRC.Literal)
                 throw new ArgumentException("Must be a LIT.Literal element", "literalElement");
             if(context == null)
                 throw new ArgumentNullException("context");
