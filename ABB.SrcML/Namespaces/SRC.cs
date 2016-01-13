@@ -208,6 +208,11 @@ namespace ABB.SrcML {
         /// </summary>
         public static readonly XName Else = NS + "else";
 
+        /// <summary>
+        /// markup for the else if tag
+        /// </summary>
+        public static readonly XName ElseIf = NS + "elseif";
+
         // while statement
         /// <summary>
         /// markup for the while tag
@@ -363,7 +368,7 @@ namespace ABB.SrcML {
         /// <summary>
         /// markup for the member_list tag
         /// </summary>
-        public static readonly XName MemberList = NS + "member_list";
+        public static readonly XName MemberList = NS + "member_init_list";
 
         /// <summary>
         /// markup for the constructor_decl tag

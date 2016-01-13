@@ -137,10 +137,7 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestExternStatement_Block() {
-            string xml = "extern \"C\" {" +
-            "  int globalVar1;" +
-            "  int globalVar2;" +
-            "}";
+            string xml = "extern \"C\" {\n int globalVar1; \nint globalVar2;}";
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
@@ -157,11 +154,11 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestConstructor_CallToSelf() {
-            string xml = "class MyClass {" +
-            "public:" +
-            "   MyClass() : MyClass(0) { } " +
-            "   MyClass(int foo) { } " +
-            "};";
+            string xml = @"class MyClass {
+            public:
+               MyClass() : MyClass(0) { } 
+               MyClass(int foo) { } 
+            };";
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLtest = runA.GenerateSrcMLFromString(xml, "test.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
@@ -424,11 +421,11 @@ namespace ABB.SrcML.Data.Test {
         [Test]
         [Category("SrcMLUpdate")]
         public void TestGetAliases_NestedTypeAlias() {
-            string xml = "using namespace x::y::z;" +
-             "if(bar) {" +
-             "  using x = foo::bar::baz;" +
-             "  foo = 17;" +
-             "}";
+            string xml = @"using namespace x::y::z;
+             if(bar) {
+               using x = foo::bar::baz;
+               foo = 17;
+             }";
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
@@ -439,6 +436,7 @@ namespace ABB.SrcML.Data.Test {
             Assert.IsNotNull(foo);
             var aliases = foo.GetAliases().ToList();
             Assert.AreEqual(1, aliases.Count);
+            string b = aliases[0].Target.ToString();
             Assert.AreEqual("foo :: bar :: baz", aliases[0].Target.ToString());
             Assert.AreEqual("x", aliases[0].AliasName);
             var imports = foo.GetImports().ToList();
@@ -550,27 +548,27 @@ namespace ABB.SrcML.Data.Test {
         [Category("SrcMLUpdate")]
         public void TestAlias_NameResolution_TypeAlias() {
             //A.cpp
-            string xmlA = "namespace Foo {" +
-            "  namespace Bar {" +
-            "    class Baz {" +
-            "    public:" +
-            "      static void DoTheThing() { }" +
-            "  }" +
-            "}";
+            string xmlA = @"namespace Foo {
+              namespace Bar {
+                class Baz {
+                public:
+                  static void DoTheThing() { }
+              }
+            }";
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLA = runA.GenerateSrcMLFromString(xmlA, "A.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
             XElement xmlElementA = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.cpp");
             //B.cpp
-            string xmlB = "using X = Foo::Bar::Baz;" +
-            "namespace A {" +
-            "  class B {" +
-            "  public:" +
-            "    B() {" +
-            "      X::DoTheThing();" +
-            "    }" +
-            "  }" +
-            "}";
+            string xmlB = @"using X = Foo::Bar::Baz;
+            namespace A {
+              class B {
+              public:
+                B() {
+                  X::DoTheThing();
+                }
+              }
+            }";
             LibSrcMLRunner runB = new LibSrcMLRunner();
             string srcMLB = runB.GenerateSrcMLFromString(xmlB, "B.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
@@ -789,8 +787,7 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestCreateTypeDefinitions_Union() {
-            string xml = " union A { int a; char b;" +
-            "};";
+            string xml = @" union A { int a; char b; };";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLA = runA.GenerateSrcMLFromString(xml, "A.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -881,13 +878,16 @@ namespace ABB.SrcML.Data.Test {
         public void TestMergeWithUsing() {
             string headerXml = " namespace A { class B { void Foo(); }; }";
 
+            LibSrcMLRunner runA = new LibSrcMLRunner();
+            string srcMLtesta = runA.GenerateSrcMLFromString(headerXml, "A.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
-            string implementationXml = "using namespace A;" +
-            "void B::Foo() { }";
+            string implementationXml = @"using namespace A; void B::Foo() { }";
 
+            LibSrcMLRunner runB = new LibSrcMLRunner();
+            string srcMLtestc = runB.GenerateSrcMLFromString(implementationXml, "A.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
-            var headerScope = codeParser.ParseFileUnit(fileSetup.GetFileUnitForXmlSnippet(headerXml, "A.h"));
-            var implementationScope = codeParser.ParseFileUnit(fileSetup.GetFileUnitForXmlSnippet(implementationXml, "A.cpp"));
+            var headerScope = codeParser.ParseFileUnit(fileSetup.GetFileUnitForXmlSnippet(srcMLtesta, "A.h"));
+            var implementationScope = codeParser.ParseFileUnit(fileSetup.GetFileUnitForXmlSnippet(srcMLtestc, "A.cpp"));
 
             var globalScope = headerScope.Merge(implementationScope);
             Assert.AreEqual(1, globalScope.ChildStatements.OfType<NamedScope>().Count());
@@ -905,8 +905,8 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual(0, methodFoo.ChildStatements.Count);
             Assert.AreEqual(2, methodFoo.Locations.Count);
 
-            headerScope = codeParser.ParseFileUnit(fileSetup.GetFileUnitForXmlSnippet(headerXml, "A.h"));
-            implementationScope = codeParser.ParseFileUnit(fileSetup.GetFileUnitForXmlSnippet(implementationXml, "A.cpp"));
+            headerScope = codeParser.ParseFileUnit(fileSetup.GetFileUnitForXmlSnippet(srcMLtesta, "A.h"));
+            implementationScope = codeParser.ParseFileUnit(fileSetup.GetFileUnitForXmlSnippet(srcMLtestc, "A.cpp"));
 
             var globalScope_implementationFirst = implementationScope.Merge(headerScope);
 
@@ -933,6 +933,8 @@ namespace ABB.SrcML.Data.Test {
             "    bool Contains() { b.Contains(); }" +
             "};";
 
+            LibSrcMLRunner runA = new LibSrcMLRunner();
+            string srcMLtesta = runA.GenerateSrcMLFromString(a_xml, "A.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
             //# B.h
             string b_xml = "class B {" +
@@ -940,9 +942,12 @@ namespace ABB.SrcML.Data.Test {
             "    bool Contains() { return true; }" +
             "};";
 
+            LibSrcMLRunner runB = new LibSrcMLRunner();
+            string srcMLtestb = runB.GenerateSrcMLFromString(b_xml, "B.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
-            var fileUnitA = fileSetup.GetFileUnitForXmlSnippet(a_xml, "A.h");
-            var fileUnitB = fileSetup.GetFileUnitForXmlSnippet(b_xml, "B.h");
+
+            var fileUnitA = fileSetup.GetFileUnitForXmlSnippet(srcMLtestb, "A.h");
+            var fileUnitB = fileSetup.GetFileUnitForXmlSnippet(srcMLtesta, "B.h");
 
             var scopeForA = codeParser.ParseFileUnit(fileUnitA);
             var scopeForB = codeParser.ParseFileUnit(fileUnitB);
@@ -969,16 +974,18 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestMethodCallCreation_WithThisKeyword() {
-            string a_xml = "class A {" +
-            "    void Bar() { }" +
-            "    class B {" +
-            "        int a;" +
-            "        void Foo() { this->Bar(); }" +
-            "        void Bar() { return this->a; }" +
-            "    };" +
-            "};";
-
-            var fileUnit = fileSetup.GetFileUnitForXmlSnippet(a_xml, "A.cpp");
+            string a_xml = @"class A {
+                void Bar() { }
+                class B {
+                    int a;
+                    void Foo() { this->Bar(); }
+                    void Bar() { return this->a; }
+                };
+            };";
+            LibSrcMLRunner runA = new LibSrcMLRunner();
+            string srcMLtesta = runA.GenerateSrcMLFromString(a_xml, "A.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            
+            var fileUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLtesta, "A.cpp");
             var globalScope = codeParser.ParseFileUnit(fileUnit);
 
             var aDotBar = globalScope.GetNamedChildren<TypeDefinition>("A").First().GetNamedChildren<MethodDefinition>("Bar").FirstOrDefault();
@@ -1076,20 +1083,27 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestMethodCallFindMatches() {
-            string headerXml = " # A.h class A { int context;" +
-            " public:" +
-            " A(); };";
+            string headerXml = @"class A { int context;
+             public:
+             A(); };";
 
-            string implementationXml = " # A.cpp #include \"A.h\"" +
-            " A: :A() {" +
-            " }";
+            string implementationXml = "#include \"A.h\" A: :A() {}";
 
-            string mainXml = " # main.cpp #include \"A.h\" int main() { A a = A(); return 0; }";
+            string mainXml = "#include \"A.h\" int main() { A a = A(); return 0; }";
 
 
-            var headerElement = fileSetup.GetFileUnitForXmlSnippet(headerXml, "A.h");
-            var implementationElement = fileSetup.GetFileUnitForXmlSnippet(implementationXml, "A.cpp");
-            var mainElement = fileSetup.GetFileUnitForXmlSnippet(mainXml, "main.cpp");
+            LibSrcMLRunner runA = new LibSrcMLRunner();
+            string srcMLtesta = runA.GenerateSrcMLFromString(headerXml, "A.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+
+            LibSrcMLRunner runB = new LibSrcMLRunner();
+            string srcMLtestb = runB.GenerateSrcMLFromString(implementationXml, "A.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+
+            LibSrcMLRunner runC = new LibSrcMLRunner();
+            string srcMLtestc = runC.GenerateSrcMLFromString(mainXml, "main.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+
+            var headerElement = fileSetup.GetFileUnitForXmlSnippet(srcMLtesta, "A.h");
+            var implementationElement = fileSetup.GetFileUnitForXmlSnippet(srcMLtestb, "A.cpp");
+            var mainElement = fileSetup.GetFileUnitForXmlSnippet(srcMLtestc, "main.cpp");
 
             var header = codeParser.ParseFileUnit(headerElement);
             var implementation = codeParser.ParseFileUnit(implementationElement);
@@ -1127,16 +1141,22 @@ namespace ABB.SrcML.Data.Test {
             public:
             A(int value); };";
 
+            LibSrcMLRunner runA = new LibSrcMLRunner();
+            string srcMLtesta = runA.GenerateSrcMLFromString(headerXml, "A.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
             string implementationXml = "#include \"A.h\" A: :A(int value) { context = value;}";
 
+            LibSrcMLRunner runB = new LibSrcMLRunner();
+            string srcMLtestb = runB.GenerateSrcMLFromString(implementationXml, "A.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
             string mainXml = "#include \"A.h\" int main() { int startingState = 0; A *a = new A(startingState); return startingState; }";
 
+            LibSrcMLRunner runC = new LibSrcMLRunner();
+            string srcMLtestc = runC.GenerateSrcMLFromString(mainXml, "main.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
-            var headerElement = fileSetup.GetFileUnitForXmlSnippet(headerXml, "A.h");
-            var implementationElement = fileSetup.GetFileUnitForXmlSnippet(implementationXml, "A.cpp");
-            var mainElement = fileSetup.GetFileUnitForXmlSnippet(mainXml, "main.cpp");
+            var headerElement = fileSetup.GetFileUnitForXmlSnippet(srcMLtesta, "A.h");
+            var implementationElement = fileSetup.GetFileUnitForXmlSnippet(srcMLtestb, "A.cpp");
+            var mainElement = fileSetup.GetFileUnitForXmlSnippet(srcMLtestc, "main.cpp");
 
             var header = codeParser.ParseFileUnit(headerElement);
             var implementation = codeParser.ParseFileUnit(implementationElement);
@@ -1340,7 +1360,10 @@ namespace ABB.SrcML.Data.Test {
         public void TestTwoVariableDeclarations() {
             string testXml = "int a,b;";
 
-            var testUnit = fileSetup.GetFileUnitForXmlSnippet(testXml, "test.cpp");
+            LibSrcMLRunner runA = new LibSrcMLRunner();
+            string srcMLtest = runA.GenerateSrcMLFromString(testXml, "test.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLtest, "test.cpp");
 
             var globalScope = codeParser.ParseFileUnit(testUnit);
 
@@ -1357,7 +1380,10 @@ namespace ABB.SrcML.Data.Test {
         [Test]
         public void TestThreeVariableDeclarations() {
             string testXml = "int a,b,c;";
-            var testUnit = fileSetup.GetFileUnitForXmlSnippet(testXml, "test.cpp");
+            LibSrcMLRunner runA = new LibSrcMLRunner();
+            string srcMLtest = runA.GenerateSrcMLFromString(testXml, "test.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLtest, "test.cpp");
 
             var globalScope = codeParser.ParseFileUnit(testUnit);
 
@@ -1379,7 +1405,10 @@ namespace ABB.SrcML.Data.Test {
             "static int B;" +
             "static const Foo C;" +
             "extern Foo D;";
-            var testUnit = fileSetup.GetFileUnitForXmlSnippet(testXml, "test.cpp");
+
+            LibSrcMLRunner runA = new LibSrcMLRunner();
+            string srcMLtest = runA.GenerateSrcMLFromString(testXml, "test.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLtest, "test.cpp");
 
             var globalScope = codeParser.ParseFileUnit(testUnit);
             Assert.AreEqual(4, globalScope.ChildStatements.Count);
@@ -1411,11 +1440,7 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestLiteralUse() {
-            string xml = "a = 17;" +
-            "foo = watermelon" +
-            "if(true) { " +
-            "  c = 'h';" +
-            "}";
+            string xml = "a = 17; foo = \"watermelon\"; if(true) { c = 'h';}";
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLA = runA.GenerateSrcMLFromString(xml, "A.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
@@ -1468,17 +1493,19 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual(1, ifStmt.ChildStatements.Count);
             Assert.AreEqual(2, ifStmt.ElseStatements.Count);
         }
-
+        /// <summary>
+        /// Test is testing for proper nesting of else and if in srcML archive.
+        /// </summary>
         [Test]
         public void TestIfElseIf() {
-            string xml = "if(a==b) {" +
-            "  i = 17;" +
-            "} else if(a==c) {" +
-            "  i = 42;" +
-            "  foo();" +
-            "} else {" +
-            "  ReportError();" +
-            "}";
+            string xml = @"if(a==b) {
+              i = 17;
+            } else if(a==c) {
+              i = 42;
+              foo();
+            } else {
+              ReportError();
+            }";
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLA = runA.GenerateSrcMLFromString(xml, "A.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
@@ -1490,14 +1517,14 @@ namespace ABB.SrcML.Data.Test {
             Assert.IsNull(ifStmt.Content);
             Assert.IsNotNull(ifStmt.Condition);
             Assert.AreEqual(1, ifStmt.ChildStatements.Count);
-            Assert.AreEqual(1, ifStmt.ElseStatements.Count);
+            Assert.AreEqual(2, ifStmt.ElseStatements.Count);
 
             var ifStmt2 = ifStmt.ElseStatements.First() as IfStatement;
             Assert.IsNotNull(ifStmt2);
             Assert.IsNull(ifStmt2.Content);
             Assert.IsNotNull(ifStmt2.Condition);
             Assert.AreEqual(2, ifStmt2.ChildStatements.Count);
-            Assert.AreEqual(1, ifStmt2.ElseStatements.Count);
+            Assert.AreEqual(0, ifStmt2.ElseStatements.Count);
         }
 
         [Test]
@@ -1676,15 +1703,27 @@ namespace ABB.SrcML.Data.Test {
 
             string c_xml = "class C : A { };";
 
-            string d_xml = "class D {" +
-            "  C c;" +
-            "  void Bar() { c.b.Foo(); }" +
-            "};";
+            string d_xml = @"class D {
+              C c;
+              void Bar() { c.b.Foo(); }
+            };";
 
-            var aUnit = fileSetup.GetFileUnitForXmlSnippet(a_xml, "A.h");
-            var bUnit = fileSetup.GetFileUnitForXmlSnippet(b_xml, "B.h");
-            var cUnit = fileSetup.GetFileUnitForXmlSnippet(c_xml, "C.h");
-            var dUnit = fileSetup.GetFileUnitForXmlSnippet(d_xml, "D.h");
+            LibSrcMLRunner runA = new LibSrcMLRunner();
+            string srcMLtesta = runA.GenerateSrcMLFromString(a_xml, "test.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+
+            LibSrcMLRunner runB = new LibSrcMLRunner();
+            string srcMLtestb = runB.GenerateSrcMLFromString(b_xml, "test.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+
+            LibSrcMLRunner runC = new LibSrcMLRunner();
+            string srcMLtestc = runC.GenerateSrcMLFromString(c_xml, "test.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+
+            LibSrcMLRunner runD = new LibSrcMLRunner();
+            string srcMLtestd = runD.GenerateSrcMLFromString(d_xml, "test.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+
+            var aUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLtesta, "A.h");
+            var bUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLtestb, "B.h");
+            var cUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLtestc, "C.h");
+            var dUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLtestd, "D.h");
 
             var globalScope = codeParser.ParseFileUnit(aUnit);
             globalScope = globalScope.Merge(codeParser.ParseFileUnit(bUnit));
@@ -1802,27 +1841,32 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestTypeUseForOtherNamespace() {
-            string c_xml = "namespace A {" +
-            "    namespace B {" +
-            "        class C {" +
-            "            int Foo() { }" +
-            "        };" +
-            "    }" +
-            "}";
+            string c_xml = @"namespace A {
+                namespace B {
+                    class C {
+                        int Foo() { }
+                    };
+                }
+            }";
 
-            string e_xml = "using namespace A::B;" +
-            "namespace D {" +
-            "    class E {" +
-            "        void main() {" +
-            "            C c = new C();" +
-            "            c.Foo();" +
-            "        }" +
-            "    };" +
-            "}";
+            string e_xml = @"using namespace A::B;
+            namespace D {
+                class E {
+                    void main() {
+                        C c = new C();
+                        c.Foo();
+                    }
+                };
+            }";
 
+            LibSrcMLRunner runC = new LibSrcMLRunner();
+            string srcMLtestc= runC.GenerateSrcMLFromString(c_xml, "test.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
-            var cUnit = fileSetup.GetFileUnitForXmlSnippet(c_xml, "C.cpp");
-            var eUnit = fileSetup.GetFileUnitForXmlSnippet(e_xml, "E.cpp");
+            var cUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLtestc, "C.cpp");
+
+            LibSrcMLRunner runE = new LibSrcMLRunner();
+            string srcMLteste = runE.GenerateSrcMLFromString(e_xml, "test.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var eUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLteste, "E.cpp");
 
             NamespaceDefinition globalScope = codeParser.ParseFileUnit(cUnit);
             globalScope = globalScope.Merge(codeParser.ParseFileUnit(eUnit));

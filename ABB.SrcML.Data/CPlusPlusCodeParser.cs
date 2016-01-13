@@ -281,15 +281,13 @@ namespace ABB.SrcML.Data {
                 throw new ArgumentNullException("context");
 
             Statement stmt = null;
-            bool containsNamespaceKeyword = (from textNode in GetTextNodes(aliasElement)
-                                             where textNode.Value.Contains("namespace")
-                                             select textNode).Any();
-            if(containsNamespaceKeyword) {
+            var namespaceElement = aliasElement.Element(SRC.Namespace);
+            if(namespaceElement != null) {
                 //import statement
                 var import = new ImportStatement() {ProgrammingLanguage = ParserLanguage};
                 import.AddLocation(context.CreateLocation(aliasElement));
 
-                var nameElement = aliasElement.Element(SRC.Name);
+                var nameElement = namespaceElement.Element(SRC.Name);
                 if(nameElement != null) {
                     import.ImportedNamespace = ParseNameUseElement<NamespaceUse>(nameElement, context);
                 }
@@ -300,6 +298,7 @@ namespace ABB.SrcML.Data {
                 var alias = new AliasStatement() {ProgrammingLanguage = ParserLanguage};
                 alias.AddLocation(context.CreateLocation(aliasElement));
 
+                //TODO: Make sure that using descendant is correct for nameElement
                 var nameElement = aliasElement.Element(SRC.Name);
                 var initElement = aliasElement.Element(SRC.Init);
                 if(initElement != null) {

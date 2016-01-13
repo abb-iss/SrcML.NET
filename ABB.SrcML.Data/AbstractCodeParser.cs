@@ -205,13 +205,18 @@ namespace ABB.SrcML.Data {
                     stmt = ParseEmptyStatementElement(element, context);
                 } else if(element.Name == SRC.Lock) {
                     stmt = ParseLockElement(element, context);
-                } else if(element.Name == SRC.Comment) {
+                } else if(element.Name == POS.Position) {
+                    // do nothing. we are ignoring position (for now)
+                } else if (element.Name == SRC.Using) {
+                    ;
+                } else if (element.Name == SRC.Comment) {
                     // do nothing. we are ignoring comments
-                } else if(element.Name == SRC.Package) {
+                } else if (element.Name == SRC.Package) {
                     //do nothing. This is already handled in JavaCodeParser.ParseUnitElement()
                 } else if(element.Name.Namespace == CPP.NS) {
                     //do nothing. skip any cpp preprocessor macros
                 } else if(NotImplementedStatements.Contains(element.Name)) {
+                    ;
                     //do nothing. These are known and we're skipping them for now.
                 } else {
                     LogUnknown(element, context, "ParseStatement");
@@ -364,7 +369,7 @@ namespace ABB.SrcML.Data {
                             ifStmt.AddChildStatement(ParseStatement(thenChild, context));
                         }
                     }
-                } else if(ifChild.Name == SRC.Else) {
+                } else if(ifChild.Name == SRC.ElseIf || ifChild.Name == SRC.Else) {
                     //add the else statements
                     foreach(var elseChild in ifChild.Elements()) {
                         if(elseChild.Name == SRC.Block) {
@@ -1022,7 +1027,7 @@ namespace ABB.SrcML.Data {
             es.AddLocation(context.CreateLocation(externElement));
 
             foreach(var exChild in externElement.Elements()) {
-                if(exChild.Name == LIT.Literal) {
+                if(exChild.Name == SRC.Literal) {
                     es.LinkageType = exChild.Value;
                 } else if(exChild.Name == SRC.Block) {
                     //add children from block
@@ -1263,7 +1268,7 @@ namespace ABB.SrcML.Data {
         /// <returns>A VariableDeclaration object corresponding to the given element.</returns>
         protected virtual VariableDeclaration ParseDeclarationElement(XElement declElement, ParserContext context) {
             //TODO: can/should this handle function_decls as well as decls? ParseParameterElement may pass in a function_decl
-
+            //NOTE: When the declaration is using f = bla this won't work because there is no decl on the inside. Fix.
             if(declElement == null)
                 throw new ArgumentNullException("declElement");
             if(!(declElement.Name == SRC.Declaration || declElement.Name == SRC.FunctionDeclaration))
@@ -1424,8 +1429,8 @@ namespace ABB.SrcML.Data {
 
             if(argumentListElement != null) {
                 typeArguments = from argument in argumentListElement.Elements(SRC.Argument)
-                                where argument.Elements(SRC.Name).Any()
-                                select ParseTypeUseElement(argument.Element(SRC.Name), context);
+                                where argument.Descendants(SRC.Name).Any()
+                                select ParseTypeUseElement(argument.Descendants(SRC.Name).First(), context);
                 // if this is a generic type use and there is a prefix (A::B::C) then the last name
                 // element will actually be the first child of lastNameElement
                 if(prefix != null) {
@@ -1499,8 +1504,9 @@ namespace ABB.SrcML.Data {
 
             //parse the name element for the call
             var nameElement = callElement.Element(SRC.Name);
+            var position = nameElement.Element(POS.Position);
             if(nameElement != null) {
-                if(!nameElement.HasElements) {
+                if(position != null) {
                     methodNameElement = nameElement;
                 } else {
                     methodNameElement = nameElement.Elements(SRC.Name).Last();
@@ -1852,7 +1858,7 @@ namespace ABB.SrcML.Data {
             if(element == null)
                 throw new ArgumentNullException("element");
 
-            return element.Elements().Where(e => e.Name == SRC.Expression || e.Name == SRC.Declaration || e.Name == SRC.FunctionDeclaration);
+            return element.Elements().Where(e => e.Name == SRC.Expression || e.Name == SRC.Declaration || e.Name == SRC.FunctionDeclaration || e.Name == SRC.Type);
         }
 
         /// <summary>

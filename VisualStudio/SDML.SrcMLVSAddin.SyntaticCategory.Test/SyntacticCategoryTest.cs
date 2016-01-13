@@ -32,7 +32,7 @@ namespace SDML.SrcMLVSAddin.SyntaticCategory.Test
     {
         public IEnumerable<XElement> QueryForNew(XElement element)
         {
-            var uses = from use in element.Descendants(OP.Operator)
+            var uses = from use in element.Descendants(SRC.Operator)
                        where use.Value == "new"
                        select use;
             return uses;
