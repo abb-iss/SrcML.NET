@@ -131,8 +131,9 @@ namespace ABB.SrcML {
         /// <returns>An XElement</returns>
         public static XElement Load(string xmlFileName) {
             if(File.Exists(xmlFileName)) {
-                using(var f = File.Open(xmlFileName, FileMode.Open, FileAccess.Read, FileShare.Read)) {
-                    return XElement.Load(f, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo);
+                using(var f = File.Open(xmlFileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+                using(var r = new StreamReader(f)) {
+                    return XElement.Load(r, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo);
                 }
             }
             return null;
