@@ -33,7 +33,7 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestCreateTypeDefinitions_Class() {
-            string xml = "class A { };";
+            string xml = @"class A { };";
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLA = runA.GenerateSrcMLFromString(xml, "A.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
@@ -51,7 +51,7 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestCreateTypeDefinitions_ClassDeclaration() {
-            string xml = "class A;";
+            string xml = @"class A;";
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLA = runA.GenerateSrcMLFromString(xml, "A.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
@@ -69,9 +69,9 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestClassWithDeclaredVariable() {
-            string xml = "class A {" +
-             "    int a;" +
-             "};";
+            string xml = @"class A {
+                 int a;
+             };";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLA = runA.GenerateSrcMLFromString(xml, "A.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -182,20 +182,20 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestConstructor_CallToSuperClass() {
-            string xml = "class SuperClass {" +
-            "public:" +
-            "SuperClass(int foo) { } }; " +
-            "class SubClass : public SuperClass {" +
-            "public:" +
-            "SubClass(int foo) : SuperClass(foo) { } };";
+            string xml = @"class SuperClass {
+            public:
+            SuperClass(int foo) { } }; 
+            class SubClass : public SuperClass {
+            public:
+            SubClass(int foo) : SuperClass(foo) { } };";
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLtest = runA.GenerateSrcMLFromString(xml, "test.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
             var unit = fileSetup.GetFileUnitForXmlSnippet(srcMLtest, "test.h");
             var globalScope = codeParser.ParseFileUnit(unit);
 
-            var calledConstructor = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == "SuperClass" && m.IsConstructor);
-            var subClassConstructor = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == "SubClass" && m.IsConstructor);
+            var calledConstructor = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == @"SuperClass" && m.IsConstructor);
+            var subClassConstructor = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == @"SubClass" && m.IsConstructor);
             Assert.IsNotNull(subClassConstructor);
             Assert.IsNotNull(calledConstructor);
             Assert.AreEqual(1, subClassConstructor.ConstructorInitializers.Count);
@@ -210,12 +210,12 @@ namespace ABB.SrcML.Data.Test {
         [Test]
         public void TestConstructor_InitializeBuiltinTypeField() {
             //"test.h"
-            string xml = "class Quux" +
-            "{" +
-            "    int _my_int;" +
-            "public:" +
-            "    Quux() : _my_int(5) {  }" +
-            "};";
+            string xml = @"class Quux
+            {
+                int _my_int;
+            public:
+                Quux() : _my_int(5) {  }
+            };";
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLtest = runA.GenerateSrcMLFromString(xml, "test.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
@@ -239,25 +239,25 @@ namespace ABB.SrcML.Data.Test {
         [Test]
         public void TestConstructor_InitializeField() {
             //"test.h"
-            string xml = "class Foo" +
-             "{" +
-             "public:" +
-             "    Foo(int a) { }" +
-             "};" +
-             "class Bar" +
-             "{" +
-             "    Foo baz;" +
-             "public:" +
-             "    Bar() : baz(42) { }" +
-             "};";
+            string xml = @"class Foo
+             {
+             public:
+                 Foo(int a) { }
+             };
+             class Bar
+             {
+                 Foo baz;
+             public:
+                 Bar() : baz(42) { }
+             };";
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLtest = runA.GenerateSrcMLFromString(xml, "test.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLtest, "test.h");
             var globalScope = codeParser.ParseFileUnit(xmlElement);
 
-            var fooConstructor = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == "Foo" && m.IsConstructor);
-            var barConstructor = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == "Bar" && m.IsConstructor);
+            var fooConstructor = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == @"Foo" && m.IsConstructor);
+            var barConstructor = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == @"Bar" && m.IsConstructor);
             Assert.AreEqual(1, barConstructor.ConstructorInitializers.Count);
             var fieldCall = barConstructor.ConstructorInitializers[0];
             Assert.IsNotNull(fieldCall);
@@ -268,7 +268,7 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestCreateAliasesForFiles_ImportClass() {
-            string xml = "using A::Foo;";
+            string xml = @"using A::Foo;";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -286,7 +286,7 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestCreateAliasesForFiles_ImportNamespace() {
-            string xml = "using namespace x::y::z;";
+            string xml = @"using namespace x::y::z;";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -303,7 +303,7 @@ namespace ABB.SrcML.Data.Test {
         [Test]
         [Category("SrcMLUpdate")]
         public void TestCreateAliasesForFiles_TypeAlias() {
-            string xml = "using x = foo::bar::baz;";
+            string xml = @"using x = foo::bar::baz;";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -321,18 +321,18 @@ namespace ABB.SrcML.Data.Test {
         [Test]
         public void TestGetImports() {
             //A.cpp
-            string xmlA = "namespace x {" +
-             "  namespace y {" +
-             "    namespace z {}" +
-             "  }" +
-             "}";
+            string xmlA = @"namespace x {
+               namespace y {
+                 namespace z {}
+               }
+             }";
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLA = runA.GenerateSrcMLFromString(xmlA, "A.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
             XElement xmlElementA = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.cpp");
             //B.cpp
-            string xmlB = "using namespace x::y::z;" +
-            "foo = 17;";
+            string xmlB = @"using namespace x::y::z;
+            foo = 17;";
 
             LibSrcMLRunner runB = new LibSrcMLRunner();
             string srcMLB = runB.GenerateSrcMLFromString(xmlB, "B.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -343,32 +343,32 @@ namespace ABB.SrcML.Data.Test {
             var scopeB = codeParser.ParseFileUnit(xmlElementB);
             var globalScope = scopeA.Merge(scopeB);
             Assert.AreEqual(3, globalScope.ChildStatements.Count);
-            var foo = globalScope.ChildStatements[2].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(n => n.Name == "foo");
+            var foo = globalScope.ChildStatements[2].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(n => n.Name == @"foo");
             Assert.IsNotNull(foo);
             var imports = foo.GetImports().ToList();
             Assert.AreEqual(1, imports.Count);
             Assert.AreEqual("x :: y :: z", imports[0].ImportedNamespace.ToString());
 
-            var zDef = globalScope.GetDescendants<NamespaceDefinition>().FirstOrDefault(ns => ns.Name == "z");
+            var zDef = globalScope.GetDescendants<NamespaceDefinition>().FirstOrDefault(ns => ns.Name == @"z");
             Assert.IsNotNull(zDef);
-            var zUse = imports[0].ImportedNamespace.GetDescendantsAndSelf<NameUse>().First(n => n.Name == "z");
+            var zUse = imports[0].ImportedNamespace.GetDescendantsAndSelf<NameUse>().First(n => n.Name == @"z");
             Assert.AreSame(zDef, zUse.FindMatches().FirstOrDefault());
         }
 
         [Test]
         public void TestGetImports_NestedImportNamespace() {
-            string xml = "using namespace x::y::z;" +
-            "if(bar) {" +
-            "  using namespace std;" +
-            "  foo = 17;" +
-            "}";
+            string xml = @"using namespace x::y::z;
+            if(bar) {
+              using namespace std;
+              foo = 17;
+            }";
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.cpp");
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
-            var foo = globalScope.ChildStatements[1].ChildStatements[1].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(n => n.Name == "foo");
+            var foo = globalScope.ChildStatements[1].ChildStatements[1].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(n => n.Name == @"foo");
             Assert.IsNotNull(foo);
             var imports = foo.GetImports().ToList();
             Assert.AreEqual(2, imports.Count);
@@ -379,20 +379,20 @@ namespace ABB.SrcML.Data.Test {
         [Test]
         public void TestGetAliases_NestedImportClass() {
             //A.cpp
-            string xmlA = "namespace B {" +
-             "  class Bar {}" +
-             "}";
+            string xmlA = @"namespace B {
+               class Bar {}
+             }";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLA = runA.GenerateSrcMLFromString(xmlA, "A.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
             XElement xmlElementA = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.cpp");
             //B.cpp
-            string xmlB = "using namespace x::y::z;" +
-             "if(bar) {" +
-             "  using B::Bar;" +
-             "  foo = 17;" +
-             "}";
+            string xmlB = @"using namespace x::y::z;
+             if(bar) {
+               using B::Bar;
+               foo = 17;
+             }";
 
             LibSrcMLRunner runB = new LibSrcMLRunner();
             string srcMLB = runB.GenerateSrcMLFromString(xmlB, "B.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -402,7 +402,7 @@ namespace ABB.SrcML.Data.Test {
             var scopeA = codeParser.ParseFileUnit(xmlElementA);
             var scopeB = codeParser.ParseFileUnit(xmlElementB);
             var globalScope = scopeA.Merge(scopeB);
-            var foo = globalScope.ChildStatements[2].ChildStatements[1].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(n => n.Name == "foo");
+            var foo = globalScope.ChildStatements[2].ChildStatements[1].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(n => n.Name == @"foo");
             Assert.IsNotNull(foo);
             var aliases = foo.GetAliases().ToList();
             Assert.AreEqual(1, aliases.Count);
@@ -412,9 +412,9 @@ namespace ABB.SrcML.Data.Test {
             Assert.AreEqual(1, imports.Count);
             Assert.AreEqual("x :: y :: z", imports[0].ImportedNamespace.ToString());
 
-            var barDef = globalScope.GetDescendants<TypeDefinition>().FirstOrDefault(ns => ns.Name == "Bar");
+            var barDef = globalScope.GetDescendants<TypeDefinition>().FirstOrDefault(ns => ns.Name == @"Bar");
             Assert.IsNotNull(barDef);
-            var barUse = aliases[0].Target.GetDescendantsAndSelf<NameUse>().First(n => n.Name == "Bar");
+            var barUse = aliases[0].Target.GetDescendantsAndSelf<NameUse>().First(n => n.Name == @"Bar");
             Assert.AreSame(barDef, barUse.FindMatches().FirstOrDefault());
         }
 
@@ -432,7 +432,7 @@ namespace ABB.SrcML.Data.Test {
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.cpp");
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
-            var foo = globalScope.ChildStatements[1].ChildStatements[1].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(n => n.Name == "foo");
+            var foo = globalScope.ChildStatements[1].ChildStatements[1].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(n => n.Name == @"foo");
             Assert.IsNotNull(foo);
             var aliases = foo.GetAliases().ToList();
             Assert.AreEqual(1, aliases.Count);
@@ -446,30 +446,30 @@ namespace ABB.SrcML.Data.Test {
         [Test]
         public void TestImport_NameResolution() {
             //A.cpp
-            string xmlA = "using namespace Foo::Bar;" +
+            string xmlA = @"using namespace Foo::Bar;
                 //
-             "namespace A {" +
-             "  class Robot {" +
-             "  public: " +
-             "    Baz GetThingy() { " +
-             "      Baz* b = new Baz();" +
-             "      return *b;" +
-             "    }" +
-             "  }" +
-             "}";
+             namespace A {
+               class Robot {
+               public: 
+                 Baz GetThingy() { 
+                   Baz* b = new Baz();
+                   return *b;
+                 }
+               }
+             }";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLA = runA.GenerateSrcMLFromString(xmlA, "A.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
             XElement xmlElementA = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.cpp");
             //B.cpp
-            string xmlB = "namespace Foo {" +
-             "  namespace Bar {" +
-             "    class Baz {" +
-             "    public:" +
-             "      Baz() { }" +
-             "  }" +
-             "}";
+            string xmlB = @"namespace Foo {
+               namespace Bar {
+                 class Baz {
+                 public:
+                   Baz() { }
+               }
+             }";
 
             LibSrcMLRunner runB = new LibSrcMLRunner();
             string srcMLB = runB.GenerateSrcMLFromString(xmlB, "B.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -481,17 +481,17 @@ namespace ABB.SrcML.Data.Test {
             var globalScope = scopeA.Merge(scopeB);
             Assert.AreEqual(3, globalScope.ChildStatements.Count);
 
-            var baz = globalScope.GetDescendants<TypeDefinition>().FirstOrDefault(t => t.Name == "Baz");
+            var baz = globalScope.GetDescendants<TypeDefinition>().FirstOrDefault(t => t.Name == @"Baz");
             Assert.IsNotNull(baz);
 
-            var thingy = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "GetThingy");
+            var thingy = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == @"GetThingy");
             Assert.IsNotNull(thingy);
             var thingyTypes = thingy.ReturnType.FindMatches().ToList();
             Assert.AreEqual(1, thingyTypes.Count);
             Assert.AreSame(baz, thingyTypes[0]);
 
             var bazDef = baz.GetNamedChildren<MethodDefinition>("Baz").First();
-            var bazCall = thingy.ChildStatements[0].Content.GetDescendantsAndSelf<MethodCall>().FirstOrDefault(mc => mc.Name == "Baz");
+            var bazCall = thingy.ChildStatements[0].Content.GetDescendantsAndSelf<MethodCall>().FirstOrDefault(mc => mc.Name == @"Baz");
             Assert.IsNotNull(bazCall);
             Assert.AreSame(bazDef, bazCall.FindMatches().FirstOrDefault());
         }
@@ -532,11 +532,11 @@ namespace ABB.SrcML.Data.Test {
             var globalScope = scopeA.Merge(scopeB);
             Assert.AreEqual(3, globalScope.ChildStatements.Count);
 
-            var thingDef = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(md => md.Name == "DoTheThing");
+            var thingDef = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(md => md.Name == @"DoTheThing");
             Assert.IsNotNull(thingDef);
             Assert.AreEqual("Baz", ((TypeDefinition)thingDef.ParentStatement).Name);
 
-            var bDef = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(md => md.Name == "B");
+            var bDef = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(md => md.Name == @"B");
             Assert.IsNotNull(bDef);
             Assert.AreEqual(1, bDef.ChildStatements.Count);
             var thingCall = bDef.ChildStatements[0].Content.GetDescendantsAndSelf<MethodCall>().FirstOrDefault();
@@ -579,11 +579,11 @@ namespace ABB.SrcML.Data.Test {
             var globalScope = scopeA.Merge(scopeB);
             Assert.AreEqual(3, globalScope.ChildStatements.Count);
 
-            var thingDef = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(md => md.Name == "DoTheThing");
+            var thingDef = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(md => md.Name == @"DoTheThing");
             Assert.IsNotNull(thingDef);
             Assert.AreEqual("Baz", ((TypeDefinition)thingDef.ParentStatement).Name);
 
-            var bDef = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(md => md.Name == "B");
+            var bDef = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(md => md.Name == @"B");
             Assert.IsNotNull(bDef);
             Assert.AreEqual(1, bDef.ChildStatements.Count);
             var thingCall = bDef.ChildStatements[0].Content.GetDescendantsAndSelf<MethodCall>().FirstOrDefault();
@@ -593,7 +593,7 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestCreateTypeDefinition_ClassInNamespace() {
-            string xml = "namespace A { class B { }; }";
+            string xml = @"namespace A { class B { }; }";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLB = runA.GenerateSrcMLFromString(xml, "B.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -612,9 +612,9 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestCreateTypeDefinition_ClassWithMethodDeclaration() {
-            string xml = " class A {" +
-             " public:" +
-             " int foo(int a); };";
+            string xml = @" class A {
+              public:
+              int foo(int a); };";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLA = runA.GenerateSrcMLFromString(xml, "A.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -635,10 +635,10 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestCreateTypeDefinition_StaticMethod() {
-            string xml = "class Example {" +
-            "public:" +
-            "    static int Example::Foo(int bar) { return bar+1; }" +
-            "};";
+            string xml = @"class Example {
+            public:
+                static int Example::Foo(int bar) { return bar+1; }
+            };";
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLstatic_method = runA.GenerateSrcMLFromString(xml, "static_method.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
@@ -657,7 +657,7 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestCreateTypeDefinitions_ClassInFunction() {
-            string xml = "int main() { class A { }; }";
+            string xml = @"int main() { class A { }; }";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLmain = runA.GenerateSrcMLFromString(xml, "main.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -675,7 +675,7 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestCreateTypeDefinitions_ClassWithInnerClass() {
-            string xml = "class A { class B { }; };";
+            string xml = @"class A { class B { }; };";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLA = runA.GenerateSrcMLFromString(xml, "A.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -694,7 +694,7 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestCreateTypeDefinitions_ClassWithParents() {
-            string xml = "class A : B,C,D { };";
+            string xml = @"class A : B,C,D { };";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLA = runA.GenerateSrcMLFromString(xml, "A.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -720,7 +720,7 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestCreateTypeDefinitions_ClassWithQualifiedParent() {
-            string xml = "class D : A::B::C { }";
+            string xml = @"class D : A::B::C { }";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLD = runA.GenerateSrcMLFromString(xml, "D.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -746,7 +746,7 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestCreateTypeDefinitions_InnerClassWithNamespace() {
-            string xml = "namespace A { class B { class C { }; }; }";
+            string xml = @"namespace A { class B { class C { }; }; }";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLA = runA.GenerateSrcMLFromString(xml, "A.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -771,7 +771,7 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestCreateTypeDefinitions_Struct() {
-            string xml = "struct A { };";
+            string xml = @"struct A { };";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLA = runA.GenerateSrcMLFromString(xml, "A.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -801,7 +801,7 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestGenericVariableDeclaration() {
-            string xml = "vector<int> a;";
+            string xml = @"vector<int> a;";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLtest = runA.GenerateSrcMLFromString(xml, "test.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -821,7 +821,7 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestGenericVariableDeclarationWithPrefix() {
-            string xml = "std::vector<int> a;";
+            string xml = @"std::vector<int> a;";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLtest = runA.GenerateSrcMLFromString(xml, "test.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -843,7 +843,7 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestMethodCallCreation_LengthyCallingExpression() {
-            string xml = "a->b.Foo();";
+            string xml = @"a->b.Foo();";
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLtest = runA.GenerateSrcMLFromString(xml, "test.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
@@ -876,7 +876,7 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestMergeWithUsing() {
-            string headerXml = " namespace A { class B { void Foo(); }; }";
+            string headerXml = @" namespace A { class B { void Foo(); }; }";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLtesta = runA.GenerateSrcMLFromString(headerXml, "A.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -892,11 +892,11 @@ namespace ABB.SrcML.Data.Test {
             var globalScope = headerScope.Merge(implementationScope);
             Assert.AreEqual(1, globalScope.ChildStatements.OfType<NamedScope>().Count());
 
-            var namespaceA = globalScope.GetDescendants<NamespaceDefinition>().FirstOrDefault(n => n.Name == "A");
+            var namespaceA = globalScope.GetDescendants<NamespaceDefinition>().FirstOrDefault(n => n.Name == @"A");
             Assert.IsNotNull(namespaceA);
             Assert.AreEqual(1, namespaceA.ChildStatements.Count);
 
-            var typeB = namespaceA.GetDescendants<TypeDefinition>().FirstOrDefault(t => t.Name == "B");
+            var typeB = namespaceA.GetDescendants<TypeDefinition>().FirstOrDefault(t => t.Name == @"B");
             Assert.IsNotNull(typeB);
             Assert.AreEqual(1, typeB.ChildStatements.Count);
 
@@ -910,11 +910,11 @@ namespace ABB.SrcML.Data.Test {
 
             var globalScope_implementationFirst = implementationScope.Merge(headerScope);
 
-            namespaceA = globalScope_implementationFirst.GetDescendants<NamespaceDefinition>().FirstOrDefault(n => n.Name == "A");
+            namespaceA = globalScope_implementationFirst.GetDescendants<NamespaceDefinition>().FirstOrDefault(n => n.Name == @"A");
             Assert.IsNotNull(namespaceA);
             Assert.AreEqual(1, namespaceA.ChildStatements.Count);
 
-            typeB = namespaceA.GetDescendants<TypeDefinition>().FirstOrDefault(t => t.Name == "B");
+            typeB = namespaceA.GetDescendants<TypeDefinition>().FirstOrDefault(t => t.Name == @"B");
             Assert.IsNotNull(typeB);
             Assert.AreEqual(1, typeB.ChildStatements.Count);
 
@@ -927,20 +927,20 @@ namespace ABB.SrcML.Data.Test {
         [Test]
         public void TestMethodCallCreation_WithConflictingMethodNames() {
             //# A.h
-            string a_xml = "class A {" +
-            "    B b;" +
-            "public:" +
-            "    bool Contains() { b.Contains(); }" +
-            "};";
+            string a_xml = @"class A {
+                B b;
+            public:
+                bool Contains() { b.Contains(); }
+            };";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLtesta = runA.GenerateSrcMLFromString(a_xml, "A.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
             //# B.h
-            string b_xml = "class B {" +
-            "public:" +
-            "    bool Contains() { return true; }" +
-            "};";
+            string b_xml = @"class B {
+            public:
+                bool Contains() { return true; }
+            };";
 
             LibSrcMLRunner runB = new LibSrcMLRunner();
             string srcMLtestb = runB.GenerateSrcMLFromString(b_xml, "B.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -954,9 +954,9 @@ namespace ABB.SrcML.Data.Test {
             var globalScope = scopeForA.Merge(scopeForB);
             Assert.AreEqual(2, globalScope.ChildStatements.Count);
 
-            var classA = globalScope.GetDescendants<TypeDefinition>().FirstOrDefault(t => t.Name == "A");
+            var classA = globalScope.GetDescendants<TypeDefinition>().FirstOrDefault(t => t.Name == @"A");
             Assert.IsNotNull(classA);
-            var classB = globalScope.GetDescendants<TypeDefinition>().FirstOrDefault(t => t.Name == "B");
+            var classB = globalScope.GetDescendants<TypeDefinition>().FirstOrDefault(t => t.Name == @"B");
             Assert.IsNotNull(classB);
 
             var aDotContains = classA.GetNamedChildren<MethodDefinition>("Contains").FirstOrDefault();
@@ -990,7 +990,7 @@ namespace ABB.SrcML.Data.Test {
 
             var aDotBar = globalScope.GetNamedChildren<TypeDefinition>("A").First().GetNamedChildren<MethodDefinition>("Bar").FirstOrDefault();
             Assert.IsNotNull(aDotBar);
-            var classB = globalScope.GetDescendants<TypeDefinition>().FirstOrDefault(t => t.Name == "B");
+            var classB = globalScope.GetDescendants<TypeDefinition>().FirstOrDefault(t => t.Name == @"B");
             Assert.IsNotNull(classB);
             var aDotBDotFoo = classB.GetNamedChildren<MethodDefinition>("Foo").FirstOrDefault();
             Assert.IsNotNull(aDotBDotFoo);
@@ -1006,11 +1006,11 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestMethodCallCreation_GlobalFunction() {
-            string xml = "void foo(int a) { printf(a); }" +
-            "int main() {" +
-            "    foo(5);" +
-            "    return 0;" +
-            "}";
+            string xml = @"void foo(int a) { printf(a); }
+            int main() {
+                foo(5);
+                return 0;
+            }";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLtest = runA.GenerateSrcMLFromString(xml, "test.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -1036,20 +1036,20 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestMethodCallCreation_CallGlobalNamespace() {
-            string xml = "void Foo() {" +
-            "    std::cout<<\"global::Foo\"<<std::endl;" +
-            "}" +
-            "namespace A" +
-            "{" +
-            "    void Foo() {" +
-            "        std::cout<<\"A::Foo\"<<std::endl;" +
-            "    }" +
-            "    void print()" +
-            "    {" +
-            "         Foo();" +
-            "         ::Foo();" +
-            "    }" +
-            "}";
+            string xml = @"void Foo() {
+                std::cout<<global::Foo<<std::endl;
+            }
+            namespace A
+            {
+                void Foo() {
+                    std::cout<<A::Foo<<std::endl;
+                }
+                void print()
+                {
+                     Foo();
+                     ::Foo();
+                }
+            }";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLtest = runA.GenerateSrcMLFromString(xml, "test.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -1187,8 +1187,8 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestMethodCallMatchToParameter() {
-            string xml = "void CallFoo(B b) { b.Foo(); }" +
-             "class B { void Foo() { } }";
+            string xml = @"void CallFoo(B b) { b.Foo(); }
+            class B { void Foo() { } }";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLtest = runA.GenerateSrcMLFromString(xml, "test.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -1214,7 +1214,7 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestMethodDefinition_ReturnType() {
-            string xml = "int Foo() { }";
+            string xml = @"int Foo() { }";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLtest = runA.GenerateSrcMLFromString(xml, "test.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -1235,7 +1235,7 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestMethodDefinition_ReturnTypeAndSpecifier() {
-            string xml = "static int Foo() { }";
+            string xml = @"static int Foo() { }";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLtest = runA.GenerateSrcMLFromString(xml, "test.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -1253,7 +1253,7 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestMethodDefinition_Parameters() {
-            string xml = "int Foo(int bar, char baz) { }";
+            string xml = @"int Foo(int bar, char baz) { }";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLtest = runA.GenerateSrcMLFromString(xml, "test.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -1272,7 +1272,7 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestMethodDefinition_VoidParameter() {
-            string xml = "void Foo(void) { }";
+            string xml = @"void Foo(void) { }";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLtest = runA.GenerateSrcMLFromString(xml, "test.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -1281,7 +1281,7 @@ namespace ABB.SrcML.Data.Test {
 
             var testScope = codeParser.ParseFileUnit(testUnit);
 
-            var method = testScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "Foo");
+            var method = testScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == @"Foo");
             Assert.IsNotNull(method, "could not find the test method");
 
             Assert.AreEqual(0, method.Parameters.Count);
@@ -1289,7 +1289,7 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestMethodDefinition_FunctionPointerParameter() {
-            string xml = "int Foo(char bar, int (*pInit)(Quux *theQuux)) {}";
+            string xml = @"int Foo(char bar, int (*pInit)(Quux *theQuux)) {}";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLtest = runA.GenerateSrcMLFromString(xml, "test.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -1308,7 +1308,7 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestMethodDefinition_VoidReturn() {
-            string xml = "void Foo() { }";
+            string xml = @"void Foo() { }";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLtest = runA.GenerateSrcMLFromString(xml, "test.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -1317,7 +1317,7 @@ namespace ABB.SrcML.Data.Test {
 
             var testScope = codeParser.ParseFileUnit(testUnit);
 
-            var method = testScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "Foo");
+            var method = testScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == @"Foo");
             Assert.IsNotNull(method, "could not find the test method");
             Assert.AreEqual("Foo", method.Name);
             Assert.IsNull(method.ReturnType, "return type should be null");
@@ -1325,13 +1325,13 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestMethodDefinition_DefaultArguments() {
-            string xml = "void foo(int a = 0);" +
-             "int main() {" +
-             "    foo();" +
-             "    foo(5);" +
-             "    return 0;" +
-             "}" +
-             "void foo(int a) { }";
+            string xml = @"void foo(int a = 0);
+            int main() {
+                 foo();
+                 foo(5);
+                 return 0;
+             }
+             void foo(int a) { }";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLtest = runA.GenerateSrcMLFromString(xml, "test.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -1358,7 +1358,7 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestTwoVariableDeclarations() {
-            string testXml = "int a,b;";
+            string testXml = @"int a,b;";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLtest = runA.GenerateSrcMLFromString(testXml, "test.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -1379,7 +1379,7 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestThreeVariableDeclarations() {
-            string testXml = "int a,b,c;";
+            string testXml = @"int a,b,c;";
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLtest = runA.GenerateSrcMLFromString(testXml, "test.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
@@ -1401,10 +1401,10 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestVariablesWithSpecifiers() {
-            string testXml = "const int A;" +
-            "static int B;" +
-            "static const Foo C;" +
-            "extern Foo D;";
+            string testXml = @"const int A;
+            static int B;
+            static const Foo C;
+            extern Foo D;";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLtest = runA.GenerateSrcMLFromString(testXml, "test.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -1474,12 +1474,12 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestIfElse() {
-            string xml = "if(a==b) {" +
-             "  i = 17;" +
-             "} else {" +
-             "  i = 42;" +
-             "  ReportError();" +
-             "}";
+            string xml = @"if(a==b) {
+               i = 17;
+             } else {
+               i = 42;
+               ReportError();
+             }";
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLA = runA.GenerateSrcMLFromString(xml, "A.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
@@ -1529,7 +1529,7 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestEmptyStatement() {
-            string xml = ";";
+            string xml = @";";
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLA = runA.GenerateSrcMLFromString(xml, "A.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
@@ -1545,7 +1545,7 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestVariableUse_Index() {
-            string xml = "foo.bar[17];";
+            string xml = @"foo.bar[17];";
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLa = runA.GenerateSrcMLFromString(xml, "a.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
@@ -1573,11 +1573,11 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestResolveVariable_Field() {
-            string xml = "class A {" +
-            "public:" +
-            "  int Foo;" +
-            "  A() { Foo = 42; }" +
-            "};";
+            string xml = @"class A {
+            public:
+              int Foo;
+              A() { Foo = 42; }
+            };";
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
@@ -1585,23 +1585,23 @@ namespace ABB.SrcML.Data.Test {
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
             var fooDecl = globalScope.GetNamedChildren<TypeDefinition>("A").First().GetNamedChildren<VariableDeclaration>("Foo").First();
-            var aConstructor = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == "A");
+            var aConstructor = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == @"A");
             Assert.AreEqual(1, aConstructor.ChildStatements.Count);
-            var fooUse = aConstructor.ChildStatements[0].Content.GetDescendants<NameUse>().FirstOrDefault(n => n.Name == "Foo");
+            var fooUse = aConstructor.ChildStatements[0].Content.GetDescendants<NameUse>().FirstOrDefault(n => n.Name == @"Foo");
             Assert.IsNotNull(fooUse);
             Assert.AreSame(fooDecl, fooUse.FindMatches().FirstOrDefault());
         }
 
         [Test]
         public void TestResolveVariable_FieldInParent() {
-            string xml = "class B {" +
-            "public:" +
-            "  int Foo;" +
-            "};" +
-            "class A : public B {" +
-            "public:" +
-            "  A() { Foo = 42; }" +
-            "};";
+            string xml = @"class B {
+            public:
+              int Foo;
+            };
+            class A : public B {
+            public:
+              A() { Foo = 42; }
+            };";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -1610,19 +1610,19 @@ namespace ABB.SrcML.Data.Test {
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
             var fooDecl = globalScope.GetNamedChildren<TypeDefinition>("B").First().GetNamedChildren<VariableDeclaration>("Foo").First();
-            var aConstructor = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == "A");
+            var aConstructor = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == @"A");
             Assert.AreEqual(1, aConstructor.ChildStatements.Count);
-            var fooUse = aConstructor.ChildStatements[0].Content.GetDescendants<NameUse>().FirstOrDefault(n => n.Name == "Foo");
+            var fooUse = aConstructor.ChildStatements[0].Content.GetDescendants<NameUse>().FirstOrDefault(n => n.Name == @"Foo");
             Assert.IsNotNull(fooUse);
             Assert.AreSame(fooDecl, fooUse.FindMatches().FirstOrDefault());
         }
 
         [Test]
         public void TestResolveVariable_Global() {
-            string xml = "int Foo;" +
-             "int Bar() {" +
-             "  Foo = 17;" +
-             "}";
+            string xml = @"int Foo;
+            int Bar() {
+               Foo = 17;
+             }";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -1631,21 +1631,21 @@ namespace ABB.SrcML.Data.Test {
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
             var fooDecl = globalScope.GetNamedChildren<VariableDeclaration>("Foo").First();
-            var bar = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == "Bar");
+            var bar = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == @"Bar");
             Assert.AreEqual(1, bar.ChildStatements.Count);
-            var fooUse = bar.ChildStatements[0].Content.GetDescendants<NameUse>().FirstOrDefault(n => n.Name == "Foo");
+            var fooUse = bar.ChildStatements[0].Content.GetDescendants<NameUse>().FirstOrDefault(n => n.Name == @"Foo");
             Assert.IsNotNull(fooUse);
             Assert.AreSame(fooDecl, fooUse.FindMatches().FirstOrDefault());
         }
 
         [Test]
         public void TestResolveVariable_VarInNamespace() {
-            string xml = "namespace A {" +
-            " int Foo;" +
-            " int Bar() {" +
-            "   Foo = 17;" +
-            " }" +
-            "}";
+            string xml = @"namespace A {
+             int Foo;
+             int Bar() {
+               Foo = 17;
+             }
+            }";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -1654,23 +1654,23 @@ namespace ABB.SrcML.Data.Test {
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
             var fooDecl = globalScope.GetNamedChildren<NamespaceDefinition>("A").First().GetNamedChildren<VariableDeclaration>("Foo").First();
-            var bar = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == "Bar");
+            var bar = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == @"Bar");
             Assert.AreEqual(1, bar.ChildStatements.Count);
-            var fooUse = bar.ChildStatements[0].Content.GetDescendants<NameUse>().FirstOrDefault(n => n.Name == "Foo");
+            var fooUse = bar.ChildStatements[0].Content.GetDescendants<NameUse>().FirstOrDefault(n => n.Name == @"Foo");
             Assert.IsNotNull(fooUse);
             Assert.AreSame(fooDecl, fooUse.FindMatches().FirstOrDefault());
         }
 
         [Test]
         public void TestResolveVariable_Masking() {
-            string xml = "int foo = 17;" +
-            "int main(int argc, char** argv)" +
-            "{" +
-            "    std::cout<<foo<<std::endl;" +
-            "    float foo = 42.0;" +
-            "    std::cout<<foo<<std::endl;" +
-            "    return 0;" +
-            "}";
+            string xml = @"int foo = 17;
+            int main(int argc, char** argv)
+            {
+                std::cout<<foo<<std::endl;
+                float foo = 42.0;
+                std::cout<<foo<<std::endl;
+                return 0;
+            }";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
@@ -1683,13 +1683,13 @@ namespace ABB.SrcML.Data.Test {
             var main = globalScope.GetNamedChildren<MethodDefinition>("main").First();
             Assert.AreEqual(4, main.ChildStatements.Count);
 
-            var globalFooUse = main.ChildStatements[0].Content.GetDescendantsAndSelf<NameUse>().First(n => n.Name == "foo");
+            var globalFooUse = main.ChildStatements[0].Content.GetDescendantsAndSelf<NameUse>().First(n => n.Name == @"foo");
             var globalFooUseMatches = globalFooUse.FindMatches().ToList();
             Assert.AreEqual(1, globalFooUseMatches.Count);
             Assert.AreSame(globalFoo, globalFooUseMatches[0]);
 
             var localFoo = main.GetNamedChildren<VariableDeclaration>("foo").First();
-            var localFooUse = main.ChildStatements[2].Content.GetDescendantsAndSelf<NameUse>().First(n => n.Name == "foo");
+            var localFooUse = main.ChildStatements[2].Content.GetDescendantsAndSelf<NameUse>().First(n => n.Name == @"foo");
             var localFooUseMatches = localFooUse.FindMatches().ToList();
             Assert.AreEqual(1, localFooUseMatches.Count);
             Assert.AreSame(localFoo, localFooUseMatches[0]);
@@ -1697,11 +1697,11 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestVariableDeclaredInCallingObjectWithParentClass() {
-            string a_xml = "class A { B b; };";
+            string a_xml = @"class A { B b; };";
 
-            string b_xml = "class B { void Foo() { } };";
+            string b_xml = @"class B { void Foo() { } };";
 
-            string c_xml = "class C : A { };";
+            string c_xml = @"class C : A { };";
 
             string d_xml = @"class D {
               C c;
@@ -1758,12 +1758,12 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestResolveArrayVariable_Local() {
-            string xml = "int Foo() {" +
-            "  if(MethodCall()) {" +
-            "    int* bar = malloc(SIZE);" +
-            "    bar[0] = 42;" +
-            "  }" +
-            "}";
+            string xml = @"int Foo() {
+              if(MethodCall()) {
+                int* bar = malloc(SIZE);
+                bar[0] = 42;
+              }
+            }";
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLa = runA.GenerateSrcMLFromString(xml, "a.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
@@ -1773,23 +1773,23 @@ namespace ABB.SrcML.Data.Test {
             var ifStmt = globalScope.GetDescendants<IfStatement>().First();
             Assert.AreEqual(2, ifStmt.ChildStatements.Count());
 
-            var barDecl = ifStmt.ChildStatements[0].Content.GetDescendantsAndSelf<VariableDeclaration>().FirstOrDefault(v => v.Name == "bar");
+            var barDecl = ifStmt.ChildStatements[0].Content.GetDescendantsAndSelf<VariableDeclaration>().FirstOrDefault(v => v.Name == @"bar");
             Assert.IsNotNull(barDecl);
-            var barUse = ifStmt.ChildStatements[1].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(n => n.Name == "bar");
+            var barUse = ifStmt.ChildStatements[1].Content.GetDescendantsAndSelf<NameUse>().FirstOrDefault(n => n.Name == @"bar");
             Assert.IsNotNull(barUse);
             Assert.AreSame(barDecl, barUse.FindMatches().FirstOrDefault());
         }
 
         [Test]
         public void TestResolveArrayVariable_Field() {
-            string xml = "class A {" +
-            "public:" +
-            "  char* Foo;" +
-            "  A() { " +
-            "    Foo = malloc(SIZE);" +
-            "    Foo[17] = 'x';" +
-            "  }" +
-            "}";
+            string xml = @"class A {
+            public:
+              char* Foo;
+              A() { 
+                Foo = malloc(SIZE);
+                Foo[17] = 'x';
+              }
+            }";
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
@@ -1797,9 +1797,9 @@ namespace ABB.SrcML.Data.Test {
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
             var fooDecl = globalScope.GetNamedChildren<TypeDefinition>("A").First().GetNamedChildren<VariableDeclaration>("Foo").First();
-            var aConstructor = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == "A");
+            var aConstructor = globalScope.GetDescendants<MethodDefinition>().First(m => m.Name == @"A");
             Assert.AreEqual(2, aConstructor.ChildStatements.Count);
-            var fooUse = aConstructor.ChildStatements[1].Content.GetDescendants<NameUse>().FirstOrDefault(n => n.Name == "Foo");
+            var fooUse = aConstructor.ChildStatements[1].Content.GetDescendants<NameUse>().FirstOrDefault(n => n.Name == @"Foo");
             Assert.IsNotNull(fooUse);
             Assert.AreSame(fooDecl, fooUse.FindMatches().FirstOrDefault());
         }
@@ -1807,33 +1807,33 @@ namespace ABB.SrcML.Data.Test {
         [Test]
         public void TestResolveCallOnArrayVariable() {
             //#include <iostream>
-            string xml = "const int SIZE = 5;" +
-            "class Foo {" +
-            "public:" +
-            "    int GetNum() { return 42; }" +
-            "};" +
-            "class Bar {" +
-            "public:" +
-            "    Foo FooArray[SIZE];" +
-            "};" +
-            "int main(int argc, char** argv) {" +
-            "    Bar myBar;" +
-            "    std::cout<< myBar.FooArray[0].GetNum() << std::endl;" +
-            "    return 0;" +
-            "}";
+            string xml = @"const int SIZE = 5;
+            class Foo {
+            public:
+                int GetNum() { return 42; }
+            };
+            class Bar {
+            public:
+                Foo FooArray[SIZE];
+            };
+            int main(int argc, char** argv) {
+                Bar myBar;
+                std::cout<< myBar.FooArray[0].GetNum() << std::endl;
+                return 0;
+            }";
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.cpp");
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
-            var getNum = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "GetNum");
+            var getNum = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == @"GetNum");
             Assert.IsNotNull(getNum);
-            var main = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == "main");
+            var main = globalScope.GetDescendants<MethodDefinition>().FirstOrDefault(m => m.Name == @"main");
             Assert.IsNotNull(main);
             Assert.AreEqual(3, main.ChildStatements.Count);
 
-            var getNumCall = main.ChildStatements[1].Content.GetDescendantsAndSelf<MethodCall>().First(mc => mc.Name == "GetNum");
+            var getNumCall = main.ChildStatements[1].Content.GetDescendantsAndSelf<MethodCall>().First(mc => mc.Name == @"GetNum");
             var matches = getNumCall.FindMatches().ToList();
             Assert.AreEqual(1, matches.Count);
             Assert.AreSame(getNum, matches.First());
@@ -1871,8 +1871,8 @@ namespace ABB.SrcML.Data.Test {
             NamespaceDefinition globalScope = codeParser.ParseFileUnit(cUnit);
             globalScope = globalScope.Merge(codeParser.ParseFileUnit(eUnit));
 
-            var typeC = globalScope.GetDescendants<TypeDefinition>().Where(t => t.Name == "C").FirstOrDefault();
-            var typeE = globalScope.GetDescendants<TypeDefinition>().Where(t => t.Name == "E").FirstOrDefault();
+            var typeC = globalScope.GetDescendants<TypeDefinition>().Where(t => t.Name == @"C").FirstOrDefault();
+            var typeE = globalScope.GetDescendants<TypeDefinition>().Where(t => t.Name == @"E").FirstOrDefault();
 
             var mainMethod = typeE.ChildStatements.OfType<MethodDefinition>().FirstOrDefault();
             Assert.IsNotNull(mainMethod, "is not a method definition");
