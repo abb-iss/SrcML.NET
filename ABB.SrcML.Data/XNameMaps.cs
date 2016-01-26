@@ -36,6 +36,7 @@ namespace ABB.SrcML.Data {
             var map = new Dictionary<XName, TypeKind>() {
                 { SRC.Struct, TypeKind.Struct },
                 { SRC.StructDeclaration, TypeKind.Struct },
+                { SRC.Interface, TypeKind.Interface},
                 { SRC.Class, TypeKind.Class },
                 { SRC.ClassDeclaration, TypeKind.Class },
                 { SRC.Union, TypeKind.Union },

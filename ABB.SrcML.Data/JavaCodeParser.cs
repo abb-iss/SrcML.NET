@@ -40,6 +40,7 @@ namespace ABB.SrcML.Data {
         }
 
 
+
         /// <summary>
         /// Gets the parent type from a java type
         /// </summary>
@@ -94,7 +95,16 @@ namespace ABB.SrcML.Data {
         protected override string GetTypeForStringLiteral(string literalValue) {
             throw new NotImplementedException();
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="interfaceElement"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        protected override InterfaceDefinition ParseInterfaceElement(XElement interfaceElement, ParserContext context) {
+            return new InterfaceDefinition();
+        }
+        protected override UsingBlockStatement ParseUsingBlockElement(XElement usingElement, ParserContext context) { return new UsingBlockStatement(); }
         /// <summary>
         /// Creates a NamespaceDefinition object from the given Java package element.
         /// This will create a NamespaceDefinition for each component of the name, e.g. com.java.foo.bar, and link them as children of each other.
@@ -222,7 +232,30 @@ namespace ABB.SrcML.Data {
 
             return foreachStmt;
         }
+        /// <summary>
+        /// Creates a <see cref="Statement"/> object for <paramref name="stmtElement"/>.
+        /// The expression contained within <paramref name="stmtElement"/> will be parsed and placed in 
+        /// Statement.Content.
+        /// </summary>
+        /// <param name="stmtElement">The SRC.DeclarationStatement element to parse.</param>
+        /// <param name="context">The context to use.</param>
+        /// <returns>A <see cref="DeclarationStatement"/> corresponding to <paramref name="stmtElement"/>.
+        /// The return type is <see cref="Statement"/> so that subclasses can return another type, as necessary. </returns>
+        protected override Statement ParseDeclarationStatementElement(XElement stmtElement, ParserContext context) {
+            if (stmtElement == null)
+                throw new ArgumentNullException("stmtElement");
+            if (stmtElement.Name != SRC.DeclarationStatement && stmtElement.Name != SRC.Property)
+                throw new ArgumentException("Must be a SRC.DeclarationStatement or SRC.Property element", "stmtElement");
+            if (context == null)
+                throw new ArgumentNullException("context");
 
+            var stmt = new DeclarationStatement() {
+                ProgrammingLanguage = ParserLanguage,
+                Content = ParseExpression(GetChildExpressions(stmtElement), context)
+            };
+            stmt.AddLocation(context.CreateLocation(stmtElement));
+            return stmt;
+        }
         /// <summary>
         /// Parses the given <paramref name="aliasElement"/> and creates an ImportStatement or AliasStatement from it.
         /// </summary>

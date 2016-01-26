@@ -80,7 +80,7 @@ namespace ABB.SrcML.Test
         {
             File.WriteAllText("test.xml", String.Format(@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>
 <unit xmlns=""{0}"" xmlns:cpp=""{1}"" xmlns:op=""{2}"" xmlns:type=""{3}"" languageFilter=""C++"" dir="""" filename=""bar.c"">
-</unit>", SRC.NS, CPP.NS, OP.NS, TYPE.NS));
+</unit>", SRC.NS, CPP.NS, SRC.NS, TYPE.NS));
             var doc = new SrcMLFile("test.xml");
 
             Assert.IsNotNull(doc);

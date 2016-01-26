@@ -221,7 +221,20 @@ namespace ABB.SrcML.Data {
 
             return nd;
         }
+        protected override InterfaceDefinition ParseInterfaceElement(XElement interfaceElement, ParserContext context) {
+            if (interfaceElement == null)
+                throw new ArgumentNullException("interfaceElement");
+            if (context == null)
+                throw new ArgumentNullException("context");
 
+            var nameElement = interfaceElement.Element(SRC.Name);
+            var namespaceName = nameElement != null ? nameElement.Value : string.Empty;
+
+            ParseBlockElement(interfaceElement.Element(SRC.Block), context);
+
+            return new InterfaceDefinition();
+        }
+        protected override UsingBlockStatement ParseUsingBlockElement(XElement usingElement, ParserContext context) { return new UsingBlockStatement(); }
         /// <summary>
         /// Parses an element corresponding to a type definition and creates a TypeDefinition object 
         /// </summary>
@@ -265,7 +278,30 @@ namespace ABB.SrcML.Data {
 
             return typeDefinition;
         }
+        /// <summary>
+        /// Creates a <see cref="Statement"/> object for <paramref name="stmtElement"/>.
+        /// The expression contained within <paramref name="stmtElement"/> will be parsed and placed in 
+        /// Statement.Content.
+        /// </summary>
+        /// <param name="stmtElement">The SRC.DeclarationStatement element to parse.</param>
+        /// <param name="context">The context to use.</param>
+        /// <returns>A <see cref="DeclarationStatement"/> corresponding to <paramref name="stmtElement"/>.
+        /// The return type is <see cref="Statement"/> so that subclasses can return another type, as necessary. </returns>
+        protected override Statement ParseDeclarationStatementElement(XElement stmtElement, ParserContext context) {
+            if (stmtElement == null)
+                throw new ArgumentNullException("stmtElement");
+            if (stmtElement.Name != SRC.DeclarationStatement && stmtElement.Name != SRC.Property)
+                throw new ArgumentException("Must be a SRC.DeclarationStatement or SRC.Property element", "stmtElement");
+            if (context == null)
+                throw new ArgumentNullException("context");
 
+            var stmt = new DeclarationStatement() {
+                ProgrammingLanguage = ParserLanguage,
+                Content = ParseExpression(GetChildExpressions(stmtElement), context)
+            };
+            stmt.AddLocation(context.CreateLocation(stmtElement));
+            return stmt;
+        }
         /// <summary>
         /// Parses the given <paramref name="aliasElement"/> and creates an ImportStatement or AliasStatement from it.
         /// </summary>

@@ -195,9 +195,11 @@ namespace ABB.SrcML.Data {
                     stmt = ParseTryElement(element, context);
                 } else if(element.Name == SRC.ExpressionStatement) {
                     stmt = ParseExpressionStatementElement(element, context);
-                } else if(element.Name == SRC.DeclarationStatement) {
+                } else if(element.Name == SRC.Property) {
+                    stmt =  ParseDeclarationStatementElement(element, context);
+                } else if (element.Name == SRC.DeclarationStatement) {
                     stmt = ParseDeclarationStatementElement(element, context);
-                } else if(element.Name == SRC.Block) {
+                } else if (element.Name == SRC.Block) {
                     stmt = ParseBlockElement(element, context);
                 } else if(element.Name == SRC.Extern) {
                     stmt = ParseExternElement(element, context);
@@ -206,10 +208,15 @@ namespace ABB.SrcML.Data {
                 } else if(element.Name == SRC.Lock) {
                     stmt = ParseLockElement(element, context);
                 } else if(element.Name == POS.Position) {
-                    // do nothing. we are ignoring position (for now)
+                    // do nothing. we are ignoring position (for now; current method of getting line num seems to still work)
                 } else if (element.Name == SRC.Using) {
-                    ;
-                } else if (element.Name == SRC.Comment) {
+                    // do nothing for now.
+                } else if (element.Name == SRC.Using_Stmt) {
+                    stmt = ParseUsingBlockElement(element, context);
+                } else if (element.Name == SRC.Interface) {
+                    stmt = ParseInterfaceElement(element, context);
+                }
+                else if (element.Name == SRC.Comment) {
                     // do nothing. we are ignoring comments
                 } else if (element.Name == SRC.Package) {
                     //do nothing. This is already handled in JavaCodeParser.ParseUnitElement()
@@ -625,6 +632,14 @@ namespace ABB.SrcML.Data {
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="usingElement"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        protected abstract UsingBlockStatement ParseUsingBlockElement(XElement usingElement, ParserContext context);
+
+        /// <summary>
         /// Creates a <see cref="BreakStatement"/> object for <paramref name="breakElement"/>.
         /// </summary>
         /// <param name="breakElement">The SRC.Break element to parse.</param>
@@ -884,22 +899,7 @@ namespace ABB.SrcML.Data {
         /// <param name="context">The context to use.</param>
         /// <returns>A <see cref="DeclarationStatement"/> corresponding to <paramref name="stmtElement"/>.
         /// The return type is <see cref="Statement"/> so that subclasses can return another type, as necessary. </returns>
-        protected virtual Statement ParseDeclarationStatementElement(XElement stmtElement, ParserContext context) {
-            if(stmtElement == null)
-                throw new ArgumentNullException("stmtElement");
-            if(stmtElement.Name != SRC.DeclarationStatement)
-                throw new ArgumentException("Must be a SRC.DeclarationStatement element", "stmtElement");
-            if(context == null)
-                throw new ArgumentNullException("context");
-
-            var stmt = new DeclarationStatement() {
-                ProgrammingLanguage = ParserLanguage,
-                Content = ParseExpression(GetChildExpressions(stmtElement), context)
-            };
-            stmt.AddLocation(context.CreateLocation(stmtElement));
-
-            return stmt;
-        }
+        protected abstract Statement ParseDeclarationStatementElement(XElement stmtElement, ParserContext context);
 
 
         /// <summary>
@@ -1040,7 +1040,13 @@ namespace ABB.SrcML.Data {
 
             return es;
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="interfaceElement"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        protected abstract InterfaceDefinition ParseInterfaceElement(XElement interfaceElement, ParserContext context);
         /// <summary>
         /// Creates an empty Statement object from the given SRC.EmptyStatement element.
         /// </summary>
@@ -1263,16 +1269,16 @@ namespace ABB.SrcML.Data {
         /// <summary>
         /// Creates a variable declaration object from the given declaration element
         /// </summary>
-        /// <param name="declElement">The SRC.Declaration element to parse.</param>
+        /// <param name="propertyElement">The SRC.Declaration element to parse.</param>
         /// <param name="context">The parser context.</param>
         /// <returns>A VariableDeclaration object corresponding to the given element.</returns>
         protected virtual VariableDeclaration ParseDeclarationElement(XElement declElement, ParserContext context) {
             //TODO: can/should this handle function_decls as well as decls? ParseParameterElement may pass in a function_decl
             //NOTE: When the declaration is using f = bla this won't work because there is no decl on the inside. Fix.
             if(declElement == null)
-                throw new ArgumentNullException("declElement");
+                throw new ArgumentNullException("propertyElement");
             if(!(declElement.Name == SRC.Declaration || declElement.Name == SRC.FunctionDeclaration))
-                throw new ArgumentException("Must be a SRC.Declaration or SRC.FunctionDeclaration element", "declElement");
+                throw new ArgumentException("Must be a SRC.Declaration or SRC.FunctionDeclaration element", "propertyElement");
             if(context == null)
                 throw new ArgumentNullException("context");
 
@@ -1289,9 +1295,8 @@ namespace ABB.SrcML.Data {
             var typeElement = declElement.Element(SRC.Type);
             if(typeElement != null && typeElement.Attribute("ref") == null) {
                 varDecl.VariableType = ParseTypeUseElement(typeElement, context);
-                varDecl.Accessibility = GetAccessModifierFromTypeUseElement(typeElement);
+                varDecl.Accessibility = GetAccessModifier(declElement);
             }
-
             var initElement = declElement.Element(SRC.Init);
             if(initElement != null) {
                 var expElement = GetFirstChildExpression(initElement);
@@ -1654,12 +1659,7 @@ namespace ABB.SrcML.Data {
                 throw new ArgumentNullException("methodElement");
             if(!MethodElementNames.Contains(methodElement.Name))
                 throw new ArgumentException(string.Format("Not a valid methodElement: {0}", methodElement.Name), "methodElement");
-
-            var specifierContainer = methodElement.Element(SRC.Type);
-            if(null == specifierContainer) {
-                specifierContainer = methodElement;
-            }
-            return GetAccessModifier(specifierContainer);
+            return GetAccessModifier(methodElement);
         }
 
         /// <summary>

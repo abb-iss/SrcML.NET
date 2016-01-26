@@ -66,6 +66,12 @@ namespace ABB.SrcML {
         /// </summary>
 
         public static readonly XName Literal = NS + "literal";
+        // Interface
+        /// <summary>
+        /// markup for the interface tag
+        /// </summary>
+
+        public static readonly XName Interface = NS + "interface";
         // access specifiers
         /// <summary>
         /// markup for the public access specifier.
@@ -137,6 +143,12 @@ namespace ABB.SrcML {
         /// markup for the decl tag
         /// </summary>
         public static readonly XName Declaration = NS + "decl";
+
+        // property
+        /// <summary>
+        /// markup for the property tag
+        /// </summary>
+        public static readonly XName Property = NS + "property";
 
         /// <summary>
         /// markup for the type tag
