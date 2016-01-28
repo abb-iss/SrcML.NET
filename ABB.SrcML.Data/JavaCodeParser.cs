@@ -272,6 +272,9 @@ namespace ABB.SrcML.Data {
                 import.AddLocation(context.CreateLocation(aliasElement));
                 var nameElement = aliasElement.Element(SRC.Name);
                 if(nameElement != null) {
+                    //we have an import that ends with .*. We remove the . and *.
+                    nameElement.LastNode.Remove();//remove *
+                    nameElement.LastNode.Remove();//remove .
                     import.ImportedNamespace = ParseNameUseElement<NamespaceUse>(nameElement, context);
                     //TODO: fix to handle the trailing operator tag
                 }

@@ -1813,6 +1813,11 @@ namespace ABB.SrcML.Data {
 
             if(null == nameElement)
                 return string.Empty;
+            /*
+            var templateArgs = nameElement.Element(SRC.ArgumentList);
+            if (templateArgs != null) {
+                return nameElement.Value;
+            }*/
             return NameHelper.GetLastName(nameElement);
         }
 
