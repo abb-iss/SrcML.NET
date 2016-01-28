@@ -27,7 +27,7 @@ namespace ABB.SrcML.Data {
         public CPlusPlusCodeParser() {
             this.SpecifierContainerNames = new HashSet<XName>(new XName[] { SRC.Private, SRC.Protected, SRC.Public });
             this.TypeElementNames = new HashSet<XName>(new XName[] {
-                SRC.Class, SRC.Enum, SRC.Struct, SRC.Union,
+                SRC.Class, SRC.Enum, SRC.Struct, SRC.Union, SRC.Interface,
                 SRC.ClassDeclaration, SRC.StructDeclaration, SRC.UnionDeclaration
             });
             this.VariableDeclarationElementNames = new HashSet<XName>(new XName[] { SRC.Declaration, SRC.DeclarationStatement, SRC.FunctionDeclaration });
@@ -221,19 +221,7 @@ namespace ABB.SrcML.Data {
 
             return nd;
         }
-        protected override InterfaceDefinition ParseInterfaceElement(XElement interfaceElement, ParserContext context) {
-            if (interfaceElement == null)
-                throw new ArgumentNullException("interfaceElement");
-            if (context == null)
-                throw new ArgumentNullException("context");
 
-            var nameElement = interfaceElement.Element(SRC.Name);
-            var namespaceName = nameElement != null ? nameElement.Value : string.Empty;
-
-            ParseBlockElement(interfaceElement.Element(SRC.Block), context);
-
-            return new InterfaceDefinition();
-        }
         protected override UsingBlockStatement ParseUsingBlockElement(XElement usingElement, ParserContext context) { return new UsingBlockStatement(); }
         /// <summary>
         /// Parses an element corresponding to a type definition and creates a TypeDefinition object 

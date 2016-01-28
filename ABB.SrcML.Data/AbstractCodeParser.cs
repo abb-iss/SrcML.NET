@@ -214,7 +214,7 @@ namespace ABB.SrcML.Data {
                 } else if (element.Name == SRC.Using_Stmt) {
                     stmt = ParseUsingBlockElement(element, context);
                 } else if (element.Name == SRC.Interface) {
-                    stmt = ParseInterfaceElement(element, context);
+                    stmt = ParseTypeElement(element, context);
                 }
                 else if (element.Name == SRC.Comment) {
                     // do nothing. we are ignoring comments
@@ -930,12 +930,13 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            var typeDefinition = new TypeDefinition() {
-                Accessibility = GetAccessModifierForType(typeElement),
-                Kind = XNameMaps.GetKindForXElement(typeElement),
-                Name = GetNameForType(typeElement),
-                ProgrammingLanguage = ParserLanguage
-            };
+            var typeDefinition = new TypeDefinition();
+
+            typeDefinition.Accessibility = GetAccessModifierForType(typeElement);
+            typeDefinition.Kind = XNameMaps.GetKindForXElement(typeElement);
+            typeDefinition.Name = GetNameForType(typeElement);
+            typeDefinition.ProgrammingLanguage = ParserLanguage;
+
             typeDefinition.AddLocation(context.CreateLocation(typeElement, ContainerIsReference(typeElement)));
 
             foreach(var parentTypeElement in GetParentTypeUseElements(typeElement)) {
@@ -1040,13 +1041,7 @@ namespace ABB.SrcML.Data {
 
             return es;
         }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="interfaceElement"></param>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        protected abstract InterfaceDefinition ParseInterfaceElement(XElement interfaceElement, ParserContext context);
+
         /// <summary>
         /// Creates an empty Statement object from the given SRC.EmptyStatement element.
         /// </summary>

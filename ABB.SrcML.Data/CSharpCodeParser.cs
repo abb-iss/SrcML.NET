@@ -144,28 +144,6 @@ namespace ABB.SrcML.Data {
         protected override string GetTypeForStringLiteral(string literalValue) {
             return "string";
         }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="interfaceElement"></param>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        protected override InterfaceDefinition ParseInterfaceElement(XElement interfaceElement, ParserContext context) {
-            if (interfaceElement == null)
-                throw new ArgumentNullException("interfaceElement");
-            if (context == null)
-                throw new ArgumentNullException("context");
-
-            InterfaceDefinition iDef = new InterfaceDefinition();
-
-            var nameElement = interfaceElement.Element(SRC.Name);
-            var blockElement = interfaceElement.Element(SRC.Block);
-            iDef.Name = nameElement.Value;
-            iDef.Accessibility = GetAccessModifier(interfaceElement);
-            TypeDefinition t = ParseTypeElement(interfaceElement, context);
-            iDef.AddChildStatement(t);
-            return iDef;
-        }
 
         /// <summary>
         /// Parses a C# namespace block

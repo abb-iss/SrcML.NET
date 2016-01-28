@@ -27,7 +27,7 @@ namespace ABB.SrcML.Data {
         /// Creates a new java code parser object
         /// </summary>
         public JavaCodeParser() {
-            this.TypeElementNames = new HashSet<XName>(new XName[] { SRC.Class, SRC.Enum });
+            this.TypeElementNames = new HashSet<XName>(new XName[] { SRC.Class, SRC.Enum, SRC.Interface });
             this.NamespaceElementNames = new HashSet<XName>();
             this.AliasElementName = SRC.Import;
         }
@@ -95,15 +95,7 @@ namespace ABB.SrcML.Data {
         protected override string GetTypeForStringLiteral(string literalValue) {
             throw new NotImplementedException();
         }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="interfaceElement"></param>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        protected override InterfaceDefinition ParseInterfaceElement(XElement interfaceElement, ParserContext context) {
-            return new InterfaceDefinition();
-        }
+
         protected override UsingBlockStatement ParseUsingBlockElement(XElement usingElement, ParserContext context) { return new UsingBlockStatement(); }
         /// <summary>
         /// Creates a NamespaceDefinition object from the given Java package element.
@@ -270,7 +262,8 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            var isNamespaceImport = GetTextNodes(aliasElement).Any(n => n.Value.Contains("*"));
+            var isNamespaceImport = aliasElement.Descendants(SRC.Name).Any(n => n.Value.Contains("*"));
+                //Elements("name").Any(n => n.Value.Contains("*")); //).Any(n => n.Value.Contains("*"));
 
             Statement stmt = null;
             if(isNamespaceImport) {
