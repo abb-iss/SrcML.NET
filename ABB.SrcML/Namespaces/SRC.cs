@@ -249,6 +249,11 @@ namespace ABB.SrcML {
         public static readonly XName Foreach = NS + "foreach";
 
         /// <summary>
+        /// markup for the control tag
+        /// </summary>
+        public static readonly XName Control = NS + "control";
+
+        /// <summary>
         /// markup for the incr tag
         /// </summary>
         public static readonly XName Increment = NS + "incr";

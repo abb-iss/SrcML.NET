@@ -436,11 +436,11 @@ namespace ABB.SrcML.Data.Test {
             Assert.IsNotNull(foo);
             var aliases = foo.GetAliases().ToList();
             Assert.AreEqual(1, aliases.Count);
-            string b = aliases[0].Target.ToString();
-            Assert.AreEqual("foo :: bar :: baz", aliases[0].Target.ToString());
+
+            Assert.AreEqual("foo::bar::baz", aliases[0].Target.ToString()); //This toString calls typeuse TODO: Anything wrong here?
             Assert.AreEqual("x", aliases[0].AliasName);
             var imports = foo.GetImports().ToList();
-            Assert.AreEqual("x :: y :: z", imports[0].ImportedNamespace.ToString());
+            Assert.AreEqual("x :: y :: z", imports[0].ImportedNamespace.ToString()); //this tostring calls expression TODO: Anything wrong here?
         }
 
         [Test]
@@ -1087,9 +1087,9 @@ namespace ABB.SrcML.Data.Test {
              public:
              A(); };";
 
-            string implementationXml = "#include \"A.h\" A: :A() {}";
+            string implementationXml = "#include \"A.h\"\n A::A() {}";
 
-            string mainXml = "#include \"A.h\" int main() { A a = A(); return 0; }";
+            string mainXml = "#include \"A.h\"\n int main() { A* a = new A(); return 0; }";
 
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
@@ -1144,12 +1144,12 @@ namespace ABB.SrcML.Data.Test {
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLtesta = runA.GenerateSrcMLFromString(headerXml, "A.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
-            string implementationXml = "#include \"A.h\" A: :A(int value) { context = value;}";
+            string implementationXml = "#include \"A.h\"\n A::A(int value) { context = value;}";
 
             LibSrcMLRunner runB = new LibSrcMLRunner();
             string srcMLtestb = runB.GenerateSrcMLFromString(implementationXml, "A.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
-            string mainXml = "#include \"A.h\" int main() { int startingState = 0; A *a = new A(startingState); return startingState; }";
+            string mainXml = "#include \"A.h\"\n int main() { int startingState = 0; A *a = new A(startingState);\n return startingState; }";
 
             LibSrcMLRunner runC = new LibSrcMLRunner();
             string srcMLtestc = runC.GenerateSrcMLFromString(mainXml, "main.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);

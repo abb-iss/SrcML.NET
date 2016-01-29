@@ -450,7 +450,10 @@ namespace ABB.SrcML.Data {
             var forStmt = new ForStatement() {ProgrammingLanguage = ParserLanguage};
             forStmt.AddLocation(context.CreateLocation(forElement));
 
-            foreach(var forChild in forElement.Elements()) {
+            //TODO: throw the correct exception (since Christian doesn't know which one to throw)
+            var controlElement = forElement.Element(SRC.Control);
+            if (controlElement == null) { throw new Exception("Malformed foreach"); }
+            foreach(var forChild in controlElement.Elements()) {
                 if(forChild.Name == SRC.Init) {
                     //fill in initializer
                     var expElement = GetFirstChildExpression(forChild);
@@ -469,16 +472,18 @@ namespace ABB.SrcML.Data {
                     if(expElement != null) {
                         forStmt.Incrementer = ParseExpression(expElement, context);
                     }
-                } else if(forChild.Name == SRC.Block) {
-                    //add children from block
-                    var blockStatements = forChild.Elements().Select(e => ParseStatement(e, context));
-                    forStmt.AddChildStatements(blockStatements);
                 } else {
                     //add child
                     forStmt.AddChildStatement(ParseStatement(forChild, context));
                 }
             }
 
+            var blockElement = forElement.Element(SRC.Block);
+            if (blockElement != null) {
+                 //add children from block
+                 var blockStatements = forElement.Elements().Select(e => ParseStatement(e, context));
+                 forStmt.AddChildStatements(blockStatements);
+            }
             return forStmt;
         }
 
@@ -499,7 +504,10 @@ namespace ABB.SrcML.Data {
             var foreachStmt = new ForeachStatement() {ProgrammingLanguage = ParserLanguage};
             foreachStmt.AddLocation(context.CreateLocation(foreachElement));
 
-            foreach(var child in foreachElement.Elements()) {
+            //TODO: throw the correct exception (since Christian doesn't know which one to throw)
+            var controlElement = foreachElement.Element(SRC.Control);
+            if (controlElement == null) { throw new Exception("Malformed foreach"); }
+            foreach(var child in controlElement.Elements()) {
                 if(child.Name == SRC.Init) {
                     //fill in condition/initializer
                     var expElement = GetFirstChildExpression(child);
@@ -1078,17 +1086,23 @@ namespace ABB.SrcML.Data {
             var lockStmt = new LockStatement() {ProgrammingLanguage = ParserLanguage};
             lockStmt.AddLocation(context.CreateLocation(lockElement));
 
-            foreach(var child in lockElement.Elements()) {
+            //TODO: throw the correct exception (since Christian doesn't know which one to throw)
+            var initElement = lockElement.Element(SRC.Init);
+            if (initElement == null) { throw new Exception("Invalid lock element format"); }
+            foreach(var child in initElement.Elements()) {
                 if(child.Name == SRC.Expression) {
                     lockStmt.LockExpression = ParseExpression(child, context);
-                } else if(child.Name == SRC.Block) {
+                }
+            }
+
+            foreach (var child in lockElement.Elements()) {
+                 if(child.Name == SRC.Block) {
                     var blockStatements = child.Elements().Select(e => ParseStatement(e, context));
                     lockStmt.AddChildStatements(blockStatements);
                 } else {
                     lockStmt.AddChildStatement(ParseStatement(child, context));
                 }
             }
-
             return lockStmt;
         }
 

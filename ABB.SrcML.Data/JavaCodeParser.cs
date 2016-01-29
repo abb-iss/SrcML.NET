@@ -194,8 +194,8 @@ namespace ABB.SrcML.Data {
                 throw new ArgumentException("Must be a SRC.For element", "forElement");
             if(context == null)
                 throw new ArgumentNullException("context");
-
-            if(forElement.Element(SRC.Condition) != null) {
+            var controlElement = forElement.Element(SRC.Control);
+            if(controlElement.Element(SRC.Condition) != null) {
                 //this is a standard for-loop, use the base processing
                 return base.ParseForElement(forElement, context);
             }

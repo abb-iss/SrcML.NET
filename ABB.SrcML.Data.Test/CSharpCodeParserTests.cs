@@ -176,6 +176,7 @@ namespace ABB.SrcML.Data.Test {
         [Test]
         [Category("Todo")]
         public void TestCallWithTypeParameters() {
+            //TODO: get answer about how generics are suppsoed to be handled for the parser. Don't see how they're being parsed.
             //namespace A {
             //    public interface IOdb { 
             //        int Query();

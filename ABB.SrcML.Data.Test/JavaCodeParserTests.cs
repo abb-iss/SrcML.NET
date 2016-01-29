@@ -50,6 +50,7 @@ namespace ABB.SrcML.Data.Test {
         [Test]
         public void TestCreateAliasesForFiles_ImportNamespace() {
             string xml = @"import x . /*test */ y  /*test */ . z .* /*test*/;";
+            //<import>import <name><name>x</name> <op:operator>.</op:operator> <comment type=""block"">/*test */</comment> <name>y</name>  <comment type=""block"">/*test */</comment> <op:operator>.</op:operator> <name>z</name></name> .* <comment type=""block"">/*test*/</comment>;</import>";
             LibSrcMLRunner runA = new LibSrcMLRunner();
             string srcMLA = runA.GenerateSrcMLFromString(xml, "A.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.java");
