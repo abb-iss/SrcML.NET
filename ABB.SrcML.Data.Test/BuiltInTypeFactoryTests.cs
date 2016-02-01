@@ -98,7 +98,7 @@ namespace ABB.SrcML.Data.Test {
         [Test]
         public void TestJavaBuiltIns() {
             // #a.java TYPE a; TYPE b;
-            string xmlFormat = @"TYPE a; TYPE b;";
+            string xmlFormat = @"{0} a; {0} b;";
 
             foreach(var builtIn in new string[] { "byte", "short", "int", "long", "float", "double", "boolean", "char" }) {
                 LibSrcMLRunner run = new LibSrcMLRunner();

@@ -481,7 +481,7 @@ namespace ABB.SrcML.Data {
             var blockElement = forElement.Element(SRC.Block);
             if (blockElement != null) {
                  //add children from block
-                 var blockStatements = forElement.Elements().Select(e => ParseStatement(e, context));
+                 var blockStatements = blockElement.Elements().Select(e => ParseStatement(e, context));
                  forStmt.AddChildStatements(blockStatements);
             }
             return forStmt;
