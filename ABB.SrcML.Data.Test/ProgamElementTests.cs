@@ -17,6 +17,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ABB.SrcML.Test.Utilities;
 using NUnit.Framework;
+using System.Collections.ObjectModel;
 
 namespace ABB.SrcML.Data.Test {
     [TestFixture]
@@ -41,13 +42,13 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestSiblingsBeforeSelf() {
-            var a = new VariableUse() {Name = "a"};
-            var plus = new OperatorUse() {Text = "+"};
-            var foo = new VariableUse() {Name = "foo"};
-            var times = new OperatorUse() {Text = "*"};
-            var b = new VariableUse() {Name = "b"};
+            var a = new VariableUse() { Name = "a" };
+            var plus = new OperatorUse() { Text = "+" };
+            var foo = new VariableUse() { Name = "foo" };
+            var times = new OperatorUse() { Text = "*" };
+            var b = new VariableUse() { Name = "b" };
             var exp = new Expression();
-            exp.AddComponents(new Expression[] {a, plus, foo, times, b});
+            exp.AddComponents(new Expression[] { a, plus, foo, times, b });
 
             var fooSiblings = foo.GetSiblingsBeforeSelf().ToList();
             Assert.AreEqual(2, fooSiblings.Count());
@@ -60,13 +61,13 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestSiblingsBeforeSelf_MissingChild() {
-            var a = new VariableUse() {Name = "a"};
-            var plus = new OperatorUse() {Text = "+"};
-            var foo = new VariableUse() {Name = "foo"};
-            var times = new OperatorUse() {Text = "*"};
-            var b = new VariableUse() {Name = "b"};
+            var a = new VariableUse() { Name = "a" };
+            var plus = new OperatorUse() { Text = "+" };
+            var foo = new VariableUse() { Name = "foo" };
+            var times = new OperatorUse() { Text = "*" };
+            var b = new VariableUse() { Name = "b" };
             var exp = new Expression();
-            exp.AddComponents(new Expression[] {a, plus, foo, times, b});
+            exp.AddComponents(new Expression[] { a, plus, foo, times, b });
 
             var dot = new OperatorUse {
                 Text = ".",
@@ -78,13 +79,13 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestSiblingsAfterSelf() {
-            var a = new VariableUse() {Name = "a"};
-            var plus = new OperatorUse() {Text = "+"};
-            var foo = new VariableUse() {Name = "foo"};
-            var times = new OperatorUse() {Text = "*"};
-            var b = new VariableUse() {Name = "b"};
+            var a = new VariableUse() { Name = "a" };
+            var plus = new OperatorUse() { Text = "+" };
+            var foo = new VariableUse() { Name = "foo" };
+            var times = new OperatorUse() { Text = "*" };
+            var b = new VariableUse() { Name = "b" };
             var exp = new Expression();
-            exp.AddComponents(new Expression[] {a, plus, foo, times, b});
+            exp.AddComponents(new Expression[] { a, plus, foo, times, b });
 
             var plusSiblings = plus.GetSiblingsAfterSelf().ToList();
             Assert.AreEqual(3, plusSiblings.Count());
@@ -98,13 +99,13 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestSiblingsAfterSelf_MissingChild() {
-            var a = new VariableUse() {Name = "a"};
-            var plus = new OperatorUse() {Text = "+"};
-            var foo = new VariableUse() {Name = "foo"};
-            var times = new OperatorUse() {Text = "*"};
-            var b = new VariableUse() {Name = "b"};
+            var a = new VariableUse() { Name = "a" };
+            var plus = new OperatorUse() { Text = "+" };
+            var foo = new VariableUse() { Name = "foo" };
+            var times = new OperatorUse() { Text = "*" };
+            var b = new VariableUse() { Name = "b" };
             var exp = new Expression();
-            exp.AddComponents(new Expression[] {a, plus, foo, times, b});
+            exp.AddComponents(new Expression[] { a, plus, foo, times, b });
 
             var dot = new OperatorUse {
                 Text = ".",
@@ -118,17 +119,15 @@ namespace ABB.SrcML.Data.Test {
         [TestCase(Language.CSharp)]
         [TestCase(Language.Java)]
         public void TestGetNamedChildren_Statement(Language lang) {
-            //int foo = 17;
-            //while(bar) {
-            //  MethodCall(foo);
-            //  int foo = 42;
-            //}
-            string xml = @"<decl_stmt><decl><type><name pos:line=""1"" pos:column=""1"">int</name></type> <name pos:line=""1"" pos:column=""5"">foo</name> <init pos:line=""1"" pos:column=""9"">= <expr><lit:literal type=""number"" pos:line=""1"" pos:column=""11"">17</lit:literal></expr></init></decl>;</decl_stmt>
-<while pos:line=""2"" pos:column=""1"">while<condition pos:line=""2"" pos:column=""6"">(<expr><name pos:line=""2"" pos:column=""7"">bar</name></expr>)</condition> <block pos:line=""2"" pos:column=""12"">{
-  <expr_stmt><expr><call><name pos:line=""3"" pos:column=""3"">MethodCall</name><argument_list pos:line=""3"" pos:column=""13"">(<argument><expr><name pos:line=""3"" pos:column=""14"">foo</name></expr></argument>)</argument_list></call></expr>;</expr_stmt>
-  <decl_stmt><decl><type><name pos:line=""4"" pos:column=""3"">int</name></type> <name pos:line=""4"" pos:column=""7"">foo</name> <init pos:line=""4"" pos:column=""11"">= <expr><lit:literal type=""number"" pos:line=""4"" pos:column=""13"">42</lit:literal></expr></init></decl>;</decl_stmt>
-}</block></while>";
-            var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(xml, "test.code");
+
+            string xml = @"int foo = 17;
+            while(bar) {
+              MethodCall(foo);
+              int foo = 42;
+            }";
+            LibSrcMLRunner run = new LibSrcMLRunner();
+            string srcML = run.GenerateSrcMLFromString(xml, "test.code", lang, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(srcML, "test.code");
 
             var globalScope = codeParsers[lang].ParseFileUnit(xmlElement);
             Assert.AreEqual(2, globalScope.ChildStatements.Count);
@@ -149,23 +148,17 @@ namespace ABB.SrcML.Data.Test {
         [TestCase(Language.CSharp)]
         [TestCase(Language.Java)]
         public void TestGetNamedChildren_IfStatement(Language lang) {
-            //int foo = 17;
-            //if(bar) {
-            //  int foo = 42;
-            //  MethodCall(foo);
-            //} else {
-            //  MethodCall2(foo);
-            //  int foo = 101;
-            //}
-            string xml = @"<decl_stmt><decl><type><name pos:line=""1"" pos:column=""1"">int</name></type> <name pos:line=""1"" pos:column=""5"">foo</name> <init pos:line=""1"" pos:column=""9"">= <expr><lit:literal type=""number"" pos:line=""1"" pos:column=""11"">17</lit:literal></expr></init></decl>;</decl_stmt>
-<if pos:line=""2"" pos:column=""1"">if<condition pos:line=""2"" pos:column=""3"">(<expr><name pos:line=""2"" pos:column=""4"">bar</name></expr>)</condition><then pos:line=""2"" pos:column=""8""> <block pos:line=""2"" pos:column=""9"">{
-  <decl_stmt><decl><type><name pos:line=""3"" pos:column=""3"">int</name></type> <name pos:line=""3"" pos:column=""7"">foo</name> <init pos:line=""3"" pos:column=""11"">= <expr><lit:literal type=""number"" pos:line=""3"" pos:column=""13"">42</lit:literal></expr></init></decl>;</decl_stmt>
-  <expr_stmt><expr><call><name pos:line=""4"" pos:column=""3"">MethodCall</name><argument_list pos:line=""4"" pos:column=""13"">(<argument><expr><name pos:line=""4"" pos:column=""14"">foo</name></expr></argument>)</argument_list></call></expr>;</expr_stmt>
-}</block></then> <else pos:line=""5"" pos:column=""3"">else <block pos:line=""5"" pos:column=""8"">{
-  <expr_stmt><expr><call><name pos:line=""6"" pos:column=""3"">MethodCall2</name><argument_list pos:line=""6"" pos:column=""14"">(<argument><expr><name pos:line=""6"" pos:column=""15"">foo</name></expr></argument>)</argument_list></call></expr>;</expr_stmt>
-  <decl_stmt><decl><type><name pos:line=""7"" pos:column=""3"">int</name></type> <name pos:line=""7"" pos:column=""7"">foo</name> <init pos:line=""7"" pos:column=""11"">= <expr><lit:literal type=""number"" pos:line=""7"" pos:column=""13"">101</lit:literal></expr></init></decl>;</decl_stmt>
-}</block></else></if>";
-            var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(xml, "test.code");
+            string xml = @"int foo = 17;
+            if(bar) {
+              int foo = 42;
+              MethodCall(foo);
+            } else {
+              MethodCall2(foo);
+              int foo = 101;
+            }";
+            LibSrcMLRunner run = new LibSrcMLRunner();
+            string srcML = run.GenerateSrcMLFromString(xml, "test.code", lang, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(srcML, "test.code");
 
             var globalScope = codeParsers[lang].ParseFileUnit(xmlElement);
             Assert.AreEqual(2, globalScope.ChildStatements.Count);
@@ -191,27 +184,20 @@ namespace ABB.SrcML.Data.Test {
             Assert.IsEmpty(ifStatement.GetNamedChildren(elseFooUse).ToList());
         }
 
-        [TestCase(Language.CPlusPlus)]
         [TestCase(Language.CSharp)]
         [TestCase(Language.Java)]
         public void TestGetNamedChildren_TryStatement(Language lang) {
-            //int foo = 17;
-            //try {
-            //  int foo = 42;
-            //  MethodCall(foo);
-            //} finally {
-            //  MethodCall2(foo);
-            //  int foo = 101;
-            //}
-            string xml = @"<decl_stmt><decl><type><name pos:line=""1"" pos:column=""1"">int</name></type> <name pos:line=""1"" pos:column=""5"">foo</name> <init pos:line=""1"" pos:column=""9"">= <expr><lit:literal type=""number"" pos:line=""1"" pos:column=""11"">17</lit:literal></expr></init></decl>;</decl_stmt>
-<try pos:line=""2"" pos:column=""1"">try <block pos:line=""2"" pos:column=""5"">{
-  <decl_stmt><decl><type><name pos:line=""3"" pos:column=""3"">int</name></type> <name pos:line=""3"" pos:column=""7"">foo</name> <init pos:line=""3"" pos:column=""11"">= <expr><lit:literal type=""number"" pos:line=""3"" pos:column=""13"">42</lit:literal></expr></init></decl>;</decl_stmt>
-  <expr_stmt><expr><call><name pos:line=""4"" pos:column=""3"">MethodCall</name><argument_list pos:line=""4"" pos:column=""13"">(<argument><expr><name pos:line=""4"" pos:column=""14"">foo</name></expr></argument>)</argument_list></call></expr>;</expr_stmt>
-}</block> <finally pos:line=""5"" pos:column=""3"">finally <block pos:line=""5"" pos:column=""11"">{
-  <expr_stmt><expr><call><name pos:line=""6"" pos:column=""3"">MethodCall2</name><argument_list pos:line=""6"" pos:column=""14"">(<argument><expr><name pos:line=""6"" pos:column=""15"">foo</name></expr></argument>)</argument_list></call></expr>;</expr_stmt>
-  <decl_stmt><decl><type><name pos:line=""7"" pos:column=""3"">int</name></type> <name pos:line=""7"" pos:column=""7"">foo</name> <init pos:line=""7"" pos:column=""11"">= <expr><lit:literal type=""number"" pos:line=""7"" pos:column=""13"">101</lit:literal></expr></init></decl>;</decl_stmt>
-}</block></finally></try>";
-            var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(xml, "test.code");
+            string xml = @"int foo = 17;
+            try {
+              int foo = 42;
+              MethodCall(foo);
+            } finally {
+              MethodCall2(foo);
+              int foo = 101;
+            }";
+            LibSrcMLRunner run = new LibSrcMLRunner();
+            string srcML = run.GenerateSrcMLFromString(xml, "test.code", lang, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(srcML, "test.code");
 
             var globalScope = codeParsers[lang].ParseFileUnit(xmlElement);
             Assert.AreEqual(2, globalScope.ChildStatements.Count);
