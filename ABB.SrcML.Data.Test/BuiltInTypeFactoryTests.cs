@@ -40,7 +40,7 @@ namespace ABB.SrcML.Data.Test {
         [Category("Todo")]
         public void TestCppBuiltIns_WithDoubleWord() {
             // #a.cpp #example: "unsigned int a;"; MODIFIER TYPE a; MODIFIER TYPE b;
-            string xmlFormat = @"{0} {1} a; {0} {1} b";
+            string xmlFormat = @"{0} {1} a; {0} {1} b;";
 
             foreach(var builtInModifier in new string[] { "unsigned", "signed", "long" }) {
                 foreach(var builtIn in new string[] { "int", "double" }) {

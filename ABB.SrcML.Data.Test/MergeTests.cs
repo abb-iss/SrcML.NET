@@ -17,6 +17,7 @@ using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using ABB.SrcML.Test.Utilities;
+using System.Collections.ObjectModel;
 
 namespace ABB.SrcML.Data.Test {
     [TestFixture]
@@ -41,14 +42,16 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestConstructorMerge_Cpp() {
-            //A.h class A { A(); };
-            string header_xml = @"<class>class <name>A</name> <block>{<private type=""default""> <constructor_decl><name>A</name><parameter_list>()</parameter_list>;</constructor_decl> </private>}</block>;</class>";
+            string header_xml = @"class A { A(); };";
 
-            //A.cpp A::A() { }
-            string impl_xml = @"<constructor><name><name>A</name><op:operator>::</op:operator><name>A</name></name><parameter_list>()</parameter_list> <block>{ }</block></constructor>";
+            string impl_xml = @"A::A() { }";
 
-            var header = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(header_xml, "A.h");
-            var implementation = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(impl_xml, "A.cpp");
+            LibSrcMLRunner runA = new LibSrcMLRunner();
+            string srcMLA = runA.GenerateSrcMLFromString(header_xml, "A.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var header = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(srcMLA, "A.h");
+            LibSrcMLRunner runE = new LibSrcMLRunner();
+            string srcMLE = runE.GenerateSrcMLFromString(impl_xml, "A.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var implementation = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(srcMLE, "A.cpp");
 
             var headerScope = CodeParser[Language.CPlusPlus].ParseFileUnit(header);
             var implementationScope = CodeParser[Language.CPlusPlus].ParseFileUnit(implementation);
@@ -72,43 +75,29 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestNestedConstructorMerge_Cpp() {
-            //Foo.h
-            //class Foo 
-            //{
-            //public:
-            //    Foo(int, int, char);
-            //    virtual ~Foo();
-            //    struct Bar
-            //    {
-            //        Bar(float, float);
-            //        virtual ~Bar();
-            //    }
-            //};
-            string headerXml = @"<class>class <name>Foo</name> 
-<block>{<private type=""default"">
-</private><public>public:
-    <constructor_decl><name>Foo</name><parameter_list>(<param><decl><type><name>int</name></type></decl></param>, <param><decl><type><name>int</name></type></decl></param>, <param><decl><type><name>char</name></type></decl></param>)</parameter_list>;</constructor_decl>
-    <destructor_decl><specifier>virtual</specifier> <name>~<name>Foo</name></name><parameter_list>()</parameter_list>;</destructor_decl>
-    <struct>struct <name>Bar</name>
-    <block>{<public type=""default"">
-        <constructor_decl><name>Bar</name><parameter_list>(<param><decl><type><name>float</name></type></decl></param>, <param><decl><type><name>float</name></type></decl></param>)</parameter_list>;</constructor_decl>
-        <destructor_decl><specifier>virtual</specifier> <name>~<name>Bar</name></name><parameter_list>()</parameter_list>;</destructor_decl>
-    </public>}</block>
-<decl/></struct></public>}</block>;</class>";
-            //Foo.cpp
-            //Foo::Bar::Bar(float a, float b) { }
-            //Foo::Bar::~Bar() { }
-            //
-            //Foo::Foo(int a, int b, char c) { }
-            //Foo::~Foo() { }
-            string implXml = @"<constructor><name><name>Foo</name><op:operator>::</op:operator><name>Bar</name><op:operator>::</op:operator><name>Bar</name></name><parameter_list>(<param><decl><type><name>float</name></type> <name>a</name></decl></param>, <param><decl><type><name>float</name></type> <name>b</name></decl></param>)</parameter_list> <block>{ }</block></constructor>
-<destructor><name><name>Foo</name><op:operator>::</op:operator><name>Bar</name><op:operator>::</op:operator>~<name>Bar</name></name><parameter_list>()</parameter_list> <block>{ }</block></destructor>
+            string headerXml = @"class Foo 
+            {
+            public:
+                Foo(int, int, char);
+                virtual ~Foo();
+                struct Bar
+                {
+                    Bar(float, float);
+                    virtual ~Bar();
+                }
+            };";
 
-<constructor><name><name>Foo</name><op:operator>::</op:operator><name>Foo</name></name><parameter_list>(<param><decl><type><name>int</name></type> <name>a</name></decl></param>, <param><decl><type><name>int</name></type> <name>b</name></decl></param>, <param><decl><type><name>char</name></type> <name>c</name></decl></param>)</parameter_list> <block>{ }</block></constructor>
-<destructor><name><name>Foo</name><op:operator>::</op:operator>~<name>Foo</name></name><parameter_list>()</parameter_list> <block>{ }</block></destructor>
-";
-            var header = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(headerXml, "Foo.h");
-            var implementation = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(implXml, "Foo.cpp");
+            string implXml = @"Foo::Bar::Bar(float a, float b) { }
+            Foo::Bar::~Bar() { }
+            
+            Foo::Foo(int a, int b, char c) { }
+            Foo::~Foo() { }";
+            LibSrcMLRunner runF = new LibSrcMLRunner();
+            string srcMLF = runF.GenerateSrcMLFromString(headerXml, "Foo.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var header = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(srcMLF, "Foo.h");
+            LibSrcMLRunner runE = new LibSrcMLRunner();
+            string srcMLE = runE.GenerateSrcMLFromString(implXml, "Foo.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var implementation = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(srcMLE, "Foo.cpp");
 
             var headerScope = CodeParser[Language.CPlusPlus].ParseFileUnit(header);
             var implementationScope = CodeParser[Language.CPlusPlus].ParseFileUnit(implementation);
@@ -134,15 +123,16 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestDestructorMerge_Cpp() {
-            //A.h class A { ~A(); };
-            string header_xml = @"<class>class <name>A</name> <block>{<private type=""default""> <destructor_decl><name>~<name>A</name></name><parameter_list>()</parameter_list>;</destructor_decl> </private>}</block>;</class>
-";
+            string header_xml = @"class A { ~A(); };";
 
-            //A.cpp A::~A() { }
-            string impl_xml = @"<destructor><name><name>A</name><op:operator>::</op:operator>~<name>A</name></name><parameter_list>()</parameter_list> <block>{ }</block></destructor>";
+            string impl_xml = @"A::~A() { }";
 
-            var header = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(header_xml, "A.h");
-            var implementation = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(impl_xml, "A.cpp");
+            LibSrcMLRunner runA = new LibSrcMLRunner();
+            string srcMLA = runA.GenerateSrcMLFromString(header_xml, "A.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var header = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(srcMLA, "A.h");
+            LibSrcMLRunner runB = new LibSrcMLRunner();
+            string srcMLB = runB.GenerateSrcMLFromString(impl_xml, "A.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var implementation = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(srcMLB, "A.cpp");
 
             var headerScope = CodeParser[Language.CPlusPlus].ParseFileUnit(header);
             var implementationScope = CodeParser[Language.CPlusPlus].ParseFileUnit(implementation);
@@ -165,16 +155,16 @@ namespace ABB.SrcML.Data.Test {
         }
         [Test]
         public void TestMethodDefinitionMerge_Cpp() {
-            // # A.h class A { int Foo(); };
-            string header_xml = @"<class>class <name>A</name> <block>{<private type=""default"">
-    <function_decl><type><name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list>;</function_decl>
-</private>}</block>;</class>";
+            string header_xml = @"class A { int Foo(); };";
 
-            // # A.cpp int A::Foo() { int bar = 1; return bar; }
-            string impl_xml = @"<function><type><name>int</name></type> <name><name>A</name><op:operator>::</op:operator><name>Foo</name></name><parameter_list>()</parameter_list> <block>{ <decl_stmt><decl><type><name>int</name></type> <name>bar</name> <init>= <expr><lit:literal type=""number"">1</lit:literal></expr></init></decl>;</decl_stmt> <return>return <expr><name>bar</name></expr>;</return> }</block></function>";
+            string impl_xml = @"int A::Foo() { int bar = 1; return bar; }";
 
-            var header = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(header_xml, "A.h");
-            var implementation = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(impl_xml, "A.cpp");
+            LibSrcMLRunner runA = new LibSrcMLRunner();
+            string srcMLA = runA.GenerateSrcMLFromString(header_xml, "A.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var header = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(srcMLA, "A.h");
+            LibSrcMLRunner runB = new LibSrcMLRunner();
+            string srcMLB = runB.GenerateSrcMLFromString(impl_xml, "A.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var implementation = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(srcMLB, "A.cpp");
 
             var headerScope = CodeParser[Language.CPlusPlus].ParseFileUnit(header);
             var implementationScope = CodeParser[Language.CPlusPlus].ParseFileUnit(implementation);
@@ -191,23 +181,23 @@ namespace ABB.SrcML.Data.Test {
             var methodFoo = typeA.ChildStatements.First() as MethodDefinition;
             Assert.AreEqual("Foo", methodFoo.Name);
             Assert.AreEqual(2, methodFoo.ChildStatements.Count());
-            // TODO Assert.AreEqual(1, methodFoo.DeclaredVariables.Count());
+            //TODO Assert.AreEqual(1, methodFoo.DeclaredVariables.Count());
             Assert.AreEqual("A.cpp", methodFoo.PrimaryLocation.SourceFileName);
             Assert.AreEqual(AccessModifier.Private, methodFoo.Accessibility);
         }
 
         [Test]
         public void TestMethodDefinitionMerge_NoParameterName() {
-            ////Foo.h
-            //int Foo(char);
-            string declXml = "<function_decl><type><name>int</name></type> <name>Foo</name><parameter_list>(<param><decl><type><name>char</name></type></decl></param>)</parameter_list>;</function_decl>";
-            var fileunitDecl = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(declXml, "Foo.h");
+            string declXml = "int Foo(char);";
+            LibSrcMLRunner runF = new LibSrcMLRunner();
+            string srcMLF = runF.GenerateSrcMLFromString(declXml, "Foo.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var fileunitDecl = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(srcMLF, "Foo.h");
             var declarationScope = CodeParser[Language.CPlusPlus].ParseFileUnit(fileunitDecl);
 
-            ////Foo.cpp
-            //int Foo(char bar) { return 0; }
-            string defXml = "<function><type><name>int</name></type> <name>Foo</name><parameter_list>(<param><decl><type><name>char</name></type> <name>bar</name></decl></param>)</parameter_list> <block>{ <return>return <expr><lit:literal type=\"number\">0</lit:literal></expr>;</return> }</block></function>";
-            var fileUnitDef = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(defXml, "Foo.cpp");
+            string defXml = "int Foo(char bar) { return 0; }";
+            LibSrcMLRunner runE = new LibSrcMLRunner();
+            string srcMLE = runE.GenerateSrcMLFromString(defXml, "Foo.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var fileUnitDef = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(srcMLE, "Foo.cpp");
 
             var globalScope = new NamespaceDefinition();
             var definitionScope = CodeParser[Language.CPlusPlus].ParseFileUnit(fileUnitDef);
@@ -229,18 +219,16 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestCreateMethodDefinition_TwoUnresolvedParents() {
-            // # B.h namespace A { class B { }; }
-            string xmlh = @"<namespace>namespace <name>A</name> <block>{
-    <class>class <name>B</name> <block>{<private type=""default"">
-    </private>}</block>;</class>
-}</block></namespace>";
+            string xmlh = @"namespace A { class B { }; }";
 
-            // # B.cpp int A::B::Foo() { return 0; }
-            string xmlcpp = @"<function><type><name>int</name></type> <name><name>A</name><op:operator>::</op:operator><name>B</name><op:operator>::</op:operator><name>Foo</name></name><parameter_list>()</parameter_list> <block>{
-}</block></function>";
+            string xmlcpp = @"int A::B::Foo() { }";
 
-            var xmlHeader = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xmlh, "B.h");
-            var xmlImpl = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xmlcpp, "B.cpp");
+            LibSrcMLRunner runB = new LibSrcMLRunner();
+            string srcMLB = runB.GenerateSrcMLFromString(xmlh, "B.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var xmlHeader = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(srcMLB, "B.h");
+            LibSrcMLRunner runA = new LibSrcMLRunner();
+            string srcMLA = runA.GenerateSrcMLFromString(xmlcpp, "B.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var xmlImpl = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(srcMLA, "B.cpp");
 
             var headerScope = CodeParser[Language.CPlusPlus].ParseFileUnit(xmlHeader);
             var implementationScope = CodeParser[Language.CPlusPlus].ParseFileUnit(xmlImpl);
@@ -270,16 +258,16 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestCreateMethodDefinition_TwoUnresolvedParentsWithPrototype() {
-            // # B.h namespace A { class B { int Foo(); }; }
-            string xmlh = @"<namespace>namespace <name>A</name> <block>{ <class>class <name>B</name> <block>{<private type=""default""> <function_decl><type><name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list>;</function_decl> </private>}</block>;</class> }</block></namespace>
-";
+            string xmlh = @"namespace A { class B { int Foo(); }; }";
 
-            // # B.cpp int A::B::Foo() { return 0; }
-            string xmlcpp = @"<function><type><name>int</name></type> <name><name>A</name><op:operator>::</op:operator><name>B</name><op:operator>::</op:operator><name>Foo</name></name><parameter_list>()</parameter_list> <block>{
-}</block></function>";
+            string xmlcpp = @"int A::B::Foo() { }";
 
-            var xmlHeader = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xmlh, "B.h");
-            var xmlImpl = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xmlcpp, "B.cpp");
+            LibSrcMLRunner runA = new LibSrcMLRunner();
+            string srcMLA = runA.GenerateSrcMLFromString(xmlh, "B.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var xmlHeader = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(srcMLA, "B.h");
+            LibSrcMLRunner runB = new LibSrcMLRunner();
+            string srcMLB = runB.GenerateSrcMLFromString(xmlcpp, "B.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var xmlImpl = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(srcMLB, "B.cpp");
 
             var headerScope = CodeParser[Language.CPlusPlus].ParseFileUnit(xmlHeader);
             var implementationScope = CodeParser[Language.CPlusPlus].ParseFileUnit(xmlImpl);
@@ -308,53 +296,42 @@ namespace ABB.SrcML.Data.Test {
         }
         [Test]
         public void TestMethodDefinitionMerge_NoParameters() {
-            ////Foo.h
-            //int Foo();
-            string declXml = "<function_decl><type><name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list>;</function_decl>";
-            var fileunitDecl = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(declXml, "Foo.h");
+            string declXml = "int Foo();";
+            LibSrcMLRunner runF = new LibSrcMLRunner();
+            string srcMLF = runF.GenerateSrcMLFromString(declXml, "Foo.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var fileunitDecl = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(srcMLF, "Foo.h");
             var declarationScope = CodeParser[Language.CPlusPlus].ParseFileUnit(fileunitDecl);
 
-            ////Foo.cpp
-            //int Foo() { return 0; }
-            string defXml = @"<function><type><name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><lit:literal type=""number"">0</lit:literal></expr>;</return> }</block></function>";
-            var fileUnitDef = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(defXml, "Foo.cpp");
+            string defXml = @"int Foo() { return 0; }";
+            LibSrcMLRunner runG = new LibSrcMLRunner();
+            string srcMLG = runG.GenerateSrcMLFromString(defXml, "Foo.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var fileUnitDef = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(srcMLG, "Foo.cpp");
             var definitionScope = CodeParser[Language.CPlusPlus].ParseFileUnit(fileUnitDef);
 
             var globalScope = declarationScope.Merge(definitionScope);
 
             Assert.AreEqual(1, globalScope.ChildStatements.Count());
-            Assert.AreEqual("Foo", ((MethodDefinition) globalScope.ChildStatements.First()).Name);
+            Assert.AreEqual("Foo", ((MethodDefinition)globalScope.ChildStatements.First()).Name);
         }
 
 
         [Test]
         public void TestNamespaceMerge_Cpp() {
-            // # D.h namespace A { namespace B { namespace C { class D { }; } } }
-            string d_xml = @"<namespace>namespace <name>A</name> <block>{
-    <namespace>namespace <name>B</name> <block>{
-        <namespace>namespace <name>C</name> <block>{
-             <class>class <name>D</name> <block>{<private type=""default""> </private>}</block>;</class>
-         }</block></namespace>
-    }</block></namespace>
-}</block></namespace>";
+            string d_xml = @"namespace A { namespace B { namespace C { class D { }; } } }";
 
-            // # E.h namespace A { namespace B { namespace C { class E { }; } } }
-            string e_xml = @"<namespace>namespace <name>A</name> <block>{
-    <namespace>namespace <name>B</name> <block>{
-        <namespace>namespace <name>C</name> <block>{
-             <class>class <name>E</name> <block>{<private type=""default""> </private>}</block>;</class>
-         }</block></namespace>
-    }</block></namespace>
-}</block></namespace>";
+            string e_xml = @"namespace A { namespace B { namespace C { class E { }; } } }";
 
-            // # F.h namespace D { class F { }; }
-            string f_xml = @"<namespace>namespace <name>D</name> <block>{
-    <class>class <name>F</name> <block>{<private type=""default""> </private>}</block>;</class>
-}</block></namespace>";
+            string f_xml = @"namespace D { class F { }; }";
 
-            var fileUnitD = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(d_xml, "D.h");
-            var fileUnitE = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(e_xml, "E.h");
-            var fileUnitF = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(f_xml, "F.h");
+            LibSrcMLRunner runD = new LibSrcMLRunner();
+            string srcMLD = runD.GenerateSrcMLFromString(d_xml, "D.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var fileUnitD = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(srcMLD, "D.h");
+            LibSrcMLRunner runE = new LibSrcMLRunner();
+            string srcMLE = runE.GenerateSrcMLFromString(e_xml, "E.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var fileUnitE = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(srcMLE, "E.h");
+            LibSrcMLRunner runF = new LibSrcMLRunner();
+            string srcMLF = runF.GenerateSrcMLFromString(f_xml, "F.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var fileUnitF = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(srcMLF, "F.h");
 
             var globalScope = new NamespaceDefinition();
             var scopeD = CodeParser[Language.CPlusPlus].ParseFileUnit(fileUnitD);
@@ -397,18 +374,21 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestNamespaceMerge_Java() {
-            // # D.java package A.B.C; class D { public void Foo() { } }
-            string d_xml = @"<package>package <name><name>A</name><op:operator>.</op:operator><name>B</name><op:operator>.</op:operator><name>C</name></name>;</package> <class>class <name>D</name> <block>{ <function><type><specifier>public</specifier> <name>void</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ }</block></function> }</block></class>";
+            string d_xml = @"package A.B.C; class D { public void Foo() { } }";
 
-            // # E.java package A.B.C; class E { public void Bar() { } }
-            string e_xml = @"<package>package <name><name>A</name><op:operator>.</op:operator><name>B</name><op:operator>.</op:operator><name>C</name></name>;</package> <class>class <name>E</name> <block>{ <function><type><specifier>public</specifier> <name>void</name></type> <name>Bar</name><parameter_list>()</parameter_list> <block>{ }</block></function> }</block></class>";
+            string e_xml = @"package A.B.C; class E { public void Bar() { } }";
 
-            // # F.java package D; class F { public void Oof() { } }
-            string f_xml = @"<package>package <name>D</name>;</package> <class>class <name>F</name> <block>{ <function><type><specifier>public</specifier> <name>void</name></type> <name>Oof</name><parameter_list>()</parameter_list> <block>{ }</block></function> }</block></class>";
+            string f_xml = @"package D; class F { public void Oof() { } }";
 
-            var fileUnitD = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(d_xml, "D.java");
-            var fileUnitE = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(e_xml, "E.java");
-            var fileUnitF = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(f_xml, "F.java");
+            LibSrcMLRunner runD = new LibSrcMLRunner();
+            string srcMLD = runD.GenerateSrcMLFromString(d_xml, "D.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var fileUnitD = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(srcMLD, "D.java");
+            LibSrcMLRunner runE = new LibSrcMLRunner();
+            string srcMLE = runE.GenerateSrcMLFromString(e_xml, "E.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var fileUnitE = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(srcMLE, "E.java");
+            LibSrcMLRunner runF = new LibSrcMLRunner();
+            string srcMLF = runF.GenerateSrcMLFromString(f_xml, "F.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var fileUnitF = FileUnitSetup[Language.Java].GetFileUnitForXmlSnippet(srcMLF, "F.java");
 
             var globalScopeD = CodeParser[Language.Java].ParseFileUnit(fileUnitD);
             var globalScopeE = CodeParser[Language.Java].ParseFileUnit(fileUnitE);
@@ -446,16 +426,16 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestMethodDefinitionMerge_DifferentPrefixes() {
-            ////A.cpp
-            // int A::Foo() { return 0; }
-            string aCpp = @"<function><type><name>int</name></type> <name><name>A</name><op:operator>::</op:operator><name>Foo</name></name><parameter_list>()</parameter_list> <block>{ <return>return <expr><lit:literal type=""number"">0</lit:literal></expr>;</return> }</block></function>";
-            var fileUnitA = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(aCpp, "A.cpp");
+            string aCpp = @"int A::Foo() { return 0; }";
+            LibSrcMLRunner runA = new LibSrcMLRunner();
+            string srcMLA = runA.GenerateSrcMLFromString(aCpp, "A.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var fileUnitA = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(srcMLA, "A.cpp");
             var aScope = CodeParser[Language.CPlusPlus].ParseFileUnit(fileUnitA);
 
-            ////B.cpp
-            // int B::Foo() { return 1; }
-            string bCpp = @"<function><type><name>int</name></type> <name><name>B</name><op:operator>::</op:operator><name>Foo</name></name><parameter_list>()</parameter_list> <block>{ <return>return <expr><lit:literal type=""number"">1</lit:literal></expr>;</return> }</block></function>";
-            var fileUnitB = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(bCpp, "B.cpp");
+            string bCpp = @"int B::Foo() { return 1; }";
+            LibSrcMLRunner runB = new LibSrcMLRunner();
+            string srcMLB = runB.GenerateSrcMLFromString(bCpp, "B.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var fileUnitB = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(srcMLB, "B.cpp");
             var bScope = CodeParser[Language.CPlusPlus].ParseFileUnit(fileUnitB);
 
             var globalScope = aScope.Merge(bScope);
@@ -464,31 +444,24 @@ namespace ABB.SrcML.Data.Test {
         }
         [Test]
         public void TestPartialClassMerge_CSharp() {
-            ////A1.cs
-            //public partial class A {
-            //    public int Execute() {
-            //        return 0;
-            //    }
-            //}
-            string a1Xml = @"<class><specifier>public</specifier> <specifier>partial</specifier> class <name>A</name> <block>{
-    <function><type><specifier>public</specifier> <name>int</name></type> <name>Execute</name><parameter_list>()</parameter_list> <block>{
-        <return>return <expr><lit:literal type=""number"">0</lit:literal></expr>;</return>
-    }</block></function>
-}</block></class>";
-            var a1FileUnit = FileUnitSetup[Language.CSharp].GetFileUnitForXmlSnippet(a1Xml, "A1.cs");
+            string a1Xml = @"public partial class A {
+                public int Execute() {
+                    return 0;
+                }
+            }";
+            LibSrcMLRunner runA = new LibSrcMLRunner();
+            string srcMLA = runA.GenerateSrcMLFromString(a1Xml, "A1.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var a1FileUnit = FileUnitSetup[Language.CSharp].GetFileUnitForXmlSnippet(srcMLA, "A1.cs");
             var globalScope = CodeParser[Language.CSharp].ParseFileUnit(a1FileUnit);
-            ////A2.cs
-            //public partial class A {
-            //    private bool Foo() {
-            //        return true;
-            //    }
-            //}
-            string a2Xml = @"<class><specifier>public</specifier> <specifier>partial</specifier> class <name>A</name> <block>{
-    <function><type><specifier>private</specifier> <name>bool</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{
-        <return>return <expr><lit:literal type=""boolean"">true</lit:literal></expr>;</return>
-    }</block></function>
-}</block></class>";
-            var a2FileUnit = FileUnitSetup[Language.CSharp].GetFileUnitForXmlSnippet(a2Xml, "A2.cs");
+
+            string a2Xml = @"public partial class A {
+                private bool Foo() {
+                    return true;
+                }
+            }";
+            LibSrcMLRunner runB = new LibSrcMLRunner();
+            string srcMLB = runB.GenerateSrcMLFromString(a2Xml, "A2.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var a2FileUnit = FileUnitSetup[Language.CSharp].GetFileUnitForXmlSnippet(srcMLB, "A2.cs");
             globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(a2FileUnit));
 
             Assert.AreEqual(1, globalScope.ChildStatements.Count());
@@ -501,23 +474,20 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestPartialMethodMerge_CSharp() {
-            ////A1.cs
-            //public partial class A {
-            //    public partial int Foo();
-            //}
-            string a1Xml = @"<class><specifier>public</specifier> <specifier>partial</specifier> class <name>A</name> <block>{
-    <function_decl><type><specifier>public</specifier> <specifier>partial</specifier> <name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list>;</function_decl>
-}</block></class>";
-            var a1FileUnit = FileUnitSetup[Language.CSharp].GetFileUnitForXmlSnippet(a1Xml, "A1.cs");
+            string a1Xml = @"public partial class A {
+                public partial int Foo();
+            }";
+            LibSrcMLRunner runA = new LibSrcMLRunner();
+            string srcMLA = runA.GenerateSrcMLFromString(a1Xml, "A1.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var a1FileUnit = FileUnitSetup[Language.CSharp].GetFileUnitForXmlSnippet(srcMLA, "A1.cs");
             var globalScope = CodeParser[Language.CSharp].ParseFileUnit(a1FileUnit);
-            ////A2.cs
-            //public partial class A {
-            //    public partial int Foo() { return 42; }
-            //}
-            string a2Xml = @"<class><specifier>public</specifier> <specifier>partial</specifier> class <name>A</name> <block>{
-    <function><type><specifier>public</specifier> <specifier>partial</specifier> <name>int</name></type> <name>Foo</name><parameter_list>()</parameter_list> <block>{ <return>return <expr><lit:literal type=""number"">42</lit:literal></expr>;</return> }</block></function>
-}</block></class>";
-            var a2FileUnit = FileUnitSetup[Language.CSharp].GetFileUnitForXmlSnippet(a2Xml, "A2.cs");
+
+            string a2Xml = @"public partial class A {
+                public partial int Foo() { return 42; }
+            }";
+            LibSrcMLRunner runB = new LibSrcMLRunner();
+            string srcMLB = runB.GenerateSrcMLFromString(a2Xml, "A2.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var a2FileUnit = FileUnitSetup[Language.CSharp].GetFileUnitForXmlSnippet(srcMLB, "A2.cs");
             globalScope = globalScope.Merge(CodeParser[Language.CSharp].ParseFileUnit(a2FileUnit));
 
             Assert.AreEqual(1, globalScope.ChildStatements.Count());
@@ -531,23 +501,18 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestUnresolvedParentMerge_ClassEncounteredFirst_Cpp() {
-            // # A.cpp int A::Foo() { return 0; }
-            //
-            // int A::Bar() { return 0; }
-            string xmlcpp = @"<function><type><name>int</name></type> <name><name>A</name><op:operator>::</op:operator><name>Foo</name></name><parameter_list>()</parameter_list> <block>{
-     <return>return <expr><lit:literal type=""number"">0</lit:literal></expr>;</return>
-}</block></function>
+            string xmlcpp = @"int A::Foo() { return 0; }
+             int A::Bar() { return 0; }";
 
-<function><type><name>int</name></type> <name><name>A</name><op:operator>::</op:operator><name>Bar</name></name><parameter_list>()</parameter_list> <block>{
-     <return>return <expr><lit:literal type=""number"">0</lit:literal></expr>;</return>
-}</block></function>";
 
-            // # A.h class A { };
-            string xmlh = @"<class>class <name>A</name> <block>{<private type=""default"">
-</private>}</block>;</class>";
+            string xmlh = @"class A { };";
 
-            var xmlImpl = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xmlcpp, "A.cpp");
-            var xmlHeader = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xmlh, "A.h");
+            LibSrcMLRunner runA = new LibSrcMLRunner();
+            string srcMLA = runA.GenerateSrcMLFromString(xmlcpp, "A.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var xmlImpl = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(srcMLA, "A.cpp");
+            LibSrcMLRunner runB = new LibSrcMLRunner();
+            string srcMLB = runB.GenerateSrcMLFromString(xmlh, "A.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var xmlHeader = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(srcMLB, "A.h");
 
             var globalScope = CodeParser[Language.CPlusPlus].ParseFileUnit(xmlHeader);
             Assert.AreEqual(1, globalScope.ChildStatements.Count());
@@ -577,23 +542,17 @@ namespace ABB.SrcML.Data.Test {
 
         [Test]
         public void TestUnresolvedParentMerge_MethodsEncounteredFirst_Cpp() {
-            // # A.cpp int A::Foo() { return 0; }
-            //
-            // int A::Bar() { return 0; }
-            string xmlcpp = @"<function><type><name>int</name></type> <name><name>A</name><op:operator>::</op:operator><name>Foo</name></name><parameter_list>()</parameter_list> <block>{
-     <return>return <expr><lit:literal type=""number"">0</lit:literal></expr>;</return>
-}</block></function>
+            string xmlcpp = @"int A::Foo() { return 0; }
+             int A::Bar() { return 0; }";
 
-<function><type><name>int</name></type> <name><name>A</name><op:operator>::</op:operator><name>Bar</name></name><parameter_list>()</parameter_list> <block>{
-     <return>return <expr><lit:literal type=""number"">0</lit:literal></expr>;</return>
-}</block></function>";
+            string xmlh = @"class A { };";
 
-            // # A.h class A { };
-            string xmlh = @"<class>class <name>A</name> <block>{<private type=""default"">
-</private>}</block>;</class>";
-
-            var xmlImpl = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xmlcpp, "A.cpp");
-            var xmlHeader = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(xmlh, "A.h");
+            LibSrcMLRunner runA = new LibSrcMLRunner();
+            string srcMLA = runA.GenerateSrcMLFromString(xmlcpp, "A.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var xmlImpl = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(srcMLA, "A.cpp");
+            LibSrcMLRunner runB = new LibSrcMLRunner();
+            string srcMLB = runB.GenerateSrcMLFromString(xmlh, "A.h", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var xmlHeader = FileUnitSetup[Language.CPlusPlus].GetFileUnitForXmlSnippet(srcMLB, "A.h");
 
             var globalScope = CodeParser[Language.CPlusPlus].ParseFileUnit(xmlImpl);
             Assert.AreEqual(2, globalScope.ChildStatements.Count());
