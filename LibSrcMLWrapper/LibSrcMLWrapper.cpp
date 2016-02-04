@@ -87,7 +87,7 @@ extern"C"{
             SetArchiveData(archive, clientArchives[i]);
 
             std::string filename(clientArchives[i]->outputFile);
-            filename += std::to_string(i) + ".cpp.xml";
+            filename += std::to_string(i) + ".xml";
 
             /*open a srcML archive for output */
             srcml_archive_write_open_filename(archive, filename.c_str(), 0);
@@ -142,7 +142,7 @@ extern"C"{
 
             /* open a srcML archive for output */
             std::string filename(clientArchives[i]->outputFile);
-            filename += std::to_string(i) + ".cpp.xml";
+            filename += std::to_string(i) + ".xml";
 
             /*open a srcML archive for output */
             srcml_archive_write_open_filename(archive, filename.c_str(), 0);
