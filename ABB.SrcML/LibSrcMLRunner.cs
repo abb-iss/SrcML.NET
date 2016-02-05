@@ -603,6 +603,9 @@ namespace ABB.SrcML {
             if (File.Exists(srcMLFile) && File.Exists(xsltFile)) {
                 LibSrcMLRunner.SrcMLApplyXsltFtF(Marshal.StringToHGlobalAnsi(srcMLFile), Marshal.StringToHGlobalAnsi(xsltFile), Marshal.StringToHGlobalAnsi(outputFile));
             }
+            else {
+                throw new Exception("Could not apply XSLT to file");
+            }
             return 0;
             //Function should take a srcML file that as xsltFile applied to it within the C++ module. Nothing is returned
             //As the results are stored in outputFile

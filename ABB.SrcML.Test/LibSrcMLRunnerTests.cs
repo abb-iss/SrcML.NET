@@ -18,8 +18,8 @@ namespace ABB.SrcML.Test {
         private const string TestInputPath = @"..\..\TestInputs";
         [TearDown]
         public void Cleanup() {
-            File.Delete("output0.cpp.xml");
-            File.Delete("output1.cpp.xml");
+            File.Delete("output0.xml");
+            File.Delete("output1.xml");
         }
 
         /// <summary>
@@ -57,8 +57,8 @@ namespace ABB.SrcML.Test {
                     }
                 }
                 {
-                    Assert.True(File.Exists("output0.cpp.xml"));
-                    SrcMLFile srcFile = new SrcMLFile("output0.cpp.xml");
+                    Assert.True(File.Exists("output0.xml"));
+                    SrcMLFile srcFile = new SrcMLFile("output0.xml");
                     Assert.IsNotNull(srcFile);
 
                     var files = srcFile.FileUnits.ToList();
@@ -71,8 +71,8 @@ namespace ABB.SrcML.Test {
                     Assert.AreEqual(file, f1.FirstOrDefault().Attribute("filename").Value);
                 }
                 {
-                    Assert.True(File.Exists("output1.cpp.xml"));
-                    SrcMLFile srcFile = new SrcMLFile("output1.cpp.xml");
+                    Assert.True(File.Exists("output1.xml"));
+                    SrcMLFile srcFile = new SrcMLFile("output1.xml");
                     Assert.IsNotNull(srcFile);
 
                     var files = srcFile.FileUnits.ToList();
@@ -188,9 +188,9 @@ namespace ABB.SrcML.Test {
                 structArrayPtr.Add(structPtr);
 
                 Assert.True(LibSrcMLRunner.SrcmlCreateArchiveMtF(structArrayPtr.ToArray(), structArrayPtr.Count()) == IntPtr.Zero);
-                Assert.True(File.Exists("output0.cpp.xml"));
+                Assert.True(File.Exists("output0.xml"));
 
-                SrcMLFile srcFile = new SrcMLFile("output0.cpp.xml");
+                SrcMLFile srcFile = new SrcMLFile("output0.xml");
                 Assert.IsNotNull(srcFile);
 
                 var files = srcFile.FileUnits.ToList();
@@ -226,7 +226,7 @@ namespace ABB.SrcML.Test {
 
                 fileList.Add("input.cpp");
                 fileList.Add("input2.cpp");
-                
+
                 var buffandfile = bufferList.Zip(fileList, (b, f) => new { buf = b, file = f });
                 foreach (var pair in buffandfile) {
                     using (Unit srcmlUnit = new Unit()) {
@@ -348,8 +348,8 @@ namespace ABB.SrcML.Test {
             try {
                 run.GenerateSrcMLFromFile(Path.Combine(TestInputPath, "input.cpp"), "output", Language.CPlusPlus, new List<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_MODIFIER }, new Dictionary<string, Language>() { });
 
-                Assert.True(File.Exists("output0.cpp.xml"));
-                SrcMLFile srcFile = new SrcMLFile("output0.cpp.xml");
+                Assert.True(File.Exists("output0.xml"));
+                SrcMLFile srcFile = new SrcMLFile("output0.xml");
                 Assert.IsNotNull(srcFile);
 
                 var files = srcFile.FileUnits.ToList();
@@ -372,8 +372,8 @@ namespace ABB.SrcML.Test {
             try {
                 run.GenerateSrcMLFromFiles(fileList, "output", Language.CPlusPlus, new List<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_MODIFIER }, new Dictionary<string, Language>() { });
 
-                Assert.True(File.Exists("output0.cpp.xml"));
-                SrcMLFile srcFile = new SrcMLFile("output0.cpp.xml");
+                Assert.True(File.Exists("output0.xml"));
+                SrcMLFile srcFile = new SrcMLFile("output0.xml");
                 Assert.IsNotNull(srcFile);
 
                 var files = srcFile.FileUnits.ToList();
@@ -398,11 +398,11 @@ namespace ABB.SrcML.Test {
         [Test]
         public void TestApplyXsltToSrcMLFile() {
             LibSrcMLRunner run = new LibSrcMLRunner();
-            Assert.IsTrue(File.Exists("function_def.xml"));
-            Assert.IsTrue(File.Exists("Test.xsl"));
-            run.ApplyXsltToSrcMLFile("function_def.xml", "Test.xsl", "o.cpp.xml");
-           
-            SrcMLFile srcFile = new SrcMLFile("o.cpp.xml.xslout");
+            Assert.IsTrue(File.Exists(@"..\..\TestInputs\function_def.xml"));
+            Assert.IsTrue(File.Exists(@"..\..\TestInputs\Test.xsl"));
+            run.ApplyXsltToSrcMLFile(@"..\..\TestInputs\function_def.xml", @"..\..\TestInputs\Test.xsl", @"..\..\TestInputs\o.xml");
+
+            SrcMLFile srcFile = new SrcMLFile(@"..\..\TestInputs\o.xml.xslout");
             Assert.IsNotNull(srcFile);
 
             var files = srcFile.FileUnits.ToList();
@@ -412,20 +412,20 @@ namespace ABB.SrcML.Test {
             XmlNamespaceManager namespaceManager = new XmlNamespaceManager(read.NameTable);
             namespaceManager.AddNamespace("src", "http://www.srcML.org/srcML/src");
 
-            var persist = srcFile.GetXDocument().XPathSelectElement("//src:test",namespaceManager);
+            var persist = srcFile.GetXDocument().XPathSelectElement("//src:test", namespaceManager);
             Assert.IsNotNull(persist);
             Assert.AreEqual(persist.Value, "TestPassed");
-            
+
         }
         [Test]
         public void TestApplyXsltToSrcMLString() {
             LibSrcMLRunner run = new LibSrcMLRunner();
-            string srcML = run.GenerateSrcMLFromString("int main(){int x;}", "input.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_MODIFIER }, false);
+            string srcML = run.GenerateSrcMLFromString("int main(){int x = foo(abc);}", "input.cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_MODIFIER }, false);
 
-            Assert.IsTrue(File.Exists("function_def.xml"));
-            Assert.IsTrue(File.Exists("Test.xsl"));
+            Assert.IsTrue(File.Exists(@"..\..\TestInputs\function_def.xml"));
+            Assert.IsTrue(File.Exists(@"..\..\TestInputs\Test.xsl"));
 
-            string xslSrcML = run.ApplyXsltToSrcMLString(srcML, "Test.xsl");
+            string xslSrcML = run.ApplyXsltToSrcMLString(srcML, @"..\..\TestInputs\Test.xsl");
 
             XDocument srcMLDoc = XDocument.Parse(xslSrcML);
 
