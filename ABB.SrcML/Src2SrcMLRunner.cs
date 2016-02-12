@@ -43,7 +43,7 @@ namespace ABB.SrcML {
         /// </summary>
         /// <param name="applicationDirectory">The application directory.</param>
         public Src2SrcMLRunner(string applicationDirectory)
-            : this(applicationDirectory, new[] {LIT.ArgumentLabel, OP.ArgumentLabel, TYPE.ArgumentLabel, POS.ArgumentLabel}) {}
+            : this(applicationDirectory, new[] {LIT.ArgumentLabel, TYPE.ArgumentLabel, POS.ArgumentLabel}) {}
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SrcDiffRunner"/> class.

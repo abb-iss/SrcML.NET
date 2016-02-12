@@ -20,18 +20,15 @@ using ABB.SrcML.Test.Utilities;
 using NUnit.Framework;
 using System.Collections.ObjectModel;
 
-namespace ABB.SrcML.Data.Test
-{
+namespace ABB.SrcML.Data.Test {
     [TestFixture]
     [Category("Build")]
-    public class CodeParserTests
-    {
+    public class CodeParserTests {
         private Dictionary<Language, AbstractCodeParser> codeParsers;
         private Dictionary<Language, SrcMLFileUnitSetup> fileSetup;
 
         [TestFixtureSetUp]
-        public void ClassSetup()
-        {
+        public void ClassSetup() {
             codeParsers = new Dictionary<Language, AbstractCodeParser>() {
                 {Language.CPlusPlus, new CPlusPlusCodeParser()},
                 {Language.CSharp, new CSharpCodeParser()},
@@ -47,12 +44,11 @@ namespace ABB.SrcML.Data.Test
         [TestCase(Language.CPlusPlus)]
         [TestCase(Language.CSharp)]
         [TestCase(Language.Java)]
-        public void TestTwoVariableDeclarations(Language lang)
-        {
+        public void TestTwoVariableDeclarations(Language lang) {
             int a, b;
             string xml = @"int a,b;";
             LibSrcMLRunner run = new LibSrcMLRunner();
-            string srcML = run.GenerateSrcMLFromString(xml, "test.cpp", lang, new Collection<UInt32>() { }, false);
+            string srcML = run.GenerateSrcMLFromString(xml, "test.cpp", lang, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var testUnit = fileSetup[lang].GetFileUnitForXmlSnippet(srcML, "test.cpp");
 
             var globalScope = codeParsers[lang].ParseFileUnit(testUnit);
@@ -70,15 +66,14 @@ namespace ABB.SrcML.Data.Test
 
         [TestCase(Language.CSharp)]
         [TestCase(Language.Java)]
-        public void TestField(Language lang)
-        {
+        public void TestField(Language lang) {
 
             string xml = @"class A {
               int Foo;
               Bar baz;
             }";
             LibSrcMLRunner run = new LibSrcMLRunner();
-            string srcML = run.GenerateSrcMLFromString(xml, "test.code", lang, new Collection<UInt32>() { }, false);
+            string srcML = run.GenerateSrcMLFromString(xml, "test.code", lang, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(srcML, "test.code");
 
             var globalScope = codeParsers[lang].ParseFileUnit(xmlElement);
@@ -99,15 +94,14 @@ namespace ABB.SrcML.Data.Test
         }
 
         [TestCase(Language.CPlusPlus)]
-        public void TestField_Cpp(Language lang)
-        {
+        public void TestField_Cpp(Language lang) {
 
             string xml = @"class A {
               int Foo;
               Bar baz;
             }";
             LibSrcMLRunner run = new LibSrcMLRunner();
-            string srcML = run.GenerateSrcMLFromString(xml, "test.code", lang, new Collection<UInt32>() { }, false);
+            string srcML = run.GenerateSrcMLFromString(xml, "test.code", lang, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(srcML, "test.code");
 
             var globalScope = codeParsers[lang].ParseFileUnit(xmlElement);
@@ -129,10 +123,7 @@ namespace ABB.SrcML.Data.Test
 
         [TestCase(Language.CSharp)]
         [TestCase(Language.Java)]
-        public void TestMethodCallCreation(Language lang)
-        {
-            // A.cs
-
+        public void TestMethodCallCreation(Language lang) {
             string xml = @"class A {
                 public int Execute() {
                     B b = new B();
@@ -146,7 +137,7 @@ namespace ABB.SrcML.Data.Test
                 }
             }";
             LibSrcMLRunner run = new LibSrcMLRunner();
-            string srcML = run.GenerateSrcMLFromString(xml, "test.code", lang, new Collection<UInt32>() { }, false);
+            string srcML = run.GenerateSrcMLFromString(xml, "test.code", lang, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var fileUnit = fileSetup[lang].GetFileUnitForXmlSnippet(srcML, "test.code");
             var globalScope = codeParsers[lang].ParseFileUnit(fileUnit);
 
@@ -201,11 +192,10 @@ namespace ABB.SrcML.Data.Test
         [TestCase(Language.CPlusPlus)]
         [TestCase(Language.CSharp)]
         [TestCase(Language.Java)]
-        public void TestSimpleExpression(Language lang)
-        {
+        public void TestSimpleExpression(Language lang) {
             string xml = @"foo = 2+3;";
             LibSrcMLRunner run = new LibSrcMLRunner();
-            string srcML = run.GenerateSrcMLFromString(xml, "test.code", lang, new Collection<UInt32>() { }, false);
+            string srcML = run.GenerateSrcMLFromString(xml, "test.code", lang, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(srcML, "test.code");
 
             var globalScope = codeParsers[lang].ParseFileUnit(xmlElement);
@@ -233,11 +223,10 @@ namespace ABB.SrcML.Data.Test
         [TestCase(Language.CPlusPlus)]
         [TestCase(Language.CSharp)]
         [TestCase(Language.Java)]
-        public void TestSubExpression(Language lang)
-        {
+        public void TestSubExpression(Language lang) {
             string xml = @"foo = (2+3)*5;";
             LibSrcMLRunner run = new LibSrcMLRunner();
-            string srcML = run.GenerateSrcMLFromString(xml, "test.code", lang, new Collection<UInt32>() { }, false);
+            string srcML = run.GenerateSrcMLFromString(xml, "test.code", lang, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(srcML, "test.code");
 
             var globalScope = codeParsers[lang].ParseFileUnit(xmlElement);
@@ -276,8 +265,7 @@ namespace ABB.SrcML.Data.Test
         [TestCase(Language.CPlusPlus)]
         [TestCase(Language.Java)]
         [TestCase(Language.CSharp)]
-        public void TestGetChildren_Statements(Language lang)
-        {
+        public void TestGetChildren_Statements(Language lang) {
             string xml = @"if(foo == 0) {
               return;
               try {
@@ -289,7 +277,7 @@ namespace ABB.SrcML.Data.Test
               return;
             }";
             LibSrcMLRunner run = new LibSrcMLRunner();
-            string srcML = run.GenerateSrcMLFromString(xml, "test.code", lang, new Collection<UInt32>() { }, false);
+            string srcML = run.GenerateSrcMLFromString(xml, "test.code", lang, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(srcML, "test.code");
 
             var globalScope = codeParsers[lang].ParseFileUnit(xmlElement);
@@ -300,11 +288,10 @@ namespace ABB.SrcML.Data.Test
         [TestCase(Language.CPlusPlus)]
         [TestCase(Language.Java)]
         [TestCase(Language.CSharp)]
-        public void TestGetChildren_Expressions(Language lang)
-        {
+        public void TestGetChildren_Expressions(Language lang) {
             string xml = @"Foo f = (bar + baz(qux(17))).Xyzzy();";
             LibSrcMLRunner run = new LibSrcMLRunner();
-            string srcML = run.GenerateSrcMLFromString(xml, "test.code", lang, new Collection<UInt32>() { }, false);
+            string srcML = run.GenerateSrcMLFromString(xml, "test.code", lang, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(srcML, "test.code");
 
             var globalScope = codeParsers[lang].ParseFileUnit(xmlElement);
@@ -315,8 +302,7 @@ namespace ABB.SrcML.Data.Test
         [TestCase(Language.CPlusPlus)]
         [TestCase(Language.Java)]
         [TestCase(Language.CSharp)]
-        public void TestResolveLocalVariable(Language lang)
-        {
+        public void TestResolveLocalVariable(Language lang) {
             string xml = @"int Foo() {
               if(MethodCall()) {
                 int bar = 17;
@@ -324,7 +310,7 @@ namespace ABB.SrcML.Data.Test
               }
             }";
             LibSrcMLRunner run = new LibSrcMLRunner();
-            string srcML = run.GenerateSrcMLFromString(xml, "test.code", lang, new Collection<UInt32>() { }, false);
+            string srcML = run.GenerateSrcMLFromString(xml, "test.code", lang, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(srcML, "test.code");
 
             var globalScope = codeParsers[lang].ParseFileUnit(xmlElement);
@@ -341,15 +327,14 @@ namespace ABB.SrcML.Data.Test
         [TestCase(Language.CPlusPlus)]
         [TestCase(Language.Java)]
         [TestCase(Language.CSharp)]
-        public void TestResolveLocalVariable_ParentExpression(Language lang)
-        {
+        public void TestResolveLocalVariable_ParentExpression(Language lang) {
             string xml = @"int Foo() {
               for(int i = 0; i < bar; i++) {
                 printf(i);
               }
             }";
             LibSrcMLRunner run = new LibSrcMLRunner();
-            string srcML = run.GenerateSrcMLFromString(xml, "test.code", lang, new Collection<UInt32>() { }, false);
+            string srcML = run.GenerateSrcMLFromString(xml, "test.code", lang, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(srcML, "test.code");
 
             var globalScope = codeParsers[lang].ParseFileUnit(xmlElement);
@@ -366,8 +351,7 @@ namespace ABB.SrcML.Data.Test
         [TestCase(Language.CPlusPlus)]
         [TestCase(Language.Java)]
         [TestCase(Language.CSharp)]
-        public void TestResolveLocalVariable_Parameter(Language lang)
-        {
+        public void TestResolveLocalVariable_Parameter(Language lang) {
             string xml = @"int Foo(int num, bool option) {
               if(option) {
                 printf(num);
@@ -375,7 +359,7 @@ namespace ABB.SrcML.Data.Test
               return 0;
             }";
             LibSrcMLRunner run = new LibSrcMLRunner();
-            string srcML = run.GenerateSrcMLFromString(xml, "A.cpp", lang, new Collection<UInt32>() { }, false);
+            string srcML = run.GenerateSrcMLFromString(xml, "A.cpp", lang, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElement = fileSetup[lang].GetFileUnitForXmlSnippet(srcML, "A.cpp");
 
             var globalScope = codeParsers[lang].ParseFileUnit(xmlElement);

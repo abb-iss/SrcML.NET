@@ -23,7 +23,7 @@ namespace ABB.SrcML {
         static SrcMLNamespaces() {
             nsManager.AddNamespace(CPP.Prefix, CPP.NS.NamespaceName);
             nsManager.AddNamespace(LIT.Prefix, LIT.NS.NamespaceName);
-            nsManager.AddNamespace(OP.Prefix, OP.NS.NamespaceName);
+            nsManager.AddNamespace(SRC.Prefix, SRC.NS.NamespaceName);
             nsManager.AddNamespace(POS.Prefix, POS.NS.NamespaceName);
             nsManager.AddNamespace(SRC.Prefix, SRC.NS.NamespaceName);
             nsManager.AddNamespace(TYPE.Prefix, TYPE.NS.NamespaceName);

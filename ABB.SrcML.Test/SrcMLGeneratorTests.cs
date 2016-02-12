@@ -18,6 +18,7 @@ using NUnit.Framework;
 using ABB.SrcML;
 using System.Xml.Linq;
 using ABB.SrcML.Utilities;
+using System.Collections.ObjectModel;
 
 namespace ABB.SrcML.Test {
     [TestFixture]
@@ -90,13 +91,15 @@ namespace LoggingTransformation
         }
 
         [Test, Category("SrcMLUpdate")]
-        public void TestStrangeEncodings([Values(@"badPathTest\BadPath™\badPathTest.c", @"srcmltest\fooBody.c")] string sourceFileName)
+        public void TestStrangeEncodings([Values(@"badPathTest\BadPath™\badPathTest.c", @"srcmltest\foo.c")] string sourceFileName)
         {
-            var xmlFileName = Path.Combine("srcml_xml", Path.GetFileName(Path.ChangeExtension(sourceFileName, ".xml")));
-            generator.GenerateSrcMLFromFile(sourceFileName, xmlFileName, Language.C);
-            Console.WriteLine("FILE: {0}", sourceFileName);
-            var doc = new SrcMLFile(xmlFileName);
+            LibSrcMLRunner runner = new LibSrcMLRunner();
+            runner.GenerateSrcMLFromFile(sourceFileName, "output", Language.C, new Collection<uint> { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, new Dictionary<string, Language> { });
+
+            Assert.IsTrue(File.Exists("output0.xml"));
+            SrcMLFile doc = new SrcMLFile("output0.xml"); //Test failing because this can't read the unit?
             Assert.IsNotNull(doc);
+           
         }
 
         [Test]
@@ -139,7 +142,9 @@ printf(""hello world!"");
 
         [Test]
         public void MultipleFilesTest() {
-            var doc = generator.GenerateSrcMLFileFromFiles(new string[] { "srcmltest\\foo.c", "srcmltest\\bar.c" }, "srcml_xml\\multiplefile.xml");
+            LibSrcMLRunner runner = new LibSrcMLRunner();
+            runner.GenerateSrcMLFromFiles(new string[] { "srcmltest\\foo.c", "srcmltest\\bar.c" }, "output", Language.CPlusPlus, new Collection<uint> { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, new Dictionary<string, Language> { });
+            SrcMLFile doc = new SrcMLFile("output0.xml");
 
             Assert.IsNotNull(doc);
             var files = doc.FileUnits.ToList();
@@ -162,7 +167,9 @@ printf(""hello world!"");
         /// </summary>
         [Test]
         public void MultipleFilesTest_DifferentDirectories() {
-            var doc = generator.GenerateSrcMLFileFromFiles(new string[] { "srcmltest\\foo.c", "srcmltest\\bar.c", "..\\..\\TestInputs\\baz.cpp" }, "srcml_xml\\multiplefile.xml");
+            LibSrcMLRunner runner = new LibSrcMLRunner();
+            runner.GenerateSrcMLFromFiles(new string[] { "srcmltest\\foo.c", "srcmltest\\bar.c", "..\\..\\TestInputs\\baz.cpp" }, "output", Language.CPlusPlus, new Collection<uint> { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, new Dictionary<string, Language> { });
+            SrcMLFile doc = new SrcMLFile("output0.xml");
 
             Assert.IsNotNull(doc);
             var files = doc.FileUnits.ToList();
@@ -180,11 +187,11 @@ printf(""hello world!"");
                       select ele);
             Assert.AreEqual("srcmltest\\bar.c", f2.FirstOrDefault().Attribute("filename").Value);
 
-            string file3 = "\\..\\TestInputs\\baz.cpp";
+            string file3 = "..\\..\\TestInputs\\baz.cpp";
             var f3 = (from ele in files
                       where ele.Attribute("filename").Value == file3
                       select ele);
-            Assert.AreEqual("\\..\\TestInputs\\baz.cpp", f3.FirstOrDefault().Attribute("filename").Value);
+            Assert.AreEqual("..\\..\\TestInputs\\baz.cpp", f3.FirstOrDefault().Attribute("filename").Value);
         }
 
         [Test]
@@ -267,7 +274,9 @@ printf(""hello world!"");
 
         [Test]
         public void TestGenerateSrcMLFromFiles_NonDefaultExtension() {
-            var doc = generator.GenerateSrcMLFileFromFiles(new[] {@"srcmltest\File with spaces.cpp", @"srcmltest\CSHARP.cs", @"srcmltest\foo.c"}, @"srcml_xml\multiple_files_csharp.xml");
+            LibSrcMLRunner runner = new LibSrcMLRunner();
+            runner.GenerateSrcMLFromFiles(new[] {@"srcmltest\File with spaces.cpp", @"srcmltest\CSHARP.cs", @"srcmltest\foo.c"}, "output", Language.CPlusPlus, new Collection<uint> { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, new Dictionary<string, Language> { });
+            SrcMLFile doc = new SrcMLFile("output0.xml");
             Assert.IsNotNull(doc);
             Assert.AreEqual(3, doc.FileUnits.Count());
         }

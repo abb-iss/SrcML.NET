@@ -319,7 +319,7 @@ namespace ABB.SrcML.Data {
                     scopes.Add((NamedScope)match);
                 }
             }
-            return scopes;
+            if (scopes.Count == 0) return null; else return scopes;
         }
 
 

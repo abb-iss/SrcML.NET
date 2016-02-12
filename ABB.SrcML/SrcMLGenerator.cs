@@ -66,7 +66,7 @@ namespace ABB.SrcML {
         /// </summary>
         public SrcMLGenerator() : base() {
             defaultExecutable = new Src2SrcMLRunner2();
-            defaultArguments = new[] { LIT.ArgumentLabel, OP.ArgumentLabel, POS.ArgumentLabel, TYPE.ArgumentLabel };
+            defaultArguments = new[] { LIT.ArgumentLabel, POS.ArgumentLabel, TYPE.ArgumentLabel };
             nonDefaultExecutables = new Dictionary<Language, Src2SrcMLRunner2>();
             nonDefaultArguments = new Dictionary<Language, string[]>();
             DetectNonDefaultExecutables();
@@ -76,7 +76,7 @@ namespace ABB.SrcML {
         /// Creates a new SrcMLGenerator
         /// </summary>
         /// <param name="defaultExecutableDirectory">The directory containing the default srcml executables to use.</param>
-        public SrcMLGenerator(string defaultExecutableDirectory) : this(defaultExecutableDirectory, new[] { LIT.ArgumentLabel, OP.ArgumentLabel, POS.ArgumentLabel, TYPE.ArgumentLabel }) { }
+        public SrcMLGenerator(string defaultExecutableDirectory) : this(defaultExecutableDirectory, new[] { LIT.ArgumentLabel, POS.ArgumentLabel, TYPE.ArgumentLabel }) { }
 
         /// <summary>
         /// Creates a new SrcMLGenerator

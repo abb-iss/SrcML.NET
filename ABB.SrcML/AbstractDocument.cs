@@ -115,7 +115,7 @@ namespace ABB.SrcML
 
             writer.WriteAttributeString("xmlns", CPP.Prefix, null, CPP.NS.NamespaceName);
             writer.WriteAttributeString("xmlns", LIT.Prefix, null, LIT.NS.NamespaceName);
-            writer.WriteAttributeString("xmlns", OP.Prefix, null, OP.NS.NamespaceName);
+            writer.WriteAttributeString("xmlns", SRC.Prefix, null, SRC.NS.NamespaceName);
             writer.WriteAttributeString("xmlns", POS.Prefix, null, POS.NS.NamespaceName);
             writer.WriteAttributeString("xmlns", TYPE.Prefix, null, TYPE.NS.NamespaceName);
         }

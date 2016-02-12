@@ -27,7 +27,7 @@ namespace ABB.SrcML.Data {
         /// Creates a new java code parser object
         /// </summary>
         public JavaCodeParser() {
-            this.TypeElementNames = new HashSet<XName>(new XName[] { SRC.Class, SRC.Enum });
+            this.TypeElementNames = new HashSet<XName>(new XName[] { SRC.Class, SRC.Enum, SRC.Interface });
             this.NamespaceElementNames = new HashSet<XName>();
             this.AliasElementName = SRC.Import;
         }
@@ -38,6 +38,7 @@ namespace ABB.SrcML.Data {
         public override Language ParserLanguage {
             get { return Language.Java; }
         }
+
 
 
         /// <summary>
@@ -95,6 +96,7 @@ namespace ABB.SrcML.Data {
             throw new NotImplementedException();
         }
 
+        protected override UsingBlockStatement ParseUsingBlockElement(XElement usingElement, ParserContext context) { return new UsingBlockStatement(); }
         /// <summary>
         /// Creates a NamespaceDefinition object from the given Java package element.
         /// This will create a NamespaceDefinition for each component of the name, e.g. com.java.foo.bar, and link them as children of each other.
@@ -192,8 +194,8 @@ namespace ABB.SrcML.Data {
                 throw new ArgumentException("Must be a SRC.For element", "forElement");
             if(context == null)
                 throw new ArgumentNullException("context");
-
-            if(forElement.Element(SRC.Condition) != null) {
+            var controlElement = forElement.Element(SRC.Control);
+            if(controlElement.Element(SRC.Condition) != null) {
                 //this is a standard for-loop, use the base processing
                 return base.ParseForElement(forElement, context);
             }
@@ -222,7 +224,30 @@ namespace ABB.SrcML.Data {
 
             return foreachStmt;
         }
+        /// <summary>
+        /// Creates a <see cref="Statement"/> object for <paramref name="stmtElement"/>.
+        /// The expression contained within <paramref name="stmtElement"/> will be parsed and placed in 
+        /// Statement.Content.
+        /// </summary>
+        /// <param name="stmtElement">The SRC.DeclarationStatement element to parse.</param>
+        /// <param name="context">The context to use.</param>
+        /// <returns>A <see cref="DeclarationStatement"/> corresponding to <paramref name="stmtElement"/>.
+        /// The return type is <see cref="Statement"/> so that subclasses can return another type, as necessary. </returns>
+        protected override Statement ParseDeclarationStatementElement(XElement stmtElement, ParserContext context) {
+            if (stmtElement == null)
+                throw new ArgumentNullException("stmtElement");
+            if (stmtElement.Name != SRC.DeclarationStatement && stmtElement.Name != SRC.Property)
+                throw new ArgumentException("Must be a SRC.DeclarationStatement or SRC.Property element", "stmtElement");
+            if (context == null)
+                throw new ArgumentNullException("context");
 
+            var stmt = new DeclarationStatement() {
+                ProgrammingLanguage = ParserLanguage,
+                Content = ParseExpression(GetChildExpressions(stmtElement), context)
+            };
+            stmt.AddLocation(context.CreateLocation(stmtElement));
+            return stmt;
+        }
         /// <summary>
         /// Parses the given <paramref name="aliasElement"/> and creates an ImportStatement or AliasStatement from it.
         /// </summary>
@@ -237,7 +262,8 @@ namespace ABB.SrcML.Data {
             if(context == null)
                 throw new ArgumentNullException("context");
 
-            var isNamespaceImport = GetTextNodes(aliasElement).Any(n => n.Value.Contains("*"));
+            var isNamespaceImport = aliasElement.Descendants(SRC.Name).Any(n => n.Value.Contains("*"));
+                //Elements("name").Any(n => n.Value.Contains("*")); //).Any(n => n.Value.Contains("*"));
 
             Statement stmt = null;
             if(isNamespaceImport) {
@@ -246,6 +272,9 @@ namespace ABB.SrcML.Data {
                 import.AddLocation(context.CreateLocation(aliasElement));
                 var nameElement = aliasElement.Element(SRC.Name);
                 if(nameElement != null) {
+                    //we have an import that ends with .*. We remove the . and *.
+                    nameElement.LastNode.Remove();//remove *
+                    nameElement.LastNode.Remove();//remove .
                     import.ImportedNamespace = ParseNameUseElement<NamespaceUse>(nameElement, context);
                     //TODO: fix to handle the trailing operator tag
                 }

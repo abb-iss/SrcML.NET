@@ -13,16 +13,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
-
+///DEPRECATED. Check SRC.cs for operator.
 namespace ABB.SrcML
 {
+    /*
     /// <summary>
     /// The operator namespace marks up operators ('-&lt;', '.', '+', '-') with the Operator element.
     /// </summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "OP")]
-    public sealed class OP
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "SRC")]
+    public sealed class SRC
     {
-        private OP()
+        private SRC()
         {
 
         }
@@ -33,7 +34,7 @@ namespace ABB.SrcML
         public static readonly XNamespace NS = "http://www.sdml.info/srcML/operator";
 
         /// <summary>
-        /// XMLNS prefix for the SrcML OP namespace
+        /// XMLNS prefix for the SrcML SRC namespace
         /// </summary>
         public const string Prefix = "op";
 
@@ -48,4 +49,5 @@ namespace ABB.SrcML
         /// </summary>
         public static readonly XName Operator = NS + "operator";
     }
+     */
 }

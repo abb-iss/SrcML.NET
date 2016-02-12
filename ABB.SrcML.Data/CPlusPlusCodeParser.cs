@@ -27,7 +27,7 @@ namespace ABB.SrcML.Data {
         public CPlusPlusCodeParser() {
             this.SpecifierContainerNames = new HashSet<XName>(new XName[] { SRC.Private, SRC.Protected, SRC.Public });
             this.TypeElementNames = new HashSet<XName>(new XName[] {
-                SRC.Class, SRC.Enum, SRC.Struct, SRC.Union,
+                SRC.Class, SRC.Enum, SRC.Struct, SRC.Union, SRC.Interface,
                 SRC.ClassDeclaration, SRC.StructDeclaration, SRC.UnionDeclaration
             });
             this.VariableDeclarationElementNames = new HashSet<XName>(new XName[] { SRC.Declaration, SRC.DeclarationStatement, SRC.FunctionDeclaration });
@@ -222,6 +222,7 @@ namespace ABB.SrcML.Data {
             return nd;
         }
 
+        protected override UsingBlockStatement ParseUsingBlockElement(XElement usingElement, ParserContext context) { return new UsingBlockStatement(); }
         /// <summary>
         /// Parses an element corresponding to a type definition and creates a TypeDefinition object 
         /// </summary>
@@ -265,7 +266,30 @@ namespace ABB.SrcML.Data {
 
             return typeDefinition;
         }
+        /// <summary>
+        /// Creates a <see cref="Statement"/> object for <paramref name="stmtElement"/>.
+        /// The expression contained within <paramref name="stmtElement"/> will be parsed and placed in 
+        /// Statement.Content.
+        /// </summary>
+        /// <param name="stmtElement">The SRC.DeclarationStatement element to parse.</param>
+        /// <param name="context">The context to use.</param>
+        /// <returns>A <see cref="DeclarationStatement"/> corresponding to <paramref name="stmtElement"/>.
+        /// The return type is <see cref="Statement"/> so that subclasses can return another type, as necessary. </returns>
+        protected override Statement ParseDeclarationStatementElement(XElement stmtElement, ParserContext context) {
+            if (stmtElement == null)
+                throw new ArgumentNullException("stmtElement");
+            if (stmtElement.Name != SRC.DeclarationStatement && stmtElement.Name != SRC.Property)
+                throw new ArgumentException("Must be a SRC.DeclarationStatement or SRC.Property element", "stmtElement");
+            if (context == null)
+                throw new ArgumentNullException("context");
 
+            var stmt = new DeclarationStatement() {
+                ProgrammingLanguage = ParserLanguage,
+                Content = ParseExpression(GetChildExpressions(stmtElement), context)
+            };
+            stmt.AddLocation(context.CreateLocation(stmtElement));
+            return stmt;
+        }
         /// <summary>
         /// Parses the given <paramref name="aliasElement"/> and creates an ImportStatement or AliasStatement from it.
         /// </summary>
@@ -281,15 +305,13 @@ namespace ABB.SrcML.Data {
                 throw new ArgumentNullException("context");
 
             Statement stmt = null;
-            bool containsNamespaceKeyword = (from textNode in GetTextNodes(aliasElement)
-                                             where textNode.Value.Contains("namespace")
-                                             select textNode).Any();
-            if(containsNamespaceKeyword) {
+            var namespaceElement = aliasElement.Element(SRC.Namespace);
+            if(namespaceElement != null) {
                 //import statement
                 var import = new ImportStatement() {ProgrammingLanguage = ParserLanguage};
                 import.AddLocation(context.CreateLocation(aliasElement));
 
-                var nameElement = aliasElement.Element(SRC.Name);
+                var nameElement = namespaceElement.Element(SRC.Name);
                 if(nameElement != null) {
                     import.ImportedNamespace = ParseNameUseElement<NamespaceUse>(nameElement, context);
                 }
@@ -300,6 +322,7 @@ namespace ABB.SrcML.Data {
                 var alias = new AliasStatement() {ProgrammingLanguage = ParserLanguage};
                 alias.AddLocation(context.CreateLocation(aliasElement));
 
+                //TODO: Make sure that using descendant is correct for nameElement
                 var nameElement = aliasElement.Element(SRC.Name);
                 var initElement = aliasElement.Element(SRC.Init);
                 if(initElement != null) {

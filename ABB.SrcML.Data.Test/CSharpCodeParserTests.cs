@@ -16,26 +16,22 @@ using System.Xml.Linq;
 using ABB.SrcML;
 using System.Collections.ObjectModel;
 using System;
-namespace ABB.SrcML.Data.Test
-{
+namespace ABB.SrcML.Data.Test {
 
     [TestFixture]
     [Category("Build")]
-    public class CSharpCodeParserTests
-    {
+    public class CSharpCodeParserTests {
         private CSharpCodeParser codeParser;
         private SrcMLFileUnitSetup fileSetup;
 
         [TestFixtureSetUp]
-        public void ClassSetup()
-        {
+        public void ClassSetup() {
             codeParser = new CSharpCodeParser();
             fileSetup = new SrcMLFileUnitSetup(Language.CSharp);
         }
 
         [Test]
-        public void TestNamespace()
-        {
+        public void TestNamespace() {
             //namespace A { 
             //  public class foo { }
             //}
@@ -43,7 +39,7 @@ namespace ABB.SrcML.Data.Test
                 public class foo { }
             }";
             LibSrcMLRunner run = new LibSrcMLRunner();
-            string srcML = run.GenerateSrcMLFromString(xml, "A.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcML = run.GenerateSrcMLFromString(xml, "A.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
             var unit = fileSetup.GetFileUnitForXmlSnippet(srcML, "A.cs");
             var globalScope = codeParser.ParseFileUnit(unit);
@@ -56,8 +52,7 @@ namespace ABB.SrcML.Data.Test
         }
 
         [Test]
-        public void TestCallToGenericMethod()
-        {
+        public void TestCallToGenericMethod() {
             //namespace A {
             //    public class B {
             //        void Foo<T>(T t) { }
@@ -71,7 +66,7 @@ namespace ABB.SrcML.Data.Test
     }
 }";
             LibSrcMLRunner run = new LibSrcMLRunner();
-            string srcML = run.GenerateSrcMLFromString(code, "A.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcML = run.GenerateSrcMLFromString(code, "A.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
             var unit = fileSetup.GetFileUnitForXmlSnippet(srcML, "A.cs");
             var globalScope = codeParser.ParseFileUnit(unit);
@@ -89,8 +84,7 @@ namespace ABB.SrcML.Data.Test
         }
 
         [Test]
-        public void TestCallToGrandparent()
-        {
+        public void TestCallToGrandparent() {
             //namespace A {
             //    public class B { public void Foo() { } }
             //    public class C : B { }
@@ -103,7 +97,7 @@ namespace ABB.SrcML.Data.Test
 }";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var unit = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.cs");
             var scope = codeParser.ParseFileUnit(unit);
 
@@ -120,8 +114,7 @@ namespace ABB.SrcML.Data.Test
         }
 
         [Test]
-        public void TestMethodCallToParentOfCallingObject()
-        {
+        public void TestMethodCallToParentOfCallingObject() {
             //class A { void Foo() { } }
             string axml = @"class A { void Foo() { } }";
 
@@ -136,19 +129,19 @@ namespace ABB.SrcML.Data.Test
             //}
             string cxml = @"class C {
     private B b;
-    void main()
+    void main() {
         b.Foo();
     }
 }";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(axml, "A.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(axml, "A.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var aUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.cs");
             LibSrcMLRunner runB = new LibSrcMLRunner();
-            string srcMLB = runB.GenerateSrcMLFromString(bxml, "B.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLB = runB.GenerateSrcMLFromString(bxml, "B.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var bUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLB, "B.cs");
             LibSrcMLRunner runC = new LibSrcMLRunner();
-            string srcMLC = runC.GenerateSrcMLFromString(cxml, "C.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLC = runC.GenerateSrcMLFromString(cxml, "C.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var cUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLC, "C.cs");
 
             NamespaceDefinition globalScope = codeParser.ParseFileUnit(aUnit);
@@ -182,8 +175,8 @@ namespace ABB.SrcML.Data.Test
 
         [Test]
         [Category("Todo")]
-        public void TestCallWithTypeParameters()
-        {
+        public void TestCallWithTypeParameters() {
+            //TODO: get answer about how generics are suppsoed to be handled for the parser. Don't see how they're being parsed.
             //namespace A {
             //    public interface IOdb { 
             //        int Query();
@@ -200,18 +193,18 @@ namespace ABB.SrcML.Data.Test
             var xml = @"namespace A {
     public interface IOdb {
         int Query();
-        int QueryT();
+        int Query<T>();
     }
     public class Test {
         public IOdb Open() { }
         void Test1() {
             IOdb odb = Open();
-            var query = odb.QueryFoo();
+            var query = odb.Query<Foo>();
         }
     }
 }";
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var unit = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.cs");
             var scope = codeParser.ParseFileUnit(unit);
 
@@ -231,8 +224,7 @@ namespace ABB.SrcML.Data.Test
         }
 
         [Test]
-        public void TestCallConstructor()
-        {
+        public void TestCallConstructor() {
             //class Foo {
             //  public Foo() { }
             //}
@@ -240,10 +232,13 @@ namespace ABB.SrcML.Data.Test
             //  Foo myFoo = new Foo();
             //}
             string xml = @"class Foo {
-  public Foo() { }
-}";
+                           public Foo() { }
+                         }
+                         class Bar {
+                           Foo myFoo = new Foo();
+                         }";
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.cs");
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
@@ -257,18 +252,17 @@ namespace ABB.SrcML.Data.Test
         }
 
         [Test]
-        public void TestConstructorWithBaseKeyword()
-        {
+        public void TestConstructorWithBaseKeyword() {
             // B.cs namespace A { class B { public B() { } } }
             string bxml = @"namespace A { class B { public B() { } } }";
             // C.cs namespace A { class C : B { public C() : base() { } } }
             string cxml = @"namespace A { class C : B { public C() : base() { } } }";
 
             LibSrcMLRunner runB = new LibSrcMLRunner();
-            string srcMLB = runB.GenerateSrcMLFromString(bxml, "B.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLB = runB.GenerateSrcMLFromString(bxml, "B.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var bUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLB, "B.cs");
             LibSrcMLRunner runC = new LibSrcMLRunner();
-            string srcMLC = runC.GenerateSrcMLFromString(cxml, "C.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLC = runC.GenerateSrcMLFromString(cxml, "C.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var cUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLC, "C.cs");
 
             var bScope = codeParser.ParseFileUnit(bUnit);
@@ -288,8 +282,7 @@ namespace ABB.SrcML.Data.Test
         }
 
         [Test]
-        public void TestConstructorWithThisKeyword()
-        {
+        public void TestConstructorWithThisKeyword() {
             // B.cs
             //namespace A {
             //    class B {
@@ -306,7 +299,7 @@ namespace ABB.SrcML.Data.Test
 }";
 
             LibSrcMLRunner runB = new LibSrcMLRunner();
-            string srcMLB = runB.GenerateSrcMLFromString(bxml, "B.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLB = runB.GenerateSrcMLFromString(bxml, "B.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var bUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLB, "B.cs");
 
             var globalScope = codeParser.ParseFileUnit(bUnit);
@@ -324,12 +317,11 @@ namespace ABB.SrcML.Data.Test
         }
 
         [Test]
-        public void TestCreateAliasesForFiles_UsingNamespace()
-        {
+        public void TestCreateAliasesForFiles_UsingNamespace() {
             // using x.y.z;
             string xml = @"using x.y.z;";
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.cs");
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
@@ -341,12 +333,11 @@ namespace ABB.SrcML.Data.Test
         }
 
         [Test]
-        public void TestCreateAliasesForFiles_UsingAlias()
-        {
+        public void TestCreateAliasesForFiles_UsingAlias() {
             // using x = Foo.Bar.Baz;
             string xml = @"using x = Foo.Bar.Baz;";
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.cs");
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
@@ -359,13 +350,12 @@ namespace ABB.SrcML.Data.Test
         }
 
         [Test]
-        public void TestGetImports()
-        {
+        public void TestGetImports() {
             //B.cs
             //namespace x.y.z {}
             string xmlB = @"namespace x.y.z {}";
             LibSrcMLRunner runB = new LibSrcMLRunner();
-            string srcMLB = runB.GenerateSrcMLFromString(xmlB, "B.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLB = runB.GenerateSrcMLFromString(xmlB, "B.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElementB = fileSetup.GetFileUnitForXmlSnippet(srcMLB, "B.cs");
             //A.cs
             //using x.y.z;
@@ -373,7 +363,7 @@ namespace ABB.SrcML.Data.Test
             string xmlA = @"using x.y.z;
 foo = 17;";
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(xmlA, "A.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(xmlA, "A.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElementA = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.cs");
 
             var scopeA = codeParser.ParseFileUnit(xmlElementA);
@@ -395,13 +385,12 @@ foo = 17;";
         }
 
         [Test]
-        public void TestGetImports_NestedImportNamespace()
-        {
+        public void TestGetImports_NestedImportNamespace() {
             //A.cs
             //namespace bar.baz {}
             string xmlA = @"namespace bar.baz {}";
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(xmlA, "A.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(xmlA, "A.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElementA = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.cs");
             //B.cs
             //using x.y.z;
@@ -415,7 +404,7 @@ foo = 17;";
               foo = 17;
             }";
             LibSrcMLRunner runB = new LibSrcMLRunner();
-            string srcMLB = runB.GenerateSrcMLFromString(xmlB, "B.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLB = runB.GenerateSrcMLFromString(xmlB, "B.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElementB = fileSetup.GetFileUnitForXmlSnippet(srcMLB, "B.cs");
 
             var scopeA = codeParser.ParseFileUnit(xmlElementA);
@@ -437,15 +426,14 @@ foo = 17;";
         }
 
         [Test]
-        public void TestGetImports_SeparateFiles()
-        {
+        public void TestGetImports_SeparateFiles() {
             //A.cs
             //using x.y.z;
             //Foo = 17;
             string xmlA = @"using x.y.z;
             Foo = 17;";
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(xmlA, "A.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(xmlA, "A.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElementA = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.cs");
             //B.cs
             //using a.b.howdy;
@@ -453,7 +441,7 @@ foo = 17;";
             string xmlB = @"using a.b.howdy;
             Bar();";
             LibSrcMLRunner runB = new LibSrcMLRunner();
-            string srcMLB = runB.GenerateSrcMLFromString(xmlB, "B.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLB = runB.GenerateSrcMLFromString(xmlB, "B.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElementB = fileSetup.GetFileUnitForXmlSnippet(srcMLB, "B.cs");
 
             var scopeA = codeParser.ParseFileUnit(xmlElementA);
@@ -475,8 +463,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestGetAliases_NestedUsingAlias()
-        {
+        public void TestGetAliases_NestedUsingAlias() {
             //A.cs
             //namespace bar {
             //  class baz {}
@@ -485,7 +472,7 @@ foo = 17;";
               class baz {}
             }";
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(xmlA, "A.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(xmlA, "A.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElementA = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.cs");
             //B.cs
             //using x.y.z;
@@ -499,7 +486,7 @@ foo = 17;";
               foo = 17;
             }";
             LibSrcMLRunner runB = new LibSrcMLRunner();
-            string srcMLB = runA.GenerateSrcMLFromString(xmlB, "A.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLB = runA.GenerateSrcMLFromString(xmlB, "A.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElementB = fileSetup.GetFileUnitForXmlSnippet(srcMLB, "A.cs");
 
             var scopeA = codeParser.ParseFileUnit(xmlElementA);
@@ -523,8 +510,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestImport_NameResolution()
-        {
+        public void TestImport_NameResolution() {
             //A.cs
             //using Foo.Bar;
             //
@@ -540,7 +526,7 @@ foo = 17;";
               }
             }";
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(xmlA, "A.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(xmlA, "A.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElementA = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.cs");
             //B.cs
             //namespace Foo.Bar {
@@ -554,7 +540,7 @@ foo = 17;";
               }
             }";
             LibSrcMLRunner runB = new LibSrcMLRunner();
-            string srcMLB = runB.GenerateSrcMLFromString(xmlB, "B.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLB = runB.GenerateSrcMLFromString(xmlB, "B.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElementB = fileSetup.GetFileUnitForXmlSnippet(srcMLB, "B.cs");
 
             var scopeA = codeParser.ParseFileUnit(xmlElementA);
@@ -578,32 +564,16 @@ foo = 17;";
         }
 
         [Test]
-        public void TestAlias_NameResolution()
-        {
-            //A.cs
-            //namespace Foo.Bar {
-            //  public class Baz {
-            //    public static void DoTheThing() { };
-            //  }
-            //}
+        public void TestAlias_NameResolution() {
             string xmlA = @"namespace Foo.Bar {
               public class Baz {
                 public static void DoTheThing() { };
               }
             }";
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(xmlA, "A.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(xmlA, "A.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
 
             XElement xmlElementA = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.cs");
-            //B.cs
-            //using Baz = Foo.Bar.Baz;
-            //namespace A {
-            //  public class B {
-            //    public B() {
-            //      Baz.DoTheThing();
-            //    }
-            //  }
-            //}
             string xmlB = @"using Baz = Foo.Bar.Baz;
             namespace A {
               public class B {
@@ -613,7 +583,7 @@ foo = 17;";
               }
             }";
             LibSrcMLRunner runB = new LibSrcMLRunner();
-            string srcMLB = runB.GenerateSrcMLFromString(xmlB, "B.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLB = runB.GenerateSrcMLFromString(xmlB, "B.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElementB = fileSetup.GetFileUnitForXmlSnippet(srcMLB, "B.cs");
 
             var scopeA = codeParser.ParseFileUnit(xmlElementA);
@@ -636,14 +606,13 @@ foo = 17;";
 
         [Test]
         [Category("SrcMLUpdate")]
-        public void TestUsingBlock_SingleDecl()
-        {
+        public void TestUsingBlock_SingleDecl() {
             //using(var f = File.Open("out.txt")) {
             //  ;
             //}
             string xml = "using(var f = File.Open(\"out.txt\")) {;}";
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.cs");
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
@@ -662,12 +631,11 @@ foo = 17;";
 
         [Test]
         [Category("SrcMLUpdate")]
-        public void TestUsingBlock_MultipleDecl()
-        {
+        public void TestUsingBlock_MultipleDecl() {
             // using(Foo a = new Foo(1), b = new Foo(2)) { ; }
             string xml = @"using(Foo a = new Foo(1), b = new Foo(2)) { ; }";
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.cs");
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
@@ -689,12 +657,11 @@ foo = 17;";
 
         [Test]
         [Category("SrcMLUpdate")]
-        public void TestUsingBlock_Expression()
-        {
+        public void TestUsingBlock_Expression() {
             //using(bar = new Foo()) { ; }
             string xml = @"using(bar = new Foo()) { ; }";
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.cs");
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
@@ -722,8 +689,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestCreateTypeDefinition_Class()
-        {
+        public void TestCreateTypeDefinition_Class() {
             ////Foo.cs
             //public class Foo {
             //    public int bar;
@@ -732,7 +698,7 @@ foo = 17;";
                 public int bar;
             }";
             LibSrcMLRunner runo = new LibSrcMLRunner();
-            string srcMLo = runo.GenerateSrcMLFromString(fooXml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLo = runo.GenerateSrcMLFromString(fooXml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLo, "Foo.cs");
             var globalScope = codeParser.ParseFileUnit(fooFileUnit);
 
@@ -751,8 +717,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestCreateTypeDefinition_ClassWithParent()
-        {
+        public void TestCreateTypeDefinition_ClassWithParent() {
             ////Foo.cs
             //public class Foo : Baz {
             //    public int bar;
@@ -761,7 +726,7 @@ foo = 17;";
                 public int bar;
             }";
             LibSrcMLRunner runo = new LibSrcMLRunner();
-            string srcMLo = runo.GenerateSrcMLFromString(fooXml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLo = runo.GenerateSrcMLFromString(fooXml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLo, "Foo.cs");
             var globalScope = codeParser.ParseFileUnit(fooFileUnit);
 
@@ -776,8 +741,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestCreateTypeDefinition_ClassWithQualifiedParent()
-        {
+        public void TestCreateTypeDefinition_ClassWithQualifiedParent() {
             ////Foo.cs
             //public class Foo : Baz, System.IDisposable {
             //    public int bar;
@@ -786,7 +750,7 @@ foo = 17;";
                 public int bar;
             }";
             LibSrcMLRunner runo = new LibSrcMLRunner();
-            string srcMLo = runo.GenerateSrcMLFromString(fooXml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLo = runo.GenerateSrcMLFromString(fooXml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLo, "Foo.cs");
             var globalScope = codeParser.ParseFileUnit(fooFileUnit);
 
@@ -803,8 +767,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestCreateTypeDefinition_CompoundNamespace()
-        {
+        public void TestCreateTypeDefinition_CompoundNamespace() {
             ////Foo.cs
             //namespace Example.Level2.Level3 {
             //    public class Foo {
@@ -817,7 +780,7 @@ foo = 17;";
                 }
             }";
             LibSrcMLRunner runo = new LibSrcMLRunner();
-            string srcMLo = runo.GenerateSrcMLFromString(fooXml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLo = runo.GenerateSrcMLFromString(fooXml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLo, "Foo.cs");
             var globalScope = codeParser.ParseFileUnit(fooFileUnit);
 
@@ -841,8 +804,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestCreateTypeDefinition_Interface()
-        {
+        public void TestCreateTypeDefinition_Interface() {
             ////Foo.cs
             //public interface Foo {
             //    public int GetBar();
@@ -851,12 +813,12 @@ foo = 17;";
                public int GetBar();
             }";
             LibSrcMLRunner runo = new LibSrcMLRunner();
-            string srcMLo = runo.GenerateSrcMLFromString(fooXml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLo = runo.GenerateSrcMLFromString(fooXml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLo, "Foo.cs");
             var globalScope = codeParser.ParseFileUnit(fooFileUnit);
 
             Assert.AreEqual(1, globalScope.ChildStatements.Count());
-            var foo = globalScope.ChildStatements.First() as TypeDefinition;
+            var foo = globalScope.ChildStatements.First() as  TypeDefinition;
             Assert.IsNotNull(foo);
             Assert.AreEqual("Foo", foo.Name);
             Assert.AreEqual(TypeKind.Interface, foo.Kind);
@@ -864,8 +826,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestCreateTypeDefinition_Namespace()
-        {
+        public void TestCreateTypeDefinition_Namespace() {
             ////Foo.cs
             //namespace Example {
             //    public class Foo {
@@ -878,7 +839,7 @@ foo = 17;";
                 }
             }";
             LibSrcMLRunner runo = new LibSrcMLRunner();
-            string srcMLo = runo.GenerateSrcMLFromString(fooXml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLo = runo.GenerateSrcMLFromString(fooXml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLo, "Foo.cs");
             var globalScope = codeParser.ParseFileUnit(fooFileUnit);
 
@@ -894,8 +855,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestCreateTypeDefinition_NestedCompoundNamespace()
-        {
+        public void TestCreateTypeDefinition_NestedCompoundNamespace() {
             ////Foo.cs
             //namespace Watermelon {
             //    namespace Example.Level2.Level3 {
@@ -912,7 +872,7 @@ foo = 17;";
                 }
             }";
             LibSrcMLRunner runo = new LibSrcMLRunner();
-            string srcMLo = runo.GenerateSrcMLFromString(fooXml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLo = runo.GenerateSrcMLFromString(fooXml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLo, "Foo.cs");
             var globalScope = codeParser.ParseFileUnit(fooFileUnit);
 
@@ -940,8 +900,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestCreateTypeDefinition_Struct()
-        {
+        public void TestCreateTypeDefinition_Struct() {
             ////Foo.cs
             //public struct Foo {
             //    public int bar;
@@ -950,7 +909,7 @@ foo = 17;";
                 public int bar;
             }";
             LibSrcMLRunner runo = new LibSrcMLRunner();
-            string srcMLo = runo.GenerateSrcMLFromString(fooXml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLo = runo.GenerateSrcMLFromString(fooXml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var fooFileUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLo, "Foo.cs");
             var globalScope = codeParser.ParseFileUnit(fooFileUnit);
 
@@ -963,8 +922,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestCreateTypeDefinitions_ClassWithInnerClass()
-        {
+        public void TestCreateTypeDefinitions_ClassWithInnerClass() {
             ////A.cs
             //class A {
             //    class B {}
@@ -973,7 +931,7 @@ foo = 17;";
                 class B {}
             }";
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.cs");
             var globalScope = codeParser.ParseFileUnit(xmlElement);
 
@@ -990,8 +948,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestCreateTypeDefinitions_InnerClassWithNamespace()
-        {
+        public void TestCreateTypeDefinitions_InnerClassWithNamespace() {
             ////A.cs
             //namespace Foo {
             //    class A {
@@ -1004,7 +961,7 @@ foo = 17;";
                 }
             }";
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.cs");
             var globalScope = codeParser.ParseFileUnit(xmlElement);
 
@@ -1028,18 +985,17 @@ foo = 17;";
         }
 
         [Test]
-        public void TestDeclarationWithTypeVarFromConstructor()
-        {
+        public void TestDeclarationWithTypeVarFromConstructor() {
             // B.cs namespace A { class B { public B() { }; } }
             string bxml = @"namespace A { class B { public B() { }; } }";
             // C.cs namespace A { class C { void main() { var b = new B(); } } }
             string cxml = @"namespace A { class C { void main() { var b = new B(); } } }";
 
             LibSrcMLRunner runB = new LibSrcMLRunner();
-            string srcMLB = runB.GenerateSrcMLFromString(bxml, "B.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLB = runB.GenerateSrcMLFromString(bxml, "B.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var bUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLB, "B.cs");
             LibSrcMLRunner runC = new LibSrcMLRunner();
-            string srcMLC = runC.GenerateSrcMLFromString(cxml, "C.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLC = runC.GenerateSrcMLFromString(cxml, "C.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var cUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLC, "C.cs");
             var bScope = codeParser.ParseFileUnit(bUnit);
             var cScope = codeParser.ParseFileUnit(cUnit);
@@ -1058,18 +1014,17 @@ foo = 17;";
         }
 
         [Test]
-        public void TestDeclarationWithTypeVarFromImplicitConstructor()
-        {
+        public void TestDeclarationWithTypeVarFromImplicitConstructor() {
             // B.cs namespace A { class B { } }
             string bxml = @"namespace A { class B { } }";
             // C.cs namespace A { class C { void main() { var b = new B(); } } }
             string cxml = @"namespace A { class C { void main() { var b = new B(); } } }";
 
             LibSrcMLRunner runB = new LibSrcMLRunner();
-            string srcMLB = runB.GenerateSrcMLFromString(bxml, "B.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLB = runB.GenerateSrcMLFromString(bxml, "B.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var bUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLB, "B.cs");
             LibSrcMLRunner runC = new LibSrcMLRunner();
-            string srcMLC = runC.GenerateSrcMLFromString(cxml, "C.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLC = runC.GenerateSrcMLFromString(cxml, "C.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var cUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLC, "C.cs");
             var bScope = codeParser.ParseFileUnit(bUnit);
             var cScope = codeParser.ParseFileUnit(cUnit);
@@ -1088,8 +1043,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestDeclarationWithTypeVarFromMethod()
-        {
+        public void TestDeclarationWithTypeVarFromMethod() {
             //namespace A {
             //    class B {
             //        public static void main() { var b = getB(); }
@@ -1103,7 +1057,7 @@ foo = 17;";
                 }
             }";
             LibSrcMLRunner runB = new LibSrcMLRunner();
-            string srcMLB = runB.GenerateSrcMLFromString(xml, "B.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLB = runB.GenerateSrcMLFromString(xml, "B.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var unit = fileSetup.GetFileUnitForXmlSnippet(srcMLB, "B.cs");
             var globalScope = codeParser.ParseFileUnit(unit);
 
@@ -1120,8 +1074,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestDeclarationWithTypeVarInForeach()
-        {
+        public void TestDeclarationWithTypeVarInForeach() {
             //class Foo {
             //    int[] GetInts() {
             //        return new[] {1, 2, 3, 4};
@@ -1143,7 +1096,7 @@ foo = 17;";
                 }
             }";
             LibSrcMLRunner runB = new LibSrcMLRunner();
-            string srcMLB = runB.GenerateSrcMLFromString(xml, "B.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLB = runB.GenerateSrcMLFromString(xml, "B.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var unit = fileSetup.GetFileUnitForXmlSnippet(srcMLB, "B.cs");
             var globalScope = codeParser.ParseFileUnit(unit);
 
@@ -1155,8 +1108,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestFieldCreation()
-        {
+        public void TestFieldCreation() {
             //// A.cs
             //class A {
             //    public int Foo;
@@ -1165,7 +1117,7 @@ foo = 17;";
                 public int Foo;
             }";
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.cs");
             var globalScope = codeParser.ParseFileUnit(xmlElement);
 
@@ -1181,8 +1133,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestFindParentType()
-        {
+        public void TestFindParentType() {
             // namespace A { class B : C { } }
             string bxml = @"namespace A { class B : C { } }";
 
@@ -1190,10 +1141,10 @@ foo = 17;";
             string cxml = @"namespace A { class C { } }";
 
             LibSrcMLRunner runB = new LibSrcMLRunner();
-            string srcMLB = runB.GenerateSrcMLFromString(bxml, "B.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLB = runB.GenerateSrcMLFromString(bxml, "B.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var bUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLB, "B.cs");
             LibSrcMLRunner runD = new LibSrcMLRunner();
-            string srcMLD = runD.GenerateSrcMLFromString(cxml, "D.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLD = runD.GenerateSrcMLFromString(cxml, "D.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var cUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLD, "D.cs");
 
             var bScope = codeParser.ParseFileUnit(bUnit);
@@ -1211,8 +1162,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestFindQualifiedParentType()
-        {
+        public void TestFindQualifiedParentType() {
             // namespace A { class B : C.D { } }
             string bxml = @"A { class B : C.D { } }";
 
@@ -1220,10 +1170,10 @@ foo = 17;";
             string dxml = @"namespace C { class D { } }";
 
             LibSrcMLRunner runB = new LibSrcMLRunner();
-            string srcMLB = runB.GenerateSrcMLFromString(bxml, "B.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLB = runB.GenerateSrcMLFromString(bxml, "B.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var bUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLB, "B.cs");
             LibSrcMLRunner runD = new LibSrcMLRunner();
-            string srcMLD = runD.GenerateSrcMLFromString(dxml, "D.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLD = runD.GenerateSrcMLFromString(dxml, "D.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var dUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLD, "D.cs");
 
             var bScope = codeParser.ParseFileUnit(bUnit);
@@ -1241,13 +1191,12 @@ foo = 17;";
         }
 
         [Test]
-        public void TestGenericType()
-        {
+        public void TestGenericType() {
             //public class B<T> { }
             var xml = @"public class B<T> { }";
 
             LibSrcMLRunner runB = new LibSrcMLRunner();
-            string srcMLB = runB.GenerateSrcMLFromString(xml, "B.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLB = runB.GenerateSrcMLFromString(xml, "B.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var unit = fileSetup.GetFileUnitForXmlSnippet(srcMLB, "B.cs");
             var scope = codeParser.ParseFileUnit(unit);
 
@@ -1257,13 +1206,12 @@ foo = 17;";
         }
 
         [Test]
-        public void TestGenericVariableDeclaration()
-        {
+        public void TestGenericVariableDeclaration() {
             //Dictionary<string,int> map;
-            string xml = @"<decl_stmt><decl><type><name><name>Dictionary</name><argument_list>&lt;<argument><name>string</name></argument>,<argument><name>int</name></argument>&gt;</argument_list></name></type> <name>map</name></decl>;</decl_stmt>";
+            string xml = @"Dictionary<string,int> map;";
 
             LibSrcMLRunner runt = new LibSrcMLRunner();
-            string srcMLt = runt.GenerateSrcMLFromString(xml, "test.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLt = runt.GenerateSrcMLFromString(xml, "test.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var testUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLt, "test.cs");
 
             var testScope = codeParser.ParseFileUnit(testUnit);
@@ -1279,13 +1227,11 @@ foo = 17;";
         }
 
         [Test]
-        public void TestGenericVariableDeclarationWithPrefix()
-        {
-            //System.Collection.Dictionary<string,int> map;
-            string xml = @"Dictionary<string,int> map;";
+        public void TestGenericVariableDeclarationWithPrefix() {
+            string xml = @"System.Collection.Dictionary<string,int> map;";
 
             LibSrcMLRunner runt = new LibSrcMLRunner();
-            string srcMLt = runt.GenerateSrcMLFromString(xml, "test.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLt = runt.GenerateSrcMLFromString(xml, "test.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var testUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLt, "test.cs");
 
             var testScope = codeParser.ParseFileUnit(testUnit);
@@ -1305,31 +1251,24 @@ foo = 17;";
         }
 
         [Test]
-        public void TestGetAccessModifierForMethod_InternalProtected()
-        {
-            //namespace Example {
-            //    public class Foo {
-            //        internal protected bool Bar() { return true; }
-            //    }
-            //}
+        public void TestGetAccessModifierForMethod_InternalProtected() {
             string xml = @"namespace Example {
                 public class Foo {
                     internal protected bool Bar() { return true; }
                 }
             }";
             LibSrcMLRunner runo = new LibSrcMLRunner();
-            string srcMLo = runo.GenerateSrcMLFromString(xml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLo = runo.GenerateSrcMLFromString(xml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var unit = fileSetup.GetFileUnitForXmlSnippet(srcMLo, "Foo.cs");
 
             var globalScope = codeParser.ParseFileUnit(unit);
             var method = globalScope.GetDescendants<MethodDefinition>().First();
-
+            //The specifier isn't in type anymore so it doesn't parse correctly.
             Assert.AreEqual(AccessModifier.ProtectedInternal, method.Accessibility);
         }
 
         [Test]
-        public void TestGetAccessModifierForMethod_None()
-        {
+        public void TestGetAccessModifierForMethod_None() {
             //namespace Example {
             //    public class Foo {
             //        bool Bar() { return true; }
@@ -1341,7 +1280,7 @@ foo = 17;";
                 }
             }";
             LibSrcMLRunner runo = new LibSrcMLRunner();
-            string srcMLo = runo.GenerateSrcMLFromString(xml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLo = runo.GenerateSrcMLFromString(xml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var unit = fileSetup.GetFileUnitForXmlSnippet(srcMLo, "Foo.cs");
 
             var globalScope = codeParser.ParseFileUnit(unit);
@@ -1351,8 +1290,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestGetAccessModifierForMethod_Normal()
-        {
+        public void TestGetAccessModifierForMethod_Normal() {
             //namespace Example {
             //    public class Foo {
             //        public bool Bar() { return true; }
@@ -1364,7 +1302,7 @@ foo = 17;";
                 }
             }";
             LibSrcMLRunner runo = new LibSrcMLRunner();
-            string srcMLo = runo.GenerateSrcMLFromString(xml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLo = runo.GenerateSrcMLFromString(xml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var unit = fileSetup.GetFileUnitForXmlSnippet(srcMLo, "Foo.cs");
 
             var globalScope = codeParser.ParseFileUnit(unit);
@@ -1374,8 +1312,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestGetAccessModifierForMethod_ProtectedInternal()
-        {
+        public void TestGetAccessModifierForMethod_ProtectedInternal() {
             //namespace Example {
             //    public class Foo {
             //        protected internal bool Bar() { return true; }
@@ -1387,7 +1324,7 @@ foo = 17;";
                 }
             }";
             LibSrcMLRunner runo = new LibSrcMLRunner();
-            string srcMLo = runo.GenerateSrcMLFromString(xml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLo = runo.GenerateSrcMLFromString(xml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var unit = fileSetup.GetFileUnitForXmlSnippet(srcMLo, "Foo.cs");
 
             var globalScope = codeParser.ParseFileUnit(unit);
@@ -1397,8 +1334,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestGetAccessModifierForMethod_ProtectedInternalStatic()
-        {
+        public void TestGetAccessModifierForMethod_ProtectedInternalStatic() {
             //namespace Example {
             //    public class Foo {
             //        protected static internal bool Bar() { return true; }
@@ -1410,7 +1346,7 @@ foo = 17;";
                 }
             }";
             LibSrcMLRunner runo = new LibSrcMLRunner();
-            string srcMLo = runo.GenerateSrcMLFromString(xml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLo = runo.GenerateSrcMLFromString(xml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var unit = fileSetup.GetFileUnitForXmlSnippet(srcMLo, "Foo.cs");
 
             var globalScope = codeParser.ParseFileUnit(unit);
@@ -1420,8 +1356,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestGetAccessModifierForType_InternalProtected()
-        {
+        public void TestGetAccessModifierForType_InternalProtected() {
             //namespace Example {
             //    internal protected class Foo {}
             //}
@@ -1429,7 +1364,7 @@ foo = 17;";
                 internal protected class Foo {}
             }";
             LibSrcMLRunner runo = new LibSrcMLRunner();
-            string srcMLo = runo.GenerateSrcMLFromString(xml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLo = runo.GenerateSrcMLFromString(xml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var unit = fileSetup.GetFileUnitForXmlSnippet(srcMLo, "Foo.cs");
 
             var globalScope = codeParser.ParseFileUnit(unit);
@@ -1439,8 +1374,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestGetAccessModifierForType_None()
-        {
+        public void TestGetAccessModifierForType_None() {
             //namespace Example {
             //    class Foo {}
             //}
@@ -1448,7 +1382,7 @@ foo = 17;";
                 class Foo {}
             }";
             LibSrcMLRunner runo = new LibSrcMLRunner();
-            string srcMLo = runo.GenerateSrcMLFromString(xml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLo = runo.GenerateSrcMLFromString(xml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var unit = fileSetup.GetFileUnitForXmlSnippet(srcMLo, "Foo.cs");
 
             var globalScope = codeParser.ParseFileUnit(unit);
@@ -1458,8 +1392,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestGetAccessModifierForType_Normal()
-        {
+        public void TestGetAccessModifierForType_Normal() {
             //namespace Example {
             //    public class Foo {}
             //}
@@ -1467,7 +1400,7 @@ foo = 17;";
                 public class Foo {}
             }";
             LibSrcMLRunner runo = new LibSrcMLRunner();
-            string srcMLo = runo.GenerateSrcMLFromString(xml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLo = runo.GenerateSrcMLFromString(xml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var unit = fileSetup.GetFileUnitForXmlSnippet(srcMLo, "Foo.cs");
 
             var globalScope = codeParser.ParseFileUnit(unit);
@@ -1477,8 +1410,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestGetAccessModifierForType_ProtectedInternal()
-        {
+        public void TestGetAccessModifierForType_ProtectedInternal() {
             //namespace Example {
             //    protected internal class Foo {}
             //}
@@ -1486,7 +1418,7 @@ foo = 17;";
                 protected internal class Foo {}
             }";
             LibSrcMLRunner runo = new LibSrcMLRunner();
-            string srcMLo = runo.GenerateSrcMLFromString(xml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLo = runo.GenerateSrcMLFromString(xml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var unit = fileSetup.GetFileUnitForXmlSnippet(srcMLo, "Foo.cs");
 
             var globalScope = codeParser.ParseFileUnit(unit);
@@ -1496,8 +1428,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestGetAccessModifierForType_ProtectedInternalStatic()
-        {
+        public void TestGetAccessModifierForType_ProtectedInternalStatic() {
             //namespace Example {
             //    protected static internal class Foo {}
             //}
@@ -1505,7 +1436,7 @@ foo = 17;";
                 protected static internal class Foo {}
             }";
             LibSrcMLRunner runo = new LibSrcMLRunner();
-            string srcMLo = runo.GenerateSrcMLFromString(xml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLo = runo.GenerateSrcMLFromString(xml, "Foo.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var unit = fileSetup.GetFileUnitForXmlSnippet(srcMLo, "Foo.cs");
 
             var globalScope = codeParser.ParseFileUnit(unit);
@@ -1515,18 +1446,17 @@ foo = 17;";
         }
 
         [Test]
-        public void TestMethodCallWithBaseKeyword()
-        {
+        public void TestMethodCallWithBaseKeyword() {
             // B.cs namespace A { class B { public virtual void Foo() { } } }
             string bxml = @"namespace A { class B { public virtual void Foo() { } } }";
             // C.cs namespace A { class C : B { public override void Foo() { base.Foo(); } } }
             string cxml = @"namespace A { class C : B { public override void Foo() { base.Foo(); } } }";
 
             LibSrcMLRunner runB = new LibSrcMLRunner();
-            string srcMLB = runB.GenerateSrcMLFromString(bxml, "B.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLB = runB.GenerateSrcMLFromString(bxml, "B.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var bUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLB, "B.cs");
             LibSrcMLRunner runC = new LibSrcMLRunner();
-            string srcMLC = runC.GenerateSrcMLFromString(cxml, "C.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLC = runC.GenerateSrcMLFromString(cxml, "C.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var cUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLC, "C.cs");
 
             var bScope = codeParser.ParseFileUnit(bUnit);
@@ -1547,13 +1477,12 @@ foo = 17;";
         }
 
         [Test]
-        public void TestMethodDefinitionWithReturnType()
-        {
+        public void TestMethodDefinitionWithReturnType() {
             //int Foo() { }
             string xml = @"int Foo() { }";
 
             LibSrcMLRunner run = new LibSrcMLRunner();
-            string srcML = run.GenerateSrcMLFromString(xml, "test.cpp", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcML = run.GenerateSrcMLFromString(xml, "test.cpp", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var testUnit = fileSetup.GetFileUnitForXmlSnippet(srcML, "test.cpp");
 
             var testScope = codeParser.ParseFileUnit(testUnit);
@@ -1565,13 +1494,12 @@ foo = 17;";
         }
 
         [Test]
-        public void TestMethodDefinitionWithReturnTypeAndWithSpecifier()
-        {
+        public void TestMethodDefinitionWithReturnTypeAndWithSpecifier() {
             //static int Foo() { }
             string xml = @"static int Foo() { }";
 
             LibSrcMLRunner run = new LibSrcMLRunner();
-            string srcML = run.GenerateSrcMLFromString(xml, "test.cpp", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcML = run.GenerateSrcMLFromString(xml, "test.cpp", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var testUnit = fileSetup.GetFileUnitForXmlSnippet(srcML, "test.cpp");
 
             var testScope = codeParser.ParseFileUnit(testUnit);
@@ -1583,13 +1511,12 @@ foo = 17;";
         }
 
         [Test]
-        public void TestMethodDefinitionWithVoidReturn()
-        {
+        public void TestMethodDefinitionWithVoidReturn() {
             //void Foo() { }
             string xml = @"void Foo() { }";
 
             LibSrcMLRunner run = new LibSrcMLRunner();
-            string srcML = run.GenerateSrcMLFromString(xml, "test.cpp", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcML = run.GenerateSrcMLFromString(xml, "test.cpp", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var testUnit = fileSetup.GetFileUnitForXmlSnippet(srcML, "test.cpp");
 
             var testScope = codeParser.ParseFileUnit(testUnit);
@@ -1602,13 +1529,12 @@ foo = 17;";
 
 
         [Test]
-        public void TestProperty()
-        {
+        public void TestProperty() {
             // namespace A { class B { int Foo { get; set; } } }
             string xml = @"namespace A { class B { int Foo { get; set; } } }";
 
             LibSrcMLRunner runB = new LibSrcMLRunner();
-            string srcMLB = runB.GenerateSrcMLFromString(xml, "B.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLB = runB.GenerateSrcMLFromString(xml, "B.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var testUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLB, "B.cs");
             var testScope = codeParser.ParseFileUnit(testUnit);
 
@@ -1627,29 +1553,13 @@ foo = 17;";
         }
 
         [Test]
-        public void TestPropertyAsCallingObject()
-        {
-            // B.cs
-            //namespace A {
-            //  class B {
-            //    C Foo { get; set; }
-            //  }
-            //}
+        public void TestPropertyAsCallingObject() {
             string bxml = @"namespace A {
               class B {
                 C Foo { get; set; }
               }
             }";
-            // C.cs
-            //namespace A {
-            //  class C {
-            //      static void main() {
-            //          B b = new B();
-            //          b.Foo.Bar();
-            //      }
-            //      void Bar() { }
-            //  }
-            //}
+
             string cxml = @"namespace A {
                 class C {
                     static void main() {
@@ -1661,10 +1571,10 @@ foo = 17;";
             }";
 
             LibSrcMLRunner runB = new LibSrcMLRunner();
-            string srcMLB = runB.GenerateSrcMLFromString(bxml, "B.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLB = runB.GenerateSrcMLFromString(bxml, "B.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var bUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLB, "B.cs");
             LibSrcMLRunner runC = new LibSrcMLRunner();
-            string srcMLC = runC.GenerateSrcMLFromString(cxml, "C.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLC = runC.GenerateSrcMLFromString(cxml, "C.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var cUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLC, "C.cs");
             var bScope = codeParser.ParseFileUnit(bUnit);
             var cScope = codeParser.ParseFileUnit(cUnit);
@@ -1688,18 +1598,17 @@ foo = 17;";
         }
 
         [Test]
-        public void TestStaticMethodCall()
-        {
+        public void TestStaticMethodCall() {
             //namespace A { public class B { public static void Bar() { } } }
             var bxml = @"namespace A { public class B { public static void Bar() { } } }";
             //namespace A { public class C { public void Foo() { B.Bar(); } } }
             var cxml = @"namespace A { public class C { public void Foo() { B.Bar(); } } }";
 
             LibSrcMLRunner runB = new LibSrcMLRunner();
-            string srcMLB = runB.GenerateSrcMLFromString(bxml, "B.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLB = runB.GenerateSrcMLFromString(bxml, "B.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var bUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLB, "B.cs");
             LibSrcMLRunner runC = new LibSrcMLRunner();
-            string srcMLC = runC.GenerateSrcMLFromString(cxml, "C.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLC = runC.GenerateSrcMLFromString(cxml, "C.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var cUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLC, "C.cs");
 
             var bScope = codeParser.ParseFileUnit(bUnit);
@@ -1719,18 +1628,17 @@ foo = 17;";
         }
 
         [Test]
-        public void TestStaticMethodCallInDifferentNamespace()
-        {
+        public void TestStaticMethodCallInDifferentNamespace() {
             //namespace A { public class B { public static void Bar() { } } }
             var bxml = @"namespace A { public class B { public static void Bar() { } } }";
             //namespace C { public class D { public void Foo() { A.B.Bar(); } } }
             var dxml = @"namespace C { public class D { public void Foo() { A.B.Bar(); } } }";
 
             LibSrcMLRunner runB = new LibSrcMLRunner();
-            string srcMLB = runB.GenerateSrcMLFromString(bxml, "B.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLB = runB.GenerateSrcMLFromString(bxml, "B.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var bUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLB, "B.cs");
             LibSrcMLRunner runC = new LibSrcMLRunner();
-            string srcMLC = runC.GenerateSrcMLFromString(dxml, "C.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLC = runC.GenerateSrcMLFromString(dxml, "C.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var dUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLC, "C.cs");
 
             var bScope = codeParser.ParseFileUnit(bUnit);
@@ -1750,8 +1658,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestVariablesWithSpecifiers()
-        {
+        public void TestVariablesWithSpecifiers() {
             //static int A;
             //public const int B;
             //public static readonly Foo C;
@@ -1759,10 +1666,10 @@ foo = 17;";
             string testXml = @"static int A;
             public const int B;
             public static readonly Foo C;
-            volatile  int D;";
+            volatile int D;";
             LibSrcMLRunner runt = new LibSrcMLRunner();
-            string srcMLt = runt.GenerateSrcMLFromString(testXml, "test.cs", Language.CSharp, new Collection<UInt32>() { }, false);
-            var testUnit = fileSetup.GetFileUnitForXmlSnippet(testXml, "test.cs");
+            string srcMLt = runt.GenerateSrcMLFromString(testXml, "test.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
+            var testUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLt, "test.cs");
 
             var globalScope = codeParser.ParseFileUnit(testUnit);
             Assert.AreEqual(4, globalScope.ChildStatements.Count);
@@ -1793,8 +1700,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestStaticInstanceVariable()
-        {
+        public void TestStaticInstanceVariable() {
             //namespace A {
             //  class B {
             //      public static B Instance { get; set; }
@@ -1812,7 +1718,7 @@ foo = 17;";
                 class C { public void Foo() { B.Instance.Bar(); } }
             }";
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var unit = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.cs");
 
             var globalScope = codeParser.ParseFileUnit(unit);
@@ -1829,8 +1735,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestStaticInstanceVariableInDifferentNamespace()
-        {
+        public void TestStaticInstanceVariableInDifferentNamespace() {
             //namespace A {
             //  class B {
             //      public static B Instance { get; set; }
@@ -1857,10 +1762,10 @@ foo = 17;";
                 }
             }";
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(axml, "A.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(axml, "A.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var aUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.cs");
             LibSrcMLRunner runC = new LibSrcMLRunner();
-            string srcMLC = runC.GenerateSrcMLFromString(cxml, "C.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLC = runC.GenerateSrcMLFromString(cxml, "C.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var cUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLC, "C.cs");
             var aScope = codeParser.ParseFileUnit(aUnit);
             var cScope = codeParser.ParseFileUnit(cUnit);
@@ -1878,8 +1783,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestCallAsCallingObject()
-        {
+        public void TestCallAsCallingObject() {
             //namespace A {
             //  public class B {
             //      void main() {
@@ -1907,7 +1811,7 @@ foo = 17;";
                 }
             }";
             LibSrcMLRunner run = new LibSrcMLRunner();
-            string srcML = run.GenerateSrcMLFromString(xml, "B.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcML = run.GenerateSrcMLFromString(xml, "B.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var unit = fileSetup.GetFileUnitForXmlSnippet(srcML, "B.cs");
             var globalScope = codeParser.ParseFileUnit(unit);
 
@@ -1929,8 +1833,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestResolveVariable_Field()
-        {
+        public void TestResolveVariable_Field() {
             //class A {
             //  public int Foo;
             //  public A() {
@@ -1944,7 +1847,7 @@ foo = 17;";
               }
             }";
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.cs");
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
@@ -1957,8 +1860,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestResolveVariable_FieldInParent()
-        {
+        public void TestResolveVariable_FieldInParent() {
             //class B {
             //  public int Foo;
             //}
@@ -1976,7 +1878,7 @@ foo = 17;";
               }
             }";
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.cs");
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
@@ -1989,8 +1891,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestCallingVariableDeclaredInParentClass()
-        {
+        public void TestCallingVariableDeclaredInParentClass() {
             //class A { void Foo() { } }
             string axml = @"class A { void Foo() { } }";
 
@@ -2001,13 +1902,13 @@ foo = 17;";
             string cxml = @"class C : B { void Bar() { a.Foo(); } }";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(axml, "A.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(axml, "A.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var aUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.cs");
             LibSrcMLRunner runB = new LibSrcMLRunner();
-            string srcMLB = runB.GenerateSrcMLFromString(bxml, "B.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLB = runB.GenerateSrcMLFromString(bxml, "B.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var bUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLB, "B.cs");
             LibSrcMLRunner runC = new LibSrcMLRunner();
-            string srcMLC = runC.GenerateSrcMLFromString(cxml, "C.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLC = runC.GenerateSrcMLFromString(cxml, "C.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var cUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLC, "C.cs");
 
             var globalScope = codeParser.ParseFileUnit(aUnit);
@@ -2036,8 +1937,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestVariableDeclaredInCallingObjectWithParentClass()
-        {
+        public void TestVariableDeclaredInCallingObjectWithParentClass() {
             //class A { B b; }
             string axml = @"class A { B b; }";
 
@@ -2057,16 +1957,16 @@ foo = 17;";
             }";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(axml, "A.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(axml, "A.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var aUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.cs");
             LibSrcMLRunner runB = new LibSrcMLRunner();
-            string srcMLB = runB.GenerateSrcMLFromString(bxml, "B.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLB = runB.GenerateSrcMLFromString(bxml, "B.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var bUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLB, "B.cs");
             LibSrcMLRunner runC = new LibSrcMLRunner();
-            string srcMLC = runC.GenerateSrcMLFromString(cxml, "C.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLC = runC.GenerateSrcMLFromString(cxml, "C.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var cUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLC, "C.cs");
             LibSrcMLRunner runD = new LibSrcMLRunner();
-            string srcMLD = runD.GenerateSrcMLFromString(dxml, "D.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLD = runD.GenerateSrcMLFromString(dxml, "D.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var dUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLD, "D.cs");
 
             var globalScope = codeParser.ParseFileUnit(aUnit);
@@ -2101,8 +2001,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestResolveArrayVariable_Property()
-        {
+        public void TestResolveArrayVariable_Property() {
             //class Foo {
             //  Collection<int> Parameters { get; set; }
             //  void DoWork() {
@@ -2116,7 +2015,7 @@ foo = 17;";
               }
             }";
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.cs");
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
@@ -2130,8 +2029,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestTypeUseForOtherNamespace()
-        {
+        public void TestTypeUseForOtherNamespace() {
             //namespace A.B {
             //    class C {
             //        int Foo() { }
@@ -2163,10 +2061,10 @@ foo = 17;";
             }";
 
             LibSrcMLRunner run = new LibSrcMLRunner();
-            string srcMLC = run.GenerateSrcMLFromString(cxml, "C.cpp", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLC = run.GenerateSrcMLFromString(cxml, "C.cpp", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var cUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLC, "C.cpp");
             LibSrcMLRunner runE = new LibSrcMLRunner();
-            string srcMLE = runE.GenerateSrcMLFromString(exml, "E.cpp", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLE = runE.GenerateSrcMLFromString(exml, "E.cpp", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var eUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLE, "E.cpp");
 
             NamespaceDefinition globalScope = codeParser.ParseFileUnit(cUnit);
@@ -2199,8 +2097,7 @@ foo = 17;";
         }
 
         [Test]
-        public void TestLockStatement()
-        {
+        public void TestLockStatement() {
             //lock(myVar) {
             //    myVar.DoFoo();
             //}
@@ -2208,7 +2105,7 @@ foo = 17;";
                 myVar.DoFoo();
             }";
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cs", Language.CSharp, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.cs", Language.CSharp, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.cs");
             var globalScope = codeParser.ParseFileUnit(xmlElement);
 

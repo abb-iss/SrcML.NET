@@ -106,7 +106,7 @@ namespace ABB.SrcML
         /// <param name="applicationDirectory">The application directory.</param>
         /// <param name="executableName">Name of the executable.</param>
         public SrcMLRunner(string applicationDirectory, string executableName)
-            : this(applicationDirectory, executableName, new[] { LIT.ArgumentLabel, OP.ArgumentLabel, TYPE.ArgumentLabel })
+            : this(applicationDirectory, executableName, new[] { LIT.ArgumentLabel, TYPE.ArgumentLabel })
         {
 
         }

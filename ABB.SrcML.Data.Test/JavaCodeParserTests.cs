@@ -17,29 +17,25 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace ABB.SrcML.Data.Test
-{
+namespace ABB.SrcML.Data.Test {
 
     [TestFixture]
     [Category("Build")]
-    internal class JavaCodeParserTests
-    {
+    internal class JavaCodeParserTests {
         private AbstractCodeParser codeParser;
         private SrcMLFileUnitSetup fileSetup;
 
         [TestFixtureSetUp]
-        public void ClassSetup()
-        {
+        public void ClassSetup() {
             codeParser = new JavaCodeParser();
             fileSetup = new SrcMLFileUnitSetup(Language.Java);
         }
 
         [Test]
-        public void TestCreateAliasesForFiles_ImportClass()
-        {
+        public void TestCreateAliasesForFiles_ImportClass() {
             string xml = @"import x.y.z;";
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.java");
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
@@ -52,11 +48,11 @@ namespace ABB.SrcML.Data.Test
         }
 
         [Test]
-        public void TestCreateAliasesForFiles_ImportNamespace()
-        {
+        public void TestCreateAliasesForFiles_ImportNamespace() {
             string xml = @"import x . /*test */ y  /*test */ . z .* /*test*/;";
+            //<import>import <name><name>x</name> <op:operator>.</op:operator> <comment type=""block"">/*test */</comment> <name>y</name>  <comment type=""block"">/*test */</comment> <op:operator>.</op:operator> <name>z</name></name> .* <comment type=""block"">/*test*/</comment>;</import>";
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.java");
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
@@ -68,12 +64,11 @@ namespace ABB.SrcML.Data.Test
         }
 
         [Test]
-        public void TestCreateTypeDefinition_ClassInPackage()
-        {
+        public void TestCreateTypeDefinition_ClassInPackage() {
             string xml = @"package A.B.C;
             public class D { }";
             LibSrcMLRunner runD = new LibSrcMLRunner();
-            string srcMLA = runD.GenerateSrcMLFromString(xml, "D.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLA = runD.GenerateSrcMLFromString(xml, "D.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "D.java");
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
@@ -104,12 +99,11 @@ namespace ABB.SrcML.Data.Test
         }
 
         [Test]
-        public void TestCreateTypeDefinitions_Class()
-        {
+        public void TestCreateTypeDefinitions_Class() {
 
             string xml = @"class A { }";
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.java");
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
@@ -122,13 +116,12 @@ namespace ABB.SrcML.Data.Test
         }
 
         [Test]
-        public void TestCreateTypeDefinitions_ClassInFunction()
-        {
+        public void TestCreateTypeDefinitions_ClassInFunction() {
 
             string xml = @"class A { int foo() { class B { } } }";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.java");
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
@@ -145,16 +138,13 @@ namespace ABB.SrcML.Data.Test
         }
 
         [Test]
-        public void TestCreateTypeDefinitions_ClassWithExtendsAndImplements()
-        {
-
-            string xml = @"Foo.java
-            public class Foo extends xyzzy implements A, B, C {
+        public void TestCreateTypeDefinitions_ClassWithExtendsAndImplements() {
+            string xml = @"public class Foo extends xyzzy implements A, B, C {
                 public int bar;
             }";
 
             LibSrcMLRunner runFoo = new LibSrcMLRunner();
-            string srcMLA = runFoo.GenerateSrcMLFromString(xml, "Foo.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLA = runFoo.GenerateSrcMLFromString(xml, "Foo.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "Foo.java");
 
             var actual = codeParser.ParseFileUnit(xmlElement).ChildStatements.First() as TypeDefinition;
@@ -169,19 +159,17 @@ namespace ABB.SrcML.Data.Test
                               select parent.Name;
 
             var tests = Enumerable.Zip<string, string, bool>(new[] { "xyzzy", "A", "B", "C" }, parentNames, (e, a) => e == a);
-            foreach (var test in tests)
-            {
+            foreach (var test in tests) {
                 Assert.That(test);
             }
         }
 
         [Test]
-        public void TestCreateTypeDefinitions_ClassWithInnerClass()
-        {
+        public void TestCreateTypeDefinitions_ClassWithInnerClass() {
             string xml = @"class A { class B { } }";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.java");
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
@@ -195,12 +183,11 @@ namespace ABB.SrcML.Data.Test
         }
 
         [Test]
-        public void TestCreateTypeDefinitions_ClassWithParents()
-        {
+        public void TestCreateTypeDefinitions_ClassWithParents() {
             string xml = @"class A implements B,C,D { }";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.java");
 
             var actual = codeParser.ParseFileUnit(xmlElement).ChildStatements.First() as TypeDefinition;
@@ -213,19 +200,17 @@ namespace ABB.SrcML.Data.Test
                               select parent.Name;
 
             var tests = Enumerable.Zip<string, string, bool>(new[] { "B", "C", "D" }, parentNames, (e, a) => e == a);
-            foreach (var test in tests)
-            {
+            foreach (var test in tests) {
                 Assert.That(test);
             }
         }
 
         [Test]
-        public void TestCreateTypeDefinitions_ClassWithQualifiedParent()
-        {
+        public void TestCreateTypeDefinitions_ClassWithQualifiedParent() {
             string xml = @"class D implements A.B.C { }";
 
             LibSrcMLRunner runD = new LibSrcMLRunner();
-            string srcMLA = runD.GenerateSrcMLFromString(xml, "D.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLA = runD.GenerateSrcMLFromString(xml, "D.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "D.java");
 
             var actual = codeParser.ParseFileUnit(xmlElement).ChildStatements.First() as TypeDefinition;
@@ -246,15 +231,13 @@ namespace ABB.SrcML.Data.Test
         }
 
         [Test]
-        public void TestCreateTypeDefinitions_ClassWithSuperClass()
-        {
+        public void TestCreateTypeDefinitions_ClassWithSuperClass() {
 
-            string xml = @"Foo.java
-            public class Foo extends xyzzy {
+            string xml = @"public class Foo extends xyzzy {
                 public int bar;
             }";
             LibSrcMLRunner runFoo = new LibSrcMLRunner();
-            string srcMLA = runFoo.GenerateSrcMLFromString(xml, "Foo.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLA = runFoo.GenerateSrcMLFromString(xml, "Foo.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "Foo.java");
 
             var actual = codeParser.ParseFileUnit(xmlElement).ChildStatements.First() as TypeDefinition;
@@ -268,13 +251,12 @@ namespace ABB.SrcML.Data.Test
         }
 
         [Test]
-        public void TestCreateTypeDefinitions_InnerClassWithNamespace()
-        {
+        public void TestCreateTypeDefinitions_InnerClassWithNamespace() {
 
             string xml = @"package A; class B { class C { } }";
 
             LibSrcMLRunner runB = new LibSrcMLRunner();
-            string srcMLA = runB.GenerateSrcMLFromString(xml, "B.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLA = runB.GenerateSrcMLFromString(xml, "B.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "B.java");
             var globalScope = codeParser.ParseFileUnit(xmlElement);
 
@@ -294,30 +276,28 @@ namespace ABB.SrcML.Data.Test
         }
 
         [Test]
-        public void TestCreateTypeDefinitions_Interface()
-        {
-
+        public void TestCreateTypeDefinitions_Interface() {
             string xml = @"interface A { }";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.java");
 
-            var actual = codeParser.ParseFileUnit(xmlElement).ChildStatements.First() as TypeDefinition;
-            var globalNamespace = actual.ParentStatement as NamespaceDefinition;
+            var actual = codeParser.ParseFileUnit(xmlElement);
+            var actual2 = actual.ChildStatements.First() as TypeDefinition;
+            var globalNamespace = actual as NamespaceDefinition;
 
-            Assert.AreEqual("A", actual.Name);
-            Assert.AreEqual(TypeKind.Interface, actual.Kind);
+            Assert.AreEqual("A", actual2.Name);
+            Assert.AreEqual(TypeKind.Interface, actual2.Kind);
             Assert.That(globalNamespace.IsGlobal);
         }
 
         [Test]
-        public void TestFieldCreation()
-        {
+        public void TestFieldCreation() {
             string xml = @"class A { int B; }";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.java");
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
@@ -333,14 +313,13 @@ namespace ABB.SrcML.Data.Test
         }
 
         [Test]
-        public void TestGetAccessModifierForMethod_None()
-        {
+        public void TestGetAccessModifierForMethod_None() {
 
             string xml = @"public class Foo {
                 bool Bar() { return true; }
             }";
             LibSrcMLRunner runFoo = new LibSrcMLRunner();
-            string srcMLA = runFoo.GenerateSrcMLFromString(xml, "Foo.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLA = runFoo.GenerateSrcMLFromString(xml, "Foo.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var unit = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "Foo.java");
 
             var globalScope = codeParser.ParseFileUnit(unit);
@@ -350,14 +329,13 @@ namespace ABB.SrcML.Data.Test
         }
 
         [Test]
-        public void TestGetAccessModifierForMethod_Normal()
-        {
+        public void TestGetAccessModifierForMethod_Normal() {
 
             string xml = @"public class Foo {
                 public bool Bar() { return true; }
             }";
             LibSrcMLRunner runFoo = new LibSrcMLRunner();
-            string srcMLA = runFoo.GenerateSrcMLFromString(xml, "Foo.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLA = runFoo.GenerateSrcMLFromString(xml, "Foo.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var unit = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "Foo.java");
 
             var globalScope = codeParser.ParseFileUnit(unit);
@@ -367,14 +345,13 @@ namespace ABB.SrcML.Data.Test
         }
 
         [Test]
-        public void TestGetAccessModifierForMethod_Static()
-        {
+        public void TestGetAccessModifierForMethod_Static() {
 
             string xml = @"public class Foo {
                 static public bool Bar() { return true; }
             }";
             LibSrcMLRunner runFoo = new LibSrcMLRunner();
-            string srcMLA = runFoo.GenerateSrcMLFromString(xml, "Foo.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLA = runFoo.GenerateSrcMLFromString(xml, "Foo.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var unit = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "Foo.java");
 
             var globalScope = codeParser.ParseFileUnit(unit);
@@ -384,11 +361,10 @@ namespace ABB.SrcML.Data.Test
         }
 
         [Test]
-        public void TestGetAccessModifierForType_None()
-        {
+        public void TestGetAccessModifierForType_None() {
             string xml = @"class Foo {}";
             LibSrcMLRunner runFoo = new LibSrcMLRunner();
-            string srcMLA = runFoo.GenerateSrcMLFromString(xml, "Foo.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLA = runFoo.GenerateSrcMLFromString(xml, "Foo.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var unit = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "Foo.java");
 
             var globalScope = codeParser.ParseFileUnit(unit);
@@ -398,12 +374,11 @@ namespace ABB.SrcML.Data.Test
         }
 
         [Test]
-        public void TestGetAccessModifierForType_Normal()
-        {
+        public void TestGetAccessModifierForType_Normal() {
 
             string xml = @"public class Foo {}";
             LibSrcMLRunner runFoo = new LibSrcMLRunner();
-            string srcMLA = runFoo.GenerateSrcMLFromString(xml, "Foo.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLA = runFoo.GenerateSrcMLFromString(xml, "Foo.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var unit = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "Foo.java");
 
             var globalScope = codeParser.ParseFileUnit(unit);
@@ -413,11 +388,10 @@ namespace ABB.SrcML.Data.Test
         }
 
         [Test]
-        public void TestGetAccessModifierForType_Static()
-        {
+        public void TestGetAccessModifierForType_Static() {
             string xml = @"static public class Foo {}";
             LibSrcMLRunner runFoo = new LibSrcMLRunner();
-            string srcMLA = runFoo.GenerateSrcMLFromString(xml, "Foo.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLA = runFoo.GenerateSrcMLFromString(xml, "Foo.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var unit = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "Foo.java");
 
             var globalScope = codeParser.ParseFileUnit(unit);
@@ -429,8 +403,7 @@ namespace ABB.SrcML.Data.Test
 
 
         [Test]
-        public void TestMethodCallCreation_WithConflictingMethodNames()
-        {
+        public void TestMethodCallCreation_WithConflictingMethodNames() {
             string a_xml = @"class A {
                 B b;
                 boolean Contains() { b.Contains(); }
@@ -442,10 +415,10 @@ namespace ABB.SrcML.Data.Test
             }";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(a_xml, "A.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(a_xml, "A.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var fileUnitA = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.java");
             LibSrcMLRunner runB = new LibSrcMLRunner();
-            string srcMLB = runB.GenerateSrcMLFromString(b_xml, "B.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLB = runB.GenerateSrcMLFromString(b_xml, "B.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var fileUnitB = fileSetup.GetFileUnitForXmlSnippet(srcMLB, "B.java");
 
             var scopeForA = codeParser.ParseFileUnit(fileUnitA);
@@ -469,8 +442,7 @@ namespace ABB.SrcML.Data.Test
         }
 
         [Test]
-        public void TestMethodCallCreation_WithThisKeyword()
-        {
+        public void TestMethodCallCreation_WithThisKeyword() {
             string a_xml = @"class A {
                 void Bar() { }
                 class B {
@@ -481,7 +453,7 @@ namespace ABB.SrcML.Data.Test
             }";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(a_xml, "A.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(a_xml, "A.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var fileUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.java");
             var globalScope = codeParser.ParseFileUnit(fileUnit);
 
@@ -505,8 +477,7 @@ namespace ABB.SrcML.Data.Test
         }
 
         [Test]
-        public void TestMethodCallCreation_WithSuperKeyword()
-        {
+        public void TestMethodCallCreation_WithSuperKeyword() {
             string xml = @"class B {
               public void Foo() { } 
             }
@@ -517,7 +488,7 @@ namespace ABB.SrcML.Data.Test
               }
             }";
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.java");
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
@@ -539,8 +510,7 @@ namespace ABB.SrcML.Data.Test
         }
 
         [Test]
-        public void TestMethodCallCreation_SuperConstructor()
-        {
+        public void TestMethodCallCreation_SuperConstructor() {
             string xml = @"class B {
               public B(int num) { }
             }
@@ -550,7 +520,7 @@ namespace ABB.SrcML.Data.Test
               }
             }";
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(xml, "A.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var xmlElement = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.java");
 
             var globalScope = codeParser.ParseFileUnit(xmlElement);
@@ -569,14 +539,11 @@ namespace ABB.SrcML.Data.Test
         }
 
         [Test]
-        public void TestMethodCallCreation_ConstructorFromOtherNamespace()
-        {
-
+        public void TestMethodCallCreation_ConstructorFromOtherNamespace() {
             string c_xml = @"package A.B;
             class C {
               public C() { }
             }";
-
 
             string e_xml = @"package A.D;
             import A.B.*;
@@ -587,10 +554,10 @@ namespace ABB.SrcML.Data.Test
             }";
 
             LibSrcMLRunner runC = new LibSrcMLRunner();
-            string srcMLA = runC.GenerateSrcMLFromString(c_xml, "C.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLA = runC.GenerateSrcMLFromString(c_xml, "C.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var cUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "C.java");
             LibSrcMLRunner runE = new LibSrcMLRunner();
-            string srcMLE = runE.GenerateSrcMLFromString(e_xml, "E.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLE = runE.GenerateSrcMLFromString(e_xml, "E.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var eUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLE, "E.java");
 
             var cScope = codeParser.ParseFileUnit(cUnit);
@@ -632,14 +599,13 @@ namespace ABB.SrcML.Data.Test
         }
 
         [Test]
-        public void TestVariablesWithSpecifiers()
-        {
+        public void TestVariablesWithSpecifiers() {
 
             string testXml = @"public static int A;
             public final int B;
             private static final Foo C;";
             LibSrcMLRunner runtest = new LibSrcMLRunner();
-            string srcMLA = runtest.GenerateSrcMLFromString(testXml, "test.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLA = runtest.GenerateSrcMLFromString(testXml, "test.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var testUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "test.java");
 
             var globalScope = codeParser.ParseFileUnit(testUnit);
@@ -665,15 +631,14 @@ namespace ABB.SrcML.Data.Test
         }
 
         [Test]
-        public void TestImport_NameResolution()
-        {
+        public void TestImport_NameResolution() {
             string xmlA = @"import Foo.Bar.*;
             package A;
             public class Robot {
               public Baz GetThingy() { return new Baz(); }
             }";
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(xmlA, "A.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(xmlA, "A.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElementA = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.java");
 
             string xmlB = @"package Foo.Bar;
@@ -681,7 +646,7 @@ namespace ABB.SrcML.Data.Test
               public Baz() { }
             }";
             LibSrcMLRunner runB = new LibSrcMLRunner();
-            string srcMLB = runB.GenerateSrcMLFromString(xmlB, "B.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLB = runB.GenerateSrcMLFromString(xmlB, "B.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElementB = fileSetup.GetFileUnitForXmlSnippet(srcMLB, "B.java");
 
             var scopeA = codeParser.ParseFileUnit(xmlElementA);
@@ -705,14 +670,13 @@ namespace ABB.SrcML.Data.Test
         }
 
         [Test]
-        public void TestAlias_NameResolution()
-        {
+        public void TestAlias_NameResolution() {
             string xmlA = @"package Foo.Bar;
             public class Baz {
               public static void DoTheThing() { };
             }";
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(xmlA, "A.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(xmlA, "A.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElementA = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.java");
             string xmlB = @"import Foo.Bar.Baz;
             package A;
@@ -722,7 +686,7 @@ namespace ABB.SrcML.Data.Test
               }
             }";
             LibSrcMLRunner runB = new LibSrcMLRunner();
-            string srcMLB = runB.GenerateSrcMLFromString(xmlB, "B.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLB = runB.GenerateSrcMLFromString(xmlB, "B.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             XElement xmlElementB = fileSetup.GetFileUnitForXmlSnippet(srcMLB, "B.java");
 
             var scopeA = codeParser.ParseFileUnit(xmlElementA);
@@ -743,20 +707,19 @@ namespace ABB.SrcML.Data.Test
         }
 
         [Test]
-        public void BasicParentTest_Java()
-        {
+        public void BasicParentTest_Java() {
             string a_xml = @"class A implements B { }";
             string b_xml = @"class B { }";
             string c_xml = @"class C { A a; }";
 
             LibSrcMLRunner runA = new LibSrcMLRunner();
-            string srcMLA = runA.GenerateSrcMLFromString(a_xml, "A.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLA = runA.GenerateSrcMLFromString(a_xml, "A.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var fileUnitA = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "A.java");
             LibSrcMLRunner runB = new LibSrcMLRunner();
-            string srcMLB = runB.GenerateSrcMLFromString(b_xml, "B.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLB = runB.GenerateSrcMLFromString(b_xml, "B.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var fileUnitB = fileSetup.GetFileUnitForXmlSnippet(srcMLB, "B.java");
             LibSrcMLRunner runC = new LibSrcMLRunner();
-            string srcMLC = runC.GenerateSrcMLFromString(c_xml, "C.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLC = runC.GenerateSrcMLFromString(c_xml, "C.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var fileUnitC = fileSetup.GetFileUnitForXmlSnippet(srcMLC, "C.java");
 
             var globalScope = codeParser.ParseFileUnit(fileUnitA);
@@ -782,14 +745,11 @@ namespace ABB.SrcML.Data.Test
         }
 
         [Test]
-        public void TestTypeUseForOtherNamespace()
-        {
-
+        public void TestTypeUseForOtherNamespace() {
             string c_xml = @"package A.B;
             class C {
                 int Foo();
             }";
-
 
             string e_xml = @"package D;
             import A.B.*;
@@ -801,10 +761,10 @@ namespace ABB.SrcML.Data.Test
             }";
 
             LibSrcMLRunner runC = new LibSrcMLRunner();
-            string srcMLA = runC.GenerateSrcMLFromString(c_xml, "C.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLA = runC.GenerateSrcMLFromString(c_xml, "C.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var cUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLA, "C.java");
             LibSrcMLRunner runE = new LibSrcMLRunner();
-            string srcMLE = runE.GenerateSrcMLFromString(e_xml, "E.java", Language.Java, new Collection<UInt32>() { }, false);
+            string srcMLE = runE.GenerateSrcMLFromString(e_xml, "E.java", Language.Java, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, false);
             var eUnit = fileSetup.GetFileUnitForXmlSnippet(srcMLE, "E.java");
 
             var globalScope = codeParser.ParseFileUnit(cUnit);

@@ -53,7 +53,25 @@ namespace ABB.SrcML {
         /// </summary>
         /// TODO document comment attributes.
         public static readonly XName Comment = NS + "comment";
+        
+        // Operator
+        /// <summary>
+        /// markup for the operator tag
+        /// </summary>
+        
+        public static readonly XName Operator = NS + "operator";
+        // Literal
+        /// <summary>
+        /// markup for the literal tag
+        /// </summary>
 
+        public static readonly XName Literal = NS + "literal";
+        // Interface
+        /// <summary>
+        /// markup for the interface tag
+        /// </summary>
+
+        public static readonly XName Interface = NS + "interface";
         // access specifiers
         /// <summary>
         /// markup for the public access specifier.
@@ -126,6 +144,12 @@ namespace ABB.SrcML {
         /// </summary>
         public static readonly XName Declaration = NS + "decl";
 
+        // property
+        /// <summary>
+        /// markup for the property tag
+        /// </summary>
+        public static readonly XName Property = NS + "property";
+
         /// <summary>
         /// markup for the type tag
         /// </summary>
@@ -196,6 +220,11 @@ namespace ABB.SrcML {
         /// </summary>
         public static readonly XName Else = NS + "else";
 
+        /// <summary>
+        /// markup for the else if tag
+        /// </summary>
+        public static readonly XName ElseIf = NS + "elseif";
+
         // while statement
         /// <summary>
         /// markup for the while tag
@@ -218,6 +247,11 @@ namespace ABB.SrcML {
         /// markup for the foreach tag
         /// </summary>
         public static readonly XName Foreach = NS + "foreach";
+
+        /// <summary>
+        /// markup for the control tag
+        /// </summary>
+        public static readonly XName Control = NS + "control";
 
         /// <summary>
         /// markup for the incr tag
@@ -351,7 +385,7 @@ namespace ABB.SrcML {
         /// <summary>
         /// markup for the member_list tag
         /// </summary>
-        public static readonly XName MemberList = NS + "member_list";
+        public static readonly XName MemberList = NS + "member_init_list";
 
         /// <summary>
         /// markup for the constructor_decl tag

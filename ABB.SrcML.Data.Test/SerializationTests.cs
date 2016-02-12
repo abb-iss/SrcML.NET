@@ -13,6 +13,7 @@
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -22,7 +23,7 @@ namespace ABB.SrcML.Data.Test {
     [TestFixture(Category="Build")]
     public class SerializationTests {
         private const string TestInputPath = @"..\..\TestInputs";
-        private const string DefaultInputName = "serializationtest_input.xml";
+        private const string DefaultInputName = "serializationtest_input";
         private const string DefaultOutputName = "serializationtest_output";
         [SetUp]
         public void TestSetup() {
@@ -39,13 +40,16 @@ namespace ABB.SrcML.Data.Test {
         [TestCase("A.h", false)]
         public void TestRoundTrip(string sourceFileName, bool compressOutput) {
             var sourceFilePath = Path.Combine(TestInputPath, sourceFileName);
+            var destFilePath = Path.Combine(TestInputPath, DefaultInputName);
 
-            var srcMLGenerator = new SrcMLGenerator("SrcML");
+            LibSrcMLRunner runner = new LibSrcMLRunner();
+            runner.GenerateSrcMLFromFile(sourceFilePath, destFilePath + ".cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, new Dictionary<string, Language>() { });
+            Assert.That(File.Exists(destFilePath + ".cpp0.xml"));
+
+            var fileUnit = SrcMLElement.Load(destFilePath + ".cpp0.xml");
             var dataGenerator = new DataGenerator();
+            var nsd = dataGenerator.Parse(fileUnit.Element(SRC.Unit)) as NamespaceDefinition;
 
-            Assert.That(srcMLGenerator.Generate(sourceFilePath, DefaultInputName));
-            var fileUnit = SrcMLElement.Load(DefaultInputName);
-            var nsd = dataGenerator.Parse(fileUnit) as NamespaceDefinition;
             XmlSerialization.WriteElement(nsd, DefaultOutputName, compressOutput);
             var nsdFromFile = XmlSerialization.Load(DefaultOutputName, compressOutput) as NamespaceDefinition;
             DataAssert.StatementsAreEqual(nsd, nsdFromFile);
@@ -58,14 +62,16 @@ namespace ABB.SrcML.Data.Test {
         [TestCase("A.h", false)]
         public void TestRoundTripWithDefaultExtension(string sourceFileName, bool useCompression) {
             var sourceFilePath = Path.Combine(TestInputPath, sourceFileName);
+            var destFilePath = Path.Combine(TestInputPath, DefaultInputName);
 
-            var srcMLGenerator = new SrcMLGenerator("SrcML");
-            var dataGenerator = new DataGenerator();
-
-            Assert.That(srcMLGenerator.Generate(sourceFilePath, DefaultInputName));
-            var fileUnit = SrcMLElement.Load(DefaultInputName);
-            var nsd = dataGenerator.Parse(fileUnit) as NamespaceDefinition;
+            LibSrcMLRunner runner = new LibSrcMLRunner();
+            runner.GenerateSrcMLFromFile(sourceFilePath, destFilePath+".cpp", Language.CPlusPlus, new Collection<UInt32>() { LibSrcMLRunner.SrcMLOptions.SRCML_OPTION_POSITION }, new Dictionary<string, Language>() { });
+            Assert.That(File.Exists(destFilePath + ".cpp0.xml"));
             
+            var fileUnit = SrcMLElement.Load(destFilePath + ".cpp0.xml");
+            var dataGenerator = new DataGenerator();
+            var nsd = dataGenerator.Parse(fileUnit.Element(SRC.Unit)) as NamespaceDefinition;
+
             string outputFileName = Path.ChangeExtension(DefaultOutputName, useCompression ? XmlSerialization.DEFAULT_COMPRESSED_EXTENSION : XmlSerialization.DEFAULT_EXTENSION);
             XmlSerialization.WriteElement(nsd, outputFileName);
             var nsdFromFile = XmlSerialization.Load(outputFileName) as NamespaceDefinition;

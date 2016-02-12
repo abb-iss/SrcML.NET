@@ -26,7 +26,7 @@ namespace ABB.SrcML.Data {
         /// </summary>
         public CSharpCodeParser()
             : base() {
-            this.TypeElementNames = new HashSet<XName> { SRC.Class, SRC.Enum, SRC.Struct }; //SRC.Interface?
+            this.TypeElementNames = new HashSet<XName> { SRC.Class, SRC.Enum, SRC.Struct, SRC.Interface };
             this.AliasElementName = SRC.Using;
             //TODO: what else needs to be set here?
         }
@@ -245,10 +245,10 @@ namespace ABB.SrcML.Data {
         /// <param name="usingElement">The SRC.Using element to parse.</param>
         /// <param name="context">The parser context to use.</param>
         /// <returns>A UsingBlockStatement created from the given usingElement.</returns>
-        protected virtual UsingBlockStatement ParseUsingBlockElement(XElement usingElement, ParserContext context) {
+        protected override UsingBlockStatement ParseUsingBlockElement(XElement usingElement, ParserContext context) {
             if(usingElement == null)
                 throw new ArgumentNullException("usingElement");
-            if(usingElement.Name != SRC.Using)
+            if(usingElement.Name != SRC.Using_Stmt)
                 throw new ArgumentException("Must be a SRC.Using element", "usingElement");
             if(context == null)
                 throw new ArgumentNullException("context");
@@ -310,43 +310,43 @@ namespace ABB.SrcML.Data {
         protected override Statement ParseDeclarationStatementElement(XElement stmtElement, ParserContext context) {
             if(stmtElement == null)
                 throw new ArgumentNullException("stmtElement");
-            if(stmtElement.Name != SRC.DeclarationStatement)
+            if (stmtElement.Name != SRC.DeclarationStatement && stmtElement.Name != SRC.Property)
                 throw new ArgumentException("Must be a SRC.DeclarationStatement element", "stmtElement");
             if(context == null)
                 throw new ArgumentNullException("context");
             
             //first check if this is a property and parse accordingly
-            var declElement = stmtElement.Element(SRC.Declaration);
-            if(declElement != null) {
-                var blockElement = declElement.Element(SRC.Block);
-                if(blockElement != null) {
-                    //this is a property
-                    return ParsePropertyDeclarationElement(declElement, context);
-                }
+            if (stmtElement.Name == SRC.Property) {
+               return ParsePropertyDeclarationElement(stmtElement, context);
+            } else {
+                var stmt = new DeclarationStatement() {
+                    ProgrammingLanguage = ParserLanguage,
+                    Content = ParseExpression(GetChildExpressions(stmtElement), context)
+                };
+                stmt.AddLocation(context.CreateLocation(stmtElement));
+                return stmt;
             }
 
-            //otherwise, parse as base:
-            return base.ParseDeclarationStatementElement(stmtElement, context);
         }
 
         /// <summary>
-        /// Creates a <see cref="PropertyDefinition"/> object for <paramref name="declElement"/>.
+        /// Creates a <see cref="PropertyDefinition"/> object for <paramref name="propertyElement"/>.
         /// </summary>
-        /// <param name="declElement">The SRC.Declaration element to parse. This must be a declaration of a property.</param>
+        /// <param name="propertyElement">The SRC.Declaration element to parse. This must be a declaration of a property.</param>
         /// <param name="context">The context to use.</param>
-        /// <returns>A <see cref="PropertyDefinition"/> corresponding to <paramref name="declElement"/>.</returns>
-        protected virtual PropertyDefinition ParsePropertyDeclarationElement(XElement declElement, ParserContext context) {
-            if(declElement == null)
-                throw new ArgumentNullException("declElement");
-            if(declElement.Name != SRC.Declaration)
-                throw new ArgumentException("Must be a SRC.Declaration element", "declElement");
+        /// <returns>A <see cref="PropertyDefinition"/> corresponding to <paramref name="propertyElement"/>.</returns>
+        protected virtual PropertyDefinition ParsePropertyDeclarationElement(XElement propertyElement, ParserContext context) {
+            if(propertyElement == null)
+                throw new ArgumentNullException("propertyElement");
+            if(propertyElement.Name != SRC.Property)
+                throw new ArgumentException("Must be a SRC.Property element", "propertyElement");
             if(context == null)
                 throw new ArgumentNullException("context");
 
             var propertyDef = new PropertyDefinition {ProgrammingLanguage = ParserLanguage};
-            propertyDef.AddLocation(context.CreateLocation(declElement));
+            propertyDef.AddLocation(context.CreateLocation(propertyElement));
 
-            foreach(var child in declElement.Elements()) {
+            foreach(var child in propertyElement.Elements()) {
                 if(child.Name == SRC.Type) {
                     propertyDef.Accessibility = GetAccessModifierFromTypeUseElement(child);
                     propertyDef.ReturnType = ParseTypeUseElement(child, context);
