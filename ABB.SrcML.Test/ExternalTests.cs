@@ -55,6 +55,7 @@ namespace ABB.SrcML.Test
         [TestFixtureTearDown]
         public static void SRCTestCleanup()
         {
+            
             foreach (var file in Directory.GetFiles("external"))
             {
                 File.Delete(file);
@@ -70,7 +71,7 @@ namespace ABB.SrcML.Test
         [Test]
         public void FileWithBom()
         {
-            var srcmlObject = new ABB.SrcML.SrcML(Path.Combine(".", "SrcML"));
+            var srcmlObject = new ABB.SrcML.SrcML(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
 
             var doc = srcmlObject.GenerateSrcMLFromFile("external\\fileWithBom.cpp", "external_xml\\fileWithBom.xml");
         }
@@ -78,7 +79,7 @@ namespace ABB.SrcML.Test
         [Test]
         public void JavaClassWithConstructor()
         {
-            var srcmlObject = new Src2SrcMLRunner(Path.Combine(".", "SrcML"));
+            var srcmlObject = new Src2SrcMLRunner(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
 
             var doc = srcmlObject.GenerateSrcMLFromFile("external\\ClassWithConstructor.java", "external_xml\\ClassWithConstructor.java.xml");
             XElement classBlock = null;
@@ -88,10 +89,18 @@ namespace ABB.SrcML.Test
             Assert.AreEqual(1, classBlock.Elements(SRC.Function).Count(), srcmlObject.ApplicationDirectory);
         }
 
+        /// <summary>
+        /// Originally, this test looked to see if there were 2 names and inits inside of a decl for the given input. The new version of
+        /// srcML fixes an old issue and so now each decl only has 1 name and init for the given input. Therefore, changing the assertion to 1
+        /// instead of 2.Possibly deprecated.
+        /// </summary>
         [Test]
         public void DeclStmtWithTwoDecl()
         {
-            var srcmlObject = new Src2SrcMLRunner(Path.Combine(".", "SrcML"));
+            const int NumNamesInDecl = 1;
+            const int NumInitInDecl = 1;
+
+            var srcmlObject = new Src2SrcMLRunner(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
             var source = "int x = 0, y = 2;";
 
             var xml = srcmlObject.GenerateSrcMLFromString(source);
@@ -100,14 +109,14 @@ namespace ABB.SrcML.Test
             var decl = element.Element(SRC.DeclarationStatement).Element(SRC.Declaration);
             var nameCount = decl.Elements(SRC.Name).Count();
             var initCount = decl.Elements(SRC.Init).Count();
-            Assert.AreEqual(2, nameCount, srcmlObject.ApplicationDirectory);
-            Assert.AreEqual(2, initCount, srcmlObject.ApplicationDirectory);
+            Assert.AreEqual(NumNamesInDecl, nameCount, srcmlObject.ApplicationDirectory);
+            Assert.AreEqual(NumInitInDecl, initCount, srcmlObject.ApplicationDirectory);
         }
 
         [Test]
         public void FunctionWithElseInCpp()
         {
-            var srcmlObject = new Src2SrcMLRunner(Path.Combine(".", "SrcML"));
+            var srcmlObject = new Src2SrcMLRunner(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
 
             var doc = srcmlObject.GenerateSrcMLFromFile("external\\cpp_parsing_error.c", "external_xml\\cpp_parsing_error.c.xml");
 
@@ -117,7 +126,7 @@ namespace ABB.SrcML.Test
         [Test]
         public void MacroWithoutSemicolon()
         {
-            var srcmlObject = new Src2SrcMLRunner(Path.Combine(".", "SrcML"));
+            var srcmlObject = new Src2SrcMLRunner(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
 
             var doc = srcmlObject.GenerateSrcMLFromFile("external\\MacroWithoutSemicolon.cpp", "external_xml\\MacroWithoutSemicolon.cpp.xml");
 
@@ -127,7 +136,7 @@ namespace ABB.SrcML.Test
         [Test]
         public void DestructorWithIfStatement()
         {
-            var srcmlObject = new Src2SrcMLRunner(Path.Combine(".", "SrcML"));
+            var srcmlObject = new Src2SrcMLRunner(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
 
             var doc = srcmlObject.GenerateSrcMLFromFile("external\\DestructorWithIfStatement.cpp", "external_xml\\DestructorWithIfStatement.cpp.xml");
 
@@ -137,7 +146,7 @@ namespace ABB.SrcML.Test
         [Test]
         public void MethodWithFunctionPointerAsParameter()
         {
-            var srcmlObject = new Src2SrcMLRunner(Path.Combine(".", "SrcML"));
+            var srcmlObject = new Src2SrcMLRunner(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
 
             var doc = srcmlObject.GenerateSrcMLFromFile("external\\MethodWithFunctionPointerParameters.cpp", "external_xml\\MethodWithFunctionPointerParameters.cpp.xml");
 
@@ -146,7 +155,7 @@ namespace ABB.SrcML.Test
 
         [Test]
         public void TestCSharpExpressionWithDefaultKeyword() {
-            var generator = new SrcMLGenerator(TestConstants.SrcmlPath);
+            var generator = new SrcMLGenerator(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
             generator.GenerateSrcMLFromFile("external\\TestCSharpExpressionWithDefaultKeyword.cs", "external_xml\\TestCSharpExpressionWithDefaultKeyword.cs.xml");
             var fileUnit = SrcMLElement.Load("external_xml\\TestCSharpExpressionWithDefaultKeyword.cs.xml");
             var classB = fileUnit.Element(SRC.Class);
@@ -156,7 +165,7 @@ namespace ABB.SrcML.Test
 
         [Test]
         public void TestCppConstTypeModifier() {
-            var generator = new SrcMLGenerator(TestConstants.SrcmlPath);
+            var generator = new SrcMLGenerator(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
             generator.GenerateSrcMLFromFile("external\\TestCppTypeModifiers.cpp", "external_xml\\TestCppConstModifier.cpp.xml");
             var fileUnit = SrcMLElement.Load("external_xml\\TestCppConstModifier.cpp.xml");
             var typeWithConst = fileUnit.Descendants(SRC.Type).FirstOrDefault();
@@ -168,10 +177,10 @@ namespace ABB.SrcML.Test
 
         [Test]
         public void TestCppStaticTypeModifier() {
-            var generator = new SrcMLGenerator(TestConstants.SrcmlPath);
+            var generator = new SrcMLGenerator(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
             generator.GenerateSrcMLFromFile("external\\TestCppTypeModifiers.cpp", "external_xml\\TestCppStaticModifier.cpp.xml");
             var fileUnit = SrcMLElement.Load("external_xml\\TestCppStaticModifier.cpp.xml");
-            var typeWithStatic = fileUnit.Descendants(SRC.Type).LastOrDefault();
+            var typeWithStatic = fileUnit.Descendants(SRC.Declaration).LastOrDefault();
             Assert.IsNotNull(typeWithStatic);
             var staticModifier = typeWithStatic.Elements(SRC.Specifier).FirstOrDefault();
             Assert.IsNotNull(staticModifier);
@@ -180,7 +189,7 @@ namespace ABB.SrcML.Test
 
         [Test]
         public void TestCSharpExpressionWithSet() {
-            var generator = new SrcMLGenerator(TestConstants.SrcmlPath);
+            var generator = new SrcMLGenerator(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
             generator.GenerateSrcMLFromFile("external\\TestCSharpExpressionWithSet.cs", "external_xml\\TestCSharpExpressionWithSet.cs.xml");
             var fileUnit = SrcMLElement.Load("external_xml\\TestCSharpExpressionWithSet.cs.xml");
 
@@ -193,7 +202,7 @@ namespace ABB.SrcML.Test
 
         [Test]
         public void TestCSharpExpressionWithGet() {
-            var generator = new SrcMLGenerator(TestConstants.SrcmlPath);
+            var generator = new SrcMLGenerator(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
             generator.GenerateSrcMLFromFile("external\\TestCSharpExpressionWithGet.cs", "external_xml\\TestCSharpExpressionWithGet.cs.xml");
             var fileUnit = SrcMLElement.Load("external_xml\\TestCSharpExpressionWithGet.cs.xml");
 
@@ -206,7 +215,7 @@ namespace ABB.SrcML.Test
 
         [Test]
         public void TestCSharpExpressionWithAdd() {
-            var generator = new SrcMLGenerator(TestConstants.SrcmlPath);
+            var generator = new SrcMLGenerator(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
             generator.GenerateSrcMLFromFile("external\\TestCSharpExpressionWithAdd.cs", "external_xml\\TestCSharpExpressionWithAdd.cs.xml");
             var fileUnit = SrcMLElement.Load("external_xml\\TestCSharpExpressionWithAdd.cs.xml");
 
@@ -219,7 +228,7 @@ namespace ABB.SrcML.Test
 
         [Test]
         public void TestCSharpExpressionWithRemove() {
-            var generator = new SrcMLGenerator(TestConstants.SrcmlPath);
+            var generator = new SrcMLGenerator(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
             generator.GenerateSrcMLFromFile("external\\TestCSharpExpressionWithRemove.cs", "external_xml\\TestCSharpExpressionWithRemove.cs.xml");
             var fileUnit = SrcMLElement.Load("external_xml\\TestCSharpExpressionWithRemove.cs.xml");
 
@@ -229,17 +238,20 @@ namespace ABB.SrcML.Test
             Assert.IsNotNull(methodBlock);
             Assert.AreEqual(1, methodBlock.Elements(SRC.ExpressionStatement).Count());
         }
-
+        /// <summary>
+        /// "using" tag for csharp was changed to "using_stmt" in a newer version of srcML. Updated SRC.Using to reflect that.
+        /// Also, "Using" isn't followed by decl directly anymore. Instead, it's followed by init.
+        /// </summary>
         [Test]
         public void TestCSharpUsingStatement() {
-            var generator = new SrcMLGenerator(TestConstants.SrcmlPath);
+            var generator = new SrcMLGenerator(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
             generator.GenerateSrcMLFromFile("external\\TestCSharpUsingStatement.cs", "external_xml\\TestCSharpUsingStatement.cs.xml");
             var fileUnit = SrcMLElement.Load("external_xml\\TestCSharpUsingStatement.cs.xml");
 
-            var usingBlock = fileUnit.Elements(SRC.Using).FirstOrDefault();
+            var usingBlock = fileUnit.Elements(SRC.Using_Stmt).FirstOrDefault();
             Assert.IsNotNull(usingBlock);
 
-            Assert.AreEqual(1, usingBlock.Elements(SRC.Declaration).Count());
+            Assert.AreEqual(1, usingBlock.Elements(SRC.Init).Count());
             Assert.AreEqual(1, usingBlock.Elements(SRC.Block).Count());
         }
     }

@@ -28,25 +28,25 @@ namespace ABB.SrcML {
         /// <summary>
         /// The src2srcml executable name
         /// </summary>
-        public const string Src2SrcMLExecutableName = "src2srcml.exe";
+        public const string Src2SrcMLExecutableName = "srcml.exe";
 
         #region Constructors
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Src2SrcMLRunner"/> class.
+        /// Initializes a new instance of the <see cref="SrcDiffRunner"/> class.
         /// </summary>
         public Src2SrcMLRunner()
-            : this(SrcMLHelper.GetSrcMLDefaultDirectory()) {}
+            : this(SrcMLHelper.GetSrcMLRootDirectory()) {}
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Src2SrcMLRunner"/> class.
+        /// Initializes a new instance of the <see cref="SrcDiffRunner"/> class.
         /// </summary>
         /// <param name="applicationDirectory">The application directory.</param>
         public Src2SrcMLRunner(string applicationDirectory)
             : this(applicationDirectory, new[] {LIT.ArgumentLabel, OP.ArgumentLabel, TYPE.ArgumentLabel, POS.ArgumentLabel}) {}
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Src2SrcMLRunner"/> class.
+        /// Initializes a new instance of the <see cref="SrcDiffRunner"/> class.
         /// </summary>
         /// <param name="applicationDirectory">The application directory.</param>
         /// <param name="namespaceArguments">The namespace arguments.</param>

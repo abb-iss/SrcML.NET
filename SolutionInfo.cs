@@ -1,4 +1,4 @@
-﻿/******************************************************************************
+/******************************************************************************
  * Copyright (c) 2013 ABB Group
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -8,7 +8,7 @@
  * Contributors:
  *    Vinay Augustine (ABB Group) - initial API, implementation, & documentation
  *****************************************************************************/
- 
+
 using System.Reflection;
 using System.Resources;
 
@@ -28,8 +28,8 @@ using System.Resources;
  *
  * DO NOT EDIT IT BY HAND and DO NOT CHECK IN CHANGES TO IT
  *
- *****************************************************************************/ 
- 
+ *****************************************************************************/
+
 #if DEBUG
 [assembly: AssemblyConfiguration("Debug")]
 [assembly: AssemblyInformationalVersion("99.99.0.0-Debug-dev")]

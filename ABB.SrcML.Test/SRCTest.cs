@@ -47,18 +47,17 @@ namespace ABB.SrcML.Test
                 File.Delete(file);
             }
             Directory.Delete("srctest");
-            Directory.Delete("srctest_xml");
+            Directory.Delete("srctest_xml"); 
         }
 
         [Test]
         public void CheckPositionNumberWithSingleUnit()
         {
-            var srcmlObject = new ABB.SrcML.SrcML(Path.Combine(".", "SrcML"));
+            var srcmlObject = new ABB.SrcML.SrcML(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
 
             var doc = srcmlObject.GenerateSrcMLFromFile(@"srctest\foo.c", @"srctest_xml\singleunit_position.xml");
 
             var firstUnit = doc.FileUnits.First();
-
             Assert.AreEqual(0, firstUnit.GetSrcLinePosition());
             Assert.AreEqual(1, firstUnit.Descendants(SRC.Type).First().Element(SRC.Name).GetSrcLinePosition());
             Assert.AreEqual(1, firstUnit.Element(SRC.Function).GetSrcLinePosition());
@@ -77,7 +76,7 @@ namespace ABB.SrcML.Test
             File.WriteAllText("srctest\\singleunitlinenum.c", @"int foo() {
 printf(""hello world!"");
 }");
-            var srcmlObject = new Src2SrcMLRunner(Path.Combine(".", "SrcML"));
+            var srcmlObject = new Src2SrcMLRunner(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
 
             var doc = srcmlObject.GenerateSrcMLFromFile("srctest\\singleunitlinenum.c", @"srctest_xml\singleunit_linenumber.xml");
 
@@ -94,7 +93,7 @@ printf(""hello world!"");
             var source = @"int foo() {
 printf(""hello world!"");
 }";
-            var srcmlObject = new Src2SrcMLRunner(Path.Combine(".", "SrcML"));
+            var srcmlObject = new Src2SrcMLRunner(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
 
             var xml = srcmlObject.GenerateSrcMLFromString(source);
 
@@ -107,7 +106,7 @@ printf(""hello world!"");
         [Test]
         public void GetSrcLineNumberWithMultipleUnit()
         {
-            var srcmlObject = new Src2SrcMLRunner(Path.Combine(".", "SrcML"));
+            var srcmlObject = new Src2SrcMLRunner(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
 
             var doc = srcmlObject.GenerateSrcMLFromDirectory("srctest", "srctest_xml\\multipleunit_linenumber.xml");
             
@@ -122,7 +121,7 @@ printf(""hello world!"");
         {
             var text = File.ReadAllText("srctest\\foo.c");
 
-            var srcmlObject = new Src2SrcMLRunner(Path.Combine(".", "SrcML"));
+            var srcmlObject = new Src2SrcMLRunner(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
 
             var doc = srcmlObject.GenerateSrcMLFromFile("srctest\\foo.c", "srctest_xml\\srctest_tosource.xml");
 
@@ -136,7 +135,7 @@ printf(""hello world!"");
         [Test]
         public void ParentStatementTest()
         {
-            var srcmlObject = new Src2SrcMLRunner(Path.Combine(".", "SrcML"));
+            var srcmlObject = new Src2SrcMLRunner(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
 
             var doc = srcmlObject.GenerateSrcMLFromFile("srctest\\foo.c", "srctest_xml\\srctest_parentstatement.xml");
             var firstUnit = doc.FileUnits.First();
@@ -166,7 +165,7 @@ printf(""hello world!"");
     printf(""hello world!"");
     int x = 5;
 }";
-            var srcmlObject = new Src2SrcMLRunner(Path.Combine(".", "SrcML"));
+            var srcmlObject = new Src2SrcMLRunner(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
             var xml = srcmlObject.GenerateSrcMLFromString(source);
 
             var element = XElement.Parse(xml);

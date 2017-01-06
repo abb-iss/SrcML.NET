@@ -23,19 +23,18 @@ namespace ABB.SrcML
     /// <summary>
     /// Utility class for running srcml2src.exe
     /// </summary>
-    public class SrcML2SrcRunner : ExecutableRunner
-    {
+    public class SrcML2SrcRunner : ExecutableRunner {
         /// <summary>
         /// The srcml2src executable name
         /// </summary>
-        public const string SrcML2SrcExecutableName = "srcml2src.exe";
+        public const string SrcML2SrcExecutableName = "srcml.exe";
 
         #region Constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="SrcML2SrcRunner"/> class.
         /// </summary>
         public SrcML2SrcRunner()
-            : this(SrcMLHelper.GetSrcMLDefaultDirectory())
+            : this(SrcMLHelper.GetSrcMLRootDirectory())
         {
 
         }
@@ -57,8 +56,7 @@ namespace ABB.SrcML
         /// <param name="xmlFileName">Name of the XML file.</param>
         /// <param name="outputFileName">Name of the output file.</param>
         /// <param name="unitIndex">Index of the unit.</param>
-        public void ExtractSource(string xmlFileName, string outputFileName, int unitIndex)
-        {
+        public void ExtractSource(string xmlFileName, string outputFileName, int unitIndex) {
             var arguments = String.Format(CultureInfo.InvariantCulture, "--unit={0} --output=\"{1}\" \"{2}\"", unitIndex, outputFileName, xmlFileName);
             base.Run(arguments);
         }

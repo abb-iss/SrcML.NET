@@ -45,10 +45,10 @@ namespace ABB.SrcML
         private readonly string srcmlDir;
 
         /// <summary>executable name for src2srcml executable</summary>
-        public const string Src2SrcMLExecutableName = "src2srcml.exe";
+        public const string Src2SrcMLExecutableName = "srcml.exe";
 
         /// <summary>executable name for ExtractSourceFile executable</summary>
-        public const string SrcML2SrcExecutableName = "srcml2src.exe";
+        public const string SrcML2SrcExecutableName = "srcml.exe";
 
         /// <summary>
         /// Mapping of source extensions to their languages.
@@ -81,7 +81,7 @@ namespace ABB.SrcML
         /// If none of these directories is sued, the current directory is used.
         /// <seealso cref="SrcML(string)"/>
         /// </summary>
-        public SrcML() : this(SrcMLHelper.GetSrcMLDefaultDirectory())
+        public SrcML() : this(SrcMLHelper.GetSrcMLRootDirectory())
         {
         }
 

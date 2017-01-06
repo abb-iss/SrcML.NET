@@ -76,7 +76,7 @@ namespace ABB.SrcML.Test
         public void GenerateXmlForDirectoryTest() {
             ManualResetEvent resetEvent = new ManualResetEvent(false);
 
-            var archive = new SrcMLArchive(ArchiveDirectory, false, new SrcMLGenerator(TestConstants.SrcmlPath));
+            var archive = new SrcMLArchive(ArchiveDirectory, false, new SrcMLGenerator(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation)));
             FileEventType expectedEventType = FileEventType.FileAdded;
             FileEventType actualEventType = FileEventType.FileChanged;
 
@@ -157,7 +157,7 @@ namespace ABB.SrcML.Test
         public void TestDontUseExistingSrcML() {
             //convert the test files and place in the xml directory
             ManualResetEvent resetEvent = new ManualResetEvent(false);
-            var archive = new SrcMLArchive(ArchiveDirectory, false, new SrcMLGenerator(TestConstants.SrcmlPath));
+            var archive = new SrcMLArchive(ArchiveDirectory, false, new SrcMLGenerator(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation)));
             archive.FileChanged += (o, e) => { resetEvent.Set(); };
 
             string[] sourceFiles = new[] { @"..\..\TestInputs\foo.c", @"..\..\TestInputs\baz.cpp", @"..\..\TestInputs\function_def.cpp" };
@@ -181,7 +181,7 @@ namespace ABB.SrcML.Test
 
         [Test]
         public void TestEmptyArchive() {
-            var archive = new SrcMLArchive(ArchiveDirectory, false, new SrcMLGenerator(Path.Combine(".", "SrcML")));
+            var archive = new SrcMLArchive(ArchiveDirectory, false, new SrcMLGenerator(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation)));
             Assert.That(archive.IsEmpty);
             var foo_c = Path.Combine(SourceDirectory, "foo.c");
             File.WriteAllText(foo_c, String.Format(@"int foo() {{{0}printf(""hello world!"");{0}}}", Environment.NewLine));

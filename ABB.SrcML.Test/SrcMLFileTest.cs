@@ -78,9 +78,9 @@ namespace ABB.SrcML.Test
         [Test]
         public void SingleFileTest()
         {
-            File.WriteAllText("test.xml", @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>
-<unit xmlns=""http://www.sdml.info/srcML/src"" xmlns:cpp=""http://www.sdml.info/srcML/cpp"" xmlns:op=""http://www.sdml.info/srcML/operator"" xmlns:type=""http://www.sdml.info/srcML/modifier"" languageFilter=""C++"" dir="""" filename=""bar.c"">
-</unit>");
+            File.WriteAllText("test.xml", String.Format(@"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>
+<unit xmlns=""{0}"" xmlns:cpp=""{1}"" xmlns:op=""{2}"" xmlns:type=""{3}"" languageFilter=""C++"" dir="""" filename=""bar.c"">
+</unit>", SRC.NS, CPP.NS, OP.NS, TYPE.NS));
             var doc = new SrcMLFile("test.xml");
 
             Assert.IsNotNull(doc);
@@ -90,10 +90,10 @@ namespace ABB.SrcML.Test
         [Test]
         public void CompoundFileTest()
         {
-            File.WriteAllText("test.xml", @"<?xml version=""1.0"" encoding=""utf-8""?><unit xmlns=""http://www.sdml.info/srcML/src"">
+            File.WriteAllText("test.xml", String.Format(@"<?xml version=""1.0"" encoding=""utf-8""?><unit xmlns=""{0}"">
 <unit languageFilter=""C"" dir="""" filename=""foo.c""></unit>
 <unit languageFilter=""C"" dir="""" filename=""bar.c""></unit>
-</unit>");
+</unit>", SRC.NS));
 
             var doc = new SrcMLFile("test.xml");
 
@@ -104,10 +104,10 @@ namespace ABB.SrcML.Test
         [Test]
         public void DisjunctMergedFileTest()
         {
-            File.WriteAllText("test.xml", @"<?xml version=""1.0"" encoding=""utf-8""?><unit xmlns=""http://www.sdml.info/srcML/src"">
+            File.WriteAllText("test.xml", String.Format(@"<?xml version=""1.0"" encoding=""utf-8""?><unit xmlns=""{0}"">
 <unit languageFilter=""C"" filename=""c:\Test\foo.c""></unit>
 <unit languageFilter=""C"" filename=""z:\Release\bar.c""></unit>
-</unit>");
+</unit>", SRC.NS));
 
             var doc = new SrcMLFile("test.xml");
 
@@ -118,13 +118,13 @@ namespace ABB.SrcML.Test
         [Test]
         public void WhitespaceInCompoundDocumentTest()
         {
-            File.WriteAllText("test.xml", @"<?xml version=""1.0"" encoding=""utf-8""?><unit xmlns=""http://www.sdml.info/srcML/src"">
+            File.WriteAllText("test.xml", String.Format(@"<?xml version=""1.0"" encoding=""utf-8""?><unit xmlns=""{0}"">
 <unit languageFilter=""C"" filename=""c:\Test\foo.c"">
 <comment type=""line"">//line1</comment>
 <comment type=""line"">//line2</comment>
 </unit>
 <unit languageFilter=""C"" filename=""z:\Test\bar.c""></unit>
-</unit>");
+</unit>", SRC.NS));
 
             var doc = new SrcMLFile("test.xml");
 
@@ -140,10 +140,10 @@ namespace ABB.SrcML.Test
         [Test]
         public void WhitespaceInSingleDocumentTest()
         {
-            File.WriteAllText("test.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
-<unit  xmlns=""http://www.sdml.info/srcML/src"" languageFilter=""C"" dir=""c:\Test"" filename=""foo.c""><comment type=""line"">//line1</comment>
+            File.WriteAllText("test.xml", String.Format(@"<?xml version=""1.0"" encoding=""utf-8""?>
+<unit  xmlns=""{0}"" languageFilter=""C"" dir=""c:\Test"" filename=""foo.c""><comment type=""line"">//line1</comment>
 <comment type=""line"">//line2</comment>
-</unit>");
+</unit>", SRC.NS));
 
             var doc = new SrcMLFile("test.xml");
 
@@ -159,7 +159,7 @@ namespace ABB.SrcML.Test
         [Test]
         public void ExtraNewlinesInMergedDocumentTest()
         {
-            var srcmlObject = new Src2SrcMLRunner(Path.Combine(".", "SrcML"));
+            var srcmlObject = new Src2SrcMLRunner(Path.Combine(SrcMLHelper.GetSrcMLRootDirectory(), SrcMLHelper.srcMLExecutableLocation));
 
             var doc = srcmlObject.GenerateSrcMLFromDirectory("srcmlfiletest", "test.xml");
 
@@ -176,14 +176,14 @@ namespace ABB.SrcML.Test
         [Timeout(5000)]
         public void EmptyElementTest()
         {
-            File.WriteAllText("test.xml", @"<?xml version=""1.0"" encoding=""utf-8""?>
-<unit  xmlns=""http://www.sdml.info/srcML/src"">
+            File.WriteAllText("test.xml", String.Format(@"<?xml version=""1.0"" encoding=""utf-8""?>
+<unit  xmlns=""{0}"">
 <unit languageFilter=""C"" dir=""c:\Test"" filename=""beforeBlank.c""><expr_stmt /></unit>
 <unit languageFilter=""C"" dir=""c:\Test"" filename=""foo.c"" />
 <unit languageFilter=""C"" dir=""c:\Test"" filename=""bar.c""><comment type=""line"">//line1</comment>
 <comment type=""line"">//line2</comment>
 </unit>
-</unit>");
+</unit>", SRC.NS));
             var doc = new SrcMLFile("test.xml");
             Assert.AreEqual(3, doc.FileUnits.Count());
         }

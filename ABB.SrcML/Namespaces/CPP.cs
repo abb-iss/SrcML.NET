@@ -25,7 +25,7 @@ namespace ABB.SrcML
         /// <summary>
         /// XNamespace for the SrcML CPP XML namespace
         /// </summary>
-        public static readonly XNamespace NS = "http://www.sdml.info/srcML/cpp";
+        public static readonly XNamespace NS = "http://www.srcML.org/srcML/cpp";
 
         /// <summary>
         /// XMLNS prefix for the SrcML CPP namespace

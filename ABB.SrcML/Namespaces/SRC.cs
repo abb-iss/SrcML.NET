@@ -25,7 +25,7 @@ namespace ABB.SrcML {
         /// <summary>
         /// XNamespace for the SrcML SRC XML namespace
         /// </summary>
-        public static readonly XNamespace NS = "http://www.sdml.info/srcML/src";
+        public static readonly XNamespace NS = "http://www.srcML.org/srcML/src";
 
         /// <summary>
         /// XMLNS prefix for the SrcML SRC namespace
@@ -299,7 +299,7 @@ namespace ABB.SrcML {
         /// <summary>
         /// markup for the param tag
         /// </summary>
-        public static readonly XName Parameter = NS + "param";
+        public static readonly XName Parameter = NS + "parameter";
 
         /// <summary>
         /// markup for the specifier tag
@@ -421,6 +421,11 @@ namespace ABB.SrcML {
         /// </summary>
         public static readonly XName Namespace = NS + "namespace";
 
+        /// <summary>
+        /// markup for the using tag when used as statement
+        /// </summary>
+        public static readonly XName Using_Stmt = NS + "using_stmt";
+        
         /// <summary>
         /// markup for the using tag
         /// </summary>
